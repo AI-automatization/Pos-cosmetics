@@ -1,0 +1,46 @@
+{
+  "name": "raos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RAOS — Retail & Asset Operating System",
+  "scripts": {
+    "dev:api": "pnpm --filter api dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:worker": "pnpm --filter worker dev",
+    "dev:bot": "pnpm --filter bot dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "db:migrate": "pnpm --filter api prisma:migrate",
+    "db:generate": "pnpm --filter api prisma:generate",
+    "db:studio": "pnpm --filter api prisma:studio",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.4",
+    "typescript": "^5.7.3",
+    "prettier": "^3.5.3",
+    "eslint": "^9.21.0",
+    "@eslint/js": "^9.21.0",
+    "typescript-eslint": "^8.24.1"
+  },
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "@nestjs/core",
+      "esbuild",
+      "sharp",
+      "msgpackr-extract",
+      "@scarf/scarf"
+    ]
+  }
+}
