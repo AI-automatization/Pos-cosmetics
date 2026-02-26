@@ -12,15 +12,17 @@
 ```
 Salom! Men RAOS loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
-  1. Bekzod (Backend & DevOps)
+  1. Yormatov (Backend & DevOps)
   2. Abdulaziz (Frontend — Web Admin Panel)
-  3. Ibrat (Mobile — React Native Android)
+  3. Ibrat (Mobile — React Native Android & IOS)
+  4. Bekzod (Tester & DevOps & Architector)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 - Bekzod → `CLAUDE_BACKEND.md`
 - Abdulaziz → `CLAUDE_FRONTEND.md`
 - Ibrat → `CLAUDE_MOBILE.md`
+- Yormatov → `CLAUDE_BACKEND.md`
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 
@@ -55,9 +57,9 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 ```
 apps/
-  api/             → Bekzod zonasi (Backend API — NestJS)
-  worker/          → Bekzod zonasi (BullMQ processors)
-  bot/             → Bekzod zonasi (Telegram bot — grammY)
+  api/             → Bekzod & Yormatov zonasi (Backend API — NestJS)
+  worker/          → Bekzod & Yormatov zonasi (BullMQ processors)
+  bot/             → Bekzod & Yormatov zonasi (Telegram bot — grammY)
   web/             → Abdulaziz zonasi (Admin Panel — Next.js)
   pos/             → Abdulaziz zonasi (POS Desktop — Tauri)
   mobile/          → Ibrat zonasi (React Native — Android)
@@ -66,8 +68,8 @@ packages/
   utils/           → UMUMIY — kelishib o'zgartirish
   ui/              → UMUMIY — shared UI components
   sync-engine/     → UMUMIY — offline sync logic
-prisma/            → Bekzod boshqaradi (schema + migrations)
-docker/            → Bekzod boshqaradi (infra)
+prisma/            → Bekzod & Yormatov boshqaradi (schema + migrations)
+docker/            → Bekzod & Yormatov boshqaradi (infra)
 docs/              → Hammaga ochiq
 ```
 
@@ -237,6 +239,8 @@ bekzod/feat-[feature-name]
 bekzod/fix-[bug-description]
 abdulaziz/feat-[feature-name]
 ibrat/feat-[feature-name]
+yormatov/feat-[feature-name]
+yormatov/fix-[bug-description]
 
 # Commit format (Conventional Commits — MAJBURIY):
 feat(module): short description in English
@@ -487,9 +491,9 @@ pnpm -r exec tsc --noEmit
 
 | Fayl | Kim uchun |
 |------|-----------|
-| `CLAUDE_BACKEND.md` | Bekzod (Backend & DevOps) |
+| `CLAUDE_BACKEND.md` | Bekzod (Backend & DevOps), Yormatov (Tester & DevOps) |
 | `CLAUDE_FRONTEND.md` | Abdulaziz (Frontend — Web & POS) |
-| `CLAUDE_MOBILE.md` | Ibrat (Mobile — React Native Android) |
+| `CLAUDE_MOBILE.md` | Ibrat (Mobile — React Native Android & IOS) |
 | `docs/Tasks.md` | Ochiq vazifalar |
 | `docs/Done.md` | Bajarilgan ishlar |
 
