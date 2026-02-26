@@ -496,3 +496,5 @@ pnpm -r exec tsc --noEmit
 ---
 
 *CLAUDE.md | RAOS | v1.0*
+
+claude --dangerously-skip-permissions
