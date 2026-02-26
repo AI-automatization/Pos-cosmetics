@@ -26,3 +26,10 @@ export const PAYMENT_FAILED = 'payment.failed';
 // Ledger events
 export const LEDGER_ENTRY_CREATED = 'ledger.entry.created';
 export const LEDGER_ENTRY_REVERSED = 'ledger.entry.reversed';
+
+// Identity events
+export const TENANT_REGISTERED = 'identity.tenant.registered';
+export const USER_LOGGED_IN = 'identity.user.logged_in';
+export const USER_CREATED = 'identity.user.created';
+export const USER_UPDATED = 'identity.user.updated';
+export const USER_DEACTIVATED = 'identity.user.deactivated';
