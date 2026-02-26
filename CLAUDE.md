@@ -265,9 +265,11 @@ docs(module): documentation update
 
 ## 📝 LOGGING STANDARTLARI
 
-### Backend (NestJS Logger)
+### Backend (Winston-backed NestJS Logger)
 
 ```typescript
+// NestJS Logger — avtomatik Winston orqali file ga yozadi
+// requestId, tenantId, userId avtomatik qo'shiladi (AsyncLocalStorage)
 import { Logger } from '@nestjs/common';
 
 @Injectable()
@@ -280,6 +282,7 @@ export class MyService {
     this.logger.error('Failed', { error: err.message, stack: err.stack });
   }
 }
+// console.log TAQIQLANGAN → faqat NestJS Logger ishlatish
 ```
 
 ### Worker (Structured JSON)
@@ -291,41 +294,47 @@ logJobDone(queue, jobId, jobName, durationMs);
 logJobError(queue, jobId, jobName, err);
 ```
 
-### API Request Logger (Interceptor)
+### API Request Logger (Interceptor — avtomatik)
 
-```typescript
-interface RequestLog {
-  request_id: string;
-  timestamp: string;
-  method: string;
-  url: string;
-  status: number;
-  duration_ms: number;
-  tenant_id: string | null;
-  user_id: string | null;
-  ip: string;
-  is_slow: boolean;           // > 500ms
-  error: string | null;
-}
-// Sensitive data: password, token, secret → [REDACTED]
+```
+Har request avtomatik log qilinadi:
+- requestId (UUID, X-Request-Id header)
+- tenantId, userId (JWT dan)
+- method, url, status, durationMs, ip
+- isSlow (> 500ms → warn)
+- Sensitive data avtomatik [REDACTED]: password, token, secret, authorization
 ```
 
-### Frontend & Mobile
+### Frontend & Mobile — Client Error Reporting
 
 ```typescript
 // Production da console.log TAQIQLANGAN
-if (import.meta.env.DEV) {
-  console.log('[debug]', data);
-}
-// Production: Sentry error tracking
+// Error Boundary + window.onerror → POST /api/v1/logs/client-error
+// API interceptor da 5xx errorlarni avtomatik yuborish
+
+// Client error endpoint:
+// POST /api/v1/logs/client-error (public, rate-limited 30/min)
+// Body: { source, error, stack?, url?, userAgent?, tenantId?, userId? }
 ```
 
-### Log fayl rotation
+### Log fayllar
 
 ```
 logs/
-  api-2026-02-26.log
-  worker-2026-02-26.log
+  api-YYYY-MM-DD.log       ← Barcha API requestlar (JSON, daily rotation)
+  errors-YYYY-MM-DD.log    ← Faqat 5xx errorlar (JSON)
+  client-YYYY-MM-DD.log    ← Frontend/Mobile/POS errorlar (JSON)
+```
+
+Rotation: kunlik, max 20MB, 14 kun saqlash.
+
+### Claude Integration
+
+```
+Har sessiya boshida:
+1. logs/ papkani tekshir
+2. errors-*.log va client-*.log dan so'nggi errorlarni o'qi
+3. Takroriy/kritik errorlarni → docs/Tasks.md ga P0/P1 task sifatida yoz
 ```
 
 ---

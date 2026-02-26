@@ -4,17 +4,18 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { AppLoggerService } from '../logger/logger.service';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalExceptionFilter.name);
+  constructor(private readonly logger: AppLoggerService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
@@ -30,8 +31,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       code = `HTTP_${status}`;
     }
 
-    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-      this.logger.error('Unhandled exception', exception instanceof Error ? exception.stack : exception);
+    const errorData = {
+      method: request.method,
+      url: request.url,
+      status,
+      error:
+        exception instanceof Error
+          ? { name: exception.name, message: exception.message, stack: exception.stack }
+          : { message: String(exception) },
+    };
+
+    if (status >= 500) {
+      this.logger.logWithContext('error', `${request.method} ${request.url} ${status}`, 'Exception', errorData);
+    } else {
+      this.logger.logWithContext('warn', `${request.method} ${request.url} ${status}`, 'Exception', errorData);
     }
 
     response.status(status).json({

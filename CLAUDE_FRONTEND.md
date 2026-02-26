@@ -499,6 +499,52 @@ const { t } = useTranslation();
 
 ---
 
+## 📝 LOGGING (Client Error Reporting)
+
+### Qoidalar
+
+```
+1. Production da console.log TAQIQLANGAN
+2. Development da: if (process.env.NODE_ENV === 'development') console.log(...)
+3. Error Boundary component MAJBURIY — render errorlarni ushlaydi
+4. API interceptor 5xx errorlarni avtomatik POST /api/v1/logs/client-error ga yuboradi
+5. window.onerror va window.onunhandledrejection handle qilinishi SHART
+```
+
+### Error reporting endpoint
+
+```typescript
+// POST /api/v1/logs/client-error (public, auth kerak emas)
+interface ClientErrorPayload {
+  source: 'web' | 'mobile' | 'pos';
+  error: string;        // error message
+  stack?: string;       // stack trace
+  url?: string;         // sahifa URL
+  userAgent?: string;   // browser info
+  tenantId?: string;    // agar mavjud
+  userId?: string;      // agar mavjud
+}
+
+// Axios interceptor da:
+api.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    if (err.response?.status >= 500) {
+      reportClientError({
+        source: 'web',
+        error: err.message,
+        stack: err.stack,
+        url: window.location.pathname,
+        userAgent: navigator.userAgent,
+      });
+    }
+    return Promise.reject(err);
+  },
+);
+```
+
+---
+
 ## 🚫 TAQIQLANGAN
 
 ```

@@ -1,4 +1,4 @@
-# [LOYIHA_NOMI] — OCHIQ VAZIFALAR
+# RAOS — OCHIQ VAZIFALAR
 # Yangilangan: 2026-XX-XX
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
@@ -59,4 +59,4 @@ _(hozircha yo'q)_
 
 ---
 
-*docs/Tasks.md | [LOYIHA_NOMI]*
+*docs/Tasks.md | RAOS*

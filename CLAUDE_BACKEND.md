@@ -710,10 +710,32 @@ services:
 
 ---
 
-## 📝 LOGGING
+## 📝 LOGGING (Winston-backed)
+
+### Arxitektura
+
+```
+Request → RequestIdMiddleware (UUID + AsyncLocalStorage)
+        → JwtAuthGuard (tenantId, userId → context)
+        → RequestLoggerInterceptor (request/response logging)
+        → Controller → Service
+        → GlobalExceptionFilter (error logging)
+```
+
+### Log fayllar
+
+```
+logs/
+  api-YYYY-MM-DD.log       ← Barcha API requestlar (JSON)
+  errors-YYYY-MM-DD.log    ← Faqat 5xx errorlar (JSON)
+  client-YYYY-MM-DD.log    ← Frontend/Mobile/POS errorlar (JSON)
+```
+
+### Service larda logging
 
 ```typescript
-// NestJS Logger — console.log EMAS:
+// NestJS Logger — avtomatik Winston orqali file ga yozadi
+// requestId, tenantId, userId avtomatik qo'shiladi
 private readonly logger = new Logger(MyService.name);
 
 this.logger.log('Operation started', { tenantId, productId });
@@ -724,8 +746,17 @@ this.logger.error('External API failed', {
   tenantId,
 });
 
-// Sensitive data: password, token, secret, card_number → [REDACTED]
-// Log rotation: logs/api-YYYY-MM-DD.log
+// console.log TAQIQLANGAN → faqat NestJS Logger
+// Sensitive data avtomatik [REDACTED]: password, token, secret, authorization
+// Rotation: kunlik, max 20MB, 14 kun saqlash
+```
+
+### Client error endpoint
+
+```
+POST /api/v1/logs/client-error (@Public, 30 req/min)
+Body: { source: 'web'|'mobile'|'pos', error, stack?, url?, userAgent?, tenantId?, userId? }
+→ logs/client-YYYY-MM-DD.log
 ```
 
 ---
