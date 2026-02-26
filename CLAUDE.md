@@ -12,14 +12,15 @@
 ```
 Salom! Men [LOYIHA_NOMI] loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
-  1. [ISM_1] ([ROL_1])
-  2. [ISM_2] ([ROL_2])
-  3. [ISM_3] ([ROL_3])
+  1. [Bekzod] ([Backend and DevOps])
+  2. [Abdulaziz] ([Frontend (WEB)])
+  3. [Ibrat] ([Mobile (react-native: only android)])
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
-- [ISM_1] → `CLAUDE_BACKEND.md`
-- [ISM_2] → `CLAUDE_FRONTEND.md`
+- [Bekzod] → `CLAUDE_BACKEND.md`
+- [Abdulaziz] → `CLAUDE_FRONTEND.md`
+- [Ibrat] → `CLAUDE_MOBILE.md`
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 
@@ -27,7 +28,7 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 ## 📁 LOYIHA
 
-**[LOYIHA_NOMI]** — [qisqa tavsif, 1 qator]
+**[Pos-Cosmetics]** — [qisqa tavsif, 1 qator]
 
 | Layer | Tech | Port |
 |-------|------|------|
