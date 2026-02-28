@@ -48,7 +48,7 @@
 
 ## T-011 | P0 | [BACKEND] | Catalog module — Prisma schema (products, categories, units, barcodes)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/prisma/schema.prisma`
 - **Vazifa:**
   - `categories` jadvali: id, tenant_id, name, parent_id (nested), sort_order, is_active, created_at, updated_at, deleted_at
@@ -63,7 +63,7 @@
 
 ## T-012 | P0 | [BACKEND] | Catalog module — CRUD service + controller
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/catalog/`
 - **Vazifa:**
   - `CatalogModule`, `CatalogService`, `CatalogController`
@@ -80,7 +80,7 @@
 
 ## T-013 | P0 | [BACKEND] | Sales module — Prisma schema (orders, order_items, shifts)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/prisma/schema.prisma`
 - **Vazifa:**
   - `shifts` jadvali: id, tenant_id, user_id, branch_id, opened_at, closed_at, opening_cash, closing_cash, expected_cash, notes, status (OPEN/CLOSED)
@@ -96,7 +96,7 @@
 
 ## T-014 | P0 | [BACKEND] | Sales module — Order creation service + shift management
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/sales/`
 - **Vazifa:**
   - `SalesModule`, `SalesService`, `SalesController`
@@ -116,7 +116,7 @@
 
 ## T-015 | P0 | [BACKEND] | Payments module — Cash + Terminal (card) payment
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/payments/`
 - **Vazifa:**
   - `PaymentsModule`, `PaymentsService`, `PaymentsController`
@@ -132,7 +132,7 @@
 
 ## T-016 | P0 | [FRONTEND] | Admin Panel — Catalog UI (Products CRUD + Categories)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Catalog/`
 - **Vazifa:**
   - Products list sahifasi: DataTable (sortable, filterable, paginated)
@@ -148,7 +148,7 @@
 
 ## T-017 | P0 | [FRONTEND] | POS Sale Screen — Cart + Barcode + Payment
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/POS/` (MVP da web-based POS, Tauri keyinroq)
 - **Vazifa:**
   - **Layout:** Chap — product search/list + cart | O'ng — total, discount, payment
@@ -166,7 +166,7 @@
 
 ## T-018 | P0 | [FRONTEND] | Shift management UI — Open/Close shift
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/POS/Shift/`
 - **Vazifa:**
   - Shift ochish: opening cash summasini kiritish
@@ -179,7 +179,7 @@
 
 ## T-019 | P0 | [BACKEND] | Receipt printing — ESC/POS format endpoint
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/sales/receipt/`
 - **Vazifa:**
   - GET /orders/:id/receipt — chek ma'lumotlarini qaytarish (structured JSON)
@@ -192,7 +192,7 @@
 
 ## T-020 | P0 | [FRONTEND] | Receipt print UI — Browser print + template
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/components/Receipt/`
 - **Vazifa:**
   - Receipt HTML template (80mm thermal printer o'lchamida)
@@ -215,7 +215,7 @@
 
 ## T-021 | P0 | [BACKEND] | Inventory module — Prisma schema (stock_movements, warehouses)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/prisma/schema.prisma`
 - **Vazifa:**
   - `warehouses` jadvali: id, tenant_id, name, address, is_default, is_active, created_at
@@ -230,7 +230,7 @@
 
 ## T-022 | P0 | [BACKEND] | Inventory module — Stock movement service + kirim/chiqim
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/inventory/`
 - **Vazifa:**
   - `InventoryModule`, `InventoryService`, `InventoryController`
@@ -247,7 +247,7 @@
 
 ## T-023 | P0 | [FRONTEND] | Inventory UI — Stock levels + Kirim (nakladnoy)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Inventory/`
 - **Vazifa:**
   - **Stock levels page:** DataTable — product nomi, barcode, current qty, min level, status (OK/LOW/OUT)
@@ -263,7 +263,7 @@
 
 ## T-024 | P1 | [BACKEND] | Reports module — Daily revenue, top products, basic finance
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/reports/`
 - **Vazifa:**
   - `ReportsModule`, `ReportsService`, `ReportsController`
@@ -279,7 +279,7 @@
 
 ## T-025 | P1 | [FRONTEND] | Reports UI — Dashboard + Daily sales + Top products
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Dashboard/`, `apps/web/src/pages/Reports/`
 - **Vazifa:**
   - **Dashboard:** bugungi savdo, haftalik trend chart, top 5 product, low stock alerts
@@ -299,7 +299,7 @@
 
 ## T-026 | P1 | [BACKEND] | Returns/Refund — service + admin PIN verification
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/sales/`
 - **Vazifa:**
   - POST /orders/:id/return — qaytarish yaratish (items, reason, admin_pin)
@@ -318,7 +318,7 @@
 
 ## T-027 | P1 | [BACKEND] | Audit log — Barcha CRUD operatsiyalar log qilinadi
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/interceptors/audit.interceptor.ts`
 - **Vazifa:**
   - `audit_logs` jadvali: id, tenant_id, user_id, action (CREATE/UPDATE/DELETE/VOID/RETURN/LOGIN/SHIFT_OPEN/SHIFT_CLOSE), entity_type, entity_id, old_data (JSON), new_data (JSON), ip, user_agent, created_at
@@ -331,7 +331,7 @@
 
 ## T-028 | P1 | [FRONTEND] | Returns UI — Qaytarish + Admin tasdiqlash
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Sales/Returns/`
 - **Vazifa:**
   - POS dan return boshlash: order tanlash → items tanlash → reason → admin PIN
@@ -344,7 +344,7 @@
 
 ## T-029 | P1 | [FRONTEND] | Users & Roles UI — Foydalanuvchilar boshqaruvi
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Settings/Users/`
 - **Vazifa:**
   - Users list: DataTable — name, role, status, last_login
@@ -358,7 +358,7 @@
 
 ## T-030 | P1 | [FRONTEND] | Audit log UI — Admin panel
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Settings/AuditLog/`
 - **Vazifa:**
   - Audit log list: DataTable — sana, user, action, entity, detail
@@ -377,7 +377,7 @@
 
 ## T-031 | P1 | [BACKEND] | Expiry tracking — Expiring soon report + alerts
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/inventory/`
 - **Vazifa:**
   - GET /inventory/expiring?days=30 — yaroqlilik muddati 30/60/90 kun ichida tugaydigan productlar
@@ -392,7 +392,7 @@
 
 ## T-032 | P1 | [BACKEND] | Expenses module — Simple expense tracking
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/finance/`
 - **Vazifa:**
   - `expenses` jadvali: id, tenant_id, category (RENT/SALARY/DELIVERY/UTILITIES/OTHER), description, amount, date, user_id, created_at
@@ -407,7 +407,7 @@
 
 ## T-033 | P1 | [FRONTEND] | Expiry report UI — Yaroqlilik muddati hisoboti
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Inventory/Expiry/`
 - **Vazifa:**
   - Expiring soon page: DataTable — product, batch, expiry_date, qty, days_left
@@ -421,7 +421,7 @@
 
 ## T-034 | P1 | [FRONTEND] | Expenses UI — Xarajatlar + Foyda hisoboti
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Finance/`
 - **Vazifa:**
   - Expenses list: DataTable + Create form (category, description, amount, date)
@@ -434,7 +434,7 @@
 
 ## T-035 | P1 | [BACKEND] | Ledger module — Double-entry journal (MVP — basic)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/ledger/`
 - **Vazifa:**
   - `LedgerModule`, `LedgerService` (Controller YO'Q — faqat internal)
@@ -450,7 +450,7 @@
 
 ## T-036 | P1 | [BACKEND] | Fiscal adapter — "Ready" dizayn (placeholder)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/tax/`
 - **Vazifa:**
   - `TaxModule`, `FiscalAdapterService`
@@ -480,7 +480,7 @@
 
 ## T-038 | P0 | [IKKALASI] | Shared types — API contract (request/response DTOs)
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov + Abdulaziz
+- **Mas'ul:** Polat + AbdulazizYormatov
 - **Fayl:** `packages/types/`
 - **Vazifa:**
   - Product, Category, Unit types
@@ -496,7 +496,7 @@
 
 ## T-039 | P0 | [BACKEND] | Domain events setup — EventEmitter2 integration
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/events/`
 - **Vazifa:**
   - NestJS EventEmitter2 integratsiya
@@ -520,7 +520,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-040 | P2 | [BACKEND] | Telegram notifications — Low stock, shift close, suspicious refund
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/bot/`
 - **Vazifa:**
   - grammY bot setup
@@ -533,7 +533,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-041 | P2 | [FRONTEND] | Supplier management — CRUD + product linking
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Catalog/Suppliers/`
 - **Vazifa:**
   - Suppliers CRUD: name, phone, company, address
@@ -545,7 +545,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-042 | P2 | [BACKEND] | Supplier module — CRUD service
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/catalog/`
 - **Vazifa:**
   - `suppliers` jadvali: id, tenant_id, name, phone, company, address, is_active
@@ -612,7 +612,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-050 | P0 | [BACKEND] | Customer module — Prisma schema + CRUD
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/prisma/schema.prisma`, `apps/api/src/customers/`
 - **Vazifa:**
   - `customers` jadvali: id, tenant_id, name, phone (UNIQUE per tenant — O'zbekistonda asosiy identifikator), telegram_username, address, notes, debt_balance (calculated), total_purchases, visit_count, last_visit_at, debt_limit, is_blocked, created_at, updated_at, deleted_at
@@ -629,7 +629,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-051 | P0 | [BACKEND] | Nasiya (qarz) module — Qarz yaratish + to'lash
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/customers/nasiya/`
 - **Vazifa:**
   - `debts` jadvali: id, tenant_id, customer_id, order_id, amount, paid_amount, remaining, due_date, status (ACTIVE/PARTIALLY_PAID/PAID/OVERDUE/WRITTEN_OFF), notes, created_at
@@ -651,7 +651,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-052 | P0 | [FRONTEND] | Nasiya UI — POS da qarzga sotish
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/POS/`
 - **Vazifa:**
   - POS payment panelda "Nasiya" tugmasi (F7)
@@ -666,7 +666,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-053 | P0 | [FRONTEND] | Nasiya management UI — Qarzlar ro'yxati + to'lov qabul
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Customers/`
 - **Vazifa:**
   - **Customers list:** DataTable — name, phone, total debt, last visit, status
@@ -682,7 +682,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-054 | P1 | [BACKEND] | Nasiya reminders — SMS/Telegram orqali eslatish
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/notifications/`
 - **Vazifa:**
   - Due date dan 3 kun oldin: avtomatik Telegram/SMS reminder
@@ -703,7 +703,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-055 | P0 | [BACKEND] | Super Admin auth — Cross-tenant access
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/identity/`
 - **Vazifa:**
   - `admin_users` jadvali: id, email, password_hash, name, role (SUPER_ADMIN/SUPPORT), is_active, created_at
@@ -717,7 +717,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-056 | P0 | [BACKEND] | Founder Dashboard API — Aggregated metrics
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/admin/`
 - **Vazifa:**
   - `AdminModule`, `AdminService`, `AdminController`
@@ -734,7 +734,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-057 | P0 | [FRONTEND] | Founder Dashboard UI — Main monitoring panel
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Admin/`
 - **Vazifa:**
   - **Alohida layout** /admin/* — SaaS owner uchun (tenant admin paneldan farqli)
@@ -762,7 +762,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-058 | P1 | [BACKEND] | Tenant impersonation — "Login as" any tenant
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/admin/`
 - **Vazifa:**
   - POST /admin/impersonate/:tenantId — vaqtinchalik token (1 soat, read-only option)
@@ -775,7 +775,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-059 | P1 | [BACKEND] | Tenant provisioning wizard — One-click setup
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/admin/`
 - **Vazifa:**
   - POST /admin/tenants/provision — yangi tenant yaratish:
@@ -792,7 +792,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-060 | P1 | [FRONTEND] | Founder — Tenant provisioning UI
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Admin/Tenants/`
 - **Vazifa:**
   - "Yangi do'kon qo'shish" wizard: 3 step (info → owner → confirm)
@@ -804,7 +804,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-061 | P1 | [BACKEND] | Real-time events — WebSocket/SSE for live data
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/realtime/`
 - **Vazifa:**
   - NestJS WebSocket Gateway (Socket.io)
@@ -827,7 +827,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-062 | P0 | [BACKEND] | Outbox pattern — Server-side sync endpoint
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/sync/`
 - **Vazifa:**
   - `SyncModule`, `SyncService`, `SyncController`
@@ -847,7 +847,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-063 | P0 | [IKKALASI] | Sync engine package — Core offline logic
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov + Abdulaziz
+- **Mas'ul:** Polat + AbdulazizYormatov
 - **Fayl:** `packages/sync-engine/`
 - **Vazifa:**
   - `sync_outbox` table schema (for SQLite and PostgreSQL)
@@ -863,7 +863,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-064 | P0 | [FRONTEND] | Sync status UI — Persistent status bar
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/components/SyncStatus/`
 - **Vazifa:**
   - POS ekranda persistent status bar:
@@ -880,7 +880,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-065 | P1 | [FRONTEND] | Local data cache — Product catalog offline
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/` (IndexedDB/localStorage)
 - **Vazifa:**
   - Product catalog IndexedDB da cache (barcha products + prices + stock)
@@ -894,7 +894,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-066 | P1 | [FRONTEND] | Power outage recovery — Cart state persistence
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/POS/`
 - **Vazifa:**
   - Cart state har 5 sekundda localStorage/IndexedDB ga auto-save
@@ -913,7 +913,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-067 | P0 | [BACKEND] | Failed login lockout — Brute-force himoya
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/identity/`
 - **Vazifa:**
   - 5 muvaffaqiyatsiz urinish → 15 daqiqa lock
@@ -927,7 +927,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-068 | P0 | [BACKEND] | Admin PIN — Sensitive operatsiyalar uchun
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/identity/`
 - **Vazifa:**
   - User jadvaliga: `pin_hash` field (4-6 raqam, bcrypt)
@@ -941,7 +941,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-069 | P1 | [BACKEND] | Session management — Active sessions tracking
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/identity/`
 - **Vazifa:**
   - `sessions` jadvali: id, user_id, tenant_id, device_info, ip, last_active, created_at
@@ -955,7 +955,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-070 | P1 | [BACKEND] | Employee activity monitor — Fraud detection
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/reports/`
 - **Vazifa:**
   - Per-cashier metrics: void count, refund count, discount total, avg transaction value
@@ -968,7 +968,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-071 | P1 | [BACKEND] | API Key auth — POS sync uchun long-lived token
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/identity/`
 - **Vazifa:**
   - `api_keys` jadvali: id, tenant_id, branch_id, key_hash, name, scopes, last_used, is_active, created_at, expires_at
@@ -982,7 +982,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-072 | P1 | [BACKEND] | Input sanitization — XSS/injection himoya
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/pipes/`
 - **Vazifa:**
   - Global pipe: HTML strip from all text inputs
@@ -1002,7 +1002,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-073 | P0 | [BACKEND] | Redis caching layer — Product catalog + stock cache
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/cache/`
 - **Vazifa:**
   - NestJS CacheModule + Redis adapter
@@ -1019,7 +1019,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-074 | P0 | [BACKEND] | Database indexing — Critical query optimization
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/prisma/schema.prisma`
 - **Vazifa:**
   - Composite indexes: [tenant_id, created_at] on orders, [tenant_id, barcode] on products, [tenant_id, product_id, warehouse_id] on stock_movements
@@ -1032,7 +1032,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-075 | P1 | [BACKEND] | Stock snapshot materialization — Hourly recalculation
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/inventory/`
 - **Vazifa:**
   - `@Cron('0 * * * *')` — har soat stock snapshot hisoblash
@@ -1045,7 +1045,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-076 | P1 | [BACKEND] | BullMQ worker — Background job processing
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/worker/`
 - **Vazifa:**
   - Queue lar: `fiscal-receipt`, `notification`, `report-generate`, `stock-snapshot`, `data-export`, `sync-process`
@@ -1058,7 +1058,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-077 | P1 | [BACKEND] | Response compression + rate limiting per tenant
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/`
 - **Vazifa:**
   - gzip/brotli compression middleware (catalog 1000+ items uchun muhim)
@@ -1077,7 +1077,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-078 | P0 | [BACKEND] | NDS (QQS) hisoblash — 12% VAT
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/tax/`
 - **Vazifa:**
   - UZ QQS: 12% standart stavka
@@ -1091,7 +1091,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-079 | P0 | [BACKEND] | INN va STIR validatsiya — Soliq identifikator
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/identity/`
 - **Vazifa:**
   - Tenant jadvaliga: inn (9 yoki 14 raqam), stir, oked, legal_name, legal_address
@@ -1104,7 +1104,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-080 | P0 | [BACKEND] | UZS yaxlitlash — Tiyinsiz hisoblash
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/utils/`
 - **Vazifa:**
   - UZ da amalda tiyin yo'q. Yaxlitlash: 100 yoki 1000 ga (configurable)
@@ -1117,7 +1117,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-081 | P1 | [BACKEND] | REGOS fiskal integratsiya — Elektron chek
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/tax/fiscal/`
 - **Vazifa:**
   - REGOS API adapter: receipt yuborish → fiscal_id + QR code olish
@@ -1131,7 +1131,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-082 | P1 | [BACKEND] | Valyuta support — USD/UZS dual currency
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/currency/`
 - **Vazifa:**
   - Import kosmetikalar USD da narxlanadi, UZS da sotiladi
@@ -1145,7 +1145,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-083 | P1 | [BACKEND] | Z-report — Kunlik fiskal yakuniy hisobot
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/reports/`
 - **Vazifa:**
   - POST /reports/z-report — kunlik yakuniy hisobot yaratish
@@ -1178,7 +1178,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-085 | P0 | [BACKEND] | Health checks — Readiness + liveness
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/health/`
 - **Vazifa:**
   - GET /health/live — process alive (200)
@@ -1204,7 +1204,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-087 | P1 | [BACKEND] | Data export — CSV/Excel
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/reports/`
 - **Vazifa:**
   - Har report va list: "Export" tugmasi
@@ -1218,7 +1218,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-088 | P1 | [BACKEND] | Scheduled tasks (Cron) — Daily/hourly jobs
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/cron/`
 - **Vazifa:**
   - @Cron tasks:
@@ -1241,7 +1241,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-089 | P1 | [BACKEND] | Sales analytics — Trend, top products, margin
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/ai/`
 - **Vazifa:**
   - GET /analytics/sales-trend?period=daily|weekly|monthly — sales trend chart data
@@ -1257,7 +1257,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-090 | P1 | [FRONTEND] | Analytics dashboard UI
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Analytics/`
 - **Vazifa:**
   - Sales trend chart (line chart, date range)
@@ -1279,7 +1279,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-091 | P0 | [BACKEND] | Global exception filter — Consistent error responses
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/filters/`
 - **Vazifa:**
   - AllExceptionsFilter: barcha handled va unhandled errorlarni ushlash
@@ -1293,7 +1293,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-092 | P0 | [BACKEND] | Transaction safety — Prisma $transaction everywhere
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/` (barcha service lar)
 - **Vazifa:**
   - Barcha multi-step write operations: `prisma.$transaction([...])` ichida
@@ -1307,7 +1307,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-093 | P1 | [BACKEND] | Circuit breaker — External service himoya
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/circuit-breaker/`
 - **Vazifa:**
   - External services uchun: fiscal API, SMS gateway, payment provider, exchange rate API
@@ -1320,7 +1320,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-094 | P1 | [BACKEND] | Dead letter queue — Failed job management
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/worker/`
 - **Vazifa:**
   - BullMQ: 3 retry dan keyin → DLQ ga ko'chirish
@@ -1340,7 +1340,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-095 | P1 | [BACKEND] | Product variants — Rang/hajm/tur
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/catalog/`
 - **Vazifa:**
   - `product_variants` jadvali: id, product_id, tenant_id, name (e.g. "Qizil", "50ml"), sku, barcode, cost_price, sell_price, is_active
@@ -1354,7 +1354,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-096 | P2 | [BACKEND] | Tester/sample tracking — Ochilgan tester hisobi
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/inventory/`
 - **Vazifa:**
   - Tester ochish: stock_movement type = TESTER
@@ -1367,7 +1367,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-097 | P2 | [BACKEND] | Product sertifikat — Kosmetika sifat hujjati
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/catalog/`
 - **Vazifa:**
   - `product_certificates` jadvali: id, product_id, cert_number, issuing_authority, issued_at, expires_at, file_url
@@ -1379,7 +1379,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-098 | P1 | [BACKEND] | Price management — Wholesale/retail + tiered
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/catalog/`
 - **Vazifa:**
   - `product_prices` jadvali: id, product_id, price_type (RETAIL/WHOLESALE), min_qty, price, valid_from, valid_to
@@ -1393,7 +1393,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-099 | P2 | [BACKEND] | Promotions engine — Discount, buy-X-get-Y
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/sales/promotions/`
 - **Vazifa:**
   - `promotions` jadvali: id, tenant_id, name, type (PERCENT/FIXED/BUY_X_GET_Y/BUNDLE), rules (JSON), valid_from, valid_to, is_active
@@ -1413,7 +1413,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-100 | P1 | [MOBILE] | Owner mobile dashboard — Real-time monitoring
 - **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
+- **Mas'ul:** Ibrat + Abdulaziz
 - **Fayl:** `apps/mobile/`
 - **Vazifa:**
   - Home screen: bugungi savdo, haftalik trend, active shifts
@@ -1426,7 +1426,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-101 | P1 | [MOBILE] | Nasiya management — Qarzlarni telefondan boshqarish
 - **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
+- **Mas'ul:** Ibrat + Abdulaziz
 - **Fayl:** `apps/mobile/`
 - **Vazifa:**
   - Debtors list: kim qancha qarzda
@@ -1439,7 +1439,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-102 | P2 | [MOBILE] | Barcode scanner — Camera orqali tovar tekshirish
 - **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
+- **Mas'ul:** Ibrat + Abdulaziz
 - **Fayl:** `apps/mobile/`
 - **Vazifa:**
   - Camera barcode scan → product info (name, price, stock, expiry)
@@ -1451,7 +1451,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-103 | P1 | [BACKEND] | Push notifications — Firebase + notification service
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/notifications/`
 - **Vazifa:**
   - Firebase Cloud Messaging integration
@@ -1472,7 +1472,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-104 | P1 | [BACKEND] | Telegram bot — Owner alert va commands
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/bot/`
 - **Vazifa:**
   - grammY framework setup
@@ -1486,7 +1486,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-105 | P1 | [BACKEND] | CBU exchange rate — Kunlik USD/UZS kurs
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/common/currency/`
 - **Vazifa:**
   - Daily cron: https://cbu.uz/oz/arkhiv-kursov-valyut/json/ dan kurs olish
@@ -1500,7 +1500,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-106 | P2 | [BACKEND] | Eskiz.uz SMS — Nasiya reminder va OTP
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/notifications/channels/`
 - **Vazifa:**
   - Eskiz.uz API adapter: SMS yuborish
@@ -1514,7 +1514,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-107 | P2 | [BACKEND] | Payme/Click integration — Online to'lov
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/payments/providers/`
 - **Vazifa:**
   - Payme API adapter: createTransaction, performTransaction, checkTransaction
@@ -1534,7 +1534,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-108 | P1 | [BACKEND] | Subscription plans — SaaS billing
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/billing/`
 - **Vazifa:**
   - `subscription_plans` jadvali: id, name, price_monthly, max_branches, max_products, max_users, features (JSON)
@@ -1548,7 +1548,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-109 | P2 | [FRONTEND] | Billing UI — Plan tanlash, to'lov
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Settings/Billing/`
 - **Vazifa:**
   - Current plan info, usage stats (products used / limit)
@@ -1568,7 +1568,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-110 | P0 | [FRONTEND] | Thermal printer — ESC/POS integration
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/print/` (MVP: browser print, Tauri: native ESC/POS)
 - **Vazifa:**
   - MVP: window.print() bilan 80mm template
@@ -1582,7 +1582,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-111 | P1 | [FRONTEND] | Cash drawer — Printer orqali ochish
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/print/`
 - **Vazifa:**
   - ESC/POS cash drawer kick command (printer orqali)
@@ -1595,7 +1595,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-112 | P2 | [FRONTEND] | Label printer — Narx etiketka
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/print/`
 - **Vazifa:**
   - Product label: name, barcode, price, expiry
@@ -1614,7 +1614,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-113 | P1 | [BACKEND] | Branch management — Full CRUD + permissions
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/identity/`
 - **Vazifa:**
   - Branch CRUD: GET/POST/PATCH/DELETE /branches
@@ -1627,7 +1627,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-114 | P1 | [BACKEND] | Inter-branch stock transfer
 - **Sana:** 2026-02-26
-- **Mas'ul:** Yormatov
+- **Mas'ul:** Polat
 - **Fayl:** `apps/api/src/inventory/`
 - **Vazifa:**
   - `stock_transfers` jadvali: id, tenant_id, from_branch, to_branch, status (REQUESTED/APPROVED/SHIPPED/RECEIVED/CANCELLED), items, requested_by, approved_by, notes, created_at
@@ -1640,7 +1640,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-115 | P1 | [FRONTEND] | Branch reports — Filiallar taqqoslash
 - **Sana:** 2026-02-26
-- **Mas'ul:** Abdulaziz
+- **Mas'ul:** AbdulazizYormatov
 - **Fayl:** `apps/web/src/pages/Reports/Branches/`
 - **Vazifa:**
   - Per-branch revenue, orders, profit
@@ -1732,10 +1732,10 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Yormatov** (Backend) | 17 | 31 | 7 | — | **55** |
-| **Abdulaziz** (Frontend) | 9 | 9 | 3 | — | **21** |
-| **Ibrat** (Mobile) | — | 3 | 1 | — | **4** |
-| **Bekzod** (DevOps) | 2 | 2 | — | — | **4** |
+| **Polat** (Backend & DevOps) | 17 | 31 | 7 | — | **55** |
+| **AbdulazizYormatov** (Frontend) | 9 | 9 | 3 | — | **21** |
+| **Ibrat + Abdulaziz** (Mobile) | — | 3 | 1 | — | **4** |
+| **Bekzod** (Tester & Architector) | 2 | 2 | — | — | **4** |
 | **Birgalikda** | 3 | 3 | — | — | **6** |
 | **Belgilanmagan** | — | — | 3 | 20 | **23** |
 
