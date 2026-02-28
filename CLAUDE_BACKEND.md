@@ -1,6 +1,6 @@
 # CLAUDE_BACKEND.md — RAOS Backend & DevOps Engineer Guide
 # NestJS · Prisma · BullMQ · PostgreSQL · Redis · Tauri · Docker
-# Claude CLI bu faylni Bekzod yoki Polat tanlanganda o'qiydi
+# Claude CLI bu faylni Polat tanlanganda o'qiydi
 
 ---
 
