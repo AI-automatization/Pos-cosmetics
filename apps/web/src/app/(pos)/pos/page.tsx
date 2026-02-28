@@ -15,6 +15,7 @@ import type { Order } from '@/types/sales';
 export default function POSPage() {
   const [search, setSearch] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [lastChange, setLastChange] = useState(0);
   const [showCloseShift, setShowCloseShift] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -86,7 +87,12 @@ export default function POSPage() {
 
         {/* Right: Payment */}
         <div className="flex w-[25%] flex-col bg-white">
-          <PaymentPanel onSaleComplete={(order) => setCompletedOrder(order)} />
+          <PaymentPanel
+            onSaleComplete={(order, change) => {
+              setCompletedOrder(order);
+              setLastChange(change ?? 0);
+            }}
+          />
         </div>
       </div>
 
@@ -107,6 +113,7 @@ export default function POSPage() {
       {completedOrder && (
         <ReceiptPreview
           order={completedOrder}
+          change={lastChange}
           onClose={() => setCompletedOrder(null)}
         />
       )}

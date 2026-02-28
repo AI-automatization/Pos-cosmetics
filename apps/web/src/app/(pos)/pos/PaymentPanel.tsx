@@ -9,7 +9,7 @@ import type { Order } from '@/types/sales';
 import type { PaymentMethod, DiscountType } from '@/types/sales';
 
 interface PaymentPanelProps {
-  onSaleComplete: (order: Order) => void;
+  onSaleComplete: (order: Order, change: number) => void;
 }
 
 const QUICK_CASH = [5000, 10000, 20000, 50000, 100000];
@@ -25,7 +25,9 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   } = usePOSStore();
 
   const { subtotal, discountAmount, total, change } = totals();
-  const { mutate: completeSale, isPending, canComplete } = useCompleteSale(onSaleComplete);
+  const { mutate: completeSale, isPending, canComplete } = useCompleteSale(
+    (order) => onSaleComplete(order, change),
+  );
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
