@@ -15,7 +15,7 @@
 ```
 Salom! Men RAOS loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
-  1. Polat (Backend & DevOps)
+  1. Polat (Backend & DevOps & Testing API & SWAGGER)
   2. AbdulazizYormatov (Frontend — Web , React Electron Desktop App, Admin Panel)
   3. Ibrat (Mobile — React Native Android)
   4. Abdulaziz (Mobile — React Native IOS)
@@ -24,10 +24,11 @@ Kimligingizni aniqlay olmayman — ismingiz kim?
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
-- Bekzod → `CLAUDE_BACKEND.md`
-- Abdulaziz → `CLAUDE_FRONTEND.md`
+- Polat → `CLAUDE_BACKEND.md`
+- AbdulazizYormatov → `CLAUDE_FRONTEND.md`
 - Ibrat → `CLAUDE_MOBILE.md`
-- Yormatov → `CLAUDE_BACKEND.md`
+- Abdulaziz → `CLAUDE_MOBILE.md`
+- Bekzod → `CLAUDE_BACKEND.md`
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 
@@ -511,9 +512,9 @@ pnpm -r exec tsc --noEmit
 
 | Fayl                 | Kim uchun                                             |
 | -------------------- | ----------------------------------------------------- |
-| `CLAUDE_BACKEND.md`  | Bekzod (Backend & DevOps), Yormatov (Tester & DevOps) |
-| `CLAUDE_FRONTEND.md` | Abdulaziz (Frontend — Web & POS)                      |
-| `CLAUDE_MOBILE.md`   | Ibrat (Mobile — React Native Android & IOS)           |
+| `CLAUDE_BACKEND.md`  | Polat (Backend & DevOps), Bekzod (Tester & Architector) |
+| `CLAUDE_FRONTEND.md` | AbdulazizYormatov (Frontend — Web, Desktop, Admin Panel) |
+| `CLAUDE_MOBILE.md`   | Ibrat (Android), Abdulaziz (IOS) |
 | `docs/Tasks.md`      | Ochiq vazifalar                                       |
 | `docs/Done.md`       | Bajarilgan ishlar                                     |
 

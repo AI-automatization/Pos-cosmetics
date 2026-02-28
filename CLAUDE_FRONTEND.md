@@ -1,6 +1,6 @@
 # CLAUDE_FRONTEND.md — RAOS Frontend Engineer Guide
 # Next.js · Tauri · React 19 · TypeScript · Tailwind · React Query
-# Claude CLI bu faylni Abdulaziz tanlanganda o'qiydi
+# Claude CLI bu faylni AbdulazizYormatov tanlanganda o'qiydi
 
 ---
 
@@ -30,11 +30,11 @@ packages/types/         → Shared TypeScript types
 ```
 
 **🚫 TEGINMA:**
-- `apps/api/` — Bekzod zonasi (Backend)
-- `apps/worker/` — Bekzod zonasi (Worker)
-- `apps/bot/` — Bekzod zonasi (Bot)
-- `apps/mobile/` — Ibrat zonasi (React Native)
-- `prisma/` — Bekzod zonasi (Database)
+- `apps/api/` — Polat zonasi (Backend)
+- `apps/worker/` — Polat zonasi (Worker)
+- `apps/bot/` — Polat zonasi (Bot)
+- `apps/mobile/` — Ibrat + Abdulaziz zonasi (React Native Android + IOS)
+- `prisma/` — Polat zonasi (Database)
 
 ---
 
@@ -548,11 +548,11 @@ api.interceptors.response.use(
 ## 🚫 TAQIQLANGAN
 
 ```
-❌ apps/api/ papkasiga TEGINMA
-❌ apps/worker/ papkasiga TEGINMA
-❌ apps/bot/ papkasiga TEGINMA
-❌ apps/mobile/ papkasiga TEGINMA
-❌ prisma/ papkasiga TEGINMA
+❌ apps/api/ papkasiga TEGINMA (Polat zonasi)
+❌ apps/worker/ papkasiga TEGINMA (Polat zonasi)
+❌ apps/bot/ papkasiga TEGINMA (Polat zonasi)
+❌ apps/mobile/ papkasiga TEGINMA (Ibrat + Abdulaziz zonasi)
+❌ prisma/ papkasiga TEGINMA (Polat zonasi)
 ❌ any type
 ❌ console.log production da
 ❌ inline style (style={{...}}) → Tailwind class

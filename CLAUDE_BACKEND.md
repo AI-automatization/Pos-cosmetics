@@ -1,6 +1,6 @@
 # CLAUDE_BACKEND.md — RAOS Backend & DevOps Engineer Guide
 # NestJS · Prisma · BullMQ · PostgreSQL · Redis · Tauri · Docker
-# Claude CLI bu faylni Bekzod tanlanganda o'qiydi
+# Claude CLI bu faylni Bekzod yoki Polat tanlanganda o'qiydi
 
 ---
 
@@ -19,9 +19,9 @@ docker-compose.yml  → Infra config
 ```
 
 **🚫 TEGINMA:**
-- `apps/web/` — Abdulaziz zonasi (Admin Panel)
-- `apps/pos/` — Abdulaziz zonasi (POS Desktop UI)
-- `apps/mobile/` — Ibrat zonasi (React Native)
+- `apps/web/` — AbdulazizYormatov zonasi (Admin Panel + Desktop)
+- `apps/pos/` — AbdulazizYormatov zonasi (POS Desktop UI)
+- `apps/mobile/` — Ibrat + Abdulaziz zonasi (React Native Android + IOS)
 
 ---
 
@@ -764,9 +764,9 @@ Body: { source: 'web'|'mobile'|'pos', error, stack?, url?, userAgent?, tenantId?
 ## 🚫 TAQIQLANGAN
 
 ```
-❌ apps/web/ papkasiga TEGINMA
-❌ apps/pos/ papkasiga TEGINMA (UI qismi)
-❌ apps/mobile/ papkasiga TEGINMA
+❌ apps/web/ papkasiga TEGINMA (AbdulazizYormatov zonasi)
+❌ apps/pos/ papkasiga TEGINMA (AbdulazizYormatov zonasi)
+❌ apps/mobile/ papkasiga TEGINMA (Ibrat + Abdulaziz zonasi)
 ❌ any type
 ❌ console.log production da
 ❌ Ledger entry UPDATE/DELETE

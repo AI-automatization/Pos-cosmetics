@@ -1,6 +1,6 @@
 # CLAUDE_MOBILE.md — RAOS Mobile Engineer Guide
-# React Native · Android Only · TypeScript · Expo
-# Claude CLI bu faylni Ibrat tanlanganda o'qiydi
+# React Native · Android + IOS · TypeScript · Expo
+# Claude CLI bu faylni Ibrat (Android) yoki Abdulaziz (IOS) tanlanganda o'qiydi
 
 ---
 
@@ -22,20 +22,20 @@ apps/mobile/src/
 ```
 
 **🚫 TEGINMA:**
-- `apps/api/` — Bekzod zonasi (Backend)
-- `apps/worker/` — Bekzod zonasi (Worker)
-- `apps/bot/` — Bekzod zonasi (Bot)
-- `apps/web/` — Abdulaziz zonasi (Admin Panel)
-- `apps/pos/` — Abdulaziz zonasi (POS Desktop)
-- `prisma/` — Bekzod zonasi (Database)
+- `apps/api/` — Polat zonasi (Backend)
+- `apps/worker/` — Polat zonasi (Worker)
+- `apps/bot/` — Polat zonasi (Bot)
+- `apps/web/` — AbdulazizYormatov zonasi (Admin Panel)
+- `apps/pos/` — AbdulazizYormatov zonasi (POS Desktop)
+- `prisma/` — Polat zonasi (Database)
 
 ---
 
 ## 📱 PLATFORMA
 
 ```
-✅ Android ONLY (React Native)
-❌ iOS — hozircha EMAS
+✅ Android (Ibrat — React Native)
+✅ iOS (Abdulaziz — React Native)
 ✅ Expo (agar mumkin bo'lsa)
 ✅ Push notifications (FCM)
 ✅ Biometric auth (fingerprint)
@@ -453,10 +453,10 @@ describe('useDashboard', () => {
 ## 🚫 TAQIQLANGAN
 
 ```
-❌ apps/api/ papkasiga TEGINMA
-❌ apps/web/ papkasiga TEGINMA
-❌ apps/pos/ papkasiga TEGINMA
-❌ prisma/ papkasiga TEGINMA
+❌ apps/api/ papkasiga TEGINMA (Polat zonasi)
+❌ apps/web/ papkasiga TEGINMA (AbdulazizYormatov zonasi)
+❌ apps/pos/ papkasiga TEGINMA (AbdulazizYormatov zonasi)
+❌ prisma/ papkasiga TEGINMA (Polat zonasi)
 ❌ Financial mutations (sale, payment, refund, ledger)
 ❌ any type
 ❌ console.log production da
@@ -465,7 +465,7 @@ describe('useDashboard', () => {
 ❌ 250+ qatorli komponent → bo'lish kerak
 ❌ Hardcoded text → i18n
 ❌ Token plaintext saqlash → SecureStore/EncryptedStorage
-❌ iOS-specific code (hozircha Android only)
+✅ iOS va Android — ikkala platforma uchun yozish
 ```
 
 ---
