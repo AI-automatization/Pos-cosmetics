@@ -2,12 +2,12 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/mcp-playwright@latest"],
+      "args": ["-y", "@playwright/mcp@latest"],
       "_comment": "Browser automation, E2E testing, scraping. Prompt: 'use playwright'"
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/mcp-context7@latest"],
+      "args": ["-y", "@upstash/context7-mcp@latest"],
       "_comment": "Latest docs: NestJS, Prisma, React 19, etc. Prompt: 'use context7'"
     }
   }
