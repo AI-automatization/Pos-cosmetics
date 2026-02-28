@@ -465,7 +465,7 @@
 
 ## T-037 | P1 | [DEVOPS] | Staging deploy — Docker + CI/CD basic
 - **Sana:** 2026-02-26
-- **Mas'ul:** Bekzod
+- **Mas'ul:** Polat
 - **Fayl:** `docker/`, `.github/workflows/`
 - **Vazifa:**
   - Production-ready Dockerfile (API + Web)
@@ -1165,7 +1165,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-084 | P0 | [DEVOPS] | Automated database backups — Daily to S3/MinIO
 - **Sana:** 2026-02-26
-- **Mas'ul:** Bekzod
+- **Mas'ul:** Polat
 - **Fayl:** `docker/`, `scripts/`
 - **Vazifa:**
   - Kunlik pg_dump → S3/MinIO (encrypted GPG)
@@ -1191,7 +1191,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ## T-086 | P1 | [DEVOPS] | Monitoring — Prometheus + Grafana
 - **Sana:** 2026-02-26
-- **Mas'ul:** Bekzod
+- **Mas'ul:** Polat
 - **Fayl:** `docker/monitoring/`
 - **Vazifa:**
   - Prometheus metrics: request latency, error rate, active connections, queue depth, DB connection pool
@@ -1732,10 +1732,9 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Polat** (Backend & DevOps) | 17 | 31 | 7 | — | **55** |
+| **Polat** (Backend & DevOps) | 18 | 33 | 7 | — | **58** |
 | **AbdulazizYormatov** (Frontend) | 9 | 9 | 3 | — | **21** |
 | **Ibrat + Abdulaziz** (Mobile) | — | 3 | 1 | — | **4** |
-| **Bekzod** (Tester & Architector) | 2 | 2 | — | — | **4** |
 | **Birgalikda** | 3 | 3 | — | — | **6** |
 | **Belgilanmagan** | — | — | 3 | 20 | **23** |
 
