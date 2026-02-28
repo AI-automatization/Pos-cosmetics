@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
-  Tag,
   Warehouse,
   ShoppingCart,
   CreditCard,
@@ -13,6 +12,7 @@ import {
   Settings,
   ChevronDown,
   Store,
+  Monitor,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'POS Kassa', href: '/pos', icon: Monitor },
   {
     label: 'Katalog',
     icon: Package,
