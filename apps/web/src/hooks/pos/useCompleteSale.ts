@@ -8,8 +8,18 @@ import { usePOSStore } from '@/store/pos.store';
 import type { Order } from '@/types/sales';
 
 export function useCompleteSale(onSuccess: (order: Order) => void) {
-  const { items, orderDiscount, orderDiscountType, paymentMethod, cashAmount, cardAmount,
-    shiftId, totals, clearCart, incrementSalesCount } = usePOSStore();
+  const {
+    items,
+    orderDiscount,
+    orderDiscountType,
+    paymentMethod,
+    cashAmount,
+    cardAmount,
+    shiftId,
+    totals,
+    clearCart,
+    recordSale,
+  } = usePOSStore();
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -39,7 +49,21 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
       });
     },
     onSuccess: (order) => {
-      incrementSalesCount();
+      const { total } = totals();
+      const cash =
+        paymentMethod === 'cash'
+          ? total
+          : paymentMethod === 'split'
+            ? cashAmount
+            : 0;
+      const card =
+        paymentMethod === 'card'
+          ? total
+          : paymentMethod === 'split'
+            ? cardAmount
+            : 0;
+
+      recordSale(total, cash, card);
       clearCart();
       onSuccess(order);
       toast.success(`Sotuv #${order.orderNumber ?? order.id.slice(0, 8)} yakunlandi!`);

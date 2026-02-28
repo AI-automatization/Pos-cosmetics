@@ -6,6 +6,8 @@ import { ProductSearch } from './ProductSearch';
 import { CartPanel } from './CartPanel';
 import { PaymentPanel } from './PaymentPanel';
 import { ReceiptPreview } from './ReceiptPreview';
+import { ShiftOpenModal } from './shift/ShiftOpenModal';
+import { ShiftCloseModal } from './shift/ShiftCloseModal';
 import { usePOSKeyboard } from '@/hooks/pos/usePOSKeyboard';
 import { usePOSStore } from '@/store/pos.store';
 import type { Order } from '@/types/sales';
@@ -13,9 +15,10 @@ import type { Order } from '@/types/sales';
 export default function POSPage() {
   const [search, setSearch] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [showCloseShift, setShowCloseShift] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const { setPaymentMethod } = usePOSStore();
+  const { setPaymentMethod, shiftId } = usePOSStore();
 
   const focusSearch = useCallback(() => {
     searchRef.current?.focus();
@@ -30,6 +33,8 @@ export default function POSPage() {
     onEsc: () => {
       if (completedOrder) {
         setCompletedOrder(null);
+      } else if (showCloseShift) {
+        setShowCloseShift(false);
       } else {
         setSearch('');
         focusSearch();
@@ -37,10 +42,12 @@ export default function POSPage() {
     },
   });
 
+  const isShiftOpen = !!shiftId;
+
   return (
     <>
       {/* Top shift bar */}
-      <ShiftBar />
+      <ShiftBar onCloseShift={() => setShowCloseShift(true)} />
 
       {/* Keyboard shortcut hint bar */}
       <div className="flex shrink-0 items-center gap-4 bg-gray-800 px-4 py-1.5 text-xs text-gray-400">
@@ -82,6 +89,19 @@ export default function POSPage() {
           <PaymentPanel onSaleComplete={(order) => setCompletedOrder(order)} />
         </div>
       </div>
+
+      {/* Shift Gate — blocks POS if no shift open */}
+      {!isShiftOpen && (
+        <ShiftOpenModal onOpened={() => {/* store updated in hook */}} />
+      )}
+
+      {/* Shift close modal */}
+      {showCloseShift && (
+        <ShiftCloseModal
+          onClose={() => setShowCloseShift(false)}
+          onClosed={() => setShowCloseShift(false)}
+        />
+      )}
 
       {/* Receipt preview modal */}
       {completedOrder && (
