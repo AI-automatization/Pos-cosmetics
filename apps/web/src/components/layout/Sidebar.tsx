@@ -13,6 +13,8 @@ import {
   ChevronDown,
   Store,
   Monitor,
+  Users,
+  HandCoins,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -56,6 +58,21 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   { label: 'To\'lovlar', href: '/payments/history', icon: CreditCard },
+  {
+    label: 'Nasiya',
+    icon: HandCoins,
+    children: [
+      { label: 'Qarzlar ro\'yxati', href: '/nasiya' },
+      { label: 'Aging hisobot', href: '/nasiya/aging' },
+    ],
+  },
+  {
+    label: 'Xaridorlar',
+    icon: Users,
+    children: [
+      { label: 'Barcha xaridorlar', href: '/customers' },
+    ],
+  },
   { label: 'Hisobotlar', href: '/reports', icon: BarChart2 },
   { label: 'Sozlamalar', href: '/settings', icon: Settings },
 ];
