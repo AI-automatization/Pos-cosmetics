@@ -128,6 +128,17 @@
     "enableBiometric": "Enable fingerprint",
     "enablePush": "Push notifications"
   },
+  "onboarding": {
+    "slide1Title": "Welcome to RAOS!",
+    "slide1Desc": "Modern business management system for retail and investors in Uzbekistan",
+    "slide2Title": "Sales & Credit",
+    "slide2Desc": "Track all sales, manage debtors and accept payments easily",
+    "slide3Title": "Inventory & Alerts",
+    "slide3Desc": "Monitor stock levels and get instant notifications about important events",
+    "next": "Next",
+    "skip": "Skip",
+    "getStarted": "Get Started"
+  },
   "errors": {
     "network": "No internet connection",
     "server": "Server error",

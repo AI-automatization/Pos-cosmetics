@@ -128,6 +128,17 @@
     "enableBiometric": "Barmoq izini yoqish",
     "enablePush": "Push bildirishnomalar"
   },
+  "onboarding": {
+    "slide1Title": "RAOS ga xush kelibsiz!",
+    "slide1Desc": "O'zbekistondagi retail va investor bizneslari uchun zamonaviy boshqaruv tizimi",
+    "slide2Title": "Sotuvlar va Nasiya",
+    "slide2Desc": "Barcha sotuvlarni kuzating, qarzkorlarni boshqaring va to'lovlarni qabul qiling",
+    "slide3Title": "Omborxona va Alertlar",
+    "slide3Desc": "Tovar qoldig'ini nazorat qiling va muhim hodisalar haqida darhol xabar oling",
+    "next": "Keyingisi",
+    "skip": "O'tkazib yuborish",
+    "getStarted": "Boshlash"
+  },
   "errors": {
     "network": "Internet aloqasi yo'q",
     "server": "Server xatosi",

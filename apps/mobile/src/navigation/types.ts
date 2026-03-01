@@ -58,6 +58,7 @@ export type SettingsStackParamList = {
 
 // Root Navigator
 export type RootStackParamList = {
+  Onboarding: undefined;
   Auth: undefined;
   App: undefined;
 };
