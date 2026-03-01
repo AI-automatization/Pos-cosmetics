@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Search, AlertOctagon } from 'lucide-react';
+import { Search, AlertOctagon, PlusCircle } from 'lucide-react';
 import { useFounderTenants } from '@/hooks/founder/useFounder';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice, cn } from '@/lib/utils';
@@ -64,11 +64,20 @@ export default function FounderTenantsPage() {
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Tenantlar</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          {tenants ? `${tenants.length} ta tenant` : 'Yuklanmoqda...'}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-white">Tenantlar</h1>
+          <p className="mt-0.5 text-sm text-gray-500">
+            {tenants ? `${tenants.length} ta tenant` : 'Yuklanmoqda...'}
+          </p>
+        </div>
+        <Link
+          href="/founder/tenants/new"
+          className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+        >
+          <PlusCircle className="h-4 w-4" />
+          Yangi do'kon
+        </Link>
       </div>
 
       {/* Filters */}

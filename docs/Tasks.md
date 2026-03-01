@@ -727,16 +727,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-060 | P1 | [FRONTEND] | Founder — Tenant provisioning UI
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Admin/Tenants/`
-- **Vazifa:**
-  - "Yangi do'kon qo'shish" wizard: 3 step (info → owner → confirm)
-  - Natija: slug, login credentials, QR code (quick login)
-  - Tenant settings page: enable/disable features, subscription, limits
-- **Kutilgan:** SaaS owner yangi tenant tezkor yaratsa bo'ladi
-
 ---
 
 ## T-061 | P1 | [BACKEND] | Real-time events — WebSocket/SSE for live data
@@ -812,20 +802,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
   - Auto-retry indicator
   - Last sync timestamp
 - **Kutilgan:** Kassir doim sync holatini ko'radi
-
----
-
-## T-065 | P1 | [FRONTEND] | Local data cache — Product catalog offline
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/` (IndexedDB/localStorage)
-- **Vazifa:**
-  - Product catalog IndexedDB da cache (barcha products + prices + stock)
-  - Incremental sync: faqat updatedAt > lastSync bo'lgan productlar
-  - Image cache: Service Worker + Cache API
-  - Offline mode da: faqat cached data dan sotish
-  - Online bo'lganda: background refresh
-- **Kutilgan:** Internet yo'q paytda ham catalog ishlaydi
 
 ---
 
@@ -1181,20 +1157,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-090 | P1 | [FRONTEND] | Analytics dashboard UI
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Analytics/`
-- **Vazifa:**
-  - Sales trend chart (line chart, date range)
-  - Top products (bar chart, sortable table)
-  - Dead stock list (with days inactive, carrying cost)
-  - Margin analysis (per product, per category)
-  - Cashier performance dashboard
-  - Hourly heatmap (calendar + hours grid)
-  - ABC analysis visualization
-- **Kutilgan:** Biznes tahlil admin panelda ko'rinadi
-
 ---
 
 ### ═══════════════════════════════════════
@@ -1506,17 +1468,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-111 | P1 | [FRONTEND] | Cash drawer — Printer orqali ochish
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/print/`
-- **Vazifa:**
-  - ESC/POS cash drawer kick command (printer orqali)
-  - Auto-open: cash payment dan keyin
-  - Manual open: faqat admin PIN bilan
-  - Tauri: native command, Web: WebUSB API (limited)
-- **Kutilgan:** Kassa qutisi avtomatik ochiladi
-
 ---
 
 ## T-112 | P2 | [FRONTEND] | Label printer — Narx etiketka
@@ -1563,17 +1514,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Kutilgan:** Filiallar orasida tovar ko'chirsa bo'ladi
 
 ---
-
-## T-115 | P1 | [FRONTEND] | Branch reports — Filiallar taqqoslash
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Reports/Branches/`
-- **Vazifa:**
-  - Per-branch revenue, orders, profit
-  - Side-by-side comparison chart
-  - Stock transfer history
-  - Branch selector in header (filter all data)
-- **Kutilgan:** Filiallar unumdorligini taqqoslasa bo'ladi
 
 ---
 

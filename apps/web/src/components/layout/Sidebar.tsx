@@ -16,6 +16,8 @@ import {
   Users,
   HandCoins,
   Wallet,
+  TrendingUp,
+  Building2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -82,7 +84,18 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Xarajatlar', href: '/finance/expenses' },
     ],
   },
-  { label: 'Hisobotlar', href: '/reports', icon: BarChart2 },
+  { label: 'Analitika', href: '/analytics', icon: TrendingUp },
+  {
+    label: 'Hisobotlar',
+    icon: BarChart2,
+    children: [
+      { label: 'Umumiy', href: '/reports' },
+      { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
+      { label: 'Top mahsulotlar', href: '/reports/top-products' },
+      { label: 'Smenalar', href: '/reports/shifts' },
+      { label: 'Filiallar', href: '/reports/branches' },
+    ],
+  },
   {
     label: 'Sozlamalar',
     icon: Settings,

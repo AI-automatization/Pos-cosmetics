@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Printer, X, CheckCircle, ToggleLeft, ToggleRight } from 'lucide-react';
 import { ReceiptTemplate } from '@/components/Receipt/ReceiptTemplate';
 import { useReceiptPrint, useAutoTriggerPrint } from '@/components/Receipt/useReceiptPrint';
+import { openCashDrawer } from '@/lib/cashDrawer';
 import type { Order } from '@/types/sales';
 
 interface ReceiptPreviewProps {
@@ -16,6 +18,15 @@ export function ReceiptPreview({ order, change = 0, onClose }: ReceiptPreviewPro
 
   // Auto-print on mount if setting is enabled
   useAutoTriggerPrint(autoPrint);
+
+  // T-111: Auto-open cash drawer for cash payments
+  useEffect(() => {
+    const hasCash = order.payments?.some((p) => p.method === 'CASH');
+    if (hasCash) {
+      openCashDrawer();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

@@ -1,10 +1,12 @@
 'use client';
 
-import { Clock, ShoppingBag, User, ArrowLeft, LogOut } from 'lucide-react';
+import { Clock, ShoppingBag, User, ArrowLeft, LogOut, Archive } from 'lucide-react';
 import Link from 'next/link';
 import { usePOSStore } from '@/store/pos.store';
 import { useEffect, useState } from 'react';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
+import { openCashDrawer, isCashDrawerEnabled } from '@/lib/cashDrawer';
+import { toast } from 'sonner';
 
 function useShiftClock(openedAt: Date | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
@@ -81,6 +83,21 @@ export function ShiftBar({ onCloseShift }: ShiftBarProps) {
           <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
             Smena ochilmagan
           </span>
+        )}
+
+        {shiftId && isCashDrawerEnabled() && (
+          <button
+            type="button"
+            onClick={async () => {
+              await openCashDrawer();
+              toast.success('Kassa qutisi ochildi');
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-700 px-3 py-1 text-xs font-medium text-gray-400 transition hover:border-gray-500 hover:bg-gray-800 hover:text-gray-200"
+            title="Kassani ochish"
+          >
+            <Archive className="h-3.5 w-3.5" />
+            Kassa
+          </button>
         )}
 
         {shiftId && (
