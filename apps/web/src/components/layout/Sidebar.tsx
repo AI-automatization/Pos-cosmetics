@@ -74,7 +74,13 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   { label: 'Hisobotlar', href: '/reports', icon: BarChart2 },
-  { label: 'Sozlamalar', href: '/settings', icon: Settings },
+  {
+    label: 'Sozlamalar',
+    icon: Settings,
+    children: [
+      { label: 'Printer', href: '/settings/printer' },
+    ],
+  },
 ];
 
 function NavGroup({ item }: { item: NavItem }) {

@@ -4,6 +4,7 @@ import { Clock, ShoppingBag, User, ArrowLeft, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePOSStore } from '@/store/pos.store';
 import { useEffect, useState } from 'react';
+import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 
 function useShiftClock(openedAt: Date | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
@@ -63,6 +64,11 @@ export function ShiftBar({ onCloseShift }: ShiftBarProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Sync status */}
+        <SyncStatusBar />
+
+        <div className="h-4 w-px bg-gray-700" />
+
         <div className="flex items-center gap-1.5">
           <ShoppingBag className="h-4 w-4 text-gray-500" />
           <span>
