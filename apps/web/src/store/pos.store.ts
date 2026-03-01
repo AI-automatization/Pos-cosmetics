@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { CartItem, DiscountType, PaymentMethod, CartTotals } from '@/types/sales';
 import type { ShiftTotals } from '@/types/shift';
+import type { Customer } from '@/types/customer';
 
 interface POSState {
   // Cart
@@ -12,6 +13,7 @@ interface POSState {
   paymentMethod: PaymentMethod;
   cashAmount: number;
   cardAmount: number;
+  selectedCustomer: Customer | null; // nasiya uchun
 
   // Shift
   shiftId: string | null;
@@ -36,6 +38,7 @@ interface POSState {
   setPaymentMethod: (method: PaymentMethod) => void;
   setCashAmount: (amount: number) => void;
   setCardAmount: (amount: number) => void;
+  setSelectedCustomer: (customer: Customer | null) => void;
 
   // Shift actions
   openShift: (shiftId: string, cashierName: string, openingCash: number) => void;
@@ -57,6 +60,7 @@ export const usePOSStore = create<POSState>((set, get) => ({
   paymentMethod: 'cash',
   cashAmount: 0,
   cardAmount: 0,
+  selectedCustomer: null,
   shiftId: null,
   cashierName: 'Kassir',
   shiftOpenedAt: null,
@@ -137,11 +141,13 @@ export const usePOSStore = create<POSState>((set, get) => ({
       cashAmount: 0,
       cardAmount: 0,
       paymentMethod: 'cash',
+      selectedCustomer: null,
     }),
 
   setPaymentMethod: (method) => set({ paymentMethod: method }),
   setCashAmount: (amount) => set({ cashAmount: Math.max(0, amount) }),
   setCardAmount: (amount) => set({ cardAmount: Math.max(0, amount) }),
+  setSelectedCustomer: (customer) => set({ selectedCustomer: customer }),
 
   openShift: (shiftId, cashierName, openingCash) =>
     set({

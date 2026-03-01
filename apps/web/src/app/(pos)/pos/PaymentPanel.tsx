@@ -1,10 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Banknote, CreditCard, SplitSquareVertical, Check, Tag } from 'lucide-react';
+import {
+  Banknote,
+  CreditCard,
+  SplitSquareVertical,
+  Check,
+  Tag,
+  UserCircle,
+  AlertTriangle,
+  ChevronRight,
+} from 'lucide-react';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
 import { formatPrice, cn } from '@/lib/utils';
+import { CustomerSearchModal } from './CustomerSearchModal';
 import type { Order } from '@/types/sales';
 import type { PaymentMethod, DiscountType } from '@/types/sales';
 
@@ -21,6 +31,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     cashAmount, setCashAmount,
     cardAmount, setCardAmount,
     orderDiscount, orderDiscountType, setOrderDiscount,
+    selectedCustomer, setSelectedCustomer,
     totals,
   } = usePOSStore();
 
@@ -31,6 +42,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   // Sync local state when store resets after clearCart()
   useEffect(() => {
@@ -47,6 +59,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     { key: 'cash', label: 'Naqd', icon: <Banknote className="h-4 w-4" />, shortcut: 'F5' },
     { key: 'card', label: 'Karta', icon: <CreditCard className="h-4 w-4" />, shortcut: 'F6' },
     { key: 'split', label: 'Aralash', icon: <SplitSquareVertical className="h-4 w-4" />, shortcut: 'F7' },
+    { key: 'nasiya', label: 'Nasiya', icon: <UserCircle className="h-4 w-4" />, shortcut: 'F8' },
   ];
 
   if (items.length === 0) {
@@ -83,7 +96,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           <Tag className="h-3 w-3" /> Chegirma
         </p>
         <div className="flex gap-2">
-          <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
+          <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
             <button
               type="button"
               onClick={() => setDiscountType('percent')}
@@ -118,19 +131,24 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       </div>
 
-      {/* Payment method */}
+      {/* Payment method — 2×2 grid */}
       <div className="shrink-0 border-b border-gray-100 p-3">
         <p className="mb-2 text-xs font-medium text-gray-500">To'lov turi</p>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
           {METHODS.map((m) => (
             <button
               key={m.key}
               type="button"
-              onClick={() => setPaymentMethod(m.key)}
+              onClick={() => {
+                setPaymentMethod(m.key);
+                if (m.key !== 'nasiya') setSelectedCustomer(null);
+              }}
               className={cn(
                 'flex flex-col items-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition',
                 paymentMethod === m.key
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  ? m.key === 'nasiya'
+                    ? 'border-orange-400 bg-orange-50 text-orange-700'
+                    : 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
               )}
             >
@@ -142,7 +160,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       </div>
 
-      {/* Cash input */}
+      {/* Cash input (cash or split) */}
       {(paymentMethod === 'cash' || paymentMethod === 'split') && (
         <div className="shrink-0 border-b border-gray-100 p-3">
           <p className="mb-2 text-xs font-medium text-gray-500">
@@ -155,7 +173,6 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             placeholder={formatPrice(total)}
             className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-base font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
           />
-          {/* Quick cash buttons */}
           <div className="mt-2 flex flex-wrap gap-1">
             {QUICK_CASH.filter((v) => v >= total * 0.5).slice(0, 4).map((v) => (
               <button
@@ -175,8 +192,6 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
               Teng
             </button>
           </div>
-
-          {/* Change */}
           {change > 0 && (
             <div className="mt-2 rounded-lg bg-green-50 px-3 py-2">
               <div className="flex items-center justify-between text-sm">
@@ -202,6 +217,64 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       )}
 
+      {/* Nasiya — customer selection */}
+      {paymentMethod === 'nasiya' && (
+        <div className="shrink-0 border-b border-gray-100 p-3">
+          {selectedCustomer ? (
+            /* Customer selected — show info card */
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <UserCircle className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{selectedCustomer.name}</p>
+                    <p className="text-xs text-gray-500">+{selectedCustomer.phone}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerModal(true)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  O'zgartirish
+                </button>
+              </div>
+              <div className="flex gap-2 text-xs">
+                <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
+                  <p className="text-gray-500">Joriy qarz</p>
+                  <p className={cn('font-bold', selectedCustomer.debtBalance > 0 ? 'text-red-600' : 'text-green-600')}>
+                    {formatPrice(selectedCustomer.debtBalance)}
+                  </p>
+                </div>
+                <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
+                  <p className="text-gray-500">Yangi qarz</p>
+                  <p className="font-bold text-orange-700">{formatPrice(total)}</p>
+                </div>
+              </div>
+              {selectedCustomer.hasOverdue && (
+                <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-yellow-100 px-2 py-1.5 text-xs text-yellow-700">
+                  <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+                  <span>Muddati o'tgan qarz: {formatPrice(selectedCustomer.overdueAmount)}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* No customer — show select button */
+            <button
+              type="button"
+              onClick={() => setShowCustomerModal(true)}
+              className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-orange-300 bg-orange-50 px-4 py-3 transition hover:border-orange-400 hover:bg-orange-100"
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-orange-700">
+                <UserCircle className="h-5 w-5" />
+                Xaridorni tanlang
+              </div>
+              <ChevronRight className="h-4 w-4 text-orange-400" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Complete button */}
       <div className="mt-auto shrink-0 p-3">
         <button
@@ -211,7 +284,9 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-base font-bold transition',
             canComplete && !isPending
-              ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-98 shadow-lg shadow-blue-200'
+              ? paymentMethod === 'nasiya'
+                ? 'bg-orange-500 text-white hover:bg-orange-600 active:scale-98 shadow-lg shadow-orange-200'
+                : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-98 shadow-lg shadow-blue-200'
               : 'cursor-not-allowed bg-gray-100 text-gray-400',
           )}
         >
@@ -220,14 +295,28 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           ) : (
             <>
               <Check className="h-5 w-5" />
-              Sotuv yakunlash
-              <span className="ml-1 rounded bg-blue-500 px-1.5 py-0.5 text-xs font-normal">
+              {paymentMethod === 'nasiya' ? 'Nasiyaga berish' : 'Sotuv yakunlash'}
+              <span className={cn(
+                'ml-1 rounded px-1.5 py-0.5 text-xs font-normal',
+                paymentMethod === 'nasiya' ? 'bg-orange-400' : 'bg-blue-500',
+              )}>
                 F10
               </span>
             </>
           )}
         </button>
       </div>
+
+      {/* Customer search modal */}
+      {showCustomerModal && (
+        <CustomerSearchModal
+          onSelect={(customer) => {
+            setSelectedCustomer(customer);
+            setShowCustomerModal(false);
+          }}
+          onClose={() => setShowCustomerModal(false)}
+        />
+      )}
     </div>
   );
 }

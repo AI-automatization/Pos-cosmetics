@@ -15,6 +15,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
     paymentMethod,
     cashAmount,
     cardAmount,
+    selectedCustomer,
     shiftId,
     totals,
     clearCart,
@@ -30,10 +31,12 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
           ? [{ method: 'CASH' as const, amount: total }]
           : paymentMethod === 'card'
             ? [{ method: 'CARD' as const, amount: total }]
-            : [
-                { method: 'CASH' as const, amount: cashAmount },
-                { method: 'CARD' as const, amount: cardAmount },
-              ];
+            : paymentMethod === 'nasiya'
+              ? [{ method: 'NASIYA' as const, amount: total }]
+              : [
+                  { method: 'CASH' as const, amount: cashAmount },
+                  { method: 'CARD' as const, amount: cardAmount },
+                ];
 
       return salesApi.createOrder({
         shiftId: shiftId ?? 'demo-shift',
@@ -46,6 +49,9 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         orderDiscount,
         orderDiscountType,
         payments,
+        ...(paymentMethod === 'nasiya' && selectedCustomer
+          ? { customerId: selectedCustomer.id }
+          : {}),
       });
     },
     onSuccess: (order) => {
@@ -66,7 +72,14 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
       recordSale(total, cash, card);
       clearCart();
       onSuccess(order);
-      toast.success(`Sotuv #${order.orderNumber ?? order.id.slice(0, 8)} yakunlandi!`);
+
+      if (paymentMethod === 'nasiya') {
+        toast.success(
+          `Nasiya savdo yakunlandi! Xaridor: ${selectedCustomer?.name ?? '—'}`,
+        );
+      } else {
+        toast.success(`Sotuv #${order.orderNumber ?? order.id.slice(0, 8)} yakunlandi!`);
+      }
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
@@ -77,7 +90,8 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
     const { total } = totals();
     if (paymentMethod === 'cash') return cashAmount >= total;
     if (paymentMethod === 'card') return true;
-    return cashAmount + cardAmount >= total;
+    if (paymentMethod === 'nasiya') return selectedCustomer !== null && !selectedCustomer.isBlocked;
+    return cashAmount + cardAmount >= total; // split
   })();
 
   return { mutate: mutation.mutate, isPending: mutation.isPending, canComplete };

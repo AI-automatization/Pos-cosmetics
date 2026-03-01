@@ -15,7 +15,7 @@ export interface CartItem {
 }
 
 export type DiscountType = 'percent' | 'fixed';
-export type PaymentMethod = 'cash' | 'card' | 'split';
+export type PaymentMethod = 'cash' | 'card' | 'split' | 'nasiya';
 
 export interface CartTotals {
   subtotal: number;       // before discount
@@ -39,18 +39,19 @@ export interface CreateOrderItemDto {
   lineDiscount: number;
 }
 
+export interface PaymentEntryDto {
+  method: 'CASH' | 'CARD' | 'NASIYA';
+  amount: number;
+}
+
 export interface CreateOrderDto {
   shiftId: string;
   items: CreateOrderItemDto[];
   orderDiscount: number;
   orderDiscountType: DiscountType;
   payments: PaymentEntryDto[];
+  customerId?: string; // nasiya uchun MAJBURIY
   note?: string;
-}
-
-export interface PaymentEntryDto {
-  method: 'CASH' | 'CARD';
-  amount: number;
 }
 
 export interface Order {

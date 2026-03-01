@@ -31,6 +31,7 @@ export default function POSPage() {
     onF5: () => setPaymentMethod('cash'),
     onF6: () => setPaymentMethod('card'),
     onF7: () => setPaymentMethod('split'),
+    onF8: () => setPaymentMethod('nasiya'),
     onEsc: () => {
       if (completedOrder) {
         setCompletedOrder(null);
@@ -57,6 +58,7 @@ export default function POSPage() {
           ['F5', 'Naqd'],
           ['F6', 'Karta'],
           ['F7', 'Aralash'],
+          ['F8', 'Nasiya'],
           ['F10', 'Yakunlash'],
           ['Esc', 'Bekor'],
         ].map(([key, label]) => (
