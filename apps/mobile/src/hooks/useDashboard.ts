@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { analyticsApi, salesApi } from '@/api';
-import { alertsApi } from '@/api';
-import { branchApi } from '@/api';
+import { analyticsApi, salesApi, alertsApi, branchApi } from '@/api';
 import { QUERY_STALE_TIMES, REFETCH_INTERVALS } from '@/config/constants';
 
 export function useDashboard(branchId?: string) {

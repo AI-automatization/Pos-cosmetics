@@ -7,7 +7,7 @@ import type { SettingsStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import { SkeletonList } from '@/components/common/SkeletonLoader';
 import ErrorView from '@/components/common/ErrorView';
-import { branchApi } from '@/api/branches.api';
+import { branchApi } from '@/api';
 import { useAppStore } from '@/store/app.store';
 import type { Branch } from '@/api/branches.api';
 import { QUERY_STALE_TIMES } from '@/config/constants';
