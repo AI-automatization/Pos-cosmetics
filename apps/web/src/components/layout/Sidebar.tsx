@@ -40,8 +40,10 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Inventar',
     icon: Warehouse,
     children: [
-      { label: 'Zaxira holati', href: '/inventory/stock' },
-      { label: 'Harakatlar', href: '/inventory/movements' },
+      { label: 'Zaxira holati', href: '/inventory' },
+      { label: 'Kirim (Nakladnoy)', href: '/inventory/stock-in' },
+      { label: 'Chiqim', href: '/inventory/stock-out' },
+      { label: 'Kam zaxira', href: '/inventory/low-stock' },
     ],
   },
   {
