@@ -46,6 +46,13 @@
     "typescript": "^5.7.3"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": ["./jest.setup.ts"],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(\\.pnpm|react-native|@react-native|expo|@expo|@unimodules|unimodules|zustand|i18next|react-i18next|@tanstack|@react-navigation|react-native-safe-area-context|react-native-screens))"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    }
   }
 }

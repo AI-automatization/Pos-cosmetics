@@ -1,13 +1,17 @@
 import { formatCurrency, formatDateTime, formatRelativeTime } from '@/utils/format';
 import { extractErrorMessage } from '@/utils/error';
 
+// Normalize various Unicode spaces to regular space for comparison
+const normalizeSpaces = (str: string): string => str.replace(/[\u00a0\u202f\u2009]/g, ' ');
+
 describe('formatCurrency', () => {
   it('formats UZS amount with commas', () => {
-    expect(formatCurrency(1500000, 'UZS')).toContain('1 500 000');
+    const result = normalizeSpaces(formatCurrency(1500000, 'UZS'));
+    expect(result).toContain('1 500 000');
   });
 
   it('uses UZS as default currency', () => {
-    const result = formatCurrency(100000);
+    const result = normalizeSpaces(formatCurrency(100000));
     expect(result).toContain('100 000');
   });
 
