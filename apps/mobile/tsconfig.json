@@ -16,8 +16,9 @@
     "paths": {
       "@/*": ["src/*"],
       "@raos/types": ["../../packages/types/src"]
-    }
+    },
+    "types": ["jest"]
   },
-  "include": ["src", "index.js"],
+  "include": ["src", "index.js", "jest.setup.ts"],
   "exclude": ["node_modules"]
 }

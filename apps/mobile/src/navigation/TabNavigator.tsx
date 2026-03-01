@@ -38,7 +38,6 @@ const AlertsStack = createNativeStackNavigator<AlertsStackParamList>();
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
 function DashboardNavigator(): React.JSX.Element {
-  const { t } = useTranslation();
   return (
     <DashboardStack.Navigator>
       <DashboardStack.Screen
