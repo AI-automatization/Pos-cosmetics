@@ -1,18 +1,24 @@
 import React from 'react';
-import { FlatList, View, Text, StyleSheet } from 'react-native';
+import { FlatList, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { DashboardStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import Card from '@/components/common/Card';
 import ErrorView from '@/components/common/ErrorView';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { SkeletonCard, SkeletonList } from '@/components/common/SkeletonLoader';
 import TrendIndicator from '@/components/charts/TrendIndicator';
 import Badge from '@/components/common/Badge';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useAppStore } from '@/store/app.store';
 import { formatCurrency, formatRelativeTime } from '@/utils/format';
 import type { Alert } from '@/api/alerts.api';
-import type { RevenueData } from '@/api/analytics.api';
+import type { RevenueData, BranchRevenue } from '@/api/analytics.api';
 import type { ActiveShift, TopProduct } from '@/api/sales.api';
+
+type Props = {
+  navigation: NativeStackNavigationProp<DashboardStackParamList, 'Dashboard'>;
+};
 
 function RevenueCard({ item }: { item: RevenueData }): React.JSX.Element {
   const { t } = useTranslation();
@@ -27,6 +33,32 @@ function RevenueCard({ item }: { item: RevenueData }): React.JSX.Element {
       <Text style={styles.revenueAmount}>{formatCurrency(item.amount, item.currency)}</Text>
       <TrendIndicator value={item.trend} />
     </Card>
+  );
+}
+
+function BranchComparisonRow({
+  item,
+  maxRevenue,
+  onPress,
+}: {
+  item: BranchRevenue;
+  maxRevenue: number;
+  onPress: () => void;
+}): React.JSX.Element {
+  const barWidth = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
+  return (
+    <TouchableOpacity style={styles.branchRow} onPress={onPress} accessibilityRole="button">
+      <View style={styles.branchRowTop}>
+        <Text style={styles.branchName}>{item.branchName}</Text>
+        <View style={styles.branchRowRight}>
+          <TrendIndicator value={item.trend} />
+          <Text style={styles.branchRevenue}>{formatCurrency(item.revenue)}</Text>
+        </View>
+      </View>
+      <View style={styles.barTrack}>
+        <View style={[styles.barFill, { width: `${barWidth}%` as `${number}%` }]} />
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -70,7 +102,7 @@ function TopProductRow({ item, index }: { item: TopProduct; index: number }): Re
   );
 }
 
-export default function DashboardScreen(): React.JSX.Element {
+export default function DashboardScreen({ navigation }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const { selectedBranchId } = useAppStore();
   const { revenue, alerts, branchComparison, quickStats, activeShifts } = useDashboard(
@@ -85,8 +117,19 @@ export default function DashboardScreen(): React.JSX.Element {
     void activeShifts.refetch();
   };
 
-  if (revenue.isLoading) return <LoadingSpinner message={t('common.loading')} />;
+  if (revenue.isLoading) {
+    return (
+      <ScreenLayout title={t('dashboard.title')}>
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonList count={3} />
+      </ScreenLayout>
+    );
+  }
+
   if (revenue.error) return <ErrorView error={revenue.error} onRetry={refetchAll} />;
+
+  const maxRevenue = Math.max(...(branchComparison.data?.map((b) => b.revenue) ?? [1]));
 
   return (
     <ScreenLayout
@@ -129,6 +172,35 @@ export default function DashboardScreen(): React.JSX.Element {
           </Card>
         </>
       )}
+
+      {/* Branch Comparison */}
+      {branchComparison.isLoading ? (
+        <SkeletonList count={3} />
+      ) : branchComparison.data && branchComparison.data.length > 1 ? (
+        <>
+          <Text style={styles.sectionTitle}>{t('dashboard.branches')}</Text>
+          <Card>
+            <FlatList
+              data={branchComparison.data}
+              keyExtractor={(item) => item.branchId}
+              renderItem={({ item }) => (
+                <BranchComparisonRow
+                  item={item}
+                  maxRevenue={maxRevenue}
+                  onPress={() =>
+                    navigation.navigate('BranchDetail', {
+                      branchId: item.branchId,
+                      branchName: item.branchName,
+                    })
+                  }
+                />
+              )}
+              scrollEnabled={false}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+          </Card>
+        </>
+      ) : null}
 
       {/* Active Shifts */}
       <Text style={styles.sectionTitle}>{t('dashboard.activeShifts')}</Text>
@@ -237,6 +309,42 @@ const styles = StyleSheet.create({
   topProductQty: {
     fontSize: 13,
     color: '#6b7280',
+  },
+  branchRow: {
+    paddingVertical: 8,
+  },
+  branchRowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  branchRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  branchName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    flex: 1,
+  },
+  branchRevenue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a56db',
+  },
+  barTrack: {
+    height: 6,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: 6,
+    backgroundColor: '#1a56db',
+    borderRadius: 3,
   },
   shiftRow: {
     flexDirection: 'row',

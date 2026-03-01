@@ -14,6 +14,7 @@ import type {
 } from './types';
 
 import DashboardScreen from '@/screens/Dashboard';
+import BranchDetailScreen from '@/screens/Dashboard/BranchDetail';
 import SalesListScreen from '@/screens/Sales';
 import SaleDetailScreen from '@/screens/Sales/SaleDetail';
 import DebtorsListScreen from '@/screens/Nasiya';
@@ -26,6 +27,7 @@ import AlertDetailScreen from '@/screens/Alerts/AlertDetail';
 import SettingsScreen from '@/screens/Settings';
 import ProfileScreen from '@/screens/Settings/Profile';
 import NotificationPrefsScreen from '@/screens/Settings/NotificationPrefs';
+import BranchSelectorScreen from '@/screens/Settings/BranchSelector';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
@@ -36,9 +38,19 @@ const AlertsStack = createNativeStackNavigator<AlertsStackParamList>();
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
 function DashboardNavigator(): React.JSX.Element {
+  const { t } = useTranslation();
   return (
     <DashboardStack.Navigator>
-      <DashboardStack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="BranchDetail"
+        component={BranchDetailScreen}
+        options={({ route }) => ({ title: route.params.branchName })}
+      />
     </DashboardStack.Navigator>
   );
 }
@@ -99,6 +111,7 @@ function SettingsNavigator(): React.JSX.Element {
       <SettingsStack.Screen name="Settings" component={SettingsScreen} options={{ title: t('settings.title') }} />
       <SettingsStack.Screen name="Profile" component={ProfileScreen} options={{ title: t('settings.profile') }} />
       <SettingsStack.Screen name="NotificationPrefs" component={NotificationPrefsScreen} options={{ title: t('settings.notifications') }} />
+      <SettingsStack.Screen name="BranchSelector" component={BranchSelectorScreen} options={{ title: t('settings.branch') }} />
     </SettingsStack.Navigator>
   );
 }

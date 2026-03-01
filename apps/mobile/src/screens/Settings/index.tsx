@@ -6,6 +6,7 @@ import type { SettingsStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import Card from '@/components/common/Card';
 import { useAuthStore } from '@/store/auth.store';
+import { useAppStore } from '@/store/app.store';
 import Constants from 'expo-constants';
 
 type Props = {
@@ -17,13 +18,17 @@ interface MenuItemProps {
   icon: string;
   onPress: () => void;
   danger?: boolean;
+  subtitle?: string;
 }
 
-function MenuItem({ label, icon, onPress, danger }: MenuItemProps): React.JSX.Element {
+function MenuItem({ label, icon, onPress, danger, subtitle }: MenuItemProps): React.JSX.Element {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress} accessibilityRole="button">
       <Text style={styles.menuIcon}>{icon}</Text>
-      <Text style={[styles.menuLabel, danger && styles.menuLabelDanger]}>{label}</Text>
+      <View style={styles.menuLabelWrap}>
+        <Text style={[styles.menuLabel, danger && styles.menuLabelDanger]}>{label}</Text>
+        {subtitle ? <Text style={styles.menuSubtitle}>{subtitle}</Text> : null}
+      </View>
       <Text style={styles.chevron}>›</Text>
     </TouchableOpacity>
   );
@@ -32,6 +37,7 @@ function MenuItem({ label, icon, onPress, danger }: MenuItemProps): React.JSX.El
 export default function SettingsScreen({ navigation }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const { user, logout } = useAuthStore();
+  const { selectedBranchId } = useAppStore();
 
   const handleLogout = (): void => {
     Alert.alert(t('auth.logout'), t('settings.logout') + '?', [
@@ -49,12 +55,19 @@ export default function SettingsScreen({ navigation }: Props): React.JSX.Element
         <Text style={styles.userRole}>{user?.role}</Text>
       </Card>
 
-      {/* Menu */}
+      {/* Main menu */}
       <Card style={styles.menuCard}>
         <MenuItem
           label={t('settings.profile')}
           icon="👤"
           onPress={() => navigation.navigate('Profile')}
+        />
+        <View style={styles.divider} />
+        <MenuItem
+          label={t('settings.branch')}
+          icon="🏢"
+          onPress={() => navigation.navigate('BranchSelector')}
+          subtitle={selectedBranchId ? `ID: ${selectedBranchId.slice(0, 8)}...` : t('common.all') + ' ' + t('dashboard.branches')}
         />
         <View style={styles.divider} />
         <MenuItem
@@ -94,13 +107,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     width: 32,
   },
-  menuLabel: {
+  menuLabelWrap: {
     flex: 1,
+  },
+  menuLabel: {
     fontSize: 15,
     color: '#111827',
   },
   menuLabelDanger: {
     color: '#dc2626',
+  },
+  menuSubtitle: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 1,
   },
   chevron: {
     fontSize: 20,
