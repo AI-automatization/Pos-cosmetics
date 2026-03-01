@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { CartItem, DiscountType, PaymentMethod, CartTotals } from '@/types/sales';
 import type { ShiftTotals } from '@/types/shift';
 import type { Customer } from '@/types/customer';
@@ -53,7 +54,9 @@ const DEFAULT_SHIFT_TOTALS: ShiftTotals = {
   cardRevenue: 0,
 };
 
-export const usePOSStore = create<POSState>((set, get) => ({
+export const usePOSStore = create<POSState>()(
+  persist(
+    (set, get) => ({
   items: [],
   orderDiscount: 0,
   orderDiscountType: 'percent',
@@ -179,4 +182,20 @@ export const usePOSStore = create<POSState>((set, get) => ({
     })),
 
   incrementSalesCount: () => set((s) => ({ salesCount: s.salesCount + 1 })),
-}));
+    }),
+    {
+      name: 'raos-pos-store',
+      partialize: (state) => ({
+        items: state.items,
+        orderDiscount: state.orderDiscount,
+        orderDiscountType: state.orderDiscountType,
+        shiftId: state.shiftId,
+        cashierName: state.cashierName,
+        shiftOpenedAt: state.shiftOpenedAt,
+        openingCash: state.openingCash,
+        salesCount: state.salesCount,
+        shiftTotals: state.shiftTotals,
+      }),
+    },
+  ),
+);

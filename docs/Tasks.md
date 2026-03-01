@@ -329,44 +329,6 @@
 
 ---
 
-## T-028 | P1 | [FRONTEND] | Returns UI — Qaytarish + Admin tasdiqlash
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Sales/Returns/`
-- **Vazifa:**
-  - POS dan return boshlash: order tanlash → items tanlash → reason → admin PIN
-  - Admin PIN modal: 4-6 raqamli PIN kiritish
-  - Returns list page: status (PENDING/APPROVED/REJECTED), filter
-  - Return detail: original order, qaytarilgan items, summa, refund method
-- **Kutilgan:** Qaytarish UI ishlaydi, admin tasdiqlashi bor
-
----
-
-## T-029 | P1 | [FRONTEND] | Users & Roles UI — Foydalanuvchilar boshqaruvi
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Settings/Users/`
-- **Vazifa:**
-  - Users list: DataTable — name, role, status, last_login
-  - Create/Edit user form: name, phone, role (ADMIN/MANAGER/CASHIER/VIEWER), is_active
-  - Role hierarchy enforcement: faqat o'zidan past rolni yaratish mumkin
-  - User deactivate (soft delete)
-  - Login page dizayn (tenant slug + username + password)
-- **Kutilgan:** Admin paneldan foydalanuvchilarni boshqarsa bo'ladi
-
----
-
-## T-030 | P1 | [FRONTEND] | Audit log UI — Admin panel
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Settings/AuditLog/`
-- **Vazifa:**
-  - Audit log list: DataTable — sana, user, action, entity, detail
-  - Filterlar: user, action type, date range
-  - Detail modal: old_data vs new_data diff ko'rsatish
-  - Faqat ADMIN ko'ra oladi (role-based route guard)
-- **Kutilgan:** Admin audit loglarni ko'ra oladi
-
 ---
 
 ### ═══════════════════════════════════════
@@ -404,31 +366,6 @@
 - **Kutilgan:** Oddiy xarajatlarni kiritish va hisobot olsa bo'ladi
 
 ---
-
-## T-033 | P1 | [FRONTEND] | Expiry report UI — Yaroqlilik muddati hisoboti
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Inventory/Expiry/`
-- **Vazifa:**
-  - Expiring soon page: DataTable — product, batch, expiry_date, qty, days_left
-  - Color coding: qizil (< 30 kun), sariq (30-60 kun), yashil (60+ kun)
-  - Filter: days range, category
-  - Expired items tab: allaqachon muddati o'tganlar
-  - Dashboard da warning badge (expiring soon count)
-- **Kutilgan:** Yaroqlilik hisoboti vizual ko'rinadi
-
----
-
-## T-034 | P1 | [FRONTEND] | Expenses UI — Xarajatlar + Foyda hisoboti
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Finance/`
-- **Vazifa:**
-  - Expenses list: DataTable + Create form (category, description, amount, date)
-  - Expenses summary: pie chart (kategoriya bo'yicha)
-  - Profit report page: revenue - COGS - expenses = estimated profit
-  - Date range picker, monthly summary
-- **Kutilgan:** Xarajat va foyda admin panelda ko'rinadi
 
 ---
 
@@ -891,17 +828,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Kutilgan:** Internet yo'q paytda ham catalog ishlaydi
 
 ---
-
-## T-066 | P1 | [FRONTEND] | Power outage recovery — Cart state persistence
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/POS/`
-- **Vazifa:**
-  - Cart state har 5 sekundda localStorage/IndexedDB ga auto-save
-  - App restart → "Tugatilmagan savdo topildi. Davom etasizmi?" dialog
-  - Unfinished transactions: alohida list, review uchun
-  - Shift state ham local saqlanadi
-- **Kutilgan:** Tok o'chib yonsa ham savdo yo'qolmaydi
 
 ---
 

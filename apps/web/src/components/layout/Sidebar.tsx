@@ -15,6 +15,7 @@ import {
   Monitor,
   Users,
   HandCoins,
+  Wallet,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Kirim (Nakladnoy)', href: '/inventory/stock-in' },
       { label: 'Chiqim', href: '/inventory/stock-out' },
       { label: 'Kam zaxira', href: '/inventory/low-stock' },
+      { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
     ],
   },
   {
@@ -73,12 +75,21 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Barcha xaridorlar', href: '/customers' },
     ],
   },
+  {
+    label: 'Moliya',
+    icon: Wallet,
+    children: [
+      { label: 'Xarajatlar', href: '/finance/expenses' },
+    ],
+  },
   { label: 'Hisobotlar', href: '/reports', icon: BarChart2 },
   {
     label: 'Sozlamalar',
     icon: Settings,
     children: [
       { label: 'Printer', href: '/settings/printer' },
+      { label: 'Foydalanuvchilar', href: '/settings/users' },
+      { label: 'Audit log', href: '/settings/audit-log' },
     ],
   },
 ];
