@@ -1,3 +1,4 @@
+
 # RAOS — BUG REPORT
 # Yaratilgan: 2026-03-01
 # Format: B-raqam | Topilib: sana | Daraja | Holat | Fayl
@@ -21,12 +22,21 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+## TUZATILGAN (shu sessiya)
+
 ---
 
 ## TUZATILGAN BUGLAR
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
 |---|---------|--------|-----------|------|-----------------|
+| B-009 | 2026-03-01 | P1 | 2026-03-01 | `apps/web/src/hooks/inventory/useInventory.ts` | **Inventory sahifasi "Ma'lumotlarni yuklashda xato"** — `useStock` va `useLowStock` da demo fallback yo'q edi. **Yechim:** `DEMO_STOCK` array (12 mahsulot, LOW/OUT status bilan) qo'shildi, har ikkala queryFn try/catch bilan o'raldi, `retry: 0`. |
+| B-008 | 2026-03-01 | P1 | 2026-03-01 | `apps/web/src/hooks/reports/useReports.ts` | **Dashboard stat cards ko'rinmaydi** — `useDashboard` da demo fallback yo'q edi. API xato berganda `isError=true` bo'lib, stat cards o'rniga faqat "Backend hali tayyor emas" banner ko'rinarydi. **Yechim:** `DEMO_DASHBOARD` const qo'shildi, `queryFn` try/catch bilan o'raldi, `retry: 0` — demo data bilan to'liq dashboard ko'rinadi. |
+| B-007 | 2026-03-01 | P2 | 2026-03-01 | `apps/web/src/app/(founder)/founder/errors/page.tsx` | **`errors/page.tsx` noto'g'ri yo'lga yozildi** — Latin 'aziz' (C:/Абдулaziz/) Kirill o'rniga (C:/Абдулазиз/). Sahifa 404 ko'rsatardi. **Yechim:** `cp` orqali to'g'ri yo'lga ko'chirildi. |
+| B-006 | 2026-03-01 | P1 | 2026-03-01 | `apps/web/src/hooks/pos/useCompleteSale.ts` | **`demoOrder` ob'ektida `Order` tipidagi majburiy maydonlar yo'q edi** (`items, subtotal, discountAmount, payments, status`). TypeScript build xatosi. **Yechim:** Barcha majburiy maydonlar qo'shildi. |
+| B-005 | 2026-03-01 | P1 | 2026-03-01 | `apps/web/src/hooks/catalog/useProducts.ts` | **`useProducts` demo fallback `Product[]` qaytarardi**, lekin komponentlar `PaginatedResponse<Product>.items` kutardi. `ProductSearch`, `stock-in`, `stock-out` larda `.items` TypeScript xatosi. **Yechim:** Demo fallback `{ items, meta }` formatiga o'zgartirildi. |
+| B-004 | 2026-03-01 | P1 | 2026-03-01 | `apps/web/src/hooks/catalog/useProducts.ts` | **`DEMO_PRODUCTS` da `categoryName` field ishlatilgan**, lekin `Product` tipida `category: { id, name }` mavjud. Shuningdek `image/tenantId/createdAt/updatedAt` etishmayotgan edi. TypeScript build xatosi. **Yechim:** `categoryName` → `category: { id, name }` ga o'zgartirildi, etishmayotgan maydonlar qo'shildi. |
+| B-003 | 2026-03-01 | P0 | 2026-03-01 | `apps/web/src/hooks/pos/useShift.ts`, `useCompleteSale.ts`, `useProducts.ts` | **Demo fallback umuman ishlamadi** — backend offline bo'lganda "Server xatosi" toast chiqardi, smena/mahsulot/sotuv ishlamadi. Sabab: `extractErrorMessage()` `AxiosError` ni "Server xatosi" ga aylantiradi, eski kod esa `msg.includes('connect')` tekshirardi — mos kelmadi. `useProducts` da demo data umuman yo'q edi. **Yechim:** `isNetworkError()` helper yaratildi (`AxiosError && !err.response` yoki `status 404/5xx` to'g'ridan tekshiradi), `DEMO_PRODUCTS` array qo'shildi, `useCompleteSale` ga demo `Order` yaratish qo'shildi. |
 | B-001 | 2026-03-01 | P1 | 2026-03-01 | `apps/web/src/hooks/pos/useShift.ts:26` | **Demo rejim form qiymatlarini o'qimaydi.** `onError` handlerida `openShift(demoId, 'Kassir', 0)` hardcode edi — foydalanuvchi kiritgan `cashierName` va `openingCash` e'tiborga olinmasdi. **Yechim:** TanStack Query v5 `onError(err, variables)` signaturasidan `variables` (ya'ni `dto`) olib `dto.cashierName` va `dto.openingCash` ishlatildi. |
 | B-002 | 2026-03-01 | P2 | 2026-03-01 | `apps/web/src/app/(pos)/pos/PaymentPanel.tsx:32-33` | **Chegirma input sotuvdan keyin eski qiymatni saqlab qoladi.** `discountInput` va `discountType` local statei store `clearCart()` chaqirilganda reset bo'lmasdi — keyingi savdoda eski chegirma qiymati ko'rinib qolardi. **Yechim:** `useEffect` qo'shildi — store `orderDiscount` va `orderDiscountType` o'zgarganda local state ham sync bo'ladi. |
 

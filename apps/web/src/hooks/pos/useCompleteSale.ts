@@ -2,6 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { AxiosError } from 'axios';
 import { salesApi } from '@/api/sales.api';
 import { extractErrorMessage } from '@/lib/utils';
 import { usePOSStore } from '@/store/pos.store';
@@ -81,8 +82,41 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         toast.success(`Sotuv #${order.orderNumber ?? order.id.slice(0, 8)} yakunlandi!`);
       }
     },
-    onError: (err: unknown) => {
-      toast.error(extractErrorMessage(err));
+    onError: (err: unknown, _vars, _ctx) => {
+      const isNetwork =
+        (err instanceof AxiosError && !err.response) ||
+        extractErrorMessage(err).includes('Server xatosi');
+
+      if (isNetwork) {
+        // Demo mode — backend tayyor bo'lgunicha local order
+        const { total } = totals();
+        const { subtotal, discountAmount } = totals();
+        const demoOrder: Order = {
+          id: `demo-${Date.now()}`,
+          orderNumber: `DEMO-${Math.floor(Math.random() * 9000 + 1000)}`,
+          items: [],
+          subtotal,
+          discountAmount,
+          total,
+          payments: [],
+          status: 'COMPLETED',
+          createdAt: new Date().toISOString(),
+        };
+        const cash =
+          paymentMethod === 'cash' ? total : paymentMethod === 'split' ? cashAmount : 0;
+        const card =
+          paymentMethod === 'card' ? total : paymentMethod === 'split' ? cardAmount : 0;
+        recordSale(total, cash, card);
+        clearCart();
+        onSuccess(demoOrder);
+        if (paymentMethod === 'nasiya') {
+          toast.success(`Nasiya savdo yakunlandi! (demo rejim)`);
+        } else {
+          toast.success(`Sotuv ${demoOrder.orderNumber} yakunlandi! (demo rejim)`);
+        }
+      } else {
+        toast.error(extractErrorMessage(err));
+      }
     },
   });
 
