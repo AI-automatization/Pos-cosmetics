@@ -17,13 +17,13 @@ export function useOpenShift(onSuccess?: () => void) {
       toast.success('Smena muvaffaqiyatli ochildi!');
       onSuccess?.();
     },
-    onError: (err: unknown) => {
+    onError: (err: unknown, dto: OpenShiftDto) => {
       // Backend tayyor bo'lmaguncha local fallback
       const msg = extractErrorMessage(err);
       if (msg.includes('404') || msg.includes('connect') || msg.includes('Network')) {
-        // Demo mode: use local state until backend is ready (T-013/T-014)
+        // Demo mode: use submitted form values until backend is ready (T-013/T-014)
         const demoId = `demo-${Date.now()}`;
-        openShift(demoId, 'Kassir', 0);
+        openShift(demoId, dto.cashierName, dto.openingCash);
         toast.success('Smena ochildi (demo rejim)');
         onSuccess?.();
       } else {

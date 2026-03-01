@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Banknote, CreditCard, SplitSquareVertical, Check, Tag } from 'lucide-react';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
@@ -31,6 +31,12 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
+
+  // Sync local state when store resets after clearCart()
+  useEffect(() => {
+    setDiscountInput(String(orderDiscount));
+    setDiscountType(orderDiscountType);
+  }, [orderDiscount, orderDiscountType]);
 
   const handleDiscountApply = () => {
     const val = parseFloat(discountInput) || 0;

@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-02-26
+# Yangilangan: 2026-02-28
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
