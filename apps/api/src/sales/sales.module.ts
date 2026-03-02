@@ -8,3 +8,4 @@ import { SalesController } from './sales.controller';
   exports: [SalesService],
 })
 export class SalesModule {}
+

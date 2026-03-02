@@ -1,1 +1,91 @@
 @import "tailwindcss";
+
+/* ─── 80mm Thermal Receipt Print Styles ─────────────────────────────── */
+@media print {
+  /* Hide everything on the page */
+  body > * {
+    display: none !important;
+  }
+
+  /* Show only the receipt print area */
+  #receipt-print-area {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  /* 80mm thermal paper size */
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  /* Receipt inner styles */
+  #receipt-print-area .receipt-body {
+    width: 72mm;      /* 80mm paper - 4mm left/right padding */
+    margin: 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10pt;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+    padding: 4mm 4mm 8mm;
+  }
+
+  #receipt-print-area .receipt-center {
+    text-align: center;
+  }
+
+  #receipt-print-area .receipt-bold {
+    font-weight: bold;
+  }
+
+  #receipt-print-area .receipt-large {
+    font-size: 13pt;
+  }
+
+  #receipt-print-area .receipt-small {
+    font-size: 8pt;
+    color: #444;
+  }
+
+  #receipt-print-area .receipt-divider {
+    border-top: 1px dashed #000;
+    margin: 3mm 0;
+  }
+
+  #receipt-print-area .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 4mm;
+    margin-bottom: 1mm;
+  }
+
+  #receipt-print-area .receipt-row-right {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  #receipt-print-area .receipt-item-name {
+    font-weight: bold;
+    word-break: break-word;
+  }
+
+  #receipt-print-area .receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 2mm;
+  }
+
+  #receipt-print-area .receipt-fiscal {
+    border: 1px solid #000;
+    padding: 2mm;
+    text-align: center;
+    font-size: 8pt;
+    margin-top: 3mm;
+  }
+}

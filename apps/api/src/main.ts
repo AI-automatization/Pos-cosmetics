@@ -3,11 +3,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import compression = require('compression');
 import { AppModule } from './app.module';
 import { AppLoggerService } from './common/logger/logger.service';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { RequestContextService } from './common/logger/request-context.service';
+import { SanitizeStringPipe } from './common/pipes';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -19,6 +21,8 @@ async function bootstrap() {
 
   // Security
   app.use(helmet());
+  // T-077: Response compression (gzip/brotli)
+  app.use(compression());
   app.enableCors({
     origin: config.get<string>('CORS_ORIGIN', 'http://localhost:3001'),
     credentials: true,
@@ -28,8 +32,10 @@ async function bootstrap() {
   const prefix = config.get<string>('API_PREFIX', 'api/v1');
   app.setGlobalPrefix(prefix);
 
-  // Validation
+  // T-072: Sanitize strings BEFORE validation (HTML strip)
+  // T-072 + Validation pipeline: sanitize → validate/transform
   app.useGlobalPipes(
+    new SanitizeStringPipe(),
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
@@ -37,12 +43,10 @@ async function bootstrap() {
     }),
   );
 
-  // Global interceptor (Winston-backed request logger)
+  // Global interceptor + exception filter (Winston-backed, Prisma-aware)
   const requestContext = app.get(RequestContextService);
   app.useGlobalInterceptors(new RequestLoggerInterceptor(logger, requestContext));
-
-  // Global exception filter (Winston-backed)
-  app.useGlobalFilters(new GlobalExceptionFilter(logger));
+  app.useGlobalFilters(new GlobalExceptionFilter(logger, requestContext));
 
   // BigInt JSON serialization
   (BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
@@ -58,6 +62,9 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup(`${prefix}/docs`, app, document);
+
+  // Graceful shutdown (T-085)
+  app.enableShutdownHooks();
 
   // Start
   const port = config.get<number>('API_PORT', 3000);
