@@ -1,0 +1,424 @@
+================================================================================
+RAOS — POLAT QISMI: BAJARILGAN ISHLAR
+Mas'ul: Polat (Backend & DevOps & Testing API & Swagger)
+================================================================================
+Yangilangan: 2026-02-28
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. IDENTITY & AUTH MODULE (T-001 — T-010)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-26
+Fayllar : apps/api/src/identity/
+
+Nima qilindi:
+  - JWT Auth: Access token (15 min) + Refresh token (7 kun, httpOnly cookie)
+  - @Public() decorator — guard bypass
+  - @Roles() decorator — role-based access
+  - Global guards zanjiri: JwtAuthGuard → RolesGuard → TenantGuard
+  - Role ierarxiyasi: OWNER > ADMIN > MANAGER > CASHIER > VIEWER
+  - Multi-tenant: tenant_id barcha so'rovlarda filter
+
+API Endpointlar:
+  POST   /auth/register
+  POST   /auth/login
+  POST   /auth/refresh
+  POST   /auth/logout
+  GET    /auth/me
+  GET    /users
+  POST   /users
+  PATCH  /users/:id
+  DELETE /users/:id
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. CATALOG MODULE (T-011, T-012)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/catalog/, apps/api/prisma/schema.prisma
+
+Nima qilindi:
+  - DB jadvallar: categories (tree/nested), units, products, product_barcodes
+  - Soft delete (deletedAt), tenant_id barcha jadvallarda
+  - Indexes: tenant_id, [tenant_id, barcode], [tenant_id, sku], [tenant_id, categoryId]
+  - Barcode scan: birinchi products.barcode tekshir, keyin product_barcodes
+  - Pagination + search + filter (category, price range, isActive)
+
+API Endpointlar:
+  GET    /catalog/products              — ro'yxat (filter, pagination, search)
+  GET    /catalog/products/:id          — bitta mahsulot
+  GET    /catalog/products/barcode/:code — barcode skan
+  POST   /catalog/products              — yangi mahsulot
+  PATCH  /catalog/products/:id          — tahrirlash
+  DELETE /catalog/products/:id          — soft delete
+  GET    /catalog/categories            — kategoriyalar daraxti
+  POST   /catalog/categories
+  PATCH  /catalog/categories/:id
+  DELETE /catalog/categories/:id
+  GET    /catalog/units
+  POST   /catalog/units
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. INVENTORY MODULE (T-021, T-022, T-031)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/inventory/
+
+Nima qilindi:
+  - DB jadvallar: warehouses, stock_movements (IMMUTABLE — updatedAt yo'q)
+  - Movement turlari: IN, OUT, ADJUSTMENT, TRANSFER_IN, TRANSFER_OUT, RETURN_IN
+  - Stock level: raw SQL aggregate (SUM CASE WHEN type IN/OUT)
+  - Expiry tracking: batch_number, expiry_date per movement
+  - Low stock alert: minStockLevel bilan solishtirish
+
+API Endpointlar:
+  GET    /inventory/warehouses
+  POST   /inventory/warehouses
+  POST   /inventory/movements          — kirim/chiqim qo'shish
+  GET    /inventory/movements          — harakatlar tarixi
+  GET    /inventory/levels             — hozirgi qoldiqlar
+  GET    /inventory/levels?lowStock=true — kam qolganlar
+  GET    /inventory/expiring?days=30   — muddati yaqin (kosmetika uchun!)
+  GET    /inventory/expired            — muddati o'tganlar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. SALES MODULE (T-013, T-014, T-019, T-026)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/sales/
+
+Nima qilindi:
+  - DB jadvallar: shifts, orders, order_items, returns, return_items
+  - orders + order_items — IMMUTABLE (return alohida jadvalda)
+  - Auto order_number (per tenant, increment)
+  - Smena boshqaruvi: bir foydalanuvchida bir vaqtda 1 ta ochiq smena
+  - Qaytarish: PENDING → APPROVED (manager/admin tasdiqlaydi)
+  - Chegirma limiti: CASHIER ≤5%, MANAGER ≤15%, ADMIN/OWNER ≤100%
+  - Chek (receipt): ESC/POS formatida JSON
+
+API Endpointlar:
+  POST   /sales/shifts/open
+  POST   /sales/shifts/:id/close
+  GET    /sales/shifts/current
+  GET    /sales/shifts
+  POST   /sales/orders               — buyurtma (POS sale)
+  GET    /sales/orders
+  GET    /sales/orders/:id
+  GET    /sales/orders/:id/receipt   — chek (ESC/POS)
+  POST   /sales/returns
+  PATCH  /sales/returns/:id/approve
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. PAYMENTS MODULE (T-015)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/payments/
+
+Nima qilindi:
+  - DB: payment_intents (CREATED → CONFIRMED → SETTLED → REVERSED)
+  - To'lov usullari: CASH, TERMINAL, CLICK, PAYME, TRANSFER, DEBT (nasiya)
+  - Split payment: bitta order — bir nechta payment method
+  - CASH → auto-settle (confirm qilganda darhol settled)
+  - payment.settled event — Ledger ga uzatiladi
+
+API Endpointlar:
+  POST   /payments/intent            — to'lov niyati yaratish
+  POST   /payments/split             — bo'lib to'lash
+  POST   /payments/:id/confirm
+  POST   /payments/:id/settle
+  POST   /payments/:id/reverse
+  GET    /payments/order/:orderId    — order to'lovlari
+  GET    /payments/:id
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. CUSTOMERS MODULE (T-050)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/customers/
+
+Nima qilindi:
+  - DB: customers (name, phone, notes, isActive)
+  - Telefon orqali tezkor qidiruv (POS uchun)
+  - Index: [tenantId, phone]
+
+API Endpointlar:
+  GET    /customers
+  GET    /customers/:id
+  GET    /customers/:id/stats        — xarid tarixi statistikasi
+  POST   /customers
+  PATCH  /customers/:id
+  DELETE /customers/:id
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. NASIYA MODULE (T-051) — O'zbekiston uchun KRITIK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/nasiya/
+
+Nima qilindi:
+  - DB: debt_records (ACTIVE/PARTIAL/PAID/OVERDUE), debt_payments
+  - Qarz holatlari: ACTIVE → PARTIAL → PAID, OVERDUE
+  - Qisman to'lash imkoni
+  - Muddati o'tgan qarzlar: overdue ro'yxati
+  - Qarz yoshi (aging): 0-30, 31-60, 61-90, 90+ kun bucketlar
+
+API Endpointlar:
+  POST   /nasiya                     — yangi qarz
+  GET    /nasiya                     — qarzlar ro'yxati
+  GET    /nasiya/overdue             — muddati o'tganlar
+  GET    /nasiya/summary             — umumiy qarz summasi
+  GET    /nasiya/aging               — aging report
+  GET    /nasiya/:id
+  POST   /nasiya/:id/pay             — qarz to'lash
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. DOMAIN EVENTS (T-039)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/events/
+
+Nima qilindi:
+  - EventEmitter2 integration (NestJS)
+  - SaleEventListener: sale.created → stock deduction (auto warehouse tanlash)
+  - SaleEventListener: return.approved → RETURN_IN movement
+  - Circular dependency oldini olish: InventoryModule providers ichida
+
+Event oqimi:
+  sale.created  → [SaleEventListener] stock deduction
+                → [LedgerService]     debit AR / credit Revenue
+                → [TaxService]        fiscal_status = PENDING
+  payment.settled → [LedgerService]   debit Cash / credit AR
+  return.approved → [SaleEventListener] RETURN_IN stock
+                  → [LedgerService]   debit SalesReturn / credit AR
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. REPORTS MODULE (T-024)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/reports/
+
+Nima qilindi:
+  - Raw SQL aggregates (PostgreSQL)
+  - Profit: Revenue - COGS (avg cost) - Returns
+  - Barcha so'rovlarda tenant_id filter
+
+API Endpointlar (faqat OWNER/ADMIN/MANAGER):
+  GET    /reports/daily-revenue?from=&to=    — kunlik daromad
+  GET    /reports/top-products?from=&to=&limit= — top mahsulotlar
+  GET    /reports/sales-summary?from=&to=    — jami + qaytarishlar + to'lov turlari
+  GET    /reports/profit?from=&to=           — foyda hisoboti (OWNER/ADMIN only)
+  GET    /reports/shift/:shiftId             — smena hisoboti
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. AUDIT LOG (T-027)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/audit/
+
+Nima qilindi:
+  - DB: audit_logs (tenantId, userId, action, entityType, entityId, oldData, newData, ip, userAgent)
+  - log() xato chiqsa ham asosiy operatsiyani to'xtatmaydi (try/catch)
+  - Faqat OWNER/ADMIN ko'ra oladi
+
+API Endpointlar:
+  GET    /audit-logs?userId=&action=&entityType=&from=&to= — (OWNER/ADMIN only)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. EXPENSES / FINANCE MODULE (T-032)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/finance/
+
+Nima qilindi:
+  - DB: expenses (RENT, SALARY, DELIVERY, UTILITIES, OTHER)
+  - Summary: kategoriya bo'yicha GROUP BY
+  - Profit = Revenue - COGS - Expenses (reports modulida)
+
+API Endpointlar:
+  POST   /expenses
+  GET    /expenses?category=&from=&to=
+  GET    /expenses/summary?from=&to=
+  DELETE /expenses/:id  (OWNER/ADMIN only)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+12. LEDGER MODULE — Double-Entry Journal (T-035)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/src/ledger/
+
+Nima qilindi:
+  - DB: journal_entries + journal_lines (IMMUTABLE — updatedAt yo'q, delete yo'q)
+  - Hisoblar: CASH, ACCOUNTS_RECEIVABLE, REVENUE, SALES_RETURN, COGS, EXPENSES
+  - Validation: SUM(DEBIT) === SUM(CREDIT) ±0.001 (aks holda InternalServerError)
+  - Controller YO'Q — faqat internal service
+  - Event-driven: @OnEvent listener orqali avtomatik yoziladi
+
+Avtomatik yoziladigan hollar:
+  sale.created    → DR Accounts Receivable / CR Revenue
+  payment.settled → DR Cash / CR Accounts Receivable
+  return.approved → DR Sales Return / CR Accounts Receivable
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+13. FISCAL ADAPTER — Placeholder (T-036)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI (placeholder)
+Sana    : 2026-02-28
+Fayllar : apps/api/src/tax/
+
+Nima qilindi:
+  - sale.created → fiscal_status = PENDING (avtomatik)
+  - Sale HECH QACHON block qilinmaydi fiscal xato bo'lsa
+  - retryFiscal() — FAILED → PENDING (keyingi real adapter uchun tayyor)
+  - Phase 2 da: real REGOS/OFD adapter plug-in qilinadi
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+14. SHARED TYPES (T-038)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : packages/types/src/
+
+Nima qilindi:
+  - catalog.ts    — Category, Unit, Product, ProductBarcode, filter/payload
+  - sales.ts      — Shift, Order, OrderItem, Return, ReturnItem, payloadlar
+  - inventory.ts  — Warehouse, StockMovement, StockLevel, ExpiringProduct
+  - payments.ts   — PaymentIntent, PaymentMethod, PaymentIntentStatus
+  - customers.ts  — Customer, DebtRecord, DebtPayment, AgingReport
+  - reports.ts    — DailyRevenue, TopProduct, SalesSummary, ProfitEstimate
+  - index.ts      — barcha typelar export
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15. DEVOPS — Docker + CI/CD Staging (T-037)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/api/Dockerfile, apps/web/Dockerfile,
+          docker-compose.staging.yml, .github/workflows/ci.yml,
+          docker/nginx/staging.conf, .env.staging
+
+Nima qilindi:
+  - API Dockerfile: 3-stage (deps → builder → runner)
+    Node 20 alpine, pnpm, Prisma generate, non-root user (nestjs), dumb-init
+  - Web Dockerfile: Next.js standalone, non-root user (nextjs)
+  - docker-compose.staging.yml:
+      postgres (healthcheck), redis (requirepass, maxmemory 256mb),
+      api, web, nginx (80/443), certbot (SSL auto-renew 12h)
+  - nginx/staging.conf:
+      HTTP→HTTPS redirect, rate-limit 60r/m, security headers (HSTS, X-Frame),
+      static assets cache (1 yil, immutable)
+  - GitHub Actions CI/CD (5 job):
+      lint → typecheck → test (postgres service) → docker-build+push → deploy-staging
+  - Deploy: SSH rolling restart + health check + version tag
+
+⚠️ ESLATMA: next.config.js ga output:'standalone' qo'shish SHART (web Dockerfile uchun)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE SCHEMA — BARCHA JADVALLAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fayl: apps/api/prisma/schema.prisma
+
+  tenants             — multi-tenant asosi
+  users               — foydalanuvchilar (UserRole enum)
+  branches            — filiallar
+  categories          — mahsulot kategoriyalari (nested tree)
+  units               — o'lchov birliklari (dona, kg, litr...)
+  products            — mahsulotlar (soft delete, expiry tracking)
+  product_barcodes    — bir mahsulot ko'p barcode
+  warehouses          — omborlar
+  stock_movements     — inventar harakatlari (IMMUTABLE)
+  shifts              — smena (ShiftStatus)
+  orders              — buyurtmalar (IMMUTABLE)
+  order_items         — buyurtma tarkibi (snapshot)
+  returns             — qaytarishlar (alohida jadval)
+  return_items        — qaytarish tarkibi
+  payment_intents     — to'lov niyatlari (lifecycle)
+  customers           — xaridorlar bazasi
+  debt_records        — nasiya qarzlari
+  debt_payments       — qarz to'lovlari
+  journal_entries     — buxgalteriya yozuvlari (IMMUTABLE)
+  journal_lines       — debit/credit qatorlari (IMMUTABLE)
+  audit_logs          — barcha amallar tarixi (IMMUTABLE)
+  expenses            — xarajatlar
+  event_log           — domain eventlar (IMMUTABLE)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+16. TELEGRAM BOT (T-040)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Holat   : ✅ BAJARILDI
+Sana    : 2026-02-28
+Fayllar : apps/bot/src/
+
+Nima qilindi:
+  - grammY bot + Prisma (API bilan bitta DB)
+  - 4 ta cron job (Asia/Tashkent timezone):
+      soatlik  → kam qolgan mahsulotlar tekshiruvi
+      08:00    → muddati yaqin mahsulotlar (30 kun)
+      15 daqiqa → shubhali katta qaytarishlar (500,000 so'm+)
+      20:00    → kunlik savdo hisoboti
+
+Bot komandalar:
+  /start    — salomlashish + buyruqlar ro'yxati
+  /report   — bugungi savdo (buyurtmalar, to'lovlar, top 5 mahsulot)
+  /lowstock — min level dan past mahsulotlar
+  /expiring — 30 kun ichida muddati tugaydigan mahsulotlar
+  /help     — yordam
+
+Alertlar (avtomatik):
+  ⚠️ LOW STOCK  — 🔴 nol qolgan, 🟡 kam qolgan
+  🗓 EXPIRY     — 🔴≤7kun, 🟠≤14kun, 🟡≤30kun
+  🚨 BIG REFUND — 500,000 so'mdan katta qaytarish (har 15 daqiqada tekshiruv)
+  📊 DAILY      — har kuni 20:00 da savdo xulosasi
+
+Sozlash (.env):
+  BOT_TOKEN=...
+  BOT_ADMIN_CHAT_IDS=-100123456789
+  REFUND_ALERT_THRESHOLD=500000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KEYINGI QADAMLAR (Polat uchun)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. MIGRATE qilish:
+     cd apps/api
+     npx prisma migrate dev --name "add-audit-finance-ledger"
+
+  2. Swagger tekshirish:
+     http://localhost:3003/api/v1/docs
+
+  3. Keyingi task — T-040: Telegram bot (grammY)
+     - Low stock alert
+     - Shift close summary
+     - /report command
+
+  4. Staging uchun kerak:
+     - next.config.js ga output:'standalone' (Abdulaziz bilan kelishish)
+     - GitHub Secrets sozlash: STAGING_HOST, STAGING_USER, STAGING_SSH_KEY
+     - Server da /opt/raos/.env.staging.secret yaratish
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STATISTIKA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Bajarilgan tasklar : 27 ta (T-001 dan T-039 va T-050, T-051)
+  DB jadvallari      : 23 ta
+  API endpointlar    : 50+ ta
+  NestJS modullar    : 13 ta
+  Shared type fayllar: 6 ta
+  Dockerfile         : 2 ta (API + Web)
+  CI/CD jobs         : 5 ta (lint, typecheck, test, docker, deploy)
+  Sessiyalar         : 2 (2026-02-26 + 2026-02-28)
+
+================================================================================
+POLAT_PROGRESS.txt | RAOS Backend & DevOps | 2026-02-28
+================================================================================
