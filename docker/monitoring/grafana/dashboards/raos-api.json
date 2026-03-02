@@ -1,0 +1,112 @@
+{
+  "title": "RAOS API Performance",
+  "uid": "raos-api-perf",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job='raos-api'}[1m]))",
+          "legendFormat": "Total req/s"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Error Rate (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_requests_total{job='raos-api',status=~'5..'}[5m])) / sum(rate(http_requests_total{job='raos-api'}[5m]))",
+          "legendFormat": "Error rate %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "thresholds": { "steps": [
+          { "color": "green", "value": 0 },
+          { "color": "yellow", "value": 1 },
+          { "color": "red", "value": 5 }
+        ]}}
+      }
+    },
+    {
+      "id": 3,
+      "title": "p95 Latency (ms)",
+      "type": "timeseries",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "expr": "1000 * histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job='raos-api'}[5m])) by (le))",
+          "legendFormat": "p95 ms"
+        },
+        {
+          "expr": "1000 * histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job='raos-api'}[5m])) by (le))",
+          "legendFormat": "p50 ms"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" } }
+    },
+    {
+      "id": 4,
+      "title": "HTTP Status Codes",
+      "type": "piechart",
+      "gridPos": { "x": 0, "y": 6, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "expr": "sum by (status) (increase(http_requests_total{job='raos-api'}[1h]))",
+          "legendFormat": "{{ status }}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Slowest Endpoints (p95)",
+      "type": "table",
+      "gridPos": { "x": 8, "y": 6, "w": 16, "h": 6 },
+      "targets": [
+        {
+          "expr": "topk(10, 1000 * histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job='raos-api'}[5m])) by (le, route, method)))",
+          "legendFormat": "{{ method }} {{ route }}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "DB Connection Pool",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "pg_stat_activity_count",
+          "legendFormat": "Active connections"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Redis Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes / 1024 / 1024",
+          "legendFormat": "Used MB"
+        },
+        {
+          "expr": "redis_memory_max_bytes / 1024 / 1024",
+          "legendFormat": "Max MB"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "mbytes" } }
+    }
+  ]
+}

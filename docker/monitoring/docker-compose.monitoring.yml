@@ -1,0 +1,94 @@
+version: '3.8'
+
+# ─── RAOS Monitoring Stack ────────────────────────────────────────────────────
+# Usage: docker compose -f docker-compose.staging.yml -f docker/monitoring/docker-compose.monitoring.yml up -d
+
+networks:
+  raos_network:
+    external: true
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+services:
+
+  # ─── Prometheus ─────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: raos_prometheus
+    restart: unless-stopped
+    networks: [raos_network]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    labels:
+      - "traefik.enable=false"
+
+  # ─── Grafana ────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: raos_grafana
+    restart: unless-stopped
+    networks: [raos_network]
+    ports:
+      - "3002:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3002}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus]
+
+  # ─── PostgreSQL Exporter ─────────────────────────────────────────────────────
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: raos_postgres_exporter
+    restart: unless-stopped
+    networks: [raos_network]
+    environment:
+      DATA_SOURCE_NAME: ${DATABASE_URL}
+    expose:
+      - "9187"
+
+  # ─── Redis Exporter ──────────────────────────────────────────────────────────
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.61.0
+    container_name: raos_redis_exporter
+    restart: unless-stopped
+    networks: [raos_network]
+    environment:
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    expose:
+      - "9121"
+
+  # ─── Node Exporter (host metrics) ────────────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:v1.8.0
+    container_name: raos_node_exporter
+    restart: unless-stopped
+    networks: [raos_network]
+    pid: "host"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - "9100"
