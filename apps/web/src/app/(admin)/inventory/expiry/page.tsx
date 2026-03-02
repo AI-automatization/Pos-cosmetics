@@ -17,9 +17,6 @@ interface ExpiryItem {
   daysLeft: number;
 }
 
-function getDaysLeft(expiryDate: string): number {
-  return Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86400000);
-}
 
 function makeExpiry(days: number): string {
   const d = new Date();

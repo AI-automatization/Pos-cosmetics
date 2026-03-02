@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertTriangle } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle } from 'lucide-react';
 import { useStock } from '@/hooks/inventory/useInventory';
 import { SearchInput } from '@/components/common/SearchInput';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';

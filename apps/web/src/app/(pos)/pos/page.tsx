@@ -27,8 +27,7 @@ export default function POSPage() {
     if (items.length > 0 && !completedOrder) {
       setShowRecovery(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // intentional: run once on mount
 
   const focusSearch = useCallback(() => {
     searchRef.current?.focus();

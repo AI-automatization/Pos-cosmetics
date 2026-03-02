@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { UserPlus, Shield, CheckCircle, XCircle, X } from 'lucide-react';
 import { useUsers, useCreateUser, useUpdateUser } from '@/hooks/settings/useUsers';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
-import { formatPrice, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
 

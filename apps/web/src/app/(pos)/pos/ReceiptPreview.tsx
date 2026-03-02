@@ -25,8 +25,7 @@ export function ReceiptPreview({ order, change = 0, onClose }: ReceiptPreviewPro
     if (hasCash) {
       openCashDrawer();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // intentional: run once on mount
 
   return (
     <>

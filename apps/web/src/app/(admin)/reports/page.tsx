@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { BarChart2, TrendingUp, Package, Clock } from 'lucide-react';
+import { BarChart2, TrendingUp, Clock } from 'lucide-react';
 
 const REPORT_LINKS = [
   {

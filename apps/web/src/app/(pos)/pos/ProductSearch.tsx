@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Search, Barcode, Plus } from 'lucide-react';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';

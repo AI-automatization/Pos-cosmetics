@@ -83,10 +83,6 @@ export default function BranchReportsPage() {
   const totalOrders  = BRANCHES.reduce((s, b) => s + b.orders, 0);
   const totalProfit  = BRANCHES.reduce((s, b) => s + b.profit, 0);
 
-  const comparisonData = [
-    { metric: 'Daromad', ...Object.fromEntries(BRANCHES.map((b) => [b.name.split(' ')[0], b.revenue])) },
-    { metric: 'Foyda', ...Object.fromEntries(BRANCHES.map((b) => [b.name.split(' ')[0], b.profit])) },
-  ];
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
@@ -161,7 +157,7 @@ export default function BranchReportsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {sorted.map((b, idx) => {
+            {sorted.map((b, _idx) => {
               const pct = Math.round((b.revenue / totalRevenue) * 100);
               return (
                 <tr key={b.id} className="hover:bg-gray-50">

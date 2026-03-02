@@ -83,8 +83,7 @@ export function useProductCache() {
       // Background sync
       sync();
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // intentional: run once on mount
 
   // Online/offline detection
   useEffect(() => {
