@@ -49,11 +49,13 @@ const days = Array.from({ length: 7 }, (_, i) => {
   return d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' });
 });
 
+// Deterministic offsets to avoid SSR hydration mismatch (no Math.random() at module level)
+const OFFSETS = [120_000, 80_000, -50_000, 160_000, -30_000, 90_000, 40_000];
 const WEEKLY = days.map((date, i) => ({
   date,
-  'Chilonzor': Math.round(1_500_000 + Math.sin(i) * 300_000 + Math.random() * 200_000),
-  'Yunusobod': Math.round(1_200_000 + Math.sin(i + 1) * 250_000 + Math.random() * 150_000),
-  'Sergeli':   Math.round(800_000 + Math.sin(i + 2) * 200_000 + Math.random() * 100_000),
+  'Chilonzor': Math.round(1_500_000 + Math.sin(i) * 300_000 + OFFSETS[i]),
+  'Yunusobod': Math.round(1_200_000 + Math.sin(i + 1) * 250_000 + OFFSETS[i] * 0.75),
+  'Sergeli':   Math.round(800_000 + Math.sin(i + 2) * 200_000 + OFFSETS[i] * 0.5),
 }));
 
 const TRANSFERS = [
