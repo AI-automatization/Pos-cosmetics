@@ -1,6 +1,6 @@
 'use client';
 
-import { Pencil, Trash2, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, AlertCircle, Printer } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import type { Product } from '@/types/catalog';
 
@@ -8,6 +8,7 @@ interface ProductsTableProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onPrint?: (product: Product) => void;
 }
 
 function StockBadge({ current, min }: { current: number; min: number }) {
@@ -44,7 +45,7 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
   );
 }
 
-export function ProductsTable({ products, onEdit, onDelete }: ProductsTableProps) {
+export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsTableProps) {
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 py-16 text-center">
@@ -81,6 +82,11 @@ export function ProductsTable({ products, onEdit, onDelete }: ProductsTableProps
               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                 Amallar
               </th>
+              {onPrint && (
+                <th className="px-2 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Chop
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -126,6 +132,19 @@ export function ProductsTable({ products, onEdit, onDelete }: ProductsTableProps
                     </button>
                   </div>
                 </td>
+                {onPrint && (
+                  <td className="px-2 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onPrint(product)}
+                      className="rounded-lg p-1.5 text-gray-400 transition hover:bg-purple-50 hover:text-purple-600"
+                      aria-label="Yorliq chop etish"
+                      title="Yorliq chop etish"
+                    >
+                      <Printer className="h-4 w-4" />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
