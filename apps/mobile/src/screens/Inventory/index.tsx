@@ -10,8 +10,10 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import EmptyState from '@/components/common/EmptyState';
 import Badge from '@/components/common/Badge';
 import { inventoryApi } from '@/api';
+import { safeQueryFn } from '@/utils/error';
 import { useAppStore } from '@/store/app.store';
 import type { StockItem } from '@/api/inventory.api';
+import type { PaginatedResponse } from '@raos/types';
 
 type Props = {
   navigation: NativeStackNavigationProp<InventoryStackParamList, 'StockLevels'>;
@@ -42,9 +44,10 @@ export default function StockLevelsScreen({ navigation }: Props): React.JSX.Elem
   const { t } = useTranslation();
   const { selectedBranchId } = useAppStore();
 
+  const EMPTY_STOCK: PaginatedResponse<StockItem> = { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } };
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['inventory', 'stock', selectedBranchId],
-    queryFn: () => inventoryApi.getStock(selectedBranchId ?? undefined),
+    queryFn: safeQueryFn<PaginatedResponse<StockItem>>(() => inventoryApi.getStock(selectedBranchId ?? undefined), EMPTY_STOCK),
   });
 
   if (isLoading) return <LoadingSpinner message={t('common.loading')} />;

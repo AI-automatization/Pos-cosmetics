@@ -7,3 +7,4 @@ export { inventoryApi } from './inventory.api';
 export { branchApi } from './branches.api';
 export { nasiyaApi } from './nasiya.api';
 export { catalogApi } from './catalog.api';
+export { realEstateApi } from './realestate.api';

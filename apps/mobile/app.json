@@ -35,6 +35,7 @@
         }
       ]
     ],
+    "newArchEnabled": true,
     "extra": {
       "eas": {
         "projectId": "raos-mobile"

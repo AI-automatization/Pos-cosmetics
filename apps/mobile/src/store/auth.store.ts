@@ -17,7 +17,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, slug?: string) => Promise<void>;
   logout: () => Promise<void>;
   loadUser: () => Promise<void>;
 }
@@ -27,8 +27,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isLoading: true,
 
-  login: async (email, password) => {
-    const tokens = await authApi.login({ email, password });
+  login: async (email, password, slug = 'raos-demo') => {
+    const tokens = await authApi.login({ slug, email, password });
     await SecureStore.setItemAsync(TOKEN_KEYS.ACCESS, tokens.accessToken);
     await SecureStore.setItemAsync(TOKEN_KEYS.REFRESH, tokens.refreshToken);
     const user = await authApi.me();

@@ -1,0 +1,6 @@
+appId: host.exp.exponent
+name: "Helper - RAOS ni Expo Go orqali ochish"
+---
+- launchApp
+- tapOn: "RAOS"
+- waitForAnimationToEnd

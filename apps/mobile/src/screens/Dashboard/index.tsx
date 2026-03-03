@@ -5,7 +5,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { DashboardStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import Card from '@/components/common/Card';
-import ErrorView from '@/components/common/ErrorView';
 import { SkeletonCard, SkeletonList } from '@/components/common/SkeletonLoader';
 import TrendIndicator from '@/components/charts/TrendIndicator';
 import Badge from '@/components/common/Badge';
@@ -117,7 +116,9 @@ export default function DashboardScreen({ navigation }: Props): React.JSX.Elemen
     void activeShifts.refetch();
   };
 
-  if (revenue.isLoading) {
+  const isLoading = revenue.isLoading && alerts.isLoading;
+
+  if (isLoading) {
     return (
       <ScreenLayout title={t('dashboard.title')}>
         <SkeletonCard />
@@ -126,8 +127,6 @@ export default function DashboardScreen({ navigation }: Props): React.JSX.Elemen
       </ScreenLayout>
     );
   }
-
-  if (revenue.error) return <ErrorView error={revenue.error} onRetry={refetchAll} />;
 
   const maxRevenue = Math.max(...(branchComparison.data?.map((b) => b.revenue) ?? [1]));
 

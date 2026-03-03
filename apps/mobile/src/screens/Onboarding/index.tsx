@@ -6,12 +6,14 @@ import {
   StyleSheet,
   FlatList,
   useWindowDimensions,
+  StatusBar,
   type ListRenderItem,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
+import { useAppStore } from '@/store/app.store';
 
 export const ONBOARDING_KEY = 'onboarding_completed';
 
@@ -20,8 +22,9 @@ interface Slide {
   icon: string;
   titleKey: string;
   descKey: string;
-  bgColor: string;
-  iconBg: string;
+  accent: string;
+  softBg: string;
+  circleBg: string;
 }
 
 const SLIDES: Slide[] = [
@@ -30,24 +33,27 @@ const SLIDES: Slide[] = [
     icon: '🏪',
     titleKey: 'onboarding.slide1Title',
     descKey: 'onboarding.slide1Desc',
-    bgColor: '#eff6ff',
-    iconBg: '#dbeafe',
+    accent: '#1a56db',
+    softBg: '#dbeafe',
+    circleBg: '#bfdbfe',
   },
   {
     id: '2',
     icon: '💰',
     titleKey: 'onboarding.slide2Title',
     descKey: 'onboarding.slide2Desc',
-    bgColor: '#f0fdf4',
-    iconBg: '#dcfce7',
+    accent: '#059669',
+    softBg: '#d1fae5',
+    circleBg: '#a7f3d0',
   },
   {
     id: '3',
     icon: '🔔',
     titleKey: 'onboarding.slide3Title',
     descKey: 'onboarding.slide3Desc',
-    bgColor: '#fff7ed',
-    iconBg: '#ffedd5',
+    accent: '#d97706',
+    softBg: '#fef3c7',
+    circleBg: '#fde68a',
   },
 ];
 
@@ -55,185 +61,301 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
 };
 
-async function completeOnboarding(): Promise<void> {
+async function markDone(): Promise<void> {
   await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
 }
 
-export default function OnboardingScreen({ navigation }: Props): React.JSX.Element {
+export default function OnboardingScreen({ navigation: _navigation }: Props): React.JSX.Element {
   const { t } = useTranslation();
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
-  const flatListRef = useRef<FlatList<Slide>>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { width: W, height: H } = useWindowDimensions();
+  const listRef = useRef<FlatList<Slide>>(null);
+  const [idx, setIdx] = useState(0);
+  const { setOnboardingDone } = useAppStore();
 
-  const isLast = currentIndex === SLIDES.length - 1;
+  const slide = SLIDES[idx];
+  const isLast = idx === SLIDES.length - 1;
+  const ILLUS_H = H * 0.50;
 
-  const goToNext = (): void => {
-    if (isLast) {
-      void completeOnboarding().then(() => navigation.replace('Auth'));
-    } else {
-      const nextIndex = currentIndex + 1;
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-      setCurrentIndex(nextIndex);
-    }
+  const finish = (): void => {
+    void markDone().then(() => setOnboardingDone(true));
   };
 
-  const skip = (): void => {
-    void completeOnboarding().then(() => navigation.replace('Auth'));
+  const next = (): void => {
+    if (isLast) { finish(); return; }
+    const n = idx + 1;
+    listRef.current?.scrollToIndex({ index: n, animated: true });
+    setIdx(n);
+  };
+
+  const back = (): void => {
+    if (idx === 0) return;
+    const p = idx - 1;
+    listRef.current?.scrollToIndex({ index: p, animated: true });
+    setIdx(p);
   };
 
   const renderSlide: ListRenderItem<Slide> = ({ item }) => (
-    <View style={[styles.slide, { width: SCREEN_WIDTH, backgroundColor: item.bgColor }]}>
-      <View style={[styles.iconCircle, { backgroundColor: item.iconBg }]}>
-        <Text style={styles.icon}>{item.icon}</Text>
+    <View style={{ width: W }}>
+      {/* Coloured illustration area */}
+      <View style={[styles.illustrationBg, { backgroundColor: item.softBg, height: ILLUS_H }]}>
+        {/* Decorative blobs */}
+        <View style={[styles.blobLarge, { backgroundColor: item.accent + '18' }]} />
+        <View style={[styles.blobSmall, { backgroundColor: item.accent + '28' }]} />
+
+        {/* Brand */}
+        <Text style={[styles.brand, { color: item.accent }]}>RAOS</Text>
+
+        {/* Icon rings */}
+        <View style={[styles.outerRing, { backgroundColor: item.circleBg + '80' }]}>
+          <View style={[styles.innerRing, { backgroundColor: item.circleBg }]}>
+            <Text style={styles.emojiText}>{item.icon}</Text>
+          </View>
+        </View>
+
+        {/* Slide number badge */}
+        <View style={[styles.badge, { backgroundColor: item.accent }]}>
+          <Text style={styles.badgeText}>{item.id} / {SLIDES.length}</Text>
+        </View>
       </View>
-      <Text style={styles.title}>{t(item.titleKey)}</Text>
-      <Text style={styles.desc}>{t(item.descKey)}</Text>
+
+      {/* Text content */}
+      <View style={styles.cardContent}>
+        <Text style={styles.slideTitle}>{t(item.titleKey)}</Text>
+        <Text style={styles.slideDesc}>{t(item.descKey)}</Text>
+      </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Skip button */}
-      {!isLast && (
-        <TouchableOpacity style={styles.skipBtn} onPress={skip} accessibilityRole="button">
-          <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
-        </TouchableOpacity>
-      )}
+    <View style={styles.root}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-      {/* Slides */}
       <FlatList
-        ref={flatListRef}
+        ref={listRef}
         data={SLIDES}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(s) => s.id}
         renderItem={renderSlide}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        scrollEnabled={false}
-        style={styles.flatList}
-        getItemLayout={(_data, index) => ({
-          length: SCREEN_WIDTH,
-          offset: SCREEN_WIDTH * index,
-          index,
-        })}
+        scrollEnabled
+        onMomentumScrollEnd={(e) => {
+          setIdx(Math.round(e.nativeEvent.contentOffset.x / W));
+        }}
+        getItemLayout={(_d, i) => ({ length: W, offset: W * i, index: i })}
         onScrollToIndexFailed={() => undefined}
       />
 
-      {/* Bottom area */}
-      <View style={styles.bottom}>
-        {/* Dot indicators */}
-        <View style={styles.dots}>
+      {/* Fixed bottom controls */}
+      <View style={styles.bottomBar}>
+        {/* Animated dots */}
+        <View style={styles.dotsRow}>
           {SLIDES.map((_, i) => (
             <View
               key={i}
-              style={[styles.dot, i === currentIndex && styles.dotActive]}
+              style={[
+                styles.dot,
+                i === idx
+                  ? { width: 28, height: 8, backgroundColor: slide.accent, borderRadius: 4 }
+                  : { width: 8, height: 8, backgroundColor: '#e5e7eb', borderRadius: 4 },
+              ]}
             />
           ))}
         </View>
 
-        {/* Next / Get Started button */}
-        <TouchableOpacity
-          style={styles.nextBtn}
-          onPress={goToNext}
-          accessibilityRole="button"
-          testID="onboarding-next-btn"
-        >
-          <Text style={styles.nextText}>
-            {isLast ? t('onboarding.getStarted') : t('onboarding.next')}
-          </Text>
-        </TouchableOpacity>
+        {/* Back + Next row */}
+        <View style={styles.btnRow}>
+          {idx > 0 ? (
+            <TouchableOpacity
+              style={[styles.backBtn, { borderColor: slide.accent }]}
+              onPress={back}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.backArrow, { color: slide.accent }]}>←</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.backPlaceholder} />
+          )}
+
+          <TouchableOpacity
+            style={[styles.nextBtn, { backgroundColor: slide.accent }]}
+            onPress={next}
+            accessibilityRole="button"
+            testID="onboarding-next-btn"
+          >
+            <Text style={styles.nextText}>
+              {isLast ? t('onboarding.getStarted') : t('onboarding.next')}
+            </Text>
+            <Text style={styles.nextArrow}>{isLast ? ' ✓' : ' →'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Skip */}
+        {!isLast ? (
+          <TouchableOpacity onPress={finish} accessibilityRole="button" style={styles.skipBtn}>
+            <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.skipBtn} />
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  skipBtn: {
+
+  /* Illustration */
+  illustrationBg: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderBottomLeftRadius: 36,
+    borderBottomRightRadius: 36,
+  },
+  blobLarge: {
     position: 'absolute',
-    top: 52,
-    right: 24,
-    zIndex: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    top: -50,
+    right: -50,
   },
-  skipText: {
+  blobSmall: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    bottom: 10,
+    left: 16,
+  },
+  brand: {
+    position: 'absolute',
+    top: 56,
     fontSize: 15,
-    color: '#6b7280',
-    fontWeight: '500',
+    fontWeight: '800',
+    letterSpacing: 4,
   },
-  flatList: {
-    flex: 1,
-  },
-  slide: {
-    flex: 1,
+  outerRing: {
+    width: 192,
+    height: 192,
+    borderRadius: 96,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
   },
-  iconCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+  innerRing: {
+    width: 148,
+    height: 148,
+    borderRadius: 74,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
   },
-  icon: {
-    fontSize: 64,
+  emojiText: {
+    fontSize: 70,
   },
-  title: {
-    fontSize: 26,
+  badge: {
+    position: 'absolute',
+    bottom: 18,
+    right: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+
+  /* Content */
+  cardContent: {
+    paddingHorizontal: 28,
+    paddingTop: 28,
+    paddingBottom: 4,
+    backgroundColor: '#ffffff',
+  },
+  slideTitle: {
+    fontSize: 24,
     fontWeight: '800',
     color: '#111827',
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 34,
+    marginBottom: 10,
+    lineHeight: 32,
   },
-  desc: {
-    fontSize: 16,
+  slideDesc: {
+    fontSize: 15,
     color: '#6b7280',
     textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 8,
+    lineHeight: 23,
   },
-  bottom: {
+
+  /* Bottom bar */
+  bottomBar: {
     paddingHorizontal: 24,
-    paddingBottom: 48,
-    paddingTop: 20,
+    paddingBottom: 36,
+    paddingTop: 14,
     backgroundColor: '#ffffff',
     alignItems: 'center',
-    gap: 20,
+    gap: 14,
   },
-  dots: {
+  dotsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
+    alignItems: 'center',
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#d1d5db',
+  dot: {},
+
+  /* Buttons */
+  btnRow: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 10,
+    alignItems: 'center',
   },
-  dotActive: {
-    width: 24,
-    backgroundColor: '#1a56db',
+  backBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backArrow: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  backPlaceholder: {
+    width: 52,
   },
   nextBtn: {
-    backgroundColor: '#1a56db',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    width: '100%',
-    minHeight: 52,
+    flex: 1,
+    flexDirection: 'row',
+    height: 52,
+    borderRadius: 16,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   nextText: {
     color: '#ffffff',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
+  },
+  nextArrow: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  skipBtn: {
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  skipText: {
+    color: '#9ca3af',
+    fontSize: 15,
   },
 });

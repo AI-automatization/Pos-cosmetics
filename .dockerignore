@@ -1,0 +1,8 @@
+**/node_modules
+**/.next
+**/.git
+**/coverage
+**/*.log
+apps/api/dist
+apps/mobile/.expo
+apps/web/package-lock.json

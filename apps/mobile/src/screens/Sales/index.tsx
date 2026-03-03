@@ -10,8 +10,10 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import EmptyState from '@/components/common/EmptyState';
 import Badge from '@/components/common/Badge';
 import { salesApi } from '@/api';
+import { safeQueryFn } from '@/utils/error';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import type { Sale } from '@/api/sales.api';
+import type { PaginatedResponse } from '@raos/types';
 
 type Props = {
   navigation: NativeStackNavigationProp<SalesStackParamList, 'SalesList'>;
@@ -41,9 +43,10 @@ export default function SalesListScreen({ navigation }: Props): React.JSX.Elemen
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
 
+  const EMPTY_PAGE: PaginatedResponse<Sale> = { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } };
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['sales', page],
-    queryFn: () => salesApi.getAll({ page, limit: 20 }),
+    queryFn: safeQueryFn<PaginatedResponse<Sale>>(() => salesApi.getAll({ page, limit: 20 }), EMPTY_PAGE),
   });
 
   if (isLoading) return <LoadingSpinner message={t('common.loading')} />;

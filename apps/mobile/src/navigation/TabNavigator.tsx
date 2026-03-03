@@ -10,6 +10,8 @@ import type {
   NasiyaStackParamList,
   InventoryStackParamList,
   AlertsStackParamList,
+  RealEstateStackParamList,
+  AIInsightsStackParamList,
   SettingsStackParamList,
 } from './types';
 
@@ -24,6 +26,10 @@ import LowStockScreen from '@/screens/Inventory/LowStockList';
 import BarcodeScannerScreen from '@/screens/Inventory/BarcodeScanner';
 import AlertsListScreen from '@/screens/Alerts';
 import AlertDetailScreen from '@/screens/Alerts/AlertDetail';
+import PropertiesScreen from '@/screens/RealEstate';
+import PropertyDetailScreen from '@/screens/RealEstate/PropertyDetail';
+import RentalPaymentsScreen from '@/screens/RealEstate/RentalPayments';
+import AIInsightsScreen from '@/screens/AIInsights';
 import SettingsScreen from '@/screens/Settings';
 import ProfileScreen from '@/screens/Settings/Profile';
 import NotificationPrefsScreen from '@/screens/Settings/NotificationPrefs';
@@ -35,6 +41,8 @@ const SalesStack = createNativeStackNavigator<SalesStackParamList>();
 const NasiyaStack = createNativeStackNavigator<NasiyaStackParamList>();
 const InventoryStack = createNativeStackNavigator<InventoryStackParamList>();
 const AlertsStack = createNativeStackNavigator<AlertsStackParamList>();
+const RealEstateStack = createNativeStackNavigator<RealEstateStackParamList>();
+const AIInsightsStack = createNativeStackNavigator<AIInsightsStackParamList>();
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
 function DashboardNavigator(): React.JSX.Element {
@@ -103,6 +111,42 @@ function AlertsNavigator(): React.JSX.Element {
   );
 }
 
+function RealEstateNavigator(): React.JSX.Element {
+  const { t } = useTranslation();
+  return (
+    <RealEstateStack.Navigator>
+      <RealEstateStack.Screen
+        name="Properties"
+        component={PropertiesScreen}
+        options={{ title: t('realestate.title') }}
+      />
+      <RealEstateStack.Screen
+        name="PropertyDetail"
+        component={PropertyDetailScreen}
+        options={({ route }) => ({ title: route.params.propertyName })}
+      />
+      <RealEstateStack.Screen
+        name="RentalPayments"
+        component={RentalPaymentsScreen}
+        options={({ route }) => ({ title: route.params.propertyName })}
+      />
+    </RealEstateStack.Navigator>
+  );
+}
+
+function AIInsightsNavigator(): React.JSX.Element {
+  const { t } = useTranslation();
+  return (
+    <AIInsightsStack.Navigator>
+      <AIInsightsStack.Screen
+        name="AIInsights"
+        component={AIInsightsScreen}
+        options={{ title: t('insights.title') }}
+      />
+    </AIInsightsStack.Navigator>
+  );
+}
+
 function SettingsNavigator(): React.JSX.Element {
   const { t } = useTranslation();
   return (
@@ -131,6 +175,8 @@ export default function TabNavigator(): React.JSX.Element {
             NasiyaTab: focused ? 'people' : 'people-outline',
             InventoryTab: focused ? 'cube' : 'cube-outline',
             AlertsTab: focused ? 'notifications' : 'notifications-outline',
+            RealEstateTab: focused ? 'business' : 'business-outline',
+            AIInsightsTab: focused ? 'bulb' : 'bulb-outline',
             SettingsTab: focused ? 'settings' : 'settings-outline',
           };
           return <Ionicons name={icons[route.name] ?? 'ellipse'} size={size} color={color} />;
@@ -142,6 +188,8 @@ export default function TabNavigator(): React.JSX.Element {
       <Tab.Screen name="NasiyaTab" component={NasiyaNavigator} options={{ title: t('nav.nasiya') }} />
       <Tab.Screen name="InventoryTab" component={InventoryNavigator} options={{ title: t('nav.inventory') }} />
       <Tab.Screen name="AlertsTab" component={AlertsNavigator} options={{ title: t('nav.alerts') }} />
+      <Tab.Screen name="RealEstateTab" component={RealEstateNavigator} options={{ title: t('nav.realestate') }} />
+      <Tab.Screen name="AIInsightsTab" component={AIInsightsNavigator} options={{ title: t('nav.insights') }} />
       <Tab.Screen name="SettingsTab" component={SettingsNavigator} options={{ title: t('nav.settings') }} />
     </Tab.Navigator>
   );

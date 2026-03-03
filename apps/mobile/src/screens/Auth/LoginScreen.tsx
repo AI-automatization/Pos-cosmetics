@@ -24,16 +24,17 @@ export default function LoginScreen({ navigation }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const { login } = useAuthStore();
 
+  const [slug, setSlug] = useState('raos-demo');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (): Promise<void> => {
-    if (!email.trim() || !password.trim()) return;
+    if (!slug.trim() || !email.trim() || !password.trim()) return;
 
     setIsLoading(true);
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password, slug.trim());
     } catch (err) {
       Alert.alert(t('common.error'), extractErrorMessage(err));
     } finally {
@@ -51,6 +52,15 @@ export default function LoginScreen({ navigation }: Props): React.JSX.Element {
         <Text style={styles.subtitle}>Retail & Asset Operating System</Text>
 
         <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder={t('auth.slugPlaceholder')}
+            value={slug}
+            onChangeText={setSlug}
+            autoCapitalize="none"
+            autoCorrect={false}
+            accessibilityLabel={t('auth.slug')}
+          />
           <TextInput
             style={styles.input}
             placeholder={t('auth.emailPlaceholder')}
@@ -74,7 +84,7 @@ export default function LoginScreen({ navigation }: Props): React.JSX.Element {
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={handleLogin}
-            disabled={isLoading || !email || !password}
+            disabled={isLoading || !slug || !email || !password}
             accessibilityRole="button"
           >
             {isLoading ? (

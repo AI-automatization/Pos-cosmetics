@@ -7,6 +7,7 @@ import ErrorView from '@/components/common/ErrorView';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import EmptyState from '@/components/common/EmptyState';
 import { inventoryApi } from '@/api';
+import { safeQueryFn } from '@/utils/error';
 import { useAppStore } from '@/store/app.store';
 import type { StockItem } from '@/api/inventory.api';
 
@@ -35,7 +36,7 @@ export default function LowStockScreen(): React.JSX.Element {
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['inventory', 'low-stock', selectedBranchId],
-    queryFn: () => inventoryApi.getLowStock(selectedBranchId ?? undefined),
+    queryFn: safeQueryFn<StockItem[]>(() => inventoryApi.getLowStock(selectedBranchId ?? undefined), []),
   });
 
   if (isLoading) return <LoadingSpinner message={t('common.loading')} />;

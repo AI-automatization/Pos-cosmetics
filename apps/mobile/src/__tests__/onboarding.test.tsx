@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import OnboardingScreen from '@/screens/Onboarding';
+import { useAppStore } from '@/store/app.store';
 
 // AsyncStorage mock
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -8,9 +9,8 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn().mockResolvedValue(null),
 }));
 
-const mockReplace = jest.fn();
 const mockNavigation = {
-  replace: mockReplace,
+  replace: jest.fn(),
   navigate: jest.fn(),
   goBack: jest.fn(),
 } as never;
@@ -18,6 +18,8 @@ const mockNavigation = {
 describe('OnboardingScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset zustand store
+    useAppStore.setState({ onboardingDone: false });
   });
 
   it('renders first slide title', () => {
@@ -49,13 +51,13 @@ describe('OnboardingScreen', () => {
     expect(screen.getByTestId('onboarding-next-btn')).toBeTruthy();
   });
 
-  it('skip navigates to Auth', async () => {
+  it('skip sets onboardingDone in store', async () => {
     render(<OnboardingScreen navigation={mockNavigation} />);
     await act(async () => {
       fireEvent.press(screen.getByText("O'tkazib yuborish"));
     });
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('Auth');
+      expect(useAppStore.getState().onboardingDone).toBe(true);
     });
   });
 
@@ -85,7 +87,7 @@ describe('OnboardingScreen', () => {
     expect(screen.getByText('Boshlash')).toBeTruthy();
   });
 
-  it('GetStarted navigates to Auth', async () => {
+  it('GetStarted sets onboardingDone in store', async () => {
     render(<OnboardingScreen navigation={mockNavigation} />);
     await act(async () => { fireEvent.press(screen.getByTestId('onboarding-next-btn')); });
     await act(async () => { fireEvent.press(screen.getByTestId('onboarding-next-btn')); });
@@ -93,7 +95,7 @@ describe('OnboardingScreen', () => {
       fireEvent.press(screen.getByTestId('onboarding-next-btn'));
     });
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('Auth');
+      expect(useAppStore.getState().onboardingDone).toBe(true);
     });
   });
 

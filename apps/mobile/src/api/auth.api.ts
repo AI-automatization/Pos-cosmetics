@@ -2,11 +2,22 @@ import { api } from './client';
 import type { AuthTokens } from '@raos/types';
 
 interface LoginPayload {
+  slug: string;
   email: string;
   password: string;
 }
 
-interface UserProfile {
+interface UserProfileRaw {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  tenantId: string;
+  branchId?: string;
+}
+
+export interface UserProfile {
   id: string;
   email: string;
   name: string;
@@ -31,7 +42,14 @@ export const authApi = {
   },
 
   me: async (): Promise<UserProfile> => {
-    const { data } = await api.get<UserProfile>('/auth/me');
-    return data;
+    const { data } = await api.get<UserProfileRaw>('/auth/me');
+    return {
+      id: data.id,
+      email: data.email,
+      name: `${data.firstName} ${data.lastName}`.trim(),
+      role: data.role,
+      tenantId: data.tenantId,
+      branchId: data.branchId,
+    };
   },
 };

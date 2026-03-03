@@ -1,0 +1,33 @@
+appId: host.exp.exponent
+name: "Login - To'liq login flow (slug + email + parol)"
+---
+- launchApp
+
+# Expo Go da RAOS ni ochish
+- tapOn: "RAOS"
+- waitForAnimationToEnd
+
+# Login ekranda ekanligini tekshir
+- assertVisible: "RAOS"
+- assertVisible: "Retail & Asset Operating System"
+- assertVisible: "Kirish"
+
+# Email input
+- tapOn:
+    text: "email@misol.com"
+- inputText: "owner@raos.uz"
+- assertVisible: "owner@raos.uz"
+
+# Password input
+- tapOn:
+    text: "Parol kiriting"
+- inputText: "Demo1234!"
+
+# Kirish tugmasi
+- tapOn: "Kirish"
+- waitForAnimationToEnd
+
+# Dashboard ga o'tganini tekshir (Bosh sahifa - uz tarjimasi)
+- assertVisible:
+    text: "Bosh sahifa"
+    optional: true

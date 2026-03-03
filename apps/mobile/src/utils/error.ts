@@ -1,5 +1,22 @@
 import { AxiosError } from 'axios';
 
+/**
+ * Backend endpoint hali yo'q (404/501) bo'lsa, fallback data qaytaradi.
+ * Real xatolar (500, network) esa throw qilinadi.
+ */
+export function safeQueryFn<T>(fn: () => Promise<T>, fallback: T): () => Promise<T> {
+  return async () => {
+    try {
+      return await fn();
+    } catch (err: unknown) {
+      if (err instanceof AxiosError && (err.response?.status === 404 || err.response?.status === 501)) {
+        return fallback;
+      }
+      throw err;
+    }
+  };
+}
+
 export function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
     if (!err.response) return 'Internet aloqasi yo\'q';

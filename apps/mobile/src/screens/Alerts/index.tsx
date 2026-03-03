@@ -10,6 +10,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import EmptyState from '@/components/common/EmptyState';
 import Badge from '@/components/common/Badge';
 import { alertsApi } from '@/api';
+import { safeQueryFn } from '@/utils/error';
 import { formatRelativeTime } from '@/utils/format';
 import type { Alert } from '@/api/alerts.api';
 import { REFETCH_INTERVALS } from '@/config/constants';
@@ -58,7 +59,7 @@ export default function AlertsListScreen({ navigation }: Props): React.JSX.Eleme
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['alerts', 'all'],
-    queryFn: () => alertsApi.getAll(),
+    queryFn: safeQueryFn<Alert[]>(() => alertsApi.getAll(), []),
     refetchInterval: REFETCH_INTERVALS.ALERTS,
   });
 

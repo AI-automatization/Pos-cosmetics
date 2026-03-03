@@ -14,6 +14,8 @@ export type TabParamList = {
   NasiyaTab: undefined;
   InventoryTab: undefined;
   AlertsTab: undefined;
+  RealEstateTab: undefined;
+  AIInsightsTab: undefined;
   SettingsTab: undefined;
 };
 
@@ -54,6 +56,18 @@ export type SettingsStackParamList = {
   Profile: undefined;
   NotificationPrefs: undefined;
   BranchSelector: undefined;
+};
+
+// Real Estate Stack
+export type RealEstateStackParamList = {
+  Properties: undefined;
+  PropertyDetail: { propertyId: string; propertyName: string };
+  RentalPayments: { propertyId: string; propertyName: string };
+};
+
+// AI Insights Stack
+export type AIInsightsStackParamList = {
+  AIInsights: undefined;
 };
 
 // Root Navigator
