@@ -1,6 +1,9 @@
 # CLAUDE.md — RAOS (Retail & Asset Operating System)
+
 # Claude CLI tomonidan avtomatik o'qiladi
+
 # Barcha dasturchilar uchun UMUMIY qoidalar
+
 # Template: VENTRA Claude CLI System v2
 
 ---
@@ -12,15 +15,20 @@
 ```
 Salom! Men RAOS loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
-  1. Bekzod (Backend & DevOps)
-  2. Abdulaziz (Frontend — Web Admin Panel)
+  1. Polat (Backend & DevOps & Testing API & SWAGGER)
+  2. AbdulazizYormatov (Frontend — Web , React Electron Desktop App, Admin Panel)
   3. Ibrat (Mobile — React Native Android)
+  4. Abdulaziz (Mobile — React Native IOS)
+  4. Bekzod (Tester & Architector)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
-- Bekzod → `CLAUDE_BACKEND.md`
-- Abdulaziz → `CLAUDE_FRONTEND.md`
+
+- Polat → `CLAUDE_BACKEND.md`
+- AbdulazizYormatov → `CLAUDE_FRONTEND.md`
 - Ibrat → `CLAUDE_MOBILE.md`
+- Abdulaziz → `CLAUDE_MOBILE.md`
+- Bekzod → `CLAUDE_BACKEND.md`
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 
@@ -31,6 +39,7 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 **RAOS** — Modular, multi-tenant, offline-first Business Operating System for Uzbekistan retail and mixed-asset investors.
 
 ### Target Segments
+
 - Grocery retail
 - Cosmetics / Fashion
 - Electronics
@@ -41,23 +50,23 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 ### Tech Stack
 
-| Layer | Tech | Port |
-|-------|------|------|
-| Backend API | NestJS + Prisma + PostgreSQL | 3000 |
-| Worker | BullMQ + Redis 7 | — |
+| Layer          | Tech                             | Port |
+| -------------- | -------------------------------- | ---- |
+| Backend API    | NestJS + Prisma + PostgreSQL     | 3000 |
+| Worker         | BullMQ + Redis 7                 | —    |
 | Frontend Admin | Next.js + Tailwind + React Query | 3001 |
-| POS Desktop | Tauri + SQLite (offline-first) | — |
-| Mobile | React Native (Android only) | — |
-| Bot | grammY (Telegram) | — |
-| Object Storage | S3-compatible (MinIO dev) | 9000 |
+| POS Desktop    | Tauri + SQLite (offline-first)   | —    |
+| Mobile         | React Native (Android only)      | —    |
+| Bot            | grammY (Telegram)                | —    |
+| Object Storage | S3-compatible (MinIO dev)        | 9000 |
 
 ### Monorepo: `pnpm workspaces` + `turbo`
 
 ```
 apps/
-  api/             → Bekzod zonasi (Backend API — NestJS)
-  worker/          → Bekzod zonasi (BullMQ processors)
-  bot/             → Bekzod zonasi (Telegram bot — grammY)
+  api/             → Bekzod & Yormatov zonasi (Backend API — NestJS)
+  worker/          → Bekzod & Yormatov zonasi (BullMQ processors)
+  bot/             → Bekzod & Yormatov zonasi (Telegram bot — grammY)
   web/             → Abdulaziz zonasi (Admin Panel — Next.js)
   pos/             → Abdulaziz zonasi (POS Desktop — Tauri)
   mobile/          → Ibrat zonasi (React Native — Android)
@@ -66,8 +75,8 @@ packages/
   utils/           → UMUMIY — kelishib o'zgartirish
   ui/              → UMUMIY — shared UI components
   sync-engine/     → UMUMIY — offline sync logic
-prisma/            → Bekzod boshqaradi (schema + migrations)
-docker/            → Bekzod boshqaradi (infra)
+prisma/            → Bekzod & Yormatov boshqaradi (schema + migrations)
+docker/            → Bekzod & Yormatov boshqaradi (infra)
 docs/              → Hammaga ochiq
 ```
 
@@ -89,20 +98,20 @@ docs/              → Hammaga ochiq
 ### Domain Modules (Bounded Contexts)
 
 > ⚠️ Har modul o'z jadvallarini SO'RAYDI. Boshqa modul jadvaliga DIRECT QUERY TAQIQLANGAN.
-> Modul aro aloqa: Service layer YOKI Domain Events orqali.
+> Modul aro aloqa: Service layer YOpKI Domain Events orqali.
 
-| # | Module | Mas'uliyat |
-|---|--------|-----------|
-| 1 | **Identity & RBAC** | Multi-tenant, roles, branch permissions, audit log |
-| 2 | **Catalog** | Products, variants, units, categories, barcode, supplier |
-| 3 | **Inventory** | Stock ledger (movement-based), warehouse, batch/expiry, transfer |
-| 4 | **Sales** | Orders, order items, discounts, returns, shift management |
-| 5 | **Payments** | Payment Intent, split payments, status, commission, reconciliation |
-| 6 | **Ledger** | Double-entry journal, immutable entries, reversals, snapshots |
-| 7 | **Tax & Fiscal** | Rule-based tax, per-tenant config, fiscal adapter, receipt storage |
-| 8 | **Real Estate** | Property, rental contract, payment schedule, ROI, occupancy |
-| 9 | **AI / Analytics** | Trend engine, dead stock, margin analysis, forecasting, alerts |
-| 10 | **Notifications** | Telegram bot, SMS, push notifications |
+| #   | Module              | Mas'uliyat                                                         |
+| --- | ------------------- | ------------------------------------------------------------------ |
+| 1   | **Identity & RBAC** | Multi-tenant, roles, branch permissions, audit log                 |
+| 2   | **Catalog**         | Products, variants, units, categories, barcode, supplier           |
+| 3   | **Inventory**       | Stock ledger (movement-based), warehouse, batch/expiry, transfer   |
+| 4   | **Sales**           | Orders, order items, discounts, returns, shift management          |
+| 5   | **Payments**        | Payment Intent, split payments, status, commission, reconciliation |
+| 6   | **Ledger**          | Double-entry journal, immutable entries, reversals, snapshots      |
+| 7   | **Tax & Fiscal**    | Rule-based tax, per-tenant config, fiscal adapter, receipt storage |
+| 8   | **Real Estate**     | Property, rental contract, payment schedule, ROI, occupancy        |
+| 9   | **AI / Analytics**  | Trend engine, dead stock, margin analysis, forecasting, alerts     |
+| 10  | **Notifications**   | Telegram bot, SMS, push notifications                              |
 
 ### Event-Driven Flow Example
 
@@ -124,15 +133,16 @@ Events stored in event_log table (immutable).
 
 ### SOLID
 
-| Tamoyil | Qoida |
-|---------|-------|
+| Tamoyil                       | Qoida                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------- |
 | **S** — Single Responsibility | Har fayl BIR vazifa. Controller = HTTP. Service = logika. Hook = state. |
-| **O** — Open/Closed | Mavjud kodni o'zgartirma → kengaytir (strategy, decorator, plugin) |
-| **L** — Liskov Substitution | Interface va'da qilganini bajar |
-| **I** — Interface Segregation | Kichik, aniq interfeys. "God object" TAQIQLANGAN |
-| **D** — Dependency Inversion | Service → Abstract interfeys ga bog'lanish |
+| **O** — Open/Closed           | Mavjud kodni o'zgartirma → kengaytir (strategy, decorator, plugin)      |
+| **L** — Liskov Substitution   | Interface va'da qilganini bajar                                         |
+| **I** — Interface Segregation | Kichik, aniq interfeys. "God object" TAQIQLANGAN                        |
+| **D** — Dependency Inversion  | Service → Abstract interfeys ga bog'lanish                              |
 
 ### DRY + KISS
+
 - Bir xil kod 2+ joyda → helper/hook/service ga chiqar
 - Murakkab yechimdan oldin oddiy yechimni sinab ko'r
 - Premature optimization qilma — ishlat → profil → optimize
@@ -163,15 +173,16 @@ Events stored in event_log table (immutable).
 
 ### Fayllar
 
-| Fayl | Vazifasi |
-|------|----------|
+| Fayl            | Vazifasi                                                          |
+| --------------- | ----------------------------------------------------------------- |
 | `docs/Tasks.md` | Barcha OCHIQ vazifalar — bug, error, feature, arxitektura, devops |
-| `docs/Done.md` | Bajarilgan ishlar arxivi — sana + qisqa yechim |
+| `docs/Done.md`  | Bajarilgan ishlar arxivi — sana + qisqa yechim                    |
 
 ### Format
 
 ```markdown
 ## T-001 | P0 | [BACKEND] | Sarlavha
+
 - **Sana:** 2026-XX-XX
 - **Mas'ul:** [ism]
 - **Fayl:** apps/api/src/modul/fayl.ts
@@ -181,12 +192,12 @@ Events stored in event_log table (immutable).
 
 ### Prioritet
 
-| Daraja | Ma'nosi | Javob vaqti |
-|--------|---------|-------------|
-| **P0** | KRITIK — production buzilgan | Darhol |
-| **P1** | MUHIM — funksional xatolik | 1 kun |
-| **P2** | O'RTA — yaxshilash kerak | 3 kun |
-| **P3** | PAST — "yaxshi bo'lardi" | Sprint rejasi |
+| Daraja | Ma'nosi                      | Javob vaqti   |
+| ------ | ---------------------------- | ------------- |
+| **P0** | KRITIK — production buzilgan | Darhol        |
+| **P1** | MUHIM — funksional xatolik   | 1 kun         |
+| **P2** | O'RTA — yaxshilash kerak     | 3 kun         |
+| **P3** | PAST — "yaxshi bo'lardi"     | Sprint rejasi |
 
 ### Kategoriyalar
 
@@ -237,6 +248,8 @@ bekzod/feat-[feature-name]
 bekzod/fix-[bug-description]
 abdulaziz/feat-[feature-name]
 ibrat/feat-[feature-name]
+yormatov/feat-[feature-name]
+yormatov/fix-[bug-description]
 
 # Commit format (Conventional Commits — MAJBURIY):
 feat(module): short description in English
@@ -261,9 +274,11 @@ docs(module): documentation update
 
 ## 📝 LOGGING STANDARTLARI
 
-### Backend (NestJS Logger)
+### Backend (Winston-backed NestJS Logger)
 
 ```typescript
+// NestJS Logger — avtomatik Winston orqali file ga yozadi
+// requestId, tenantId, userId avtomatik qo'shiladi (AsyncLocalStorage)
 import { Logger } from '@nestjs/common';
 
 @Injectable()
@@ -276,6 +291,7 @@ export class MyService {
     this.logger.error('Failed', { error: err.message, stack: err.stack });
   }
 }
+// console.log TAQIQLANGAN → faqat NestJS Logger ishlatish
 ```
 
 ### Worker (Structured JSON)
@@ -287,41 +303,47 @@ logJobDone(queue, jobId, jobName, durationMs);
 logJobError(queue, jobId, jobName, err);
 ```
 
-### API Request Logger (Interceptor)
+### API Request Logger (Interceptor — avtomatik)
 
-```typescript
-interface RequestLog {
-  request_id: string;
-  timestamp: string;
-  method: string;
-  url: string;
-  status: number;
-  duration_ms: number;
-  tenant_id: string | null;
-  user_id: string | null;
-  ip: string;
-  is_slow: boolean;           // > 500ms
-  error: string | null;
-}
-// Sensitive data: password, token, secret → [REDACTED]
+```
+Har request avtomatik log qilinadi:
+- requestId (UUID, X-Request-Id header)
+- tenantId, userId (JWT dan)
+- method, url, status, durationMs, ip
+- isSlow (> 500ms → warn)
+- Sensitive data avtomatik [REDACTED]: password, token, secret, authorization
 ```
 
-### Frontend & Mobile
+### Frontend & Mobile — Client Error Reporting
 
 ```typescript
 // Production da console.log TAQIQLANGAN
-if (import.meta.env.DEV) {
-  console.log('[debug]', data);
-}
-// Production: Sentry error tracking
+// Error Boundary + window.onerror → POST /api/v1/logs/client-error
+// API interceptor da 5xx errorlarni avtomatik yuborish
+
+// Client error endpoint:
+// POST /api/v1/logs/client-error (public, rate-limited 30/min)
+// Body: { source, error, stack?, url?, userAgent?, tenantId?, userId? }
 ```
 
-### Log fayl rotation
+### Log fayllar
 
 ```
 logs/
-  api-2026-02-26.log
-  worker-2026-02-26.log
+  api-YYYY-MM-DD.log       ← Barcha API requestlar (JSON, daily rotation)
+  errors-YYYY-MM-DD.log    ← Faqat 5xx errorlar (JSON)
+  client-YYYY-MM-DD.log    ← Frontend/Mobile/POS errorlar (JSON)
+```
+
+Rotation: kunlik, max 20MB, 14 kun saqlash.
+
+### Claude Integration
+
+```
+Har sessiya boshida:
+1. logs/ papkani tekshir
+2. errors-*.log va client-*.log dan so'nggi errorlarni o'qi
+3. Takroriy/kritik errorlarni → docs/Tasks.md ga P0/P1 task sifatida yoz
 ```
 
 ---
@@ -424,17 +446,17 @@ pnpm -r exec tsc --noEmit
 
 ## 🔍 DEFINITIONS (RAOS-specific atamalar)
 
-| Atama | Ma'nosi |
-|-------|---------|
-| `tenant_id` | Multi-tenant identifier — HAR business table da bo'lishi SHART |
-| `BigInt` | Prisma ID/balance — JSON serialize: `.toString()` MAJBURIY |
-| `Ledger Entry` | Double-entry journal yozuvi — IMMUTABLE, faqat reversal |
-| `Payment Intent` | To'lov niyati — lifecycle: created → confirmed → settled |
-| `Fiscal Receipt` | Soliq cheki — snapshot saqlanadi, o'zgartirib BO'LMAYDI |
-| `Outbox` | Offline sync pattern — local DB dan serverga yuborish uchun queue |
-| `Idempotency Key` | Takroriy operatsiyani oldini olish uchun unique kalit |
-| `Domain Event` | Modul ichki hodisasi — masalan: SaleCreated, PaymentSettled |
-| `Stock Movement` | Inventar harakati — debit/credit based, snapshot emas |
+| Atama             | Ma'nosi                                                           |
+| ----------------- | ----------------------------------------------------------------- |
+| `tenant_id`       | Multi-tenant identifier — HAR business table da bo'lishi SHART    |
+| `BigInt`          | Prisma ID/balance — JSON serialize: `.toString()` MAJBURIY        |
+| `Ledger Entry`    | Double-entry journal yozuvi — IMMUTABLE, faqat reversal           |
+| `Payment Intent`  | To'lov niyati — lifecycle: created → confirmed → settled          |
+| `Fiscal Receipt`  | Soliq cheki — snapshot saqlanadi, o'zgartirib BO'LMAYDI           |
+| `Outbox`          | Offline sync pattern — local DB dan serverga yuborish uchun queue |
+| `Idempotency Key` | Takroriy operatsiyani oldini olish uchun unique kalit             |
+| `Domain Event`    | Modul ichki hodisasi — masalan: SaleCreated, PaymentSettled       |
+| `Stock Movement`  | Inventar harakati — debit/credit based, snapshot emas             |
 
 ---
 
@@ -459,6 +481,7 @@ pnpm -r exec tsc --noEmit
 ## 🚀 ROADMAP
 
 ### Phase 1 (6 months)
+
 - Grocery POS (offline-first)
 - Identity & RBAC
 - Catalog + Inventory
@@ -469,6 +492,7 @@ pnpm -r exec tsc --noEmit
 - Admin Panel (basic)
 
 ### Phase 2 (6–12 months)
+
 - Multi-vertical support
 - Holding dashboard
 - AI basic analytics
@@ -476,6 +500,7 @@ pnpm -r exec tsc --noEmit
 - Mobile app (Android)
 
 ### Phase 3 (12–24 months)
+
 - Marketplace procurement
 - Bank integrations
 - Lending layer
@@ -485,14 +510,16 @@ pnpm -r exec tsc --noEmit
 
 ## 📚 KEYIN O'QILADIGAN FAYLLAR
 
-| Fayl | Kim uchun |
-|------|-----------|
-| `CLAUDE_BACKEND.md` | Bekzod (Backend & DevOps) |
-| `CLAUDE_FRONTEND.md` | Abdulaziz (Frontend — Web & POS) |
-| `CLAUDE_MOBILE.md` | Ibrat (Mobile — React Native Android) |
-| `docs/Tasks.md` | Ochiq vazifalar |
-| `docs/Done.md` | Bajarilgan ishlar |
+| Fayl                 | Kim uchun                                             |
+| -------------------- | ----------------------------------------------------- |
+| `CLAUDE_BACKEND.md`  | Polat (Backend & DevOps), Bekzod (Tester & Architector) |
+| `CLAUDE_FRONTEND.md` | AbdulazizYormatov (Frontend — Web, Desktop, Admin Panel) |
+| `CLAUDE_MOBILE.md`   | Ibrat (Android), Abdulaziz (IOS) |
+| `docs/Tasks.md`      | Ochiq vazifalar                                       |
+| `docs/Done.md`       | Bajarilgan ishlar                                     |
 
 ---
 
-*CLAUDE.md | RAOS | v1.0*
+_CLAUDE.md | RAOS | v1.0_
+
+claude --dangerously-skip-permissions

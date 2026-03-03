@@ -1,6 +1,6 @@
 # CLAUDE_FRONTEND.md — RAOS Frontend Engineer Guide
 # Next.js · Tauri · React 19 · TypeScript · Tailwind · React Query
-# Claude CLI bu faylni Abdulaziz tanlanganda o'qiydi
+# Claude CLI bu faylni AbdulazizYormatov tanlanganda o'qiydi
 
 ---
 
@@ -30,11 +30,11 @@ packages/types/         → Shared TypeScript types
 ```
 
 **🚫 TEGINMA:**
-- `apps/api/` — Bekzod zonasi (Backend)
-- `apps/worker/` — Bekzod zonasi (Worker)
-- `apps/bot/` — Bekzod zonasi (Bot)
-- `apps/mobile/` — Ibrat zonasi (React Native)
-- `prisma/` — Bekzod zonasi (Database)
+- `apps/api/` — Polat zonasi (Backend)
+- `apps/worker/` — Polat zonasi (Worker)
+- `apps/bot/` — Polat zonasi (Bot)
+- `apps/mobile/` — Ibrat + Abdulaziz zonasi (React Native Android + IOS)
+- `prisma/` — Polat zonasi (Database)
 
 ---
 
@@ -499,14 +499,60 @@ const { t } = useTranslation();
 
 ---
 
+## 📝 LOGGING (Client Error Reporting)
+
+### Qoidalar
+
+```
+1. Production da console.log TAQIQLANGAN
+2. Development da: if (process.env.NODE_ENV === 'development') console.log(...)
+3. Error Boundary component MAJBURIY — render errorlarni ushlaydi
+4. API interceptor 5xx errorlarni avtomatik POST /api/v1/logs/client-error ga yuboradi
+5. window.onerror va window.onunhandledrejection handle qilinishi SHART
+```
+
+### Error reporting endpoint
+
+```typescript
+// POST /api/v1/logs/client-error (public, auth kerak emas)
+interface ClientErrorPayload {
+  source: 'web' | 'mobile' | 'pos';
+  error: string;        // error message
+  stack?: string;       // stack trace
+  url?: string;         // sahifa URL
+  userAgent?: string;   // browser info
+  tenantId?: string;    // agar mavjud
+  userId?: string;      // agar mavjud
+}
+
+// Axios interceptor da:
+api.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    if (err.response?.status >= 500) {
+      reportClientError({
+        source: 'web',
+        error: err.message,
+        stack: err.stack,
+        url: window.location.pathname,
+        userAgent: navigator.userAgent,
+      });
+    }
+    return Promise.reject(err);
+  },
+);
+```
+
+---
+
 ## 🚫 TAQIQLANGAN
 
 ```
-❌ apps/api/ papkasiga TEGINMA
-❌ apps/worker/ papkasiga TEGINMA
-❌ apps/bot/ papkasiga TEGINMA
-❌ apps/mobile/ papkasiga TEGINMA
-❌ prisma/ papkasiga TEGINMA
+❌ apps/api/ papkasiga TEGINMA (Polat zonasi)
+❌ apps/worker/ papkasiga TEGINMA (Polat zonasi)
+❌ apps/bot/ papkasiga TEGINMA (Polat zonasi)
+❌ apps/mobile/ papkasiga TEGINMA (Ibrat + Abdulaziz zonasi)
+❌ prisma/ papkasiga TEGINMA (Polat zonasi)
 ❌ any type
 ❌ console.log production da
 ❌ inline style (style={{...}}) → Tailwind class
