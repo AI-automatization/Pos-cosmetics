@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "jsx": "react-native",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noImplicitAny": true,
+    "paths": {
+      "@raos/types": ["../../packages/types/src/index.ts"]
+    }
+  },
+  "include": ["src", "index.js"],
+  "exclude": ["node_modules"]
+}
