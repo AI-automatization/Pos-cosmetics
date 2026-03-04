@@ -57,8 +57,9 @@ USER nestjs
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget -qO- http://localhost:3000/health/ping || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/v1/health/live || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/main"]
+# Migrations перед стартом (Railway/prod)
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node dist/main"]

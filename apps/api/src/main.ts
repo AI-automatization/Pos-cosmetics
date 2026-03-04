@@ -66,8 +66,8 @@ async function bootstrap() {
   // Graceful shutdown (T-085)
   app.enableShutdownHooks();
 
-  // Start
-  const port = config.get<number>('API_PORT', 3000);
+  // Start — PORT injectится Railway/Docker, API_PORT для локальной разработки
+  const port = config.get<number>('PORT') ?? config.get<number>('API_PORT', 3000);
   await app.listen(port);
   logger.log(`RAOS API running on http://localhost:${port}/${prefix}`, 'Bootstrap');
   logger.log(`Swagger docs: http://localhost:${port}/${prefix}/docs`, 'Bootstrap');
