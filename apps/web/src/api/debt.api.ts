@@ -9,29 +9,37 @@ import type {
 } from '@/types/debt';
 
 export const debtApi = {
+  // B-017 fix: backend @Controller('nasiya') → routes are /nasiya/*, not /debts/*
+
   /** Barcha qarzlar ro'yxati */
   listDebts: (params?: {
     customerId?: string;
     status?: string;
     overdue?: boolean;
   }): Promise<Debt[]> =>
-    apiClient.get<Debt[]>('/debts', { params }).then((r) => r.data),
+    apiClient.get<Debt[]>('/nasiya', { params }).then((r) => r.data),
 
   /** Muddati o'tgan qarzlar */
   listOverdue: (): Promise<Debt[]> =>
-    apiClient.get<Debt[]>('/debts/overdue').then((r) => r.data),
+    apiClient.get<Debt[]>('/nasiya/overdue').then((r) => r.data),
 
   /** Qarz to'lash */
   payDebt: (debtId: string, dto: PayDebtDto): Promise<DebtPayment> =>
-    apiClient.post<DebtPayment>(`/debts/${debtId}/pay`, dto).then((r) => r.data),
+    apiClient.post<DebtPayment>(`/nasiya/${debtId}/pay`, dto).then((r) => r.data),
 
-  /** Nasiya umumiy xulosasi */
+  /** Nasiya umumiy xulosasi — backend: /nasiya/customer/:id/summary, no global summary */
   getSummary: (): Promise<NasiyaSummary> =>
-    apiClient.get<NasiyaSummary>('/debts/summary').then((r) => r.data),
+    apiClient.get<NasiyaSummary>('/nasiya').then((r) => {
+      const items: Debt[] = Array.isArray(r.data) ? r.data : [];
+      const totalDebt = items.reduce((s, d) => s + (d.remainingAmount ?? 0), 0);
+      const overdueItems = items.filter((d) => d.status === 'OVERDUE_30' || d.status === 'OVERDUE_60' || d.status === 'OVERDUE_90' || d.status === 'OVERDUE_90PLUS');
+      const overdueDebt = overdueItems.reduce((s, d) => s + (d.remainingAmount ?? 0), 0);
+      return { totalDebt, overdueDebt, totalCustomers: items.length, overdueCustomers: overdueItems.length, collectedThisMonth: 0 } satisfies NasiyaSummary;
+    }),
 
-  /** Aging report */
+  /** Aging report — no backend endpoint yet, return empty */
   getAging: (): Promise<AgingReport> =>
-    apiClient.get<AgingReport>('/debts/aging').then((r) => r.data),
+    Promise.resolve({ buckets: [] } as unknown as AgingReport),
 
   /** Xaridorning qarz tarixi */
   getCustomerDebts: (customerId: string): Promise<Debt[]> =>

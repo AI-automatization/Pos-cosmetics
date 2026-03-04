@@ -4,13 +4,17 @@ export type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'CASHIER' | 'VIEWER';
 
 export interface User {
   id: string;
-  name: string;
-  phone: string;
+  // B-014 fix: backend returns firstName+lastName, name is a legacy alias
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
   role: UserRole;
   isActive: boolean;
-  lastLogin: string | null;
-  createdAt: string;
-  tenantId: string;
+  lastLogin?: string | null;
+  createdAt?: string;
+  tenantId?: string;
 }
 
 export interface CreateUserDto {

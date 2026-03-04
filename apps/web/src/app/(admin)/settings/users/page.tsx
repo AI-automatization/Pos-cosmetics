@@ -168,8 +168,11 @@ export default function UsersPage() {
           <tbody className="divide-y divide-gray-50">
             {(users ?? []).map((user) => (
               <tr key={user.id} className={cn('transition hover:bg-gray-50', !user.isActive && 'opacity-60')}>
-                <td className="px-4 py-3 font-medium text-gray-900">{user.name}</td>
-                <td className="px-4 py-3 font-mono text-gray-600">{user.phone}</td>
+                <td className="px-4 py-3 font-medium text-gray-900">
+                  {/* B-014 fix: API returns firstName+lastName, not name */}
+                  {`${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email}
+                </td>
+                <td className="px-4 py-3 font-mono text-gray-600">{user.phone ?? '—'}</td>
                 <td className="px-4 py-3"><RoleBadge role={user.role} isActive={user.isActive} /></td>
                 <td className="px-4 py-3 text-gray-500">
                   {user.lastLogin

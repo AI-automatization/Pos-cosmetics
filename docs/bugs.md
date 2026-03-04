@@ -22,6 +22,17 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+## 2026-03-04 TUZATILGAN (2-sessiya)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-013 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/(admin)/payments/history/page.tsx` (yangi) | **`/payments/history` sahifasi 404 edi** — Sidebar `To'lovlar` linki mavjud bo'lmagan route ga yo'naltirardi. **Yechim:** `(admin)/payments/history/page.tsx` yaratildi — to'lovlar jadvali, method icon/label, status badge bilan. |
+| B-014 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/app/(admin)/settings/users/page.tsx:171`, `types/user.ts` | **Settings/Users jadvalida "Ism" ustuni bo'sh edi** — `user.name` ishlatilgan, backend `firstName`+`lastName` qaytaradi. **Yechim:** `User` tipiga `firstName?`, `lastName?`, `email?` qo'shildi; sahifada `firstName + lastName \|\| email` ko'rsatiladi. |
+| B-015 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/api/reports.api.ts:32-42` | **Dashboard stat cards `NaN so'm` va `undefined ta buyurtma`** — `getDashboard()` backend `{ orders: { count, grossRevenue, totalDiscount }, netRevenue }` ni to'g'ridan o'tkazar edi. Dashboard `today.totalRevenue`, `today.ordersCount` kutardi. **Yechim:** `getDashboard()` da normalizatsiya qatlami qo'shildi. |
+| B-016 | 2026-03-04 | P3 | 2026-03-04 | `apps/web/src/components/SyncStatus/SyncStatusBar.tsx:24` | **SyncStatusBar har sahifada `/api/health` 404 xatosi** — Next.js `api/health` route yo'q edi. **Yechim:** `fetch('/api/health')` → `fetch('http://localhost:3000/api/v1/health/ping')`. |
+| B-017 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/api/debt.api.ts` | **Nasiya/Xaridorlar 404** — `/debts*` ga murojaat qilinar edi, backend `@Controller('nasiya')`. **Yechim:** Barcha URL'lar `/debts` → `/nasiya` ga o'zgartirildi. |
+| B-018 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/api/finance.api.ts` | **Finance/Xarajatlar 404** — `/finance/expenses` va `/finance/profit` backend route'lariga mos kelmadi. **Yechim:** `/finance/expenses` → `/expenses`, `/finance/profit` → `/reports/profit`. |
+
 ## 2026-03-04 TUZATILGAN
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |

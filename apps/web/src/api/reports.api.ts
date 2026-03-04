@@ -28,8 +28,18 @@ export const reportsApi = {
         .then((r) => r.data),
     ]);
 
+    // B-015 fix: normalize salesSummary shape to what dashboard/page.tsx expects
+    // Backend returns { orders: { count, grossRevenue, totalDiscount }, netRevenue }
+    // Frontend expects { totalRevenue, ordersCount, netRevenue, discountAmount, averageOrderValue }
+    const s = salesSummary ?? {};
+    const ordersCount: number = s.orders?.count ?? 0;
+    const totalRevenue: number = s.orders?.grossRevenue ?? 0;
+    const discountAmount: number = s.orders?.totalDiscount ?? 0;
+    const netRevenue: number = s.netRevenue ?? 0;
+    const averageOrderValue: number = ordersCount > 0 ? totalRevenue / ordersCount : 0;
+
     return {
-      today: salesSummary,
+      today: { totalRevenue, ordersCount, netRevenue, discountAmount, averageOrderValue, returnsAmount: s.returns?.total ?? 0 },
       weeklyRevenue: Array.isArray(weeklyRevenue) ? weeklyRevenue : [],
       topProducts: Array.isArray(topProducts) ? topProducts : [],
       lowStockCount: Array.isArray(lowStockRes) ? lowStockRes.length : 0,
