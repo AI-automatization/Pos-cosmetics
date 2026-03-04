@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Printer } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { SearchInput } from '@/components/common/SearchInput';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { ProductsTable } from './ProductsTable';
 import { ProductForm } from './ProductForm';
+import { LabelPrintModal } from './LabelPrintModal';
 import {
   useProducts,
   useCreateProduct,
@@ -25,6 +26,7 @@ export default function ProductsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [printProducts, setPrintProducts] = useState<Product[]>([]);
 
   const { data, isLoading, isError } = useProducts({
     page,
@@ -75,14 +77,26 @@ export default function ProductsPage() {
       title="Mahsulotlar"
       subtitle={data ? `Jami: ${data.meta.total} ta mahsulot` : undefined}
       actions={
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          Mahsulot qo'shish
-        </button>
+        <>
+          {data && data.items.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setPrintProducts(data.items)}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              <Printer className="h-4 w-4" />
+              Yorliqlar
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Mahsulot qo&apos;shish
+          </button>
+        </>
       }
     >
       {/* Filters */}
@@ -132,6 +146,7 @@ export default function ProductsPage() {
             products={data.items}
             onEdit={handleOpenEdit}
             onDelete={(p) => setDeletingProduct(p)}
+            onPrint={(p) => setPrintProducts([p])}
           />
 
           {/* Pagination */}
@@ -187,6 +202,14 @@ export default function ProductsPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeletingProduct(null)}
       />
+
+      {/* Label Print Modal */}
+      {printProducts.length > 0 && (
+        <LabelPrintModal
+          products={printProducts}
+          onClose={() => setPrintProducts([])}
+        />
+      )}
     </PageLayout>
   );
 }

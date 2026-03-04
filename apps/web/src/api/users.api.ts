@@ -3,7 +3,9 @@ import type { User, CreateUserDto, UpdateUserDto } from '@/types/user';
 
 export const usersApi = {
   listUsers() {
-    return apiClient.get<User[]>('/users').then((r) => r.data);
+    return apiClient
+      .get<User[] | { data: User[] }>('/users')
+      .then((r) => (Array.isArray(r.data) ? r.data : (r.data as { data: User[] }).data ?? []));
   },
   createUser(dto: CreateUserDto) {
     return apiClient.post<User>('/users', dto).then((r) => r.data);

@@ -22,6 +22,14 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+## 2026-03-04 TUZATILGAN
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-010 | 2026-03-04 | P0 | 2026-03-04 | `apps/web/src/app/(auth)/login/page.tsx` (yangi) | **Login sahifasi umuman yo'q edi** — `/login` route mavjud emas edi. `client.ts` 401 da redirect qilardi lekin sahifa yo'q edi. **Yechim:** `(auth)/login/page.tsx` yaratildi, `(auth)/layout.tsx` alohida layout, middleware himoya. |
+| B-011 | 2026-03-04 | P0 | 2026-03-04 | `apps/web/src/api/client.ts:28` | **Auth token camelCase mismatch** — `client.ts` refresh tokendan `data.access_token` o'qirdi, lekin backend `data.accessToken` qaytaradi. Barcha token refresh ishlamagan. **Yechim:** `data.access_token` → `data.accessToken`, URL ham tuzatildi `/identity/auth/refresh` → `/auth/refresh`. |
+| B-012 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/middleware.ts` (yangi) | **Route himoyasi yo'q edi** — har kim (login qilmasdan) admin panel, POS, founder dashboard ga kira olar edi. **Yechim:** Next.js middleware yaratildi — `session_active` cookie tekshiradi, yo'q bo'lsa `/login` ga redirect. |
+
 ## TUZATILGAN (shu sessiya)
 
 ---
@@ -75,3 +83,4 @@ Quyidagi fayllar to'liq ko'rib chiqildi:
 ---
 
 *docs/bugs.md | RAOS*
+    

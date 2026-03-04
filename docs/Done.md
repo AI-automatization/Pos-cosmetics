@@ -142,4 +142,16 @@
 
 ---
 
+## 2026-03-04 SESSIYA — LOGIN + AUTH TIZIMI
+
+| # | Sana | Feature | Fayl(lar) |
+|---|------|---------|-----------|
+| AUTH-LOGIN | 2026-03-04 | Login sahifasi — `/login` page (bug fix: yo'q edi!), dark gradient dizayn, 3 maydon (slug/email/parol), inline validation, parol ko'rish toggle, loading state; `(auth)/layout.tsx` alohida layout | `apps/web/src/app/(auth)/login/page.tsx`, `apps/web/src/app/(auth)/layout.tsx` |
+| AUTH-HOOK | 2026-03-04 | useAuth hooks — `useCurrentUser` (React Query `/auth/me`, 5min stale), `useLogin` (token → localStorage + cookie → `/dashboard` redirect), `useLogout` (cleanup + redirect); `auth.api.ts` (login/me/logout) | `apps/web/src/hooks/auth/useAuth.ts`, `apps/web/src/api/auth.api.ts` |
+| AUTH-MIDDLEWARE | 2026-03-04 | Next.js middleware — `session_active` cookie orqali barcha routelarni himoyalash, `/login`ga redirect; login qilingan bo'lsa `/login`dan `/dashboard`ga redirect | `apps/web/src/middleware.ts` |
+| AUTH-BUG-FIX | 2026-03-04 | `client.ts` bug fix — refresh tokendan `data.access_token` (yo'q) → `data.accessToken` (backend camelCase); refresh URL `/identity/auth/refresh` → `/auth/refresh` | `apps/web/src/api/client.ts` |
+| AUTH-HEADER | 2026-03-04 | Header yangilandi — hardcoded "Admin" → real user ismi+roli+tenant nomi; dropdown menu (logout tugma); `SyncStatusBar` Header ga integratsiya qilindi | `apps/web/src/components/layout/Header.tsx` |
+
+---
+
 *docs/Done.md | RAOS*

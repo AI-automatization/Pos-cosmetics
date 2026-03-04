@@ -102,6 +102,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Printer', href: '/settings/printer' },
       { label: 'Foydalanuvchilar', href: '/settings/users' },
       { label: 'Audit log', href: '/settings/audit-log' },
+      { label: 'Hisob va tarif', href: '/settings/billing' },
     ],
   },
 ];
