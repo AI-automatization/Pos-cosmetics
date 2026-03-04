@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,8 +12,6 @@ import { formatPrice, cn } from '@/lib/utils';
 import type { ExpenseCategory } from '@/types/finance';
 import { EXPENSE_CATEGORY_LABELS, EXPENSE_CATEGORY_COLORS } from '@/types/finance';
 
-const today = new Date().toISOString().slice(0, 10);
-const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
 const expenseSchema = z.object({
   category: z.enum(['RENT', 'SALARY', 'DELIVERY', 'UTILITIES', 'OTHER'] as const),
@@ -27,7 +25,7 @@ function CreateExpenseModal({ onClose }: { onClose: () => void }) {
   const { mutate: create, isPending } = useCreateExpense();
   const { register, handleSubmit, formState: { errors } } = useForm<ExpenseForm>({
     resolver: zodResolver(expenseSchema),
-    defaultValues: { category: 'RENT', description: '', amount: 0, date: today },
+    defaultValues: { category: 'RENT', description: '', amount: 0, date: new Date().toISOString().slice(0, 10) },
   });
 
   const onSubmit = (data: ExpenseForm) => {
@@ -111,6 +109,13 @@ function CategoryDot({ category }: { category: ExpenseCategory }) {
 export default function ExpensesPage() {
   const [showModal, setShowModal] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | 'ALL'>('ALL');
+  const { dateFrom: monthAgo, dateTo: today } = useMemo(() => {
+    const now = new Date();
+    return {
+      dateTo: now.toISOString().slice(0, 10),
+      dateFrom: new Date(now.getTime() - 30 * 86400000).toISOString().slice(0, 10),
+    };
+  }, []);
 
   const { data: expenses, isLoading: loadingExp } = useExpenses(
     categoryFilter !== 'ALL' ? { category: categoryFilter } : undefined,

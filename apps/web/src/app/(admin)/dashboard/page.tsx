@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -79,6 +80,10 @@ function fmtDate(dateStr: string): string {
 
 export default function DashboardPage() {
   const { data, isLoading, isError } = useDashboard();
+  const [todayStr, setTodayStr] = useState('');
+  useEffect(() => {
+    setTodayStr(new Date().toLocaleDateString('uz-UZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+  }, []);
 
   if (isLoading) {
     return (
@@ -115,14 +120,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-400">
-          {new Date().toLocaleDateString('uz-UZ', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </p>
+        <p className="text-sm text-gray-400">{todayStr}</p>
       </div>
 
       {/* Stat cards */}
