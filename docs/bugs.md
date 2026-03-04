@@ -22,6 +22,18 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+## 2026-03-04 TUZATILGAN (3-sessiya — Production 10/10)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-019 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/(admin)/dashboard/page.tsx:119` | **Hydration warning — date SSR mismatch** — `new Date().toLocaleDateString()` JSX ichida. **Yechim:** `useState('')` + `useEffect` bilan faqat clientda o'rnatish. |
+| B-020 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/app/(admin)/finance/expenses/page.tsx:15-16` | **Hydration warning — module-level Date.now()** — `today`/`monthAgo` modul darajasida hisoblangan. **Yechim:** `useMemo(() => ..., [])` bilan komponent ichiga ko'chirildi. |
+| B-021 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/(admin)/analytics/page.tsx` | **Analytics faqat demo ma'lumotlar va Math.random() hydration warning** — TREND_DATA/HOURLY Math.random() ishlatgan. **Yechim:** `useDailyRevenue`, `useTopProducts`, `useProfitReport` hooklari ulandi; kassirlar/soatlik/harakatsiz tovar uchun "tez kunda" holati. |
+| B-022 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/error.tsx` (yangi), `(admin)/error.tsx` (yangi), `(pos)/error.tsx` (yangi) | **Error boundaries yo'q** — sahifa crash bo'lganda butun ilova ishlamay qolardi. **Yechim:** Next.js App Router `error.tsx` fayllari yaratildi (global, admin, pos). |
+| B-023 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/app/(admin)/loading.tsx` (yangi), `(pos)/loading.tsx` (yangi) | **Loading states yo'q** — route o'tishlarida hech qanday vizual javob yo'q edi. **Yechim:** `loading.tsx` fayllari yaratildi. |
+| B-024 | 2026-03-04 | P3 | 2026-03-04 | `apps/web/src/app/not-found.tsx` (yangi) | **Brending 404 sahifasi yo'q** — standart Next.js 404. **Yechim:** Brandli `not-found.tsx` yaratildi. |
+| B-025 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/hooks/customers/useCustomer.ts` | **useCreateCustomer demo fallback** — `onError` da eski demo xaridor qaytarardi. **Yechim:** Demo fallback olib tashlandi, real API xatosi to'g'ri ko'rsatiladi. |
+
 ## 2026-03-04 TUZATILGAN (2-sessiya)
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
