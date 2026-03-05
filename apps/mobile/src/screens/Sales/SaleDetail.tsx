@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { SalesStackParamList } from '@/navigation/types';
+import type { RootStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import Card from '@/components/common/Card';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -12,7 +12,7 @@ import { salesApi } from '@/api';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import type { SaleItem } from '@/api/sales.api';
 
-type Props = NativeStackScreenProps<SalesStackParamList, 'SaleDetail'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'SaleDetail'>;
 
 function ItemRow({ item }: { item: SaleItem }): React.JSX.Element {
   return (

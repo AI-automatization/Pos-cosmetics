@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { FlatList, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { SalesStackParamList } from '@/navigation/types';
+import type { RootStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import ErrorView from '@/components/common/ErrorView';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -14,10 +15,6 @@ import { safeQueryFn } from '@/utils/error';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import type { Sale } from '@/api/sales.api';
 import type { PaginatedResponse } from '@raos/types';
-
-type Props = {
-  navigation: NativeStackNavigationProp<SalesStackParamList, 'SalesList'>;
-};
 
 function SaleRow({ item, onPress }: { item: Sale; onPress: () => void }): React.JSX.Element {
   const { t } = useTranslation();
@@ -39,8 +36,9 @@ function SaleRow({ item, onPress }: { item: Sale; onPress: () => void }): React.
   );
 }
 
-export default function SalesListScreen({ navigation }: Props): React.JSX.Element {
+export default function SalesListScreen(): React.JSX.Element {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [page, setPage] = useState(1);
 
   const EMPTY_PAGE: PaginatedResponse<Sale> = { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } };

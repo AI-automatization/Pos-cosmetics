@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AlertsStackParamList } from '@/navigation/types';
+import type { RootStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -12,7 +12,7 @@ import ErrorView from '@/components/common/ErrorView';
 import { alertsApi } from '@/api';
 import { formatDateTime } from '@/utils/format';
 
-type Props = NativeStackScreenProps<AlertsStackParamList, 'AlertDetail'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'AlertDetail'>;
 
 export default function AlertDetailScreen({ route }: Props): React.JSX.Element {
   const { t } = useTranslation();

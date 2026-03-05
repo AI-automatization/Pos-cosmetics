@@ -2,8 +2,9 @@ import React from 'react';
 import { FlatList, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AlertsStackParamList } from '@/navigation/types';
+import type { RootStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
 import ErrorView from '@/components/common/ErrorView';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -14,10 +15,6 @@ import { safeQueryFn } from '@/utils/error';
 import { formatRelativeTime } from '@/utils/format';
 import type { Alert } from '@/api/alerts.api';
 import { REFETCH_INTERVALS } from '@/config/constants';
-
-type Props = {
-  navigation: NativeStackNavigationProp<AlertsStackParamList, 'AlertsList'>;
-};
 
 const ALERT_ICONS: Record<string, string> = {
   LOW_STOCK: '📦',
@@ -54,8 +51,9 @@ function AlertRow({ item, onPress }: { item: Alert; onPress: () => void }): Reac
   );
 }
 
-export default function AlertsListScreen({ navigation }: Props): React.JSX.Element {
+export default function AlertsListScreen(): React.JSX.Element {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['alerts', 'all'],

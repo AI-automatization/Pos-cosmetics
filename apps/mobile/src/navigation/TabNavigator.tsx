@@ -9,27 +9,21 @@ import type {
   SalesStackParamList,
   NasiyaStackParamList,
   InventoryStackParamList,
-  AlertsStackParamList,
   RealEstateStackParamList,
-  AIInsightsStackParamList,
   SettingsStackParamList,
 } from './types';
 
 import DashboardScreen from '@/screens/Dashboard';
 import BranchDetailScreen from '@/screens/Dashboard/BranchDetail';
 import SalesListScreen from '@/screens/Sales';
-import SaleDetailScreen from '@/screens/Sales/SaleDetail';
 import DebtorsListScreen from '@/screens/Nasiya';
 import DebtDetailScreen from '@/screens/Nasiya/DebtDetail';
 import StockLevelsScreen from '@/screens/Inventory';
 import LowStockScreen from '@/screens/Inventory/LowStockList';
 import BarcodeScannerScreen from '@/screens/Inventory/BarcodeScanner';
-import AlertsListScreen from '@/screens/Alerts';
-import AlertDetailScreen from '@/screens/Alerts/AlertDetail';
 import PropertiesScreen from '@/screens/RealEstate';
 import PropertyDetailScreen from '@/screens/RealEstate/PropertyDetail';
 import RentalPaymentsScreen from '@/screens/RealEstate/RentalPayments';
-import AIInsightsScreen from '@/screens/AIInsights';
 import SettingsScreen from '@/screens/Settings';
 import ProfileScreen from '@/screens/Settings/Profile';
 import NotificationPrefsScreen from '@/screens/Settings/NotificationPrefs';
@@ -40,9 +34,7 @@ const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
 const SalesStack = createNativeStackNavigator<SalesStackParamList>();
 const NasiyaStack = createNativeStackNavigator<NasiyaStackParamList>();
 const InventoryStack = createNativeStackNavigator<InventoryStackParamList>();
-const AlertsStack = createNativeStackNavigator<AlertsStackParamList>();
 const RealEstateStack = createNativeStackNavigator<RealEstateStackParamList>();
-const AIInsightsStack = createNativeStackNavigator<AIInsightsStackParamList>();
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
 function DashboardNavigator(): React.JSX.Element {
@@ -66,8 +58,11 @@ function SalesNavigator(): React.JSX.Element {
   const { t } = useTranslation();
   return (
     <SalesStack.Navigator>
-      <SalesStack.Screen name="SalesList" component={SalesListScreen} options={{ title: t('sales.title') }} />
-      <SalesStack.Screen name="SaleDetail" component={SaleDetailScreen} options={{ title: t('sales.detail') }} />
+      <SalesStack.Screen
+        name="SalesList"
+        component={SalesListScreen}
+        options={{ title: t('sales.title') }}
+      />
     </SalesStack.Navigator>
   );
 }
@@ -101,16 +96,6 @@ function InventoryNavigator(): React.JSX.Element {
   );
 }
 
-function AlertsNavigator(): React.JSX.Element {
-  const { t } = useTranslation();
-  return (
-    <AlertsStack.Navigator>
-      <AlertsStack.Screen name="AlertsList" component={AlertsListScreen} options={{ title: t('alerts.title') }} />
-      <AlertsStack.Screen name="AlertDetail" component={AlertDetailScreen} options={{ title: '' }} />
-    </AlertsStack.Navigator>
-  );
-}
-
 function RealEstateNavigator(): React.JSX.Element {
   const { t } = useTranslation();
   return (
@@ -134,20 +119,7 @@ function RealEstateNavigator(): React.JSX.Element {
   );
 }
 
-function AIInsightsNavigator(): React.JSX.Element {
-  const { t } = useTranslation();
-  return (
-    <AIInsightsStack.Navigator>
-      <AIInsightsStack.Screen
-        name="AIInsights"
-        component={AIInsightsScreen}
-        options={{ title: t('insights.title') }}
-      />
-    </AIInsightsStack.Navigator>
-  );
-}
-
-function SettingsNavigator(): React.JSX.Element {
+export function SettingsNavigator(): React.JSX.Element {
   const { t } = useTranslation();
   return (
     <SettingsStack.Navigator>
@@ -170,27 +142,21 @@ export default function TabNavigator(): React.JSX.Element {
         tabBarInactiveTintColor: '#6b7280',
         tabBarIcon: ({ focused, color, size }) => {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
-            DashboardTab: focused ? 'home' : 'home-outline',
-            SalesTab: focused ? 'receipt' : 'receipt-outline',
-            NasiyaTab: focused ? 'people' : 'people-outline',
-            InventoryTab: focused ? 'cube' : 'cube-outline',
-            AlertsTab: focused ? 'notifications' : 'notifications-outline',
-            RealEstateTab: focused ? 'business' : 'business-outline',
-            AIInsightsTab: focused ? 'bulb' : 'bulb-outline',
-            SettingsTab: focused ? 'settings' : 'settings-outline',
+            Dashboard: focused ? 'home' : 'home-outline',
+            Sales: focused ? 'receipt' : 'receipt-outline',
+            Nasiya: focused ? 'people' : 'people-outline',
+            Inventory: focused ? 'cube' : 'cube-outline',
+            RealEstate: focused ? 'business' : 'business-outline',
           };
           return <Ionicons name={icons[route.name] ?? 'ellipse'} size={size} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="DashboardTab" component={DashboardNavigator} options={{ title: t('nav.dashboard') }} />
-      <Tab.Screen name="SalesTab" component={SalesNavigator} options={{ title: t('nav.sales') }} />
-      <Tab.Screen name="NasiyaTab" component={NasiyaNavigator} options={{ title: t('nav.nasiya') }} />
-      <Tab.Screen name="InventoryTab" component={InventoryNavigator} options={{ title: t('nav.inventory') }} />
-      <Tab.Screen name="AlertsTab" component={AlertsNavigator} options={{ title: t('nav.alerts') }} />
-      <Tab.Screen name="RealEstateTab" component={RealEstateNavigator} options={{ title: t('nav.realestate') }} />
-      <Tab.Screen name="AIInsightsTab" component={AIInsightsNavigator} options={{ title: t('nav.insights') }} />
-      <Tab.Screen name="SettingsTab" component={SettingsNavigator} options={{ title: t('nav.settings') }} />
+      <Tab.Screen name="Dashboard" component={DashboardNavigator} options={{ title: t('nav.dashboard') }} />
+      <Tab.Screen name="Sales" component={SalesNavigator} options={{ title: t('nav.sales') }} />
+      <Tab.Screen name="Nasiya" component={NasiyaNavigator} options={{ title: t('nav.nasiya') }} />
+      <Tab.Screen name="Inventory" component={InventoryNavigator} options={{ title: t('nav.inventory') }} />
+      <Tab.Screen name="RealEstate" component={RealEstateNavigator} options={{ title: t('nav.realestate') }} />
     </Tab.Navigator>
   );
 }

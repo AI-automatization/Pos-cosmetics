@@ -1,5 +1,6 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 
 // Auth Stack
 export type AuthStackParamList = {
@@ -7,16 +8,13 @@ export type AuthStackParamList = {
   Biometric: undefined;
 };
 
-// Tab Navigator
+// Tab Navigator (5 tabs)
 export type TabParamList = {
-  DashboardTab: undefined;
-  SalesTab: undefined;
-  NasiyaTab: undefined;
-  InventoryTab: undefined;
-  AlertsTab: undefined;
-  RealEstateTab: undefined;
-  AIInsightsTab: undefined;
-  SettingsTab: undefined;
+  Dashboard: undefined;
+  Sales: undefined;
+  Nasiya: undefined;
+  Inventory: undefined;
+  RealEstate: undefined;
 };
 
 // Dashboard Stack
@@ -25,10 +23,9 @@ export type DashboardStackParamList = {
   BranchDetail: { branchId: string; branchName: string };
 };
 
-// Sales Stack
+// Sales Stack (SaleDetail RootStack ga ko'chirildi)
 export type SalesStackParamList = {
   SalesList: undefined;
-  SaleDetail: { saleId: string };
 };
 
 // Nasiya Stack
@@ -44,13 +41,7 @@ export type InventoryStackParamList = {
   BarcodeScanner: undefined;
 };
 
-// Alerts Stack
-export type AlertsStackParamList = {
-  AlertsList: undefined;
-  AlertDetail: { alertId: string };
-};
-
-// Settings Stack
+// Settings Stack (ichki navigatsiya saqlanadi)
 export type SettingsStackParamList = {
   Settings: undefined;
   Profile: undefined;
@@ -65,16 +56,15 @@ export type RealEstateStackParamList = {
   RentalPayments: { propertyId: string; propertyName: string };
 };
 
-// AI Insights Stack
-export type AIInsightsStackParamList = {
-  AIInsights: undefined;
-};
-
 // Root Navigator
 export type RootStackParamList = {
   Onboarding: undefined;
   Auth: undefined;
-  App: undefined;
+  MainTabs: NavigatorScreenParams<TabParamList>;
+  Settings: undefined;
+  AIInsights: undefined;
+  SaleDetail: { saleId: string };
+  AlertDetail: { alertId: string };
 };
 
 // Navigation props helpers
