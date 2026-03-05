@@ -21,11 +21,11 @@ const expenseSchema = z.object({
 });
 type ExpenseForm = z.infer<typeof expenseSchema>;
 
-function CreateExpenseModal({ onClose }: { onClose: () => void }) {
+function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; todayDate: string }) {
   const { mutate: create, isPending } = useCreateExpense();
   const { register, handleSubmit, formState: { errors } } = useForm<ExpenseForm>({
     resolver: zodResolver(expenseSchema),
-    defaultValues: { category: 'RENT', description: '', amount: 0, date: new Date().toISOString().slice(0, 10) },
+    defaultValues: { category: 'RENT', description: '', amount: 0, date: todayDate },
   });
 
   const onSubmit = (data: ExpenseForm) => {
@@ -263,7 +263,7 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      {showModal && <CreateExpenseModal onClose={() => setShowModal(false)} />}
+      {showModal && <CreateExpenseModal onClose={() => setShowModal(false)} todayDate={today} />}
     </div>
   );
 }
