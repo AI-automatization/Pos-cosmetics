@@ -12,34 +12,70 @@ datasource db {
 // ============================================
 
 model Tenant {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  isActive     Boolean  @default(true)
+  // T-079: Soliq ma'lumotlari
+  inn          String? // INN: 9 (yuridik) yoki 14 (jismoniy) raqam
+  stir         String? // STIR (soliq to'lovchi identifikator raqami)
+  oked         String? // OKED (faoliyat turi kodi)
+  legalName    String?  @map("legal_name") // Rasmiy nomi
+  legalAddress String?  @map("legal_address") // Yuridik manzil
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  users    User[]
-  branches Branch[]
+  users          User[]
+  branches       Branch[]
+  categories     Category[]
+  units          Unit[]
+  products       Product[]
+  shifts         Shift[]
+  orders         Order[]
+  returns        Return[]
+  warehouses     Warehouse[]
+  customers      Customer[]
+  debtRecords    DebtRecord[]
+  paymentIntents PaymentIntent[]
+  suppliers      Supplier[]
+  zReports       ZReport[]
+  notifications  Notification[]
+  subscription   TenantSubscription?
+  sessions       Session[]
+  apiKeys        ApiKey[]
+  StockMovement  StockMovement[]
+  stockTransfers StockTransfer[]
 
   @@map("tenants")
 }
 
 model User {
-  id           String   @id @default(uuid())
-  tenantId     String   @map("tenant_id")
-  email        String
-  passwordHash String   @map("password_hash")
-  firstName    String   @map("first_name")
-  lastName     String   @map("last_name")
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  email           String
+  passwordHash    String    @map("password_hash")
+  firstName       String    @map("first_name")
+  lastName        String    @map("last_name")
   role            UserRole  @default(CASHIER)
   isActive        Boolean   @default(true)
   refreshToken    String?   @map("refresh_token")
   refreshTokenExp DateTime? @map("refresh_token_exp")
+  // Admin PIN (T-068) — 4-6 raqamli bcrypt hash
+  pinHash         String?   @map("pin_hash")
+  pinLockedUntil  DateTime? @map("pin_locked_until")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  shifts         Shift[]
+  orders         Order[]
+  returns               Return[]
+  stockMovements        StockMovement[]
+  notifications         Notification[]
+  fcmTokens             FcmToken[]
+  sessions              Session[]
+  requestedTransfers    StockTransfer[]  @relation("TransferRequested")
+  approvedTransfers     StockTransfer[]  @relation("TransferApproved")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -55,7 +91,13 @@ model Branch {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  tenant            Tenant          @relation(fields: [tenantId], references: [id])
+  shifts            Shift[]
+  orders            Order[]
+  warehouses        Warehouse[]
+  apiKeys           ApiKey[]
+  outboundTransfers StockTransfer[] @relation("TransferFrom")
+  inboundTransfers  StockTransfer[] @relation("TransferTo")
 
   @@index([tenantId])
   @@map("branches")
@@ -80,6 +122,668 @@ model EventLog {
 }
 
 // ============================================
+// CATALOG MODULE
+// ============================================
+
+model Category {
+  id        String    @id @default(uuid())
+  tenantId  String    @map("tenant_id")
+  name      String
+  parentId  String?   @map("parent_id")
+  sortOrder Int       @default(0) @map("sort_order")
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  tenant   Tenant     @relation(fields: [tenantId], references: [id])
+  parent   Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryChildren")
+  products Product[]
+
+  @@index([tenantId])
+  @@index([tenantId, parentId])
+  @@map("categories")
+}
+
+model Unit {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  shortName String   @map("short_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  products Product[]
+
+  @@index([tenantId])
+  @@map("units")
+}
+
+model Product {
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
+  categoryId     String?   @map("category_id")
+  unitId         String?   @map("unit_id")
+  name           String
+  sku            String?
+  barcode        String?
+  costPrice      Decimal   @default(0) @map("cost_price") @db.Decimal(15, 2)
+  costCurrency   String    @default("UZS") @map("cost_currency") // T-082: UZS|USD
+  sellPrice      Decimal   @default(0) @map("sell_price") @db.Decimal(15, 2)
+  minStockLevel  Decimal   @default(0) @map("min_stock_level") @db.Decimal(15, 3)
+  isActive       Boolean   @default(true) @map("is_active")
+  isBundle       Boolean   @default(false) @map("is_bundle")
+  imageUrl       String?   @map("image_url")
+  description    String?
+  expiryTracking Boolean   @default(false) @map("expiry_tracking")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  category         Category?         @relation(fields: [categoryId], references: [id])
+  unit             Unit?             @relation(fields: [unitId], references: [id])
+  barcodes         ProductBarcode[]
+  variants         ProductVariant[]
+  orderItems       OrderItem[]
+  stockMovements   StockMovement[]
+  returnItems      ReturnItem[]
+  productSuppliers ProductSupplier[]
+  bundleItems      BundleItem[]        @relation("BundleComponents")
+  componentOf      BundleItem[]        @relation("ComponentOfBundles")
+  prices           ProductPrice[]
+  transferItems    StockTransferItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, barcode])
+  @@index([tenantId, sku])
+  @@index([tenantId, categoryId])
+  @@index([tenantId, isActive]) // T-074: active products filter
+  @@index([tenantId, isActive, name]) // T-074: active + search
+  @@map("products")
+}
+
+model ProductBarcode {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  barcode   String
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([barcode])
+  @@index([productId])
+  @@map("product_barcodes")
+}
+
+// ============================================
+// STOCK SNAPSHOTS (T-075) — Hourly materialized view
+// ============================================
+
+model StockSnapshot {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  warehouseId  String   @map("warehouse_id")
+  productId    String   @map("product_id")
+  quantity     Decimal  @default(0) @db.Decimal(15, 3)
+  calculatedAt DateTime @map("calculated_at")
+
+  @@unique([tenantId, warehouseId, productId])
+  @@index([tenantId, productId])
+  @@index([tenantId, warehouseId])
+  @@map("stock_snapshots")
+}
+
+// ============================================
+// PRODUCT VARIANTS (T-095) — Rang/hajm/tur
+// ============================================
+
+model ProductVariant {
+  id           String   @id @default(uuid())
+  productId    String   @map("product_id")
+  tenantId     String   @map("tenant_id")
+  name         String // e.g. "Qizil 50ml"
+  sku          String?
+  barcode      String?
+  costPrice    Decimal  @default(0) @map("cost_price") @db.Decimal(15, 2)
+  costCurrency String   @default("UZS") @map("cost_currency")
+  sellPrice    Decimal  @default(0) @map("sell_price") @db.Decimal(15, 2)
+  isActive     Boolean  @default(true) @map("is_active")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([tenantId])
+  @@index([tenantId, barcode])
+  @@map("product_variants")
+}
+
+// ============================================
+// BUNDLE/SETS MODULE (T-045)
+// ============================================
+
+model BundleItem {
+  id          String  @id @default(uuid())
+  bundleId    String  @map("bundle_id")
+  componentId String  @map("component_id")
+  quantity    Decimal @db.Decimal(15, 3)
+
+  bundle    Product @relation("BundleComponents", fields: [bundleId], references: [id], onDelete: Cascade)
+  component Product @relation("ComponentOfBundles", fields: [componentId], references: [id])
+
+  @@unique([bundleId, componentId])
+  @@index([bundleId])
+  @@map("bundle_items")
+}
+
+// ============================================
+// SUPPLIER MODULE (T-042)
+// ============================================
+
+model Supplier {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  phone     String?
+  company   String?
+  address   String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  productSuppliers ProductSupplier[]
+
+  @@index([tenantId])
+  @@index([tenantId, name])
+  @@map("suppliers")
+}
+
+model ProductSupplier {
+  id          String  @id @default(uuid())
+  productId   String  @map("product_id")
+  supplierId  String  @map("supplier_id")
+  supplyPrice Decimal @map("supply_price") @db.Decimal(15, 2)
+  isDefault   Boolean @default(false) @map("is_default")
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@unique([productId, supplierId])
+  @@index([productId])
+  @@index([supplierId])
+  @@map("product_suppliers")
+}
+
+// ============================================
+// INVENTORY MODULE
+// ============================================
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  branchId  String?  @map("branch_id")
+  name      String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  stockMovements  StockMovement[]
+  transferItems   StockTransferItem[]
+
+  @@index([tenantId])
+  @@map("warehouses")
+}
+
+model StockMovement {
+  id          String            @id @default(uuid())
+  tenantId    String            @map("tenant_id")
+  warehouseId String            @map("warehouse_id")
+  productId   String            @map("product_id")
+  userId      String?           @map("user_id")
+  type        StockMovementType
+  quantity    Decimal           @db.Decimal(15, 3)
+  costPrice   Decimal?          @map("cost_price") @db.Decimal(15, 2)
+  note        String?
+  refId       String?           @map("ref_id")
+  refType     String?           @map("ref_type")
+  batchNumber String?           @map("batch_number")
+  expiryDate  DateTime?         @map("expiry_date")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, productId])
+  @@index([tenantId, warehouseId])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, productId, warehouseId]) // T-074: stock level aggregate
+  @@index([tenantId, type, createdAt]) // T-074: movement type filter
+  @@map("stock_movements")
+}
+
+// ============================================
+// STOCK TRANSFER MODULE (T-114)
+// ============================================
+
+enum TransferStatus {
+  REQUESTED
+  APPROVED
+  SHIPPED
+  RECEIVED
+  CANCELLED
+}
+
+model StockTransfer {
+  id            String         @id @default(uuid())
+  tenantId      String         @map("tenant_id")
+  fromBranchId  String         @map("from_branch_id")
+  toBranchId    String         @map("to_branch_id")
+  status        TransferStatus @default(REQUESTED)
+  requestedById String         @map("requested_by_id")
+  approvedById  String?        @map("approved_by_id")
+  notes         String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  tenant      Tenant               @relation(fields: [tenantId], references: [id])
+  fromBranch  Branch               @relation("TransferFrom", fields: [fromBranchId], references: [id])
+  toBranch    Branch               @relation("TransferTo", fields: [toBranchId], references: [id])
+  requestedBy User                 @relation("TransferRequested", fields: [requestedById], references: [id])
+  approvedBy  User?                @relation("TransferApproved", fields: [approvedById], references: [id])
+  items       StockTransferItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id          String  @id @default(uuid())
+  transferId  String  @map("transfer_id")
+  productId   String  @map("product_id")
+  warehouseId String? @map("warehouse_id")
+  quantity    Decimal @db.Decimal(15, 3)
+
+  transfer  StockTransfer @relation(fields: [transferId], references: [id])
+  product   Product       @relation(fields: [productId], references: [id])
+  warehouse Warehouse?    @relation(fields: [warehouseId], references: [id])
+
+  @@index([transferId])
+  @@map("stock_transfer_items")
+}
+
+// ============================================
+// SALES MODULE
+// ============================================
+
+model Shift {
+  id           String      @id @default(uuid())
+  tenantId     String      @map("tenant_id")
+  userId       String      @map("user_id")
+  branchId     String?     @map("branch_id")
+  status       ShiftStatus @default(OPEN)
+  openedAt     DateTime    @default(now()) @map("opened_at")
+  closedAt     DateTime?   @map("closed_at")
+  openingCash  Decimal     @default(0) @map("opening_cash") @db.Decimal(15, 2)
+  closingCash  Decimal?    @map("closing_cash") @db.Decimal(15, 2)
+  expectedCash Decimal?    @map("expected_cash") @db.Decimal(15, 2)
+  notes        String?
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  user   User    @relation(fields: [userId], references: [id])
+  branch Branch? @relation(fields: [branchId], references: [id])
+  orders Order[]
+
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, status])
+  @@map("shifts")
+}
+
+model Order {
+  id             String       @id @default(uuid())
+  tenantId       String       @map("tenant_id")
+  shiftId        String?      @map("shift_id")
+  userId         String       @map("user_id")
+  branchId       String?      @map("branch_id")
+  customerId     String?      @map("customer_id")
+  orderNumber    Int          @map("order_number")
+  status         OrderStatus  @default(COMPLETED)
+  subtotal       Decimal      @db.Decimal(15, 2)
+  discountAmount Decimal      @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  discountType   DiscountType @default(FIXED) @map("discount_type")
+  taxAmount      Decimal      @default(0) @map("tax_amount") @db.Decimal(15, 2)
+  total          Decimal      @db.Decimal(15, 2)
+  notes          String?
+  fiscalStatus   FiscalStatus @default(NONE) @map("fiscal_status")
+  fiscalId       String?      @map("fiscal_id")
+  fiscalQr       String?      @map("fiscal_qr")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  shift          Shift?          @relation(fields: [shiftId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  customer       Customer?       @relation(fields: [customerId], references: [id])
+  items          OrderItem[]
+  returns        Return[]
+  paymentIntents PaymentIntent[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, shiftId])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, customerId])
+  @@index([tenantId, userId]) // T-074: cashier performance reports
+  @@index([tenantId, status, createdAt]) // T-074: status filter + date range
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String  @id @default(uuid())
+  orderId        String  @map("order_id")
+  productId      String  @map("product_id")
+  productName    String  @map("product_name")
+  quantity       Decimal @db.Decimal(15, 3)
+  unitPrice      Decimal @map("unit_price") @db.Decimal(15, 2)
+  costPrice      Decimal @default(0) @map("cost_price") @db.Decimal(15, 2)
+  discountAmount Decimal @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  total          Decimal @db.Decimal(15, 2)
+
+  order       Order        @relation(fields: [orderId], references: [id])
+  product     Product      @relation(fields: [productId], references: [id])
+  returnItems ReturnItem[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model Return {
+  id         String       @id @default(uuid())
+  tenantId   String       @map("tenant_id")
+  orderId    String       @map("order_id")
+  userId     String       @map("user_id")
+  reason     String?
+  total      Decimal      @db.Decimal(15, 2)
+  status     ReturnStatus @default(PENDING)
+  approvedBy String?      @map("approved_by")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  tenant Tenant       @relation(fields: [tenantId], references: [id])
+  order  Order        @relation(fields: [orderId], references: [id])
+  user   User         @relation(fields: [userId], references: [id])
+  items  ReturnItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, orderId])
+  @@map("returns")
+}
+
+model ReturnItem {
+  id          String  @id @default(uuid())
+  returnId    String  @map("return_id")
+  orderItemId String  @map("order_item_id")
+  productId   String  @map("product_id")
+  quantity    Decimal @db.Decimal(15, 3)
+  amount      Decimal @db.Decimal(15, 2)
+
+  return    Return    @relation(fields: [returnId], references: [id])
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@index([returnId])
+  @@map("return_items")
+}
+
+// ============================================
+// PAYMENTS MODULE
+// ============================================
+
+model PaymentIntent {
+  id          String              @id @default(uuid())
+  tenantId    String              @map("tenant_id")
+  orderId     String              @map("order_id")
+  method      PaymentMethod
+  status      PaymentIntentStatus @default(CREATED)
+  amount      Decimal             @db.Decimal(15, 2)
+  provider    String?
+  providerRef String?             @map("provider_ref")
+  commission  Decimal?            @db.Decimal(15, 2)
+  meta        Json?
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, orderId])
+  @@index([status])
+  @@map("payment_intents")
+}
+
+// ============================================
+// CUSTOMER MODULE (T-050)
+// ============================================
+
+model Customer {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  phone     String?
+  notes     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  orders         Order[]
+  debtRecords    DebtRecord[]
+  loyaltyAccount LoyaltyAccount?
+
+  @@index([tenantId])
+  @@index([tenantId, phone])
+  @@map("customers")
+}
+
+// ============================================
+// NASIYA MODULE (T-051) — Debt/Credit
+// ============================================
+
+model DebtRecord {
+  id          String     @id @default(uuid())
+  tenantId    String     @map("tenant_id")
+  customerId  String     @map("customer_id")
+  orderId     String?    @map("order_id")
+  totalAmount Decimal    @map("total_amount") @db.Decimal(15, 2)
+  paidAmount  Decimal    @default(0) @map("paid_amount") @db.Decimal(15, 2)
+  remaining   Decimal    @map("remaining") @db.Decimal(15, 2)
+  dueDate     DateTime?  @map("due_date")
+  status      DebtStatus @default(ACTIVE)
+  notes       String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  customer Customer      @relation(fields: [customerId], references: [id])
+  payments DebtPayment[]
+
+  @@index([tenantId])
+  @@index([tenantId, customerId])
+  @@index([tenantId, status])
+  @@map("debt_records")
+}
+
+model DebtPayment {
+  id           String        @id @default(uuid())
+  debtRecordId String        @map("debt_record_id")
+  amount       Decimal       @db.Decimal(15, 2)
+  method       PaymentMethod @default(CASH)
+  notes        String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  debtRecord DebtRecord @relation(fields: [debtRecordId], references: [id])
+
+  @@index([debtRecordId])
+  @@map("debt_payments")
+}
+
+// ============================================
+// SUPER ADMIN (T-055) — SaaS Owner cross-tenant access
+// ============================================
+
+enum AdminRole {
+  SUPER_ADMIN
+  SUPPORT
+}
+
+model AdminUser {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  role         AdminRole @default(SUPER_ADMIN)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("admin_users")
+}
+
+// ============================================
+// PUSH NOTIFICATIONS (T-103)
+// ============================================
+
+enum NotificationType {
+  SALE_COMPLETED
+  SHIFT_CHANGED
+  ERROR_ALERT
+  LOW_STOCK
+  EXPIRY_WARNING
+  LARGE_REFUND
+  NASIYA_OVERDUE
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  tenantId  String           @map("tenant_id")
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  data      Json? // arbitrary payload (orderId, productId, etc.)
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([tenantId, createdAt])
+  @@map("notifications")
+}
+
+model FcmToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tenantId  String   @map("tenant_id")
+  token     String   @unique
+  platform  String   @default("android") // android | ios | web
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tenantId])
+  @@map("fcm_tokens")
+}
+
+// ============================================
+// NOTIFICATIONS / REMINDERS (T-054)
+// ============================================
+
+model ReminderLog {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  debtId     String   @map("debt_id")
+  customerId String   @map("customer_id")
+  type       String // DUE_SOON | OVERDUE
+  channel    String   @default("LOG") // LOG | TELEGRAM | SMS
+  message    String
+  sentAt     DateTime @default(now()) @map("sent_at")
+
+  @@index([tenantId])
+  @@index([debtId])
+  @@index([tenantId, sentAt])
+  @@map("reminder_logs")
+}
+
+// ============================================
+// LOYALTY MODULE (T-043)
+// ============================================
+
+model LoyaltyConfig {
+  id         String  @id @default(uuid())
+  tenantId   String  @unique @map("tenant_id")
+  isActive   Boolean @default(true) @map("is_active")
+  // earnRate: 1 point per earnRate so'm (e.g. 1000 → 1 point per 1000 so'm)
+  earnRate   Decimal @default(1000) @map("earn_rate") @db.Decimal(15, 2)
+  // redeemRate: 1 point = redeemRate so'm discount
+  redeemRate Decimal @default(100) @map("redeem_rate") @db.Decimal(15, 2)
+  minRedeem  Int     @default(50) @map("min_redeem")
+
+  @@map("loyalty_configs")
+}
+
+model LoyaltyAccount {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  customerId String   @unique @map("customer_id")
+  points     Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  customer     Customer             @relation(fields: [customerId], references: [id])
+  transactions LoyaltyTransaction[]
+
+  @@index([tenantId])
+  @@map("loyalty_accounts")
+}
+
+model LoyaltyTransaction {
+  id        String        @id @default(uuid())
+  tenantId  String        @map("tenant_id")
+  accountId String        @map("account_id")
+  orderId   String?       @map("order_id")
+  type      LoyaltyTxType
+  points    Int
+  note      String?
+  createdAt DateTime      @default(now()) @map("created_at")
+  // ⚠️ IMMUTABLE — updatedAt yo'q
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id])
+
+  @@index([tenantId])
+  @@index([accountId])
+  @@map("loyalty_transactions")
+}
+
+// ============================================
 // ENUMS
 // ============================================
 
@@ -89,4 +793,443 @@ enum UserRole {
   MANAGER
   CASHIER
   VIEWER
+}
+
+enum ShiftStatus {
+  OPEN
+  CLOSED
+}
+
+enum OrderStatus {
+  COMPLETED
+  RETURNED
+  VOIDED
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum FiscalStatus {
+  NONE
+  PENDING
+  SENT
+  FAILED
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentMethod {
+  CASH
+  TERMINAL
+  CLICK
+  PAYME
+  TRANSFER
+  DEBT
+}
+
+enum PaymentIntentStatus {
+  CREATED
+  CONFIRMED
+  SETTLED
+  FAILED
+  REVERSED
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+  TRANSFER_IN
+  TRANSFER_OUT
+  RETURN_IN
+}
+
+enum DebtStatus {
+  ACTIVE
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+enum LoyaltyTxType {
+  EARN
+  REDEEM
+  ADJUSTMENT
+  EXPIRE
+}
+
+// ============================================
+// LEDGER MODULE (T-035) — Double-Entry Journal (IMMUTABLE)
+// ============================================
+
+enum LedgerAccount {
+  CASH
+  ACCOUNTS_RECEIVABLE
+  REVENUE
+  SALES_RETURN
+  COST_OF_GOODS_SOLD
+  EXPENSES
+}
+
+enum LedgerLineType {
+  DEBIT
+  CREDIT
+}
+
+enum JournalRefType {
+  SALE
+  PAYMENT
+  RETURN
+  ADJUSTMENT
+}
+
+model JournalEntry {
+  id            String         @id @default(uuid())
+  tenantId      String         @map("tenant_id")
+  referenceType JournalRefType @map("reference_type")
+  referenceId   String         @map("reference_id")
+  description   String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  // ⚠️ updatedAt YO'Q — IMMUTABLE
+
+  lines JournalLine[]
+
+  @@index([tenantId])
+  @@index([tenantId, referenceType, referenceId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String         @id @default(uuid())
+  journalEntryId String         @map("journal_entry_id")
+  account        LedgerAccount
+  type           LedgerLineType
+  amount         Decimal        @db.Decimal(15, 2)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  // ⚠️ updatedAt YO'Q — IMMUTABLE
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
+
+  @@index([journalEntryId])
+  @@index([account])
+  @@map("journal_lines")
+}
+
+// ============================================
+// AUDIT LOG (T-027) — Immutable action log
+// ============================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  userId     String?  @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  oldData    Json?    @map("old_data")
+  newData    Json?    @map("new_data")
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, action])
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================
+// EXPENSES MODULE (T-032)
+// ============================================
+
+enum ExpenseCategory {
+  RENT
+  SALARY
+  DELIVERY
+  UTILITIES
+  OTHER
+}
+
+model Expense {
+  id          String          @id @default(uuid())
+  tenantId    String          @map("tenant_id")
+  category    ExpenseCategory
+  description String?
+  amount      Decimal         @db.Decimal(15, 2)
+  date        DateTime        @db.Date
+  userId      String?         @map("user_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@index([tenantId, date])
+  @@index([tenantId, category])
+  @@map("expenses")
+}
+
+// ============================================
+// EXCHANGE RATES (T-082) — CBU USD/UZS
+// ============================================
+
+model ExchangeRate {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  usdUzs    Decimal  @map("usd_uzs") @db.Decimal(12, 4)
+  source    String   @default("CBU")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([date, source])
+  @@index([date])
+  @@map("exchange_rates")
+}
+
+// ============================================
+// Z-REPORTS (T-083) — Kunlik fiskal yakuniy hisobot
+// ============================================
+
+model ZReport {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  sequenceNumber Int      @map("sequence_number")
+  date           DateTime @db.Date
+  totalOrders    Int      @default(0) @map("total_orders")
+  totalRevenue   Decimal  @default(0) @map("total_revenue") @db.Decimal(15, 2)
+  totalTax       Decimal  @default(0) @map("total_tax") @db.Decimal(15, 2)
+  totalReturns   Decimal  @default(0) @map("total_returns") @db.Decimal(15, 2)
+  cashAmount     Decimal  @default(0) @map("cash_amount") @db.Decimal(15, 2)
+  terminalAmount Decimal  @default(0) @map("terminal_amount") @db.Decimal(15, 2)
+  clickAmount    Decimal  @default(0) @map("click_amount") @db.Decimal(15, 2)
+  paymeAmount    Decimal  @default(0) @map("payme_amount") @db.Decimal(15, 2)
+  transferAmount Decimal  @default(0) @map("transfer_amount") @db.Decimal(15, 2)
+  debtAmount     Decimal  @default(0) @map("debt_amount") @db.Decimal(15, 2)
+  fiscalCount    Int      @default(0) @map("fiscal_count")
+  shiftIds       String[] @map("shift_ids")
+  createdAt      DateTime @default(now()) @map("created_at")
+  // ⚠️ IMMUTABLE — no updatedAt, cannot be modified
+  createdBy      String   @map("created_by")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, sequenceNumber])
+  @@unique([tenantId, date]) // bir kunda faqat bitta Z-report
+  @@index([tenantId])
+  @@index([tenantId, date])
+  @@map("z_reports")
+}
+
+// ============================================
+// SECURITY — LOGIN ATTEMPTS (T-067)
+// ============================================
+
+model LoginAttempt {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  email     String // attempted login email
+  ip        String
+  success   Boolean
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([email, createdAt])
+  @@index([userId, createdAt])
+  @@index([ip, createdAt])
+  @@map("login_attempts")
+}
+
+// ============================================
+// SECURITY — USER LOCK (T-067)
+// ============================================
+
+model UserLock {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  lockedAt    DateTime @default(now()) @map("locked_at")
+  lockedUntil DateTime @map("locked_until")
+  reason      String   @default("FAILED_LOGIN_ATTEMPTS")
+
+  @@map("user_locks")
+}
+
+// ============================================
+// SECURITY — PIN ATTEMPTS (T-068)
+// ============================================
+
+model PinAttempt {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  success   Boolean
+  action    String // action_type: REFUND, VOID, DISCOUNT, SHIFT_CLOSE, etc.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("pin_attempts")
+}
+
+// ============================================
+// PRICE MANAGEMENT (T-098) — Wholesale/Retail + Tiered
+// ============================================
+
+enum PriceType {
+  RETAIL
+  WHOLESALE
+  VIP
+}
+
+model ProductPrice {
+  id        String    @id @default(uuid())
+  tenantId  String    @map("tenant_id")
+  productId String    @map("product_id")
+  priceType PriceType @map("price_type")
+  minQty    Int       @default(1) @map("min_qty") // tiered: >=minQty uchun
+  price     Decimal   @db.Decimal(15, 2)
+  validFrom DateTime? @map("valid_from") // scheduled price (null = always)
+  validTo   DateTime? @map("valid_to")
+  isActive  Boolean   @default(true) @map("is_active")
+  note      String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, productId])
+  @@index([tenantId, priceType])
+  @@index([productId, priceType, minQty])
+  @@map("product_prices")
+}
+
+// ============================================
+// SAAS BILLING — SUBSCRIPTION PLANS (T-108)
+// ============================================
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE // to'lov kechikkan — grace period (3 kun)
+  CANCELLED
+  EXPIRED
+}
+
+model SubscriptionPlan {
+  id           String  @id @default(uuid())
+  name         String  @unique // "Free", "Basic", "Pro", "Enterprise"
+  slug         String  @unique // "free", "basic", "pro", "enterprise"
+  priceMonthly Decimal @map("price_monthly") @db.Decimal(15, 2)
+  maxBranches  Int     @map("max_branches") // -1 = unlimited
+  maxProducts  Int     @map("max_products") // -1 = unlimited
+  maxUsers     Int     @map("max_users") // -1 = unlimited
+  trialDays    Int     @default(14) @map("trial_days")
+  features     Json    @default("[]") // feature flags list
+  isActive     Boolean @default(true) @map("is_active")
+  sortOrder    Int     @default(0) @map("sort_order")
+
+  subscriptions TenantSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model TenantSubscription {
+  id                String             @id @default(uuid())
+  tenantId          String             @unique @map("tenant_id") // 1 tenant — 1 active sub
+  planId            String             @map("plan_id")
+  status            SubscriptionStatus @default(TRIAL)
+  startedAt         DateTime           @default(now()) @map("started_at")
+  expiresAt         DateTime?          @map("expires_at")
+  trialEndsAt       DateTime?          @map("trial_ends_at")
+  gracePeriodEndsAt DateTime?          @map("grace_period_ends_at")
+  cancelledAt       DateTime?          @map("cancelled_at")
+  notes             String?
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id])
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([status])
+  @@index([expiresAt])
+  @@map("tenant_subscriptions")
+}
+
+// ─── T-069: Session management ─────────────────────────────────
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  tenantId   String   @map("tenant_id")
+  deviceInfo String?  @map("device_info")
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  lastActive DateTime @default(now()) @map("last_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ─── T-062: Outbox / POS Sync ───────────────────────────────────
+
+enum SyncEventType {
+  SALE_CREATED
+  PAYMENT_SETTLED
+  RETURN_CREATED
+  STOCK_MOVEMENT
+}
+
+enum SyncEventStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  DUPLICATE
+}
+
+model SyncOutbox {
+  id             String          @id @default(uuid())
+  tenantId       String          @map("tenant_id")
+  branchId       String?         @map("branch_id")
+  deviceId       String          @map("device_id") // POS qurilma identifikatori
+  eventType      SyncEventType   @map("event_type")
+  payload        Json
+  idempotencyKey String          @unique @map("idempotency_key")
+  sequenceNumber BigInt          @map("sequence_number") // POS tomonidan beriladi
+  status         SyncEventStatus @default(PENDING)
+  errorMessage   String?         @map("error_message")
+  processedAt    DateTime?       @map("processed_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  @@index([tenantId, status])
+  @@index([tenantId, deviceId])
+  @@index([tenantId, createdAt])
+  @@map("sync_outbox")
+}
+
+// ─── T-071: API Key auth ────────────────────────────────────────
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  tenantId  String    @map("tenant_id")
+  branchId  String?   @map("branch_id")
+  keyHash   String    @unique @map("key_hash")
+  name      String
+  scopes    String[]  @default([])
+  lastUsed  DateTime? @map("last_used")
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime? @map("expires_at")
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  branch Branch? @relation(fields: [branchId], references: [id])
+
+  @@index([tenantId])
+  @@map("api_keys")
 }

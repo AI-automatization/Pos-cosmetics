@@ -103,4 +103,17 @@ export class UsersController {
     await this.identityService.deleteUser(id, callerUserId, tenantId);
     return { message: 'User deactivated successfully' };
   }
+
+  @Post(':id/unlock')
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Bloklangan foydalanuvchini ochish (T-067)' })
+  @ApiResponse({ status: 200, description: 'User unlocked' })
+  async unlock(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('userId') adminUserId: string,
+  ) {
+    await this.identityService.unlockUser(adminUserId, id);
+    return { message: 'User unlocked successfully' };
+  }
 }
