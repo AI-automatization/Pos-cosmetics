@@ -125,7 +125,7 @@ export default function ExpensesPage() {
 
   if (loadingExp || loadingProfit) return <LoadingSkeleton variant="table" rows={4} />;
 
-  const pieData = profit?.expensesByCategory.map((e) => ({
+  const pieData = (profit?.expensesByCategory ?? []).map((e) => ({
     name: EXPENSE_CATEGORY_LABELS[e.category as ExpenseCategory],
     value: e.total,
     color: EXPENSE_CATEGORY_COLORS[e.category as ExpenseCategory],

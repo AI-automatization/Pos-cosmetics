@@ -17,11 +17,17 @@ export const debtApi = {
     status?: string;
     overdue?: boolean;
   }): Promise<Debt[]> =>
-    apiClient.get<Debt[]>('/nasiya', { params }).then((r) => r.data),
+    apiClient.get('/nasiya', { params }).then((r) => {
+      const d = r.data;
+      return (Array.isArray(d) ? d : (d?.items ?? [])) as Debt[];
+    }),
 
   /** Muddati o'tgan qarzlar */
   listOverdue: (): Promise<Debt[]> =>
-    apiClient.get<Debt[]>('/nasiya/overdue').then((r) => r.data),
+    apiClient.get('/nasiya/overdue').then((r) => {
+      const d = r.data;
+      return (Array.isArray(d) ? d : (d?.items ?? [])) as Debt[];
+    }),
 
   /** Qarz to'lash */
   payDebt: (debtId: string, dto: PayDebtDto): Promise<DebtPayment> =>
