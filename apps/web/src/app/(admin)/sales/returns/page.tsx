@@ -110,7 +110,12 @@ export default function ReturnsPage() {
 
   const { data: returns, isLoading } = useReturns(tab !== 'ALL' ? { status: tab } : undefined);
 
-  if (isLoading) return <LoadingSkeleton variant="table" rows={4} />;
+  if (isLoading) return (
+    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+      <h1 className="text-xl font-semibold text-gray-900">Qaytarishlar</h1>
+      <LoadingSkeleton variant="table" rows={4} />
+    </div>
+  );
 
   const counts = {
     ALL: returns?.length ?? 0,

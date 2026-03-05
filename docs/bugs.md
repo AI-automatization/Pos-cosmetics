@@ -22,6 +22,14 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+## 2026-03-05 TUZATILGAN (4-sessiya — Full tour)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-020b | 2026-03-05 | P2 | 2026-03-05 | `apps/web/src/app/(admin)/finance/expenses/page.tsx:24` | **expenses modal SSR hydration** — `new Date()` to'g'ridan `CreateExpenseModal` defaultValues ichida. **Yechim:** `todayDate` prop sifatida yuborildi, `useMemo` ichidan. |
+| B-026 | 2026-03-05 | P2 | 2026-03-05 | `apps/web/src/app/(admin)/settings/users/page.tsx:125` | **Loading state title yo'q** — `if (isLoading) return <LoadingSkeleton>` — sahifa nomi ko'rinmadi. **Yechim:** Loading wrapperi sarlavha bilan qo'shildi. |
+| B-027 | 2026-03-05 | P2 | 2026-03-05 | `apps/web/src/app/(admin)/sales/returns/page.tsx:113` | **Returns loading state title yo'q** — xuddi B-026 kabi. **Yechim:** Loading wrapperi sarlavha bilan qo'shildi. |
+
 ## 2026-03-04 TUZATILGAN (3-sessiya — Production 10/10)
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
