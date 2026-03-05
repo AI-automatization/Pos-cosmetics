@@ -23,10 +23,12 @@ async function bootstrap() {
   app.use(helmet());
   // T-077: Response compression (gzip/brotli)
   app.use(compression());
-  app.enableCors({
-    origin: config.get<string>('CORS_ORIGIN', 'http://localhost:3001'),
-    credentials: true,
-  });
+  // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
+  const corsOriginRaw = config.get<string>('CORS_ORIGIN', 'http://localhost:3001');
+  const corsOrigin = corsOriginRaw.includes(',')
+    ? corsOriginRaw.split(',').map((o) => o.trim())
+    : corsOriginRaw;
+  app.enableCors({ origin: corsOrigin, credentials: true });
 
   // Global prefix
   const prefix = config.get<string>('API_PREFIX', 'api/v1');
