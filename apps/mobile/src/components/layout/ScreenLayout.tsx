@@ -80,7 +80,7 @@ export default function ScreenLayout({
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.surface} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
 
       {/* Header */}
       <View style={styles.header}>
