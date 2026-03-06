@@ -3,6 +3,7 @@
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
+startCommand = "node dist/main"
 healthcheckPath = "/api/v1/health/live"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
