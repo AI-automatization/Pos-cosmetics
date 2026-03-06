@@ -48,7 +48,7 @@ ENV PORT=3000
 # Copy only production artifacts
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/apps/api/node_modules ./node_modules
-COPY --from=deps    /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/apps/api/prisma ./prisma
 
 # Non-root user (security)
