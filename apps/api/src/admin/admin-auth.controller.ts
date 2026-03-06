@@ -146,7 +146,7 @@ export class AdminAuthController {
     summary: 'T-058: Tenant impersonation — vaqtinchalik token (1 soat)',
     description: 'Super Admin ixtiyoriy tenant OWNER sifatida kiradi. Barcha harakatlar audit log ga yoziladi.',
   })
-  impersonate(@Param('tenantId') tenantId: string, @Request() req: any) {
+  impersonate(@Param('tenantId') tenantId: string, @Request() req: { user: { sub: string; email?: string } }) {
     return this.adminAuthService.impersonateTenant(
       tenantId,
       req.user.sub,

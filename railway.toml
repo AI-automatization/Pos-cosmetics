@@ -1,0 +1,10 @@
+[build]
+# Monorepo: Dockerfile is inside apps/api/ but Docker context is repo root
+dockerfilePath = "apps/api/Dockerfile"
+
+[deploy]
+startCommand = "node_modules/.bin/prisma migrate deploy && node dist/main"
+healthcheckPath = "/api/v1/health/live"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

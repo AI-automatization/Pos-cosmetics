@@ -68,7 +68,7 @@ export function registerCommands(bot: Bot) {
       }
 
       if (summaries.length === 1) {
-        const tenantId = await getTenantIdByName(summaries[0].tenant);
+        const tenantId = await getTenantIdByName(summaries[0]!.tenant);
         if (tenantId) {
           const detail = await getTodaySummary(tenantId);
           await ctx.reply(formatDailyReport(detail), { parse_mode: 'MarkdownV2' });

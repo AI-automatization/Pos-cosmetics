@@ -26,6 +26,9 @@ COPY apps/web/ ./apps/web/
 COPY packages/types/ ./packages/types/
 COPY packages/ui/ ./packages/ui/
 
+# Ensure public dir exists (Next.js standalone requires it)
+RUN mkdir -p ./apps/web/public
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter web build
 
@@ -41,9 +44,9 @@ ENV PORT=3001
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-COPY --from=builder /app/apps/web/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 USER nextjs
 EXPOSE 3001

@@ -57,6 +57,7 @@ export class SyncService {
         tenantId,
         branchId: branchId ?? null,
         deviceId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         eventType: type as any,
         payload: payload as Prisma.InputJsonValue,
         idempotencyKey,
@@ -123,7 +124,7 @@ export class SyncService {
   async getOutbound(
     tenantId: string,
     since: string,
-    branchId?: string,
+    _branchId?: string,
   ) {
     const sinceDate = new Date(since);
 

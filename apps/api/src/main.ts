@@ -3,7 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import compression = require('compression');
+import compression from 'compression';
 import { AppModule } from './app.module';
 import { AppLoggerService } from './common/logger/logger.service';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
@@ -23,10 +23,12 @@ async function bootstrap() {
   app.use(helmet());
   // T-077: Response compression (gzip/brotli)
   app.use(compression());
-  app.enableCors({
-    origin: config.get<string>('CORS_ORIGIN', 'http://localhost:3001'),
-    credentials: true,
-  });
+  // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
+  const corsOriginRaw = config.get<string>('CORS_ORIGIN', 'http://localhost:3001');
+  const corsOrigin = corsOriginRaw.includes(',')
+    ? corsOriginRaw.split(',').map((o) => o.trim())
+    : corsOriginRaw;
+  app.enableCors({ origin: corsOrigin, credentials: true });
 
   // Global prefix
   const prefix = config.get<string>('API_PREFIX', 'api/v1');
@@ -66,8 +68,8 @@ async function bootstrap() {
   // Graceful shutdown (T-085)
   app.enableShutdownHooks();
 
-  // Start
-  const port = config.get<number>('API_PORT', 3000);
+  // Start — PORT injectится Railway/Docker, API_PORT для локальной разработки
+  const port = config.get<number>('PORT') ?? config.get<number>('API_PORT', 3000);
   await app.listen(port);
   logger.log(`RAOS API running on http://localhost:${port}/${prefix}`, 'Bootstrap');
   logger.log(`Swagger docs: http://localhost:${port}/${prefix}/docs`, 'Bootstrap');

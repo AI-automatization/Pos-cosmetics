@@ -20,6 +20,7 @@ import { SalesService } from './sales.service';
 import { OpenShiftDto, CloseShiftDto, CreateOrderDto, CreateReturnDto } from './dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
@@ -83,7 +84,7 @@ export class SalesController {
     @CurrentUser('role') userRole: string,
     @Body() dto: CreateOrderDto,
   ) {
-    return this.salesService.createOrder(tenantId, userId, dto, userRole as any);
+    return this.salesService.createOrder(tenantId, userId, dto, userRole as UserRole);
   }
 
   @Get('orders')

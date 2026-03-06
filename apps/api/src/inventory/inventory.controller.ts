@@ -14,7 +14,6 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
 import { InventoryService } from './inventory.service';

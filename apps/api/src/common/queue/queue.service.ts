@@ -59,11 +59,15 @@ export class QueueService implements OnModuleDestroy {
   }
 
   private initQueues() {
-    const connection = {
-      host: this.config.get<string>('REDIS_HOST', 'localhost'),
-      port: this.config.get<number>('REDIS_PORT', 6379),
-      password: this.config.get<string>('REDIS_PASSWORD'),
-    };
+    // Railway provides REDIS_URL; fallback to host/port for local dev
+    const redisUrl = this.config.get<string>('REDIS_URL');
+    const connection = redisUrl
+      ? { url: redisUrl }
+      : {
+          host: this.config.get<string>('REDIS_HOST', 'localhost'),
+          port: this.config.get<number>('REDIS_PORT', 6379),
+          password: this.config.get<string>('REDIS_PASSWORD'),
+        };
 
     for (const name of Object.values(QUEUE_NAMES)) {
       this.queues.set(name, new Queue(name, { connection }));
@@ -155,7 +159,7 @@ export class QueueService implements OnModuleDestroy {
    */
   async getDlqJobs(queueName?: QueueName, limit = 50) {
     const targets = queueName
-      ? [[queueName, this.queues.get(queueName)!] as [QueueName, (typeof this.queues extends Map<any, infer V> ? V : never)]]
+      ? [[queueName, this.queues.get(queueName)!] as [QueueName, (typeof this.queues extends Map<QueueName, infer V> ? V : never)]]
       : Array.from(this.queues.entries());
 
     const result: Array<{

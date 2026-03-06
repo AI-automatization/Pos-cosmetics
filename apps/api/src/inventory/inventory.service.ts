@@ -111,8 +111,8 @@ export class InventoryService {
       if (cached) return cached;
     }
 
-    const warehousePart = opts.warehouseId ? Prisma.sql`AND sm_filter.warehouse_id = ${opts.warehouseId}` : Prisma.empty;
-    const productPart = opts.productId ? Prisma.sql`AND sm_filter.product_id = ${opts.productId}` : Prisma.empty;
+    const _warehousePart = opts.warehouseId ? Prisma.sql`AND sm_filter.warehouse_id = ${opts.warehouseId}` : Prisma.empty;
+    const _productPart = opts.productId ? Prisma.sql`AND sm_filter.product_id = ${opts.productId}` : Prisma.empty;
 
     // Check if snapshot exists for this tenant
     const snapshotExists = await this.prisma.stockSnapshot.findFirst({

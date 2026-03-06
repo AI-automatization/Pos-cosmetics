@@ -28,7 +28,9 @@ export class AuditService {
           action: dto.action,
           entityType: dto.entityType,
           entityId: dto.entityId,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           oldData: (dto.oldData ?? undefined) as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           newData: (dto.newData ?? undefined) as any,
           ip: dto.ip,
           userAgent: dto.userAgent,

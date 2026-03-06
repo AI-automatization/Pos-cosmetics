@@ -232,8 +232,10 @@ export class ExportService {
       Number(p.sellPrice),
       Number(p.costPrice),
       p.minStockLevel,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p as any).costCurrency ?? 'UZS',
       p.isActive ? 'Ha' : "Yo'q",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p as any).expiryTracking ? 'Ha' : "Yo'q",
     ]);
 
@@ -303,6 +305,7 @@ export class ExportService {
       "Tashriflar soni", "So'nggi tashrif", "Qarz limiti (UZS)", 'Bloklangan',
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = (customers as any[]).map((c) => [
       c.id,
       c.name,
