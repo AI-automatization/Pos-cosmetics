@@ -59,5 +59,6 @@ USER nestjs
 
 EXPOSE 3000
 
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy; node dist/main"]
+COPY apps/api/start.sh ./start.sh
+
+CMD ["sh", "start.sh"]
