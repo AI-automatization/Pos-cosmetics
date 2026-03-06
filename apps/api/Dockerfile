@@ -26,10 +26,14 @@ RUN pnpm --filter api build
 # Create self-contained production bundle (no symlinks, no devDeps)
 RUN pnpm deploy --filter api --prod --legacy /deploy
 
-# Copy build artifacts and generated Prisma client into /deploy
+# Copy build artifacts into /deploy
 RUN cp -r /app/apps/api/dist /deploy/dist && \
-    cp -r /app/apps/api/prisma /deploy/prisma && \
-    cp -r /app/node_modules/.prisma /deploy/node_modules/.prisma
+    cp -r /app/apps/api/prisma /deploy/prisma
+
+# Copy generated Prisma client — pnpm v10 stores it in .pnpm virtual store, not root
+RUN PRISMA_DIR=$(find /app/node_modules -maxdepth 5 -name ".prisma" -type d 2>/dev/null | head -1) && \
+    [ -n "$PRISMA_DIR" ] && cp -r "$PRISMA_DIR" /deploy/node_modules/.prisma || \
+    echo "WARNING: .prisma not found, skipping copy"
 
 # ─── Stage 2: runner ──────────────────────────────────────────
 FROM node:20-alpine AS runner
@@ -44,6 +48,10 @@ ENV PORT=3000
 COPY --from=builder /deploy/node_modules ./node_modules
 COPY --from=builder /deploy/dist ./dist
 COPY --from=builder /deploy/prisma ./prisma
+
+# Copy prisma CLI for running migrations at startup
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
 # Non-root user (security)
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
