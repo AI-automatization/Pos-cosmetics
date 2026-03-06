@@ -374,7 +374,9 @@ export class SalesService {
     return {
       orderNumber: order.orderNumber,
       date: order.createdAt,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       cashier: `${(order as any).user?.firstName} ${(order as any).user?.lastName}`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       customer: (order as any).customer?.name ?? null,
       items: order.items.map((i) => ({
         name: i.productName,
@@ -386,6 +388,7 @@ export class SalesService {
       discount: order.discountAmount,
       tax: order.taxAmount,
       total: order.total,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       payments: (order as any).paymentIntents?.map((p: any) => ({
         method: p.method,
         amount: p.amount,

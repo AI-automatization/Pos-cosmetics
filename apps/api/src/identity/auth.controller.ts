@@ -17,7 +17,6 @@ import {
   ApiParam,
   ApiProperty,
   ApiResponse,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { IsOptional, IsString, IsArray, IsNumber, Min, Max } from 'class-validator';

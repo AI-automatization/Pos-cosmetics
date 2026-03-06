@@ -232,7 +232,7 @@ export class TransferService {
     page = 1,
     limit = 20,
   ) {
-    const where: any = { tenantId };
+    const where: { tenantId: string; status?: TransferStatus; OR?: Array<{ fromBranchId: string } | { toBranchId: string }> } = { tenantId };
     if (status) where.status = status;
     if (branchId) where.OR = [{ fromBranchId: branchId }, { toBranchId: branchId }];
 

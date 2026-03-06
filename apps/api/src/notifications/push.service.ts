@@ -107,6 +107,7 @@ export class PushService {
         type: payload.type,
         title: payload.title,
         body: payload.body,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: (payload.data ?? undefined) as any,
       },
     });

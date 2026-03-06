@@ -3,7 +3,6 @@ import {
   Get,
   Query,
   UseGuards,
-  ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
 import {

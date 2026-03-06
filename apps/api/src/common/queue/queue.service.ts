@@ -159,7 +159,7 @@ export class QueueService implements OnModuleDestroy {
    */
   async getDlqJobs(queueName?: QueueName, limit = 50) {
     const targets = queueName
-      ? [[queueName, this.queues.get(queueName)!] as [QueueName, (typeof this.queues extends Map<any, infer V> ? V : never)]]
+      ? [[queueName, this.queues.get(queueName)!] as [QueueName, (typeof this.queues extends Map<QueueName, infer V> ? V : never)]]
       : Array.from(this.queues.entries());
 
     const result: Array<{
