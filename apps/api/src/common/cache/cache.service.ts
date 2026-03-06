@@ -28,13 +28,20 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit() {
-    const redisUrl = this.config.get<string>('REDIS_URL', 'redis://localhost:6379');
+    // Support REDIS_URL (Railway auto-inject) or REDIS_HOST/PORT (manual config)
+    const redisUrl = this.config.get<string>('REDIS_URL');
+    const baseOpts = { maxRetriesPerRequest: 3, lazyConnect: true, enableOfflineQueue: false };
 
-    this.client = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-      enableOfflineQueue: false,
-    });
+    if (redisUrl) {
+      this.client = new Redis(redisUrl, baseOpts);
+    } else {
+      this.client = new Redis({
+        ...baseOpts,
+        host: this.config.get<string>('REDIS_HOST', 'localhost'),
+        port: this.config.get<number>('REDIS_PORT', 6379),
+        password: this.config.get<string>('REDIS_PASSWORD') || undefined,
+      });
+    }
 
     this.client.on('connect', () => {
       this.connected = true;
