@@ -24,7 +24,7 @@ RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api build
 
 # Create self-contained production bundle (no symlinks, no devDeps)
-RUN pnpm deploy --filter api --prod /deploy
+RUN pnpm deploy --filter api --prod --legacy /deploy
 
 # Copy build artifacts and generated Prisma client into /deploy
 RUN cp -r /app/apps/api/dist /deploy/dist && \
