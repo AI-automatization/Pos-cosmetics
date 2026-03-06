@@ -54,7 +54,8 @@ COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
 # Non-root user (security)
-RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 && \
+    mkdir -p /app/logs && chown -R nestjs:nodejs /app/logs
 USER nestjs
 
 EXPOSE 3000
