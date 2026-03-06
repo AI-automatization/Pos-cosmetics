@@ -47,7 +47,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
         </head>
         <body>
           <div class="labels">${printContents}</div>
-          <script>window.onload = function() { window.print(); window.close(); }<\/script>
+          <script>window.onload = function() { window.print(); window.close(); }</script>
         </body>
       </html>
     `);
