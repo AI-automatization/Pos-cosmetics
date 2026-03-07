@@ -7,6 +7,7 @@ import DashboardScreen from '../screens/Dashboard';
 import SalesScreen from '../screens/Sales';
 import InventoryScreen from '../screens/Inventory';
 import NasiyaScreen from '../screens/Nasiya';
+import ScannerScreen from '../screens/Scanner';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -65,6 +66,16 @@ export default function TabNavigator() {
           tabBarLabel: t('nasiya.title'),
           tabBarIcon: ({ focused }) => (
             <TabIcon icon="💸" focused={focused} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Scanner"
+        component={ScannerScreen}
+        options={{
+          tabBarLabel: t('scanner.title'),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="📷" focused={focused} />
           ),
         }}
       />

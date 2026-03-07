@@ -1299,41 +1299,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-100 | P1 | [MOBILE] | Owner mobile dashboard — Real-time monitoring
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat + Abdulaziz
-- **Fayl:** `apps/mobile/`
-- **Vazifa:**
-  - Home screen: bugungi savdo, haftalik trend, active shifts
-  - Push notification: har savdo, shift open/close, error, low stock
-  - Savdo list: real-time yangilanib turadi
-  - Quick stats: revenue, orders, avg basket, top products
-- **Kutilgan:** Do'kon egasi telefondan doim xabardor
-
 ---
-
-## T-101 | P1 | [MOBILE] | Nasiya management — Qarzlarni telefondan boshqarish
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat + Abdulaziz
-- **Fayl:** `apps/mobile/`
-- **Vazifa:**
-  - Debtors list: kim qancha qarzda
-  - Debt payment recording: to'lov qabul qilish
-  - Send reminder: Telegram/SMS orqali "to'lang" xabar
-  - Overdue alerts: push notification
-- **Kutilgan:** Owner yo'lda ham nasiyalarni boshqaradi
-
----
-
-## T-102 | P2 | [MOBILE] | Barcode scanner — Camera orqali tovar tekshirish
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat + Abdulaziz
-- **Fayl:** `apps/mobile/`
-- **Vazifa:**
-  - Camera barcode scan → product info (name, price, stock, expiry)
-  - Quick stock adjustment
-  - Physical inventory count: scan + enter actual qty
-- **Kutilgan:** Telefondan tovar ma'lumotini tezkor ko'rsa bo'ladi
 
 ---
 

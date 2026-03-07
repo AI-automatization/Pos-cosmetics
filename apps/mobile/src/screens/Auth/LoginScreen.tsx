@@ -116,6 +116,21 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={styles.biometricText}>👆 {t('auth.biometricPrompt')}</Text>
             </TouchableOpacity>
           )}
+
+          {__DEV__ && (
+            <TouchableOpacity
+              style={styles.demoButton}
+              onPress={() =>
+                setUser(
+                  { id: 'demo', email: 'demo@raos.uz', firstName: 'Demo', lastName: 'User', role: 'OWNER', tenantId: 'demo-tenant', tenant: { id: 'demo-tenant', name: 'Demo Do\'kon', slug: 'demo' } },
+                  'demo-access-token',
+                  'demo-refresh-token',
+                )
+              }
+            >
+              <Text style={styles.demoText}>🧪 Demo kirish</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -202,6 +217,18 @@ const styles = StyleSheet.create({
   biometricText: {
     color: '#6366F1',
     fontSize: 14,
+    fontWeight: '500',
+  },
+  demoButton: {
+    marginTop: 12,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  demoText: {
+    color: '#9CA3AF',
+    fontSize: 13,
     fontWeight: '500',
   },
 });

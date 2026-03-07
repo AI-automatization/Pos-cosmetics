@@ -40,10 +40,9 @@ function AppContent() {
 
   return (
     <NavigationContainer
-      ref={(ref) => {
+      ref={() => {
         navigationRef.resetToAuth = () => {
           clearAuth();
-          ref?.reset({ index: 0, routes: [{ name: 'Auth' as never }] });
         };
       }}
     >

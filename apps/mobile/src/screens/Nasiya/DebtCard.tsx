@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { DebtRecord, DebtStatus } from '../../api/nasiya.api';
+import { nasiyaApi } from '../../api/nasiya.api';
 import { formatUZS } from '../../utils/currency';
+import { extractErrorMessage } from '../../utils/error';
 
 interface Props {
   debt: DebtRecord;
@@ -43,10 +45,23 @@ function formatDueDate(dueDate: string | null, t: ReturnType<typeof useTranslati
 
 export default function DebtCard({ debt, onPay }: Props) {
   const { t } = useTranslation();
+  const [reminding, setReminding] = useState(false);
   const colors = STATUS_COLORS[debt.status];
   const isPaid = debt.status === 'PAID' || debt.status === 'CANCELLED';
   const days = overdueDays(debt.dueDate);
   const isOverdue = debt.status === 'OVERDUE' || (days > 0 && !isPaid);
+
+  const handleReminder = async () => {
+    setReminding(true);
+    try {
+      await nasiyaApi.sendReminder(debt.id);
+      Alert.alert('✅', t('nasiya.reminderSent'));
+    } catch (err) {
+      Alert.alert('Xatolik', extractErrorMessage(err));
+    } finally {
+      setReminding(false);
+    }
+  };
 
   return (
     <View style={styles.card}>
@@ -95,13 +110,27 @@ export default function DebtCard({ debt, onPay }: Props) {
         </Text>
 
         {!isPaid && (
-          <TouchableOpacity
-            style={styles.payBtn}
-            onPress={() => onPay(debt)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.payBtnText}>{t('nasiya.payButton')}</Text>
-          </TouchableOpacity>
+          <View style={styles.btnRow}>
+            <TouchableOpacity
+              style={styles.reminderBtn}
+              onPress={handleReminder}
+              activeOpacity={0.8}
+              disabled={reminding}
+            >
+              {reminding ? (
+                <ActivityIndicator size="small" color="#EA580C" />
+              ) : (
+                <Text style={styles.reminderBtnText}>📩 {t('nasiya.reminderButton')}</Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.payBtn}
+              onPress={() => onPay(debt)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.payBtnText}>{t('nasiya.payButton')}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -185,12 +214,31 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     fontWeight: '600',
   },
+  btnRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginLeft: 8,
+  },
+  reminderBtn: {
+    borderWidth: 1,
+    borderColor: '#EA580C',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    minWidth: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reminderBtnText: {
+    color: '#EA580C',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   payBtn: {
     backgroundColor: '#6366F1',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginLeft: 8,
   },
   payBtnText: {
     color: '#FFFFFF',

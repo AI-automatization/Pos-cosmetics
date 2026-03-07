@@ -8,6 +8,7 @@ export type TabParamList = {
   Sales: undefined;
   Inventory: undefined;
   Nasiya: undefined;
+  Scanner: undefined;
 };
 
 export type RootStackParamList = {

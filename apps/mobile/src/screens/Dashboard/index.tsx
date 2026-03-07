@@ -8,11 +8,13 @@ import RevenueCard from './RevenueCard';
 import ActiveShiftCard from './ActiveShiftCard';
 import AlertsList from './AlertsList';
 import TopProductsCard from './TopProductsCard';
+import WeeklyTrendChart from './WeeklyTrendChart';
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const {
     todaySummary,
+    weeklyRevenue,
     topProducts,
     currentShift,
     lowStock,
@@ -35,6 +37,8 @@ export default function DashboardScreen() {
       isRefreshing={isRefreshing}
     >
       {todaySummary.data && <RevenueCard summary={todaySummary.data} />}
+
+      <WeeklyTrendChart data={weeklyRevenue.data ?? []} />
 
       <ActiveShiftCard shift={currentShift.data ?? null} />
 

@@ -44,7 +44,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   loadFromStorage: async () => {
     const token = await SecureStore.getItemAsync('access_token');
     const userStr = await SecureStore.getItemAsync('user');
-    if (!token || !userStr) return false;
+    if (!token || !userStr) {
+      // Dev modeda avtomatik demo auth
+      if (__DEV__) {
+        set({
+          user: { id: 'demo', email: 'demo@raos.uz', firstName: 'Demo', lastName: 'User', role: 'OWNER', tenantId: 'demo-tenant', tenant: { id: 'demo-tenant', name: "Demo Do'kon", slug: 'demo' } },
+          isAuthenticated: true,
+        });
+        return true;
+      }
+      return false;
+    }
     try {
       const user = JSON.parse(userStr) as User;
       set({ user, isAuthenticated: true });

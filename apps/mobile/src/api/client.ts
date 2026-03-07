@@ -45,7 +45,10 @@ api.interceptors.response.use(
       } catch {
         await SecureStore.deleteItemAsync('access_token');
         await SecureStore.deleteItemAsync('refresh_token');
-        navigationRef.resetToAuth();
+        // Dev modeda avtomatik logout qilmaymiz — demo data ishlashi uchun
+        if (!__DEV__) {
+          navigationRef.resetToAuth();
+        }
       }
     }
 
