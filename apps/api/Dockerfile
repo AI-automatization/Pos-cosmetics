@@ -54,13 +54,12 @@ COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
 # Non-root user (security)
-RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 && \
+    mkdir -p /app/logs && chown -R nestjs:nodejs /app/logs
 USER nestjs
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/v1/health/live || exit 1
+COPY apps/api/start.sh ./start.sh
 
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node dist/main"]
+CMD ["sh", "start.sh"]

@@ -70,7 +70,12 @@ export class QueueService implements OnModuleDestroy {
         };
 
     for (const name of Object.values(QUEUE_NAMES)) {
-      this.queues.set(name, new Queue(name, { connection }));
+      const queue = new Queue(name, { connection });
+      // Handle Redis connection errors gracefully — unhandled 'error' events crash Node.js
+      queue.on('error', (err) => {
+        this.logger.warn(`Queue "${name}" error: ${err.message}`);
+      });
+      this.queues.set(name, queue);
     }
 
     this.logger.log(`QueueService initialized: ${Object.values(QUEUE_NAMES).join(', ')}`);
