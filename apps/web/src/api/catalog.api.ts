@@ -15,8 +15,24 @@ export const catalogApi = {
 
   getProducts(params: ProductsQuery = {}) {
     return apiClient
-      .get<PaginatedResponse<Product>>('/catalog/products', { params })
-      .then((r) => r.data);
+      .get<PaginatedResponse<Product> | { items: Product[]; total: number; page: number; limit: number; totalPages: number }>(
+        '/catalog/products',
+        { params },
+      )
+      .then((r) => {
+        const d = r.data as Record<string, unknown>;
+        // Normalize flat backend shape → PaginatedResponse shape
+        if ('meta' in d) return d as unknown as PaginatedResponse<Product>;
+        return {
+          items: (d.items as Product[]) ?? [],
+          meta: {
+            total: (d.total as number) ?? 0,
+            page: (d.page as number) ?? 1,
+            limit: (d.limit as number) ?? 20,
+            totalPages: (d.totalPages as number) ?? 1,
+          },
+        } satisfies PaginatedResponse<Product>;
+      });
   },
 
   getProduct(id: string) {

@@ -24,8 +24,8 @@ apiClient.interceptors.response.use(
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
       try {
-        const { data } = await apiClient.post('/identity/auth/refresh');
-        localStorage.setItem('access_token', data.access_token);
+        const { data } = await apiClient.post('/auth/refresh');
+        localStorage.setItem('access_token', data.accessToken);
         err.config.headers.Authorization = `Bearer ${data.access_token}`;
         return apiClient(err.config);
       } catch {

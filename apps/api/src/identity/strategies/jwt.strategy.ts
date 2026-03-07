@@ -6,9 +6,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 export interface JwtPayload {
   sub: string;
-  tenantId: string;
+  tenantId: string | null;
   role: string;
   branchId: string | null;
+  isAdmin?: boolean;
 }
 
 @Injectable()
@@ -25,6 +26,30 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
+    // ─── Super Admin / Support ─────────────────────────────────
+    if (payload.isAdmin) {
+      const admin = await this.prisma.adminUser.findUnique({
+        where: { id: payload.sub },
+        select: { id: true, email: true, name: true, role: true, isActive: true },
+      });
+
+      if (!admin || !admin.isActive) {
+        throw new UnauthorizedException('Admin user not found or deactivated');
+      }
+
+      return {
+        userId: admin.id,
+        tenantId: null,
+        email: admin.email,
+        firstName: admin.name,
+        lastName: '',
+        role: admin.role,
+        branchId: null,
+        isAdmin: true,
+      };
+    }
+
+    // ─── Regular tenant user ───────────────────────────────────
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       select: {
@@ -50,6 +75,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       lastName: user.lastName,
       role: user.role,
       branchId: payload.branchId,
+      isAdmin: false,
     };
   }
 }

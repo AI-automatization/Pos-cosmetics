@@ -1,0 +1,8 @@
+[build]
+# Monorepo: Dockerfile is inside apps/api/ but Docker context is repo root
+dockerfilePath = "apps/api/Dockerfile"
+
+[deploy]
+startCommand = "sh /app/start.sh"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

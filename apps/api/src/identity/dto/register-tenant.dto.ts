@@ -1,7 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -46,4 +47,63 @@ export class RegisterTenantDto {
   @IsNotEmpty()
   @MaxLength(50)
   lastName!: string;
+
+  // T-079: Soliq ma'lumotlari (ixtiyoriy — keyinchalik to'ldiriladi)
+  @ApiPropertyOptional({ example: '123456789', description: 'INN: 9 (yuridik) yoki 14 (jismoniy) raqam' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^(\d{9}|\d{14})$/, { message: 'INN 9 yoki 14 raqamdan iborat bo\'lishi kerak' })
+  inn?: string;
+
+  @ApiPropertyOptional({ example: 'Mening Do\'konim MChJ', description: 'Rasmiy yuridik nomi' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  legalName?: string;
+
+  @ApiPropertyOptional({ example: 'Toshkent sh., Chilonzor t.', description: 'Yuridik manzil' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  legalAddress?: string;
+}
+
+// ─── Tenant soliq ma'lumotlarini yangilash DTO ────────────────────────────────
+
+export class UpdateTenantInfoDto {
+  @ApiPropertyOptional({ example: 'Yangi Do\'kon Nomi' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  name?: string;
+
+  @ApiPropertyOptional({ example: '123456789' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^(\d{9}|\d{14})$/, { message: 'INN 9 yoki 14 raqamdan iborat bo\'lishi kerak' })
+  inn?: string;
+
+  @ApiPropertyOptional({ example: '123456789' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  stir?: string;
+
+  @ApiPropertyOptional({ example: '47.71' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  oked?: string;
+
+  @ApiPropertyOptional({ example: 'Mening Do\'konim MChJ' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  legalName?: string;
+
+  @ApiPropertyOptional({ example: 'Toshkent sh., Chilonzor t.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  legalAddress?: string;
 }

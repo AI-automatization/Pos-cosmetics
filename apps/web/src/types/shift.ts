@@ -1,3 +1,9 @@
+export interface ShiftsQuery {
+  page?: number;
+  limit?: number;
+  status?: ShiftStatus;
+}
+
 // Shift domain types
 // TODO: Move to packages/types/ after Polat implements T-013 (Sales Prisma schema)
 

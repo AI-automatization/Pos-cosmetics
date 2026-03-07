@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-02-26
+# Yangilangan: 2026-02-28
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -329,44 +329,6 @@
 
 ---
 
-## T-028 | P1 | [FRONTEND] | Returns UI — Qaytarish + Admin tasdiqlash
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Sales/Returns/`
-- **Vazifa:**
-  - POS dan return boshlash: order tanlash → items tanlash → reason → admin PIN
-  - Admin PIN modal: 4-6 raqamli PIN kiritish
-  - Returns list page: status (PENDING/APPROVED/REJECTED), filter
-  - Return detail: original order, qaytarilgan items, summa, refund method
-- **Kutilgan:** Qaytarish UI ishlaydi, admin tasdiqlashi bor
-
----
-
-## T-029 | P1 | [FRONTEND] | Users & Roles UI — Foydalanuvchilar boshqaruvi
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Settings/Users/`
-- **Vazifa:**
-  - Users list: DataTable — name, role, status, last_login
-  - Create/Edit user form: name, phone, role (ADMIN/MANAGER/CASHIER/VIEWER), is_active
-  - Role hierarchy enforcement: faqat o'zidan past rolni yaratish mumkin
-  - User deactivate (soft delete)
-  - Login page dizayn (tenant slug + username + password)
-- **Kutilgan:** Admin paneldan foydalanuvchilarni boshqarsa bo'ladi
-
----
-
-## T-030 | P1 | [FRONTEND] | Audit log UI — Admin panel
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Settings/AuditLog/`
-- **Vazifa:**
-  - Audit log list: DataTable — sana, user, action, entity, detail
-  - Filterlar: user, action type, date range
-  - Detail modal: old_data vs new_data diff ko'rsatish
-  - Faqat ADMIN ko'ra oladi (role-based route guard)
-- **Kutilgan:** Admin audit loglarni ko'ra oladi
-
 ---
 
 ### ═══════════════════════════════════════
@@ -404,31 +366,6 @@
 - **Kutilgan:** Oddiy xarajatlarni kiritish va hisobot olsa bo'ladi
 
 ---
-
-## T-033 | P1 | [FRONTEND] | Expiry report UI — Yaroqlilik muddati hisoboti
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Inventory/Expiry/`
-- **Vazifa:**
-  - Expiring soon page: DataTable — product, batch, expiry_date, qty, days_left
-  - Color coding: qizil (< 30 kun), sariq (30-60 kun), yashil (60+ kun)
-  - Filter: days range, category
-  - Expired items tab: allaqachon muddati o'tganlar
-  - Dashboard da warning badge (expiring soon count)
-- **Kutilgan:** Yaroqlilik hisoboti vizual ko'rinadi
-
----
-
-## T-034 | P1 | [FRONTEND] | Expenses UI — Xarajatlar + Foyda hisoboti
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Finance/`
-- **Vazifa:**
-  - Expenses list: DataTable + Create form (category, description, amount, date)
-  - Expenses summary: pie chart (kategoriya bo'yicha)
-  - Profit report page: revenue - COGS - expenses = estimated profit
-  - Date range picker, monthly summary
-- **Kutilgan:** Xarajat va foyda admin panelda ko'rinadi
 
 ---
 
@@ -790,16 +727,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-060 | P1 | [FRONTEND] | Founder — Tenant provisioning UI
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Admin/Tenants/`
-- **Vazifa:**
-  - "Yangi do'kon qo'shish" wizard: 3 step (info → owner → confirm)
-  - Natija: slug, login credentials, QR code (quick login)
-  - Tenant settings page: enable/disable features, subscription, limits
-- **Kutilgan:** SaaS owner yangi tenant tezkor yaratsa bo'ladi
-
 ---
 
 ## T-061 | P1 | [BACKEND] | Real-time events — WebSocket/SSE for live data
@@ -877,31 +804,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Kutilgan:** Kassir doim sync holatini ko'radi
 
 ---
-
-## T-065 | P1 | [FRONTEND] | Local data cache — Product catalog offline
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/` (IndexedDB/localStorage)
-- **Vazifa:**
-  - Product catalog IndexedDB da cache (barcha products + prices + stock)
-  - Incremental sync: faqat updatedAt > lastSync bo'lgan productlar
-  - Image cache: Service Worker + Cache API
-  - Offline mode da: faqat cached data dan sotish
-  - Online bo'lganda: background refresh
-- **Kutilgan:** Internet yo'q paytda ham catalog ishlaydi
-
----
-
-## T-066 | P1 | [FRONTEND] | Power outage recovery — Cart state persistence
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/POS/`
-- **Vazifa:**
-  - Cart state har 5 sekundda localStorage/IndexedDB ga auto-save
-  - App restart → "Tugatilmagan savdo topildi. Davom etasizmi?" dialog
-  - Unfinished transactions: alohida list, review uchun
-  - Shift state ham local saqlanadi
-- **Kutilgan:** Tok o'chib yonsa ham savdo yo'qolmaydi
 
 ---
 
@@ -1255,20 +1157,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-090 | P1 | [FRONTEND] | Analytics dashboard UI
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Analytics/`
-- **Vazifa:**
-  - Sales trend chart (line chart, date range)
-  - Top products (bar chart, sortable table)
-  - Dead stock list (with days inactive, carrying cost)
-  - Margin analysis (per product, per category)
-  - Cashier performance dashboard
-  - Hourly heatmap (calendar + hours grid)
-  - ABC analysis visualization
-- **Kutilgan:** Biznes tahlil admin panelda ko'rinadi
-
 ---
 
 ### ═══════════════════════════════════════
@@ -1542,17 +1430,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-111 | P1 | [FRONTEND] | Cash drawer — Printer orqali ochish
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/print/`
-- **Vazifa:**
-  - ESC/POS cash drawer kick command (printer orqali)
-  - Auto-open: cash payment dan keyin
-  - Manual open: faqat admin PIN bilan
-  - Tauri: native command, Web: WebUSB API (limited)
-- **Kutilgan:** Kassa qutisi avtomatik ochiladi
-
 ---
 
 ## T-112 | P2 | [FRONTEND] | Label printer — Narx etiketka
@@ -1599,17 +1476,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Kutilgan:** Filiallar orasida tovar ko'chirsa bo'ladi
 
 ---
-
-## T-115 | P1 | [FRONTEND] | Branch reports — Filiallar taqqoslash
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Reports/Branches/`
-- **Vazifa:**
-  - Per-branch revenue, orders, profit
-  - Side-by-side comparison chart
-  - Stock transfer history
-  - Branch selector in header (filter all data)
-- **Kutilgan:** Filiallar unumdorligini taqqoslasa bo'ladi
 
 ---
 
