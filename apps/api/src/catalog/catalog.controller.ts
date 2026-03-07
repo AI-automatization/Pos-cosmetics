@@ -33,6 +33,7 @@ import {
   UpdateVariantDto,
   CreateProductPriceDto,
   UpdateProductPriceDto,
+  CreateCertificateDto,
 } from './dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -389,5 +390,50 @@ export class CatalogController {
       priceType,
       qty ? parseInt(qty, 10) : 1,
     );
+  }
+
+  // ─── T-097: PRODUCT CERTIFICATES ─────────────────────────────
+
+  @Get('products/:id/certificates')
+  @ApiOperation({ summary: 'T-097: Mahsulot sertifikatlari ro\'yxati' })
+  @ApiParam({ name: 'id', type: String })
+  getCertificates(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.catalogService.getCertificates(tenantId, id);
+  }
+
+  @Post('products/:id/certificates')
+  @ApiOperation({ summary: 'T-097: Sertifikat qo\'shish' })
+  @ApiParam({ name: 'id', type: String })
+  createCertificate(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateCertificateDto,
+  ) {
+    return this.catalogService.createCertificate(tenantId, id, dto);
+  }
+
+  @Delete('products/:id/certificates/:certId')
+  @ApiOperation({ summary: 'T-097: Sertifikat o\'chirish' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'certId', type: String })
+  deleteCertificate(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('certId', ParseUUIDPipe) certId: string,
+  ) {
+    return this.catalogService.deleteCertificate(tenantId, id, certId);
+  }
+
+  @Get('certificates/expiring')
+  @ApiOperation({ summary: 'T-097: Muddati yaqin sertifikatlar' })
+  @ApiQuery({ name: 'days', required: false, type: Number })
+  getExpiringCertificates(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('days') days?: string,
+  ) {
+    return this.catalogService.getExpiringCertificates(tenantId, days ? parseInt(days, 10) : 30);
   }
 }

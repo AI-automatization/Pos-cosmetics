@@ -11,6 +11,7 @@ import { IdentityModule } from './identity/identity.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SalesModule } from './sales/sales.module';
+import { PromotionsModule } from './sales/promotions/promotions.module';
 import { PaymentsModule } from './payments/payments.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { TaxModule } from './tax/tax.module';
@@ -59,6 +60,7 @@ import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
     CatalogModule,
     InventoryModule,
     SalesModule,
+    PromotionsModule,
     PaymentsModule,
     LedgerModule,
     TaxModule,
