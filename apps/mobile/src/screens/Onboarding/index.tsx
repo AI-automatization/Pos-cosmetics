@@ -72,7 +72,7 @@ export default function OnboardingScreen({ navigation: _navigation }: Props): Re
   const [idx, setIdx] = useState(0);
   const { setOnboardingDone } = useAppStore();
 
-  const slide = SLIDES[idx];
+  const slide = SLIDES[idx]!;
   const isLast = idx === SLIDES.length - 1;
   const ILLUS_H = H * 0.50;
 
