@@ -21,6 +21,7 @@ import DebtDetailScreen from '@/screens/Nasiya/DebtDetail';
 import StockLevelsScreen from '@/screens/Inventory';
 import LowStockScreen from '@/screens/Inventory/LowStockList';
 import BarcodeScannerScreen from '@/screens/Inventory/BarcodeScanner';
+import ScannerScreen from '@/screens/Scanner';
 import PropertiesScreen from '@/screens/RealEstate';
 import PropertyDetailScreen from '@/screens/RealEstate/PropertyDetail';
 import RentalPaymentsScreen from '@/screens/RealEstate/RentalPayments';
@@ -90,6 +91,11 @@ function InventoryNavigator(): React.JSX.Element {
       <InventoryStack.Screen
         name="BarcodeScanner"
         component={BarcodeScannerScreen}
+        options={{ title: t('scanner.title'), headerShown: false }}
+      />
+      <InventoryStack.Screen
+        name="Scanner"
+        component={ScannerScreen}
         options={{ title: t('scanner.title'), headerShown: false }}
       />
     </InventoryStack.Navigator>

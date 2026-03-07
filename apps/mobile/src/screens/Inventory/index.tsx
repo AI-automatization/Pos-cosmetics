@@ -69,7 +69,7 @@ export default function StockLevelsScreen({ navigation }: Props): React.JSX.Elem
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.scanButton}
-          onPress={() => navigation.navigate('BarcodeScanner')}
+          onPress={() => navigation.navigate('Scanner')}
           accessibilityRole="button"
         >
           <Text style={styles.scanButtonText}>📷 {t('inventory.scanBarcode')}</Text>

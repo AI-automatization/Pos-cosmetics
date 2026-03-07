@@ -11,6 +11,8 @@ export interface ProductInfo {
   expiryDate: string | null;
   categoryName: string;
   unitName: string;
+  minStockLevel: number;
+  expiryTracking: boolean;
 }
 
 // READ ONLY — product ma'lumotlarini ko'rish uchun

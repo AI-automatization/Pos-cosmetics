@@ -39,6 +39,7 @@ export type InventoryStackParamList = {
   StockLevels: undefined;
   LowStock: undefined;
   BarcodeScanner: undefined;
+  Scanner: undefined;
 };
 
 // Settings Stack (ichki navigatsiya saqlanadi)

@@ -12,6 +12,13 @@ export interface StockItem {
   isLow: boolean;
 }
 
+export interface ProductStockLevel {
+  warehouseId: string;
+  warehouseName: string;
+  stock: number;
+  nearestExpiry: string | null;
+}
+
 // READ ONLY — financial mutations TAQIQLANGAN
 export const inventoryApi = {
   getStock: async (branchId?: string): Promise<PaginatedResponse<StockItem>> => {
@@ -25,6 +32,13 @@ export const inventoryApi = {
     const { data } = await api.get<StockItem[]>('/inventory/stock/low', {
       params: { branchId },
     });
+    return data;
+  },
+
+  getProductStock: async (productId: string): Promise<ProductStockLevel[]> => {
+    const { data } = await api.get<ProductStockLevel[]>(
+      `/inventory/products/${productId}/stock`,
+    );
     return data;
   },
 };
