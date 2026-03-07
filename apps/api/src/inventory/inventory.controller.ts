@@ -113,6 +113,20 @@ export class InventoryController {
     return this.inventoryService.getExpiredProducts(tenantId);
   }
 
+  // ─── T-096: TESTER TRACKING ────────────────────────────────────────────────
+
+  @Get('testers')
+  @ApiOperation({ summary: 'T-096: Tester/namuna harakatlari ro\'yxati' })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  listTesters(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.inventoryService.getTesterMovements(tenantId, from, to);
+  }
+
   // ─── T-114: INTER-BRANCH STOCK TRANSFERS ──────────────────────────────────
 
   @Post('transfers')

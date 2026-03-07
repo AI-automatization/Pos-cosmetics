@@ -3,6 +3,7 @@ import {
   Logger,
   UnauthorizedException,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -92,6 +93,32 @@ export class AdminAuthService {
    * Yangi Super Admin yaratish (faqat CLI yoki birinchi setup uchun).
    * Mavjud admin token bilan chaqiriladi.
    */
+  /**
+   * Bootstrap: birinchi Super Admin yaratish.
+   * Faqat admin_users jadvali bo'sh bo'lsa ishlaydi.
+   * X-Bootstrap-Secret header: ADMIN_BOOTSTRAP_SECRET env var bilan mos kelishi shart.
+   */
+  async bootstrapAdmin(dto: AdminCreateDto, secret: string) {
+    const expected = this.config.get<string>('ADMIN_BOOTSTRAP_SECRET');
+    if (!expected || secret !== expected) {
+      throw new ForbiddenException('Bootstrap secret noto\'g\'ri');
+    }
+
+    const count = await this.prisma.adminUser.count();
+    if (count > 0) {
+      throw new ForbiddenException('Admin allaqachon mavjud. Bootstrap faqat bir marta ishlaydi.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+    const admin = await this.prisma.adminUser.create({
+      data: { name: dto.name, email: dto.email, passwordHash, role: 'SUPER_ADMIN' },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+    });
+
+    this.logger.log(`Bootstrap: birinchi Super Admin yaratildi: ${admin.email}`);
+    return admin;
+  }
+
   async createAdmin(dto: AdminCreateDto) {
     const existing = await this.prisma.adminUser.findUnique({
       where: { email: dto.email },
