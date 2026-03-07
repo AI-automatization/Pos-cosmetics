@@ -21,7 +21,8 @@ function useSyncMonitor() {
       if (!navigator.onLine) { setState('offline'); return; }
       const start = Date.now();
       try {
-        await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' });
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
+        await fetch(`${apiUrl}/health`, { method: 'HEAD', cache: 'no-cache' });
         const ms = Date.now() - start;
         setLatency(ms);
         if (ms > 5000) {

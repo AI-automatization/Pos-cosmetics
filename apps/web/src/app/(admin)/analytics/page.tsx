@@ -10,6 +10,14 @@ import { formatPrice, cn } from '@/lib/utils';
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 
+// Deterministic offsets to avoid hydration mismatch (no Math.random)
+const REVENUE_OFFSETS = [
+  200_000, 380_000, 120_000, 310_000, 280_000, 400_000, 150_000, 350_000, 230_000, 180_000,
+  320_000, 270_000, 390_000, 100_000, 260_000, 340_000, 215_000, 370_000, 145_000, 300_000,
+  225_000, 285_000, 195_000, 355_000, 165_000, 240_000, 330_000, 175_000, 395_000, 250_000,
+];
+const ORDER_OFFSETS = [8, 3, 11, 6, 9, 2, 7, 4, 10, 5, 12, 1, 8, 6, 3, 11, 7, 4, 9, 2, 10, 5, 12, 3, 8, 6, 11, 4, 9, 7];
+
 const today = new Date();
 const TREND_DATA = Array.from({ length: 30 }, (_, i) => {
   const d = new Date(today);
@@ -17,8 +25,8 @@ const TREND_DATA = Array.from({ length: 30 }, (_, i) => {
   const base = 1_200_000 + Math.sin(i / 4) * 300_000;
   return {
     date: d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' }),
-    revenue: Math.round(base + Math.random() * 400_000),
-    orders: Math.round(14 + Math.random() * 12),
+    revenue: Math.round(base + REVENUE_OFFSETS[i]),
+    orders: Math.round(14 + ORDER_OFFSETS[i]),
   };
 });
 
