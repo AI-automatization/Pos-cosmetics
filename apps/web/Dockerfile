@@ -52,7 +52,7 @@ USER nextjs
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget -qO- http://localhost:3001/api/health || exit 1
+  CMD node -e "require('http').get({hostname:'127.0.0.1',port:3001,path:'/api/health'},(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/web/server.js"]
