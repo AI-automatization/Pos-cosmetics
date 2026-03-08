@@ -1,5 +1,13 @@
 [build]
 dockerfilePath = "apps/web/Dockerfile"
+watchPatterns = [
+  "apps/web/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc",
+  "packages/**"
+]
 
 [deploy]
 healthcheckPath = "/"
