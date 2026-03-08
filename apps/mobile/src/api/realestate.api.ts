@@ -48,29 +48,29 @@ export interface RealEstateStats {
 
 export const realEstateApi = {
   getProperties: async (): Promise<Property[]> => {
-    const { data } = await api.get<Property[]>('/realestate/properties');
+    const { data } = await api.get<Property[]>('/real-estate/properties');
     return data;
   },
 
   getProperty: async (id: string): Promise<Property> => {
-    const { data } = await api.get<Property>(`/realestate/properties/${id}`);
+    const { data } = await api.get<Property>(`/real-estate/properties/${id}`);
     return data;
   },
 
   getStats: async (): Promise<RealEstateStats> => {
-    const { data } = await api.get<RealEstateStats>('/realestate/stats');
+    const { data } = await api.get<RealEstateStats>('/real-estate/stats');
     return data;
   },
 
   getRentalPayments: async (propertyId: string): Promise<RentalPayment[]> => {
     const { data } = await api.get<RentalPayment[]>(
-      `/realestate/properties/${propertyId}/payments`,
+      `/real-estate/properties/${propertyId}/payments`,
     );
     return data;
   },
 
   getAllPayments: async (status?: PaymentStatus): Promise<RentalPayment[]> => {
-    const { data } = await api.get<RentalPayment[]>('/realestate/payments', {
+    const { data } = await api.get<RentalPayment[]>('/real-estate/payments', {
       params: { status },
     });
     return data;

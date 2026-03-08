@@ -9,7 +9,7 @@ export interface Branch {
 
 export const branchApi = {
   getAll: async (): Promise<Branch[]> => {
-    const { data } = await api.get<Branch[]>('/auth/branches');
+    const { data } = await api.get<Branch[]>('/branches');
     return data;
   },
 };
