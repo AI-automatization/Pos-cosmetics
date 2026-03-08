@@ -24,7 +24,11 @@ async function bootstrap() {
   // T-077: Response compression (gzip/brotli)
   app.use(compression());
   // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
-  const corsOriginRaw = config.get<string>('CORS_ORIGIN', 'http://localhost:3001');
+  // Default includes localhost:3001 for local dev against Railway API
+  const corsOriginRaw = config.get<string>(
+    'CORS_ORIGIN',
+    'http://localhost:3001,http://localhost:3003',
+  );
   const corsOrigin = corsOriginRaw.includes(',')
     ? corsOriginRaw.split(',').map((o) => o.trim())
     : corsOriginRaw;
