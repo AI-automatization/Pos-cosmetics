@@ -1,6 +1,6 @@
 # ─── Stage 1: builder ─────────────────────────────────────────
 FROM node:20-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
 WORKDIR /app
 
 # Copy workspace manifests + .npmrc (shamefully-hoist=true for predictable node_modules)
@@ -17,23 +17,11 @@ COPY apps/api/ ./apps/api/
 COPY packages/types/ ./packages/types/
 COPY packages/utils/ ./packages/utils/
 
-# Generate Prisma client (with shamefully-hoist goes to /app/node_modules/.prisma)
+# Generate Prisma client (shamefully-hoist puts it in /app/node_modules/.prisma)
 RUN pnpm --filter api exec prisma generate
 
 # Build NestJS app
 RUN pnpm --filter api build
-
-# Create self-contained production bundle (no symlinks, no devDeps)
-RUN pnpm deploy --filter api --prod --legacy /deploy
-
-# Copy build artifacts into /deploy
-RUN cp -r /app/apps/api/dist /deploy/dist && \
-    cp -r /app/apps/api/prisma /deploy/prisma
-
-# Copy generated Prisma client — pnpm v10 stores it in .pnpm virtual store, not root
-RUN PRISMA_DIR=$(find /app/node_modules -maxdepth 5 -name ".prisma" -type d 2>/dev/null | head -1) && \
-    [ -n "$PRISMA_DIR" ] && cp -r "$PRISMA_DIR" /deploy/node_modules/.prisma || \
-    echo "WARNING: .prisma not found, skipping copy"
 
 # ─── Stage 2: runner ──────────────────────────────────────────
 FROM node:20-alpine AS runner
@@ -44,20 +32,22 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy self-contained bundle from builder
-COPY --from=builder /deploy/node_modules ./node_modules
-COPY --from=builder /deploy/dist ./dist
-COPY --from=builder /deploy/prisma ./prisma
-
-# Copy prisma CLI for running migrations at startup
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-
-# Non-root user (security)
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 && \
     mkdir -p /app/logs && chown -R nestjs:nodejs /app/logs
-USER nestjs
 
+# Hoisted node_modules (includes Prisma client + CLI via shamefully-hoist)
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+
+# Workspace packages — needed so pnpm symlinks in node_modules resolve correctly
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
+
+# Built NestJS app
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./dist
+
+# Prisma schema + migrations (used by `prisma migrate deploy` at startup)
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/prisma ./prisma
+
+USER nestjs
 EXPOSE 3000
 
 COPY apps/api/start.sh ./start.sh
