@@ -5,7 +5,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v
 export const apiClient = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
+  // withCredentials removed — auth uses Bearer token (localStorage), not cookies
 });
 
 // Request: JWT qo'shish

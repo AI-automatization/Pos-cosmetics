@@ -40,7 +40,8 @@ async function registerForPushNotifications(): Promise<void> {
 
   const token = await Notifications.getExpoPushTokenAsync();
 
+  // Backend endpoint: POST /notifications/fcm-token
   await api
-    .post('/notifications/register-device', { token: token.data, platform: 'android' })
+    .post('/notifications/fcm-token', { token: token.data, platform: 'android' })
     .catch(() => null);
 }
