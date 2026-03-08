@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -43,6 +44,20 @@ export class AdminAuthController {
   @ApiOperation({ summary: 'Super Admin tizimga kirishi' })
   login(@Body() dto: AdminLoginDto) {
     return this.adminAuthService.login(dto);
+  }
+
+  // ─── BOOTSTRAP: Birinchi admin yaratish (faqat bir marta) ──────
+  @Public()
+  @Post('auth/bootstrap')
+  @ApiOperation({
+    summary: 'Birinchi Super Admin yaratish (faqat admin_users bo\'sh bo\'lsa)',
+    description: 'X-Bootstrap-Secret header: ADMIN_BOOTSTRAP_SECRET env var',
+  })
+  bootstrap(
+    @Body() dto: AdminCreateDto,
+    @Headers('x-bootstrap-secret') secret: string,
+  ) {
+    return this.adminAuthService.bootstrapAdmin(dto, secret);
   }
 
   // ─── PROTECTED: Admin only endpoints ───────────────────────────
