@@ -10,6 +10,7 @@ watchPatterns = [
 ]
 
 [deploy]
+startCommand = "node apps/web/server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
