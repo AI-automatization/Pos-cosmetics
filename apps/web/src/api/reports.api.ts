@@ -28,8 +28,26 @@ export const reportsApi = {
         .then((r) => r.data),
     ]);
 
+    // Map actual API response shape:
+    // { orders: { count, grossRevenue, totalDiscount }, returns: { total }, netRevenue }
+    const s = (salesSummary ?? {}) as {
+      orders?: { count?: number; grossRevenue?: number; totalDiscount?: number };
+      returns?: { total?: number };
+      netRevenue?: number;
+    };
+    const orders = s.orders ?? {};
+    const returns = s.returns ?? {};
+    const grossRevenue = Number(orders.grossRevenue ?? 0);
+    const ordersCount = Number(orders.count ?? 0);
     return {
-      today: salesSummary,
+      today: {
+        totalRevenue: grossRevenue,
+        ordersCount,
+        averageOrderValue: ordersCount > 0 ? grossRevenue / ordersCount : 0,
+        discountAmount: Number(orders.totalDiscount ?? 0),
+        returnsAmount: Number(returns.total ?? 0),
+        netRevenue: Number(s.netRevenue ?? 0),
+      },
       weeklyRevenue: Array.isArray(weeklyRevenue) ? weeklyRevenue : [],
       topProducts: Array.isArray(topProducts) ? topProducts : [],
       lowStockCount: Array.isArray(lowStockRes) ? lowStockRes.length : 0,

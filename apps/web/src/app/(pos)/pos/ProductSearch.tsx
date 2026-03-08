@@ -63,10 +63,11 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
 export function ProductSearch({ search, onSearchChange, searchRef }: ProductSearchProps) {
   const addItem = usePOSStore((s) => s.addItem);
 
+  // Note: isActive boolean param removed — backend @IsBoolean() rejects query string "true"
+  // without @Type(() => Boolean) or enableImplicitConversion. Products are filtered by tenant.
   const { data, isFetching } = useProducts({
     search: search || undefined,
     limit: 24,
-    isActive: true,
   });
 
   const handleAdd = useCallback(

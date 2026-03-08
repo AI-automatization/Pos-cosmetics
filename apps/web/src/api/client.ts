@@ -17,22 +17,66 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response: 401 → refresh, 5xx → error report
+// Refresh queue — bir vaqtda faqat 1 ta refresh call
+let isRefreshing = false;
+let refreshQueue: Array<(token: string) => void> = [];
+
+function drainQueue(token: string) {
+  refreshQueue.forEach((cb) => cb(token));
+  refreshQueue = [];
+}
+
+// Response: 401 → refresh (once), 5xx → error report
 apiClient.interceptors.response.use(
   (res) => res,
   async (err) => {
-    if (err.response?.status === 401 && !err.config._retry) {
-      err.config._retry = true;
+    const original = err.config;
+
+    // /auth/ endpointlari uchun loop oldini olish
+    if (original?.url?.includes('/auth/')) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+        // session_active cookie ni tozalash (middleware redirect qilmasin)
+        document.cookie = 'session_active=; path=/; max-age=0';
+        window.location.href = '/login';
+      }
+      return Promise.reject(err);
+    }
+
+    if (err.response?.status === 401 && !original._retry) {
+      // Refresh allaqachon ketayotgan bo'lsa — navbatga qo'yish
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          refreshQueue.push((token) => {
+            original.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(original));
+          });
+          // Agar refresh 10s da tugamasa — reject
+          setTimeout(() => reject(err), 10_000);
+        });
+      }
+
+      original._retry = true;
+      isRefreshing = true;
+
       try {
         const { data } = await apiClient.post('/auth/refresh');
-        localStorage.setItem('access_token', data.accessToken);
-        err.config.headers.Authorization = `Bearer ${data.access_token}`;
-        return apiClient(err.config);
+        const token: string = data.accessToken ?? data.access_token;
+        localStorage.setItem('access_token', token);
+        original.headers.Authorization = `Bearer ${token}`;
+        drainQueue(token);
+        return apiClient(original);
       } catch {
-        localStorage.removeItem('access_token');
+        refreshQueue = [];
         if (typeof window !== 'undefined') {
+          localStorage.removeItem('access_token');
+          // session_active cookie ni tozalash (middleware redirect qilmasin)
+          document.cookie = 'session_active=; path=/; max-age=0';
           window.location.href = '/login';
         }
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
 

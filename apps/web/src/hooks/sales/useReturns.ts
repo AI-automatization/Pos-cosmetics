@@ -8,10 +8,13 @@ import type { CreateReturnDto } from '@/types/returns';
 const RETURNS_KEY = 'returns';
 
 export function useReturns(params?: { status?: string }) {
+  const status = params?.status;
   return useQuery({
-    queryKey: [RETURNS_KEY, params],
+    queryKey: [RETURNS_KEY, status],
     queryFn: () => returnsApi.listReturns(params),
     staleTime: 30_000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 
