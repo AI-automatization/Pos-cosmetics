@@ -5,36 +5,33 @@ import { toast } from 'sonner';
 import { inventoryApi } from '@/api/inventory.api';
 import { catalogApi } from '@/api/catalog.api';
 import type { StockQuery, StockInDto, StockOutDto, StockLevel, StockStatus } from '@/types/inventory';
+import type { Product } from '@/types/catalog';
 
 async function fetchEnrichedStock(params: StockQuery): Promise<StockLevel[]> {
   const [rawLevels, productsPage] = await Promise.all([
     inventoryApi.getStock(params),
-    catalogApi.getProducts({ limit: 1000, isActive: true }),
+    catalogApi.getProducts({ limit: 1000 }),
   ]);
 
-  const products = Array.isArray(productsPage)
-    ? productsPage
-    : (productsPage as { items?: StockLevel[] }).items ?? [];
+  const products: Product[] = productsPage.items ?? [];
 
-  const productMap = new Map(
-    (products as Array<{ id: string; name: string; barcode: string | null; sku: string; unit?: { name: string } | string; unitId?: string; minStockLevel?: number; minStock?: number; costPrice?: number; category?: { name: string } }>).map((p) => [p.id, p]),
-  );
+  const productMap = new Map(products.map((p) => [p.id, p]));
 
   return (rawLevels as Array<{ productId: string; warehouseId?: string; stock?: number; currentStock?: number }>).map((raw) => {
     const p = productMap.get(raw.productId);
     const currentStock = raw.currentStock ?? raw.stock ?? 0;
-    const minStock = p?.minStockLevel ?? p?.minStock ?? 0;
+    const minStock = Number(p?.minStockLevel ?? p?.minStock ?? 0);
     const status: StockStatus = currentStock <= 0 ? 'OUT' : currentStock <= minStock ? 'LOW' : 'OK';
     return {
       productId: raw.productId,
       productName: p?.name ?? raw.productId,
       barcode: p?.barcode ?? null,
       sku: p?.sku ?? '',
-      unit: typeof p?.unit === 'string' ? p.unit : (p?.unit as { name: string } | undefined)?.name ?? '',
+      unit: typeof p?.unit === 'object' ? (p.unit as { name: string })?.name ?? '' : (p?.unit as string) ?? '',
       currentStock,
       minStock,
       status,
-      costPrice: p?.costPrice ?? 0,
+      costPrice: Number(p?.costPrice ?? 0),
       categoryName: p?.category?.name ?? '',
     };
   });

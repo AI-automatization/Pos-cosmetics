@@ -1784,6 +1784,18 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
+
+- **Sana:** 2026-03-08
+- **Mas'ul:** Polat / Bekzod
+- **Fayl:** `apps/api/src/inventory/inventory.service.ts` → `getStockLevels()`
+- **Muammo:** `getStockLevels()` snapshot mavjud bo'lsa `stock_snapshots` + delta yondashuvi ishlatadi. Ammo snapshot DAN KEYIN qo'shilgan yangi mahsulotlar faqat `stock_movements`da bo'ladi, `stock_snapshots`da yo'q. Natijada LEFT JOIN orqali ular ko'rinmaydi.
+- **Kutilgan:** Snapshot'dan keyingi yangi mahsulotlar ham `GET /api/v1/inventory/levels`da ko'rinishi kerak.
+- **Taklif:** SQL'ga UNION ALL qo'shing — snapshot'da bo'lmagan, lekin `stock_movements`da (snapshot vaqtidan keyin) bo'lgan mahsulotlarni ham qo'shsin.
+- **Workaround (hozircha):** `stock_snapshots` jadvali bo'sh bo'lsa, full aggregate mode ishlaydi va barcha mahsulotlar ko'rinadi.
+
+---
+
 ## 📊 STATISTIKA
 
 | Umumiy | P0 | P1 | P2 | P3 |

@@ -13,7 +13,6 @@ import type { Branch } from '@/api/branches.api';
 const branchSchema = z.object({
   name: z.string().min(2, 'Filial nomi kamida 2 belgi'),
   address: z.string().optional(),
-  phone: z.string().optional(),
 });
 type BranchForm = z.infer<typeof branchSchema>;
 
@@ -37,7 +36,6 @@ function BranchModal({
     defaultValues: {
       name: branch?.name ?? '',
       address: branch?.address ?? '',
-      phone: branch?.phone ?? '',
     },
   });
 
@@ -90,15 +88,6 @@ function BranchModal({
             <input
               {...register('address')}
               placeholder="Yunusobod 5-mavze"
-              className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Telefon</label>
-            <input
-              {...register('phone')}
-              placeholder="+998901234567"
               className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
@@ -164,7 +153,6 @@ export default function BranchesPage() {
               <tr className="border-b border-gray-100 bg-gray-50 text-left text-xs font-medium text-gray-500">
                 <th className="px-5 py-3">Filial nomi</th>
                 <th className="px-5 py-3">Manzil</th>
-                <th className="px-5 py-3">Telefon</th>
                 <th className="px-5 py-3">Holat</th>
                 <th className="px-5 py-3 text-right">Amallar</th>
               </tr>
@@ -181,7 +169,6 @@ export default function BranchesPage() {
                     </div>
                   </td>
                   <td className="px-5 py-3.5 text-gray-500">{b.address ?? '—'}</td>
-                  <td className="px-5 py-3.5 text-gray-500">{b.phone ?? '—'}</td>
                   <td className="px-5 py-3.5">
                     {b.isActive ? (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">

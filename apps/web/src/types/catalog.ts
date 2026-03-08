@@ -11,26 +11,38 @@ export interface Category {
   updatedAt: string;
 }
 
+export interface ProductUnitObject {
+  id: string;
+  name: string;
+  shortName: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   barcode: string | null;
-  sku: string;
+  sku: string | null;
   categoryId: string;
+  unitId?: string;
   category: Pick<Category, 'id' | 'name'>;
-  costPrice: number;
-  sellPrice: number;
-  unit: ProductUnit;
-  minStock: number;
-  currentStock: number;
-  image: string | null;
+  /** API returns object; form uses string code */
+  unit: ProductUnitObject | ProductUnitCode;
+  costPrice: number | string;
+  sellPrice: number | string;
+  minStockLevel?: number | string;
+  /** Legacy alias kept for form compatibility */
+  minStock?: number;
+  currentStock?: number;
+  imageUrl?: string | null;
+  image?: string | null;
   isActive: boolean;
   tenantId: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type ProductUnit = 'dona' | 'kg' | 'litr' | 'metr' | 'quti' | 'juft';
+export type ProductUnit = ProductUnitCode;
+export type ProductUnitCode = 'dona' | 'kg' | 'litr' | 'metr' | 'quti' | 'juft';
 
 export const PRODUCT_UNITS: { value: ProductUnit; label: string }[] = [
   { value: 'dona', label: 'Dona' },
@@ -42,6 +54,12 @@ export const PRODUCT_UNITS: { value: ProductUnit; label: string }[] = [
 ];
 
 // --- API DTOs ---
+
+export interface ProductUnitItem {
+  id: string;
+  name: string;
+  shortName: string;
+}
 
 export interface ProductsQuery {
   page?: number;
@@ -64,13 +82,13 @@ export interface PaginatedResponse<T> {
 export interface CreateProductDto {
   name: string;
   barcode?: string;
-  sku: string;
-  categoryId: string;
+  sku?: string;
+  categoryId?: string;
+  unitId?: string;
   costPrice: number;
   sellPrice: number;
-  unit: ProductUnit;
-  minStock: number;
-  image?: string;
+  minStockLevel?: number;
+  isActive?: boolean;
 }
 
 export type UpdateProductDto = Partial<CreateProductDto> & { isActive?: boolean };
