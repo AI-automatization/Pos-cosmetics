@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { StockMovementType } from '@prisma/client';
 
@@ -87,6 +87,8 @@ export class StockInItemDto {
 
 export class BatchStockInDto {
   @ApiProperty({ type: [StockInItemDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => StockInItemDto)
   items!: StockInItemDto[];
 
@@ -121,6 +123,8 @@ export class StockOutItemDto {
 
 export class BatchStockOutDto {
   @ApiProperty({ type: [StockOutItemDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => StockOutItemDto)
   items!: StockOutItemDto[];
 
