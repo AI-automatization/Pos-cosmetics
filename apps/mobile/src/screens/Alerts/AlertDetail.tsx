@@ -37,8 +37,7 @@ export default function AlertDetailScreen({ route }: Props): React.JSX.Element {
     if (alert && !alert.isRead) {
       markRead.mutate();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alert?.isRead]);
+  }, [alert?.isRead]); // markRead.mutate is stable — intentionally omitted
 
   if (isLoading) return <LoadingSpinner message={t('common.loading')} />;
   if (error || !alert) return <ErrorView error={error} onRetry={() => void refetch()} />;
