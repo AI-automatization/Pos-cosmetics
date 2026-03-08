@@ -1796,6 +1796,31 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## T-139 | P1 | [IKKALASI] | ibrat/feat-mobile-app → main merge va Railway deploy
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Polat (merge review) + Ibrat (mobile test after deploy)
+- **Muammo:** Mobile-specific backend routes faqat `ibrat/feat-mobile-app` branchida, `main`da yo'q → Railway da 404:
+  - `GET /inventory/stock` — mobile alias (safeQueryFn bilan 404 ushlanadi)
+  - `GET /inventory/stock/low` — mobile alias
+  - `GET /sales/quick-stats` — dashboard uchun kritik
+  - `GET /sales/shifts/active` — dashboard uchun kritik
+  - `GET /analytics/revenue` + `/branches/comparison` + `/insights` — analytics controller yo'q
+- **Kutilgan:** PR yaratib `main`ga merge qilish → Railway auto-deploy → mobile app real data ko'radi
+- **Eslatma:** Mobile app hozircha 404 larni `safeQueryFn` bilan ushlab, empty state ko'rsatadi (crash yo'q)
+
+---
+
+## T-140 | P1 | [BACKEND] | Real estate controller — routes bo'sh
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/realestate/realestate.controller.ts`
+- **Muammo:** Controller `@Controller('real-estate')` deklaratsiya qilingan lekin HECH QANDAY route yo'q. Mobile app `/real-estate/properties`, `/real-estate/stats`, `/real-estate/payments` ga murojaat qiladi — hammasi 404. `safeQueryFn` ushlab turadi.
+- **Kutilgan:** `getProperties()`, `getStats()`, `getRentalPayments()`, `getAllPayments()` endpointlari qo'shilsin
+
+---
+
 ## 📊 STATISTIKA
 
 | Umumiy | P0 | P1 | P2 | P3 |
