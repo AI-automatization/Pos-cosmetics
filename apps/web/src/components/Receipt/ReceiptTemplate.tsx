@@ -30,7 +30,7 @@ interface ReceiptTemplateProps {
 }
 
 export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
-  const orderNum = order.orderNumber ?? `#${order.id.slice(0, 8).toUpperCase()}`;
+  const orderNum = order.orderNumber ?? `#${(order.id ?? '').slice(0, 8).toUpperCase()}`;
 
   return (
     <div className="receipt-body">
@@ -60,7 +60,7 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
 
       {/* Items */}
       <div>
-        {order.items.map((item, idx) => {
+        {(order.items ?? []).map((item, idx) => {
           const lineTotal = item.sellPrice * item.quantity * (1 - item.lineDiscount / 100);
           return (
             <div key={item.id ?? idx} style={{ marginBottom: '3mm' }}>
@@ -107,7 +107,7 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
 
       {/* Payments */}
       <div className="receipt-small">
-        {order.payments.map((p, i) => (
+        {(order.payments ?? []).map((p, i) => (
           <div key={i} className="receipt-row">
             <span>{p.method === 'CASH' ? 'Naqd pul:' : 'Bank kartasi:'}</span>
             <span className="receipt-row-right">{fmt(p.amount)}</span>

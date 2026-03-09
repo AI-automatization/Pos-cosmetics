@@ -12,7 +12,9 @@ interface State {
   error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
+// Class component: only exported via the functional wrapper below to avoid
+// dual @types/react (v18 mobile / v19 web) monorepo JSX type conflict.
+class _ErrorBoundaryImpl extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -24,13 +26,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   override componentDidCatch(error: Error, info: React.ErrorInfo) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('[ErrorBoundary]', error, info.componentStack);
+      console.error('[ErrorBoundary]', error, info.componentStack); // eslint-disable-line no-console
     }
   }
 
   override render() {
     if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
+      if (this.props.fallback) return <>{this.props.fallback}</>;
       return (
         <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-xl border border-red-200 bg-red-50 p-8 text-center">
           <p className="text-sm font-semibold text-red-700">Sahifani yuklashda xato yuz berdi</p>
@@ -47,6 +49,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
         </div>
       );
     }
-    return this.props.children;
+    return <>{this.props.children}</>;
   }
+}
+
+// Functional wrapper: TypeScript checks this signature (not the class),
+// bypassing the @types/react 18 vs 19 incompatibility in this monorepo.
+export function ErrorBoundary({ children, fallback }: Props): React.JSX.Element {
+  return React.createElement(_ErrorBoundaryImpl, { fallback, children }) as React.JSX.Element;
 }

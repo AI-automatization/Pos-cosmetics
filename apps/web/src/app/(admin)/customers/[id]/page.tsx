@@ -68,7 +68,7 @@ function PayDebtModal({
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-gray-900">Qarz to'lash</h2>
-            <p className="text-xs text-gray-400">{debt.customerName} · {debt.orderNumber ?? debt.orderId.slice(0, 8)}</p>
+            <p className="text-xs text-gray-400">{debt.customerName} · {debt.orderNumber ?? `#${(debt.orderId ?? '').slice(0, 8)}`}</p>
           </div>
           <button
             type="button"
