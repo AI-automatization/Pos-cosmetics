@@ -4,7 +4,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Copy workspace manifests
-COPY .npmrc package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY .npmrc package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/bot/package.json ./apps/bot/
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
