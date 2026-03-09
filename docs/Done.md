@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-02-28
+# Yangilangan: 2026-03-09
 
 ---
 
@@ -154,15 +154,7 @@
 
 ---
 
-## 2026-03-09 SESSIYA — MOBILE API SYNC
-
-| # | Sana | Feature | Fayl(lar) |
-|---|------|---------|-----------|
-| MOB-INV-FIX | 2026-03-09 | `inventoryApi.getProductStock` — noto'g'ri URL `/inventory/products/:id/stock` → `/inventory/levels?productId=xxx` (404 fix). `getStock`/`getLowStock` response shape mismatch: backend plain array → `PaginatedResponse<StockItem>` wrapper qo'shildi. `StockLevelRaw` interface + `mapStockItem` mapper | `apps/mobile/src/api/inventory.api.ts` |
-| MOB-CAT-FIX | 2026-03-09 | `catalogApi.getByBarcode` — backend nested `category.name`/`unit.name` → flat `categoryName`/`unitName` mapping qo'shildi. `ProductRaw` interface + `mapProductRaw` mapper. `currency: 'UZS'` default qo'shildi | `apps/mobile/src/api/catalog.api.ts` |
-| MOB-SALES-FIX | 2026-03-09 | `salesApi.getAll` — backend `{ items, total, page, limit }` → `PaginatedResponse<Sale>` mapping. `salesApi.getById` — `OrderRaw` → `Sale` mapping (user.firstName+lastName → cashierName, status mapping). `salesApi.getActiveShifts` — `ShiftRaw` → `ActiveShift` (branch.name, user concat). `OrderRaw`/`ShiftRaw`/`OrdersResponse` type-lar qo'shildi | `apps/mobile/src/api/sales.api.ts` |
-| MOB-NOTIF-FIX | 2026-03-09 | `useNotifications` FCM token endpoint: `/notifications/register-device` → `/notifications/fcm-token` (backend controller bilan mos) | `apps/mobile/src/hooks/useNotifications.ts` |
-| BACKEND-PRISMA | 2026-03-09 | `npx prisma generate` — Prisma client qayta generatsiya. TypeScript xatolar: `property 'order' does not exist on PrismaService` va boshqalar — hammasi hal qilindi (48+ TS error → 0) | `apps/api/` — Prisma generated client |
+| T-106 + T-122 | 2026-03-09 | SMS (to'lov talab qiluvchi) o'rniga Telegram Bot API + Gmail SMTP fallback (ikkalasi bepul). `sms.service.ts` o'chirildi. `TelegramNotifyService`, `EmailNotifyService`, `NotifyService` yaratildi. Bot deep link `/start <token>` orqali hisob bog'lash. Schema: `telegram_chat_id` fields + `telegram_link_tokens` jadvali. | `apps/api/src/notifications/`, `apps/bot/src/handlers/commands.ts` |
 
 ---
 

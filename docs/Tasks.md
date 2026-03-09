@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-02-28
+# Yangilangan: 2026-03-09
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -14,6 +14,17 @@
 5. Prioritet: P0=kritik, P1=muhim, P2=o'rta, P3=past
 6. Kategoriya: [BACKEND], [FRONTEND], [DEVOPS], [SECURITY], [IKKALASI]
 ```
+
+---
+
+## ✅ T-122 | P1 | [BACKEND] | Eskiz.uz SMS → Telegram + Email (BAJARILDI 2026-03-09)
+> Eskiz.uz to'liq olib tashlandi. Telegram Bot API (bepul) + SMTP Email fallback.
+> - `sms.service.ts` o'chirildi
+> - `telegram-notify.service.ts`, `email-notify.service.ts`, `notify.service.ts` yaratildi
+> - Schema: `users.telegram_chat_id`, `customers.telegram_chat_id`, `telegram_link_tokens` jadvali
+> - Bot: `/start <token>` deep link qo'llab-quvvatlash
+> - API: `POST /notifications/telegram/link-token`, `POST /notifications/telegram/verify`
+> - `nodemailer` package qo'shildi; `.env.example` yangilandi
 
 ---
 
@@ -1348,19 +1359,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-106 | P2 | [BACKEND] | Eskiz.uz SMS — Nasiya reminder va OTP
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/notifications/channels/`
-- **Vazifa:**
-  - Eskiz.uz API adapter: SMS yuborish
-  - Use cases: nasiya reminder, OTP verification, promotional
-  - SMS cost tracking: per-tenant SMS usage
-  - Rate limit: 30 SMS/kun per customer
-  - Template management: admin paneldan template o'zgartirish
-- **Kutilgan:** SMS notification ishlaydi
-
----
 
 ## T-107 | P2 | [BACKEND] | Payme/Click integration — Online to'lov
 - **Sana:** 2026-02-26

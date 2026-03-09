@@ -122,7 +122,17 @@ export default function UsersPage() {
   const { data: users, isLoading, isError } = useUsers();
   const { mutate: updateUser } = useUpdateUser();
 
-  if (isLoading) return <LoadingSkeleton variant="table" rows={5} />;
+  if (isLoading) return (
+    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">Foydalanuvchilar</h1>
+          <p className="mt-0.5 text-sm text-gray-500">Yuklanmoqda...</p>
+        </div>
+      </div>
+      <LoadingSkeleton variant="table" rows={5} />
+    </div>
+  );
 
   if (isError) return (
     <div className="p-6">
@@ -176,8 +186,11 @@ export default function UsersPage() {
           <tbody className="divide-y divide-gray-50">
             {(users ?? []).map((user) => (
               <tr key={user.id} className={cn('transition hover:bg-gray-50', !user.isActive && 'opacity-60')}>
-                <td className="px-4 py-3 font-medium text-gray-900">{user.name}</td>
-                <td className="px-4 py-3 font-mono text-gray-600">{user.phone}</td>
+                <td className="px-4 py-3 font-medium text-gray-900">
+                  {/* B-014 fix: API returns firstName+lastName, not name */}
+                  {`${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email}
+                </td>
+                <td className="px-4 py-3 font-mono text-gray-600">{user.phone ?? '—'}</td>
                 <td className="px-4 py-3"><RoleBadge role={user.role} isActive={user.isActive} /></td>
                 <td className="px-4 py-3 text-gray-500">
                   {user.lastLogin

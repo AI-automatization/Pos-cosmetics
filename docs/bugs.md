@@ -22,6 +22,51 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+## 2026-03-05 TUZATILGAN (5-sessiya — Live API tour)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-028 | 2026-03-05 | P1 | 2026-03-05 | `apps/web/src/api/debt.api.ts` | **Nasiya crash — `.filter is not a function`** — `/nasiya` paginated `{items:[],total:0}` qaytaradi, lekin frontend `Debt[]` kutardi. **Yechim:** `listDebts`/`listOverdue` normalizer qo'shildi: `Array.isArray(d) ? d : d?.items ?? []`. |
+| B-029 | 2026-03-05 | P1 | 2026-03-05 | `apps/web/src/api/finance.api.ts`, `finance/expenses/page.tsx` | **Expenses crash — `Cannot read properties of undefined (reading 'map')`** — (1) `/expenses` paginated qaytaradi; (2) `/reports/profit` `expensesByCategory` bermaydi. **Yechim:** `listExpenses` normalizer; `getProfitReport` missing fields qo'shildi (`?? []`); `profit?.expensesByCategory?.map` guard. |
+
+## 2026-03-05 OCHIQ (Backend endpoint mavjud emas)
+
+| # | Topilib | Daraja | Holat | Fayl | Muammo |
+|---|---------|--------|-------|------|--------|
+| B-030 | 2026-03-05 | P2 | OPEN | `apps/web/src/api/returns.api.ts` | **Returns 404** — `/api/v1/sales/returns` endpoint backendda yo'q. UI error boundary bilan ko'rsatadi, lekin ma'lumot kelmaydi. |
+| B-031 | 2026-03-05 | P2 | OPEN | `apps/web/src/api/payments.api.ts` | **Payments 404** — `/api/v1/payments` endpoint backendda yo'q. |
+
+## 2026-03-05 TUZATILGAN (4-sessiya — Full tour)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-020b | 2026-03-05 | P2 | 2026-03-05 | `apps/web/src/app/(admin)/finance/expenses/page.tsx:24` | **expenses modal SSR hydration** — `new Date()` to'g'ridan `CreateExpenseModal` defaultValues ichida. **Yechim:** `todayDate` prop sifatida yuborildi, `useMemo` ichidan. |
+| B-026 | 2026-03-05 | P2 | 2026-03-05 | `apps/web/src/app/(admin)/settings/users/page.tsx:125` | **Loading state title yo'q** — `if (isLoading) return <LoadingSkeleton>` — sahifa nomi ko'rinmadi. **Yechim:** Loading wrapperi sarlavha bilan qo'shildi. |
+| B-027 | 2026-03-05 | P2 | 2026-03-05 | `apps/web/src/app/(admin)/sales/returns/page.tsx:113` | **Returns loading state title yo'q** — xuddi B-026 kabi. **Yechim:** Loading wrapperi sarlavha bilan qo'shildi. |
+
+## 2026-03-04 TUZATILGAN (3-sessiya — Production 10/10)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-019 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/(admin)/dashboard/page.tsx:119` | **Hydration warning — date SSR mismatch** — `new Date().toLocaleDateString()` JSX ichida. **Yechim:** `useState('')` + `useEffect` bilan faqat clientda o'rnatish. |
+| B-020 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/app/(admin)/finance/expenses/page.tsx:15-16` | **Hydration warning — module-level Date.now()** — `today`/`monthAgo` modul darajasida hisoblangan. **Yechim:** `useMemo(() => ..., [])` bilan komponent ichiga ko'chirildi. |
+| B-021 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/(admin)/analytics/page.tsx` | **Analytics faqat demo ma'lumotlar va Math.random() hydration warning** — TREND_DATA/HOURLY Math.random() ishlatgan. **Yechim:** `useDailyRevenue`, `useTopProducts`, `useProfitReport` hooklari ulandi; kassirlar/soatlik/harakatsiz tovar uchun "tez kunda" holati. |
+| B-022 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/error.tsx` (yangi), `(admin)/error.tsx` (yangi), `(pos)/error.tsx` (yangi) | **Error boundaries yo'q** — sahifa crash bo'lganda butun ilova ishlamay qolardi. **Yechim:** Next.js App Router `error.tsx` fayllari yaratildi (global, admin, pos). |
+| B-023 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/app/(admin)/loading.tsx` (yangi), `(pos)/loading.tsx` (yangi) | **Loading states yo'q** — route o'tishlarida hech qanday vizual javob yo'q edi. **Yechim:** `loading.tsx` fayllari yaratildi. |
+| B-024 | 2026-03-04 | P3 | 2026-03-04 | `apps/web/src/app/not-found.tsx` (yangi) | **Brending 404 sahifasi yo'q** — standart Next.js 404. **Yechim:** Brandli `not-found.tsx` yaratildi. |
+| B-025 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/hooks/customers/useCustomer.ts` | **useCreateCustomer demo fallback** — `onError` da eski demo xaridor qaytarardi. **Yechim:** Demo fallback olib tashlandi, real API xatosi to'g'ri ko'rsatiladi. |
+
+## 2026-03-04 TUZATILGAN (2-sessiya)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-013 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/app/(admin)/payments/history/page.tsx` (yangi) | **`/payments/history` sahifasi 404 edi** — Sidebar `To'lovlar` linki mavjud bo'lmagan route ga yo'naltirardi. **Yechim:** `(admin)/payments/history/page.tsx` yaratildi — to'lovlar jadvali, method icon/label, status badge bilan. |
+| B-014 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/app/(admin)/settings/users/page.tsx:171`, `types/user.ts` | **Settings/Users jadvalida "Ism" ustuni bo'sh edi** — `user.name` ishlatilgan, backend `firstName`+`lastName` qaytaradi. **Yechim:** `User` tipiga `firstName?`, `lastName?`, `email?` qo'shildi; sahifada `firstName + lastName \|\| email` ko'rsatiladi. |
+| B-015 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/api/reports.api.ts:32-42` | **Dashboard stat cards `NaN so'm` va `undefined ta buyurtma`** — `getDashboard()` backend `{ orders: { count, grossRevenue, totalDiscount }, netRevenue }` ni to'g'ridan o'tkazar edi. Dashboard `today.totalRevenue`, `today.ordersCount` kutardi. **Yechim:** `getDashboard()` da normalizatsiya qatlami qo'shildi. |
+| B-016 | 2026-03-04 | P3 | 2026-03-04 | `apps/web/src/components/SyncStatus/SyncStatusBar.tsx:24` | **SyncStatusBar har sahifada `/api/health` 404 xatosi** — Next.js `api/health` route yo'q edi. **Yechim:** `fetch('/api/health')` → `fetch('http://localhost:3000/api/v1/health/ping')`. |
+| B-017 | 2026-03-04 | P1 | 2026-03-04 | `apps/web/src/api/debt.api.ts` | **Nasiya/Xaridorlar 404** — `/debts*` ga murojaat qilinar edi, backend `@Controller('nasiya')`. **Yechim:** Barcha URL'lar `/debts` → `/nasiya` ga o'zgartirildi. |
+| B-018 | 2026-03-04 | P2 | 2026-03-04 | `apps/web/src/api/finance.api.ts` | **Finance/Xarajatlar 404** — `/finance/expenses` va `/finance/profit` backend route'lariga mos kelmadi. **Yechim:** `/finance/expenses` → `/expenses`, `/finance/profit` → `/reports/profit`. |
+
 ## 2026-03-04 TUZATILGAN
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |

@@ -21,8 +21,8 @@ function useSyncMonitor() {
       if (!navigator.onLine) { setState('offline'); return; }
       const start = Date.now();
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
-        await fetch(`${apiUrl}/health`, { method: 'HEAD', cache: 'no-cache' });
+        // B-016 fix: use backend health endpoint, not Next.js /api/health (doesn't exist)
+        await fetch('http://localhost:3000/api/v1/health/ping', { method: 'GET', cache: 'no-cache' });
         const ms = Date.now() - start;
         setLatency(ms);
         if (ms > 5000) {
