@@ -1,5 +1,5 @@
 [build]
-dockerfilePath = "apps/bot/Dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 # Bot — polling rejimi, HTTP port yo'q
