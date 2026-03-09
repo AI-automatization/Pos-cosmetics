@@ -83,4 +83,31 @@ export const reportsApi = {
         }));
       });
   },
+
+  getEmployeeActivity(params: { from?: string; to?: string; userId?: string } = {}) {
+    return apiClient
+      .get<unknown[]>('/reports/employee-activity', { params })
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  exportDownload(
+    type: 'sales' | 'order-items' | 'products' | 'inventory' | 'customers' | 'debts',
+    params: Record<string, string> = {},
+  ) {
+    return apiClient
+      .get(`/reports/export/${type}`, { params, responseType: 'blob' })
+      .then((r) => {
+        const url = window.URL.createObjectURL(new Blob([r.data as BlobPart]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+          'download',
+          `${type}-export-${new Date().toISOString().slice(0, 10)}.csv`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      });
+  },
 };

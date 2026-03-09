@@ -1,26 +1,21 @@
 'use client';
 
-// B-013 fix: /payments/history page was missing — sidebar link returned 404
-
 import { useState } from 'react';
-import { CreditCard, Banknote, Smartphone, Search, ArrowUpRight } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, Search, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/api/client';
+import { ordersApi } from '@/api/orders.api';
+import type { Order } from '@/types/order';
 
-interface PaymentIntent {
-  id: string;
-  orderId: string;
-  method: 'CASH' | 'CARD' | 'TRANSFER' | 'CLICK' | 'PAYME';
-  amount: number;
-  status: 'PENDING' | 'CONFIRMED' | 'SETTLED' | 'FAILED' | 'REVERSED';
-  createdAt: string;
+interface OrderWithCustomer extends Order {
+  customer?: { id: string; name: string; phone: string } | null;
 }
 
 const METHOD_LABEL: Record<string, string> = {
   CASH: 'Naqd',
   CARD: 'Karta',
+  NASIYA: 'Nasiya',
   TRANSFER: "Bank o'tkazma",
   CLICK: 'Click',
   PAYME: 'Payme',
@@ -29,73 +24,62 @@ const METHOD_LABEL: Record<string, string> = {
 const METHOD_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   CASH: Banknote,
   CARD: CreditCard,
+  NASIYA: CreditCard,
   TRANSFER: ArrowUpRight,
   CLICK: Smartphone,
   PAYME: Smartphone,
 };
 
 const STATUS_STYLE: Record<string, string> = {
-  SETTLED: 'bg-green-100 text-green-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  PENDING: 'bg-yellow-100 text-yellow-700',
-  FAILED: 'bg-red-100 text-red-700',
-  REVERSED: 'bg-gray-100 text-gray-600',
+  COMPLETED: 'bg-green-100 text-green-700',
+  RETURNED: 'bg-orange-100 text-orange-700',
+  VOIDED: 'bg-gray-100 text-gray-600',
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  SETTLED: 'Yakunlandi',
-  CONFIRMED: 'Tasdiqlandi',
-  PENDING: 'Kutilmoqda',
-  FAILED: 'Xato',
-  REVERSED: 'Qaytarildi',
+  COMPLETED: 'Yakunlandi',
+  RETURNED: 'Qaytarildi',
+  VOIDED: 'Bekor qilindi',
 };
 
-function usePaymentHistory() {
+function useOrders(page: number) {
   return useQuery({
-    queryKey: ['payments', 'history'],
-    queryFn: () =>
-      apiClient
-        .get<{ items: PaymentIntent[]; total: number }>('/payments/history', {
-          params: { limit: 50, page: 1 },
-        })
-        .then((r) => (Array.isArray(r.data) ? r.data : r.data.items ?? []))
-        .catch(() => [] as PaymentIntent[]),
+    queryKey: ['orders', 'payments-history', page],
+    queryFn: () => ordersApi.list({ page, limit: 30 }),
+    staleTime: 30_000,
   });
 }
 
 export default function PaymentsHistoryPage() {
   const [search, setSearch] = useState('');
-  const { data: payments = [], isLoading } = usePaymentHistory();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useOrders(page);
 
-  const filtered = payments.filter(
-    (p) =>
+  const orders = (data?.items ?? []) as OrderWithCustomer[];
+  const filtered = orders.filter(
+    (o) =>
       !search ||
-      p.orderId?.toLowerCase().includes(search.toLowerCase()) ||
-      p.method?.toLowerCase().includes(search.toLowerCase()),
+      String(o.orderNumber).includes(search) ||
+      (o.paymentMethod ?? '').toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <div className="flex flex-col h-full">
-      <Header title="To'lovlar tarixi" subtitle={`Jami: ${payments.length} ta to'lov`} />
-
-      <div className="flex-1 overflow-y-auto p-6">
-        {/* Search */}
-        <div className="mb-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 w-full max-w-sm">
+      <Header title="To'lovlar tarixi" subtitle={`Jami: ${data?.total ?? 0} ta buyurtma`} />
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 w-full max-w-sm">
           <Search className="h-4 w-4 text-gray-400 shrink-0" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buyurtma ID yoki to'lov turi..."
+            placeholder="Buyurtma № yoki to'lov turi..."
             className="flex-1 text-sm outline-none text-gray-700 placeholder-gray-400"
           />
         </div>
 
-        {/* Table */}
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
           {isLoading ? (
-            <div className="flex items-center justify-center h-40 text-sm text-gray-400">
-              Yuklanmoqda...
-            </div>
+            <div className="flex items-center justify-center h-40 text-sm text-gray-400">Yuklanmoqda...</div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2">
               <CreditCard className="h-8 w-8 text-gray-300" />
@@ -105,7 +89,7 @@ export default function PaymentsHistoryPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
-                  {['Sana', 'Buyurtma', 'Usul', 'Summa', 'Holat'].map((h) => (
+                  {["Sana", "Buyurtma №", "Xaridor", "To'lov usuli", "Summa", "Holat"].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
@@ -116,33 +100,38 @@ export default function PaymentsHistoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((p) => {
-                  const Icon = METHOD_ICON[p.method] ?? CreditCard;
+                {filtered.map((o) => {
+                  const method = o.paymentMethod ?? 'CASH';
+                  const Icon = METHOD_ICON[method] ?? CreditCard;
                   return (
-                    <tr key={p.id} className="transition hover:bg-gray-50">
+                    <tr key={o.id} className="transition hover:bg-gray-50">
                       <td className="px-4 py-3 text-gray-500">
-                        {new Date(p.createdAt).toLocaleString('uz-UZ', {
+                        {new Date(o.createdAt).toLocaleString('uz-UZ', {
                           dateStyle: 'short',
                           timeStyle: 'short',
                         })}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-600">
-                        {p.orderId?.slice(0, 8)}...
+                      <td className="px-4 py-3 font-mono font-medium text-gray-900">
+                        #{o.orderNumber}
                       </td>
+                      <td className="px-4 py-3 text-gray-600">{o.customer?.name ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="flex items-center gap-1.5 text-gray-700">
                           <Icon className="h-4 w-4 text-gray-400" />
-                          {METHOD_LABEL[p.method] ?? p.method}
+                          {METHOD_LABEL[method] ?? method}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-semibold text-gray-900">
-                        {formatPrice(p.amount)}
+                        {formatPrice(Number(o.total))}
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[p.status] ?? 'bg-gray-100 text-gray-600'}`}
+                          className={cn(
+                            'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+                            STATUS_STYLE[o.status] ?? 'bg-gray-100 text-gray-600',
+                          )}
                         >
-                          {STATUS_LABEL[p.status] ?? p.status}
+                          {STATUS_LABEL[o.status] ?? o.status}
                         </span>
                       </td>
                     </tr>
@@ -152,6 +141,30 @@ export default function PaymentsHistoryPage() {
             </table>
           )}
         </div>
+
+        {(data?.total ?? 0) > 30 && (
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>Sahifa {page}</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="rounded-lg border border-gray-200 p-2 disabled:opacity-40 hover:bg-gray-50"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={orders.length < 30}
+                className="rounded-lg border border-gray-200 p-2 disabled:opacity-40 hover:bg-gray-50"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
