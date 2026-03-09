@@ -10,26 +10,25 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
 
-# Install deps for worker + prisma client generation
-RUN pnpm install --frozen-lockfile --filter worker...
+# Install deps (worker + api for prisma CLI)
+RUN pnpm install --frozen-lockfile --filter worker... --filter api
 
-# Copy prisma schema (needed for prisma generate)
+# Copy prisma schema
 COPY apps/api/prisma/ ./apps/api/prisma/
 
 # Generate Prisma client
 RUN pnpm --filter api exec prisma generate
 
-# Copy worker source
+# Copy source
 COPY apps/worker/ ./apps/worker/
 COPY packages/types/ ./packages/types/
 COPY packages/utils/ ./packages/utils/
 
-# Build worker
+# Build
 RUN pnpm --filter worker build
 
 # Self-contained prod bundle
 RUN pnpm deploy --filter worker --prod --legacy /deploy
-
 RUN cp -r /app/apps/worker/dist /deploy/dist
 
 # Copy generated Prisma client
@@ -45,7 +44,6 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S worker -u 1001
 USER worker
 
