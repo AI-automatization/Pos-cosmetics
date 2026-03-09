@@ -22,6 +22,20 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+## 2026-03-05 TUZATILGAN (5-sessiya — Live API tour)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-028 | 2026-03-05 | P1 | 2026-03-05 | `apps/web/src/api/debt.api.ts` | **Nasiya crash — `.filter is not a function`** — `/nasiya` paginated `{items:[],total:0}` qaytaradi, lekin frontend `Debt[]` kutardi. **Yechim:** `listDebts`/`listOverdue` normalizer qo'shildi: `Array.isArray(d) ? d : d?.items ?? []`. |
+| B-029 | 2026-03-05 | P1 | 2026-03-05 | `apps/web/src/api/finance.api.ts`, `finance/expenses/page.tsx` | **Expenses crash — `Cannot read properties of undefined (reading 'map')`** — (1) `/expenses` paginated qaytaradi; (2) `/reports/profit` `expensesByCategory` bermaydi. **Yechim:** `listExpenses` normalizer; `getProfitReport` missing fields qo'shildi (`?? []`); `profit?.expensesByCategory?.map` guard. |
+
+## 2026-03-05 OCHIQ (Backend endpoint mavjud emas)
+
+| # | Topilib | Daraja | Holat | Fayl | Muammo |
+|---|---------|--------|-------|------|--------|
+| B-030 | 2026-03-05 | P2 | OPEN | `apps/web/src/api/returns.api.ts` | **Returns 404** — `/api/v1/sales/returns` endpoint backendda yo'q. UI error boundary bilan ko'rsatadi, lekin ma'lumot kelmaydi. |
+| B-031 | 2026-03-05 | P2 | OPEN | `apps/web/src/api/payments.api.ts` | **Payments 404** — `/api/v1/payments` endpoint backendda yo'q. |
+
 ## 2026-03-05 TUZATILGAN (4-sessiya — Full tour)
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
