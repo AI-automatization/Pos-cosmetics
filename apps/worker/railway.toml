@@ -1,5 +1,5 @@
 [build]
-dockerfilePath = "Dockerfile"
+dockerfilePath = "apps/worker/Dockerfile"
 
 [deploy]
 # Worker — HTTP port yo'q, shuning uchun healthcheck PATH yo'q
