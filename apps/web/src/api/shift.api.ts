@@ -19,8 +19,11 @@ export const shiftApi = {
     return apiClient.get<Shift>('/sales/shifts/current').then((r) => r.data);
   },
 
-  // Backend: @Get('shifts/active') ✓
-  getActiveShift() {
-    return apiClient.get<Shift | null>('/sales/shifts/active').then((r) => r.data);
+  // Backend: @Get('shifts/active') → returns Shift[] (array)
+  getActiveShift(): Promise<Shift | null> {
+    return apiClient
+      .get<Shift[] | Shift>('/sales/shifts/active')
+      .then((r) => (Array.isArray(r.data) ? (r.data[0] ?? null) : r.data))
+      .catch(() => null);
   },
 };
