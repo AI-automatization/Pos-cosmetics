@@ -9,6 +9,8 @@ import {
   CreateStockMovementDto,
   CreateWarehouseDto,
   StockFilterDto,
+  BatchStockInDto,
+  BatchStockOutDto,
 } from './dto/stock-movement.dto';
 import { Prisma } from '@prisma/client';
 
@@ -68,6 +70,75 @@ export class InventoryService {
     // Stock cache invalidate — harakat bo'lganda 1 daqiqalik cache tozalanadi
     await this.cache.invalidatePattern(CacheService.key.stockLevels(tenantId, '*'));
     return movement;
+  }
+
+  // ─── Batch Stock-In (Process 5 — Goods Receipt) ───────────────────────────
+  async batchStockIn(tenantId: string, userId: string, dto: BatchStockInDto) {
+    const warehouseId = await this.resolveWarehouseId(tenantId, dto.warehouseId);
+    const movements = await this.prisma.$transaction(
+      dto.items.map((item) =>
+        this.prisma.stockMovement.create({
+          data: {
+            tenantId,
+            warehouseId,
+            productId: item.productId,
+            userId,
+            type: 'IN',
+            quantity: item.quantity,
+            costPrice: item.costPrice,
+            note: dto.notes ?? (dto.supplier ? `Supplier: ${dto.supplier}` : undefined),
+            batchNumber: item.batchNumber,
+            expiryDate: item.expiryDate ? new Date(item.expiryDate) : undefined,
+          },
+        }),
+      ),
+    );
+    await this.cache.invalidatePattern(CacheService.key.stockLevels(tenantId, '*'));
+    this.logger.log(`BatchStockIn: ${movements.length} movements`, { tenantId });
+    return { created: movements.length, movements };
+  }
+
+  // ─── Batch Stock-Out / Write-Off (Process 11 — Write-Off) ─────────────────
+  async batchStockOut(tenantId: string, userId: string, dto: BatchStockOutDto) {
+    const warehouseId = await this.resolveWarehouseId(tenantId, dto.warehouseId);
+    const movements = await this.prisma.$transaction(
+      dto.items.map((item) =>
+        this.prisma.stockMovement.create({
+          data: {
+            tenantId,
+            warehouseId,
+            productId: item.productId,
+            userId,
+            type: 'ADJUSTMENT',
+            quantity: -Math.abs(item.quantity),
+            note: dto.notes ?? dto.reason,
+          },
+        }),
+      ),
+    );
+    await this.cache.invalidatePattern(CacheService.key.stockLevels(tenantId, '*'));
+    this.logger.log(`BatchStockOut: ${movements.length} movements`, { tenantId });
+    return { created: movements.length, movements };
+  }
+
+  private async resolveWarehouseId(tenantId: string, warehouseId?: string): Promise<string> {
+    if (warehouseId) {
+      const exists = await this.prisma.warehouse.findFirst({ where: { id: warehouseId, tenantId } });
+      if (!exists) throw new NotFoundException(`Warehouse ${warehouseId} not found`);
+      return warehouseId;
+    }
+    const first = await this.prisma.warehouse.findFirst({
+      where: { tenantId, isActive: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (!first) {
+      // Auto-create default warehouse for tenant
+      const created = await this.prisma.warehouse.create({
+        data: { tenantId, name: 'Asosiy Ombor' },
+      });
+      return created.id;
+    }
+    return first.id;
   }
 
   async getStockMovements(tenantId: string, filter: StockFilterDto) {

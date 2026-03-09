@@ -1310,44 +1310,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-100 | P1 | [MOBILE] | Owner mobile dashboard — Real-time monitoring
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat + Abdulaziz
-- **Fayl:** `apps/mobile/`
-- **Vazifa:**
-  - Home screen: bugungi savdo, haftalik trend, active shifts
-  - Push notification: har savdo, shift open/close, error, low stock
-  - Savdo list: real-time yangilanib turadi
-  - Quick stats: revenue, orders, avg basket, top products
-- **Kutilgan:** Do'kon egasi telefondan doim xabardor
-
----
-
-## T-101 | P1 | [MOBILE] | Nasiya management — Qarzlarni telefondan boshqarish
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat + Abdulaziz
-- **Fayl:** `apps/mobile/`
-- **Vazifa:**
-  - Debtors list: kim qancha qarzda
-  - Debt payment recording: to'lov qabul qilish
-  - Send reminder: Telegram/SMS orqali "to'lang" xabar
-  - Overdue alerts: push notification
-- **Kutilgan:** Owner yo'lda ham nasiyalarni boshqaradi
-
----
-
-## T-102 | P2 | [MOBILE] | Barcode scanner — Camera orqali tovar tekshirish
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat + Abdulaziz
-- **Fayl:** `apps/mobile/`
-- **Vazifa:**
-  - Camera barcode scan → product info (name, price, stock, expiry)
-  - Quick stock adjustment
-  - Physical inventory count: scan + enter actual qty
-- **Kutilgan:** Telefondan tovar ma'lumotini tezkor ko'rsa bo'ladi
-
----
-
 ## T-103 | P1 | [BACKEND] | Push notifications — Firebase + notification service
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -1568,14 +1530,304 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+# ════════════════════════════════════════════════════════════════
+# TOPILGAN KAMCHILIKLAR — Developer Tooling & DX (T-125+)
+# ════════════════════════════════════════════════════════════════
+
+---
+
+### ═══════════════════════════════════════
+### 🛠️ DEVELOPER TOOLING & INFRATUZILMA
+### ═══════════════════════════════════════
+
+---
+
+## T-125 | P0 | [BACKEND] | Swagger/OpenAPI documentation — API docs setup
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/main.ts`, `apps/api/src/**/*.dto.ts`
+- **Vazifa:**
+  - `@nestjs/swagger` — SwaggerModule.setup('/api/docs')
+  - Barcha DTO larga `@ApiProperty()` decorator
+  - Controller larga `@ApiTags()`, `@ApiBearerAuth()`, `@ApiOperation()`, `@ApiResponse()`
+  - Swagger JSON export: `/api/docs-json` (frontend client generate uchun)
+  - Grouping: Identity, Catalog, Sales, Inventory, Payments, Reports, Admin
+  - Auth: Swagger UI da Bearer token kiritish imkoniyati
+- **Kutilgan:** `/api/docs` da to'liq interaktiv API dokumentatsiya
+
+---
+
+## T-126 | P0 | [BACKEND] | Test infrastructure — Jest setup + first tests
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/jest.config.ts`, `apps/api/src/**/*.spec.ts`
+- **Vazifa:**
+  - Jest config: `apps/api/jest.config.ts` (ts-jest, moduleNameMapper, coverage)
+  - Test DB: `DATABASE_URL_TEST` in .env, test Prisma client
+  - Unit test namuna: `identity.service.spec.ts` — register, login, refresh token
+  - Integration test namuna: `auth.controller.spec.ts` — POST /auth/login, POST /auth/register
+  - Test utilities: `createTestApp()`, `createTestUser()`, `getAuthToken()`
+  - Coverage threshold: 50% minimum (boshlang'ich)
+  - `pnpm --filter api test` script
+- **Kutilgan:** Test infra tayyor, namuna testlar ishlaydi, CI da run bo'ladi
+
+---
+
+## T-127 | P1 | [BACKEND] | Database seed data — Development uchun test data
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/prisma/seed.ts`
+- **Vazifa:**
+  - `prisma db seed` — development uchun sample data yaratish
+  - Seed data:
+    - 1 tenant (Kosmetika do'koni "Gul Kosmetika")
+    - 1 owner user (admin@test.com / password123)
+    - 1 cashier user (cashier@test.com / password123)
+    - 1 branch (default)
+    - 10 categories (Terini parvarish, Soch, Makiyaj, Atir, Tirnoq, ...)
+    - 5 units (dona, quti, set, ml, gram)
+    - 30+ products (har kategoriyadan, barcode, narx, min_stock bilan)
+    - 5 customers (telefon, nasiya bilan)
+  - Idempotent: qayta run qilsa xato bermaydi
+  - package.json: `"prisma": { "seed": "ts-node prisma/seed.ts" }`
+- **Kutilgan:** `pnpm --filter api db:seed` bilan tayyor test muhit
+
+---
+
+## T-128 | P0 | [DEVOPS] | .gitignore yangilash — Keraksiz fayllarni ignore
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `.gitignore`
+- **Vazifa:**
+  - `tsconfig.tsbuildinfo` — barcha apps da
+  - `.claude/settings.local.json` — local Claude config
+  - `logs/` — runtime log fayllar
+  - `.env.local`, `.env.staging`, `.env.production`
+  - `*.tsbuildinfo`
+  - `apps/api/dist/`
+  - `apps/web/.next/`
+- **Kutilgan:** Git status da keraksiz fayllar ko'rinmaydi
+
+---
+
+### ═══════════════════════════════════════
+### 📁 FAYL YUKLASH & MEDIA
+### ═══════════════════════════════════════
+
+---
+
+## T-129 | P1 | [BACKEND] | File upload service — MinIO S3 integration
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/common/upload/`
+- **Vazifa:**
+  - `UploadModule`, `UploadService`
+  - MinIO client: `@aws-sdk/client-s3`
+  - POST /upload — single file upload (image: jpeg/png/webp, max 5MB)
+  - POST /upload/bulk — multiple files (max 10)
+  - Buckets: `product-images`, `receipts`, `certificates`, `exports`
+  - Auto-resize: thumbnail (200px), medium (800px), original
+  - Presigned URL: GET /upload/:key — vaqtinchalik download link
+  - Mimetype + size validation, tenant_id folder isolation
+- **Kutilgan:** Product image va fayllarni yuklash ishlaydi
+
+---
+
+## T-130 | P1 | [BACKEND] | Product bulk import/export — CSV/Excel
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/catalog/import/`
+- **Vazifa:**
+  - POST /products/import — CSV/XLSX fayldan bulk import
+  - Template: GET /products/import/template — bo'sh Excel template yuklab olish
+  - Import flow: upload → validate → preview (errors ko'rsatish) → confirm → save
+  - Validation: barcode uniqueness, category exists, price > 0, required fields
+  - Duplicate handling: barcode mavjud → update yoki skip (user tanlaydi)
+  - GET /products/export — barcha productlarni Excel ga chiqarish
+  - BullMQ: 500+ row → async job, tayyor bo'lganda notification
+- **Kutilgan:** Do'kon ochishda 500-1000 ta productni tezkor kiritsa bo'ladi
+
+---
+
+## T-131 | P1 | [BACKEND] | Barcode generation — Barcodesiz product uchun
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/catalog/`
+- **Vazifa:**
+  - Barcode format: EAN-13 (internal), prefix: tenant-specific (e.g. 200XXXXX)
+  - Auto-generate: product yaratishda barcode yo'q bo'lsa → internal barcode yaratish
+  - GET /products/:id/barcode — barcode image (SVG/PNG) generate qilish
+  - Batch barcode generate: POST /products/generate-barcodes — tanlangan products uchun
+  - `bwip-js` library
+- **Kutilgan:** Barcodesiz productlarga ham barcode berib, etiketka chop etsa bo'ladi
+
+---
+
+### ═══════════════════════════════════════
+### ⚙️ TENANT KONFIGURATSIYA
+### ═══════════════════════════════════════
+
+---
+
+## T-132 | P1 | [BACKEND] | Tenant settings — Configurable per-tenant sozlamalar
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/identity/settings/`
+- **Vazifa:**
+  - `tenant_settings` jadvali: id, tenant_id, key, value (JSON), updated_at
+  - Settings:
+    - `currency` — UZS (default), USD
+    - `tax_rate` — 12 (default QQS)
+    - `tax_inclusive` — true/false (narxga QQS kirganmi)
+    - `receipt_header` — do'kon nomi, manzil, INN, telefon
+    - `receipt_footer` — "Xaridingiz uchun rahmat!"
+    - `logo_url` — receipt va admin panel uchun
+    - `shift_required` — savdo qilish uchun shift ochish shartmi
+    - `debt_limit_default` — yangi customer uchun default nasiya limit
+    - `rounding` — 100 yoki 1000 ga yaxlitlash
+    - `low_stock_threshold` — default min_stock_level
+  - GET /settings — tenant sozlamalari
+  - PATCH /settings — yangilash (faqat ADMIN/OWNER)
+  - Default values: birinchi marta o'qilganda avtomatik yaratiladi
+- **Kutilgan:** Har do'kon o'zi uchun sozlama qilsa bo'ladi
+
+---
+
+## T-133 | P1 | [BACKEND] | Price history — Narx o'zgarishi tarixi
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/catalog/`
+- **Vazifa:**
+  - `price_changes` jadvali: id, tenant_id, product_id, old_cost_price, new_cost_price, old_sell_price, new_sell_price, changed_by (user_id), reason, created_at
+  - Product update qilinganda narx o'zgargan bo'lsa → avtomatik log
+  - GET /products/:id/price-history — narx o'zgarish tarixi
+  - Margin tahlili: cost va sell price trend chart uchun data
+  - ⚠️ Immutable — price_changes UPDATE/DELETE TAQIQLANGAN
+- **Kutilgan:** Narx o'zgarishi izlanadi, margin trend ko'rinadi
+
+---
+
+### ═══════════════════════════════════════
+### 🖥️ FRONTEND INFRATUZILMA
+### ═══════════════════════════════════════
+
+---
+
+## T-134 | P0 | [FRONTEND] | App Shell — Base layout (sidebar, navigation, header)
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/components/Layout/`
+- **Vazifa:**
+  - **Sidebar:** Logo, navigation links, collapse/expand
+    - Dashboard, Catalog (Products, Categories), Sales (POS, Orders, Returns), Inventory (Stock, Kirim, Chiqim, Expiry), Customers (List, Debts), Reports, Settings (Users, Audit, Billing)
+  - **Header:** Branch selector, user avatar + dropdown (profile, logout), notifications bell
+  - **Auth layout:** Login page uchun alohida layout (sidebar yo'q)
+  - **POS layout:** POS mode uchun minimal layout (full screen, sidebar yo'q)
+  - **Responsive:** mobile collapsed sidebar, desktop fixed sidebar
+  - **Active route highlighting**, breadcrumbs
+  - Tailwind + shadcn/ui component library
+- **Kutilgan:** Admin panel navigatsiya va layout tayyor, sahifalar qo'shsa bo'ladi
+
+---
+
+## T-135 | P0 | [FRONTEND] | Login/Auth pages — Login, register-tenant, forgot password
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/app/(auth)/`
+- **Vazifa:**
+  - **Login page:** tenant slug + username/phone + password
+  - **Register tenant page:** do'kon nomi, INN, owner name, phone, password (POST /auth/register-tenant)
+  - **Forgot password:** phone orqali reset (keyinroq SMS OTP bilan)
+  - JWT token saqlash: access token → memory, refresh token → httpOnly cookie
+  - Auto-redirect: login → dashboard, unauthenticated → login
+  - Form validation: zod + react-hook-form
+  - Loading states, error messages (noto'g'ri parol, user topilmadi, account locked)
+  - "Parolni ko'rsatish" toggle
+- **Kutilgan:** Login ishlaydi, token boshqaruvi tayyor
+
+---
+
+## T-136 | P0 | [FRONTEND] | API client setup — Axios interceptors + React Query
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/lib/`
+- **Vazifa:**
+  - Axios instance: baseURL, default headers, timeout
+  - **Request interceptor:** Authorization: Bearer token qo'shish
+  - **Response interceptor:**
+    - 401 → refresh token bilan yangilash, qayta so'rov
+    - 403 → "Ruxsat yo'q" toast
+    - 5xx → "Server xatosi" toast + client error log yuborish
+    - Network error → "Internet aloqasi yo'q" banner
+  - React Query provider: defaultOptions (staleTime, retry, refetchOnWindowFocus)
+  - Query key factory: `queryKeys.products.list(filters)`, `queryKeys.orders.detail(id)`
+  - Typed API functions: `api.products.getAll()`, `api.orders.create(data)`, etc.
+- **Kutilgan:** Frontend dan API ga xavfsiz va standart tarzda so'rov yuboriladi
+
+---
+
+## T-137 | P2 | [FRONTEND] | i18n/Localization — O'zbek, Rus, English tillar
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/i18n/`
+- **Vazifa:**
+  - `next-intl` yoki `i18next` library
+  - 3 til: O'zbek (default), Русский, English
+  - Tarjima fayllari: `locales/uz.json`, `locales/ru.json`, `locales/en.json`
+  - Til almashtirish: header da dropdown
+  - Sana/vaqt formatlash: locale-aware (O'zbek: KK.OO.YYYY)
+  - Narx formatlash: `1 234 567 so'm` (UZS), `$1,234.56` (USD)
+  - UI elementlar: barcha button, label, placeholder, error message
+- **Kutilgan:** Admin panel 3 tilda ishlaydi, foydalanuvchi tanlaydi
+
+---
+
+## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
+
+- **Sana:** 2026-03-08
+- **Mas'ul:** Polat / Bekzod
+- **Fayl:** `apps/api/src/inventory/inventory.service.ts` → `getStockLevels()`
+- **Muammo:** `getStockLevels()` snapshot mavjud bo'lsa `stock_snapshots` + delta yondashuvi ishlatadi. Ammo snapshot DAN KEYIN qo'shilgan yangi mahsulotlar faqat `stock_movements`da bo'ladi, `stock_snapshots`da yo'q. Natijada LEFT JOIN orqali ular ko'rinmaydi.
+- **Kutilgan:** Snapshot'dan keyingi yangi mahsulotlar ham `GET /api/v1/inventory/levels`da ko'rinishi kerak.
+- **Taklif:** SQL'ga UNION ALL qo'shing — snapshot'da bo'lmagan, lekin `stock_movements`da (snapshot vaqtidan keyin) bo'lgan mahsulotlarni ham qo'shsin.
+- **Workaround (hozircha):** `stock_snapshots` jadvali bo'sh bo'lsa, full aggregate mode ishlaydi va barcha mahsulotlar ko'rinadi.
+
+---
+
+## T-139 | P1 | [IKKALASI] | ibrat/feat-mobile-app → main merge va Railway deploy
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Polat (merge review) + Ibrat (mobile test after deploy)
+- **Muammo:** Mobile-specific backend routes faqat `ibrat/feat-mobile-app` branchida, `main`da yo'q → Railway da 404:
+  - `GET /inventory/stock` — mobile alias (safeQueryFn bilan 404 ushlanadi)
+  - `GET /inventory/stock/low` — mobile alias
+  - `GET /sales/quick-stats` — dashboard uchun kritik
+  - `GET /sales/shifts/active` — dashboard uchun kritik
+  - `GET /analytics/revenue` + `/branches/comparison` + `/insights` — analytics controller yo'q
+- **Kutilgan:** PR yaratib `main`ga merge qilish → Railway auto-deploy → mobile app real data ko'radi
+- **Eslatma:** Mobile app hozircha 404 larni `safeQueryFn` bilan ushlab, empty state ko'rsatadi (crash yo'q)
+
+---
+
+## T-140 | P1 | [BACKEND] | Real estate controller — routes bo'sh
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/realestate/realestate.controller.ts`
+- **Muammo:** Controller `@Controller('real-estate')` deklaratsiya qilingan lekin HECH QANDAY route yo'q. Mobile app `/real-estate/properties`, `/real-estate/stats`, `/real-estate/payments` ga murojaat qiladi — hammasi 404. `safeQueryFn` ushlab turadi.
+- **Kutilgan:** `getProperties()`, `getStats()`, `getRentalPayments()`, `getAllPayments()` endpointlari qo'shilsin
+
+---
+
 ## 📊 STATISTIKA
 
 | Umumiy | P0 | P1 | P2 | P3 |
 |--------|----|----|----|----|
-| **114** | **28** | **52** | **14** | **20** |
+| **127** | **34** | **58** | **15** | **20** |
 
 ### MVP (T-011 — T-049): 39 task
 ### Production Features (T-050 — T-124): 75 task
+### Topilgan kamchiliklar (T-125 — T-137): 13 task
 
 ---
 
@@ -1583,10 +1835,10 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 18 | 32 | 8 | 7 | **65** |
-| [FRONTEND] | 7 | 11 | 3 | 4 | **25** |
+| [BACKEND] | 20 | 38 | 8 | 7 | **73** |
+| [FRONTEND] | 10 | 11 | 4 | 4 | **29** |
 | [MOBILE] | — | 3 | 1 | — | **4** |
-| [DEVOPS] | 2 | 2 | — | — | **4** |
+| [DEVOPS] | 3 | 2 | — | — | **5** |
 | [IKKALASI] | 3 | 3 | — | 2 | **8** |
 | [SECURITY] | — | — | — | — | **(guards ichida)** |
 
@@ -1596,8 +1848,8 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Polat** (Backend & DevOps) | 18 | 33 | 7 | — | **58** |
-| **AbdulazizYormatov** (Frontend) | 9 | 9 | 3 | — | **21** |
+| **Polat** (Backend & DevOps) | 21 | 39 | 7 | — | **67** |
+| **AbdulazizYormatov** (Frontend) | 12 | 9 | 4 | — | **25** |
 | **Ibrat + Abdulaziz** (Mobile) | — | 3 | 1 | — | **4** |
 | **Birgalikda** | 3 | 3 | — | — | **6** |
 | **Belgilanmagan** | — | — | 3 | 20 | **23** |
@@ -1634,4 +1886,45 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-*docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.0 | 2026-02-26*
+---
+
+### ═══════════════════════════════════════
+### 🔍 FRONTEND QA & DEPLOY (Ibrat — 2026-03-09)
+### ═══════════════════════════════════════
+
+---
+
+## T-141 | P1 | [FRONTEND] | Web — Backend↔Frontend API contract tekshiruvi
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/api/`
+- **Muammo:** Frontend endpoint URL lari backend controller lari bilan mos kelmasligi mumkin
+- **Vazifa:** Backend controller larini o'qib, frontend API call larini solishtirish. Nomuvofiqliklarni frontendda tuzatish.
+- **Kutilgan:** Barcha API call lar to'g'ri endpoint larga yo'naltirilgan
+
+---
+
+## T-142 | P1 | [FRONTEND] | Web — Playwright bilan localhost da to'liq UI test
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/`
+- **Muammo:** UI xatolari production ga chiqishi mumkin
+- **Vazifa:** `pnpm --filter web dev` ishga tushirib, Playwright bilan login, dashboard, asosiy sahifalarni test qilish. Topilgan xatolarni tuzatish.
+- **Kutilgan:** Barcha asosiy sahifalar xatosiz ishlaydi
+
+---
+
+## T-143 | P0 | [FRONTEND] | Web — Production deploy va 200 OK tekshiruvi
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/`
+- **Muammo:** Deploy muvaffaqiyatli bo'lishi va `https://web-production-5b0b7.up.railway.app` 200 qaytarishi kerak
+- **Vazifa:** Build → Push → Railway deploy → curl tekshiruvi
+- **Kutilgan:** HTTP 200, app ishlaydi
+
+---
+
+*docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.1 | 2026-02-28*

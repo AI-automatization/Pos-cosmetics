@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Wifi, WifiOff, RefreshCw, Clock, AlertTriangle, X } from 'lucide-react';
+import { apiClient } from '@/api/client';
 import { useSyncStore } from '@/store/sync.store';
 import { cn } from '@/lib/utils';
 
@@ -21,8 +22,7 @@ function useSyncMonitor() {
       if (!navigator.onLine) { setState('offline'); return; }
       const start = Date.now();
       try {
-        // B-016 fix: use backend health endpoint, not Next.js /api/health (doesn't exist)
-        await fetch('http://localhost:3000/api/v1/health/ping', { method: 'GET', cache: 'no-cache' });
+        await apiClient.get('/health/ping');
         const ms = Date.now() - start;
         setLatency(ms);
         if (ms > 5000) {

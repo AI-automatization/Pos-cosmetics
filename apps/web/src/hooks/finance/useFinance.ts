@@ -8,10 +8,15 @@ import type { CreateExpenseDto } from '@/types/finance';
 const EXPENSES_KEY = 'expenses';
 
 export function useExpenses(params?: { category?: string; from?: string; to?: string }) {
+  const category = params?.category;
+  const from = params?.from;
+  const to = params?.to;
   return useQuery({
-    queryKey: [EXPENSES_KEY, params],
+    queryKey: [EXPENSES_KEY, category, from, to],
     queryFn: () => financeApi.listExpenses(params),
     staleTime: 30_000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -20,6 +25,8 @@ export function useProfitReport(from: string, to: string) {
     queryKey: [EXPENSES_KEY, 'profit', from, to],
     queryFn: () => financeApi.getProfitReport({ from, to }),
     staleTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 

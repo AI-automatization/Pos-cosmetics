@@ -28,9 +28,12 @@ async function bootstrap() {
     'CORS_ORIGIN',
     'http://localhost:3001,http://localhost:3000,https://web-production-5b0b7.up.railway.app',
   );
-  const corsOrigin = corsOriginRaw.includes(',')
-    ? corsOriginRaw.split(',').map((o) => o.trim())
-    : corsOriginRaw;
+  // '*' with credentials is rejected by browsers — reflect request origin instead
+  const corsOrigin: string | string[] | boolean = corsOriginRaw === '*'
+    ? true
+    : corsOriginRaw.includes(',')
+      ? corsOriginRaw.split(',').map((o) => o.trim())
+      : corsOriginRaw;
   app.enableCors({
     origin: corsOrigin,
     credentials: true,
@@ -40,7 +43,6 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
-  // Global prefix
   const prefix = config.get<string>('API_PREFIX', 'api/v1');
   app.setGlobalPrefix(prefix);
 
@@ -81,7 +83,7 @@ async function bootstrap() {
   // Start — PORT injectится Railway/Docker, API_PORT для локальной разработки
   const port = config.get<number>('PORT') ?? config.get<number>('API_PORT', 3000);
   await app.listen(port);
-  logger.log(`RAOS API running on http://localhost:${port}/${prefix}`, 'Bootstrap');
+  logger.log(`RAOS API v1 running on http://localhost:${port}/${prefix}`, 'Bootstrap');
   logger.log(`Swagger docs: http://localhost:${port}/${prefix}/docs`, 'Bootstrap');
 }
 

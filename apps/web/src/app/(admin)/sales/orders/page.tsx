@@ -21,7 +21,9 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
 };
 
 function StatusBadge({ status }: { status: OrderStatus }) {
-  const { label, icon: Icon, className } = STATUS_CONFIG[status];
+  const config = STATUS_CONFIG[status];
+  if (!config) return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">{status}</span>;
+  const { label, icon: Icon, className } = config;
   return (
     <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', className)}>
       <Icon className="h-3 w-3" />

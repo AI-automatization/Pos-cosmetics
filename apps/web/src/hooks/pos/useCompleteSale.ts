@@ -78,7 +78,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
           `Nasiya savdo yakunlandi! Xaridor: ${selectedCustomer?.name ?? '—'}`,
         );
       } else {
-        toast.success(`Sotuv #${order.orderNumber ?? order.id.slice(0, 8)} yakunlandi!`);
+        toast.success(`Sotuv #${order.orderNumber ?? order.id?.slice(0, 8) ?? '—'} yakunlandi!`);
       }
     },
     onError: (err: unknown) => {

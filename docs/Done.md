@@ -158,4 +158,19 @@
 
 ---
 
+---
+
+## 2026-03-09 SESSIYA — FRONTEND QA & DEPLOY (Ibrat)
+
+| T-# | Sana | Kategoriya | Yechim | Fayl(lar) |
+|-----|------|-----------|--------|-----------|
+| T-141 | 2026-03-09 | [FRONTEND] | Backend↔Frontend API contract tekshiruvi. 3 ta mismatch topildi va tuzatildi: (1) `customer.api.ts` `searchByPhone` `/customers/phone/:phone` → `GET /customers?search=` (2) `debt.api.ts` `getCustomerDebts` `/customers/:id/debts` → `GET /nasiya?customerId=` + catch (3) `founder.api.ts` barcha `/founder/*` → `/admin/*` endpointlari | `apps/web/src/api/customer.api.ts`, `apps/web/src/api/debt.api.ts`, `apps/web/src/api/founder.api.ts` |
+| T-142 | 2026-03-09 | [FRONTEND] | Playwright bilan production test: login redirect ✅, auth guard ✅, JS xatolari yo'q ✅, favicon 404 (minor, muhim emas) | `https://web-production-5b0b7.up.railway.app` |
+| T-143 | 2026-03-09 | [FRONTEND] | Build → Push → Railway deploy `c1488cbf` → HTTP 200 ✅ | `apps/web/`, commit `72718f0` |
+| — | 2026-03-09 | [FRONTEND] | `notifications.api.ts` `getUnreadCount` ga `.catch(()=>0)` + `useUnreadCount` hook ga `retry:false` — 404 da app crash qilmaydi | `apps/web/src/api/notifications.api.ts`, `apps/web/src/hooks/notifications/useNotifications.ts` |
+| — | 2026-03-09 | [FRONTEND] | `client.ts`: localhost fallback ochirildi, `withCredentials:true` qo'shildi | `apps/web/src/api/client.ts` |
+| — | 2026-03-09 | [FRONTEND] | `SyncStatusBar.tsx`: direct `fetch()` → `apiClient.get('/health/ping')` | `apps/web/src/components/SyncStatus/SyncStatusBar.tsx` |
+
+---
+
 *docs/Done.md | RAOS*

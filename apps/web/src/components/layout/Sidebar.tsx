@@ -101,6 +101,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Sozlamalar',
     icon: Settings,
     children: [
+      { label: 'Filiallar', href: '/settings/branches' },
       { label: 'Printer', href: '/settings/printer' },
       { label: 'Foydalanuvchilar', href: '/settings/users' },
       { label: 'Audit log', href: '/settings/audit-log' },

@@ -59,3 +59,19 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+# Test artifacts & debug files (never commit)
+test-*.json
+test-*.txt
+*.tsbuildinfo
+apps/mobile/logcat*.txt
+apps/mobile/rn_*.txt
+apps/mobile/rn_logs.txt
+apps/mobile/error_logs.txt
+apps/mobile/js_errors.txt
+*.png
+!apps/mobile/assets/**/*.png
+!apps/web/public/**/*.png
+
+# Playwright MCP
+.playwright-mcp/

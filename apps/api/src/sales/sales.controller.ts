@@ -62,6 +62,26 @@ export class SalesController {
     return this.salesService.getCurrentShift(tenantId, userId);
   }
 
+  @Get('shifts/active')
+  @ApiOperation({ summary: 'Get active (open) shifts — mobile alias' })
+  @ApiQuery({ name: 'branchId', required: false })
+  getActiveShifts(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.salesService.getActiveShifts(tenantId, branchId);
+  }
+
+  @Get('quick-stats')
+  @ApiOperation({ summary: 'Quick stats for today — mobile dashboard' })
+  @ApiQuery({ name: 'branchId', required: false })
+  getQuickStats(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.salesService.getQuickStats(tenantId, branchId);
+  }
+
   @Get('shifts')
   @ApiOperation({ summary: 'List all shifts (paginated)' })
   @ApiQuery({ name: 'page', required: false })

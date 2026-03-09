@@ -47,9 +47,12 @@ export const debtApi = {
   getAging: (): Promise<AgingReport> =>
     Promise.resolve({ buckets: [] } as unknown as AgingReport),
 
-  /** Xaridorning qarz tarixi */
+  /** Xaridorning qarz tarixi — backend: GET /nasiya?customerId=:id */
   getCustomerDebts: (customerId: string): Promise<Debt[]> =>
-    apiClient.get<Debt[]>(`/customers/${customerId}/debts`).then((r) => r.data),
+    apiClient
+      .get<Debt[] | { items: Debt[] }>('/nasiya', { params: { customerId } })
+      .then((r) => (Array.isArray(r.data) ? r.data : (r.data as { items: Debt[] }).items ?? []))
+      .catch(() => []),
 
   /** Barcha xaridorlar (qarz ma'lumotlari bilan) */
   listCustomers: (params?: { search?: string }): Promise<CustomerWithDebt[]> =>

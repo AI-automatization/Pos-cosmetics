@@ -1,10 +1,17 @@
 [build]
-# Root railway.toml used by the "web" service (Next.js Admin Panel)
-# API service uses apps/api/railway.toml (root directory = apps/api in Railway)
+# Root railway.toml → used by `railway up` CLI for the WEB service.
+# API service uses apps/api/railway.toml (Railway GitHub integration picks that up).
 dockerfilePath = "apps/web/Dockerfile"
+watchPatterns = [
+  "apps/web/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc",
+  "packages/**"
+]
 
 [deploy]
-# Next.js standalone server — pnpm is NOT in the production image
 startCommand = "node apps/web/server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 60

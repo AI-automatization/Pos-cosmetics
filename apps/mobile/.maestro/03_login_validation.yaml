@@ -1,0 +1,25 @@
+appId: host.exp.exponent
+name: "Login - Bo'sh maydon validatsiyasi"
+---
+- launchApp
+- tapOn: "RAOS"
+- waitForAnimationToEnd
+
+# Login ekranida ekanligini tekshir
+- assertVisible: "RAOS"
+- assertVisible: "Kirish"
+
+# Bo'sh holda Kirish bosish — disabled, shu screen da qoladi
+- tapOn: "Kirish"
+- assertVisible: "RAOS"
+
+# Faqat email kiritib bosish — hali disabled (parol yo'q)
+- tapOn: "email@misol.com"
+- inputText: "test@test.com"
+- tapOn: "Kirish"
+- assertVisible: "RAOS"
+
+# Parol ham kiritish — endi active
+- tapOn: "Parol kiriting"
+- inputText: "123"
+- assertVisible: "RAOS"

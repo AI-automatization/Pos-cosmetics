@@ -61,7 +61,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
         <div className="label-name">{p.name}</div>
         <div className="label-sku">SKU: {p.sku}</div>
         {p.barcode && <div className="label-barcode">|||  {p.barcode}  |||</div>}
-        <div className="label-price">{formatPrice(p.sellPrice)}</div>
+        <div className="label-price">{formatPrice(Number(p.sellPrice))}</div>
       </div>
     ));
   });
@@ -88,7 +88,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
             <div key={p.id} className="flex items-center justify-between py-2.5">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-900">{p.name}</p>
-                <p className="text-xs text-gray-400">{p.sku} · {formatPrice(p.sellPrice)}</p>
+                <p className="text-xs text-gray-400">{p.sku} · {formatPrice(Number(p.sellPrice))}</p>
               </div>
               <div className="ml-4 flex items-center gap-2">
                 <label className="text-xs text-gray-500">Nusxa:</label>
@@ -132,7 +132,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
                 {p.barcode && (
                   <p className="text-center font-mono text-[8px] tracking-widest">||| {p.barcode} |||</p>
                 )}
-                <p className="text-right text-xs font-bold">{formatPrice(p.sellPrice)}</p>
+                <p className="text-right text-xs font-bold">{formatPrice(Number(p.sellPrice))}</p>
               </div>
             ))}
             {products.length > 3 && (

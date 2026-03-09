@@ -8,6 +8,14 @@ import type { ProductsQuery, CreateProductDto, UpdateProductDto } from '@/types/
 
 export const PRODUCTS_KEY = 'products';
 
+export function useUnits() {
+  return useQuery({
+    queryKey: ['units'],
+    queryFn: () => catalogApi.getUnits(),
+    staleTime: 300_000,
+  });
+}
+
 export function useProducts(filters: ProductsQuery = {}) {
   return useQuery({
     queryKey: [PRODUCTS_KEY, filters],

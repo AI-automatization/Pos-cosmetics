@@ -114,7 +114,15 @@ export default function DashboardPage() {
     );
   }
 
-  const { today, weeklyRevenue, topProducts, lowStockCount } = data;
+  const { today, weeklyRevenue, topProducts, lowStockCount } = data ?? {};
+  if (!today || !weeklyRevenue || !topProducts) {
+    return (
+      <div className="flex flex-col gap-6 overflow-y-auto p-6">
+        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+        <DemoContent />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
