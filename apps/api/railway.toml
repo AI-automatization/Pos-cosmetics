@@ -1,9 +1,8 @@
 [build]
-# Монорепо: билдим из корня проекта, Dockerfile в apps/api/
+# API service config — NestJS + Prisma
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-healthcheckPath = "/api/v1/health/live"
-healthcheckTimeout = 60
+startCommand = "sh /app/start.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
