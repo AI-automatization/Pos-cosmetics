@@ -104,7 +104,7 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
                     <p className="text-gray-400">{product.barcode}</p>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-600">{product.category.name}</td>
+                <td className="px-4 py-3 text-gray-600">{product.category?.name ?? '—'}</td>
                 <td className="px-4 py-3 text-right font-medium text-gray-900">
                   {formatPrice(Number(product.sellPrice))}
                 </td>
