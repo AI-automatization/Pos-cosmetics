@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-02-28
+# Yangilangan: 2026-03-09
 
 ---
 
@@ -151,6 +151,10 @@
 | AUTH-MIDDLEWARE | 2026-03-04 | Next.js middleware — `session_active` cookie orqali barcha routelarni himoyalash, `/login`ga redirect; login qilingan bo'lsa `/login`dan `/dashboard`ga redirect | `apps/web/src/middleware.ts` |
 | AUTH-BUG-FIX | 2026-03-04 | `client.ts` bug fix — refresh tokendan `data.access_token` (yo'q) → `data.accessToken` (backend camelCase); refresh URL `/identity/auth/refresh` → `/auth/refresh` | `apps/web/src/api/client.ts` |
 | AUTH-HEADER | 2026-03-04 | Header yangilandi — hardcoded "Admin" → real user ismi+roli+tenant nomi; dropdown menu (logout tugma); `SyncStatusBar` Header ga integratsiya qilindi | `apps/web/src/components/layout/Header.tsx` |
+
+---
+
+| T-106 + T-122 | 2026-03-09 | SMS (to'lov talab qiluvchi) o'rniga Telegram Bot API + Gmail SMTP fallback (ikkalasi bepul). `sms.service.ts` o'chirildi. `TelegramNotifyService`, `EmailNotifyService`, `NotifyService` yaratildi. Bot deep link `/start <token>` orqali hisob bog'lash. Schema: `telegram_chat_id` fields + `telegram_link_tokens` jadvali. | `apps/api/src/notifications/`, `apps/bot/src/handlers/commands.ts` |
 
 ---
 

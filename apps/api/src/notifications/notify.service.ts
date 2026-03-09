@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
  * T-122: Unified bildirishnoma xizmati
  * Telegram birinchi → yo'q bo'lsa Email fallback
  *
- * Eskiz.uz SMS ni to'liq almashtiradi.
+ * SMS xizmatini to'liq almashtiradi.
  */
 @Injectable()
 export class NotifyService {
