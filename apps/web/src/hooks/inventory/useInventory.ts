@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { inventoryApi } from '@/api/inventory.api';
 import { catalogApi } from '@/api/catalog.api';
+import { extractErrorMessage } from '@/lib/utils';
 import type { StockQuery, StockInDto, StockOutDto, StockLevel, StockStatus } from '@/types/inventory';
 import type { Product } from '@/types/catalog';
 
@@ -64,8 +65,8 @@ export function useStockIn() {
       qc.invalidateQueries({ queryKey: ['inventory'] });
       toast.success('Kirim muvaffaqiyatli saqlandi');
     },
-    onError: (err: Error) => {
-      toast.error(err.message ?? 'Xato yuz berdi');
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err));
     },
   });
 }
@@ -78,8 +79,8 @@ export function useStockOut() {
       qc.invalidateQueries({ queryKey: ['inventory'] });
       toast.success('Chiqim muvaffaqiyatli saqlandi');
     },
-    onError: (err: Error) => {
-      toast.error(err.message ?? 'Xato yuz berdi');
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err));
     },
   });
 }

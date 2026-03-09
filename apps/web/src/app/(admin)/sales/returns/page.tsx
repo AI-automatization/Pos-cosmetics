@@ -16,7 +16,9 @@ function StatusBadge({ status }: { status: ReturnStatus }) {
     APPROVED: { icon: CheckCircle, className: 'bg-green-100 text-green-700' },
     REJECTED: { icon: XCircle, className: 'bg-red-100 text-red-700' },
   };
-  const { icon: Icon, className } = configs[status];
+  const config = configs[status];
+  if (!config) return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">{status}</span>;
+  const { icon: Icon, className } = config;
   return (
     <span className={cn('flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', className)}>
       <Icon className="h-3 w-3" />
@@ -187,9 +189,9 @@ export default function ReturnsPage() {
             ) : (returns ?? []).map((ret) => (
               <tr key={ret.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono font-medium text-gray-900">{ret.orderNumber}</td>
-                <td className="px-4 py-3 text-gray-600">{ret.cashierName}</td>
+                <td className="px-4 py-3 text-gray-600">{ret.cashierName ?? '—'}</td>
                 <td className="px-4 py-3 text-gray-600">{RETURN_REASON_LABELS[ret.reason]}</td>
-                <td className="px-4 py-3 text-gray-600">{ret.items.length} ta mahsulot</td>
+                <td className="px-4 py-3 text-gray-600">{(ret.items ?? []).length} ta mahsulot</td>
                 <td className="px-4 py-3 font-semibold text-gray-900">{formatPrice(ret.totalAmount)}</td>
                 <td className="px-4 py-3 text-gray-500">{new Date(ret.createdAt).toLocaleDateString('uz-UZ')}</td>
                 <td className="px-4 py-3"><StatusBadge status={ret.status} /></td>
