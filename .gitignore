@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+package-lock.json
 
 # Build outputs
 dist/
@@ -13,6 +14,10 @@ out/
 .env
 .env.local
 .env.*.local
+.env.staging
+.env.production
+.env.staging.secret
+.env.production.secret
 
 # Logs
 logs/

@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'staging'
+    project: 'raos'
+
+# Alertmanager (optional, local alerts)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # ─── RAOS API ─────────────────────────────────────────────────
+  - job_name: 'raos-api'
+    static_configs:
+      - targets: ['api:3000']
+    metrics_path: '/api/v1/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # ─── PostgreSQL (via postgres_exporter) ───────────────────────
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # ─── Redis (via redis_exporter) ───────────────────────────────
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # ─── Node Exporter (host metrics) ────────────────────────────
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # ─── Prometheus self-monitoring ──────────────────────────────
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

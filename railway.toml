@@ -1,0 +1,12 @@
+[build]
+# Root railway.toml used by the "web" service (Next.js Admin Panel)
+# API service uses apps/api/railway.toml (root directory = apps/api in Railway)
+dockerfilePath = "apps/web/Dockerfile"
+
+[deploy]
+# Next.js standalone server — pnpm is NOT in the production image
+startCommand = "node apps/web/server.js"
+healthcheckPath = "/"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
