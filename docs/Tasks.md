@@ -1886,4 +1886,45 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
+---
+
+### ═══════════════════════════════════════
+### 🔍 FRONTEND QA & DEPLOY (Ibrat — 2026-03-09)
+### ═══════════════════════════════════════
+
+---
+
+## T-141 | P1 | [FRONTEND] | Web — Backend↔Frontend API contract tekshiruvi
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/api/`
+- **Muammo:** Frontend endpoint URL lari backend controller lari bilan mos kelmasligi mumkin
+- **Vazifa:** Backend controller larini o'qib, frontend API call larini solishtirish. Nomuvofiqliklarni frontendda tuzatish.
+- **Kutilgan:** Barcha API call lar to'g'ri endpoint larga yo'naltirilgan
+
+---
+
+## T-142 | P1 | [FRONTEND] | Web — Playwright bilan localhost da to'liq UI test
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/`
+- **Muammo:** UI xatolari production ga chiqishi mumkin
+- **Vazifa:** `pnpm --filter web dev` ishga tushirib, Playwright bilan login, dashboard, asosiy sahifalarni test qilish. Topilgan xatolarni tuzatish.
+- **Kutilgan:** Barcha asosiy sahifalar xatosiz ishlaydi
+
+---
+
+## T-143 | P0 | [FRONTEND] | Web — Production deploy va 200 OK tekshiruvi
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/`
+- **Muammo:** Deploy muvaffaqiyatli bo'lishi va `https://web-production-5b0b7.up.railway.app` 200 qaytarishi kerak
+- **Vazifa:** Build → Push → Railway deploy → curl tekshiruvi
+- **Kutilgan:** HTTP 200, app ishlaydi
+
+---
+
 *docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.1 | 2026-02-28*
