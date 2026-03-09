@@ -1397,19 +1397,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-106 | P2 | [BACKEND] | Eskiz.uz SMS — Nasiya reminder va OTP
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/notifications/channels/`
-- **Vazifa:**
-  - Eskiz.uz API adapter: SMS yuborish
-  - Use cases: nasiya reminder, OTP verification, promotional
-  - SMS cost tracking: per-tenant SMS usage
-  - Rate limit: 30 SMS/kun per customer
-  - Template management: admin paneldan template o'zgartirish
-- **Kutilgan:** SMS notification ishlaydi
-
----
 
 ## T-107 | P2 | [BACKEND] | Payme/Click integration — Online to'lov
 - **Sana:** 2026-02-26

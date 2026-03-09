@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 /**
  * T-122: Telegram orqali bildirishnoma yuborish
- * Eskiz.uz SMS o'rniga bepul Telegram Bot API ishlatiladi.
+ * To'lov talab qilmaydigan bepul Telegram Bot API ishlatiladi.
  * Bot token: BOT_TOKEN env variable
  */
 @Injectable()
