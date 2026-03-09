@@ -22,6 +22,10 @@ COPY apps/web/ ./apps/web/
 # Ensure public dir exists (Next.js standalone requires it)
 RUN mkdir -p ./apps/web/public
 
+# Inject NEXT_PUBLIC_* vars at build time (Railway passes these as build args)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter web build
 
