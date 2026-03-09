@@ -1,8 +1,19 @@
 [build]
-# Monorepo: Dockerfile is inside apps/api/ but Docker context is repo root
-dockerfilePath = "apps/api/Dockerfile"
+# Root railway.toml → used by `railway up` CLI for the WEB service.
+# API service uses apps/api/railway.toml (Railway GitHub integration picks that up).
+dockerfilePath = "apps/web/Dockerfile"
+watchPatterns = [
+  "apps/web/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc",
+  "packages/**"
+]
 
 [deploy]
-startCommand = "sh /app/start.sh"
+startCommand = "node apps/web/server.js"
+healthcheckPath = "/"
+healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
