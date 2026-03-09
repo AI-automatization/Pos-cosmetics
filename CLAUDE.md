@@ -111,7 +111,7 @@ docs/              → Hammaga ochiq
 | 7   | **Tax & Fiscal**    | Rule-based tax, per-tenant config, fiscal adapter, receipt storage |
 | 8   | **Real Estate**     | Property, rental contract, payment schedule, ROI, occupancy        |
 | 9   | **AI / Analytics**  | Trend engine, dead stock, margin analysis, forecasting, alerts     |
-| 10  | **Notifications**   | Telegram bot, SMS, push notifications                              |
+| 10  | **Notifications**   | Telegram bot (birlamchi) + Email fallback — Eskiz SMS TAQIQLANGAN |
 
 ### Event-Driven Flow Example
 
@@ -165,6 +165,9 @@ Events stored in event_log table (immutable).
 ❌ Financial data uchun last-write-wins conflict resolution
 ❌ Production DB ga qo'lda SQL yozish
 ❌ Secret/API key ni kodga yozish
+❌ Eskiz.uz SMS API — TAQIQLANGAN (Polat qaroriga ko'ra, 2026-03-09)
+    → O'rniga: Telegram Bot API (birlamchi) + SMTP Email (zaxira)
+    → Service: apps/api/src/notifications/notify.service.ts (NotifyService)
 ```
 
 ---
