@@ -222,7 +222,7 @@ export default function CustomerProfilePage() {
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
               <span className="text-xl font-bold text-gray-700">
-                {customer.name.charAt(0).toUpperCase()}
+                {(customer.name ?? '?').charAt(0).toUpperCase()}
               </span>
             </div>
             <div>
