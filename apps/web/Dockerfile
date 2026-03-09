@@ -30,6 +30,12 @@ COPY packages/ui/ ./packages/ui/
 RUN mkdir -p ./apps/web/public
 
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# NEXT_PUBLIC_* vars are baked into the JS bundle at build time.
+# Railway injects service env vars as Docker build args when ARG is declared.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN pnpm --filter web build
 
 # ─── Stage 3: runner ──────────────────────────────────────────
