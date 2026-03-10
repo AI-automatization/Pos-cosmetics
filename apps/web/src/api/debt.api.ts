@@ -49,7 +49,10 @@ export const debtApi = {
 
   /** Xaridorning qarz tarixi */
   getCustomerDebts: (customerId: string): Promise<Debt[]> =>
-    apiClient.get<Debt[]>(`/customers/${customerId}/debts`).then((r) => r.data),
+    apiClient.get('/nasiya', { params: { customerId } }).then((r) => {
+      const d = r.data;
+      return (Array.isArray(d) ? d : (d?.items ?? [])) as Debt[];
+    }),
 
   /** Barcha xaridorlar (qarz ma'lumotlari bilan) */
   listCustomers: (params?: { search?: string }): Promise<CustomerWithDebt[]> =>

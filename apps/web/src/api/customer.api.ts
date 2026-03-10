@@ -4,8 +4,11 @@ import type { Customer, CreateCustomerDto } from '@/types/customer';
 export const customerApi = {
   searchByPhone: (phone: string): Promise<Customer | null> =>
     apiClient
-      .get<Customer>(`/customers/phone/${encodeURIComponent(phone)}`)
-      .then((r) => r.data)
+      .get<Customer[] | { items: Customer[] }>('/customers', { params: { search: phone } })
+      .then((r) => {
+        const items = Array.isArray(r.data) ? r.data : (r.data as { items: Customer[] }).items ?? [];
+        return items[0] ?? null;
+      })
       .catch(() => null),
 
   create: (dto: CreateCustomerDto): Promise<Customer> =>

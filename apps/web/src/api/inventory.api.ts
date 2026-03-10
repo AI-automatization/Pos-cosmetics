@@ -34,13 +34,42 @@ export const inventoryApi = {
       .then((r) => r.data);
   },
 
-  // B-010 note: backend uses POST /inventory/movements with type='IN' per item + warehouseId
-  // Frontend DTO (StockInDto) has multi-item batch format — needs backend batch endpoint
-  stockIn(dto: StockInDto) {
-    return apiClient.post<void>('/inventory/stock-in', dto).then((r) => r.data);
+  // Backend: POST /inventory/movements (single movement per request, requires warehouseId)
+  // We fetch the default warehouse first, then send one request per item
+  async stockIn(dto: StockInDto) {
+    const warehouses = await apiClient
+      .get<{ id: string }[]>('/inventory/warehouses')
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+    const warehouseId = warehouses[0]?.id;
+    if (!warehouseId) throw new Error('No warehouse found. Please create a warehouse first.');
+    for (const item of dto.items) {
+      await apiClient.post('/inventory/movements', {
+        warehouseId,
+        productId: item.productId,
+        type: 'IN',
+        quantity: item.quantity,
+        costPrice: item.costPrice,
+        batchNumber: item.batchNumber,
+        expiryDate: item.expiryDate,
+        note: dto.notes,
+      });
+    }
   },
 
-  stockOut(dto: StockOutDto) {
-    return apiClient.post<void>('/inventory/stock-out', dto).then((r) => r.data);
+  async stockOut(dto: StockOutDto) {
+    const warehouses = await apiClient
+      .get<{ id: string }[]>('/inventory/warehouses')
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+    const warehouseId = warehouses[0]?.id;
+    if (!warehouseId) throw new Error('No warehouse found. Please create a warehouse first.');
+    for (const item of dto.items) {
+      await apiClient.post('/inventory/movements', {
+        warehouseId,
+        productId: item.productId,
+        type: 'OUT',
+        quantity: item.quantity,
+        note: dto.notes ?? dto.reason,
+      });
+    }
   },
 };

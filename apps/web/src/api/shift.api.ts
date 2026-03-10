@@ -3,12 +3,12 @@ import type { Shift, OpenShiftDto, CloseShiftDto } from '@/types/shift';
 
 export const shiftApi = {
   openShift(dto: OpenShiftDto) {
-    return apiClient.post<Shift>('/sales/shifts', dto).then((r) => r.data);
+    return apiClient.post<Shift>('/sales/shifts/open', dto).then((r) => r.data);
   },
 
   closeShift(shiftId: string, dto: CloseShiftDto) {
     return apiClient
-      .patch<Shift>(`/sales/shifts/${shiftId}/close`, dto)
+      .post<Shift>(`/sales/shifts/${shiftId}/close`, dto)
       .then((r) => r.data);
   },
 
@@ -17,6 +17,6 @@ export const shiftApi = {
   },
 
   getActiveShift() {
-    return apiClient.get<Shift | null>('/sales/shifts/active').then((r) => r.data);
+    return apiClient.get<Shift | null>('/sales/shifts/current').then((r) => r.data);
   },
 };
