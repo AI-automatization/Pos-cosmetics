@@ -56,30 +56,61 @@ export function formatLowStockAlert(items: {
   sku: string | null;
   currentStock: number;
   minLevel: number;
+  isNegative?: boolean;
 }[]): string {
   if (items.length === 0) return '✅ Kam qolgan mahsulot yo\'q';
 
-  const grouped = new Map<string, typeof items>();
-  for (const item of items) {
-    if (!grouped.has(item.tenantName)) grouped.set(item.tenantName, []);
-    grouped.get(item.tenantName)!.push(item);
+  // T-130: Manfiy qoldiqni (inventar xatosi) alohida ajratish
+  const errorItems = items.filter((i) => i.isNegative);
+  const lowItems   = items.filter((i) => !i.isNegative);
+
+  const lines: string[] = [];
+
+  // ─── Inventar xatolari (manfiy qoldiq) ──────────────────────
+  if (errorItems.length > 0) {
+    lines.push('⛔ *INVENTAR XATOSI \\(Manfiy qoldiq\\)*\n');
+    const grouped = groupByTenant(errorItems);
+    for (const [tenant, list] of grouped) {
+      lines.push(`🏪 *${esc(tenant)}*`);
+      for (const item of list) {
+        lines.push(
+          `  🔴 ${esc(item.productName)}` +
+          (item.sku ? ` \\(${esc(item.sku)}\\)` : '') +
+          ` — *${esc(item.currentStock)}* qoldi \\(min: ${esc(item.minLevel)}\\)`,
+        );
+      }
+      lines.push('');
+    }
   }
 
-  const lines: string[] = ['⚠️ *KAM QOLGAN MAHSULOTLAR*\n'];
-  for (const [tenant, list] of grouped) {
-    lines.push(`🏪 *${esc(tenant)}*`);
-    for (const item of list) {
-      const icon = item.currentStock <= 0 ? '🔴' : '🟡';
-      lines.push(
-        `  ${icon} ${esc(item.productName)}` +
-        (item.sku ? ` \\(${esc(item.sku)}\\)` : '') +
-        ` — ${esc(item.currentStock)} qoldi \\(min: ${esc(item.minLevel)}\\)`,
-      );
+  // ─── Kam qoldiq ──────────────────────────────────────────────
+  if (lowItems.length > 0) {
+    lines.push('⚠️ *KAM QOLGAN MAHSULOTLAR*\n');
+    const grouped = groupByTenant(lowItems);
+    for (const [tenant, list] of grouped) {
+      lines.push(`🏪 *${esc(tenant)}*`);
+      for (const item of list) {
+        const icon = item.currentStock === 0 ? '🔴' : '🟡';
+        lines.push(
+          `  ${icon} ${esc(item.productName)}` +
+          (item.sku ? ` \\(${esc(item.sku)}\\)` : '') +
+          ` — *${esc(item.currentStock)}* qoldi \\(min: ${esc(item.minLevel)}\\)`,
+        );
+      }
+      lines.push('');
     }
-    lines.push('');
   }
 
   return lines.join('\n').trim();
+}
+
+function groupByTenant<T extends { tenantName: string }>(items: T[]): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const item of items) {
+    if (!map.has(item.tenantName)) map.set(item.tenantName, []);
+    map.get(item.tenantName)!.push(item);
+  }
+  return map;
 }
 
 // ─── Expiry alert ──────────────────────────────────────────────

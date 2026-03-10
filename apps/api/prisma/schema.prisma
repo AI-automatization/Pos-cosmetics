@@ -68,6 +68,8 @@ model User {
   pinLockedUntil  DateTime? @map("pin_locked_until")
   // Telegram notify (T-122)
   telegramChatId  String?   @map("telegram_chat_id")
+  // Bot notification settings (T-131)
+  botSettings     Json?     @map("bot_settings")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
