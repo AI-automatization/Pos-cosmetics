@@ -3,7 +3,9 @@ import type { Shift, OpenShiftDto, CloseShiftDto } from '@/types/shift';
 
 export const shiftApi = {
   openShift(dto: OpenShiftDto) {
-    return apiClient.post<Shift>('/sales/shifts/open', dto).then((r) => r.data);
+    // Backend DTO only accepts openingCash, branchId?, notes? (forbidNonWhitelisted)
+    const { openingCash, branchId, notes } = dto as OpenShiftDto & { branchId?: string; notes?: string };
+    return apiClient.post<Shift>('/sales/shifts/open', { openingCash, branchId, notes }).then((r) => r.data);
   },
 
   closeShift(shiftId: string, dto: CloseShiftDto) {

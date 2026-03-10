@@ -12,8 +12,8 @@ export function useOpenShift(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: (dto: OpenShiftDto) => shiftApi.openShift(dto),
-    onSuccess: (shift) => {
-      openShift(shift.id, shift.cashierName, shift.openingCash);
+    onSuccess: (shift, variables) => {
+      openShift(shift.id, variables.cashierName ?? 'Kassir', Number(shift.openingCash));
       toast.success('Smena muvaffaqiyatli ochildi!');
       onSuccess?.();
     },
