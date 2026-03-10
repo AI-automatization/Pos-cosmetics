@@ -1,6 +1,8 @@
+// T-126: Tenant izolyatsiya — tenantId filter barcha so'rovlarda
+
 import prisma from '../prisma';
 
-// ─── /stock <barcode> — Mahsulot stock ma'lumoti ──────────────
+// ─── /stock <barcode> ─────────────────────────────────────────
 
 export interface StockInfo {
   productName: string;
@@ -12,23 +14,24 @@ export interface StockInfo {
   warehouseBreakdown: { warehouseName: string; stock: number }[];
 }
 
-export async function getStockByBarcode(barcode: string): Promise<StockInfo | null> {
-  // Birinchi oddiy barcode tekshirish
-  const product = await prisma.product.findFirst({
-    where: { barcode, deletedAt: null },
-    select: {
-      id: true,
-      name: true,
-      sku: true,
-      barcode: true,
-      sellPrice: true,
-      costPrice: true,
-      tenantId: true,
-    },
-  }) ?? await prisma.productBarcode.findFirst({
-    where: { barcode },
-    include: { product: { select: { id: true, name: true, sku: true, barcode: true, sellPrice: true, costPrice: true, tenantId: true } } },
-  }).then((r) => r?.product ?? null);
+export async function getStockByBarcode(
+  barcode: string,
+  tenantId: string,
+): Promise<StockInfo | null> {
+  // tenantId filter bilan barcode qidirish
+  const product =
+    (await prisma.product.findFirst({
+      where: { barcode, tenantId, deletedAt: null },
+      select: { id: true, name: true, sku: true, barcode: true, sellPrice: true, costPrice: true, tenantId: true },
+    })) ??
+    (await prisma.productBarcode.findFirst({
+      where: { barcode, product: { tenantId } },
+      include: {
+        product: {
+          select: { id: true, name: true, sku: true, barcode: true, sellPrice: true, costPrice: true, tenantId: true },
+        },
+      },
+    }).then((r) => r?.product ?? null));
 
   if (!product) return null;
 
@@ -57,20 +60,18 @@ export async function getStockByBarcode(barcode: string): Promise<StockInfo | nu
     ORDER BY stock DESC
   `;
 
-  const totalStock = rows.reduce((s, r) => s + r.stock, 0);
-
   return {
     productName: product.name,
-    sku: product.sku,
-    barcode: product.barcode,
-    sellPrice: Number(product.sellPrice),
-    costPrice: Number(product.costPrice),
-    totalStock,
+    sku:         product.sku,
+    barcode:     product.barcode,
+    sellPrice:   Number(product.sellPrice),
+    costPrice:   Number(product.costPrice),
+    totalStock:  rows.reduce((s, r) => s + r.stock, 0),
     warehouseBreakdown: rows,
   };
 }
 
-// ─── /debt <phone> — Mijoz qarzi ma'lumoti ────────────────────
+// ─── /debt <phone> ────────────────────────────────────────────
 
 export interface DebtInfo {
   customerName: string;
@@ -81,9 +82,12 @@ export interface DebtInfo {
   debts: { remaining: number; dueDate: Date | null; status: string }[];
 }
 
-export async function getDebtByPhone(phone: string): Promise<DebtInfo | null> {
+export async function getDebtByPhone(
+  phone: string,
+  tenantId: string,
+): Promise<DebtInfo | null> {
   const customer = await prisma.customer.findFirst({
-    where: { phone },
+    where: { phone, tenantId },
     select: { id: true, name: true, phone: true, tenantId: true },
   });
 
@@ -99,24 +103,24 @@ export async function getDebtByPhone(phone: string): Promise<DebtInfo | null> {
     take: 10,
   });
 
-  const totalDebt = debts.reduce((s, d) => s + Number(d.remaining), 0);
+  const totalDebt    = debts.reduce((s, d) => s + Number(d.remaining), 0);
   const overdueCount = debts.filter((d) => d.status === 'OVERDUE').length;
 
   return {
     customerName: customer.name,
-    phone: customer.phone ?? phone,
+    phone:        customer.phone ?? phone,
     totalDebt,
-    debtCount: debts.length,
+    debtCount:    debts.length,
     overdueCount,
     debts: debts.map((d) => ({
       remaining: Number(d.remaining),
-      dueDate: d.dueDate,
-      status: d.status,
+      dueDate:   d.dueDate,
+      status:    d.status,
     })),
   };
 }
 
-// ─── /shift — Joriy aktiv smena holati ────────────────────────
+// ─── /shift — Aktiv smenalar ──────────────────────────────────
 
 export interface ShiftInfo {
   tenantName: string;
@@ -127,9 +131,12 @@ export interface ShiftInfo {
   hoursOpen: number;
 }
 
-export async function getActiveShifts(): Promise<ShiftInfo[]> {
+export async function getActiveShifts(tenantId?: string): Promise<ShiftInfo[]> {
   const shifts = await prisma.shift.findMany({
-    where: { status: 'OPEN' },
+    where: {
+      status: 'OPEN',
+      ...(tenantId ? { tenantId } : {}),
+    },
     include: {
       user:   { select: { firstName: true, lastName: true } },
       tenant: { select: { name: true } },
@@ -143,19 +150,15 @@ export async function getActiveShifts(): Promise<ShiftInfo[]> {
     shifts.map(async (s) => {
       const revenue = await prisma.order.aggregate({
         where: { shiftId: s.id, status: { not: 'VOIDED' } },
-        _sum: { total: true },
+        _sum:  { total: true },
       });
-      const hoursOpen = Math.round(
-        (Date.now() - s.openedAt.getTime()) / 3_600_000,
-      );
-
       return {
-        tenantName: s.tenant.name,
+        tenantName:  s.tenant.name,
         cashierName: `${s.user.firstName} ${s.user.lastName}`,
-        openedAt: s.openedAt,
+        openedAt:    s.openedAt,
         ordersCount: s._count.orders,
-        revenue: Number(revenue._sum.total ?? 0),
-        hoursOpen,
+        revenue:     Number(revenue._sum.total ?? 0),
+        hoursOpen:   Math.round((Date.now() - s.openedAt.getTime()) / 3_600_000),
       };
     }),
   );

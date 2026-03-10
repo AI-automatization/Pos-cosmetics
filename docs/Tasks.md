@@ -1435,6 +1435,104 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## ══════════════════════════════════════
+## BOT FIXES — Tenant izolyatsiya + Auth
+## ══════════════════════════════════════
+
+## T-125 | P0 | [BOT] | Auth middleware — ChatId orqali foydalanuvchini aniqlash
+- **Sana:** 2026-03-10
+- **Mas'ul:** Polat
+- **Fayl:** `apps/bot/src/services/auth.service.ts` (yangi)
+- **Muammo:** Bot hozir hech qanday autentifikatsiya qilmaydi — istalgan odam buyruq yoza oladi
+- **Kutilgan:** Har commandda avval `getUserByChatId(chatId)` chaqiriladi
+- **Implementatsiya:**
+  - `getUserByChatId(chatId: string)` → `users` jadvalidan `telegram_chat_id` orqali topadi
+  - Topilmasa → "Avval /start <token> orqali bog'lang" deydi
+  - `users.telegram_chat_id`, `users.role`, `users.tenantId`, `users.branchId` qaytaradi
+- **Qoida:** API endpoint-lari O'ZGARTIRILMAYDI — faqat bot ichida yangi logika
+
+## T-126 | P0 | [BOT] | Tenant izolyatsiya — Har command faqat o'z tenant ma'lumotini ko'rsatadi
+- **Sana:** 2026-03-10
+- **Mas'ul:** Polat
+- **Fayllar:**
+  - `apps/bot/src/services/report.service.ts`
+  - `apps/bot/src/services/stock.service.ts`
+  - `apps/bot/src/services/alert.service.ts`
+  - `apps/bot/src/handlers/commands.ts`
+- **Muammo:** Hozir barcha so'rovlarda `tenantId` filtri yo'q — barcha do'kon ma'lumoti ochiq
+- **Kutilgan:**
+  - `/report` → faqat user.tenantId savdolari
+  - `/stock <barcode>` → faqat user.tenantId mahsulotlari
+  - `/debt <phone>` → faqat user.tenantId mijozlari
+  - `/lowstock` → faqat user.tenantId past qoldiq
+  - `/expiring` → faqat user.tenantId muddati yaqin mahsulotlar
+  - `/shift` → faqat user.tenantId aktiv smenalar
+
+## T-127 | P1 | [BOT] | Role-based access — OWNER va MANAGER farqli ko'radi
+- **Sana:** 2026-03-10
+- **Mas'ul:** Polat
+- **Fayl:** `apps/bot/src/handlers/commands.ts`
+- **Muammo:** MANAGER ham OWNER kabi barcha filial ma'lumotini ko'radi
+- **Kutilgan:**
+  - `OWNER` → barcha filiallar summary + to'liq hisobot
+  - `MANAGER` → faqat `user.branchId` filtri bilan o'z filiali
+  - `CASHIER` → ruxsat yo'q, "Bot huquqi yo'q" javobi
+- **Implementatsiya:** T-125 dan kelgan `user.role` + `user.branchId` ishlatiladi
+
+## T-128 | P1 | [BOT] | Cron alertlar per-tenant — Har tenant faqat o'z alertlarini oladi
+- **Sana:** 2026-03-10
+- **Mas'ul:** Polat
+- **Fayl:** `apps/bot/src/cron/alerts.cron.ts`
+- **Muammo:** Hozir `BOT_ADMIN_CHAT_IDS` global list — qaysi tenant uchun ekanini bilmaydi
+- **Kutilgan:**
+  - Har active tenant uchun OWNER ni `telegram_chat_id` orqali topadi
+  - Low stock / expiry / refund alertlari faqat O'SHA tenant owneriga yuboriladi
+  - `BOT_ADMIN_CHAT_IDS` → faqat SaaS system admin uchun qoladi (system xatolari uchun)
+- **Implementatsiya:**
+  - `getOwnerChatIdsPerTenant()` helper → `users` jadvalidan OWNER role + telegram_chat_id bor userlarni topadi
+  - Har tenant uchun alohida alert yuboradi
+
+## T-130 | P0 | [BOT] | Low stock manfiy qoldiq — INVENTAR XATOSI sifatida ko'rsatish
+- **Sana:** 2026-03-10
+- **Mas'ul:** Polat
+- **Fayllar:** `apps/bot/src/services/alert.service.ts`, `apps/bot/src/services/formatter.ts`
+- **Muammo:** `-99 qoldi` ko'rinadi — manfiy qoldiq oddiy low stock bilan aralashib ketgan
+- **Yechim:** `isNegative: boolean` field qo'shildi; formatter ikki bo'limga ajratdi:
+  - `⛔ INVENTAR XATOSI (Manfiy qoldiq)` — alohida bo'lim
+  - `⚠️ KAM QOLGAN MAHSULOTLAR` — oddiy low stock
+
+## T-131 | P1 | [BOT] | Individual notification settings — /settings command
+- **Sana:** 2026-03-10
+- **Mas'ul:** Polat
+- **Fayllar:**
+  - `apps/api/prisma/schema.prisma` — `botSettings Json?` field User modeliga qo'shildi
+  - `apps/api/prisma/migrations/20260310000001_add_bot_settings/migration.sql` — yangi
+  - `apps/bot/src/services/settings.service.ts` — yangi (getBotSettings, updateBotSettings)
+  - `apps/bot/src/handlers/settings.handler.ts` — yangi (/settings + callbacks)
+- **Funksional:**
+  - `/settings` → inline keyboard bilan sozlamalar
+  - Toggle: lowStock, expiry, dailyReport, suspiciousRefund
+  - Muddati ogohlantirish: 30 / 60 / 90 kun
+  - Settings DB da `users.bot_settings` JSONB da saqlanadi
+  - Cron alertlar har user settings ini tekshiradi
+
+## T-129 | P1 | [BOT] | Test checklist — Bot to'liq test
+- **Sana:** 2026-03-10
+- **Mas'ul:** Polat
+- **Vazifa:** T-125..T-128 bajarilgandan keyin quyidagi hollarni tekshirish:
+  - [ ] Bog'lanmagan user /report → "Avval /start orqali bog'lang"
+  - [ ] /start <yaroqsiz_token> → "Token yaroqsiz" javobi
+  - [ ] /start <to'g'ri_token> → "Muvaffaqiyatli bog'landi"
+  - [ ] CASHIER /report → "Ruxsat yo'q"
+  - [ ] MANAGER /report → faqat o'z filiali ma'lumoti
+  - [ ] OWNER /report → barcha filiallar summary
+  - [ ] /stock <boshqa_tenant_barcode> → "Topilmadi"
+  - [ ] /debt <boshqa_tenant_phone> → "Topilmadi"
+  - [ ] Cron low stock → faqat to'g'ri tenant owneri oladi
+  - [ ] Cron alert → boshqa tenant owneri olmaydi
+
+---
+
 ## 📊 STATISTIKA
 
 | Umumiy | P0 | P1 | P2 | P3 |
