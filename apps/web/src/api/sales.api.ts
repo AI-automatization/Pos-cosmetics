@@ -24,15 +24,21 @@ export const salesApi = {
 
     const order = await apiClient.post<Order>('/sales/orders', backendDto).then((r) => r.data);
 
-    // Create payment intents via /payments/split
+    // Create and settle payment intents for POS flow
     if (dto.payments.length > 0) {
-      await apiClient.post('/payments/split', {
-        payments: dto.payments.map((p) => ({
-          orderId: order.id,
-          method: p.method,
-          amount: p.amount,
-        })),
-      });
+      const intents = await apiClient
+        .post<{ id: string }[]>('/payments/split', {
+          payments: dto.payments.map((p) => ({
+            orderId: order.id,
+            method: p.method,
+            amount: p.amount,
+          })),
+        })
+        .then((r) => r.data);
+      // Settle all intents so analytics/reports see SETTLED revenue
+      await Promise.allSettled(
+        intents.map((intent) => apiClient.patch(`/payments/${intent.id}/settle`)),
+      );
     }
 
     return order;
