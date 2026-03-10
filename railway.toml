@@ -1,6 +1,14 @@
-# Root railway.toml — placeholder only.
-# Har bir service o'z papkasidagi railway.toml ni ishlatadi:
-#   web    → apps/web/railway.toml    (Root Directory: apps/web)
-#   api    → apps/api/railway.toml    (Root Directory: apps/api)
-#   bot    → apps/bot/railway.toml    (Root Directory: apps/bot)
-#   worker → apps/worker/railway.toml (Root Directory: apps/worker)
+# Root railway.toml — used by the web service (Root Directory = /)
+# Other services (api, worker, bot) have their own Root Directory set in Railway UI
+# and use their own railway.toml files.
+
+[build]
+# Build from repo root so Docker can access packages/types, packages/ui
+dockerfilePath = "apps/web/Dockerfile"
+
+[deploy]
+startCommand = "node apps/web/server.js"
+healthcheckPath = "/"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
