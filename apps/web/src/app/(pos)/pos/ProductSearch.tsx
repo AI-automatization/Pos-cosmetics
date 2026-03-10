@@ -15,8 +15,11 @@ interface ProductSearchProps {
 }
 
 function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }) {
-  const isLowStock = product.currentStock <= product.minStock;
-  const isOutOfStock = product.currentStock === 0;
+  const stock = product.currentStock ?? 0;
+  const minStock = product.minStockLevel ?? 0;
+  const isLowStock = stock > 0 && stock <= minStock;
+  const isOutOfStock = stock === 0;
+  const unitLabel = product.unit?.shortName ?? product.unit?.name ?? '';
 
   return (
     <button
@@ -40,7 +43,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
         {formatPrice(product.sellPrice)}
       </p>
       <div className="mt-1 flex items-center justify-between">
-        <span className="text-xs text-gray-400">{product.sku}</span>
+        <span className="text-xs text-gray-400">{product.sku ?? '—'}</span>
         <span
           className={cn(
             'text-xs',
@@ -51,7 +54,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
                 : 'text-green-600',
           )}
         >
-          {product.currentStock} {product.unit}
+          {stock} {unitLabel}
         </span>
       </div>
     </button>
@@ -73,9 +76,9 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         productId: product.id,
         name: product.name,
         barcode: product.barcode,
-        sku: product.sku,
-        sellPrice: product.sellPrice,
-        unit: product.unit,
+        sku: product.sku ?? '',
+        sellPrice: Number(product.sellPrice),
+        unit: (product.unit?.shortName ?? product.unit?.name ?? 'dona') as import('@/types/catalog').ProductUnit,
       });
     },
     [addItem],
