@@ -58,6 +58,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Buyurtmalar', href: '/sales/orders' },
       { label: 'Qaytarishlar', href: '/sales/returns' },
       { label: 'Smenalar', href: '/sales/shifts' },
+      { label: 'Aksiyalar', href: '/sales/promotions' },
     ],
   },
   { label: 'To\'lovlar', href: '/payments/history', icon: CreditCard },
@@ -93,6 +94,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Top mahsulotlar', href: '/reports/top-products' },
       { label: 'Smenalar', href: '/reports/shifts' },
       { label: 'Filiallar', href: '/reports/branches' },
+      { label: 'Eksport', href: '/reports/export' },
     ],
   },
   {

@@ -2,13 +2,27 @@ import { Module } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
 import { PushService } from './push.service';
-import { SmsService } from './sms.service';
+import { TelegramNotifyService } from './telegram-notify.service';
+import { EmailNotifyService } from './email-notify.service';
+import { NotifyService } from './notify.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  providers: [NotificationsService, PushService, SmsService],
+  providers: [
+    NotificationsService,
+    PushService,
+    TelegramNotifyService,
+    EmailNotifyService,
+    NotifyService,
+  ],
   controllers: [NotificationsController],
-  exports: [NotificationsService, PushService, SmsService],
+  exports: [
+    NotificationsService,
+    PushService,
+    TelegramNotifyService,
+    EmailNotifyService,
+    NotifyService,
+  ],
 })
 export class NotificationsModule {}

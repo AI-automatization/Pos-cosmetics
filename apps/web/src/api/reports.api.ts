@@ -28,8 +28,18 @@ export const reportsApi = {
         .then((r) => r.data),
     ]);
 
+    // B-015 fix: normalize salesSummary shape to what dashboard/page.tsx expects
+    // Backend returns { orders: { count, grossRevenue, totalDiscount }, netRevenue }
+    // Frontend expects { totalRevenue, ordersCount, netRevenue, discountAmount, averageOrderValue }
+    const s = salesSummary ?? {};
+    const ordersCount: number = s.orders?.count ?? 0;
+    const totalRevenue: number = s.orders?.grossRevenue ?? 0;
+    const discountAmount: number = s.orders?.totalDiscount ?? 0;
+    const netRevenue: number = s.netRevenue ?? 0;
+    const averageOrderValue: number = ordersCount > 0 ? totalRevenue / ordersCount : 0;
+
     return {
-      today: salesSummary,
+      today: { totalRevenue, ordersCount, netRevenue, discountAmount, averageOrderValue, returnsAmount: s.returns?.total ?? 0 },
       weeklyRevenue: Array.isArray(weeklyRevenue) ? weeklyRevenue : [],
       topProducts: Array.isArray(topProducts) ? topProducts : [],
       lowStockCount: Array.isArray(lowStockRes) ? lowStockRes.length : 0,
@@ -71,6 +81,33 @@ export const reportsApi = {
           expectedCash: s.expectedCash ?? 0,
           discrepancy: s.discrepancy ?? null,
         }));
+      });
+  },
+
+  getEmployeeActivity(params: { from?: string; to?: string; userId?: string } = {}) {
+    return apiClient
+      .get<unknown[]>('/reports/employee-activity', { params })
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  exportDownload(
+    type: 'sales' | 'order-items' | 'products' | 'inventory' | 'customers' | 'debts',
+    params: Record<string, string> = {},
+  ) {
+    return apiClient
+      .get(`/reports/export/${type}`, { params, responseType: 'blob' })
+      .then((r) => {
+        const url = window.URL.createObjectURL(new Blob([r.data as BlobPart]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+          'download',
+          `${type}-export-${new Date().toISOString().slice(0, 10)}.csv`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
       });
   },
 };

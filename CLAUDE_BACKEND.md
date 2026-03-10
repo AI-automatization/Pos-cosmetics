@@ -114,8 +114,9 @@ apps/api/src/
     notifications.module.ts
     notifications.service.ts
     channels/
-      telegram.channel.ts
-      sms.channel.ts
+      telegram.channel.ts   ← birlamchi kanal
+      email.channel.ts      ← zaxira kanal (SMTP)
+      # sms.channel.ts — O'CHIRILDI (Eskiz TAQIQLANGAN, Polat 2026-03-09)
   common/
     decorators/
       current-user.decorator.ts
@@ -524,7 +525,7 @@ fiscal-receipt     → Fiscal cheklarni yuborish
 payment-reconcile  → Payment tekshiruv (kunlik)
 sync-inbound       → POS dan kelgan offline data
 analytics-compute  → AI/Analytics hisoblash
-notification       → Telegram/SMS yuborish
+notification       → Telegram (birlamchi) / Email (zaxira) yuborish — SMS/Eskiz TAQIQLANGAN
 backup             → Database backup
 report-generate    → Hisobot generatsiya
 ```

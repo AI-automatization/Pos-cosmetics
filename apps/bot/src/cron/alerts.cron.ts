@@ -1,4 +1,4 @@
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 import { Bot } from 'grammy';
 import { config } from '../config';
 import { getLowStockItems, getExpiringItems, getRecentSuspiciousRefunds } from '../services/alert.service';

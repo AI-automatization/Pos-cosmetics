@@ -24,11 +24,21 @@ async function bootstrap() {
   // T-077: Response compression (gzip/brotli)
   app.use(compression());
   // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
-  const corsOriginRaw = config.get<string>('CORS_ORIGIN', 'http://localhost:3001');
+  const corsOriginRaw = config.get<string>(
+    'CORS_ORIGIN',
+    'http://localhost:3001,http://localhost:3000,https://web-production-5b0b7.up.railway.app',
+  );
   const corsOrigin = corsOriginRaw.includes(',')
     ? corsOriginRaw.split(',').map((o) => o.trim())
     : corsOriginRaw;
-  app.enableCors({ origin: corsOrigin, credentials: true });
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'X-Bootstrap-Secret'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
 
   // Global prefix
   const prefix = config.get<string>('API_PREFIX', 'api/v1');
