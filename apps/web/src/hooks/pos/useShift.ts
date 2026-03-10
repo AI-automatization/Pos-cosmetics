@@ -17,8 +17,23 @@ export function useOpenShift(onSuccess?: () => void) {
       toast.success('Smena muvaffaqiyatli ochildi!');
       onSuccess?.();
     },
-    onError: (err: unknown) => {
-      toast.error(extractErrorMessage(err));
+    onError: async (err: unknown, variables) => {
+      const msg = extractErrorMessage(err);
+      // If a shift is already open, fetch it and resume silently
+      if (msg.includes('already has an open shift') || msg.includes('already has open')) {
+        try {
+          const existing = await shiftApi.getActiveShift();
+          if (existing) {
+            openShift(existing.id, variables.cashierName ?? 'Kassir', Number(existing.openingCash));
+            toast.success('Mavjud smena tiklandi');
+            onSuccess?.();
+            return;
+          }
+        } catch {
+          // fall through to default error
+        }
+      }
+      toast.error(msg);
     },
   });
 }
