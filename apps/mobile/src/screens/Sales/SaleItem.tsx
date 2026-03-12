@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { Order } from '@raos/types';
 import Badge from '../../components/common/Badge';
 import { formatUZS } from '../../utils/currency';
@@ -7,11 +8,18 @@ import { formatTime } from '../../utils/date';
 
 interface SaleItemProps {
   readonly order: Order;
+  readonly onPress: (order: Order) => void;
 }
 
-function SaleItem({ order }: SaleItemProps) {
+function SaleItem({ order, onPress }: SaleItemProps) {
+  const { t } = useTranslation();
+
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => onPress(order)}
+      activeOpacity={0.7}
+    >
       <View style={styles.row}>
         <Text style={styles.orderNum}>#{order.orderNumber}</Text>
         <Badge
@@ -20,11 +28,13 @@ function SaleItem({ order }: SaleItemProps) {
         />
       </View>
       <View style={styles.row}>
-        <Text style={styles.items}>{order.items.length} mahsulot</Text>
+        <Text style={styles.items}>
+          {order.items.length} {t('sales.items')}
+        </Text>
         <Text style={styles.time}>{formatTime(order.createdAt)}</Text>
       </View>
       <Text style={styles.total}>{formatUZS(order.total)}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

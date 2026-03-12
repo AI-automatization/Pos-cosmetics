@@ -6,7 +6,6 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import './i18n';
 import { useAuthStore } from './store/auth.store';
-import { navigationRef } from './api/client';
 import RootNavigator from './navigation/RootNavigator';
 import { useNotifications } from './hooks/useNotifications';
 
@@ -21,7 +20,6 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const loadFromStorage = useAuthStore((s) => s.loadFromStorage);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
   const [ready, setReady] = useState(false);
 
   useNotifications();
@@ -39,13 +37,7 @@ function AppContent() {
   }
 
   return (
-    <NavigationContainer
-      ref={() => {
-        navigationRef.resetToAuth = () => {
-          clearAuth();
-        };
-      }}
-    >
+    <NavigationContainer>
       <StatusBar style="dark" />
       <RootNavigator />
     </NavigationContainer>

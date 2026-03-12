@@ -9,9 +9,11 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
@@ -20,26 +22,44 @@ import { useAuthStore } from '../../store/auth.store';
 import { extractErrorMessage } from '../../utils/error';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 
+const COLORS = {
+  primary: '#5B5BD6',
+  primaryLight: 'rgba(91, 91, 214, 0.1)',
+  background: '#F5F5F7',
+  white: '#FFFFFF',
+  textPrimary: '#111827',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  border: '#E5E7EB',
+  label: '#374151',
+};
+
+const LANGS = [
+  { code: 'uz', label: "O'ZBEK" },
+  { code: 'ru', label: 'RUSSIAN' },
+  { code: 'en', label: 'ENGLISH' },
+];
+
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
   const { isAvailable: biometricAvailable } = useBiometricAuth();
   const setUser = useAuthStore((s) => s.setUser);
 
-  const [slug, setSlug] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!slug.trim() || !email.trim() || !password.trim()) return;
+    if (!email.trim() || !password.trim()) return;
     setLoading(true);
     try {
-      const res = await authApi.login({ slug: slug.trim(), email: email.trim(), password });
-      // Avval tokenni vaqtincha saqlash (me() so'rovi uchun kerak)
+      // slug — tenant kodi, keyinchalik QR yoki settings orqali konfiguratsiya qilinadi
+      const slug = await SecureStore.getItemAsync('tenant_slug') ?? '';
+      const res = await authApi.login({ slug, email: email.trim(), password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
-      // Foydalanuvchi ma'lumotlarini olish
       const me = await authApi.me();
       await setUser(me, res.accessToken, res.refreshToken);
     } catch (err) {
@@ -53,76 +73,153 @@ export default function LoginScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.logoArea}>
-          <Text style={styles.logo}>RAOS</Text>
-          <Text style={styles.subtitle}>Retail & Asset Operating System</Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ── Logo ── */}
+          <View style={styles.logoArea}>
+            <View style={styles.logoBox}>
+              <Text style={styles.logoLetter}>R</Text>
+            </View>
+            <Text style={styles.logoText}>RAOS</Text>
+            <Text style={styles.subtitle}>Savdo tizimiga xush kelibsiz</Text>
+          </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Do'kon kodi (slug)</Text>
-          <TextInput
-            style={styles.input}
-            value={slug}
-            onChangeText={setSlug}
-            placeholder="kosmetika"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!loading}
-          />
+          {/* ── Form ── */}
+          <View style={styles.form}>
 
-          <Text style={styles.label}>{t('auth.email')}</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="owner@example.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!loading}
-          />
+            {/* Email */}
+            <Text style={styles.label}>Elektron pochta</Text>
+            <View style={styles.inputWrapper}>
+              <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="example@mail.com"
+                placeholderTextColor={COLORS.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+              />
+            </View>
 
-          <Text style={styles.label}>{t('auth.password')}</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            secureTextEntry
-            editable={!loading}
-          />
+            {/* Password */}
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Parol</Text>
+              <TouchableOpacity activeOpacity={0.7}>
+                <Text style={styles.forgotText}>Parolni unutdingizmi?</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.inputWrapper}>
+              <Feather name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, styles.inputPasswordField]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                placeholderTextColor={COLORS.textMuted}
+                secureTextEntry={!showPassword}
+                editable={!loading}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword((v) => !v)}
+                style={styles.eyeButton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Feather
+                  name={showPassword ? 'eye' : 'eye-off'}
+                  size={18}
+                  color={COLORS.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-            accessibilityLabel={t('auth.loginButton')}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.buttonText}>{t('auth.loginButton')}</Text>
-            )}
-          </TouchableOpacity>
-
-          {biometricAvailable && (
+            {/* Login button */}
             <TouchableOpacity
-              style={styles.biometricButton}
-              onPress={() => navigation.navigate('Biometric')}
+              style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.85}
             >
-              <Text style={styles.biometricText}>👆 {t('auth.biometricPrompt')}</Text>
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.loginButtonText}>Kirish →</Text>
+              )}
             </TouchableOpacity>
-          )}
 
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerLabel}>YOKI</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Biometric button */}
+            {biometricAvailable && (
+              <TouchableOpacity
+                style={styles.biometricButton}
+                onPress={() => navigation.navigate('Biometric')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="finger-print-outline" size={20} color={COLORS.primary} />
+                <Text style={styles.biometricText}>Barmoq izi bilan kirish</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Register link */}
+            <View style={styles.registerRow}>
+              <Text style={styles.registerText}>Hisobingiz yo'qmi? </Text>
+              <TouchableOpacity activeOpacity={0.7}>
+                <Text style={styles.registerLink}>Ro'yxatdan o'ting</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Language selector */}
+            <View style={styles.langRow}>
+              {LANGS.map((lang, i) => (
+                <React.Fragment key={lang.code}>
+                  {i > 0 && <Text style={styles.langSep}>|</Text>}
+                  <TouchableOpacity
+                    onPress={() => i18n.changeLanguage(lang.code)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.langText,
+                        i18n.language === lang.code && styles.langTextActive,
+                      ]}
+                    >
+                      {lang.label}
+                    </Text>
+                  </TouchableOpacity>
+                </React.Fragment>
+              ))}
+            </View>
+          </View>
+
+          {/* DEV only */}
           {__DEV__ && (
             <TouchableOpacity
               style={styles.demoButton}
               onPress={() =>
                 setUser(
-                  { id: 'demo', email: 'demo@raos.uz', firstName: 'Demo', lastName: 'User', role: 'OWNER', tenantId: 'demo-tenant', tenant: { id: 'demo-tenant', name: 'Demo Do\'kon', slug: 'demo' } },
+                  {
+                    id: 'demo',
+                    email: 'demo@raos.uz',
+                    firstName: 'Demo',
+                    lastName: 'User',
+                    role: 'OWNER',
+                    tenantId: 'demo-tenant',
+                    tenant: { id: 'demo-tenant', name: "Demo Do'kon", slug: 'demo' },
+                  },
                   'demo-access-token',
                   'demo-refresh-token',
                 )
@@ -131,7 +228,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={styles.demoText}>🧪 Demo kirish</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -140,94 +237,210 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: COLORS.background,
+  },
+  flex: {
+    flex: 1,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
   },
+
+  // ── Logo ──
   logoArea: {
     alignItems: 'center',
     marginBottom: 40,
   },
-  logo: {
-    fontSize: 40,
+  logoBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  logoLetter: {
+    color: COLORS.white,
+    fontSize: 34,
     fontWeight: '800',
-    color: '#6366F1',
-    letterSpacing: 2,
+  },
+  logoText: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: 3,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    marginTop: 4,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
+
+  // ── Form ──
   form: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    gap: 0,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 6,
-    marginTop: 12,
+    color: COLORS.label,
+    marginBottom: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#111827',
-    backgroundColor: '#F9FAFB',
-    minHeight: 48,
-  },
-  button: {
-    backgroundColor: '#6366F1',
-    borderRadius: 8,
-    paddingVertical: 14,
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 24,
-    minHeight: 48,
-    justifyContent: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  biometricButton: {
     marginTop: 16,
-    alignItems: 'center',
-    paddingVertical: 12,
-    minHeight: 48,
-    justifyContent: 'center',
+    marginBottom: 8,
   },
-  biometricText: {
-    color: '#6366F1',
-    fontSize: 14,
+  forgotText: {
+    fontSize: 13,
+    color: COLORS.primary,
     fontWeight: '500',
   },
-  demoButton: {
-    marginTop: 12,
+  inputWrapper: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.textPrimary,
+  },
+  inputPasswordField: {
+    paddingRight: 4,
+  },
+  eyeButton: {
+    paddingLeft: 8,
+  },
+
+  // ── Login Button ──
+  loginButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  loginButtonDisabled: {
+    opacity: 0.65,
+  },
+  loginButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+
+  // ── Divider ──
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.border,
+  },
+  dividerLabel: {
+    marginHorizontal: 12,
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    letterSpacing: 1.5,
+  },
+
+  // ── Biometric ──
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    height: 52,
+    gap: 10,
+    backgroundColor: COLORS.white,
+  },
+  biometricText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+
+  // ── Register ──
+  registerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  registerText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  registerLink: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+
+  // ── Language ──
+  langRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 10,
+  },
+  langSep: {
+    color: COLORS.border,
+    fontSize: 13,
+  },
+  langText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  langTextActive: {
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+
+  // ── Dev Demo ──
+  demoButton: {
+    alignItems: 'center',
+    paddingVertical: 14,
+    marginTop: 16,
   },
   demoText: {
-    color: '#9CA3AF',
+    color: COLORS.textMuted,
     fontSize: 13,
     fontWeight: '500',
   },

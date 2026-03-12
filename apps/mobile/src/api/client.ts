@@ -1,10 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { CONFIG } from '../config';
-
-export const navigationRef = {
-  resetToAuth: (): void => {},
-};
+import { useAuthStore } from '../store/auth.store';
 
 const api = axios.create({
   baseURL: CONFIG.API_URL,
@@ -43,11 +40,9 @@ api.interceptors.response.use(
         }
         return api(config);
       } catch {
-        await SecureStore.deleteItemAsync('access_token');
-        await SecureStore.deleteItemAsync('refresh_token');
         // Dev modeda avtomatik logout qilmaymiz — demo data ishlashi uchun
         if (!__DEV__) {
-          navigationRef.resetToAuth();
+          await useAuthStore.getState().clearAuth();
         }
       }
     }

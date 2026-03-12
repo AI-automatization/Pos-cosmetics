@@ -3,12 +3,18 @@ export type AuthStackParamList = {
   Biometric: undefined;
 };
 
+export type SalesStackParamList = {
+  SalesList: undefined;
+  SaleDetail: { orderId: string; orderNumber: number };
+};
+
 export type TabParamList = {
   Dashboard: undefined;
-  Sales: undefined;
-  Inventory: undefined;
+  Savdo: undefined;
+  SavdoTarixi: undefined;
   Nasiya: undefined;
-  Scanner: undefined;
+  Kirim: undefined;
+  Settings: undefined;
 };
 
 export type RootStackParamList = {

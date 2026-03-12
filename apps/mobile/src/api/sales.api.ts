@@ -23,6 +23,11 @@ export const salesApi = {
     return data;
   },
 
+  getOrderById: async (orderId: string): Promise<Order> => {
+    const { data } = await api.get<Order>(`/sales/orders/${orderId}`);
+    return data;
+  },
+
   getCurrentShift: async (): Promise<Shift | null> => {
     try {
       const { data } = await api.get<Shift>('/sales/shifts/current');

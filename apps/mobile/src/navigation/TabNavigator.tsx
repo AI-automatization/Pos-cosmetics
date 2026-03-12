@@ -1,21 +1,19 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
-import { Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { TabParamList } from './types';
-import DashboardScreen from '../screens/Dashboard';
-import SalesScreen from '../screens/Sales';
-import InventoryScreen from '../screens/Inventory';
+import SmenaScreen from '../screens/Smena';
+import SavdoScreen from '../screens/Savdo';
+import SalesNavigator from './SalesNavigator';
 import NasiyaScreen from '../screens/Nasiya';
-import ScannerScreen from '../screens/Scanner';
+import KirimScreen from '../screens/Kirim';
+import SettingsScreen from '../screens/Settings';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
-function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
-  return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>{icon}</Text>
-  );
-}
+const PRIMARY = '#5B5BD6';
+const INACTIVE = '#9CA3AF';
 
 export default function TabNavigator() {
   const { t } = useTranslation();
@@ -24,38 +22,61 @@ export default function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#6366F1',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: { paddingBottom: 4, height: 60 },
+        tabBarActiveTintColor: PRIMARY,
+        tabBarInactiveTintColor: INACTIVE,
+        tabBarStyle: {
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 6,
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#F3F4F6',
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
       }}
     >
       <Tab.Screen
         name="Dashboard"
-        component={DashboardScreen}
+        component={SmenaScreen}
         options={{
-          tabBarLabel: t('dashboard.title'),
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="📊" focused={focused} />
+          tabBarLabel: 'Smena',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'time' : 'time-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
       <Tab.Screen
-        name="Sales"
-        component={SalesScreen}
+        name="Savdo"
+        component={SavdoScreen}
         options={{
-          tabBarLabel: t('sales.title'),
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="🛍️" focused={focused} />
+          tabBarLabel: t('savdo.title'),
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'cart' : 'cart-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
       <Tab.Screen
-        name="Inventory"
-        component={InventoryScreen}
+        name="SavdoTarixi"
+        component={SalesNavigator}
         options={{
-          tabBarLabel: t('inventory.title'),
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="📦" focused={focused} />
+          tabBarLabel: 'Tarix',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'receipt' : 'receipt-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
@@ -63,19 +84,41 @@ export default function TabNavigator() {
         name="Nasiya"
         component={NasiyaScreen}
         options={{
-          tabBarLabel: t('nasiya.title'),
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="💸" focused={focused} />
+          tabBarLabel: 'Nasiya',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'card' : 'card-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
       <Tab.Screen
-        name="Scanner"
-        component={ScannerScreen}
+        name="Kirim"
+        component={KirimScreen}
         options={{
-          tabBarLabel: t('scanner.title'),
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="📷" focused={focused} />
+          tabBarLabel: t('kirim.title'),
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'archive' : 'archive-outline'}
+              size={22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: t('settings.title'),
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'settings' : 'settings-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />

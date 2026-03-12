@@ -161,4 +161,16 @@
 
 ---
 
+| T-133 | 2026-03-12 | Settings Screen iOS — Profil kartasi (primary bg, avatar, ism, rol, filial), til tanlash (UZ/RU/EN segmented), printer sozlamalari (Bluetooth toggle, printer tanlash, avtomatik chop), dastur haqida (versiya, maxfiylik, yordam), Chiqish (red, logout+clearAuth). MenuRow komponent chevron bilan. | `apps/mobile/src/screens/Settings/index.tsx` |
+| T-132 | 2026-03-12 | Kirim Tafsilotlari (Detail) iOS — Bottom sheet modal, sheet header (raqam, yetkazib beruvchi), status badge, sana, notes (agar bor), mahsulotlar ro'yxati (idx circle, nom, narx/dona, qty, jami), footer summary (jami miqdor + jami narx). KirimScreen ichida. | `apps/mobile/src/screens/Kirim/index.tsx` |
+| T-131 | 2026-03-12 | Kirim Screen iOS — Stats chips (Jami/Kutilmoqda/Qabul qilingan/Jami summa), qidirish (raqam yoki yetkazib beruvchi), ReceiptCard (icon, raqam, supplier, status badge, sana, items soni, summa), FlatList. | `apps/mobile/src/screens/Kirim/index.tsx` |
+| T-130 | 2026-03-12 | Smena Screen iOS — Header (sana, Faol/Yopilgan pill), aktiv smena kartasi (yashil chiziq, cashier, vaqt, ochilish naqdi), 2×2 stats grid (Tushum/Naqd/Karta/Nasiya), batafsil hisobot (nasiya, xarajat, sof daromad), smena tarixi, Smena ochish/Yopish tugma. Dashboard tab o'rnini egalladi. | `apps/mobile/src/screens/Smena/index.tsx` |
+| T-129 | 2026-03-12 | Nasiya Screen iOS — Summary card (jami qarz, muddati o'tgan), qidirish, tabs (Hammasi/Muddati o'tgan/Faol), DebtCard (progress bar, status badge, To'lov tugma), FAB (yangi qarz), PaymentModal (quick fill 25%/50%/100%, miqdor input). Mock data. Nasiya tab TabNavigator ga qo'shildi. | `apps/mobile/src/screens/Nasiya/index.tsx` |
+| T-128 | 2026-03-12 | Sales History (Tarix) Screen iOS — Figma 1:282 ga mos. Header (hamburger, sana, calendar), ShiftCard (yashil chiziq, cashier, Yopish tugma), StatsGrid (3 ustun: TUSHUM/SONI/O'RTACHA), SaleRow (NAQD/KARTA/NASIYA badge), FlatList. | `apps/mobile/src/screens/Sales/index.tsx` |
+| T-127 | 2026-03-12 | Payment Sheet iOS — Bottom sheet modal, 3 usul (NAQD/KARTA/NASIYA), Aralash to'lov toggle (Switch), qaytim hisoblash, split naqd+karta, Tasdiqlash tugma. | `apps/mobile/src/screens/Savdo/PaymentSheet.tsx` |
+| T-126 | 2026-03-12 | Savdo Screen iOS — Figma ga mos. Mahsulot grid (2 ustun), 4 holat (In Stock/Low Stock/Tugagan/Normal), kategoriya tabs (Hammasi/Yuz/Soch/Tana), qidirish + barcode scanner (CameraSection T-102 dan qayta ishlatildi), cart bar (jami + To'lov tugma). Mock data bilan ishlaydi. | `apps/mobile/src/screens/Savdo/index.tsx`, `ProductCard.tsx`, `ScannerModal.tsx` |
+| T-125 | 2026-03-12 | Login Screen iOS — Figma ga 1:1 mos. Logo box (purple R), RAOS subtitle, email/parol inputlar (ikonkalar bilan), eye toggle, "Parolni unutdingizmi?", Kirish→ tugma, YOKI divider, barmoq izi tugma, til tanlash (UZ/RU/EN). Auto-demo-auth `auth.store.ts` dan olib tashlandi — LoginScreen dagi "🧪 Demo kirish" tugmasi orqali kirish. | `apps/mobile/src/screens/Auth/LoginScreen.tsx`, `apps/mobile/src/store/auth.store.ts` |
+
+---
+
 *docs/Done.md | RAOS*
