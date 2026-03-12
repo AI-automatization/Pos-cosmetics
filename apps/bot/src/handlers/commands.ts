@@ -4,7 +4,13 @@
 
 import { Bot, Context } from 'grammy';
 import { config } from '../config';
-import { getUserByChatId, isBotAllowed } from '../services/auth.service';
+import {
+  getUserByChatId,
+  isBotAllowed,
+  verifyCredentialsAndSendOtp,
+  verifyOtpAndLogin,
+  logoutUser,
+} from '../services/auth.service';
 import { getTodaySummary } from '../services/report.service';
 import { getLowStockItems, getExpiringItems } from '../services/alert.service';
 import {
@@ -19,31 +25,62 @@ import {
 } from '../services/formatter';
 import { getStockByBarcode, getDebtByPhone, getActiveShifts } from '../services/stock.service';
 
+// ─── Login conversation state ─────────────────────────────────
+//
+// Flow:
+//   /login
+//     → awaiting_email   : email kiritiladi
+//     → awaiting_password: parol kiritiladi → credentials tekshiriladi → OTP emailga
+//     → awaiting_otp     : 6-raqamli kod kiritiladi → login
+
+interface LoginSession {
+  step: 'awaiting_email' | 'awaiting_password' | 'awaiting_otp';
+  email?: string;
+}
+
+const loginSessions = new Map<string, LoginSession>();
+
 // ─── Auth helper ─────────────────────────────────────────────
-
-const NO_ACCESS_MSG =
-  '❌ Botdan foydalanish uchun avval hisobingizni bog\'lang\\.\n\n' +
-  'RAOS tizimiga kirng va Telegram bot link oling\\.';
-
-const NO_ROLE_MSG =
-  '❌ Sizning rolingizda bot huquqi yo\'q\\.\n' +
-  'CASHIER roli bot ishlatishi mumkin emas\\.';
 
 async function getAuthUser(ctx: Context) {
   const chatId = String(ctx.chat?.id);
   const user = await getUserByChatId(chatId);
 
   if (!user) {
-    await ctx.reply(NO_ACCESS_MSG, { parse_mode: 'MarkdownV2' });
+    await ctx.reply(
+      '❌ Siz tizimga kirmagansiz\\.\n\n' +
+      'Kirish uchun: /login',
+      { parse_mode: 'MarkdownV2' },
+    );
     return null;
   }
 
   if (!isBotAllowed(user.role)) {
-    await ctx.reply(NO_ROLE_MSG, { parse_mode: 'MarkdownV2' });
+    await ctx.reply(
+      '❌ Sizning rolingizda bot huquqi yo\'q\\.\n' +
+      'CASHIER roli bot ishlatishi mumkin emas\\.',
+      { parse_mode: 'MarkdownV2' },
+    );
     return null;
   }
 
   return user;
+}
+
+// ─── Buyruqlar ro'yxati (login bo'lgan foydalanuvchi uchun) ───
+
+function commandList(): string {
+  return (
+    '📊 /report — Bugungi savdo hisoboti\n' +
+    '📈 /sales — Joriy kun statistika\n' +
+    '📦 /stock \\<barcode\\> — Stok tekshirish\n' +
+    '💳 /debt \\<telefon\\> — Mijoz qarzi\n' +
+    '🔄 /shift — Aktiv smenalar\n' +
+    '⚠️ /lowstock — Kam qolgan mahsulotlar\n' +
+    '🗓 /expiring — Muddati yaqin mahsulotlar\n' +
+    '🔔 /settings — Sozlamalar\n' +
+    '🚪 /logout — Chiqish'
+  );
 }
 
 // ─── Komandalar ───────────────────────────────────────────────
@@ -54,27 +91,86 @@ export function registerCommands(bot: Bot) {
 
   bot.command('start', async (ctx) => {
     const payload = ctx.match?.trim();
+
+    // Deep link token (eski web-link flow — hali ham ishlaydi)
     if (payload && payload.length > 0) {
       await handleLinkToken(ctx, payload);
       return;
     }
 
+    const chatId = String(ctx.chat?.id);
+    const alreadyLoggedIn = await getUserByChatId(chatId);
+
+    if (alreadyLoggedIn) {
+      await ctx.reply(
+        `👋 Xush kelibsiz, *${esc(alreadyLoggedIn.firstName)}*\\!\n\n` +
+        '*Buyruqlar:*\n' +
+        commandList(),
+        { parse_mode: 'MarkdownV2' },
+      );
+    } else {
+      await ctx.reply(
+        '👋 Salom\\! Men *RAOS* savdo tizimi botiman\\.\n\n' +
+        'Botdan foydalanish uchun tizimga kiring:\n\n' +
+        '👉 /login — Email va parol bilan kirish',
+        { parse_mode: 'MarkdownV2' },
+      );
+    }
+  });
+
+  // ─── /login ─────────────────────────────────────────────────
+
+  bot.command('login', async (ctx) => {
+    const chatId = String(ctx.chat?.id);
+
+    const alreadyLoggedIn = await getUserByChatId(chatId);
+    if (alreadyLoggedIn) {
+      await ctx.reply(
+        `✅ Siz allaqachon tizimdasiz \\(*${esc(alreadyLoggedIn.firstName)}*\\)\\.\n` +
+        'Chiqish uchun: /logout',
+        { parse_mode: 'MarkdownV2' },
+      );
+      return;
+    }
+
+    loginSessions.set(chatId, { step: 'awaiting_email' });
+
     await ctx.reply(
-      '👋 Salom\\! Men *RAOS* savdo tizimi botiman\\.\n\n' +
-      'Botdan foydalanish uchun RAOS tizimiga kiring va\n' +
-      'Telegram hisobingizni bog\'lang\\.\n\n' +
-      '*Bog\'langandan keyin buyruqlar:*\n' +
-      '📊 /report — Bugungi savdo hisoboti\n' +
-      '📈 /sales — Joriy kun savdo statistikasi\n' +
-      '📦 /stock <barcode> — Mahsulot stok tekshirish\n' +
-      '💳 /debt <telefon> — Mijoz qarzi\n' +
-      '🔄 /shift — Aktiv smenalar\n' +
-      '⚠️ /lowstock — Kam qolgan mahsulotlar\n' +
-      '🗓 /expiring — Muddati yaqin mahsulotlar\n' +
-      '🔔 /settings — Bildirishnoma sozlamalari\n' +
-      '❓ /help — Yordam',
+      '🔐 *Tizimga kirish*\n\n' +
+      '*1\\.* Email manzilingizni kiriting:',
       { parse_mode: 'MarkdownV2' },
     );
+  });
+
+  // ─── /logout ────────────────────────────────────────────────
+
+  bot.command('logout', async (ctx) => {
+    const chatId = String(ctx.chat?.id);
+    loginSessions.delete(chatId);
+
+    const success = await logoutUser(chatId);
+
+    if (success) {
+      await ctx.reply(
+        '✅ Tizimdan muvaffaqiyatli chiqdingiz\\.\n\n' +
+        'Qayta kirish uchun: /login',
+        { parse_mode: 'MarkdownV2' },
+      );
+    } else {
+      await ctx.reply('ℹ️ Siz tizimda emasedingiz\\.', { parse_mode: 'MarkdownV2' });
+    }
+  });
+
+  // ─── /cancel ────────────────────────────────────────────────
+
+  bot.command('cancel', async (ctx) => {
+    const chatId = String(ctx.chat?.id);
+    if (loginSessions.has(chatId)) {
+      loginSessions.delete(chatId);
+      await ctx.reply('❌ Kirish bekor qilindi\\.', { parse_mode: 'MarkdownV2' });
+    } else {
+      await ctx.reply('Hech narsa bekor qilish kerak emas\\.', { parse_mode: 'MarkdownV2' });
+    }
   });
 
   // ─── /help ──────────────────────────────────────────────────
@@ -82,6 +178,9 @@ export function registerCommands(bot: Bot) {
   bot.command('help', async (ctx) => {
     await ctx.reply(
       '*RAOS Bot — Buyruqlar:*\n\n' +
+      '`/login` — Email, parol va email kodi bilan kirish\n' +
+      '`/logout` — Tizimdan chiqish\n' +
+      '`/cancel` — Kirish jarayonini bekor qilish\n\n' +
       '`/report` — bugungi savdo, top mahsulotlar, to\'lov usullari\n' +
       '`/sales` — joriy kun savdo statistikasi\n' +
       '`/stock 8901234567890` — barcode bo\'yicha stok\n' +
@@ -157,15 +256,10 @@ export function registerCommands(bot: Bot) {
 
     try {
       const info = await getStockByBarcode(barcode, user.tenantId);
-
       if (!info) {
-        await ctx.reply(
-          `❌ Barcode topilmadi: \`${esc(barcode)}\``,
-          { parse_mode: 'MarkdownV2' },
-        );
+        await ctx.reply(`❌ Barcode topilmadi: \`${esc(barcode)}\``, { parse_mode: 'MarkdownV2' });
         return;
       }
-
       await ctx.reply(formatStockInfo(info), { parse_mode: 'MarkdownV2' });
     } catch (err) {
       console.error('[Bot /stock]', err);
@@ -193,7 +287,6 @@ export function registerCommands(bot: Bot) {
 
     try {
       const info = await getDebtByPhone(phone, user.tenantId);
-
       if (!info) {
         await ctx.reply(
           `✅ *${esc(phone)}* raqamli mijoz topilmadi yoki qarzi yo'q`,
@@ -201,15 +294,10 @@ export function registerCommands(bot: Bot) {
         );
         return;
       }
-
       if (info.totalDebt === 0) {
-        await ctx.reply(
-          `✅ *${esc(info.customerName)}* ning qarzi yo'q`,
-          { parse_mode: 'MarkdownV2' },
-        );
+        await ctx.reply(`✅ *${esc(info.customerName)}* ning qarzi yo'q`, { parse_mode: 'MarkdownV2' });
         return;
       }
-
       await ctx.reply(formatDebtInfo(info), { parse_mode: 'MarkdownV2' });
     } catch (err) {
       console.error('[Bot /debt]', err);
@@ -257,7 +345,6 @@ export function registerCommands(bot: Bot) {
     const user = await getAuthUser(ctx);
     if (!user) return;
 
-    // User sozlamalaridan expiryDays olish
     const days = user.settings.expiryDays;
 
     await ctx.reply('⏳ Tekshirilmoqda\\.\\.\\.', { parse_mode: 'MarkdownV2' });
@@ -271,14 +358,191 @@ export function registerCommands(bot: Bot) {
     }
   });
 
-  // ─── Noma'lum xabarlar ──────────────────────────────────────
+  // ─── Matn xabarlari — 3-bosqichli login conversation ─────────
+  //
+  // Bosqich 1 (awaiting_email):   email tekshiriladi
+  // Bosqich 2 (awaiting_password): parol tekshiriladi → OTP yuboriladi
+  // Bosqich 3 (awaiting_otp):     kod tekshiriladi → login yakunlanadi
 
   bot.on('message:text', async (ctx) => {
-    await ctx.reply('Buyruqlarni ko\'rish uchun /help ni bosing');
+    const chatId = String(ctx.chat?.id);
+    const text = ctx.message.text.trim();
+    const session = loginSessions.get(chatId);
+
+    // Login jarayonida emas
+    if (!session) {
+      await ctx.reply('Buyruqlarni ko\'rish uchun /help ni bosing');
+      return;
+    }
+
+    // ── Bosqich 1: Email ───────────────────────────────────────
+    if (session.step === 'awaiting_email') {
+      if (!text.includes('@') || !text.includes('.')) {
+        await ctx.reply(
+          '❌ Noto\'g\'ri email format\\.\n\nQayta kiriting \\(masalan: user@example\\.com\\):',
+          { parse_mode: 'MarkdownV2' },
+        );
+        return;
+      }
+
+      loginSessions.set(chatId, { step: 'awaiting_password', email: text });
+
+      await ctx.reply(
+        '*2\\.* Parolingizni kiriting:\n\n' +
+        '_\\(Xavfsizlik uchun parol xabari avtomatik o\'chiriladi\\)_',
+        { parse_mode: 'MarkdownV2' },
+      );
+      return;
+    }
+
+    // ── Bosqich 2: Parol ───────────────────────────────────────
+    if (session.step === 'awaiting_password') {
+      // Parol xabarini darhol o'chirish
+      try {
+        await ctx.api.deleteMessage(ctx.chat.id, ctx.message.message_id);
+      } catch {
+        // O'chira olmasa davom etish
+      }
+
+      loginSessions.set(chatId, { step: 'awaiting_otp', email: session.email });
+
+      await ctx.reply('⏳ Tekshirilmoqda\\.\\.\\.', { parse_mode: 'MarkdownV2' });
+
+      try {
+        const result = await verifyCredentialsAndSendOtp(session.email!, text, chatId);
+
+        switch (result) {
+          case 'not_found':
+            loginSessions.delete(chatId);
+            await ctx.reply(
+              '❌ Bu email bilan foydalanuvchi topilmadi\\.\n\nQayta urinish: /login',
+              { parse_mode: 'MarkdownV2' },
+            );
+            break;
+
+          case 'wrong_password':
+            loginSessions.delete(chatId);
+            await ctx.reply(
+              '❌ Noto\'g\'ri parol\\.\n\nQayta urinish: /login',
+              { parse_mode: 'MarkdownV2' },
+            );
+            break;
+
+          case 'no_role':
+            loginSessions.delete(chatId);
+            await ctx.reply(
+              '❌ Sizning rolingizda bot huquqi yo\'q\\.',
+              { parse_mode: 'MarkdownV2' },
+            );
+            break;
+
+          case 'email_error':
+            loginSessions.delete(chatId);
+            await ctx.reply(
+              '❌ Email yuborishda xatolik yuz berdi\\.\n' +
+              'Server administratoriga murojaat qiling\\.\n\n' +
+              'Qayta urinish: /login',
+              { parse_mode: 'MarkdownV2' },
+            );
+            break;
+
+          case 'email_sent':
+            // Session OTP bosqichiga o'tdi, waiting for code
+            const maskedEmail = maskEmail(session.email!);
+            await ctx.reply(
+              '✅ *Email yuborildi\\!*\n\n' +
+              `📧 *${esc(maskedEmail)}* manzilingizga 6 raqamli tasdiqlash kodi yuborildi\\.\n\n` +
+              '*3\\.* Kodni kiriting:\n\n' +
+              '_Kod 5 daqiqa davomida amal qiladi\\._\n' +
+              '_Bekor qilish: /cancel_',
+              { parse_mode: 'MarkdownV2' },
+            );
+            break;
+        }
+      } catch (err) {
+        console.error('[Bot login step2]', err);
+        loginSessions.delete(chatId);
+        await ctx.reply(
+          '❌ Server xatosi\\. Qayta urinish: /login',
+          { parse_mode: 'MarkdownV2' },
+        );
+      }
+      return;
+    }
+
+    // ── Bosqich 3: OTP kodi ────────────────────────────────────
+    if (session.step === 'awaiting_otp') {
+      // Raqamlar emas yoki uzunlik noto'g'ri bo'lsa
+      if (!/^\d{6}$/.test(text)) {
+        await ctx.reply(
+          '❌ Kod 6 ta raqamdan iborat bo\'lishi kerak\\.\n\nQayta kiriting:',
+          { parse_mode: 'MarkdownV2' },
+        );
+        return;
+      }
+
+      try {
+        const result = await verifyOtpAndLogin(text, chatId);
+
+        if (result === 'expired') {
+          loginSessions.delete(chatId);
+          await ctx.reply(
+            '❌ Kod muddati o\'tgan \\(5 daqiqa\\)\\.\n\nQayta kirish: /login',
+            { parse_mode: 'MarkdownV2' },
+          );
+          return;
+        }
+
+        if (result === 'too_many_attempts') {
+          loginSessions.delete(chatId);
+          await ctx.reply(
+            '❌ Juda ko\'p noto\'g\'ri urinish\\. Yangi kod olish uchun: /login',
+            { parse_mode: 'MarkdownV2' },
+          );
+          return;
+        }
+
+        if (result === 'invalid_code') {
+          await ctx.reply(
+            '❌ Noto\'g\'ri kod\\. Qayta kiriting \\(yoki /cancel\\):',
+            { parse_mode: 'MarkdownV2' },
+          );
+          return;
+        }
+
+        // Muvaffaqiyatli kirish!
+        loginSessions.delete(chatId);
+
+        await ctx.reply(
+          `🎉 *Xush kelibsiz, ${esc(result.firstName)}\\!*\n\n` +
+          `👤 Rol: *${esc(result.role)}*\n\n` +
+          '*Buyruqlar:*\n' +
+          commandList(),
+          { parse_mode: 'MarkdownV2' },
+        );
+      } catch (err) {
+        console.error('[Bot login step3]', err);
+        loginSessions.delete(chatId);
+        await ctx.reply(
+          '❌ Server xatosi\\. Qayta urinish: /login',
+          { parse_mode: 'MarkdownV2' },
+        );
+      }
+    }
   });
 }
 
+// ─── Yordamchi: email ni yashirish (masalan: u***@gmail.com) ──
+
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!local || !domain) return email;
+  const visible = local.slice(0, Math.min(2, local.length));
+  return `${visible}***@${domain}`;
+}
+
 // ─── Deep link token orqali Telegram hisobini bog'lash ────────
+// (Eski flow — hali ham ishlaydi)
 
 async function handleLinkToken(ctx: Context, token: string): Promise<void> {
   const chatId = String(ctx.chat?.id);
@@ -300,13 +564,11 @@ async function handleLinkToken(ctx: Context, token: string): Promise<void> {
       const who = data.type === 'user' ? 'Hisobingiz' : 'Profilingiz';
       await ctx.reply(
         `✅ ${who} RAOS ga muvaffaqiyatli bog'landi\\!\n\n` +
-        `Endi siz Telegram orqali bildirishnomalar olasiz\\.\n\n` +
-        `Sozlamalar uchun /settings buyrug'ini ishlating\\.`,
+        `Endi siz Telegram orqali bildirishnomalar olasiz\\.`,
       );
     } else {
       await ctx.reply(
-        `❌ Token yaroqsiz yoki muddati o'tgan\\.\n\n` +
-        `Yangi link olish uchun RAOS tizimiga kiring\\.`,
+        `❌ Token yaroqsiz yoki muddati o'tgan\\.\n\nKirish uchun: /login`,
       );
     }
   } catch {
