@@ -6,8 +6,8 @@ function parseRedisConnection() {
     const match = url.match(/^redis(?:s)?:\/\/(?:[^:]*):([^@]*)@([^:]+):(\d+)/);
     if (match) {
       return {
-        host: match[2],
-        port: parseInt(match[3]),
+        host: match[2]!,
+        port: parseInt(match[3]!, 10),
         password: match[1] || undefined,
       };
     }
