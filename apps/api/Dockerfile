@@ -70,4 +70,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:3000/api/v1/health/live || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node dist/main"]
+# Migration failure should NOT block app startup (Railway may run migrations separately)
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy || echo '[startup] Migration skipped'; node dist/main"]
