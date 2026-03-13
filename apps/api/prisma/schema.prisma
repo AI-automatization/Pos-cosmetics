@@ -63,6 +63,7 @@ model User {
   // Admin PIN (T-068) — 4-6 raqamli bcrypt hash
   pinHash         String?   @map("pin_hash")
   pinLockedUntil  DateTime? @map("pin_locked_until")
+  botSettings     Json?     @map("bot_settings")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
