@@ -3,7 +3,7 @@ FROM node:20-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/bot/package.json ./apps/bot/
 COPY apps/api/package.json ./apps/api/
 
@@ -14,7 +14,7 @@ FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/bot/package.json ./apps/bot/
 COPY apps/api/package.json ./apps/api/
 
@@ -24,7 +24,7 @@ COPY apps/bot/ ./apps/bot/
 COPY apps/api/prisma/ ./apps/api/prisma/
 
 # Generate Prisma client (schema apps/api dan)
-RUN pnpm --filter bot exec prisma generate --schema=../api/prisma/schema.prisma
+RUN node_modules/.bin/prisma generate --schema=/app/apps/api/prisma/schema.prisma
 
 RUN pnpm --filter bot build
 
