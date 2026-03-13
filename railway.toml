@@ -1,8 +1,13 @@
+# Root railway.toml — used by the API service (Root Directory = /)
+# Web service has Root Directory set to "apps/web" in Railway UI.
+# Bot and worker have their own Root Directory set in Railway UI.
+
 [build]
-# Monorepo: Dockerfile is inside apps/api/ but Docker context is repo root
+# Build from repo root so Docker can access packages/types, packages/utils
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
+startCommand = "sh start.sh"
 healthcheckPath = "/api/v1/health/live"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
