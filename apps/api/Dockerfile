@@ -30,7 +30,7 @@ COPY apps/api/ ./apps/api/
 COPY packages/types/ ./packages/types/
 COPY packages/utils/ ./packages/utils/
 
-# Generate Prisma client
+# Generate Prisma client (stored in /app/node_modules/.prisma)
 RUN pnpm --filter api exec prisma generate
 
 # Build
@@ -45,11 +45,21 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy only production artifacts
+# Production node_modules from deps stage (no devDeps)
+COPY --from=deps    /app/node_modules ./node_modules
+
+# Generated Prisma client — lives in builder (prisma generate ran there)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Built app
 COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/node_modules ./node_modules
-COPY --from=deps    /app/node_modules/.prisma ./node_modules/.prisma
+
+# Prisma schema + migrations (needed for prisma migrate deploy)
 COPY --from=builder /app/apps/api/prisma ./prisma
+
+# Workspace packages (pnpm symlinks resolve to these)
+COPY --from=builder /app/packages/types ./packages/types
+COPY --from=builder /app/packages/utils ./packages/utils
 
 # Non-root user (security)
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
@@ -61,5 +71,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:3000/api/v1/health/live || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-# Migrations перед стартом (Railway/prod)
+# Run migrations then start app
 CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node dist/main"]
