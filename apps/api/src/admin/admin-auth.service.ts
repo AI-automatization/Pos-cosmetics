@@ -92,6 +92,14 @@ export class AdminAuthService {
    * Yangi Super Admin yaratish (faqat CLI yoki birinchi setup uchun).
    * Mavjud admin token bilan chaqiriladi.
    */
+  async bootstrap(dto: AdminCreateDto, secret: string) {
+    const expected = this.config.get<string>('ADMIN_BOOTSTRAP_SECRET');
+    if (!expected || secret !== expected) {
+      throw new UnauthorizedException('Noto\'g\'ri bootstrap secret');
+    }
+    return this.createAdmin(dto);
+  }
+
   async createAdmin(dto: AdminCreateDto) {
     const existing = await this.prisma.adminUser.findUnique({
       where: { email: dto.email },

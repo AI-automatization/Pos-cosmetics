@@ -45,6 +45,16 @@ export class AdminAuthController {
     return this.adminAuthService.login(dto);
   }
 
+  // ─── BOOTSTRAP: Birinchi Super Admin yaratish ──────────────────
+  @Public()
+  @Post('auth/bootstrap')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Birinchi Super Admin yaratish (ADMIN_BOOTSTRAP_SECRET kerak)' })
+  bootstrap(@Body() dto: AdminCreateDto, @Request() req: any) {
+    const secret = req.headers['x-bootstrap-secret'];
+    return this.adminAuthService.bootstrap(dto, secret);
+  }
+
   // ─── PROTECTED: Admin only endpoints ───────────────────────────
   @UseGuards(JwtAuthGuard, SuperAdminGuard)
   @ApiBearerAuth()
