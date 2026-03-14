@@ -55,6 +55,19 @@ export class AdminAuthController {
     return this.adminAuthService.bootstrap(dto, secret);
   }
 
+  // ─── BOOTSTRAP: User parolini reset qilish ─────────────────────
+  @Public()
+  @Post('auth/reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'User parolini reset qilish (ADMIN_BOOTSTRAP_SECRET kerak)' })
+  resetUserPassword(
+    @Body() body: { email: string; newPassword: string },
+    @Request() req: any,
+  ) {
+    const secret = req.headers['x-bootstrap-secret'];
+    return this.adminAuthService.resetUserPassword(body.email, body.newPassword, secret);
+  }
+
   // ─── PROTECTED: Admin only endpoints ───────────────────────────
   @UseGuards(JwtAuthGuard, SuperAdminGuard)
   @ApiBearerAuth()

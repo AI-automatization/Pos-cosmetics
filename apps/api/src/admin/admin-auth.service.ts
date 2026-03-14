@@ -100,6 +100,27 @@ export class AdminAuthService {
     return this.createAdmin(dto);
   }
 
+  async resetUserPassword(email: string, newPassword: string, secret: string) {
+    const expected = this.config.get<string>('ADMIN_BOOTSTRAP_SECRET');
+    if (!expected || secret !== expected) {
+      throw new UnauthorizedException('Noto\'g\'ri bootstrap secret');
+    }
+
+    const user = await this.prisma.user.findFirst({ where: { email } });
+    if (!user) {
+      throw new NotFoundException(`User topilmadi: ${email}`);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    this.logger.log(`Password reset for user: ${email}`);
+    return { success: true, message: `${email} parol yangilandi` };
+  }
+
   async createAdmin(dto: AdminCreateDto) {
     const existing = await this.prisma.adminUser.findUnique({
       where: { email: dto.email },
