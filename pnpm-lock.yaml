@@ -167,7 +167,7 @@ importers:
         version: 3.0.3
       nodemailer:
         specifier: ^8.0.1
-        version: 8.0.1
+        version: 8.0.2
     devDependencies:
       '@types/bcryptjs':
         specifier: ^3.0.0
@@ -1408,6 +1408,9 @@ packages:
 
   '@types/nodemailer@6.4.23':
     resolution: {integrity: sha512-aFV3/NsYFLSx9mbb5gtirBSXJnAlrusoKNuPbxsASWc7vrKLmIrTQRpdcxNcSFL3VW2A2XpeLEavwb2qMi6nlQ==}
+
+  '@types/nodemailer@7.0.11':
+    resolution: {integrity: sha512-E+U4RzR2dKrx+u3N4DlsmLaDC6mMZOM/TPROxA0UAPiTgI0y4CEFBmZE+coGWTjakDriRsXG368lNk1u9Q0a2g==}
 
   '@types/passport-jwt@4.0.1':
     resolution: {integrity: sha512-Y0Ykz6nWP4jpxgEUYq8NoVZeCQPo1ZndJLfapI249g1jHChvRfZRO/LS3tqu26YgAS/laI1qx98sYGz0IalRXQ==}
@@ -2832,6 +2835,10 @@ packages:
 
   nodemailer@6.10.1:
     resolution: {integrity: sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA==}
+    engines: {node: '>=6.0.0'}
+
+  nodemailer@8.0.2:
+    resolution: {integrity: sha512-zbj002pZAIkWQFxyAaqoxvn+zoIwRnS40hgjqTXudKOOJkiFFgBeNqjgD3/YCR12sZnrghWYBY+yP1ZucdDRpw==}
     engines: {node: '>=6.0.0'}
 
   nypm@0.6.5:
@@ -4565,6 +4572,10 @@ snapshots:
     dependencies:
       '@types/node': 22.19.12
 
+  '@types/nodemailer@7.0.11':
+    dependencies:
+      '@types/node': 22.19.12
+
   '@types/passport-jwt@4.0.1':
     dependencies:
       '@types/jsonwebtoken': 9.0.10
@@ -6032,6 +6043,8 @@ snapshots:
   node-releases@2.0.27: {}
 
   nodemailer@6.10.1: {}
+
+  nodemailer@8.0.2: {}
 
   nypm@0.6.5:
     dependencies:
