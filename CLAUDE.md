@@ -17,18 +17,18 @@ Salom! Men RAOS loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
   1. Polat (Backend & DevOps & Testing API & SWAGGER)
   2. AbdulazizYormatov (Frontend — Web , React Electron Desktop App, Admin Panel)
-  3. Ibrat (Mobile — React Native Android)
+  3. Ibrat (Mobile — React Native Android + iOS)
   4. Abdulaziz (Mobile — React Native IOS)
-  4. Bekzod (Tester & Architector)
+  5. Bekzod (Tester & Architector)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 - Polat → `CLAUDE_BACKEND.md`
 - AbdulazizYormatov → `CLAUDE_FRONTEND.md`
-- Ibrat → `CLAUDE_MOBILE.md`
 - Abdulaziz → `CLAUDE_MOBILE.md`
 - Bekzod → `CLAUDE_BACKEND.md`
+- Ibrat → `CLAUDE_MOBILE.md` + `CLAUDE_OWNER_MOBILE.md` (ikkala faylni ham o'qi)
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 
@@ -70,6 +70,7 @@ apps/
   web/             → Abdulaziz zonasi (Admin Panel — Next.js)
   pos/             → Abdulaziz zonasi (POS Desktop — Tauri)
   mobile/          → Ibrat zonasi (React Native — Android)
+  mobile-owner/    → Ibrat & OwnerMobile zonasi (React Native — Android + iOS, READ-ONLY)
 packages/
   types/           → UMUMIY — kelishib o'zgartirish
   utils/           → UMUMIY — kelishib o'zgartirish
@@ -510,13 +511,14 @@ pnpm -r exec tsc --noEmit
 
 ## 📚 KEYIN O'QILADIGAN FAYLLAR
 
-| Fayl                 | Kim uchun                                             |
-| -------------------- | ----------------------------------------------------- |
-| `CLAUDE_BACKEND.md`  | Polat (Backend & DevOps), Bekzod (Tester & Architector) |
-| `CLAUDE_FRONTEND.md` | AbdulazizYormatov (Frontend — Web, Desktop, Admin Panel) |
-| `CLAUDE_MOBILE.md`   | Ibrat (Android), Abdulaziz (IOS) |
-| `docs/Tasks.md`      | Ochiq vazifalar                                       |
-| `docs/Done.md`       | Bajarilgan ishlar                                     |
+| Fayl                       | Kim uchun                                                         |
+| -------------------------- | ----------------------------------------------------------------- |
+| `CLAUDE_BACKEND.md`        | Polat (Backend & DevOps), Bekzod (Tester & Architector)           |
+| `CLAUDE_FRONTEND.md`       | AbdulazizYormatov (Frontend — Web, Desktop, Admin Panel)          |
+| `CLAUDE_MOBILE.md`         | Ibrat (apps/mobile), Abdulaziz (IOS)                              |
+| `CLAUDE_OWNER_MOBILE.md`   | Ibrat (apps/mobile-owner)                                         |
+| `docs/Tasks.md`            | Ochiq vazifalar                                                   |
+| `docs/Done.md`             | Bajarilgan ishlar                                                 |
 
 ---
 
