@@ -103,6 +103,68 @@ export class SalesService {
     });
   }
 
+  // Mobile alias: GET /sales/shifts/active
+  async getActiveShifts(tenantId: string, branchId?: string) {
+    return this.prisma.shift.findMany({
+      where: { tenantId, status: ShiftStatus.OPEN, ...(branchId && { branchId }) },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+        branch: { select: { id: true, name: true } },
+      },
+      orderBy: { openedAt: 'desc' },
+    });
+  }
+
+  // Mobile alias: GET /sales/quick-stats
+  async getQuickStats(tenantId: string, branchId?: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const where = {
+      tenantId,
+      status: 'COMPLETED' as const,
+      createdAt: { gte: today },
+      ...(branchId && { branchId }),
+    };
+
+    const [orders, topProducts] = await this.prisma.$transaction([
+      this.prisma.order.findMany({ where, select: { total: true } }),
+      this.prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: { order: { ...where } },
+        _sum: { quantity: true, total: true },
+        orderBy: { _sum: { total: 'desc' } },
+        take: 5,
+      }),
+    ]);
+
+    const ordersCount = orders.length;
+    const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
+    const avgBasket = ordersCount > 0 ? totalRevenue / ordersCount : 0;
+
+    const productIds = topProducts.map((p) => p.productId);
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true },
+    });
+
+    return {
+      ordersCount,
+      avgBasket: Math.round(avgBasket),
+      currency: 'UZS',
+      topProducts: topProducts.map((p) => {
+        const product = products.find((pr) => pr.id === p.productId);
+        const sum = p._sum ?? {};
+        return {
+          productId: p.productId,
+          productName: product?.name ?? 'Unknown',
+          quantity: Number((sum as { quantity?: unknown }).quantity ?? 0),
+          revenue: Number((sum as { total?: unknown }).total ?? 0),
+        };
+      }),
+    };
+  }
+
   async getShifts(tenantId: string, limit = 20, page = 1) {
     const skip = (page - 1) * limit;
     const [total, items] = await this.prisma.$transaction([

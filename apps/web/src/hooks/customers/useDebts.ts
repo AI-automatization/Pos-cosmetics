@@ -17,13 +17,17 @@ export function useCustomersList(search?: string) {
 
 /** Barcha qarzlar ro'yxati */
 export function useDebts(params?: { customerId?: string; overdue?: boolean }) {
+  const overdue = params?.overdue ?? false;
+  const customerId = params?.customerId;
   return useQuery({
-    queryKey: ['debts', params],
+    queryKey: ['debts', overdue, customerId],
     queryFn: () =>
-      params?.overdue
+      overdue
         ? debtApi.listOverdue()
         : debtApi.listDebts(params),
     staleTime: 30_000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -33,6 +37,8 @@ export function useNasiyaSummary() {
     queryKey: ['debts', 'summary'],
     queryFn: () => debtApi.getSummary(),
     staleTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -42,6 +48,8 @@ export function useAgingReport() {
     queryKey: ['debts', 'aging'],
     queryFn: () => debtApi.getAging(),
     staleTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 

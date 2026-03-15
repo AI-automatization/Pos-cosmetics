@@ -36,7 +36,13 @@ interface ShiftBarProps {
 
 export function ShiftBar({ onCloseShift }: ShiftBarProps) {
   const { cashierName, shiftOpenedAt, salesCount, shiftId } = usePOSStore();
-  const elapsed = useShiftClock(shiftOpenedAt);
+  // Zustand persist deserializes Date → string; convert back to Date
+  const shiftOpenedAtDate = shiftOpenedAt
+    ? shiftOpenedAt instanceof Date
+      ? shiftOpenedAt
+      : new Date(shiftOpenedAt as unknown as string)
+    : null;
+  const elapsed = useShiftClock(shiftOpenedAtDate);
 
   return (
     <div className="flex h-11 shrink-0 items-center justify-between bg-gray-900 px-4 text-sm text-gray-300">

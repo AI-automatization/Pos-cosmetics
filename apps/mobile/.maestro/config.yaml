@@ -1,0 +1,9 @@
+flows:
+  - "00_onboarding_skip.yaml"
+  - "01_onboarding_full.yaml"
+  - "02_login.yaml"
+  - "03_login_validation.yaml"
+  - "04_tab_navigation.yaml"
+  - "05_settings_navigation.yaml"
+  - "06_inventory_navigation.yaml"
+  - "07_all_tabs.yaml"

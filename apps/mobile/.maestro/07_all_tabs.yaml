@@ -1,0 +1,56 @@
+appId: host.exp.exponent
+name: "Barcha tablar tekshiruvi"
+---
+- launchApp
+- waitForAnimationToEnd
+
+# Dashboard ko'rinayaptimi
+- assertVisible:
+    text: "Bosh sahifa"
+    optional: true
+- takeScreenshot: 01_dashboard
+
+# Sotuvlar
+- tapOn: "Sotuvlar"
+- waitForAnimationToEnd
+- takeScreenshot: 02_sotuvlar
+
+# Nasiya
+- tapOn: "Nasiya"
+- waitForAnimationToEnd
+- takeScreenshot: 03_nasiya
+
+# Omborxona
+- tapOn:
+    text: "Omborx"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: 04_omborxona
+
+# Ogohlantirishlar
+- tapOn:
+    text: "Ogohlant"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: 05_alerts
+
+# Ko'chmas mulk
+- tapOn:
+    text: "Ko'chma"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: 06_realestate
+
+# AI Tahlil
+- tapOn:
+    text: "AI Tahlil"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: 07_ai
+
+# Sozlamalar
+- tapOn:
+    text: "Sozlama"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: 08_settings

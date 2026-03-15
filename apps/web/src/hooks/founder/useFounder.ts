@@ -157,7 +157,7 @@ export function useFounderTenants(params?: { search?: string; status?: string })
         let result = DEMO_TENANTS;
         if (params?.search) {
           const s = params.search.toLowerCase();
-          result = result.filter((t) => t.name.toLowerCase().includes(s) || t.slug.includes(s));
+          result = result.filter((t) => (t.name ?? '').toLowerCase().includes(s) || (t.slug ?? '').includes(s));
         }
         if (params?.status && params.status !== 'ALL') {
           result = result.filter((t) => t.status === params.status);

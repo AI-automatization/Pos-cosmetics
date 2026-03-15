@@ -122,7 +122,7 @@ export default function BranchReportsPage() {
             {BRANCHES.map((b, i) => (
               <Bar
                 key={b.id}
-                dataKey={b.name.split(' ')[0]}
+                dataKey={(b.name ?? 'Branch').split(' ')[0]}
                 fill={BRANCH_COLORS[i]}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={32}

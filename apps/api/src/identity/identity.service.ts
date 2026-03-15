@@ -653,6 +653,14 @@ export class IdentityService {
     return tenant;
   }
 
+  async getBranches(tenantId: string) {
+    return this.prisma.branch.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, address: true, isActive: true },
+    });
+  }
+
   private enforceRoleHierarchy(
     callerRole: UserRole,
     targetRole: UserRole,

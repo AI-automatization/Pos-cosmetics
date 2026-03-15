@@ -12,7 +12,10 @@ export interface Notification {
 
 export const notificationsApi = {
   getUnreadCount() {
-    return apiClient.get<{ count: number }>('/notifications/unread-count').then((r) => r.data.count ?? 0);
+    return apiClient
+      .get<{ count: number }>('/notifications/unread-count')
+      .then((r) => r.data.count ?? 0)
+      .catch(() => 0);
   },
   getAll() {
     return apiClient

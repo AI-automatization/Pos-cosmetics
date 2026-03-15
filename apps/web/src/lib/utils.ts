@@ -17,7 +17,8 @@ export function extractErrorMessage(err: unknown): string {
   return 'Kutilmagan xato yuz berdi';
 }
 
-export function formatPrice(amount: number): string {
+export function formatPrice(amount: number | null | undefined): string {
+  if (amount == null || isNaN(amount)) return "0 so'm";
   return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
 }
 
