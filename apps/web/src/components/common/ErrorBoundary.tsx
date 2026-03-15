@@ -26,7 +26,7 @@ class _ErrorBoundaryImpl extends React.Component<Props, State> {
 
   override componentDidCatch(error: Error, info: React.ErrorInfo) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('[ErrorBoundary]', error, info.componentStack); // eslint-disable-line no-console
+      console.error('[ErrorBoundary]', error, info.componentStack);
     }
   }
 

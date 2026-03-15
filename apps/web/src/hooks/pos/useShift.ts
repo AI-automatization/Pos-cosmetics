@@ -12,12 +12,12 @@ export function useOpenShift(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: (dto: OpenShiftDto) => shiftApi.openShift(dto),
-    onSuccess: (shift, variables) => {
+    onSuccess: (shift, _variables) => {
       openShift(shift.id, 'Kassir', Number(shift.openingCash));
       toast.success('Smena muvaffaqiyatli ochildi!');
       onSuccess?.();
     },
-    onError: async (err: unknown, variables) => {
+    onError: async (err: unknown, _variables) => {
       const msg = extractErrorMessage(err);
       // If a shift is already open, fetch it and resume silently
       if (msg.includes('already has an open shift') || msg.includes('already has open')) {
