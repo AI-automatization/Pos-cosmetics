@@ -315,4 +315,91 @@ export class InventoryService {
       itemCount: items.length,
     });
   }
+
+  // ─── T-222: OUT OF STOCK ──────────────────────────────────────
+  async getOutOfStockItems(tenantId: string, branchId?: string) {
+    const branchFilter = branchId
+      ? Prisma.sql`AND w.branch_id = ${branchId}`
+      : Prisma.empty;
+
+    const rows = await this.prisma.$queryRaw<{
+      id: string;
+      productName: string;
+      barcode: string | null;
+      quantity: number;
+      unit: string | null;
+      branchName: string | null;
+      branchId: string | null;
+      costPrice: number;
+      reorderLevel: number;
+    }[]>`
+      SELECT
+        p.id,
+        p.name                   AS "productName",
+        p.barcode,
+        0::float                 AS quantity,
+        u.short_name             AS unit,
+        b.name                   AS "branchName",
+        w.branch_id              AS "branchId",
+        p.cost_price::float      AS "costPrice",
+        p.min_stock_level::float AS "reorderLevel"
+      FROM products p
+      LEFT JOIN units u ON u.id = p.unit_id
+      LEFT JOIN warehouses w ON w.tenant_id = p.tenant_id
+      LEFT JOIN branches b ON b.id = w.branch_id
+      WHERE p.tenant_id = ${tenantId}
+        AND p.deleted_at IS NULL
+        AND p.is_active = true
+        ${branchFilter}
+        AND NOT EXISTS (
+          SELECT 1 FROM stock_movements sm
+          WHERE sm.product_id = p.id AND sm.tenant_id = ${tenantId}
+        )
+      UNION ALL
+      SELECT
+        p.id,
+        p.name,
+        p.barcode,
+        SUM(CASE
+          WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
+          WHEN sm.type = 'ADJUSTMENT'                      THEN sm.quantity
+          ELSE -sm.quantity
+        END)::float,
+        u.short_name,
+        b.name,
+        w.branch_id,
+        p.cost_price::float,
+        p.min_stock_level::float
+      FROM products p
+      JOIN stock_movements sm ON sm.product_id = p.id AND sm.tenant_id = p.tenant_id
+      LEFT JOIN units u ON u.id = p.unit_id
+      LEFT JOIN warehouses w ON w.id = sm.warehouse_id
+      LEFT JOIN branches b ON b.id = w.branch_id
+      WHERE p.tenant_id = ${tenantId}
+        AND p.deleted_at IS NULL
+        AND p.is_active = true
+        ${branchFilter}
+      GROUP BY p.id, p.name, p.barcode, u.short_name, b.name, w.branch_id, p.cost_price, p.min_stock_level
+      HAVING SUM(CASE
+        WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
+        WHEN sm.type = 'ADJUSTMENT'                      THEN sm.quantity
+        ELSE -sm.quantity
+      END) <= 0
+    `;
+
+    return rows.map((r) => ({
+      id: r.id,
+      productName: r.productName,
+      barcode: r.barcode,
+      quantity: 0,
+      unit: r.unit ?? 'dona',
+      branchName: r.branchName,
+      branchId: r.branchId,
+      costPrice: r.costPrice,
+      stockValue: 0,
+      reorderLevel: r.reorderLevel,
+      expiryDate: null,
+      status: 'out_of_stock',
+    }));
+  }
 }
