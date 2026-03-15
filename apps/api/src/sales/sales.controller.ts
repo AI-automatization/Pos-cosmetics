@@ -169,6 +169,17 @@ export class SalesController {
 
   // ─── RETURNS ──────────────────────────────────────────────────
 
+  @Get('returns')
+  @ApiOperation({ summary: 'List returns' })
+  listReturns(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('status') status?: string,
+  ) {
+    return this.salesService.listReturns(tenantId, { page, limit, status });
+  }
+
   @Post('returns')
   @ApiOperation({ summary: 'Create return request' })
   createReturn(
