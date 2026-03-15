@@ -11,7 +11,7 @@ import type { Product } from '@/types/catalog';
 interface ProductSearchProps {
   search: string;
   onSearchChange: (v: string) => void;
-  searchRef: React.RefObject<HTMLInputElement | null>;
+  searchRef: React.RefObject<HTMLInputElement>;
 }
 
 function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }) {

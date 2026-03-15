@@ -14,7 +14,7 @@ import {
   CreateReturnDto,
   DiscountTypeEnum,
 } from './dto';
-import { ShiftStatus, OrderStatus, ReturnStatus, UserRole } from '@prisma/client';
+import { ShiftStatus, OrderStatus, ReturnStatus, UserRole, Prisma } from '@prisma/client';
 
 // Discount limits by role
 const DISCOUNT_LIMIT: Record<string, number> = {
@@ -497,9 +497,9 @@ export class SalesService {
     return {
       id: shift.id,
       branchId: shift.branchId,
-      branchName: (shift as any).branch?.name ?? null,
+      branchName: shift.branch?.name ?? null,
       cashierId: shift.userId,
-      cashierName: `${(shift as any).user?.firstName ?? ''} ${(shift as any).user?.lastName ?? ''}`.trim(),
+      cashierName: `${shift.user?.firstName ?? ''} ${shift.user?.lastName ?? ''}`.trim(),
       openedAt: shift.openedAt,
       closedAt: shift.closedAt,
       status: shift.status.toLowerCase(),
@@ -550,8 +550,8 @@ export class SalesService {
     const limit = Math.min(query.limit ?? 20, 100);
     const skip = (page - 1) * limit;
 
-    const where: any = { tenantId };
-    if (query.status) where.status = query.status;
+    const where: Prisma.ReturnWhereInput = { tenantId };
+    if (query.status) where.status = query.status as ReturnStatus;
 
     const [items, total] = await Promise.all([
       this.prisma.return.findMany({

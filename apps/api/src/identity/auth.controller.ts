@@ -303,7 +303,7 @@ export class AuthController {
   @ApiOperation({ summary: 'T-225: Biometrik ID ni ro\'yxatdan o\'tkazish (stub — WebAuthn keyinroq)' })
   registerBiometric(
     @CurrentUser('userId') userId: string,
-    @Body() body: { biometricId: string; deviceInfo?: string },
+    @Body() _body: { biometricId: string; deviceInfo?: string },
   ) {
     // Stub: haqiqiy WebAuthn/TouchID integratsiya keyingi sprint
     return { success: true, userId, biometricRegistered: true, message: 'Biometric registered (stub)' };
@@ -313,7 +313,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'T-225: Biometrik ID tekshirish (stub)' })
   verifyBiometric(
-    @Body() body: { biometricId: string; userId: string },
+    @Body() _body: { biometricId: string; userId: string },
   ) {
     // Stub: real login flow uchun T-225 kengaytirish kerak
     return { success: true, verified: true, message: 'Biometric verify (stub)' };
