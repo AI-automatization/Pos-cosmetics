@@ -29,7 +29,7 @@ export async function getLowStockItems(tenantId?: string): Promise<LowStockItem[
   `;
 
   const tenantFilter = tenantId
-    ? Prisma.sql`AND t.id = ${tenantId}::uuid`
+    ? Prisma.sql`AND t.id = ${tenantId}`
     : Prisma.empty;
 
   const rows = await prisma.$queryRaw<{
@@ -87,7 +87,7 @@ export async function getExpiringItems(
   cutoff.setDate(cutoff.getDate() + days);
 
   const tenantFilter = tenantId
-    ? Prisma.sql`AND sm.tenant_id = ${tenantId}::uuid`
+    ? Prisma.sql`AND sm.tenant_id = ${tenantId}`
     : Prisma.empty;
 
   const rows = await prisma.$queryRaw<{

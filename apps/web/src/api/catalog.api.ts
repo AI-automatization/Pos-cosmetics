@@ -2,7 +2,7 @@ import { apiClient } from './client';
 import type {
   Product,
   Category,
-  ProductUnitItem,
+  ProductUnitObject,
   ProductsQuery,
   PaginatedResponse,
   CreateProductDto,
@@ -55,7 +55,7 @@ export const catalogApi = {
   // --- Units ---
 
   getUnits() {
-    return apiClient.get<ProductUnitItem[]>('/catalog/units').then((r) => r.data);
+    return apiClient.get<ProductUnitObject[]>('/catalog/units').then((r) => r.data);
   },
 
   // --- Categories ---

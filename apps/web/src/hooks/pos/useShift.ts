@@ -13,7 +13,7 @@ export function useOpenShift(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (dto: OpenShiftDto) => shiftApi.openShift(dto),
     onSuccess: (shift, variables) => {
-      openShift(shift.id, variables.cashierName ?? 'Kassir', Number(shift.openingCash));
+      openShift(shift.id, 'Kassir', Number(shift.openingCash));
       toast.success('Smena muvaffaqiyatli ochildi!');
       onSuccess?.();
     },
@@ -24,7 +24,7 @@ export function useOpenShift(onSuccess?: () => void) {
         try {
           const existing = await shiftApi.getActiveShift();
           if (existing) {
-            openShift(existing.id, variables.cashierName ?? 'Kassir', Number(existing.openingCash));
+            openShift(existing.id, 'Kassir', Number(existing.openingCash));
             toast.success('Mavjud smena tiklandi');
             onSuccess?.();
             return;

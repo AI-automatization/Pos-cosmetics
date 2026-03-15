@@ -47,8 +47,8 @@ export async function getStockByBarcode(
       ), 0)::float AS stock
     FROM stock_movements sm
     JOIN warehouses w ON w.id = sm.warehouse_id
-    WHERE sm.product_id = ${product.id}::uuid
-      AND sm.tenant_id  = ${product.tenantId}::uuid
+    WHERE sm.product_id = ${product.id}
+      AND sm.tenant_id  = ${product.tenantId}
     GROUP BY w.id, w.name
     HAVING COALESCE(SUM(
       CASE
