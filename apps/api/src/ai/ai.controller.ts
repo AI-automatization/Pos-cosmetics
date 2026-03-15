@@ -195,4 +195,37 @@ export class AiController {
       this.parseDate(to, this.defaultTo()),
     );
   }
+
+  // ─── ORDERS SUMMARY ───────────────────────────────────────────
+  @Get('orders')
+  @ApiOperation({ summary: 'Orders summary — total, avgOrderValue, trend' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  getOrdersSummary(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') branchId?: string,
+  ) {
+    return this.aiService.getOrdersSummary(tenantId, branchId);
+  }
+
+  // ─── BRANCH COMPARISON ────────────────────────────────────────
+  @Get('branch-comparison')
+  @ApiOperation({ summary: 'Filiallar solishtirmasi — revenue, orders, growth' })
+  @ApiQuery({ name: 'period', enum: ['today', 'week', 'month', 'year'], required: false })
+  getBranchComparison(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('period') period: string = 'month',
+  ) {
+    return this.aiService.getBranchComparison(tenantId, period);
+  }
+
+  // ─── REVENUE BY BRANCH ────────────────────────────────────────
+  @Get('revenue-by-branch')
+  @ApiOperation({ summary: 'Filial bo\'yicha daromad — branchId, revenue, orders, avgOrderValue' })
+  @ApiQuery({ name: 'period', enum: ['today', 'week', 'month', 'year'], required: false })
+  getRevenueByBranch(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('period') period: string = 'month',
+  ) {
+    return this.aiService.getRevenueByBranch(tenantId, period);
+  }
 }

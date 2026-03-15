@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-03-12 (Ibrat — T-216..T-220: seed data + shifts/inventory endpoints + owner panel checklist)
+# Yangilangan: 2026-03-15 (Ibrat — T-226..T-228: mobile-owner↔backend full integration)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -2791,4 +2791,65 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-*docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.1 | 2026-02-28*
+## T-226 | P1 | [IKKALASI] | Mobile-Owner ↔ Backend full integration — seed + path aliases
+
+- **Sana:** 2026-03-15
+- **Mas'ul:** Ibrat (Mobile)
+- **Fayllar:**
+  - `apps/api/src/ai/ai.controller.ts` — + `/analytics/orders`, `/analytics/branch-comparison`, `/analytics/revenue-by-branch`
+  - `apps/api/src/ai/ai.service.ts` — + `getOrdersSummary`, `getBranchComparison`, `getRevenueByBranch`
+  - `apps/api/src/sales/shifts.controller.ts` — YANGI: `/shifts/*` alias
+  - `apps/api/src/nasiya/debts.controller.ts` — YANGI: `/debts/*` alias
+  - `apps/api/src/nasiya/nasiya.service.ts` — + `getSummary`, `getAgingReport`, `getDebtCustomers`
+  - `apps/api/src/notifications/alerts.controller.ts` — YANGI: `/alerts/*` alias
+  - `apps/api/src/health/system.controller.ts` — YANGI: `/system/*` alias
+  - `apps/api/prisma/seed.ts` — kengaytirilgan: 4 filial, 4 kassir, 10 product, 60+ order, 6 nasiya, 8 alert
+  - `apps/api/prisma/schema.prisma` — + TelegramLinkToken, ProductCertificate, Promotion modellari
+- **Holat:** ✅ Bajarildi — tsc clean, PR tayyor
+
+---
+
+## T-227 | P1 | [IKKALASI] | Integration test checklist — mobile-owner endpoints
+
+- **Sana:** 2026-03-15
+- **Mas'ul:** Ibrat (Mobile) + Bekzod (Test)
+- **Vazifa:**
+  - [ ] Login: `POST /auth/login` (owner@kosmetika.uz / Demo1234! / kosmetika-demo)
+  - [ ] `GET /analytics/revenue` — today/week/month/year + trends
+  - [ ] `GET /analytics/orders` — total, avgOrderValue, trend
+  - [ ] `GET /analytics/branch-comparison` — 4 filial
+  - [ ] `GET /analytics/revenue-by-branch` — 4 filial
+  - [ ] `GET /analytics/sales-trend` — kunlik grafik
+  - [ ] `GET /analytics/top-products` — top 10
+  - [ ] `GET /shifts` — paginated list
+  - [ ] `GET /shifts/summary` — total revenue, orders
+  - [ ] `GET /shifts/active` — ochiq smenalar
+  - [ ] `GET /shifts/:id` — smena detali
+  - [ ] `GET /debts/summary` — totalDebt, overdueDebt
+  - [ ] `GET /debts/aging-report` — buckets
+  - [ ] `GET /debts/customers` — paginated
+  - [ ] `GET /alerts` — paginated
+  - [ ] `GET /alerts/unread-count`
+  - [ ] `PATCH /alerts/:id/read`
+  - [ ] `GET /system/health` — DB + Redis
+  - [ ] `GET /system/sync-status` — filiallar
+  - [ ] `GET /employees` — list
+  - [ ] `GET /inventory/out-of-stock`
+  - [ ] Seed data: `npx ts-node prisma/seed.ts`
+
+---
+
+## T-228 | P1 | [BACKEND] | Duplicate migrations — bot_settings conflict
+
+- **Sana:** 2026-03-15
+- **Mas'ul:** Polat (Backend)
+- **Fayl:** `apps/api/prisma/migrations/`
+- **Muammo:** Ikkita migration fayli bir xil ALTER TABLE bajaradi:
+  - `20260310000001_add_bot_settings/migration.sql`
+  - `20260313000001_add_bot_settings/migration.sql`
+- **Xavf:** `prisma migrate deploy` birinchi marta ishlaganda `IF NOT EXISTS` tufayli muammo chiqmasligi mumkin, lekin `prisma migrate status` noto'g'ri ko'rinadi
+- **Yechim:** Eski (20260310) ni o'chirib, 20260313 ni qoldirish. Yoki squash migration yaratish.
+
+---
+
+*docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.1 | 2026-03-15*

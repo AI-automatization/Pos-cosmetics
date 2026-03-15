@@ -138,6 +138,8 @@ export class InventoryController {
     @Query('branchId') _branchId?: string,
   ) {
     return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
+  }
+
   // ─── T-222: OUT OF STOCK ─────────────────────────────────────
 
   @Get('out-of-stock')
