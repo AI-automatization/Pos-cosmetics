@@ -32,6 +32,14 @@ export class ReportsController {
     private readonly exportService: ExportService,
   ) {}
 
+  // ─── DAILY REPORT (T-226 alias) ───────────────────────────────
+
+  @Get('daily')
+  @ApiOperation({ summary: 'Bugungi kunlik hisobot (T-226 mobile alias)' })
+  async getDailyReport(@CurrentUser('tenantId') tenantId: string) {
+    return this.reportsService.getDailyReport(tenantId);
+  }
+
   // ─── DAILY REVENUE ────────────────────────────────────────────
 
   @Get('daily-revenue')

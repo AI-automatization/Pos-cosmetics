@@ -1,15 +1,10 @@
+# Root railway.toml — used by the web service (Root Directory = /)
+# Other services (api, worker, bot) have their own Root Directory set in Railway UI
+# and use their own railway.toml files.
+
 [build]
-# Root railway.toml → used by `railway up` CLI for the WEB service.
-# API service uses apps/api/railway.toml (Railway GitHub integration picks that up).
+# Build from repo root so Docker can access packages/types, packages/ui
 dockerfilePath = "apps/web/Dockerfile"
-watchPatterns = [
-  "apps/web/**",
-  "package.json",
-  "pnpm-lock.yaml",
-  "pnpm-workspace.yaml",
-  ".npmrc",
-  "packages/**"
-]
 
 [deploy]
 startCommand = "node apps/web/server.js"

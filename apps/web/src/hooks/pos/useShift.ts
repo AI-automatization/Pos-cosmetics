@@ -5,29 +5,35 @@ import { toast } from 'sonner';
 import { shiftApi } from '@/api/shift.api';
 import { extractErrorMessage } from '@/lib/utils';
 import { usePOSStore } from '@/store/pos.store';
-import type { CloseShiftDto } from '@/types/shift';
-
-// Form input — cashierName is stored locally (backend rejects this field)
-interface OpenShiftInput {
-  cashierName: string;
-  openingCash: number;
-}
+import type { OpenShiftDto, CloseShiftDto } from '@/types/shift';
 
 export function useOpenShift(onSuccess?: () => void) {
   const { openShift } = usePOSStore();
 
   return useMutation({
-    // Only send openingCash to backend (cashierName causes HTTP 400)
-    mutationFn: (input: OpenShiftInput) =>
-      shiftApi.openShift({ openingCash: input.openingCash }),
-    onSuccess: (shift, input) => {
-      // Use locally-entered cashierName — backend doesn't return this field
-      openShift(shift.id, input.cashierName, input.openingCash);
+    mutationFn: (dto: OpenShiftDto) => shiftApi.openShift(dto),
+    onSuccess: (shift, variables) => {
+      openShift(shift.id, variables.cashierName ?? 'Kassir', Number(shift.openingCash));
       toast.success('Smena muvaffaqiyatli ochildi!');
       onSuccess?.();
     },
-    onError: (err: unknown) => {
-      toast.error(extractErrorMessage(err));
+    onError: async (err: unknown, variables) => {
+      const msg = extractErrorMessage(err);
+      // If a shift is already open, fetch it and resume silently
+      if (msg.includes('already has an open shift') || msg.includes('already has open')) {
+        try {
+          const existing = await shiftApi.getActiveShift();
+          if (existing) {
+            openShift(existing.id, variables.cashierName ?? 'Kassir', Number(existing.openingCash));
+            toast.success('Mavjud smena tiklandi');
+            onSuccess?.();
+            return;
+          }
+        } catch {
+          // fall through to default error
+        }
+      }
+      toast.error(msg);
     },
   });
 }

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:/Users/USER/Desktop/Pos-cosmetics/logi.txt:*)",
+      "Bash(./node_modules/.bin/prisma:*)",
+      "Bash(DATABASE_URL=\"postgresql://raos:raos_secret@localhost:5433/raos_dev\" npx:*)",
+      "Bash(winget:*)",
+      "Bash(DATABASE_URL=\"postgresql://raos:raos_secret@localhost:5433/raos_dev\" npx prisma:*)",
+      "Bash(__NEW_LINE_13f22bbe87385663__ echo:*)",
+      "Bash(__NEW_LINE_c384d6a613a26667__ echo:*)",
+      "Bash(__NEW_LINE_61f6e95e039b6284__ echo:*)",
+      "Bash(__NEW_LINE_cd81fa465e74a2e9__ echo:*)",
+      "Bash(__NEW_LINE_257b6ebe1dcacce4__ echo:*)",
+      "Bash(__NEW_LINE_81bbd8d75b23be81__ echo:*)",
+      "mcp__playwright__browser_navigate"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "playwright",
+    "context7"
+  ]
+}

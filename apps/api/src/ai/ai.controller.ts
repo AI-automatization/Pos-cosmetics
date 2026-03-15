@@ -168,6 +168,17 @@ export class AiController {
     );
   }
 
+  // ─── T-221: REVENUE SUMMARY (mobile-owner format) ────────────
+  @Get('revenue')
+  @ApiOperation({ summary: 'T-221: Revenue summary — today/week/month/year with trends' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  getRevenue(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') branchId?: string,
+  ) {
+    return this.aiService.getRevenueSummary(tenantId, branchId);
+  }
+
   // ─── HOURLY HEATMAP ───────────────────────────────────────────
   @Get('hourly-heatmap')
   @ApiOperation({ summary: 'Soatlik issiqlik xaritasi — qaysi kun/soat eng band' })

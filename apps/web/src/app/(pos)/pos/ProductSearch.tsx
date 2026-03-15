@@ -11,14 +11,15 @@ import type { Product } from '@/types/catalog';
 interface ProductSearchProps {
   search: string;
   onSearchChange: (v: string) => void;
-  searchRef: React.Ref<HTMLInputElement>;
+  searchRef: React.RefObject<HTMLInputElement | null>;
 }
 
 function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }) {
-  const currentStock = product.currentStock ?? 0;
-  const minStock = Number(product.minStockLevel ?? product.minStock ?? 0);
-  const isLowStock = currentStock <= minStock;
-  const isOutOfStock = currentStock === 0;
+  const stock = product.currentStock ?? 0;
+  const minStock = product.minStockLevel ?? 0;
+  const isLowStock = stock > 0 && stock <= minStock;
+  const isOutOfStock = stock === 0;
+  const unitLabel = product.unit?.shortName ?? product.unit?.name ?? '';
 
   return (
     <button
@@ -39,10 +40,10 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
         <Plus className="h-4 w-4 shrink-0 text-gray-300 transition group-hover:text-blue-500" />
       </div>
       <p className="mt-auto text-sm font-bold text-blue-600">
-        {formatPrice(Number(product.sellPrice))}
+        {formatPrice(product.sellPrice)}
       </p>
       <div className="mt-1 flex items-center justify-between">
-        <span className="text-xs text-gray-400">{product.sku}</span>
+        <span className="text-xs text-gray-400">{product.sku ?? '—'}</span>
         <span
           className={cn(
             'text-xs',
@@ -53,7 +54,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
                 : 'text-green-600',
           )}
         >
-          {currentStock} {typeof product.unit === 'object' ? product.unit?.name : product.unit}
+          {stock} {unitLabel}
         </span>
       </div>
     </button>
@@ -63,11 +64,10 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
 export function ProductSearch({ search, onSearchChange, searchRef }: ProductSearchProps) {
   const addItem = usePOSStore((s) => s.addItem);
 
-  // Note: isActive boolean param removed — backend @IsBoolean() rejects query string "true"
-  // without @Type(() => Boolean) or enableImplicitConversion. Products are filtered by tenant.
   const { data, isFetching } = useProducts({
     search: search || undefined,
     limit: 24,
+    isActive: true,
   });
 
   const handleAdd = useCallback(
@@ -78,7 +78,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         barcode: product.barcode,
         sku: product.sku ?? '',
         sellPrice: Number(product.sellPrice),
-        unit: (typeof product.unit === 'object' ? product.unit?.shortName : product.unit) as import('@/types/catalog').ProductUnitCode,
+        unit: (product.unit?.shortName ?? product.unit?.name ?? 'dona') as import('@/types/catalog').ProductUnit,
       });
     },
     [addItem],

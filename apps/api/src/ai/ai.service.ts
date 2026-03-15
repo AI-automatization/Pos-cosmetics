@@ -385,4 +385,66 @@ export class AiService {
       revenue: Number(r.revenue),
     }));
   }
+
+  // ─── T-221: REVENUE SUMMARY ───────────────────────────────────
+  async getRevenueSummary(tenantId: string, branchId?: string) {
+    const now = new Date();
+
+    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date(now); weekStart.setDate(now.getDate() - 6); weekStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date(now); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+
+    const prevTodayStart = new Date(todayStart); prevTodayStart.setDate(prevTodayStart.getDate() - 1);
+    const prevTodayEnd = new Date(todayStart); prevTodayEnd.setMilliseconds(-1);
+    const prevWeekStart = new Date(weekStart); prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+    const prevWeekEnd = new Date(weekStart); prevWeekEnd.setMilliseconds(-1);
+    const prevMonthStart = new Date(monthStart); prevMonthStart.setMonth(prevMonthStart.getMonth() - 1);
+    const prevMonthEnd = new Date(monthStart); prevMonthEnd.setMilliseconds(-1);
+    const prevYearStart = new Date(yearStart); prevYearStart.setFullYear(prevYearStart.getFullYear() - 1);
+    const prevYearEnd = new Date(yearStart); prevYearEnd.setMilliseconds(-1);
+
+    const branchFilter = branchId ? Prisma.sql`AND o.branch_id = ${branchId}` : Prisma.empty;
+
+    const sumQuery = async (from: Date, to: Date): Promise<number> => {
+      const rows = await this.prisma.$queryRaw<{ total: number }[]>`
+        SELECT COALESCE(SUM(o.total), 0)::float AS total
+        FROM orders o
+        WHERE o.tenant_id = ${tenantId}
+          AND o.status::text = 'COMPLETED'
+          AND o.created_at >= ${from}
+          AND o.created_at <= ${to}
+          ${branchFilter}
+      `;
+      return Number(rows[0]?.total ?? 0);
+    };
+
+    const calcTrend = (curr: number, prev: number): number => {
+      if (prev === 0) return curr > 0 ? 100 : 0;
+      return parseFloat(((curr - prev) / prev * 100).toFixed(1));
+    };
+
+    const [today, prevToday, week, prevWeek, month, prevMonth, year, prevYear] =
+      await Promise.all([
+        sumQuery(todayStart, now),
+        sumQuery(prevTodayStart, prevTodayEnd),
+        sumQuery(weekStart, now),
+        sumQuery(prevWeekStart, prevWeekEnd),
+        sumQuery(monthStart, now),
+        sumQuery(prevMonthStart, prevMonthEnd),
+        sumQuery(yearStart, now),
+        sumQuery(prevYearStart, prevYearEnd),
+      ]);
+
+    return {
+      today,
+      week,
+      month,
+      year,
+      todayTrend: calcTrend(today, prevToday),
+      weekTrend: calcTrend(week, prevWeek),
+      monthTrend: calcTrend(month, prevMonth),
+      yearTrend: calcTrend(year, prevYear),
+    };
+  }
 }

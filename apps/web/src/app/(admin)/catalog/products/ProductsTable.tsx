@@ -94,9 +94,7 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
               <tr key={product.id} className="transition hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <p className="font-medium text-gray-900">{product.name}</p>
-                  <p className="text-xs text-gray-400">
-                    {typeof product.unit === 'object' ? product.unit?.name : product.unit}
-                  </p>
+                  <p className="text-xs text-gray-400">{product.unit?.name ?? '—'}</p>
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-600">
                   <p>{product.sku}</p>
@@ -106,13 +104,10 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
                 </td>
                 <td className="px-4 py-3 text-gray-600">{product.category?.name ?? '—'}</td>
                 <td className="px-4 py-3 text-right font-medium text-gray-900">
-                  {formatPrice(Number(product.sellPrice))}
+                  {formatPrice(product.sellPrice)}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <StockBadge
-                    current={product.currentStock ?? 0}
-                    min={Number(product.minStockLevel ?? product.minStock ?? 0)}
-                  />
+                  <StockBadge current={product.currentStock ?? 0} min={product.minStockLevel ?? 0} />
                 </td>
                 <td className="px-4 py-3 text-center">
                   <StatusBadge isActive={product.isActive} />

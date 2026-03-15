@@ -117,6 +117,7 @@ export class InventoryController {
     });
   }
 
+
   // ─── Mobile aliases (read-only) ───────────────────────────────
 
   @Get('stock')
@@ -137,6 +138,17 @@ export class InventoryController {
     @Query('branchId') _branchId?: string,
   ) {
     return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
+  // ─── T-222: OUT OF STOCK ─────────────────────────────────────
+
+  @Get('out-of-stock')
+  @ApiOperation({ summary: 'T-222: Omborda yo\'q tovarlar (quantity = 0)' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  getOutOfStock(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') branchId?: string,
+  ) {
+    return this.inventoryService.getOutOfStockItems(tenantId, branchId);
+
   }
 
   // ─── EXPIRY (T-031) ───────────────────────────────────────────

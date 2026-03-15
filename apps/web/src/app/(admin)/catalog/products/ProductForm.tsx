@@ -5,21 +5,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useUnits } from '@/hooks/catalog/useProducts';
 import type { Category, Product } from '@/types/catalog';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
   barcode: z.string().optional(),
-  sku: z.string().optional(),
-  categoryId: z.string().optional(),
-  unitId: z.string().optional(),
+  sku: z.string().min(1, 'SKU kiritilishi shart').max(100),
+  categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   minStockLevel: z.coerce.number().min(0),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+export type ProductFormData = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product | null;
@@ -60,37 +58,24 @@ export function ProductForm({
   onSubmit,
   onClose,
 }: ProductFormProps) {
-  const { data: units = [] } = useUnits();
-
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
     defaultValues: product
       ? {
-          name: product.name,
+          name: product.name ?? '',
           barcode: product.barcode ?? '',
           sku: product.sku ?? '',
-          categoryId: product.categoryId,
-          unitId: product.unitId ?? '',
+          categoryId: product.categoryId ?? '',
           costPrice: Number(product.costPrice),
           sellPrice: Number(product.sellPrice),
-          minStockLevel: Number(product.minStockLevel ?? product.minStock ?? 0),
+          minStockLevel: Number(product.minStockLevel ?? 0),
         }
       : { costPrice: 0, sellPrice: 0, minStockLevel: 0 },
   });
-
-  const handleFormSubmit = (data: ProductFormData) => {
-    // Strip empty optional fields to avoid backend validation errors
-    const dto: ProductFormData = { ...data };
-    if (!dto.unitId) delete dto.unitId;
-    if (!dto.barcode) delete dto.barcode;
-    if (!dto.sku) delete dto.sku;
-    if (!dto.categoryId) delete dto.categoryId;
-    onSubmit(dto);
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -110,7 +95,7 @@ export function ProductForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Nomi" error={errors.name?.message} required className="col-span-2">
               <input
@@ -120,7 +105,7 @@ export function ProductForm({
               />
             </Field>
 
-            <Field label="SKU" error={errors.sku?.message}>
+            <Field label="SKU" error={errors.sku?.message} required>
               <input {...register('sku')} placeholder="NIV-001" className={inputCls} />
             </Field>
 
@@ -131,6 +116,7 @@ export function ProductForm({
             <Field
               label="Kategoriya"
               error={errors.categoryId?.message}
+              required
               className="col-span-2"
             >
               <select {...register('categoryId')} className={inputCls}>
@@ -163,18 +149,7 @@ export function ProductForm({
               />
             </Field>
 
-            <Field label="O'lchov birligi" error={errors.unitId?.message}>
-              <select {...register('unitId')} className={inputCls}>
-                <option value="">— Tanlang —</option>
-                {units.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Minimal zaxira" error={errors.minStockLevel?.message} required>
+            <Field label="Minimal zaxira" error={errors.minStockLevel?.message} className="col-span-2">
               <input
                 {...register('minStockLevel')}
                 type="number"

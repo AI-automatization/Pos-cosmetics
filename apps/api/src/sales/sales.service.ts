@@ -457,4 +457,91 @@ export class SalesService {
       })),
     };
   }
+
+  // ─── T-223: SHIFT BY ID ───────────────────────────────────────
+  async getShiftById(tenantId: string, shiftId: string) {
+    const shift = await this.prisma.shift.findFirst({
+      where: { id: shiftId, tenantId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+        branch: { select: { id: true, name: true } },
+        orders: {
+          where: { status: 'COMPLETED' },
+          include: {
+            paymentIntents: { select: { method: true, amount: true } },
+            returns: { select: { id: true } },
+          },
+        },
+      },
+    });
+
+    if (!shift) throw new NotFoundException('Shift not found');
+
+    const totalRevenue = shift.orders.reduce((s, o) => s + Number(o.total), 0);
+    const totalOrders = shift.orders.length;
+    const totalRefunds = shift.orders.reduce((s, o) => s + o.returns.length, 0);
+
+    const paymentMap = new Map<string, number>();
+    for (const order of shift.orders) {
+      for (const pi of order.paymentIntents) {
+        const m = pi.method.toLowerCase();
+        paymentMap.set(m, (paymentMap.get(m) ?? 0) + Number(pi.amount));
+      }
+    }
+    const paymentBreakdown = Array.from(paymentMap.entries()).map(([method, amount]) => ({
+      method,
+      amount,
+      percentage: totalRevenue > 0 ? parseFloat((amount / totalRevenue * 100).toFixed(1)) : 0,
+    }));
+
+    return {
+      id: shift.id,
+      branchId: shift.branchId,
+      branchName: (shift as any).branch?.name ?? null,
+      cashierId: shift.userId,
+      cashierName: `${(shift as any).user?.firstName ?? ''} ${(shift as any).user?.lastName ?? ''}`.trim(),
+      openedAt: shift.openedAt,
+      closedAt: shift.closedAt,
+      status: shift.status.toLowerCase(),
+      totalRevenue,
+      totalOrders,
+      avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
+      totalRefunds,
+      totalVoids: 0,
+      totalDiscounts: shift.orders.filter((o) => Number(o.discountAmount) > 0).length,
+      paymentBreakdown,
+    };
+  }
+
+  // ─── T-223: SHIFT SUMMARY ─────────────────────────────────────
+  async getShiftSummary(tenantId: string, opts: { branchId?: string; fromDate?: string; toDate?: string }) {
+    const from = opts.fromDate
+      ? new Date(opts.fromDate)
+      : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
+    const to = opts.toDate ? new Date(opts.toDate) : new Date();
+
+    const shifts = await this.prisma.shift.findMany({
+      where: {
+        tenantId,
+        openedAt: { gte: from, lte: to },
+        ...(opts.branchId ? { branchId: opts.branchId } : {}),
+      },
+      include: {
+        orders: { where: { status: 'COMPLETED' }, select: { total: true } },
+      },
+    });
+
+    const totalRevenue = shifts.reduce(
+      (s, sh) => s + sh.orders.reduce((os, o) => os + Number(o.total), 0), 0,
+    );
+    const totalOrders = shifts.reduce((s, sh) => s + sh.orders.length, 0);
+    const totalShifts = shifts.length;
+
+    return {
+      totalRevenue,
+      totalOrders,
+      totalShifts,
+      avgRevenuePerShift: totalShifts > 0 ? Math.round(totalRevenue / totalShifts) : 0,
+    };
+  }
 }

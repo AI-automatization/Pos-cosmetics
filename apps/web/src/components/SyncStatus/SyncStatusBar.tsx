@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Wifi, WifiOff, RefreshCw, Clock, AlertTriangle, X } from 'lucide-react';
-import { apiClient } from '@/api/client';
 import { useSyncStore } from '@/store/sync.store';
 import { cn } from '@/lib/utils';
 
@@ -18,11 +17,13 @@ function useSyncMonitor() {
     window.addEventListener('offline', handleOffline);
 
     // Ping-based latency check (every 10s)
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
+    const healthUrl = `${apiBase}/health`;
     const pingCheck = async () => {
       if (!navigator.onLine) { setState('offline'); return; }
       const start = Date.now();
       try {
-        await apiClient.get('/health/ping');
+        await fetch(healthUrl, { method: 'HEAD', cache: 'no-cache' });
         const ms = Date.now() - start;
         setLatency(ms);
         if (ms > 5000) {

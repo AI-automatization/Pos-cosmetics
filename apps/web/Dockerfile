@@ -1,36 +1,28 @@
-# ─── Stage 1: deps ────────────────────────────────────────────
-FROM node:20-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
+# ─── Stage 1: builder ─────────────────────────────────────────
+FROM node:20-alpine AS builder
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json ./apps/web/
+COPY packages/types/package.json ./packages/types/
+COPY packages/ui/package.json ./packages/ui/
 
 RUN pnpm install --frozen-lockfile --filter web...
 
-# ─── Stage 2: builder ─────────────────────────────────────────
-FROM node:20-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/ ./apps/web/
-
-# Ensure public dir exists (Next.js standalone requires it)
-RUN mkdir -p ./apps/web/public
-
-# Inject NEXT_PUBLIC_* vars at build time (Railway passes these as build args)
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+COPY packages/types/ ./packages/types/
+COPY packages/ui/ ./packages/ui/
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# NEXT_PUBLIC_* variables must be available at build time (baked into JS bundle)
+ARG NEXT_PUBLIC_API_URL=https://api-production-c5b6.up.railway.app/api/v1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN pnpm --filter web build
 
-# ─── Stage 3: runner ──────────────────────────────────────────
+# ─── Stage 2: runner ──────────────────────────────────────────
 FROM node:20-alpine AS runner
 RUN apk add --no-cache dumb-init
 
@@ -38,19 +30,19 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=8080
+ENV PORT=3001
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
+COPY --from=builder /app/apps/web/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 USER nextjs
-EXPOSE 8080
+EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD node -e "require('http').get({hostname:'127.0.0.1',port:process.env.PORT||8080,path:'/'},(r)=>{process.exit(r.statusCode<500?0:1)}).on('error',()=>process.exit(1))"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3001/api/health || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/web/server.js"]
