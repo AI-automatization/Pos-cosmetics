@@ -165,7 +165,6 @@ async function main() {
         firstName: c.firstName,
         lastName: c.lastName,
         role: UserRole.CASHIER,
-        branchId: branches[i % branches.length].id,
       },
     });
     cashiers.push(cashier);
