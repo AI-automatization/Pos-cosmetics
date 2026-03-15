@@ -514,7 +514,7 @@ export class AiService {
         AND o.created_at >= ${from}
         AND o.created_at <= ${now}
       WHERE b.tenant_id = ${tenantId}
-        AND b.is_active = true
+        AND b."isActive" = true
       GROUP BY b.id, b.name
       ORDER BY revenue DESC
     `;
@@ -531,7 +531,7 @@ export class AiService {
         AND o.created_at >= ${prevFrom}
         AND o.created_at <= ${prevTo}
       WHERE b.tenant_id = ${tenantId}
-        AND b.is_active = true
+        AND b."isActive" = true
       GROUP BY b.id
     `;
 
@@ -577,7 +577,7 @@ export class AiService {
         AND o.created_at >= ${from}
         AND o.created_at <= ${now}
       WHERE b.tenant_id = ${tenantId}
-        AND b.is_active = true
+        AND b."isActive" = true
       GROUP BY b.id, b.name
       ORDER BY revenue DESC
     `;
