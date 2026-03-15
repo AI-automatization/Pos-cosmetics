@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -10,7 +11,6 @@ import {
   Post,
   Query,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { Public } from '../common/decorators';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminMetricsService } from './admin-metrics.service';
 import { AdminLoginDto, AdminCreateDto } from './dto/admin-login.dto';
@@ -50,8 +51,7 @@ export class AdminAuthController {
   @Post('auth/bootstrap')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Birinchi Super Admin yaratish (ADMIN_BOOTSTRAP_SECRET kerak)' })
-  bootstrap(@Body() dto: AdminCreateDto, @Request() req: any) {
-    const secret = req.headers['x-bootstrap-secret'];
+  bootstrap(@Body() dto: AdminCreateDto, @Headers('x-bootstrap-secret') secret: string) {
     return this.adminAuthService.bootstrap(dto, secret);
   }
 
@@ -62,9 +62,8 @@ export class AdminAuthController {
   @ApiOperation({ summary: 'User parolini reset qilish (ADMIN_BOOTSTRAP_SECRET kerak)' })
   resetUserPassword(
     @Body() body: { email: string; newPassword: string },
-    @Request() req: any,
+    @Headers('x-bootstrap-secret') secret: string,
   ) {
-    const secret = req.headers['x-bootstrap-secret'];
     return this.adminAuthService.resetUserPassword(body.email, body.newPassword, secret);
   }
 
@@ -169,11 +168,15 @@ export class AdminAuthController {
     summary: 'T-058: Tenant impersonation — vaqtinchalik token (1 soat)',
     description: 'Super Admin ixtiyoriy tenant OWNER sifatida kiradi. Barcha harakatlar audit log ga yoziladi.',
   })
-  impersonate(@Param('tenantId') tenantId: string, @Request() req: any) {
+  impersonate(
+    @Param('tenantId') tenantId: string,
+    @CurrentUser('userId') adminId: string,
+    @CurrentUser('email') adminEmail: string,
+  ) {
     return this.adminAuthService.impersonateTenant(
       tenantId,
-      req.user.sub,
-      req.user.email ?? 'unknown',
+      adminId,
+      adminEmail ?? 'unknown',
     );
   }
 

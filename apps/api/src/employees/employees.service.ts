@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -66,7 +67,7 @@ export class EmployeesService {
         lastName: dto.lastName,
         email: dto.email,
         passwordHash,
-        role: (dto.role as any) ?? 'CASHIER',
+        role: (dto.role as UserRole) ?? UserRole.CASHIER,
       },
       select: {
         id: true, firstName: true, lastName: true, email: true,
@@ -101,7 +102,7 @@ export class EmployeesService {
     const newRole = hasPosAccess ? 'CASHIER' : 'VIEWER';
     const updated = await this.prisma.user.update({
       where: { id },
-      data: { role: newRole as any },
+      data: { role: newRole as UserRole },
       select: {
         id: true, firstName: true, lastName: true, email: true,
         role: true, isActive: true, createdAt: true, botSettings: true,
