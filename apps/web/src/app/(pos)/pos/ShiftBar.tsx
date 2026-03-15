@@ -8,13 +8,15 @@ import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { openCashDrawer, isCashDrawerEnabled } from '@/lib/cashDrawer';
 import { toast } from 'sonner';
 
-function useShiftClock(openedAt: Date | null) {
+function useShiftClock(openedAt: Date | string | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
 
   useEffect(() => {
     if (!openedAt) return;
+    const openedDate = openedAt instanceof Date ? openedAt : new Date(openedAt);
+    if (isNaN(openedDate.getTime())) return;
     const tick = () => {
-      const diff = Math.floor((Date.now() - openedAt.getTime()) / 1000);
+      const diff = Math.floor((Date.now() - openedDate.getTime()) / 1000);
       const h = String(Math.floor(diff / 3600)).padStart(2, '0');
       const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
       const s = String(diff % 60).padStart(2, '0');
