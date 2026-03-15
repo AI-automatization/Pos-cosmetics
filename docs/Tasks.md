@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-03-09
+# Yangilangan: 2026-02-28
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -14,17 +14,6 @@
 5. Prioritet: P0=kritik, P1=muhim, P2=o'rta, P3=past
 6. Kategoriya: [BACKEND], [FRONTEND], [DEVOPS], [SECURITY], [IKKALASI]
 ```
-
----
-
-## ✅ T-122 | P1 | [BACKEND] | Eskiz.uz SMS → Telegram + Email (BAJARILDI 2026-03-09)
-> Eskiz.uz to'liq olib tashlandi. Telegram Bot API (bepul) + SMTP Email fallback.
-> - `sms.service.ts` o'chirildi
-> - `telegram-notify.service.ts`, `email-notify.service.ts`, `notify.service.ts` yaratildi
-> - Schema: `users.telegram_chat_id`, `customers.telegram_chat_id`, `telegram_link_tokens` jadvali
-> - Bot: `/start <token>` deep link qo'llab-quvvatlash
-> - API: `POST /notifications/telegram/link-token`, `POST /notifications/telegram/verify`
-> - `nodemailer` package qo'shildi; `.env.example` yangilandi
 
 ---
 
@@ -852,47 +841,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-069 | P1 | [BACKEND] | Session management — Active sessions tracking
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/identity/`
-- **Vazifa:**
-  - `sessions` jadvali: id, user_id, tenant_id, device_info, ip, last_active, created_at
-  - GET /auth/sessions — foydalanuvchi ning active sessions
-  - DELETE /auth/sessions/:id — sessionni tugatish
-  - Max 3 concurrent session (configurable per tenant)
-  - Admin: force logout any user
-- **Kutilgan:** Kim qayerdan kirganini ko'rsa bo'ladi
-
----
-
-## T-070 | P1 | [BACKEND] | Employee activity monitor — Fraud detection
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/reports/`
-- **Vazifa:**
-  - Per-cashier metrics: void count, refund count, discount total, avg transaction value
-  - Suspicious patterns: 3+ void in 1 hour, refund > 20% of sales, discount > threshold
-  - GET /reports/employee-activity — filter by user, date range
-  - Alert trigger: suspicious activity → Telegram notification to owner
-- **Kutilgan:** Xodim firibgarligi aniqlanadi
-
----
-
-## T-071 | P1 | [BACKEND] | API Key auth — POS sync uchun long-lived token
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/identity/`
-- **Vazifa:**
-  - `api_keys` jadvali: id, tenant_id, branch_id, key_hash, name, scopes, last_used, is_active, created_at, expires_at
-  - POS-to-server sync: API key (expire qilmaydi, JWT o'rniga)
-  - Scoped: faqat sync endpoints ga access
-  - Revocable: admin paneldan o'chirish mumkin
-  - Rate limit: per API key
-- **Kutilgan:** POS offline dan serverga xavfsiz sync
-
----
-
 ## T-072 | P1 | [BACKEND] | Input sanitization — XSS/injection himoya
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -1251,31 +1199,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-096 | P2 | [BACKEND] | Tester/sample tracking — Ochilgan tester hisobi
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/inventory/`
-- **Vazifa:**
-  - Tester ochish: stock_movement type = TESTER
-  - Tester cost: expense sifatida hisoblanadi
-  - Tester list: GET /inventory/testers — qaysi productlardan tester ochilgan
-  - Monthly tester cost report
-- **Kutilgan:** Tester xarajati to'g'ri hisoblanadi
-
----
-
-## T-097 | P2 | [BACKEND] | Product sertifikat — Kosmetika sifat hujjati
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/catalog/`
-- **Vazifa:**
-  - `product_certificates` jadvali: id, product_id, cert_number, issuing_authority, issued_at, expires_at, file_url
-  - Expired sertifikat → alert
-  - Soliq tekshiruvida talab qilinishi mumkin
-- **Kutilgan:** Sertifikat ma'lumotlari saqlanadi va kuzatiladi
-
----
-
 ## T-098 | P1 | [BACKEND] | Price management — Wholesale/retail + tiered
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -1287,20 +1210,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
   - Price history: narx o'zgarishi log qilinadi
   - Scheduled price: kelajakda boshlanadigan narx
 - **Kutilgan:** Narxlarni moslashuvchan boshqarsa bo'ladi
-
----
-
-## T-099 | P2 | [BACKEND] | Promotions engine — Discount, buy-X-get-Y
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/sales/promotions/`
-- **Vazifa:**
-  - `promotions` jadvali: id, tenant_id, name, type (PERCENT/FIXED/BUY_X_GET_Y/BUNDLE), rules (JSON), valid_from, valid_to, is_active
-  - POS da: auto-apply matching promotions
-  - Types: % chegirma, fixed summa, 2+1, happy hour (vaqtga bog'liq)
-  - Stackable rules config
-  - Promotion analytics: qancha ishlatildi, qancha tejaldi
-- **Kutilgan:** Aksiya/chegirma tizimi ishlaydi
 
 ---
 
@@ -1383,35 +1292,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-105 | P1 | [BACKEND] | CBU exchange rate — Kunlik USD/UZS kurs
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/common/currency/`
-- **Vazifa:**
-  - Daily cron: https://cbu.uz/oz/arkhiv-kursov-valyut/json/ dan kurs olish
-  - `exchange_rates` jadvali: date, currency_pair, rate, source
-  - Fallback: API fail → oxirgi cached kurs ishlatiladi
-  - GET /exchange-rates/current — hozirgi kurs
-  - Product cost convert: USD cost × today rate = UZS cost
-- **Kutilgan:** Import kosmetika narxi avtomatik UZS ga convert
-
----
-
-
-## T-107 | P2 | [BACKEND] | Payme/Click integration — Online to'lov
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/payments/providers/`
-- **Vazifa:**
-  - Payme API adapter: createTransaction, performTransaction, checkTransaction
-  - Click API adapter: prepare, complete
-  - Webhook handler: payment confirmation callback
-  - POS da: QR code ko'rsatish → customer telefondan to'laydi
-  - Subscription billing ham Payme/Click orqali
-- **Kutilgan:** Online to'lov usullari ishlaydi
-
----
-
 ### ═══════════════════════════════════════
 ### 💰 SUBSCRIPTION & BILLING (SaaS Model)
 ### ═══════════════════════════════════════
@@ -1484,19 +1364,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 ### ═══════════════════════════════════════
 ### 🏪 MULTI-BRANCH (Filiallar)
 ### ═══════════════════════════════════════
-
----
-
-## T-113 | P1 | [BACKEND] | Branch management — Full CRUD + permissions
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/identity/`
-- **Vazifa:**
-  - Branch CRUD: GET/POST/PATCH/DELETE /branches
-  - User-branch assignment: user faqat belgilangan branch(lar) ga access
-  - Branch-level data isolation: orders, stock, shifts — branch_id filter
-  - Default branch per user
-- **Kutilgan:** Filiallar tizimi ishlaydi
 
 ---
 

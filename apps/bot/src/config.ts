@@ -39,5 +39,7 @@ export const config = {
   expiryCheckCron: process.env.EXPIRY_CHECK_CRON ?? '0 8 * * *',      // har kuni 08:00
   expiryDaysWarning: Number(process.env.EXPIRY_DAYS_WARNING ?? 30),
 
+  apiUrl: process.env.API_INTERNAL_URL ?? 'https://api-production-c5b6.up.railway.app/api/v1',
+
   env: process.env.NODE_ENV ?? 'development',
 };

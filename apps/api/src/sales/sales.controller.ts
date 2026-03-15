@@ -74,6 +74,32 @@ export class SalesController {
     return this.salesService.getShifts(tenantId, limit, page);
   }
 
+  // ─── T-223: GET /shifts/summary ───────────────────────────────
+  @Get('shifts/summary')
+  @ApiOperation({ summary: 'T-223: Shift summary — total revenue, orders, shifts' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  @ApiQuery({ name: 'from_date', required: false })
+  @ApiQuery({ name: 'to_date', required: false })
+  getShiftSummary(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') branchId?: string,
+    @Query('from_date') fromDate?: string,
+    @Query('to_date') toDate?: string,
+  ) {
+    return this.salesService.getShiftSummary(tenantId, { branchId, fromDate, toDate });
+  }
+
+  // ─── T-223: GET /shifts/:id ────────────────────────────────────
+  @Get('shifts/:id')
+  @ApiOperation({ summary: 'T-223: Shift details by ID with payment breakdown' })
+  @ApiParam({ name: 'id', type: String })
+  getShiftById(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.salesService.getShiftById(tenantId, id);
+  }
+
   // ─── ORDERS ───────────────────────────────────────────────────
 
   @Post('orders')

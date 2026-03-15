@@ -27,6 +27,11 @@ export class TenantGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
 
+    // Super Admin / Admin — tenantId yo'q, lekin ruxsat beriladi
+    if (user?.isAdmin) {
+      return true;
+    }
+
     if (!user?.tenantId) {
       return false;
     }
