@@ -4,10 +4,10 @@
 
 [build]
 # Build from repo root so Docker can access packages/types, packages/ui
-dockerfilePath = "apps/web/Dockerfile"
+dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-startCommand = "node apps/web/server.js"
+startCommand = "/api/v1/health/live"
 healthcheckPath = "/"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
