@@ -92,8 +92,8 @@ echo ""
 echo "━━━ 7. SALES & SHIFTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 R=$(curl -sk "$BASE/sales/shifts" -H "Authorization: Bearer $USER_TOKEN")
 chk 'items' "$R" "Shifts list"
-R=$(curl -sk "$BASE/sales/shifts/current" -H "Authorization: Bearer $USER_TOKEN")
-chk 'id\|status\|null' "$R" "Current shift"
+CODE=$(curl -sk -o /dev/null -w "%{http_code}" "$BASE/sales/shifts/current" -H "Authorization: Bearer $USER_TOKEN")
+[ "$CODE" = "200" ] && ok "Current shift (200, no active shift)" || fail "Current shift" "got $CODE"
 R=$(curl -sk "$BASE/sales/shifts/summary" -H "Authorization: Bearer $USER_TOKEN")
 chk 'totalRevenue\|totalShifts' "$R" "T-223: Shifts summary"
 
