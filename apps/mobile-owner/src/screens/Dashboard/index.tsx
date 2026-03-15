@@ -49,7 +49,7 @@ export default function DashboardScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<DashboardNavProp>();
   const selectedBranchId = useBranchStore((s) => s.selectedBranchId);
-  const { revenue, orders, salesTrend, branchComparison, topProducts, lowStock } = useDashboard();
+  const { revenue, orders, salesTrend, branchComparison, topProducts, lowStock, debtSummary } = useDashboard();
 
   const isLoading = revenue.isLoading;
 
@@ -77,7 +77,10 @@ export default function DashboardScreen() {
             onViewAll={() => navigation.navigate('Inventory')}
           />
         );
-      case 'debts':
+      case 'debts': {
+        const ds = debtSummary.data;
+        if (!ds || ds.debtorCount === 0) return null;
+        const totalM = (ds.totalDebt / 1_000_000).toFixed(1);
         return (
           <TouchableOpacity
             style={styles.debtBanner}
@@ -86,11 +89,12 @@ export default function DashboardScreen() {
           >
             <View style={styles.debtLeft}>
               <Ionicons name="card-outline" size={16} color={Colors.danger} />
-              <Text style={styles.debtText}>25 ta mijoz nasiyasi — 16.1M UZS</Text>
+              <Text style={styles.debtText}>{ds.debtorCount} ta mijoz nasiyasi — {totalM}M UZS</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.danger} />
           </TouchableOpacity>
         );
+      }
       case 'revenue':
         return <RevenueSummaryGrid data={revenueData} orders={ordersData} />;
       case 'salesTrend':
@@ -112,6 +116,7 @@ export default function DashboardScreen() {
       branchComparison.refetch(),
       topProducts.refetch(),
       lowStock.refetch(),
+      debtSummary.refetch(),
     ]);
   };
 
