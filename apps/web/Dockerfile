@@ -27,6 +27,11 @@ COPY packages/types/ ./packages/types/
 COPY packages/ui/ ./packages/ui/
 
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# NEXT_PUBLIC_* variables must be available at build time (baked into JS bundle)
+ARG NEXT_PUBLIC_API_URL=https://api-production-c5b6.up.railway.app/api/v1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN pnpm --filter web build
 
 # ─── Stage 3: runner ──────────────────────────────────────────
