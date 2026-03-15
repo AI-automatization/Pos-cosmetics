@@ -42,8 +42,7 @@ export class AiService {
     `;
 
     return rows.map((r) => ({
-      date: r.period,      // mobile expects "date" field
-      period: r.period,    // keep for backwards compat
+      period: r.period,
       revenue: Number(r.revenue),
       orders: r.orders,
       avgBasket: Number(r.avgBasket),
@@ -93,9 +92,7 @@ export class AiService {
     return rows.map((r) => ({
       productId: r.productId,
       productName: r.productName,
-      name: r.productName,        // mobile expects "name"
       qtySold: Number(r.qtySold),
-      quantity: Number(r.qtySold), // mobile expects "quantity"
       revenue: Number(r.revenue),
       costTotal: Number(r.costTotal),
       margin: Number(r.margin),
@@ -449,178 +446,5 @@ export class AiService {
       monthTrend: calcTrend(month, prevMonth),
       yearTrend: calcTrend(year, prevYear),
     };
-  }
-
-  // ─── ORDERS SUMMARY ──────────────────────────────────────────
-  async getOrdersSummary(tenantId: string, branchId?: string) {
-    const now = new Date();
-    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-    const prevStart = new Date(todayStart); prevStart.setDate(prevStart.getDate() - 1);
-    const prevEnd = new Date(todayStart); prevEnd.setMilliseconds(-1);
-
-    const branchFilter = branchId ? Prisma.sql`AND o.branch_id = ${branchId}` : Prisma.empty;
-
-    const statsQuery = async (from: Date, to: Date) => {
-      const rows = await this.prisma.$queryRaw<{ total: number; avg: number }[]>`
-        SELECT COUNT(*)::int AS total, COALESCE(AVG(o.total), 0)::float AS avg
-        FROM orders o
-        WHERE o.tenant_id = ${tenantId}
-          AND o.status::text = 'COMPLETED'
-          AND o.created_at >= ${from}
-          AND o.created_at <= ${to}
-          ${branchFilter}
-      `;
-      return { total: Number(rows[0]?.total ?? 0), avg: Number(rows[0]?.avg ?? 0) };
-    };
-
-    const [curr, prev] = await Promise.all([
-      statsQuery(todayStart, now),
-      statsQuery(prevStart, prevEnd),
-    ]);
-
-    const trend = prev.total === 0
-      ? (curr.total > 0 ? 100 : 0)
-      : parseFloat(((curr.total - prev.total) / prev.total * 100).toFixed(1));
-
-    return {
-      total: curr.total,
-      avgOrderValue: Math.round(curr.avg),
-      trend,
-    };
-  }
-
-  // ─── BRANCH COMPARISON ───────────────────────────────────────
-  async getBranchComparison(tenantId: string, period = 'month') {
-    const { from, prevFrom, prevTo } = this.periodBounds(period);
-    const now = new Date();
-
-    const rows = await this.prisma.$queryRaw<{
-      branchId: string;
-      branchName: string;
-      revenue: number;
-      orders: number;
-      avgOrderValue: number;
-    }[]>`
-      SELECT
-        b.id                                      AS "branchId",
-        b.name                                    AS "branchName",
-        COALESCE(SUM(o.total), 0)::float          AS revenue,
-        COUNT(o.id)::int                          AS orders,
-        COALESCE(AVG(o.total), 0)::float          AS "avgOrderValue"
-      FROM branches b
-      LEFT JOIN orders o
-        ON o.branch_id = b.id
-        AND o.status::text = 'COMPLETED'
-        AND o.created_at >= ${from}
-        AND o.created_at <= ${now}
-      WHERE b.tenant_id = ${tenantId}
-        AND b."isActive" = true
-      GROUP BY b.id, b.name
-      ORDER BY revenue DESC
-    `;
-
-    const prevRows = await this.prisma.$queryRaw<{
-      branchId: string;
-      revenue: number;
-    }[]>`
-      SELECT b.id AS "branchId", COALESCE(SUM(o.total), 0)::float AS revenue
-      FROM branches b
-      LEFT JOIN orders o
-        ON o.branch_id = b.id
-        AND o.status::text = 'COMPLETED'
-        AND o.created_at >= ${prevFrom}
-        AND o.created_at <= ${prevTo}
-      WHERE b.tenant_id = ${tenantId}
-        AND b."isActive" = true
-      GROUP BY b.id
-    `;
-
-    const prevMap = new Map(prevRows.map((r) => [r.branchId, Number(r.revenue)]));
-
-    return rows.map((r) => {
-      const prev = prevMap.get(r.branchId) ?? 0;
-      const curr = Number(r.revenue);
-      const growth = prev === 0 ? (curr > 0 ? 100 : 0) : parseFloat(((curr - prev) / prev * 100).toFixed(1));
-      return {
-        branchId: r.branchId,
-        branchName: r.branchName,
-        revenue: curr,
-        orders: r.orders,
-        avgOrderValue: Math.round(Number(r.avgOrderValue)),
-        growth,
-      };
-    });
-  }
-
-  // ─── REVENUE BY BRANCH ───────────────────────────────────────
-  async getRevenueByBranch(tenantId: string, period = 'month') {
-    const { from } = this.periodBounds(period);
-    const now = new Date();
-
-    const rows = await this.prisma.$queryRaw<{
-      branchId: string;
-      branchName: string;
-      revenue: number;
-      orders: number;
-      avgOrderValue: number;
-    }[]>`
-      SELECT
-        b.id                                      AS "branchId",
-        b.name                                    AS "branchName",
-        COALESCE(SUM(o.total), 0)::float          AS revenue,
-        COUNT(o.id)::int                          AS orders,
-        COALESCE(AVG(o.total), 0)::float          AS "avgOrderValue"
-      FROM branches b
-      LEFT JOIN orders o
-        ON o.branch_id = b.id
-        AND o.status::text = 'COMPLETED'
-        AND o.created_at >= ${from}
-        AND o.created_at <= ${now}
-      WHERE b.tenant_id = ${tenantId}
-        AND b."isActive" = true
-      GROUP BY b.id, b.name
-      ORDER BY revenue DESC
-    `;
-
-    return rows.map((r) => ({
-      branchId: r.branchId,
-      branchName: r.branchName,
-      name: r.branchName,         // mobile expects "name"
-      revenue: Number(r.revenue),
-      orders: r.orders,
-      avgOrderValue: Math.round(Number(r.avgOrderValue)),
-      stockValue: 0,              // mobile expects "stockValue" (not available without heavy join)
-    }));
-  }
-
-  // ─── PERIOD BOUNDS HELPER ────────────────────────────────────
-  private periodBounds(period: string): { from: Date; prevFrom: Date; prevTo: Date } {
-    const now = new Date();
-    let from: Date;
-    let prevFrom: Date;
-    let prevTo: Date;
-
-    switch (period) {
-      case 'today':
-        from = new Date(now); from.setHours(0, 0, 0, 0);
-        prevFrom = new Date(from); prevFrom.setDate(prevFrom.getDate() - 1);
-        prevTo = new Date(from); prevTo.setMilliseconds(-1);
-        break;
-      case 'week':
-        from = new Date(now); from.setDate(now.getDate() - 6); from.setHours(0, 0, 0, 0);
-        prevFrom = new Date(from); prevFrom.setDate(prevFrom.getDate() - 7);
-        prevTo = new Date(from); prevTo.setMilliseconds(-1);
-        break;
-      case 'year':
-        from = new Date(now.getFullYear(), 0, 1);
-        prevFrom = new Date(now.getFullYear() - 1, 0, 1);
-        prevTo = new Date(now.getFullYear(), 0, 1); prevTo.setMilliseconds(-1);
-        break;
-      default: // month
-        from = new Date(now); from.setDate(1); from.setHours(0, 0, 0, 0);
-        prevFrom = new Date(from); prevFrom.setMonth(prevFrom.getMonth() - 1);
-        prevTo = new Date(from); prevTo.setMilliseconds(-1);
-    }
-    return { from, prevFrom, prevTo };
   }
 }

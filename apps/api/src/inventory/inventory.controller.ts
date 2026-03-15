@@ -138,30 +138,6 @@ export class InventoryController {
     @Query('branchId') _branchId?: string,
   ) {
     return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
-  }
-
-  // mobile-owner calls /inventory/low-stock (not /inventory/stock/low)
-  @Get('low-stock')
-  @ApiOperation({ summary: 'Mobile-owner alias: GET /inventory/low-stock' })
-  @ApiQuery({ name: 'branch_id', required: false })
-  getLowStock(
-    @CurrentUser('tenantId') tenantId: string,
-    @Query('branch_id') _branchId?: string,
-  ) {
-    return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
-  }
-
-  // mobile-owner: GET /inventory/stock-value
-  @Get('stock-value')
-  @ApiOperation({ summary: 'Mobile-owner: total stock value + by branch' })
-  @ApiQuery({ name: 'branch_id', required: false })
-  getStockValue(
-    @CurrentUser('tenantId') tenantId: string,
-    @Query('branch_id') branchId?: string,
-  ) {
-    return this.inventoryService.getStockValue(tenantId, branchId);
-  }
-
   // ─── T-222: OUT OF STOCK ─────────────────────────────────────
 
   @Get('out-of-stock')
