@@ -11,7 +11,7 @@ import type { Product } from '@/types/catalog';
 interface ProductSearchProps {
   search: string;
   onSearchChange: (v: string) => void;
-  searchRef: React.RefObject<HTMLInputElement>;
+  searchRef: React.RefObject<HTMLInputElement | null>;
 }
 
 function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }) {
@@ -105,7 +105,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
-            ref={searchRef}
+            ref={searchRef as React.RefObject<HTMLInputElement>}
             data-barcode="true"
             type="text"
             value={search}
