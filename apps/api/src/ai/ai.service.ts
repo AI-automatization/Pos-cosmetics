@@ -42,7 +42,8 @@ export class AiService {
     `;
 
     return rows.map((r) => ({
-      period: r.period,
+      date: r.period,      // mobile expects "date" field
+      period: r.period,    // keep for backwards compat
       revenue: Number(r.revenue),
       orders: r.orders,
       avgBasket: Number(r.avgBasket),
@@ -92,7 +93,9 @@ export class AiService {
     return rows.map((r) => ({
       productId: r.productId,
       productName: r.productName,
+      name: r.productName,        // mobile expects "name"
       qtySold: Number(r.qtySold),
+      quantity: Number(r.qtySold), // mobile expects "quantity"
       revenue: Number(r.revenue),
       costTotal: Number(r.costTotal),
       margin: Number(r.margin),
@@ -582,9 +585,11 @@ export class AiService {
     return rows.map((r) => ({
       branchId: r.branchId,
       branchName: r.branchName,
+      name: r.branchName,         // mobile expects "name"
       revenue: Number(r.revenue),
       orders: r.orders,
       avgOrderValue: Math.round(Number(r.avgOrderValue)),
+      stockValue: 0,              // mobile expects "stockValue" (not available without heavy join)
     }));
   }
 

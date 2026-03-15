@@ -242,12 +242,12 @@ export class NasiyaService {
       select: { remaining: true, dueDate: true },
     });
 
+    // Keys must match mobile AgingBucketKey: '0_30' | '31_60' | '61_90' | '90_plus'
     const buckets = [
-      { key: 'current', label: 'Muddati o\'tmagan', min: -Infinity, max: 0 },
-      { key: '1_30', label: '1–30 kun', min: 0, max: 30 },
-      { key: '31_60', label: '31–60 kun', min: 30, max: 60 },
-      { key: '61_90', label: '61–90 kun', min: 60, max: 90 },
-      { key: '90plus', label: '90+ kun', min: 90, max: Infinity },
+      { key: '0_30',   label: '0–30 kun',  min: -Infinity, max: 30 },
+      { key: '31_60',  label: '31–60 kun', min: 30,        max: 60 },
+      { key: '61_90',  label: '61–90 kun', min: 60,        max: 90 },
+      { key: '90_plus', label: '90+ kun',  min: 90,        max: Infinity },
     ];
 
     const result = buckets.map((b) => ({ bucket: b.key, label: b.label, amount: 0, customerCount: 0 }));

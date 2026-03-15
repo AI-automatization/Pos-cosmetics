@@ -54,18 +54,22 @@ export class AiController {
   getSalesTrend(
     @CurrentUser('tenantId') tenantId: string,
     @Query('period') period: string = 'daily',
+    @Query('granularity') granularity?: string, // mobile sends "granularity" instead of "period"
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('from_date') fromDate?: string,
+    @Query('to_date') toDate?: string,
   ) {
+    // mobile sends granularity=day|week|month, map to daily|weekly|monthly
+    const granMap: Record<string, string> = { day: 'daily', week: 'weekly', month: 'monthly' };
+    const raw = granularity ? (granMap[granularity] ?? granularity) : period;
     const validPeriods = ['daily', 'weekly', 'monthly'];
-    if (!validPeriods.includes(period)) {
-      throw new BadRequestException('period must be daily, weekly or monthly');
-    }
+    const resolved = validPeriods.includes(raw) ? raw : 'daily';
     return this.aiService.getSalesTrend(
       tenantId,
-      period as 'daily' | 'weekly' | 'monthly',
-      this.parseDate(from, this.defaultFrom(30)),
-      this.parseDate(to, this.defaultTo()),
+      resolved as 'daily' | 'weekly' | 'monthly',
+      this.parseDate(from ?? fromDate, this.defaultFrom(30)),
+      this.parseDate(to ?? toDate, this.defaultTo()),
     );
   }
 
@@ -227,5 +231,26 @@ export class AiController {
     @Query('period') period: string = 'month',
   ) {
     return this.aiService.getRevenueByBranch(tenantId, period);
+  }
+
+  // ─── EMPLOYEE PERFORMANCE (alias for cashier-performance) ────
+  @Get('employee-performance')
+  @ApiOperation({ summary: 'Mobile alias: same as /analytics/cashier-performance' })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiQuery({ name: 'from_date', required: false })
+  @ApiQuery({ name: 'to_date', required: false })
+  getEmployeePerformance(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('from_date') fromDate?: string,
+    @Query('to_date') toDate?: string,
+  ) {
+    return this.aiService.getCashierPerformance(
+      tenantId,
+      this.parseDate(from ?? fromDate, this.defaultFrom(30)),
+      this.parseDate(to ?? toDate, this.defaultTo()),
+    );
   }
 }
