@@ -544,4 +544,26 @@ export class SalesService {
       avgRevenuePerShift: totalShifts > 0 ? Math.round(totalRevenue / totalShifts) : 0,
     };
   }
+
+  async listReturns(tenantId: string, query: { page?: number; limit?: number; status?: string }) {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where: any = { tenantId };
+    if (query.status) where.status = query.status;
+
+    const [items, total] = await Promise.all([
+      this.prisma.return.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: { items: true },
+      }),
+      this.prisma.return.count({ where }),
+    ]);
+
+    return { items, total, page, limit, pages: Math.ceil(total / limit) };
+  }
 }

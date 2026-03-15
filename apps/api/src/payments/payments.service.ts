@@ -135,4 +135,25 @@ export class PaymentsService {
     if (!intent) throw new NotFoundException(`PaymentIntent ${intentId} not found`);
     return intent;
   }
+
+  async listPayments(tenantId: string, query: { page?: number; limit?: number; status?: string }) {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where: any = { tenantId };
+    if (query.status) where.status = query.status;
+
+    const [items, total] = await Promise.all([
+      this.prisma.paymentIntent.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.paymentIntent.count({ where }),
+    ]);
+
+    return { items, total, page, limit, pages: Math.ceil(total / limit) };
+  }
 }
