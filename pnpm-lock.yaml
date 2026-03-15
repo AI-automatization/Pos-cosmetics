@@ -113,6 +113,9 @@ importers:
       winston-daily-rotate-file:
         specifier: ^5.0.0
         version: 5.0.0(winston@3.19.0)
+      nodemailer:
+        specifier: ^8.0.2
+        version: 8.0.2
     devDependencies:
       '@nestjs/cli':
         specifier: ^11.0.0
@@ -138,6 +141,9 @@ importers:
       '@types/passport-jwt':
         specifier: ^4.0.1
         version: 4.0.1
+      '@types/nodemailer':
+        specifier: ^7.0.11
+        version: 7.0.11
       '@types/socket.io':
         specifier: ^3.0.2
         version: 3.0.2

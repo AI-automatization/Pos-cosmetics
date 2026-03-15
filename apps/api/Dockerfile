@@ -10,7 +10,7 @@ COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
 
 # Install all deps (dev + prod) — needed for prisma generate + nest build
-RUN pnpm install --frozen-lockfile --filter api...
+RUN pnpm install --no-frozen-lockfile --filter api...
 
 # Copy source
 COPY apps/api/ ./apps/api/
