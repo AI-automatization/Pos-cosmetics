@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ const C = {
 
 // ─── Types ─────────────────────────────────────────────
 type ReceiptStatus = 'PENDING' | 'ACCEPTED' | 'CANCELLED';
+type FilterTab = 'ALL' | 'PENDING' | 'ACCEPTED';
 
 interface ReceiptItem {
   productName: string;
@@ -110,6 +111,13 @@ const MOCK_RECEIPTS: Receipt[] = [
     ],
     notes: 'Yetkazib beruvchi tomonidan bekor qilindi',
   },
+];
+
+// ─── Tabs ──────────────────────────────────────────────
+const TABS: { key: FilterTab; label: string }[] = [
+  { key: 'ALL',      label: 'Hammasi'        },
+  { key: 'PENDING',  label: 'Kutilmoqda'     },
+  { key: 'ACCEPTED', label: 'Qabul qilingan' },
 ];
 
 // ─── Utils ─────────────────────────────────────────────
@@ -275,13 +283,17 @@ export default function KirimScreen() {
   const [search, setSearch]           = useState('');
   const [selected, setSelected]       = useState<Receipt | null>(null);
   const [detailVisible, setDetail]    = useState(false);
+  const [activeTab, setActiveTab]     = useState<FilterTab>('ALL');
+  const listRef                       = useRef<FlatList<Receipt>>(null);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return MOCK_RECEIPTS.filter(
-      (r) => r.number.toLowerCase().includes(q) || r.supplier.toLowerCase().includes(q),
-    );
-  }, [search]);
+    return MOCK_RECEIPTS.filter((r) => {
+      const matchSearch = r.number.toLowerCase().includes(q) || r.supplier.toLowerCase().includes(q);
+      const matchTab    = activeTab === 'ALL' || r.status === activeTab;
+      return matchSearch && matchTab;
+    });
+  }, [search, activeTab]);
 
   const openDetail = (receipt: Receipt) => {
     setSelected(receipt);
@@ -299,6 +311,7 @@ export default function KirimScreen() {
       </View>
 
       <FlatList
+        ref={listRef}
         data={filtered}
         keyExtractor={(r) => r.id}
         contentContainerStyle={styles.content}
@@ -324,6 +337,29 @@ export default function KirimScreen() {
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* Filter Tabs */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsRow}
+            >
+              {TABS.map((tab) => (
+                <TouchableOpacity
+                  key={tab.key}
+                  style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+                  onPress={() => {
+                    setActiveTab(tab.key);
+                    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+                  }}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
             <Text style={styles.resultCount}>{filtered.length} ta kirim</Text>
           </View>
@@ -385,6 +421,13 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, fontSize: 14, color: C.text },
   resultCount: { fontSize: 12, color: C.muted, paddingHorizontal: 16 },
+
+  // Tabs
+  tabsRow:      { paddingHorizontal: 16, gap: 8 },
+  tab:          { height: 36, paddingHorizontal: 18, borderRadius: 18, backgroundColor: C.white, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
+  tabActive:    { backgroundColor: C.primary, borderColor: C.primary },
+  tabText:      { fontSize: 14, fontWeight: '600', color: C.secondary },
+  tabTextActive:{ color: C.white },
 
   // Receipt card
   receiptCard: {
