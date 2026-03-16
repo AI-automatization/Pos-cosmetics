@@ -1712,18 +1712,198 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## 📱 MOBILE iOS — Kirim Screen Davomi (2026-03-15)
+> Abdulaziz tahlili: mock data → real flow. Yangi kirim yaratish + filter + API ulash.
+> Mas'ul: Abdulaziz (iOS Mobile)
+
+---
+
+## T-141 | P1 | [MOBILE] | Kirim — Status filter tabs (Hammasi / Kutilmoqda / Qabul qilingan)
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Kirim/index.tsx`
+- **Vazifa:**
+  - Qidiruv qatoridan keyin 3 ta tab qo'shish: `Hammasi` | `Kutilmoqda` | `Qabul qilingan`
+  - Aktiv tab → `C.primary` rang, qolgan → `C.muted`
+  - `filtered` useMemo ga `activeTab` filter qo'shish
+  - Tab o'zgarganda FlatList yuqoriga scroll qilishi
+- **Kutilgan:** Foydalanuvchi statusga qarab kirimlarni tezda filterlaydi
+
+---
+
+## T-142 | P1 | [MOBILE] | Kirim — `useKirimData` hook (mock → real API)
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Kirim/useKirimData.ts`
+- **Vazifa:**
+  - `useKirimData` hook yaratish (React Query):
+    ```ts
+    export function useKirimData() {
+      const list    = useQuery({ queryKey: ['kirim'], queryFn: () => inventoryApi.getReceipts() });
+      const create  = useMutation({ mutationFn: inventoryApi.createReceipt, onSuccess: () => queryClient.invalidateQueries(['kirim']) });
+      return { list, create };
+    }
+    ```
+  - `inventory.api.ts` ga qo'shish:
+    - `getReceipts(params?)` → `GET /inventory/receipts`
+    - `getReceiptById(id)` → `GET /inventory/receipts/:id`
+    - `createReceipt(body)` → `POST /inventory/stock-in` (T-140 backend)
+  - KirimScreen ichida MOCK_RECEIPTS o'rniga `useKirimData` ishlatish
+  - Loading → skeleton, Error → `<ErrorView onRetry />`
+- **Kutilgan:** Screen real backend bilan ishlaydi (T-140 tayyor bo'lgach)
+
+---
+
+## T-143 | P0 | [MOBILE] | Kirim — Yangi kirim yaratish sheet (barcode scanner bilan)
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Kirim/NewReceiptSheet.tsx`
+- **Vazifa:**
+  - `+ tugma` bosilganda bottom sheet ochiladi (`NewReceiptSheet`)
+  - **Sheet tuzilishi:**
+    1. Yetkazib beruvchi ismi (TextInput)
+    2. Hujjat raqami (TextInput, ixtiyoriy)
+    3. Mahsulot qo'shish — 2 usul:
+       - 📷 **Barcode scan** → `CameraSection` qayta ishlatiladi (`apps/mobile/src/screens/Scanner/CameraSection.tsx`)
+       - 🔍 **Qo'lda qidirish** → mahsulot nomi bo'yicha
+    4. Qo'shilgan har mahsulot uchun: miqdor + tannarx + muddat (faqat `expiryTracking=true` bo'lsa)
+    5. **Qabul qilish** tugmasi → `useKirimData.create.mutate(body)`
+  - Validatsiya: yetkazib beruvchi bo'sh bo'lmasin, kamida 1 mahsulot
+  - Muvaffaqiyatli → sheet yopiladi, ro'yxat yangilanadi
+- **Kutilgan:** Cashier mobildan to'liq yangi kirim qo'sha oladi
+
+---
+
+## T-144 | P2 | [MOBILE] | Kirim — i18n kalitlar qo'shish
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/i18n/uz.ts`, `ru.ts`, `en.ts`
+- **Vazifa:**
+  - `kirim` namespace ga qo'shish:
+    ```ts
+    kirim: {
+      title: 'Kirim',
+      newReceipt: 'Yangi kirim',
+      supplier: 'Yetkazib beruvchi',
+      docNumber: 'Hujjat raqami',
+      addProduct: 'Mahsulot qo\'shish',
+      scanBarcode: 'Barcode skan',
+      searchProduct: 'Mahsulot qidirish',
+      qty: 'Miqdor',
+      costPrice: 'Tannarx',
+      expiryDate: 'Muddat',
+      confirm: 'Qabul qilish',
+      filterAll: 'Hammasi',
+      filterPending: 'Kutilmoqda',
+      filterAccepted: 'Qabul qilingan',
+    }
+    ```
+  - KirimScreen va NewReceiptSheet ichida `t('kirim.*')` ishlatish
+- **Kutilgan:** UZ/RU/EN til qo'llab-quvvatlash
+
+---
+
+## 📱 MOBILE iOS — Nasiya Screen To'g'rilash (2026-03-15)
+> Tahlil: index.tsx mock data ishlatadi, mavjud komponentlar (DebtCard.tsx, PayModal.tsx, useNasiyaData.ts) ulanmagan.
+> Mas'ul: Abdulaziz (iOS Mobile)
+
+---
+
+## T-145 | P0 | [MOBILE] | Nasiya — index.tsx ni real API ga ulash
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Nasiya/index.tsx`
+- **Muammo:** `index.tsx` MOCK_DEBTS ishlatadi, inline `DebtCard` va `PaymentModal` bor lekin `DebtCard.tsx`, `PayModal.tsx`, `useNasiyaData.ts` ishlatilmayapti.
+- **Vazifa:**
+  - `index.tsx` dan MOCK_DEBTS, inline DebtCard, inline PaymentModal O'CHIRISH
+  - `useNasiyaData(activeTab)` hook ulash
+  - Mavjud `DebtCard.tsx` va `PayModal.tsx` import qilish
+  - Tab kalitlarini `useNasiyaData` bilan moslashtirish: `ALL | OVERDUE | PAID`
+  - Loading holat: `<LoadingSpinner />`
+  - Error holat: `<ErrorView onRetry={refetchAll} />`
+  - `SummaryCard` ga `totalDebt`, `overdueCount`, `overdueAmount` props uzatish
+- **Kutilgan:** Screen real API (yoki demo fallback) bilan ishlaydi, To'lov bosilganda `nasiyaApi.pay()` chaqiriladi
+
+---
+
+## T-146 | P0 | [MOBILE] | Nasiya — FAB → Yangi nasiya sheet
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Nasiya/NewDebtSheet.tsx`
+- **Vazifa:**
+  - FAB (`+`) bosilganda `NewDebtSheet` bottom sheet ochiladi
+  - **Sheet tuzilishi:**
+    1. Mijoz ismi (TextInput + qidiruv — `GET /customers?search=`)
+    2. Summa (numeric TextInput)
+    3. Muddat sanasi (DatePicker yoki matn input `YYYY-MM-DD`)
+    4. Izoh (TextInput, ixtiyoriy)
+    5. **Saqlash** tugmasi → `POST /nasiya` (nasiyaApi.create)
+  - `nasiya.api.ts` ga `create` metod qo'shish:
+    ```ts
+    create: async (body: { customerId: string; totalAmount: number; dueDate: string; notes?: string }) => void
+    ```
+  - Muvaffaqiyatli → sheet yopiladi, `refetchAll()` chaqiriladi
+  - Validatsiya: mijoz tanlangan, summa > 0, muddat bo'sh emas
+- **Kutilgan:** Mobildan to'g'ridan yangi nasiya qo'shsa bo'ladi
+
+---
+
+## T-147 | P1 | [MOBILE] | Nasiya — DebtCard ga progress bar qo'shish
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Nasiya/DebtCard.tsx`
+- **Vazifa:**
+  - Amounts qatoridan keyin progress bar qo'shish:
+    ```
+    [████████░░░░] 57% to'langan
+    ```
+  - `paidPercent = paidAmount / totalAmount * 100`
+  - Progress bar rangi: OVERDUE → qizil, PARTIAL → sariq, ACTIVE → ko'k, PAID → yashil
+  - Foiz matni o'ngda ko'rsatiladi
+  - `View` + `StyleSheet` (tashqi kutubxona yo'q)
+- **Kutilgan:** Foydalanuvchi bir qarashda qancha to'langanini ko'radi
+
+---
+
+## T-148 | P1 | [MOBILE] | Nasiya — To'lovlar tarixini ko'rsatish
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Nasiya/DebtCard.tsx`
+- **Vazifa:**
+  - DebtCard bosilganda ichidagi `payments[]` ro'yxati kengayadi (expand/collapse)
+  - `payments.length > 0` bo'lsa "To'lovlar tarixi (N ta)" toggle button ko'rsatiladi
+  - Har payment: sana + miqdor + usul (NAQD/KARTA)
+  - `DebtRecord.payments` allaqachon API dan keladi — qo'shimcha so'rov kerak emas
+- **Kutilgan:** Cashier kimning qachon qancha to'laganini ko'radi
+
+---
+
+## T-149 | P2 | [MOBILE] | Nasiya — Telefon raqam bosilsa call qilish
+- **Sana:** 2026-03-15
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Nasiya/DebtCard.tsx`
+- **Vazifa:**
+  - `debt.customer.phone` bosilganda `Linking.openURL('tel:+998...')` chaqiriladi
+  - Telefon raqam qatoriga `📞` ikonka + underline qo'shish
+  - `phone === null` bo'lsa ko'rsatilmaydi
+- **Kutilgan:** Bir teginishda mijozga qo'ng'iroq qilsa bo'ladi
+
+---
+
 ---
 
 ## 📊 STATISTIKA
 
 | Umumiy | P0 | P1 | P2 | P3 |
 |--------|----|----|----|----|
-| **121** | **35** | **51** | **15** | **20** |
+| **130** | **38** | **55** | **17** | **20** |
 
 ### MVP (T-011 — T-049): 39 task
 ### Production Features (T-050 — T-124): 75 task
 ### Mobile iOS Backend API (T-134 — T-140): 7 task
 ### Mobile iOS Figma Screens: ✅ HAMMASI BAJARILDI (T-125 — T-133)
+### Mobile iOS Kirim Screen (T-141 — T-144): 4 task
+### Mobile iOS Nasiya Screen (T-145 — T-149): 5 task
 
 ---
 
@@ -1746,7 +1926,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 |-----------|----|----|----|----|------|
 | **Polat** (Backend & DevOps) | 18 | 33 | 7 | — | **58** |
 | **AbdulazizYormatov** (Frontend) | 9 | 9 | 3 | — | **21** |
-| **Ibrat + Abdulaziz** (Mobile) | — | 11 | 2 | — | **13** |
+| **Ibrat + Abdulaziz** (Mobile) | 3 | 15 | 4 | — | **22** |
 | **Birgalikda** | 3 | 3 | — | — | **6** |
 | **Belgilanmagan** | — | — | 3 | 20 | **23** |
 
