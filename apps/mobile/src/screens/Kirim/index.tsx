@@ -52,7 +52,7 @@ const TABS: { key: FilterTab; label: string }[] = [
 ];
 
 // ─── Stats chips ───────────────────────────────────────
-function StatsChips({ receipts }: { receipts: Receipt[] }) {
+const StatsChips = React.memo(function StatsChips({ receipts }: { receipts: Receipt[] }) {
   const total    = receipts.length;
   const pending  = receipts.filter((r) => r.status === 'PENDING').length;
   const received = receipts.filter((r) => r.status === 'RECEIVED').length;
@@ -82,7 +82,7 @@ function StatsChips({ receipts }: { receipts: Receipt[] }) {
       </View>
     </ScrollView>
   );
-}
+});
 
 // ─── Receipt card ──────────────────────────────────────
 function ReceiptCard({ receipt, onPress }: { receipt: Receipt; onPress: () => void }) {
@@ -173,7 +173,7 @@ function DetailSheet({
         <ScrollView showsVerticalScrollIndicator={false} style={styles.itemsScroll}>
           <Text style={styles.itemsTitle}>Mahsulotlar ({items.length} ta)</Text>
           {items.map((item, idx) => (
-            <View key={item.productId} style={styles.itemRow}>
+            <View key={`${item.productId}-${idx}`} style={styles.itemRow}>
               <View style={styles.itemLeft}>
                 <Text style={styles.itemIdx}>{idx + 1}</Text>
                 <View style={styles.itemNameWrap}>

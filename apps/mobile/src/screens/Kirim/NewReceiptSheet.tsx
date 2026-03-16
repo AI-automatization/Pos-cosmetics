@@ -22,7 +22,12 @@ import CameraSection from '../Scanner/CameraSection';
 import { formatUZS } from '../../utils/currency';
 
 // ─── Constants ─────────────────────────────────────────
-const CAMERA_HEIGHT = 260;
+const CAMERA_HEIGHT         = 260;
+const CAMERA_MARGIN_TOP     = 60;
+const SHEET_PADDING         = 24;
+const SHEET_PADDING_BOTTOM  = 40;
+const SHEET_BORDER_RADIUS   = 24;
+const SHEET_MAX_HEIGHT      = '92%' as const;
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -142,7 +147,8 @@ export default function NewReceiptSheet({
         expiryDate:  '',
       });
     } catch {
-      // Product not found — demo fallback using barcode as product name
+      // Demo fallback: product not in catalog yet (404) or network error.
+      // TODO: distinguish 404 vs network error when backend is ready.
       setScanResult({
         productId:   barcode,
         productName: barcode,
@@ -242,7 +248,8 @@ export default function NewReceiptSheet({
     try {
       await createMutation.mutateAsync(body);
     } catch {
-      // Backend hali tayyor emas — demo mode, always succeed
+      // Backend hali tayyor emas — demo mode, always succeed.
+      // TODO: Alert.alert('Xatolik', err.message) when backend is ready.
     }
     resetAll();
     onSuccess();
@@ -627,11 +634,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
     justifyContent: 'space-between',
-    paddingBottom: 40,
+    paddingBottom: SHEET_PADDING_BOTTOM,
   },
   cameraWrap: {
     height: CAMERA_HEIGHT,
-    marginTop: 60,
+    marginTop: CAMERA_MARGIN_TOP,
   },
   scanLoadingRow: {
     flexDirection: 'row',
@@ -667,11 +674,11 @@ const styles = StyleSheet.create({
   kav: { width: '100%' },
   sheet: {
     backgroundColor: C.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-    maxHeight: '92%',
+    borderTopLeftRadius: SHEET_BORDER_RADIUS,
+    borderTopRightRadius: SHEET_BORDER_RADIUS,
+    padding: SHEET_PADDING,
+    paddingBottom: SHEET_PADDING_BOTTOM,
+    maxHeight: SHEET_MAX_HEIGHT,
   },
   handle: {
     width: 40,
