@@ -14,6 +14,7 @@ import type { DebtRecord } from '../../api/nasiya.api';
 import { useNasiyaData, FilterTab } from './useNasiyaData';
 import DebtCard from './DebtCard';
 import PayModal from './PayModal';
+import NewDebtSheet from './NewDebtSheet';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 // ─── Colors ────────────────────────────────────────────
@@ -76,8 +77,9 @@ function SummaryCard({
 export default function NasiyaScreen() {
   const [activeTab, setActiveTab]       = useState<FilterTab>('ALL');
   const [search, setSearch]             = useState('');
-  const [selectedDebt, setSelectedDebt] = useState<DebtRecord | null>(null);
-  const [payVisible, setPayVisible]     = useState(false);
+  const [selectedDebt, setSelectedDebt]   = useState<DebtRecord | null>(null);
+  const [payVisible, setPayVisible]       = useState(false);
+  const [newDebtVisible, setNewDebtVisible] = useState(false);
 
   const {
     currentItems,
@@ -191,7 +193,11 @@ export default function NasiyaScreen() {
       )}
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.85}
+        onPress={() => setNewDebtVisible(true)}
+      >
         <Ionicons name="add" size={28} color={C.white} />
       </TouchableOpacity>
 
@@ -201,6 +207,13 @@ export default function NasiyaScreen() {
         debt={selectedDebt}
         onClose={() => setPayVisible(false)}
         onSuccess={handlePaySuccess}
+      />
+
+      {/* New Debt Sheet */}
+      <NewDebtSheet
+        visible={newDebtVisible}
+        onClose={() => setNewDebtVisible(false)}
+        onSuccess={() => { setNewDebtVisible(false); refetchAll(); }}
       />
     </SafeAreaView>
   );

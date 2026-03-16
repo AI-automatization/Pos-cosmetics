@@ -68,4 +68,14 @@ export const nasiyaApi = {
   sendReminder: async (id: string): Promise<void> => {
     await api.post(`/nasiya/${id}/remind`);
   },
+
+  create: async (body: {
+    customerName: string;
+    phone?: string;
+    totalAmount: number;
+    dueDate?: string;
+    notes?: string;
+  }): Promise<void> => {
+    await api.post('/nasiya', body);
+  },
 };
