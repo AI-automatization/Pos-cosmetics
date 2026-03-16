@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-03-09
+# Yangilangan: 2026-03-15 (Ibrat — T-226..T-228: mobile-owner↔backend full integration)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -14,6 +14,801 @@
 5. Prioritet: P0=kritik, P1=muhim, P2=o'rta, P3=past
 6. Kategoriya: [BACKEND], [FRONTEND], [DEVOPS], [SECURITY], [IKKALASI]
 ```
+
+---
+
+## T-200 | P1 | [MOBILE] | mobile-owner — Stitch AI dizayn stilini implement qilish ✅ DONE
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Ibrat
+- **Stitch link:** https://stitch.withgoogle.com/projects/7549251643181014276
+- **Bajarilgan o'zgarishlar (2026-03-12):**
+  - ✅ `ScreenLayout.tsx` — `logoMode` prop: RAOS icon + center branch pill + bell badge
+  - ✅ `HeaderBranchSelector.tsx` — rounded-full pill, #1E40AF text
+  - ✅ `LowStockAlertList.tsx` — amber banner "#FEF3C7", count + chevron
+  - ✅ `Dashboard/index.tsx` — lowStock banner first, logoMode enabled
+  - ✅ `RevenueSummaryGrid.tsx` — cards without accent bar, amount formatted (14,250,000 UZS)
+  - ✅ `DebtSummaryCards.tsx` — 3 full-width stacked cards (Stitch nasiya layout)
+  - ✅ `TabNavigator.tsx` — 5 tabs: DASHBOARD | ANALITIKA | XABARLAR | XODIMLAR | SOZLAMALAR
+  - ✅ `navigation/types.ts` — TabParamList 5 tab
+  - ✅ `i18n/uz|en|ru.json` — `lowStockCount`, `orderCount`, `statusNormal/Low/Out`, `persons`
+  - ✅ `debts.api.ts` — `DebtSummary.overdueCount` field qo'shildi
+
+---
+
+## 🔴 POLAT UCHUN — OWNER PANEL BACKEND VAZIFALAR (T-201 dan T-208)
+## Backend tayyor bo'lmasa owner panel ishlaydi faqat mock data bilan!
+
+---
+
+## T-201 | P1 | [BACKEND] | Owner Dashboard Analytics API endpointlari
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/analytics/`
+- **Muammo:** `apps/mobile-owner` dashboard ekrani quyidagi endpointlarni talab qiladi, lekin ular to'liq emas yoki yo'q
+- **Kerakli endpointlar:**
+  - `GET /analytics/revenue?period=today|week|month|year&branchId=` → `{ today, week, month, year, todayTrend, weekTrend, monthTrend, yearTrend }`
+  - `GET /analytics/sales-trend?period=7d|30d&branchId=` → `{ labels: string[], values: number[] }`
+  - `GET /analytics/branch-comparison?metric=revenue|orders` → `{ branches: [{ branchId, branchName, value }] }`
+  - `GET /analytics/top-products?limit=10&branchId=` → `{ products: [{ productId, name, quantity, revenue }] }`
+- **Kutilgan:** Response format `apps/mobile-owner/src/api/analytics.api.ts` bilan mos bo'lsin
+- **Auth:** JWT Bearer — faqat `OWNER` role
+
+---
+
+## T-202 | P1 | [BACKEND] | Low Stock & Inventory Alerts endpoint
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/inventory/`
+- **Muammo:** Mobile-owner dashboard `lowStock` section uchun endpoint kerak
+- **Kerakli endpointlar:**
+  - `GET /inventory/low-stock?branchId=&limit=20` → `{ items: [{ productId, productName, quantity, unit, threshold, status }] }`
+  - `GET /inventory/items?branchId=&status=normal|low|out_of_stock|expiring|expired&search=&page=&limit=` → paginated list for Inventory screen
+- **Kutilgan:** `InventoryItem` type bilan mos (productName, barcode, branchName, quantity, unit, stockValue, expiryDate, status)
+- **Auth:** JWT Bearer — faqat `OWNER` role
+
+---
+
+## T-203 | P1 | [BACKEND] | Alerts / Notifications feed endpoint
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/notifications/`
+- **Muammo:** Mobile-owner Alerts ekrani uchun structured alert feed kerak
+- **Kerakli endpointlar:**
+  - `GET /notifications/alerts?type=&isRead=&branchId=&page=&limit=` → paginated alerts
+  - `PUT /notifications/alerts/:id/read` → mark as read
+  - `PUT /notifications/alerts/read-all` → mark all as read
+- **Alert types:** `LOW_STOCK | OUT_OF_STOCK | EXPIRY_WARNING | LARGE_REFUND | SUSPICIOUS_ACTIVITY | SHIFT_CLOSED | SYSTEM_ERROR | NASIYA_OVERDUE`
+- **Alert object:** `{ id, type, description, branchName, branchId, isRead, createdAt, metadata? }`
+- **Auth:** JWT Bearer — faqat `OWNER` role
+
+---
+
+## T-204 | P1 | [BACKEND] | Employee Performance endpoint
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/identity/` yoki `apps/api/src/sales/`
+- **Muammo:** Mobile-owner Employees ekrani uchun performance va suspicious activity ma'lumotlari kerak
+- **Kerakli endpointlar:**
+  - `GET /employees/performance?branchId=&period=today|week|month` → `{ employees: [EmployeePerformance] }`
+  - `GET /employees/:id/suspicious-activity?limit=20` → `{ activities: [{ id, type, description, orderId?, amount?, createdAt }] }`
+- **EmployeePerformance object:** `{ employeeId, employeeName, role, branchName, totalOrders, totalRevenue, totalRefunds, refundRate, totalVoids, suspiciousActivityCount }`
+- **Suspicious activity triggers:** refund > 3× avg, void after payment, large discount (> 30%), negative cash drawer
+- **Auth:** JWT Bearer — faqat `OWNER` role
+
+---
+
+## T-205 | P1 | [BACKEND] | Shift Monitoring endpoint
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/shifts/`
+- **Muammo:** Mobile-owner Shifts ekrani uchun cross-branch shift list kerak
+- **Kerakli endpointlar:**
+  - `GET /shifts?branchId=&status=open|closed&page=&limit=` → paginated shifts (all branches if owner)
+  - `GET /shifts/:id` → shift detail with payment breakdown
+- **Shift object:** `{ id, branchId, branchName, cashierName, status, openedAt, closedAt, totalRevenue, totalOrders, paymentBreakdown: { cash, card, click, payme } }`
+- **Auth:** JWT Bearer — faqat `OWNER` role (sees all branches), `CASHIER` faqat o'zinikini
+
+---
+
+## T-206 | P1 | [BACKEND] | Nasiya (Debt) Aging Report endpoint
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/` yoki `apps/api/src/ledger/`
+- **Muammo:** Mobile-owner Nasiya ekrani uchun aging bucket va customer debt list kerak
+- **Kerakli endpointlar:**
+  - `GET /debts/summary?branchId=` → `{ totalDebt, overdueDebt, overdueCount, aging: { current, days30, days60, days90plus } }`
+  - `GET /debts/customers?branchId=&status=current|overdue&page=&limit=` → `{ customers: [CustomerDebt] }`
+- **CustomerDebt object:** `{ customerId, customerName, phone, totalDebt, overdueAmount, lastPaymentDate, daysPastDue }`
+- **Auth:** JWT Bearer — faqat `OWNER` role
+
+---
+
+## T-207 | P1 | [BACKEND] | System Health endpoint
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/system/`
+- **Muammo:** Mobile-owner SystemHealth ekrani uchun service status va sync status kerak
+- **Kerakli endpointlar:**
+  - `GET /system/health` → `{ services: [{ name, status: 'ok'|'warn'|'error', latencyMs }], syncStatus: [{ branchId, branchName, lastSyncAt, pendingCount }], recentErrors: [{ message, service, timestamp }] }`
+- **Auth:** JWT Bearer — faqat `OWNER` role
+
+---
+
+## T-208 | P2 | [BACKEND] | Push Notification device token registration
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/notifications/`
+- **Muammo:** Mobile-owner app push notification olish uchun FCM device token ni backendga yuborishi kerak
+- **Kerakli endpointlar:**
+  - `POST /notifications/device-token` → `{ token: string, platform: 'android'|'ios' }`
+  - `DELETE /notifications/device-token` → logout da tokenni o'chirish
+- **DB:** `user_device_tokens` jadvali: `(userId, token, platform, createdAt, updatedAt)`
+- **Auth:** JWT Bearer — autentifikatsiya qilingan foydalanuvchi
+- **Note:** Expo Go da push token ishlamaydi — faqat `expo-dev-client` yoki release build da
+
+---
+
+## T-209 | P1 | [BACKEND] | Branches endpoint — mobile-owner uchun filiallar ro'yxati
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/identity/` (yoki mavjud branches modul)
+- **Muammo:** Mobile-owner `HeaderBranchSelector` va `BranchSelectorSheet` uchun filiallar kerak
+- **Kerakli endpoint:**
+  - `GET /branches?tenantId=` → `{ branches: [{ id, name, address?, isActive }] }`
+- **Branch object:** `{ id: string, name: string, address?: string, isActive: boolean }`
+- **Auth:** JWT Bearer — `OWNER` role (faqat o'z tenant filiallarini ko'radi)
+- **Note:** Mobile-owner bu endpoint orqali branch selector ni to'ldiradi. `tenant_id` JWT dan olinadi.
+
+---
+
+## T-210 | P1 | [BACKEND] | Analytics orders count endpoint — Dashboard 4-karta uchun
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/analytics/`
+- **Muammo:** Dashboard ekrani 4-kartasi "Buyurtmalar 247 ta" ko'rsatadi — `GET /analytics/orders` kerak
+- **Kerakli endpoint:**
+  - `GET /analytics/orders?branchId=&period=today|week|month|year` → `{ total: number, avgOrderValue: number, trend: number }`
+  - `trend` = joriy davrning oldingi davr bilan solishtirgan % o'zgarishi
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Note:** `RevenueData` bilan parallel chaqiriladi. Alohida endpoint sifatida izolyatsiya qilingan.
+
+---
+
+## T-211 | P1 | [BACKEND] | DebtSummary `overdueCount` field qo'shish
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/` yoki `apps/api/src/ledger/`
+- **Muammo:** `GET /debts/summary` response da `overdueCount` (muddati o'tgan mijozlar soni) yo'q
+- **Joriy response:** `{ totalDebt, overdueDebt, debtorCount, avgDebt }`
+- **Kerakli response:** `{ totalDebt, overdueDebt, overdueCount, debtorCount, avgDebt }`
+  - `overdueCount` = muddati o'tgan `orders`/`invoices` bor mijozlar soni
+- **Frontend:** `apps/mobile-owner/src/api/debts.api.ts` — `DebtSummary.overdueCount` allaqachon qo'shildi
+
+---
+
+## T-212 | P1 | [BACKEND] | `GET /debts/aging-report` — Qarz yoshi hisoboti bucketi
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/` yoki `apps/api/src/ledger/`
+- **Muammo:** Mobile-owner Nasiya ekrani `AgingBucketChart` uchun bucket ma'lumotlari kerak
+- **Kerakli endpoint:**
+  - `GET /debts/aging-report?branchId=` → `{ buckets: [AgingBucket] }`
+  - `AgingBucket` = `{ bucket: '0_30'|'31_60'|'61_90'|'90_plus', label: string, amount: number, customerCount: number }`
+- **Bucket logikasi:**
+  - `0_30` = last purchase <= 30 kun oldin
+  - `31_60` = 31–60 kun
+  - `61_90` = 61–90 kun
+  - `90_plus` = 90+ kun (eng xavfli)
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend:** `apps/mobile-owner/src/api/debts.api.ts` — `AgingBucket`, `AgingReport` interfeyslari tayyor
+
+---
+
+## T-213 | P1 | [BACKEND] | `GET /alerts` — `priority` query param qo'shish
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/notifications/`
+- **Muammo:** Mobile-owner Alerts ekrani `HIGH | O'RTA | PAST` priority filterlari bilan ishlaydi lekin backend `priority` param qabul qilmaydi
+- **O'zgartirish:**
+  - `GET /alerts?priority=high|medium|low&status=read|unread|all&branchId=&page=&limit=`
+  - `priority` — ixtiyoriy filter. Agar berilmasa — hammasi qaytariladi.
+  - `Alert.priority` = `'high' | 'medium' | 'low'` — har alert uchun shart
+- **Alert priority mapping:**
+  - `high` = `SUSPICIOUS_ACTIVITY`, `OUT_OF_STOCK`, `SYSTEM_ERROR`, `NASIYA_OVERDUE` (30+ kun)
+  - `medium` = `LARGE_REFUND`, `EXPIRY_WARNING`, `NASIYA_OVERDUE` (7–30 kun)
+  - `low` = `LOW_STOCK`, `SHIFT_CLOSED`
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend:** `apps/mobile-owner/src/hooks/useAlerts.ts` — `AlertPriorityFilter` type tayyor, API ga `priority` param jo'natiladi
+
+---
+
+## T-214 | P1 | [BACKEND] | Shift PaymentBreakdown — `method` + `percentage` field
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/shifts/`
+- **Muammo:** `GET /shifts/:id` response da `paymentBreakdown` bo'lishi kerak, lekin hozir yo'q yoki format boshqacha
+- **Kerakli format:**
+  ```json
+  {
+    "paymentBreakdown": [
+      { "method": "cash", "amount": 8200000, "percentage": 45.3 },
+      { "method": "terminal", "amount": 5400000, "percentage": 29.8 },
+      { "method": "click", "amount": 2700000, "percentage": 14.9 },
+      { "method": "payme", "amount": 1810000, "percentage": 10.0 }
+    ]
+  }
+  ```
+- **method values:** `cash | terminal | click | payme | transfer`
+- **percentage** = `(amount / totalRevenue) * 100` — backend tomonidan hisoblanadi
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend:** `apps/mobile-owner/src/screens/Shifts/PaymentBreakdownChart.tsx` — horizontal bars chart tayyor
+
+---
+
+## T-215 | P2 | [BACKEND] | `StockValueData.byBranch` — Inventory stock value by branch
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/inventory/`
+- **Muammo:** Analytics screen `StockValueByBranch` chart uchun filial bo'yicha tovar qiymati kerak
+- **Kerakli endpoint:**
+  - `GET /inventory/stock-value?period=today|week|month|year` → `{ total: number, byBranch: [{ branchId, branchName, value }] }`
+- **Frontend:** `apps/mobile-owner/src/api/inventory.api.ts` — `StockValueData` interface tekshirib ko'r
+- **Auth:** JWT Bearer — faqat `OWNER` role
+
+---
+
+## T-216 | P0 | [BACKEND] | Demo Seed Data — 4 ta filial + owner user + tovarlar + smenalar
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/prisma/seed.ts` (yoki `apps/api/src/seed/`)
+- **Muammo:** Mobile-owner panel backend bilan test qilinmayapti, chunki DB da real data yo'q. Mock data bilan ko'rinadi, real backendga ulanmaydi.
+- **Kerakli seed data:**
+
+### 1. Tenant
+```
+id: "tenant-demo-001"
+name: "Kosmetika Savdosi"
+slug: "kosmetika"
+plan: "pro"
+```
+
+### 2. Owner User
+```
+email: "owner@kosmetika.uz"
+password: "Demo1234!"   ← bcrypt hash qilish
+role: OWNER
+tenantId: "tenant-demo-001"
+```
+
+### 3. 4 ta Branch (Filial)
+```ts
+[
+  { id: "branch-001", name: "Chilonzor",        address: "Chilonzor tumani, 14-mavze",    tenantId, isActive: true },
+  { id: "branch-002", name: "Yunusabad",         address: "Yunusabad tumani, Amir Temur",  tenantId, isActive: true },
+  { id: "branch-003", name: "Mirzo Ulug'bek",    address: "Mirzo Ulug'bek tumani, 4-mavze", tenantId, isActive: true },
+  { id: "branch-004", name: "Sergeli",           address: "Sergeli tumani, Yangi hayot",  tenantId, isActive: true },
+]
+```
+
+### 4. Kassirlar (har filialga 1 ta)
+```
+Sarvar Qodirov    → branch-001, role: CASHIER
+Jahongir Nazarov  → branch-002, role: CASHIER
+Zulfiya Ergasheva → branch-003, role: CASHIER
+Muhabbat Tosheva  → branch-004, role: CASHIER
+```
+
+### 5. Tovarlar (kamida 10 ta)
+```
+Chanel No.5 EDP 100ml      — costPrice: 320_000, barcode: "3145891253317"
+Dior Sauvage EDT 60ml      — costPrice: 285_000, barcode: "3348901419610"
+L'Oreal Elvive Shampoo     — costPrice: 45_000,  barcode: "3600523816802"
+Nivea Soft Cream 200ml     — costPrice: 38_000,  barcode: "4005808155583"
+MAC Lipstick Ruby Woo      — costPrice: 180_000, barcode: "773602524723"
+Versace Eros EDT 50ml      — costPrice: 420_000, barcode: "8011003827763"
+Garnier SkinActive Serum   — costPrice: 85_000,  barcode: "3600542386449"
+NYX Professional Palette   — costPrice: 95_000,  barcode: "800897003693"
+Maybelline Mascara         — costPrice: 75_000,  barcode: "3600530990359"
+KIKO Milano Lipstick       — costPrice: 120_000, barcode: "8025272618602"
+```
+
+### 6. Stock (har filialdagi tovar miqdori)
+- branch-001: Chanel(8), Dior(3), L'Oreal(25), Nivea(40), MAC(2), Versace(5)
+- branch-002: Chanel(5), Garnier(12), NYX(8), Maybelline(15), KIKO(6)
+- branch-003: Dior(7), MAC(4), Versace(3), L'Oreal(30), Nivea(20)
+- branch-004: Chanel(2), Garnier(8), Maybelline(10), KIKO(3), Nivea(15)
+
+### 7. Smenalar (so'nggi 3 kun — 2 ta ochiq + 8 ta yopiq)
+```
+branch-001, Sarvar Qodirov     → OCHIQ, openedAt: 4 soat oldin, revenue: 8_450_000, orders: 34
+branch-002, Jahongir Nazarov   → OCHIQ, openedAt: 6 soat oldin, revenue: 5_120_000, orders: 21
+branch-001, Muhabbat Tosheva   → YOPIQ, kecha  8 soat, revenue: 12_780_000, orders: 58
+branch-003, Zulfiya Ergasheva  → YOPIQ, kecha  8 soat, revenue: 9_340_000,  orders: 42
+branch-004, Sarvar Qodirov     → YOPIQ, 2 kun oldin, revenue: 6_890_000, orders: 31
+... (qolganlarini o'xshash qilib to'ldirish)
+```
+
+### 8. Nasiya (Debt) — kamida 6 ta mijoz
+```
+Nodira Yusupova   — debt: 2_400_000, overdue: 65 kun
+Jasur Toshmatov   — debt: 1_850_000, overdue: 42 kun
+Malika Hamidova   — debt: 3_200_000, overdue: 12 kun
+Bobur Rahimov     — debt: 950_000,   overdue: 78 kun
+Gulnora Nazarova  — debt: 1_600_000, overdue: 5 kun
+Sherzod Mirzayev  — debt: 650_000,   overdue: 31 kun
+```
+
+- **Ishlatish:** `npx ts-node apps/api/prisma/seed.ts` yoki `npx prisma db seed`
+- **Muhim:** `seed.ts` idempotent bo'lishi kerak — ikki marta ishlatsa duplicate yaratmasin (`upsert` ishlatish)
+
+---
+
+## T-217 | P1 | [BACKEND] | `GET /shifts` — Shifts list endpoint (pagination + filters)
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/shifts/shifts.controller.ts`
+- **Muammo:** Mobile-owner Smenlar ekrani `GET /shifts` dan paginated list kutadi, lekin hozir faqat `GET /shifts/:id` bormi tekshirish kerak
+- **Kerakli endpoint:**
+  ```
+  GET /shifts?branchId=&status=open|closed&dateFrom=&dateTo=&page=1&limit=20
+  ```
+- **Response:**
+  ```json
+  {
+    "items": [Shift],
+    "total": 50,
+    "page": 1,
+    "limit": 20
+  }
+  ```
+- **Shift object to'liq:**
+  ```json
+  {
+    "id": "shift-001",
+    "branchId": "branch-001",
+    "branchName": "Chilonzor",
+    "cashierId": "user-001",
+    "cashierName": "Sarvar Qodirov",
+    "openedAt": "2026-03-12T09:33:00Z",
+    "closedAt": null,
+    "status": "open",
+    "totalRevenue": 8450000,
+    "totalOrders": 34,
+    "avgOrderValue": 248529,
+    "totalRefunds": 1,
+    "totalVoids": 0,
+    "totalDiscounts": 3,
+    "paymentBreakdown": [
+      { "method": "cash",     "amount": 3200000, "percentage": 37.9 },
+      { "method": "terminal", "amount": 2850000, "percentage": 33.7 },
+      { "method": "click",    "amount": 1550000, "percentage": 18.3 },
+      { "method": "payme",    "amount":  850000, "percentage": 10.1 }
+    ]
+  }
+  ```
+- **Sorting:** `openedAt DESC` (yangi smenalar tepada)
+- **Auth:** JWT Bearer — faqat `OWNER` role, `tenant_id` JWT dan
+- **Frontend:** `apps/mobile-owner/src/hooks/useShifts.ts` + `apps/mobile-owner/src/api/shifts.api.ts`
+
+---
+
+## T-218 | P1 | [BACKEND] | `GET /inventory/stock` — Inventory list endpoint (filtrlar bilan)
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/inventory/`
+- **Muammo:** Mobile-owner Inventory ekrani tovarlarni status bo'yicha filterlaydi
+- **Kerakli endpoint:**
+  ```
+  GET /inventory/stock?branchId=&status=normal|low|out_of_stock|expiring|expired|all&page=1&limit=50
+  ```
+- **Response:**
+  ```json
+  {
+    "items": [InventoryItem],
+    "total": 120,
+    "page": 1,
+    "limit": 50
+  }
+  ```
+- **InventoryItem:**
+  ```json
+  {
+    "id": "inv-001",
+    "productName": "Chanel No.5 EDP 100ml",
+    "barcode": "3145891253317",
+    "quantity": 8,
+    "unit": "dona",
+    "branchName": "Chilonzor",
+    "branchId": "branch-001",
+    "costPrice": 320000,
+    "stockValue": 2560000,
+    "reorderLevel": 5,
+    "expiryDate": "2026-12-01",
+    "status": "normal"
+  }
+  ```
+- **Status logikasi (backend tomonida hisoblanadi):**
+  - `out_of_stock` = `quantity <= 0`
+  - `low`          = `quantity > 0 && quantity <= reorderLevel`
+  - `expiring`     = `expiryDate` dan 30 kun qoldi
+  - `expired`      = `expiryDate` o'tib ketdi
+  - `normal`       = boshqa holat
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend:** `apps/mobile-owner/src/api/inventory.api.ts` — `InventoryItem`, `InventoryStatus` interfeyslari tayyor
+
+---
+
+## T-219 | P1 | [BACKEND] | `GET /inventory/low-stock` — Kam qolgan tovarlar banner uchun
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/inventory/`
+- **Muammo:** Dashboard sariq banner "X ta mahsulot kam qoldi" uchun low-stock tovarlar ro'yxati kerak
+- **Kerakli endpoint:**
+  ```
+  GET /inventory/low-stock?branchId=
+  ```
+- **Response:** `InventoryItem[]` (status = `low` yoki `out_of_stock`)
+- **Limit:** Max 20 ta (banner uchun count muhim, detail emas)
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend:** `apps/mobile-owner/src/hooks/useDashboard.ts` — `lowStock` query
+
+---
+
+## T-220 | P0 | [BACKEND] | Owner Panel — Barcha endpointlar Postman/Swagger test
+
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** Swagger: `http://localhost:3000/api`
+- **Maqsad:** Mobile-owner panel uchun kerakli barcha endpointlar ishlashini tasdiqlash
+- **Checklist:**
+  ```
+  □ POST /auth/login                → owner@kosmetika.uz / Demo1234! → JWT token
+  □ GET  /branches                  → 4 ta filial qaytaradi
+  □ GET  /analytics/revenue         → 4 ta metric (today/week/month/year)
+  □ GET  /analytics/orders          → total, avgOrderValue, trend
+  □ GET  /analytics/sales-trend     → 30 kun grafik ma'lumoti
+  □ GET  /analytics/branch-comparison → 4 filial daromad
+  □ GET  /analytics/top-products    → top 5 tovar
+  □ GET  /analytics/stock-value     → byBranch array
+  □ GET  /inventory/stock           → tovarlar ro'yxati (pagination, status filter)
+  □ GET  /inventory/low-stock       → kam qolgan tovarlar
+  □ GET  /shifts                    → smenalar ro'yxati (pagination, status filter)
+  □ GET  /shifts/:id                → smena detail + paymentBreakdown
+  □ GET  /debts/summary             → totalDebt, overdueDebt, overdueCount, debtorCount, avgDebt
+  □ GET  /debts/customers           → nasiya mijozlar (pagination)
+  □ GET  /debts/aging-report        → 4 ta bucket (0_30, 31_60, 61_90, 90_plus)
+  □ GET  /employees/performance     → xodimlar statistikasi
+  □ GET  /alerts                    → xabarlar (priority, status filter, pagination)
+  □ PATCH /alerts/:id/read          → o'qildi belgilash
+  □ GET  /system/health             → server status, DB ping, Redis ping
+  ```
+- **Note:** Har endpoint `branchId` filter qabul qilishi va `tenant_id` JWT dan olib ishlashi kerak
+
+---
+
+## ════════════════════════════════════════════════════════════════
+## 🔴 MOBILE-OWNER API CONTRACT (T-221..T-226) — Ibrat tomonidan qo'shildi 2026-03-14
+## apps/mobile-owner/src/config/endpoints.ts bilan TO'LIQ MOS KELISHI SHART
+## ════════════════════════════════════════════════════════════════
+
+---
+
+## T-221 | P1 | [BACKEND] | `GET /analytics/revenue` — Response format mismatch
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/ai/analytics.controller.ts` + yangi analytics service
+- **Muammo:** Backend hozir `GET /analytics/revenue` dan `[{ period, amount, currency, trend, branchId, branchName }]` array qaytaradi. Mobile-owner `{ today, week, month, year, todayTrend, weekTrend, monthTrend, yearTrend }` object kutadi.
+- **Kerakli response format:**
+  ```json
+  {
+    "today": 1936000,
+    "week": 12450000,
+    "month": 48750000,
+    "year": 185000000,
+    "todayTrend": 12.5,
+    "weekTrend": 8.3,
+    "monthTrend": -3.1,
+    "yearTrend": 5.2
+  }
+  ```
+- **Query params:** `?branch_id=&period=today|week|month|year`
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend fayl:** `apps/mobile-owner/src/api/analytics.api.ts` → `RevenueData` interface
+
+---
+
+## T-222 | P1 | [BACKEND] | `GET /inventory/out-of-stock` — Omborda yo'q tovarlar
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/inventory/inventory.controller.ts`
+- **Muammo:** Mobile-owner Inventory ekrani "Out of Stock" tab uchun alohida endpoint kerak. Mavjud `GET /inventory/stock?status=out_of_stock` bor lekin mobile alohida `/inventory/out-of-stock` chaqiradi.
+- **Kerakli endpoint:**
+  ```
+  GET /inventory/out-of-stock?branch_id=
+  ```
+- **Response:** `InventoryItem[]` (quantity = 0 bo'lgan tovarlar)
+- **InventoryItem format** (T-218 bilan bir xil):
+  ```json
+  {
+    "id": "inv-001",
+    "productName": "Chanel No.5 EDP 100ml",
+    "barcode": "3145891253317",
+    "quantity": 0,
+    "unit": "dona",
+    "branchName": "Chilonzor",
+    "branchId": "branch-001",
+    "costPrice": 320000,
+    "stockValue": 0,
+    "reorderLevel": 5,
+    "expiryDate": null,
+    "status": "out_of_stock"
+  }
+  ```
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend fayl:** `apps/mobile-owner/src/api/inventory.api.ts` → `INVENTORY_OUT_OF_STOCK` endpoint
+
+---
+
+## T-223 | P1 | [BACKEND] | `GET /shifts/:id` + `GET /shifts/summary` — T-217 ga qo'shimcha
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/shifts/` (yoki yangi `/shifts` controller — T-217 kontekstida)
+- **Muammo:** T-217 faqat `GET /shifts` list endpointini dokumentlashtirdi. Mobile-owner yana 2 ta endpoint kutadi:
+
+### 1. `GET /shifts/:id` — Smena detallari
+```
+GET /shifts/:id
+```
+**Response:**
+```json
+{
+  "id": "shift-001",
+  "branchId": "branch-001",
+  "branchName": "Chilonzor",
+  "cashierId": "user-001",
+  "cashierName": "Sarvar Qodirov",
+  "openedAt": "2026-03-14T09:00:00Z",
+  "closedAt": "2026-03-14T18:30:00Z",
+  "status": "closed",
+  "totalRevenue": 8450000,
+  "totalOrders": 34,
+  "avgOrderValue": 248529,
+  "totalRefunds": 1,
+  "totalVoids": 0,
+  "totalDiscounts": 3,
+  "paymentBreakdown": [
+    { "method": "cash",     "amount": 3200000, "percentage": 37.9 },
+    { "method": "terminal", "amount": 2850000, "percentage": 33.7 },
+    { "method": "click",    "amount": 1550000, "percentage": 18.3 },
+    { "method": "payme",    "amount":  850000, "percentage": 10.1 }
+  ]
+}
+```
+
+### 2. `GET /shifts/summary` — Umumiy smena statistikasi
+```
+GET /shifts/summary?branch_id=&from_date=&to_date=
+```
+**Response:**
+```json
+{
+  "totalRevenue": 48750000,
+  "totalOrders": 247,
+  "totalShifts": 12,
+  "avgRevenuePerShift": 4062500
+}
+```
+- **Auth:** JWT Bearer — faqat `OWNER` role, `tenant_id` JWT dan
+- **Frontend fayl:** `apps/mobile-owner/src/api/shifts.api.ts` → `getShiftById()`, `getShiftSummary()`
+
+---
+
+## T-224 | P0 | [BACKEND] | `/employees/*` — Owner panel xodim endpointlari (TO'LIQ SPEC)
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat
+- **Fayl:** yangi `apps/api/src/employees/` controller (yoki `apps/api/src/identity/` ga qo'shish)
+- **Muammo:** T-144 (Employee CRUD) va T-204 (Performance) mavjud lekin mobile-owner uchun TO'LIQ spec yo'q. Backend `/users` controller bor lekin mobile `/employees` path da ishlaydi va boshqacha format kutadi.
+- **⚠️ MUHIM:** Mobile `/employees` path dan foydalanadi, `/users` emas!
+
+### Kerakli endpointlar:
+
+```
+GET    /employees?branch_id=                           → Employee[]
+GET    /employees/:id                                  → Employee
+POST   /employees                                      → Employee
+PATCH  /employees/:id/status      { status }           → Employee
+PATCH  /employees/:id/pos-access  { hasPosAccess }     → Employee
+DELETE /employees/:id                                  → void
+
+GET    /employees/performance?branch_id=&period=&from_date=&to_date=
+                                                       → EmployeePerformance[]
+GET    /employees/:id/performance?from_date=&to_date=&period=
+                                                       → EmployeePerformance
+
+GET    /employees/suspicious-activity?branch_id=&from_date=&to_date=&severity=
+                                                       → SuspiciousActivityAlert[]
+GET    /employees/:id/suspicious-activity              → SuspiciousActivityAlert[]
+```
+
+### Employee object (to'liq format):
+```json
+{
+  "id": "user-001",
+  "firstName": "Sarvar",
+  "lastName": "Qodirov",
+  "fullName": "Sarvar Qodirov",
+  "phone": "+998901234567",
+  "email": null,
+  "dateOfBirth": "1995-05-20",
+  "passportId": "AB1234567",
+  "address": "Toshkent, Chilonzor",
+  "hireDate": "2024-01-15",
+  "role": "cashier",
+  "branchId": "branch-001",
+  "branchName": "Chilonzor",
+  "status": "active",
+  "login": "sarvar_chilonzor",
+  "photoUrl": null,
+  "hasPosAccess": true,
+  "hasAdminAccess": false,
+  "hasReportsAccess": false,
+  "emergencyContactName": null,
+  "emergencyContactPhone": null
+}
+```
+
+### EmployeePerformance object:
+```json
+{
+  "employeeId": "user-001",
+  "employeeName": "Sarvar Qodirov",
+  "role": "cashier",
+  "branchName": "Chilonzor",
+  "totalOrders": 247,
+  "totalRevenue": 14326000,
+  "avgOrderValue": 58000,
+  "totalRefunds": 3,
+  "refundRate": 0.8,
+  "totalVoids": 1,
+  "totalDiscounts": 12,
+  "discountRate": 4.9,
+  "suspiciousActivityCount": 0,
+  "alerts": []
+}
+```
+
+### SuspiciousActivityAlert object:
+```json
+{
+  "id": "alert-001",
+  "type": "EXCESSIVE_VOIDS",
+  "description": "5 ta void 2 soat ichida",
+  "occurredAt": "2026-03-14T14:00:00Z",
+  "severity": "high"
+}
+```
+- **type values:** `EXCESSIVE_VOIDS | LARGE_DISCOUNT | RAPID_REFUNDS | OFF_HOURS_ACTIVITY`
+- **severity values:** `low | medium | high`
+- **Suspicious triggers:** refund > 3× avg order, void after payment, discount > 30%, 5+ voids in 2 hours
+- **Auth:** JWT Bearer — faqat `OWNER` role
+- **Frontend fayl:** `apps/mobile-owner/src/api/employees.api.ts`
+
+---
+
+## T-225 | P1 | [BACKEND] | Biometric auth — `POST /auth/biometric/register` + `POST /auth/biometric/verify`
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/identity/auth.controller.ts`
+- **Muammo:** Mobile-owner biometric login (fingerprint/face) ishlatadi. Backend da bu endpointlar yo'q.
+
+### Kerakli endpointlar:
+
+```
+POST /auth/biometric/register
+Body: { publicKey: string, deviceId: string }
+→ { success: true, biometricToken: string }
+
+POST /auth/biometric/verify
+Body: { biometricToken: string, deviceId: string }
+→ { access_token: string, refresh_token: string, user: User }
+```
+
+### Implementatsiya yondashuvi:
+- Register: Foydalanuvchi logindan keyin biometric key ni serverda saqlash
+- Verify: Saqlangan biometric key orqali access token qaytarish
+- `user_biometric_keys` jadvali: `(userId, publicKey, deviceId, createdAt)`
+- Biometric token 30 kunlik, har verify da yangilanadi
+- **Auth (register):** JWT Bearer — autentifikatsiya qilingan foydalanuvchi
+- **Auth (verify):** Public (token orqali)
+- **Frontend fayl:** `apps/mobile-owner/src/hooks/useBiometricAuth.ts`, `apps/mobile-owner/src/api/auth.api.ts`
+
+---
+
+## T-226 | P0 | [BACKEND] | Path mismatch MAP — Mobile calls vs Backend has (To'liq jadval)
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat
+- **Maqsad:** Backend dasturchi bu jadvalni ko'rib, qaysi endpointlar MAVJUD lekin boshqa pathda, qaysilari YO'Q ekanini bilsin.
+
+| Mobile chaqiradi | Backend hozir | Holat | Vazifa |
+|---|---|---|---|
+| `POST /notifications/fcm-token` | `POST /notifications/fcm-token` | ✅ ISHLAYDI | — |
+| `GET /branches` | `GET /branches` | ✅ ISHLAYDI | — |
+| `GET /branches/:id` | `GET /branches/:id` | ✅ ISHLAYDI | — |
+| `GET /health` | `GET /health` | ✅ Format check | T-207 |
+| `GET /analytics/revenue` | `GET /analytics/revenue` (demo) | ⚠️ FORMAT NOTO'G'RI | T-221 |
+| `GET /analytics/orders` | ❌ YO'Q | ❌ MISSING | T-210 |
+| `GET /analytics/sales-trend` | ❌ YO'Q | ❌ MISSING | T-201 |
+| `GET /analytics/branch-comparison` | `GET /analytics/branches/comparison` (demo) | ⚠️ PATH + FORMAT | T-201 |
+| `GET /analytics/top-products` | `GET /reports/top-products` | ⚠️ PATH FARQ | T-201 |
+| `GET /analytics/revenue-by-branch` | ❌ YO'Q | ❌ MISSING | T-201 |
+| `GET /analytics/employee-performance` | `GET /reports/employee-activity` | ⚠️ PATH + FORMAT | T-204 |
+| `GET /inventory/stock` | `GET /inventory/stock` | ✅ Format check | T-218 |
+| `GET /inventory/low-stock` | `GET /inventory/stock/low` | ⚠️ PATH FARQ | T-219 |
+| `GET /inventory/expiring` | `GET /inventory/expiring` | ✅ Format check | — |
+| `GET /inventory/out-of-stock` | ❌ YO'Q | ❌ MISSING | T-222 |
+| `GET /inventory/stock-value` | ❌ YO'Q | ❌ MISSING | T-215 |
+| `GET /shifts` | `GET /sales/shifts` | ⚠️ PATH FARQ | T-217 |
+| `GET /shifts/:id` | ❌ YO'Q (faqat list) | ❌ MISSING | T-223 |
+| `GET /shifts/summary` | ❌ YO'Q | ❌ MISSING | T-223 |
+| `GET /debts/summary` | `/nasiya` (boshqa format) | ⚠️ PATH + FORMAT | T-206 |
+| `GET /debts/aging-report` | ❌ YO'Q | ❌ MISSING | T-212 |
+| `GET /debts/customers` | `GET /nasiya` (boshqa format) | ⚠️ PATH + FORMAT | T-206 |
+| `GET /employees` | `GET /users` (boshqa format) | ⚠️ PATH + FORMAT | T-224 |
+| `GET /employees/:id` | `GET /users/:id` (boshqa format) | ⚠️ PATH + FORMAT | T-224 |
+| `POST /employees` | `POST /users` (boshqa format) | ⚠️ PATH + FORMAT | T-224 |
+| `PATCH /employees/:id/status` | ❌ YO'Q | ❌ MISSING | T-224 |
+| `PATCH /employees/:id/pos-access` | ❌ YO'Q | ❌ MISSING | T-224 |
+| `DELETE /employees/:id` | ❌ YO'Q (soft delete?) | ❌ MISSING | T-224 |
+| `GET /employees/performance` | `GET /reports/employee-activity` | ⚠️ PATH + FORMAT | T-224 |
+| `GET /employees/:id/performance` | ❌ YO'Q | ❌ MISSING | T-224 |
+| `GET /employees/suspicious-activity` | ❌ YO'Q | ❌ MISSING | T-224 |
+| `GET /employees/:id/suspicious-activity` | ❌ YO'Q | ❌ MISSING | T-224 |
+| `GET /alerts` | `GET /notifications` (boshqa format) | ⚠️ PATH + FORMAT | T-203 |
+| `GET /alerts/unread-count` | `GET /notifications/unread-count` | ⚠️ PATH FARQ | T-203 |
+| `PATCH /alerts/:id/read` | `PATCH /notifications/:id/read` | ⚠️ PATH FARQ | T-203 |
+| `PATCH /alerts/read-all` | `PATCH /notifications/read-all` | ⚠️ PATH FARQ | T-203 |
+| `GET /system/health` | `GET /health` (boshqa format) | ⚠️ PATH + FORMAT | T-207 |
+| `GET /system/sync-status` | ❌ YO'Q | ❌ MISSING | T-207 |
+| `GET /system/errors` | ❌ YO'Q | ❌ MISSING | T-207 |
+| `POST /auth/biometric/register` | ❌ YO'Q | ❌ MISSING | T-225 |
+| `POST /auth/biometric/verify` | ❌ YO'Q | ❌ MISSING | T-225 |
+
+**Xulosa:**
+- ✅ ISHLAYDI: 4 ta
+- ⚠️ PATH yoki FORMAT fix kerak: 18 ta
+- ❌ MISSING (yangi implementatsiya): 18 ta
+
+---
+
+## ════════════════════════════════════════════════════════════════
+## 🔴 MOBILE-OWNER TASKS TUGADI (T-221..T-226)
+## ════════════════════════════════════════════════════════════════
 
 ---
 
@@ -1889,6 +2684,292 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Kutilgan:** Bir teginishda mijozga qo'ng'iroq qilsa bo'ladi
 
 ---
+# ════════════════════════════════════════════════════════════════
+# TOPILGAN KAMCHILIKLAR — Developer Tooling & DX (T-125+)
+# ════════════════════════════════════════════════════════════════
+
+---
+
+### ═══════════════════════════════════════
+### 🛠️ DEVELOPER TOOLING & INFRATUZILMA
+### ═══════════════════════════════════════
+
+---
+
+## T-125 | P0 | [BACKEND] | Swagger/OpenAPI documentation — API docs setup
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/main.ts`, `apps/api/src/**/*.dto.ts`
+- **Vazifa:**
+  - `@nestjs/swagger` — SwaggerModule.setup('/api/docs')
+  - Barcha DTO larga `@ApiProperty()` decorator
+  - Controller larga `@ApiTags()`, `@ApiBearerAuth()`, `@ApiOperation()`, `@ApiResponse()`
+  - Swagger JSON export: `/api/docs-json` (frontend client generate uchun)
+  - Grouping: Identity, Catalog, Sales, Inventory, Payments, Reports, Admin
+  - Auth: Swagger UI da Bearer token kiritish imkoniyati
+- **Kutilgan:** `/api/docs` da to'liq interaktiv API dokumentatsiya
+
+---
+
+## T-126 | P0 | [BACKEND] | Test infrastructure — Jest setup + first tests
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/jest.config.ts`, `apps/api/src/**/*.spec.ts`
+- **Vazifa:**
+  - Jest config: `apps/api/jest.config.ts` (ts-jest, moduleNameMapper, coverage)
+  - Test DB: `DATABASE_URL_TEST` in .env, test Prisma client
+  - Unit test namuna: `identity.service.spec.ts` — register, login, refresh token
+  - Integration test namuna: `auth.controller.spec.ts` — POST /auth/login, POST /auth/register
+  - Test utilities: `createTestApp()`, `createTestUser()`, `getAuthToken()`
+  - Coverage threshold: 50% minimum (boshlang'ich)
+  - `pnpm --filter api test` script
+- **Kutilgan:** Test infra tayyor, namuna testlar ishlaydi, CI da run bo'ladi
+
+---
+
+## T-127 | P1 | [BACKEND] | Database seed data — Development uchun test data
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/prisma/seed.ts`
+- **Vazifa:**
+  - `prisma db seed` — development uchun sample data yaratish
+  - Seed data:
+    - 1 tenant (Kosmetika do'koni "Gul Kosmetika")
+    - 1 owner user (admin@test.com / password123)
+    - 1 cashier user (cashier@test.com / password123)
+    - 1 branch (default)
+    - 10 categories (Terini parvarish, Soch, Makiyaj, Atir, Tirnoq, ...)
+    - 5 units (dona, quti, set, ml, gram)
+    - 30+ products (har kategoriyadan, barcode, narx, min_stock bilan)
+    - 5 customers (telefon, nasiya bilan)
+  - Idempotent: qayta run qilsa xato bermaydi
+  - package.json: `"prisma": { "seed": "ts-node prisma/seed.ts" }`
+- **Kutilgan:** `pnpm --filter api db:seed` bilan tayyor test muhit
+
+---
+
+## T-128 | P0 | [DEVOPS] | .gitignore yangilash — Keraksiz fayllarni ignore
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `.gitignore`
+- **Vazifa:**
+  - `tsconfig.tsbuildinfo` — barcha apps da
+  - `.claude/settings.local.json` — local Claude config
+  - `logs/` — runtime log fayllar
+  - `.env.local`, `.env.staging`, `.env.production`
+  - `*.tsbuildinfo`
+  - `apps/api/dist/`
+  - `apps/web/.next/`
+- **Kutilgan:** Git status da keraksiz fayllar ko'rinmaydi
+
+---
+
+### ═══════════════════════════════════════
+### 📁 FAYL YUKLASH & MEDIA
+### ═══════════════════════════════════════
+
+---
+
+## T-129 | P1 | [BACKEND] | File upload service — MinIO S3 integration
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/common/upload/`
+- **Vazifa:**
+  - `UploadModule`, `UploadService`
+  - MinIO client: `@aws-sdk/client-s3`
+  - POST /upload — single file upload (image: jpeg/png/webp, max 5MB)
+  - POST /upload/bulk — multiple files (max 10)
+  - Buckets: `product-images`, `receipts`, `certificates`, `exports`
+  - Auto-resize: thumbnail (200px), medium (800px), original
+  - Presigned URL: GET /upload/:key — vaqtinchalik download link
+  - Mimetype + size validation, tenant_id folder isolation
+- **Kutilgan:** Product image va fayllarni yuklash ishlaydi
+
+---
+
+## T-130 | P1 | [BACKEND] | Product bulk import/export — CSV/Excel
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/catalog/import/`
+- **Vazifa:**
+  - POST /products/import — CSV/XLSX fayldan bulk import
+  - Template: GET /products/import/template — bo'sh Excel template yuklab olish
+  - Import flow: upload → validate → preview (errors ko'rsatish) → confirm → save
+  - Validation: barcode uniqueness, category exists, price > 0, required fields
+  - Duplicate handling: barcode mavjud → update yoki skip (user tanlaydi)
+  - GET /products/export — barcha productlarni Excel ga chiqarish
+  - BullMQ: 500+ row → async job, tayyor bo'lganda notification
+- **Kutilgan:** Do'kon ochishda 500-1000 ta productni tezkor kiritsa bo'ladi
+
+---
+
+## T-131 | P1 | [BACKEND] | Barcode generation — Barcodesiz product uchun
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/catalog/`
+- **Vazifa:**
+  - Barcode format: EAN-13 (internal), prefix: tenant-specific (e.g. 200XXXXX)
+  - Auto-generate: product yaratishda barcode yo'q bo'lsa → internal barcode yaratish
+  - GET /products/:id/barcode — barcode image (SVG/PNG) generate qilish
+  - Batch barcode generate: POST /products/generate-barcodes — tanlangan products uchun
+  - `bwip-js` library
+- **Kutilgan:** Barcodesiz productlarga ham barcode berib, etiketka chop etsa bo'ladi
+
+---
+
+### ═══════════════════════════════════════
+### ⚙️ TENANT KONFIGURATSIYA
+### ═══════════════════════════════════════
+
+---
+
+## T-132 | P1 | [BACKEND] | Tenant settings — Configurable per-tenant sozlamalar
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/identity/settings/`
+- **Vazifa:**
+  - `tenant_settings` jadvali: id, tenant_id, key, value (JSON), updated_at
+  - Settings:
+    - `currency` — UZS (default), USD
+    - `tax_rate` — 12 (default QQS)
+    - `tax_inclusive` — true/false (narxga QQS kirganmi)
+    - `receipt_header` — do'kon nomi, manzil, INN, telefon
+    - `receipt_footer` — "Xaridingiz uchun rahmat!"
+    - `logo_url` — receipt va admin panel uchun
+    - `shift_required` — savdo qilish uchun shift ochish shartmi
+    - `debt_limit_default` — yangi customer uchun default nasiya limit
+    - `rounding` — 100 yoki 1000 ga yaxlitlash
+    - `low_stock_threshold` — default min_stock_level
+  - GET /settings — tenant sozlamalari
+  - PATCH /settings — yangilash (faqat ADMIN/OWNER)
+  - Default values: birinchi marta o'qilganda avtomatik yaratiladi
+- **Kutilgan:** Har do'kon o'zi uchun sozlama qilsa bo'ladi
+
+---
+
+## T-133 | P1 | [BACKEND] | Price history — Narx o'zgarishi tarixi
+- **Sana:** 2026-02-28
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/catalog/`
+- **Vazifa:**
+  - `price_changes` jadvali: id, tenant_id, product_id, old_cost_price, new_cost_price, old_sell_price, new_sell_price, changed_by (user_id), reason, created_at
+  - Product update qilinganda narx o'zgargan bo'lsa → avtomatik log
+  - GET /products/:id/price-history — narx o'zgarish tarixi
+  - Margin tahlili: cost va sell price trend chart uchun data
+  - ⚠️ Immutable — price_changes UPDATE/DELETE TAQIQLANGAN
+- **Kutilgan:** Narx o'zgarishi izlanadi, margin trend ko'rinadi
+
+---
+
+### ═══════════════════════════════════════
+### 🖥️ FRONTEND INFRATUZILMA
+### ═══════════════════════════════════════
+
+---
+
+## T-134 | P0 | [FRONTEND] | App Shell — Base layout (sidebar, navigation, header)
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/components/Layout/`
+- **Vazifa:**
+  - **Sidebar:** Logo, navigation links, collapse/expand
+    - Dashboard, Catalog (Products, Categories), Sales (POS, Orders, Returns), Inventory (Stock, Kirim, Chiqim, Expiry), Customers (List, Debts), Reports, Settings (Users, Audit, Billing)
+  - **Header:** Branch selector, user avatar + dropdown (profile, logout), notifications bell
+  - **Auth layout:** Login page uchun alohida layout (sidebar yo'q)
+  - **POS layout:** POS mode uchun minimal layout (full screen, sidebar yo'q)
+  - **Responsive:** mobile collapsed sidebar, desktop fixed sidebar
+  - **Active route highlighting**, breadcrumbs
+  - Tailwind + shadcn/ui component library
+- **Kutilgan:** Admin panel navigatsiya va layout tayyor, sahifalar qo'shsa bo'ladi
+
+---
+
+## T-135 | P0 | [FRONTEND] | Login/Auth pages — Login, register-tenant, forgot password
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/app/(auth)/`
+- **Vazifa:**
+  - **Login page:** tenant slug + username/phone + password
+  - **Register tenant page:** do'kon nomi, INN, owner name, phone, password (POST /auth/register-tenant)
+  - **Forgot password:** phone orqali reset (keyinroq SMS OTP bilan)
+  - JWT token saqlash: access token → memory, refresh token → httpOnly cookie
+  - Auto-redirect: login → dashboard, unauthenticated → login
+  - Form validation: zod + react-hook-form
+  - Loading states, error messages (noto'g'ri parol, user topilmadi, account locked)
+  - "Parolni ko'rsatish" toggle
+- **Kutilgan:** Login ishlaydi, token boshqaruvi tayyor
+
+---
+
+## T-136 | P0 | [FRONTEND] | API client setup — Axios interceptors + React Query
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/lib/`
+- **Vazifa:**
+  - Axios instance: baseURL, default headers, timeout
+  - **Request interceptor:** Authorization: Bearer token qo'shish
+  - **Response interceptor:**
+    - 401 → refresh token bilan yangilash, qayta so'rov
+    - 403 → "Ruxsat yo'q" toast
+    - 5xx → "Server xatosi" toast + client error log yuborish
+    - Network error → "Internet aloqasi yo'q" banner
+  - React Query provider: defaultOptions (staleTime, retry, refetchOnWindowFocus)
+  - Query key factory: `queryKeys.products.list(filters)`, `queryKeys.orders.detail(id)`
+  - Typed API functions: `api.products.getAll()`, `api.orders.create(data)`, etc.
+- **Kutilgan:** Frontend dan API ga xavfsiz va standart tarzda so'rov yuboriladi
+
+---
+
+## T-137 | P2 | [FRONTEND] | i18n/Localization — O'zbek, Rus, English tillar
+- **Sana:** 2026-02-28
+- **Mas'ul:** AbdulazizYormatov
+- **Fayl:** `apps/web/src/i18n/`
+- **Vazifa:**
+  - `next-intl` yoki `i18next` library
+  - 3 til: O'zbek (default), Русский, English
+  - Tarjima fayllari: `locales/uz.json`, `locales/ru.json`, `locales/en.json`
+  - Til almashtirish: header da dropdown
+  - Sana/vaqt formatlash: locale-aware (O'zbek: KK.OO.YYYY)
+  - Narx formatlash: `1 234 567 so'm` (UZS), `$1,234.56` (USD)
+  - UI elementlar: barcha button, label, placeholder, error message
+- **Kutilgan:** Admin panel 3 tilda ishlaydi, foydalanuvchi tanlaydi
+
+---
+
+## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
+
+- **Sana:** 2026-03-08
+- **Mas'ul:** Polat / Bekzod
+- **Fayl:** `apps/api/src/inventory/inventory.service.ts` → `getStockLevels()`
+- **Muammo:** `getStockLevels()` snapshot mavjud bo'lsa `stock_snapshots` + delta yondashuvi ishlatadi. Ammo snapshot DAN KEYIN qo'shilgan yangi mahsulotlar faqat `stock_movements`da bo'ladi, `stock_snapshots`da yo'q. Natijada LEFT JOIN orqali ular ko'rinmaydi.
+- **Kutilgan:** Snapshot'dan keyingi yangi mahsulotlar ham `GET /api/v1/inventory/levels`da ko'rinishi kerak.
+- **Taklif:** SQL'ga UNION ALL qo'shing — snapshot'da bo'lmagan, lekin `stock_movements`da (snapshot vaqtidan keyin) bo'lgan mahsulotlarni ham qo'shsin.
+- **Workaround (hozircha):** `stock_snapshots` jadvali bo'sh bo'lsa, full aggregate mode ishlaydi va barcha mahsulotlar ko'rinadi.
+
+---
+
+## T-139 | P1 | [IKKALASI] | ibrat/feat-mobile-app → main merge va Railway deploy
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Polat (merge review) + Ibrat (mobile test after deploy)
+- **Muammo:** Mobile-specific backend routes faqat `ibrat/feat-mobile-app` branchida, `main`da yo'q → Railway da 404:
+  - `GET /inventory/stock` — mobile alias (safeQueryFn bilan 404 ushlanadi)
+  - `GET /inventory/stock/low` — mobile alias
+  - `GET /sales/quick-stats` — dashboard uchun kritik
+  - `GET /sales/shifts/active` — dashboard uchun kritik
+  - `GET /analytics/revenue` + `/branches/comparison` + `/insights` — analytics controller yo'q
+- **Kutilgan:** PR yaratib `main`ga merge qilish → Railway auto-deploy → mobile app real data ko'radi
+- **Eslatma:** Mobile app hozircha 404 larni `safeQueryFn` bilan ushlab, empty state ko'rsatadi (crash yo'q)
+
+---
+
+## T-140 | P1 | [BACKEND] | Real estate controller — routes bo'sh
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/realestate/realestate.controller.ts`
+- **Muammo:** Controller `@Controller('real-estate')` deklaratsiya qilingan lekin HECH QANDAY route yo'q. Mobile app `/real-estate/properties`, `/real-estate/stats`, `/real-estate/payments` ga murojaat qiladi — hammasi 404. `safeQueryFn` ushlab turadi.
+- **Kutilgan:** `getProperties()`, `getStats()`, `getRentalPayments()`, `getAllPayments()` endpointlari qo'shilsin
 
 ---
 
@@ -1905,6 +2986,12 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 ### Mobile iOS Kirim Screen (T-141 — T-144): 4 task
 ### Mobile iOS Nasiya Screen (T-145 — T-149): 5 task
 
+| **127** | **34** | **58** | **15** | **20** |
+
+### MVP (T-011 — T-049): 39 task
+### Production Features (T-050 — T-124): 75 task
+### Topilgan kamchiliklar (T-125 — T-137): 13 task
+
 ---
 
 ### Kategoriya bo'yicha
@@ -1915,6 +3002,11 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 | [FRONTEND] | 7 | 11 | 3 | 4 | **25** |
 | [MOBILE] | — | 11 | 2 | — | **13** |
 | [DEVOPS] | 2 | 2 | — | — | **4** |
+
+| [BACKEND] | 20 | 38 | 8 | 7 | **73** |
+| [FRONTEND] | 10 | 11 | 4 | 4 | **29** |
+| [MOBILE] | — | 3 | 1 | — | **4** |
+| [DEVOPS] | 3 | 2 | — | — | **5** |
 | [IKKALASI] | 3 | 3 | — | 2 | **8** |
 | [SECURITY] | — | — | — | — | **(guards ichida)** |
 
@@ -1927,6 +3019,10 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 | **Polat** (Backend & DevOps) | 18 | 33 | 7 | — | **58** |
 | **AbdulazizYormatov** (Frontend) | 9 | 9 | 3 | — | **21** |
 | **Ibrat + Abdulaziz** (Mobile) | 3 | 15 | 4 | — | **22** |
+
+| **Polat** (Backend & DevOps) | 21 | 39 | 7 | — | **67** |
+| **AbdulazizYormatov** (Frontend) | 12 | 9 | 4 | — | **25** |
+| **Ibrat + Abdulaziz** (Mobile) | — | 3 | 1 | — | **4** |
 | **Birgalikda** | 3 | 3 | — | — | **6** |
 | **Belgilanmagan** | — | — | 3 | 20 | **23** |
 
@@ -1963,3 +3059,176 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 ---
 
 *docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.0 | 2026-03-12*
+
+---
+
+### ═══════════════════════════════════════
+### 🔍 FRONTEND QA & DEPLOY (Ibrat — 2026-03-09)
+### ═══════════════════════════════════════
+
+---
+
+## T-141 | P1 | [FRONTEND] | Web — Backend↔Frontend API contract tekshiruvi
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/api/`
+- **Muammo:** Frontend endpoint URL lari backend controller lari bilan mos kelmasligi mumkin
+- **Vazifa:** Backend controller larini o'qib, frontend API call larini solishtirish. Nomuvofiqliklarni frontendda tuzatish.
+- **Kutilgan:** Barcha API call lar to'g'ri endpoint larga yo'naltirilgan
+
+---
+
+## T-142 | P1 | [FRONTEND] | Web — Playwright bilan localhost da to'liq UI test
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/`
+- **Muammo:** UI xatolari production ga chiqishi mumkin
+- **Vazifa:** `pnpm --filter web dev` ishga tushirib, Playwright bilan login, dashboard, asosiy sahifalarni test qilish. Topilgan xatolarni tuzatish.
+- **Kutilgan:** Barcha asosiy sahifalar xatosiz ishlaydi
+
+---
+
+## T-143 | P0 | [FRONTEND] | Web — Production deploy va 200 OK tekshiruvi
+
+- **Sana:** 2026-03-09
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/`
+- **Muammo:** Deploy muvaffaqiyatli bo'lishi va `https://web-production-5b0b7.up.railway.app` 200 qaytarishi kerak
+- **Vazifa:** Build → Push → Railway deploy → curl tekshiruvi
+- **Kutilgan:** HTTP 200, app ishlaydi
+
+---
+
+---
+
+### ═══════════════════════════════════════
+### 🔧 OWNER MOBILE — Employee Management Backend (Ibrat — 2026-03-14)
+### ═══════════════════════════════════════
+
+---
+
+## T-144 | P1 | [BACKEND] | Employee full CRUD endpointlari (Owner Mobile uchun)
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat (Backend)
+- **Fayl:** `apps/api/src/employees/employees.controller.ts`
+- **Muammo:** Owner mobile app uchun xodimlarni boshqarish API yo'q
+- **Kerakli endpointlar:**
+  ```
+  GET    /employees                        → Employee[]  (branch_id filter)
+  GET    /employees/:id                    → Employee (full bio profile)
+  POST   /employees                        → create employee + login + password
+  PATCH  /employees/:id/status             → { status: 'active'|'inactive'|'fired' }
+  PATCH  /employees/:id/pos-access         → { hasPosAccess: boolean }
+  DELETE /employees/:id                    → delete employee permanently
+  GET    /employees/:id/performance        → EmployeePerformance (exists — verify)
+  GET    /employees/:id/suspicious-activity → SuspiciousActivityAlert[]
+  ```
+- **Employee model yangi fieldlar:**
+  ```
+  firstName, lastName, fullName, phone, email
+  dateOfBirth, passportId, address, hireDate
+  role: 'cashier'|'manager'|'admin'
+  status: 'active'|'inactive'|'fired'
+  login (unique), passwordHash
+  hasPosAccess, hasAdminAccess, hasReportsAccess (boolean)
+  emergencyContactName, emergencyContactPhone
+  photoUrl (nullable)
+  ```
+- **Kutilgan:** Owner `/employees` CRUD orqali xodim qo'sha, statusini o'zgartira, o'chira oladi
+
+---
+
+## T-145 | P1 | [BACKEND] | Login orqali auth — Employee va Admin uchun
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat (Backend)
+- **Fayl:** `apps/api/src/auth/auth.service.ts`
+- **Muammo:** Xodim yaratilganda login+password beriladi, lekin u bilan login qilib bo'lmaydi
+- **Vazifa:**
+  - `POST /auth/login` — `{ login, password }` qabul qilsin (email OR login)
+  - JWT da `hasPosAccess`, `hasAdminAccess`, `role` fieldlari bo'lsin
+  - POS mobile app login: login + password → JWT (hasPosAccess check)
+  - Admin web login: email + password → JWT (hasAdminAccess check)
+- **Kutilgan:** Kassir o'z login/paroli bilan POS ga kira oladi; admin o'z login/paroli bilan web ga kira oladi
+
+---
+
+## T-146 | P2 | [BACKEND] | Employee status o'zgarishida POS token ni invalidate qilish
+
+- **Sana:** 2026-03-14
+- **Mas'ul:** Polat (Backend)
+- **Fayl:** `apps/api/src/auth/auth.service.ts`, `apps/api/src/employees/employees.service.ts`
+- **Muammo:** Xodim "fired" yoki POS access olinganda, uning aktiv JWT tokenlar hali ishlaydi
+- **Vazifa:**
+  - `updateStatus(fired)` yoki `revokePosAccess` chaqirilganda → employee refresh token larni blacklist qilish
+  - Redis ga token blacklist saqlash (yoki DB da `tokenVersion` field)
+  - JWT middleware: tokenVersion tekshirish
+- **Kutilgan:** Ishdan chiqarilgan kassir darhol POS ga kira olmaydi (token expired → force logout)
+
+---
+
+## T-226 | P1 | [IKKALASI] | Mobile-Owner ↔ Backend full integration — seed + path aliases
+
+- **Sana:** 2026-03-15
+- **Mas'ul:** Ibrat (Mobile)
+- **Fayllar:**
+  - `apps/api/src/ai/ai.controller.ts` — + `/analytics/orders`, `/analytics/branch-comparison`, `/analytics/revenue-by-branch`
+  - `apps/api/src/ai/ai.service.ts` — + `getOrdersSummary`, `getBranchComparison`, `getRevenueByBranch`
+  - `apps/api/src/sales/shifts.controller.ts` — YANGI: `/shifts/*` alias
+  - `apps/api/src/nasiya/debts.controller.ts` — YANGI: `/debts/*` alias
+  - `apps/api/src/nasiya/nasiya.service.ts` — + `getSummary`, `getAgingReport`, `getDebtCustomers`
+  - `apps/api/src/notifications/alerts.controller.ts` — YANGI: `/alerts/*` alias
+  - `apps/api/src/health/system.controller.ts` — YANGI: `/system/*` alias
+  - `apps/api/prisma/seed.ts` — kengaytirilgan: 4 filial, 4 kassir, 10 product, 60+ order, 6 nasiya, 8 alert
+  - `apps/api/prisma/schema.prisma` — + TelegramLinkToken, ProductCertificate, Promotion modellari
+- **Holat:** ✅ Bajarildi — tsc clean, PR tayyor
+
+---
+
+## T-227 | P1 | [IKKALASI] | Integration test checklist — mobile-owner endpoints
+
+- **Sana:** 2026-03-15
+- **Mas'ul:** Ibrat (Mobile) + Bekzod (Test)
+- **Vazifa:**
+  - [ ] Login: `POST /auth/login` (owner@kosmetika.uz / Demo1234! / kosmetika-demo)
+  - [ ] `GET /analytics/revenue` — today/week/month/year + trends
+  - [ ] `GET /analytics/orders` — total, avgOrderValue, trend
+  - [ ] `GET /analytics/branch-comparison` — 4 filial
+  - [ ] `GET /analytics/revenue-by-branch` — 4 filial
+  - [ ] `GET /analytics/sales-trend` — kunlik grafik
+  - [ ] `GET /analytics/top-products` — top 10
+  - [ ] `GET /shifts` — paginated list
+  - [ ] `GET /shifts/summary` — total revenue, orders
+  - [ ] `GET /shifts/active` — ochiq smenalar
+  - [ ] `GET /shifts/:id` — smena detali
+  - [ ] `GET /debts/summary` — totalDebt, overdueDebt
+  - [ ] `GET /debts/aging-report` — buckets
+  - [ ] `GET /debts/customers` — paginated
+  - [ ] `GET /alerts` — paginated
+  - [ ] `GET /alerts/unread-count`
+  - [ ] `PATCH /alerts/:id/read`
+  - [ ] `GET /system/health` — DB + Redis
+  - [ ] `GET /system/sync-status` — filiallar
+  - [ ] `GET /employees` — list
+  - [ ] `GET /inventory/out-of-stock`
+  - [ ] Seed data: `npx ts-node prisma/seed.ts`
+
+---
+
+## T-228 | P1 | [BACKEND] | Duplicate migrations — bot_settings conflict
+
+- **Sana:** 2026-03-15
+- **Mas'ul:** Polat (Backend)
+- **Fayl:** `apps/api/prisma/migrations/`
+- **Muammo:** Ikkita migration fayli bir xil ALTER TABLE bajaradi:
+  - `20260310000001_add_bot_settings/migration.sql`
+  - `20260313000001_add_bot_settings/migration.sql`
+- **Xavf:** `prisma migrate deploy` birinchi marta ishlaganda `IF NOT EXISTS` tufayli muammo chiqmasligi mumkin, lekin `prisma migrate status` noto'g'ri ko'rinadi
+- **Yechim:** Eski (20260310) ni o'chirib, 20260313 ni qoldirish. Yoki squash migration yaratish.
+
+---
+
+*docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.1 | 2026-03-15*

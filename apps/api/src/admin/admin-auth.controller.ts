@@ -11,7 +11,6 @@ import {
   Post,
   Query,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { Public } from '../common/decorators';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminMetricsService } from './admin-metrics.service';
 import { AdminLoginDto, AdminCreateDto } from './dto/admin-login.dto';
@@ -46,18 +46,25 @@ export class AdminAuthController {
     return this.adminAuthService.login(dto);
   }
 
-  // ─── BOOTSTRAP: Birinchi admin yaratish (faqat bir marta) ──────
+  // ─── BOOTSTRAP: Birinchi Super Admin yaratish ──────────────────
   @Public()
   @Post('auth/bootstrap')
-  @ApiOperation({
-    summary: 'Birinchi Super Admin yaratish (faqat admin_users bo\'sh bo\'lsa)',
-    description: 'X-Bootstrap-Secret header: ADMIN_BOOTSTRAP_SECRET env var',
-  })
-  bootstrap(
-    @Body() dto: AdminCreateDto,
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Birinchi Super Admin yaratish (ADMIN_BOOTSTRAP_SECRET kerak)' })
+  bootstrap(@Body() dto: AdminCreateDto, @Headers('x-bootstrap-secret') secret: string) {
+    return this.adminAuthService.bootstrap(dto, secret);
+  }
+
+  // ─── BOOTSTRAP: User parolini reset qilish ─────────────────────
+  @Public()
+  @Post('auth/reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'User parolini reset qilish (ADMIN_BOOTSTRAP_SECRET kerak)' })
+  resetUserPassword(
+    @Body() body: { email: string; newPassword: string },
     @Headers('x-bootstrap-secret') secret: string,
   ) {
-    return this.adminAuthService.bootstrapAdmin(dto, secret);
+    return this.adminAuthService.resetUserPassword(body.email, body.newPassword, secret);
   }
 
   // ─── PROTECTED: Admin only endpoints ───────────────────────────
@@ -161,11 +168,15 @@ export class AdminAuthController {
     summary: 'T-058: Tenant impersonation — vaqtinchalik token (1 soat)',
     description: 'Super Admin ixtiyoriy tenant OWNER sifatida kiradi. Barcha harakatlar audit log ga yoziladi.',
   })
-  impersonate(@Param('tenantId') tenantId: string, @Request() req: { user: { sub: string; email?: string } }) {
+  impersonate(
+    @Param('tenantId') tenantId: string,
+    @CurrentUser('userId') adminId: string,
+    @CurrentUser('email') adminEmail: string,
+  ) {
     return this.adminAuthService.impersonateTenant(
       tenantId,
-      req.user.sub,
-      req.user.email ?? 'unknown',
+      adminId,
+      adminEmail ?? 'unknown',
     );
   }
 

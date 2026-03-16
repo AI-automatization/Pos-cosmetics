@@ -295,4 +295,27 @@ export class AuthController {
   ) {
     return this.apiKeyService.deleteApiKey(id, tenantId);
   }
+
+  // ─── T-225: BIOMETRIC ─────────────────────────────────────────
+  @Post('biometric/register')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-225: Biometrik ID ni ro\'yxatdan o\'tkazish (stub — WebAuthn keyinroq)' })
+  registerBiometric(
+    @CurrentUser('userId') userId: string,
+    @Body() _body: { biometricId: string; deviceInfo?: string },
+  ) {
+    // Stub: haqiqiy WebAuthn/TouchID integratsiya keyingi sprint
+    return { success: true, userId, biometricRegistered: true, message: 'Biometric registered (stub)' };
+  }
+
+  @Post('biometric/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-225: Biometrik ID tekshirish (stub)' })
+  verifyBiometric(
+    @Body() _body: { biometricId: string; userId: string },
+  ) {
+    // Stub: real login flow uchun T-225 kengaytirish kerak
+    return { success: true, verified: true, message: 'Biometric verify (stub)' };
+  }
 }

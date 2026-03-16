@@ -8,13 +8,15 @@ import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { openCashDrawer, isCashDrawerEnabled } from '@/lib/cashDrawer';
 import { toast } from 'sonner';
 
-function useShiftClock(openedAt: Date | null) {
+function useShiftClock(openedAt: Date | string | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
 
   useEffect(() => {
     if (!openedAt) return;
+    const openedDate = openedAt instanceof Date ? openedAt : new Date(openedAt);
+    if (isNaN(openedDate.getTime())) return;
     const tick = () => {
-      const diff = Math.floor((Date.now() - openedAt.getTime()) / 1000);
+      const diff = Math.floor((Date.now() - openedDate.getTime()) / 1000);
       const h = String(Math.floor(diff / 3600)).padStart(2, '0');
       const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
       const s = String(diff % 60).padStart(2, '0');
@@ -34,7 +36,13 @@ interface ShiftBarProps {
 
 export function ShiftBar({ onCloseShift }: ShiftBarProps) {
   const { cashierName, shiftOpenedAt, salesCount, shiftId } = usePOSStore();
-  const elapsed = useShiftClock(shiftOpenedAt);
+  // Zustand persist deserializes Date → string; convert back to Date
+  const shiftOpenedAtDate = shiftOpenedAt
+    ? shiftOpenedAt instanceof Date
+      ? shiftOpenedAt
+      : new Date(shiftOpenedAt as unknown as string)
+    : null;
+  const elapsed = useShiftClock(shiftOpenedAtDate);
 
   return (
     <div className="flex h-11 shrink-0 items-center justify-between bg-gray-900 px-4 text-sm text-gray-300">

@@ -23,6 +23,39 @@ export class ReportsService {
     private readonly emitter: EventEmitter2,
   ) {}
 
+  // ─── DAILY REPORT (T-226) ─────────────────────────────────────
+
+  async getDailyReport(tenantId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [orderAgg, returnAgg] = await Promise.all([
+      this.prisma.order.aggregate({
+        where: { tenantId, createdAt: { gte: today, lt: tomorrow }, status: { not: 'VOIDED' as const } },
+        _sum: { total: true },
+        _count: { id: true },
+      }),
+      this.prisma.return.aggregate({
+        where: { tenantId, createdAt: { gte: today, lt: tomorrow }, status: 'APPROVED' },
+        _sum: { total: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    const revenue = Number(orderAgg._sum.total ?? 0);
+    const returnTotal = Number(returnAgg._sum.total ?? 0);
+    return {
+      date: today.toISOString().slice(0, 10),
+      orders: orderAgg._count.id,
+      revenue,
+      returns: returnAgg._count.id,
+      returnTotal,
+      netRevenue: revenue - returnTotal,
+    };
+  }
+
   // ─── DAILY REVENUE ────────────────────────────────────────────
 
   async getDailyRevenue(tenantId: string, from: Date, to: Date) {

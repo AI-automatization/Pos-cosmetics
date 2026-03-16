@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-03-09
+# Yangilangan: 2026-02-28
 
 ---
 
@@ -157,7 +157,35 @@
 
 ---
 
-| T-106 + T-122 | 2026-03-09 | SMS (to'lov talab qiluvchi) o'rniga Telegram Bot API + Gmail SMTP fallback (ikkalasi bepul). `sms.service.ts` o'chirildi. `TelegramNotifyService`, `EmailNotifyService`, `NotifyService` yaratildi. Bot deep link `/start <token>` orqali hisob bog'lash. Schema: `telegram_chat_id` fields + `telegram_link_tokens` jadvali. | `apps/api/src/notifications/`, `apps/bot/src/handlers/commands.ts` |
+## 2026-03-08 SESSIYA — QOLGAN P1 TASKLAR ARXIVLANDI
+
+| # | Sana | Feature | Fayl(lar) |
+|---|------|---------|-----------|
+| T-069 | 2026-03-08 | Session management — sessions jadval (userId, tenantId, deviceInfo, ip, userAgent, lastActive, expiresAt). Max 3 concurrent session (FIFO eviction). GET /auth/sessions, DELETE /auth/sessions/:id, DELETE /auth/sessions/all, GET /auth/sessions/all (ADMIN), DELETE /auth/sessions/user/:userId (force-logout) | `apps/api/src/identity/session.service.ts`, `auth.controller.ts` |
+| T-070 | 2026-03-08 | Employee activity monitor — getEmployeeActivity(): per-cashier void/refund/discount metrics, suspicious pattern bayroqlar (3+ void 1 soatda, refund >20%, discount >threshold). GET /reports/employee-activity?from=&to=&userId= | `apps/api/src/reports/reports.service.ts`, `reports.controller.ts` |
+| T-071 | 2026-03-08 | API Key auth — api_keys jadval (keyHash SHA256, scopes[], branchId, lastUsed, expiresAt). POST /auth/api-keys, GET /auth/api-keys, GET /auth/api-keys/scopes, DELETE /auth/api-keys/:id/revoke, DELETE /auth/api-keys/:id. 5 scope: sync:read/write, catalog:read, inventory:read, sales:write. Raw key faqat bitta ko'rsatiladi | `apps/api/src/identity/api-key.service.ts`, `auth.controller.ts` |
+| T-105 | 2026-03-08 | CBU exchange rate — T-082 da bajarildi. ExchangeRateService (CBU API daily cron 09:00, circuit breaker). exchange_rates jadval. GET /exchange-rate/latest. Fallback: oxirgi cached kurs | `apps/api/src/common/currency/exchange-rate.service.ts` |
+| T-113 | 2026-03-08 | Branch management — T-047 da bajarildi. BranchService/Controller CRUD (GET/POST/PATCH/DELETE /branches), branch stats endpoint, tenant_id isolation | `apps/api/src/branches/` |
+| T-096 | 2026-03-07 | Tester/sample tracking — StockMovementType.TESTER enum qo'shildi. GET /inventory/testers?from=&to= (TESTER type movements + totalCost aggregation) | `schema.prisma`, `apps/api/src/inventory/inventory.service.ts`, `inventory.controller.ts` |
+| T-097 | 2026-03-07 | Product sertifikat — ProductCertificate model (certNumber, issuingAuthority, issuedAt, expiresAt, fileUrl). GET/POST/DELETE /catalog/products/:id/certificates, GET /catalog/certificates/expiring?days=30 | `schema.prisma`, `apps/api/src/catalog/catalog.service.ts`, `catalog.controller.ts` |
+| T-099 | 2026-03-07 | Promotions engine — Promotion model (PromotionType: PERCENT/FIXED/BUY_X_GET_Y/BUNDLE). CRUD /promotions. POST /promotions/apply (cart engine: discount hisoblash) | `schema.prisma`, `apps/api/src/sales/promotions/` |
+| T-106 | 2026-03-07 | Eskiz.uz SMS — SmsService (token caching, sendSms/sendDebtReminder/sendOtp). Eskiz.uz API: POST notify.eskiz.uz/api/message/sms/send | `apps/api/src/notifications/sms.service.ts`, `notifications.module.ts` |
+| T-107 | 2026-03-07 | Payme/Click integration — PaymeProvider (JSON-RPC: CheckPerformTransaction/CreateTransaction/PerformTransaction/CancelTransaction/CheckTransaction, HMAC verify). ClickProvider (MD5 sign verify, prepare/complete handlers). POST /payments/webhooks/payme, /click/prepare, /click/complete | `apps/api/src/payments/providers/`, `payments.controller.ts`, `payments.module.ts` |
+
+---
+
+---
+
+## 2026-03-09 SESSIYA — FRONTEND QA & DEPLOY (Ibrat)
+
+| T-# | Sana | Kategoriya | Yechim | Fayl(lar) |
+|-----|------|-----------|--------|-----------|
+| T-141 | 2026-03-09 | [FRONTEND] | Backend↔Frontend API contract tekshiruvi. 3 ta mismatch topildi va tuzatildi: (1) `customer.api.ts` `searchByPhone` `/customers/phone/:phone` → `GET /customers?search=` (2) `debt.api.ts` `getCustomerDebts` `/customers/:id/debts` → `GET /nasiya?customerId=` + catch (3) `founder.api.ts` barcha `/founder/*` → `/admin/*` endpointlari | `apps/web/src/api/customer.api.ts`, `apps/web/src/api/debt.api.ts`, `apps/web/src/api/founder.api.ts` |
+| T-142 | 2026-03-09 | [FRONTEND] | Playwright bilan production test: login redirect ✅, auth guard ✅, JS xatolari yo'q ✅, favicon 404 (minor, muhim emas) | `https://web-production-5b0b7.up.railway.app` |
+| T-143 | 2026-03-09 | [FRONTEND] | Build → Push → Railway deploy `c1488cbf` → HTTP 200 ✅ | `apps/web/`, commit `72718f0` |
+| — | 2026-03-09 | [FRONTEND] | `notifications.api.ts` `getUnreadCount` ga `.catch(()=>0)` + `useUnreadCount` hook ga `retry:false` — 404 da app crash qilmaydi | `apps/web/src/api/notifications.api.ts`, `apps/web/src/hooks/notifications/useNotifications.ts` |
+| — | 2026-03-09 | [FRONTEND] | `client.ts`: localhost fallback ochirildi, `withCredentials:true` qo'shildi | `apps/web/src/api/client.ts` |
+| — | 2026-03-09 | [FRONTEND] | `SyncStatusBar.tsx`: direct `fetch()` → `apiClient.get('/health/ping')` | `apps/web/src/components/SyncStatus/SyncStatusBar.tsx` |
 
 ---
 

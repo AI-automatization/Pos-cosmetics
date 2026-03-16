@@ -41,10 +41,10 @@ function genTick(): LiveSaleTick {
 }
 
 function useLiveTicker() {
-  const [ticks, setTicks] = useState<LiveSaleTick[]>(() =>
-    Array.from({ length: 5 }, genTick),
-  );
+  // Start empty to avoid SSR/hydration mismatch — populate after mount
+  const [ticks, setTicks] = useState<LiveSaleTick[]>([]);
   useEffect(() => {
+    setTicks(Array.from({ length: 5 }, genTick));
     const id = setInterval(() => {
       setTicks((prev) => [genTick(), ...prev].slice(0, 10));
     }, 3500);

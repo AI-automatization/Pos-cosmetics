@@ -1,3 +1,7 @@
+// T-126: Tenant izolyatsiya — barcha so'rovlarga tenantId filter
+// T-130: Manfiy qoldiq — INVENTAR XATOSI sifatida alohida ko'rsatish
+
+import { Prisma } from '@prisma/client';
 import prisma from '../prisma';
 import { config } from '../config';
 
@@ -9,57 +13,58 @@ export interface LowStockItem {
   sku: string | null;
   currentStock: number;
   minLevel: number;
+  isNegative: boolean; // T-130: true = inventar xatosi (manfiy qoldiq)
 }
 
-export async function getLowStockItems(): Promise<LowStockItem[]> {
-  // Raw SQL: stock levels per product per tenant
+export async function getLowStockItems(tenantId?: string): Promise<LowStockItem[]> {
+  // Stock hisoblash expression (takrorlanadi — DRY uchun string sifatida)
+  const stockExpr = Prisma.sql`
+    COALESCE(SUM(
+      CASE
+        WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
+        WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity
+        ELSE -sm.quantity
+      END
+    ), 0)::float
+  `;
+
+  const tenantFilter = tenantId
+    ? Prisma.sql`AND t.id = ${tenantId}`
+    : Prisma.empty;
+
   const rows = await prisma.$queryRaw<{
-    tenantId: string;
     tenantName: string;
-    productId: string;
     productName: string;
     sku: string | null;
     minStockLevel: number;
     stock: number;
   }[]>`
     SELECT
-      t.id           AS "tenantId",
       t.name         AS "tenantName",
-      p.id           AS "productId",
       p.name         AS "productName",
       p.sku          AS sku,
       p.min_stock_level::float AS "minStockLevel",
-      COALESCE(SUM(
-        CASE
-          WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
-          WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity
-          ELSE -sm.quantity
-        END
-      ), 0)::float AS stock
+      ${stockExpr}   AS stock
     FROM products p
     JOIN tenants t ON t.id = p.tenant_id
     LEFT JOIN stock_movements sm ON sm.product_id = p.id AND sm.tenant_id = p.tenant_id
     WHERE p.deleted_at IS NULL
       AND p.is_active = true
       AND p.min_stock_level > 0
+      ${tenantFilter}
     GROUP BY t.id, t.name, p.id, p.name, p.sku, p.min_stock_level
-    HAVING COALESCE(SUM(
-      CASE
-        WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
-        WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity
-        ELSE -sm.quantity
-      END
-    ), 0) <= p.min_stock_level
+    HAVING ${stockExpr} <= p.min_stock_level
     ORDER BY t.name, stock ASC
     LIMIT 50
   `;
 
   return rows.map((r) => ({
-    tenantName: r.tenantName,
-    productName: r.productName,
-    sku: r.sku,
+    tenantName:   r.tenantName,
+    productName:  r.productName,
+    sku:          r.sku,
     currentStock: r.stock,
-    minLevel: r.minStockLevel,
+    minLevel:     r.minStockLevel,
+    isNegative:   r.stock < 0,
   }));
 }
 
@@ -74,9 +79,16 @@ export interface ExpiringItem {
   qty: number;
 }
 
-export async function getExpiringItems(days = config.expiryDaysWarning): Promise<ExpiringItem[]> {
+export async function getExpiringItems(
+  days = config.expiryDaysWarning,
+  tenantId?: string,
+): Promise<ExpiringItem[]> {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() + days);
+
+  const tenantFilter = tenantId
+    ? Prisma.sql`AND sm.tenant_id = ${tenantId}`
+    : Prisma.empty;
 
   const rows = await prisma.$queryRaw<{
     tenantName: string;
@@ -105,6 +117,7 @@ export async function getExpiringItems(days = config.expiryDaysWarning): Promise
     WHERE sm.expiry_date IS NOT NULL
       AND sm.expiry_date >= NOW()
       AND sm.expiry_date <= ${cutoff}
+      ${tenantFilter}
     GROUP BY t.name, p.name, sm.batch_number, sm.expiry_date
     HAVING SUM(
       CASE
@@ -130,17 +143,18 @@ export interface SuspiciousRefund {
   createdAt: Date;
 }
 
-export async function getRecentSuspiciousRefunds(): Promise<SuspiciousRefund[]> {
+export async function getRecentSuspiciousRefunds(tenantId?: string): Promise<SuspiciousRefund[]> {
   const since = new Date(Date.now() - 60 * 60 * 1000); // so'nggi 1 soat
 
   const rows = await prisma.return.findMany({
     where: {
-      total: { gte: config.refundAlertThreshold },
-      status: 'APPROVED',
+      ...(tenantId ? { tenantId } : {}),
+      total:     { gte: config.refundAlertThreshold },
+      status:    'APPROVED',
       createdAt: { gte: since },
     },
     include: {
-      user: { select: { firstName: true, lastName: true } },
+      user:   { select: { firstName: true, lastName: true } },
       tenant: { select: { name: true } },
     },
     orderBy: { createdAt: 'desc' },
@@ -149,9 +163,9 @@ export async function getRecentSuspiciousRefunds(): Promise<SuspiciousRefund[]> 
 
   return rows.map((r) => ({
     tenantName: r.tenant.name,
-    returnId: r.id.slice(0, 8),
-    amount: Number(r.total),
-    cashier: `${r.user.firstName} ${r.user.lastName}`,
-    createdAt: r.createdAt,
+    returnId:   r.id.slice(0, 8),
+    amount:     Number(r.total),
+    cashier:    `${r.user.firstName} ${r.user.lastName}`,
+    createdAt:  r.createdAt,
   }));
 }

@@ -17,12 +17,13 @@ function useSyncMonitor() {
     window.addEventListener('offline', handleOffline);
 
     // Ping-based latency check (every 10s)
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
+    const healthUrl = `${apiBase}/health`;
     const pingCheck = async () => {
       if (!navigator.onLine) { setState('offline'); return; }
       const start = Date.now();
       try {
-        // B-016 fix: use backend health endpoint, not Next.js /api/health (doesn't exist)
-        await fetch('http://localhost:3000/api/v1/health/ping', { method: 'GET', cache: 'no-cache' });
+        await fetch(healthUrl, { method: 'HEAD', cache: 'no-cache' });
         const ms = Date.now() - start;
         setLatency(ms);
         if (ms > 5000) {

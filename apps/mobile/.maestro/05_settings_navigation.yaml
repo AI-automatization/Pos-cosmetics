@@ -1,0 +1,40 @@
+appId: host.exp.exponent
+name: "Settings - ichki navigatsiya"
+# TALAB: Backend api :3000 da ishlayotgan, oldindan login qilingan bo'lishi kerak
+---
+- launchApp
+- tapOn: "RAOS"
+- waitForAnimationToEnd
+
+# Login qilish (backend talab etiladi)
+- tapOn: "email@misol.com"
+- inputText: "admin@raos.uz"
+- tapOn: "Parol kiriting"
+- inputText: "password123"
+- tapOn: "Kirish"
+- waitForAnimationToEnd
+
+# Sozlamalar tabiga o'tish
+- tapOn: "Sozlamalar"
+- assertVisible: "Sozlamalar"
+
+# Profilga kirish
+- tapOn: "Profil"
+- assertVisible: "Profil"
+- back
+
+# Bildirishnomalar sozlamalari
+- tapOn: "Bildirishnomalar"
+- assertVisible: "Bildirishnomalar"
+- back
+
+# Filial tanlash
+- tapOn: "Filial tanlash"
+- assertVisible: "Filial tanlash"
+- back
+
+# Chiqish - alert ko'rinishi tekshir
+- tapOn: "Chiqish"
+- assertVisible: "Chiqish?"
+- tapOn: "Bekor qilish"
+- assertVisible: "Sozlamalar"

@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import type {
   Product,
   Category,
+  ProductUnitObject,
   ProductsQuery,
   PaginatedResponse,
   CreateProductDto,
@@ -49,6 +50,12 @@ export const catalogApi = {
 
   deleteProduct(id: string) {
     return apiClient.delete<void>(`/catalog/products/${id}`).then((r) => r.data);
+  },
+
+  // --- Units ---
+
+  getUnits() {
+    return apiClient.get<ProductUnitObject[]>('/catalog/units').then((r) => r.data);
   },
 
   // --- Categories ---

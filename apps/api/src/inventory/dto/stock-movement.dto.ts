@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { StockMovementType } from '@prisma/client';
 
@@ -54,6 +54,94 @@ export class CreateWarehouseDto {
   @IsOptional()
   @IsUUID()
   branchId?: string;
+}
+
+// ─── Batch Stock-In DTO (matches web frontend format) ─────────────────────────
+export class StockInItemDto {
+  @ApiProperty()
+  @IsUUID()
+  productId!: string;
+
+  @ApiProperty({ example: 10 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0.001)
+  quantity!: number;
+
+  @ApiProperty({ example: 15000 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  costPrice!: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  batchNumber?: string;
+
+  @ApiPropertyOptional({ description: 'Expiry date (ISO string)' })
+  @IsOptional()
+  @IsString()
+  expiryDate?: string;
+}
+
+export class BatchStockInDto {
+  @ApiProperty({ type: [StockInItemDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StockInItemDto)
+  items!: StockInItemDto[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  supplier?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @ApiPropertyOptional({ description: 'Optional warehouse ID; defaults to first warehouse' })
+  @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
+}
+
+// ─── Batch Stock-Out DTO ───────────────────────────────────────────────────────
+export class StockOutItemDto {
+  @ApiProperty()
+  @IsUUID()
+  productId!: string;
+
+  @ApiProperty({ example: 5 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0.001)
+  quantity!: number;
+}
+
+export class BatchStockOutDto {
+  @ApiProperty({ type: [StockOutItemDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StockOutItemDto)
+  items!: StockOutItemDto[];
+
+  @ApiPropertyOptional({ example: 'WRITE_OFF', description: 'Reason for stock out' })
+  @IsOptional()
+  @IsString()
+  reason?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @ApiPropertyOptional({ description: 'Optional warehouse ID; defaults to first warehouse' })
+  @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
 }
 
 export class StockFilterDto {

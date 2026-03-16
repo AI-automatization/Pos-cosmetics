@@ -1,0 +1,8 @@
+export const DASHBOARD_REFETCH_INTERVAL = 60_000;
+export const ALERTS_REFETCH_INTERVAL = 30_000;
+export const HEALTH_REFETCH_INTERVAL = 15_000;
+export const QUERY_STALE_TIME = 120_000;
+export const APP_LOCK_TIMEOUT_MS = 300_000;
+export const MAX_RETRIES = 3;
+export const LOW_STOCK_THRESHOLD_DAYS = 30;
+export const ONBOARDING_STEPS_COUNT = 5;

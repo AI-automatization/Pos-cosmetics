@@ -17,6 +17,7 @@ import {
 } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import type { Product, CreateProductDto, UpdateProductDto } from '@/types/catalog';
+import type { ProductFormData } from './ProductForm';
 
 export default function ProductsPage() {
   const [search, setSearch] = useState('');
@@ -50,14 +51,24 @@ export default function ProductsPage() {
     setFormOpen(true);
   };
 
-  const handleFormSubmit = (formData: CreateProductDto | UpdateProductDto) => {
+  const handleFormSubmit = (formData: ProductFormData) => {
+    // Map form data to backend DTO field names
+    const dto: CreateProductDto = {
+      name: formData.name,
+      barcode: formData.barcode || undefined,
+      sku: formData.sku,
+      categoryId: formData.categoryId,
+      costPrice: formData.costPrice,
+      sellPrice: formData.sellPrice,
+      minStockLevel: formData.minStockLevel,
+    };
     if (editingProduct) {
       updateProduct.mutate(
-        { id: editingProduct.id, dto: formData as UpdateProductDto },
+        { id: editingProduct.id, dto: dto as UpdateProductDto },
         { onSuccess: () => setFormOpen(false) },
       );
     } else {
-      createProduct.mutate(formData as CreateProductDto, {
+      createProduct.mutate(dto, {
         onSuccess: () => setFormOpen(false),
       });
     }
@@ -187,7 +198,7 @@ export default function ProductsPage() {
           product={editingProduct}
           categories={categories}
           isPending={isPendingForm}
-          onSubmit={handleFormSubmit}
+          onSubmit={(data) => handleFormSubmit(data)}
           onClose={() => setFormOpen(false)}
         />
       )}

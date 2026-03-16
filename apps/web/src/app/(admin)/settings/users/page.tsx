@@ -119,7 +119,7 @@ function UserModal({ user, onClose }: { user?: User; onClose: () => void }) {
 export default function UsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | undefined>();
-  const { data: users, isLoading } = useUsers();
+  const { data: users, isLoading, isError } = useUsers();
   const { mutate: updateUser } = useUpdateUser();
 
   if (isLoading) return (
@@ -131,6 +131,14 @@ export default function UsersPage() {
         </div>
       </div>
       <LoadingSkeleton variant="table" rows={5} />
+    </div>
+  );
+
+  if (isError) return (
+    <div className="p-6">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        Foydalanuvchilarni yuklashda xatolik yuz berdi. Sahifani yangilang.
+      </div>
     </div>
   );
 

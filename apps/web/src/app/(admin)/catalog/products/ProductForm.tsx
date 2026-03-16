@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PRODUCT_UNITS } from '@/types/catalog';
 import type { Category, Product } from '@/types/catalog';
 
 const productSchema = z.object({
@@ -15,11 +14,10 @@ const productSchema = z.object({
   categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
-  unit: z.enum(['dona', 'kg', 'litr', 'metr', 'quti', 'juft']),
-  minStock: z.coerce.number().min(0),
+  minStockLevel: z.coerce.number().min(0),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+export type ProductFormData = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product | null;
@@ -65,19 +63,18 @@ export function ProductForm({
     handleSubmit,
     formState: { errors },
   } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
     defaultValues: product
       ? {
-          name: product.name,
+          name: product.name ?? '',
           barcode: product.barcode ?? '',
-          sku: product.sku,
-          categoryId: product.categoryId,
-          costPrice: product.costPrice,
-          sellPrice: product.sellPrice,
-          unit: product.unit,
-          minStock: product.minStock,
+          sku: product.sku ?? '',
+          categoryId: product.categoryId ?? '',
+          costPrice: Number(product.costPrice),
+          sellPrice: Number(product.sellPrice),
+          minStockLevel: Number(product.minStockLevel ?? 0),
         }
-      : { unit: 'dona', costPrice: 0, sellPrice: 0, minStock: 0 },
+      : { costPrice: 0, sellPrice: 0, minStockLevel: 0 },
   });
 
   return (
@@ -152,19 +149,9 @@ export function ProductForm({
               />
             </Field>
 
-            <Field label="O'lchov birligi" error={errors.unit?.message} required>
-              <select {...register('unit')} className={inputCls}>
-                {PRODUCT_UNITS.map((u) => (
-                  <option key={u.value} value={u.value}>
-                    {u.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Minimal zaxira" error={errors.minStock?.message} required>
+            <Field label="Minimal zaxira" error={errors.minStockLevel?.message} className="col-span-2">
               <input
-                {...register('minStock')}
+                {...register('minStockLevel')}
                 type="number"
                 min={0}
                 className={inputCls}

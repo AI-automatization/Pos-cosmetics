@@ -2,7 +2,6 @@
 dockerfilePath = "apps/worker/Dockerfile"
 
 [deploy]
-# Worker — HTTP port yo'q, shuning uchun healthcheck PATH yo'q
 startCommand = "node dist/main.js"
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 5
+restartPolicyMaxRetries = 3

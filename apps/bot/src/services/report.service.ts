@@ -36,7 +36,7 @@ export async function getTodaySummary(tenantId: string) {
       SELECT pi.method, SUM(pi.amount)::float AS amount
       FROM payment_intents pi
       JOIN orders o ON o.id = pi.order_id
-      WHERE pi.tenant_id = ${tenantId}::uuid
+      WHERE pi.tenant_id = ${tenantId}
         AND o.created_at >= ${todayStart}
         AND o.created_at <= ${todayEnd}
         AND pi.status = 'SETTLED'
@@ -51,7 +51,7 @@ export async function getTodaySummary(tenantId: string) {
              SUM(oi.total)::float AS revenue
       FROM order_items oi
       JOIN orders o ON o.id = oi.order_id
-      WHERE o.tenant_id = ${tenantId}::uuid
+      WHERE o.tenant_id = ${tenantId}
         AND o.created_at >= ${todayStart}
         AND o.created_at <= ${todayEnd}
         AND o.status != 'VOIDED'

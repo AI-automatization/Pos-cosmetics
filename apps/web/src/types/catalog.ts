@@ -11,28 +11,44 @@ export interface Category {
   updatedAt: string;
 }
 
+/** Unit object returned by backend API */
+export interface ProductUnitObject {
+  id: string;
+  name: string;
+  shortName: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   barcode: string | null;
-  sku: string;
-  categoryId: string;
-  category: Pick<Category, 'id' | 'name'>;
+  sku: string | null;
+  categoryId: string | null;
+  category: Pick<Category, 'id' | 'name'> | null;
+  unitId: string | null;
+  unit: ProductUnitObject | null;
   costPrice: number;
   sellPrice: number;
-  unit: ProductUnit;
-  minStock: number;
+  /** Actual backend field name */
+  minStockLevel: number;
+  /** Populated by backend via StockMovement aggregate */
   currentStock: number;
-  image: string | null;
+  /** Actual backend field name */
+  imageUrl: string | null;
   isActive: boolean;
+  isBundle: boolean;
   tenantId: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type ProductUnit = 'dona' | 'kg' | 'litr' | 'metr' | 'quti' | 'juft';
+/** String codes for unit labels in the UI form */
+export type ProductUnitCode = 'dona' | 'kg' | 'litr' | 'metr' | 'quti' | 'juft';
 
-export const PRODUCT_UNITS: { value: ProductUnit; label: string }[] = [
+/** @deprecated Use ProductUnitCode for form selects */
+export type ProductUnit = ProductUnitCode;
+
+export const PRODUCT_UNITS: { value: ProductUnitCode; label: string }[] = [
   { value: 'dona', label: 'Dona' },
   { value: 'kg', label: 'Kilogram' },
   { value: 'litr', label: 'Litr' },
@@ -61,19 +77,23 @@ export interface PaginatedResponse<T> {
   };
 }
 
+/** Matches backend CreateProductDto field names */
 export interface CreateProductDto {
   name: string;
   barcode?: string;
-  sku: string;
-  categoryId: string;
+  sku?: string;
+  categoryId?: string;
+  unitId?: string;
   costPrice: number;
   sellPrice: number;
-  unit: ProductUnit;
-  minStock: number;
-  image?: string;
+  minStockLevel?: number;
+  isActive?: boolean;
+  imageUrl?: string;
+  description?: string;
+  expiryTracking?: boolean;
 }
 
-export type UpdateProductDto = Partial<CreateProductDto> & { isActive?: boolean };
+export type UpdateProductDto = Partial<CreateProductDto>;
 
 export interface CreateCategoryDto {
   name: string;
