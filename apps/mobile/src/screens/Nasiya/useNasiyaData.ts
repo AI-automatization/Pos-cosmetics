@@ -1,11 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { nasiyaApi } from '../../api/nasiya.api';
 import type { DebtRecord, DebtListResponse } from '../../api/nasiya.api';
-import { daysAgoISO, todayISO } from '../../utils/date';
+import { daysAgoISO } from '../../utils/date';
 
 function makeDemoDebts(): DebtListResponse {
-  const today = todayISO();
-  const overdue1 = daysAgoISO(-0); // already past
   const records: DebtRecord[] = [
     {
       id: 'demo-1',
@@ -64,7 +62,6 @@ function makeDemoDebts(): DebtListResponse {
       payments: [],
     },
   ];
-  void overdue1; void today;
   return { items: records, total: records.length, page: 1, limit: 100 };
 }
 
@@ -107,9 +104,11 @@ export function useNasiyaData(activeTab: FilterTab) {
       try {
         const res = await nasiyaApi.getList('PAID');
         if (res.items.length > 0) return res;
-        return { ...makeDemoDebts(), items: makeDemoDebts().items.filter((d) => d.status === 'PAID') };
+        const demo = makeDemoDebts();
+        return { ...demo, items: demo.items.filter((d) => d.status === 'PAID') };
       } catch {
-        return { ...makeDemoDebts(), items: makeDemoDebts().items.filter((d) => d.status === 'PAID') };
+        const demo = makeDemoDebts();
+        return { ...demo, items: demo.items.filter((d) => d.status === 'PAID') };
       }
     },
     refetchInterval: 60_000,

@@ -7,7 +7,6 @@ import {
   StyleSheet,
   FlatList,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -15,6 +14,7 @@ import type { DebtRecord } from '../../api/nasiya.api';
 import { useNasiyaData, FilterTab } from './useNasiyaData';
 import DebtCard from './DebtCard';
 import PayModal from './PayModal';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -72,19 +72,6 @@ function SummaryCard({
   );
 }
 
-// ─── Error View ────────────────────────────────────────
-function ErrorView({ onRetry }: { onRetry: () => void }) {
-  return (
-    <View style={styles.errorContainer}>
-      <MaterialCommunityIcons name="alert-circle-outline" size={48} color={C.red} />
-      <Text style={styles.errorText}>Ma'lumotlarni yuklashda xatolik</Text>
-      <TouchableOpacity style={styles.retryBtn} onPress={onRetry} activeOpacity={0.8}>
-        <Text style={styles.retryBtnText}>Qayta urinish</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 // ─── Main Screen ───────────────────────────────────────
 export default function NasiyaScreen() {
   const [activeTab, setActiveTab]       = useState<FilterTab>('ALL');
@@ -98,7 +85,6 @@ export default function NasiyaScreen() {
     overdueCount,
     overdueAmount,
     isLoading,
-    error,
     refetchAll,
   } = useNasiyaData(activeTab);
 
@@ -131,11 +117,7 @@ export default function NasiyaScreen() {
       </View>
 
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={C.primary} />
-        </View>
-      ) : error ? (
-        <ErrorView onRetry={refetchAll} />
+        <LoadingSpinner />
       ) : (
         <FlatList
           data={filtered}
@@ -244,20 +226,6 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
   },
-
-  // Loading / Error
-  loadingContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-  },
-  errorContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32,
-  },
-  errorText: { fontSize: 15, color: C.secondary, textAlign: 'center' },
-  retryBtn: {
-    paddingHorizontal: 24, paddingVertical: 10,
-    backgroundColor: C.primary, borderRadius: 20,
-  },
-  retryBtnText: { fontSize: 14, fontWeight: '700', color: C.white },
 
   // List
   content: { paddingBottom: 100 },
