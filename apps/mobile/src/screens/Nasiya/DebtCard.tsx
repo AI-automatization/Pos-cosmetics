@@ -19,6 +19,14 @@ const STATUS_COLORS: Record<DebtStatus, { bg: string; text: string }> = {
   CANCELLED: { bg: '#F3F4F6', text: '#6B7280' },
 };
 
+const PROGRESS_COLOR: Record<DebtStatus, string> = {
+  ACTIVE:    '#3B82F6',
+  PARTIAL:   '#F59E0B',
+  PAID:      '#16A34A',
+  OVERDUE:   '#EF4444',
+  CANCELLED: '#9CA3AF',
+};
+
 function statusLabel(status: DebtStatus, t: ReturnType<typeof useTranslation>['t']): string {
   const map: Record<DebtStatus, string> = {
     ACTIVE:    t('nasiya.statusActive'),
@@ -101,6 +109,28 @@ export default function DebtCard({ debt, onPay }: Props) {
           </Text>
         </View>
       </View>
+
+      {/* Progress bar */}
+      {(() => {
+        const total = Number(debt.totalAmount);
+        const pct = total > 0 ? Math.min(100, (Number(debt.paidAmount) / total) * 100) : 0;
+        const barColor = PROGRESS_COLOR[debt.status];
+        return (
+          <View style={styles.progressWrap}>
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: `${pct}%` as `${number}%`, backgroundColor: barColor },
+                ]}
+              />
+            </View>
+            <Text style={[styles.progressPct, { color: barColor }]}>
+              {Math.round(pct)}% to'langan
+            </Text>
+          </View>
+        );
+      })()}
 
       {/* Due date row */}
       <View style={styles.footer}>
@@ -199,6 +229,29 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#374151',
+  },
+  progressWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 6,
+    borderRadius: 3,
+  },
+  progressPct: {
+    fontSize: 11,
+    fontWeight: '600',
+    minWidth: 80,
+    textAlign: 'right',
   },
   footer: {
     flexDirection: 'row',
