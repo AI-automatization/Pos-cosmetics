@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import NewReceiptSheet from './NewReceiptSheet';
 import {
   View,
   Text,
@@ -208,13 +209,14 @@ function DetailSheet({
 
 // ─── Main Screen ───────────────────────────────────────
 export default function KirimScreen() {
-  const [search, setSearch]        = useState('');
-  const [selected, setSelected]    = useState<Receipt | null>(null);
-  const [detailVisible, setDetail] = useState(false);
-  const [activeTab, setActiveTab]  = useState<FilterTab>('ALL');
-  const listRef                    = useRef<FlatList<Receipt>>(null);
+  const [search, setSearch]             = useState('');
+  const [selected, setSelected]         = useState<Receipt | null>(null);
+  const [detailVisible, setDetail]      = useState(false);
+  const [activeTab, setActiveTab]       = useState<FilterTab>('ALL');
+  const [newSheetVisible, setNewSheet]  = useState(false);
+  const listRef                         = useRef<FlatList<Receipt>>(null);
 
-  const { list } = useKirimData();
+  const { list, create } = useKirimData();
   const allReceipts = list.data?.items ?? [];
 
   const filtered = useMemo(() => {
@@ -268,8 +270,11 @@ export default function KirimScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Kirim</Text>
-        {/* onPress wired in T-143 (NewReceiptSheet) */}
-        <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7} disabled>
+        <TouchableOpacity
+          style={styles.headerIcon}
+          activeOpacity={0.7}
+          onPress={() => setNewSheet(true)}
+        >
           <Ionicons name="add" size={22} color={C.primary} />
         </TouchableOpacity>
       </View>
@@ -344,6 +349,13 @@ export default function KirimScreen() {
         visible={detailVisible}
         receipt={selected}
         onClose={() => setDetail(false)}
+      />
+
+      <NewReceiptSheet
+        visible={newSheetVisible}
+        onClose={() => setNewSheet(false)}
+        onSuccess={() => setNewSheet(false)}
+        createMutation={create}
       />
     </SafeAreaView>
   );
