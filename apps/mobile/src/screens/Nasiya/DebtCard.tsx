@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { DebtRecord, DebtStatus } from '../../api/nasiya.api';
 import { nasiyaApi } from '../../api/nasiya.api';
@@ -53,7 +53,8 @@ function formatDueDate(dueDate: string | null, t: ReturnType<typeof useTranslati
 
 export default function DebtCard({ debt, onPay }: Props) {
   const { t } = useTranslation();
-  const [reminding, setReminding] = useState(false);
+  const [reminding, setReminding]           = useState(false);
+  const [paymentsExpanded, setPayExpanded]  = useState(false);
   const colors = STATUS_COLORS[debt.status];
   const isPaid = debt.status === 'PAID' || debt.status === 'CANCELLED';
   const days = overdueDays(debt.dueDate);
@@ -80,7 +81,12 @@ export default function DebtCard({ debt, onPay }: Props) {
             {debt.customer.name}
           </Text>
           {debt.customer.phone ? (
-            <Text style={styles.phone}>{debt.customer.phone}</Text>
+            <TouchableOpacity
+              onPress={() => void Linking.openURL(`tel:${debt.customer.phone}`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.phone}>📞 {debt.customer.phone}</Text>
+            </TouchableOpacity>
           ) : null}
         </View>
         <View style={[styles.badge, { backgroundColor: colors.bg }]}>
@@ -131,6 +137,38 @@ export default function DebtCard({ debt, onPay }: Props) {
           </View>
         );
       })()}
+
+      {/* Payment history toggle */}
+      {debt.payments.length > 0 && (
+        <TouchableOpacity
+          style={styles.historyToggle}
+          onPress={() => setPayExpanded((p) => !p)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.historyToggleText}>
+            To'lovlar tarixi ({debt.payments.length} ta)
+          </Text>
+          <Text style={styles.historyChevron}>{paymentsExpanded ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
+      )}
+
+      {paymentsExpanded && (
+        <View style={styles.historyList}>
+          {debt.payments.map((p) => (
+            <View key={p.id} style={styles.historyRow}>
+              <Text style={styles.historyDate}>
+                {new Date(p.createdAt).toLocaleDateString('uz-UZ', {
+                  day: '2-digit', month: '2-digit', year: 'numeric',
+                })}
+              </Text>
+              <Text style={styles.historyMethod}>
+                {p.method === 'CASH' ? 'Naqd' : p.method === 'CARD' ? 'Karta' : p.method}
+              </Text>
+              <Text style={styles.historyAmount}>{formatUZS(Number(p.amount))}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Due date row */}
       <View style={styles.footer}>
@@ -196,8 +234,9 @@ const styles = StyleSheet.create({
   },
   phone: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#2563EB',
     marginTop: 2,
+    textDecorationLine: 'underline',
   },
   badge: {
     borderRadius: 20,
@@ -252,6 +291,51 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     minWidth: 80,
     textAlign: 'right',
+  },
+  historyToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginBottom: 2,
+  },
+  historyToggleText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  historyChevron: {
+    fontSize: 10,
+    color: '#9CA3AF',
+  },
+  historyList: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 10,
+    gap: 6,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  historyDate: {
+    fontSize: 11,
+    color: '#6B7280',
+    flex: 1,
+  },
+  historyMethod: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#374151',
+    marginHorizontal: 8,
+  },
+  historyAmount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#16A34A',
   },
   footer: {
     flexDirection: 'row',
