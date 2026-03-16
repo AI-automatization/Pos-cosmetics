@@ -9,9 +9,12 @@ import {
   Modal,
   ScrollView,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import type { Receipt } from '../../api/inventory.api';
+import { useKirimData } from './useKirimData';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -25,99 +28,25 @@ const C = {
   green:    '#10B981',
   orange:   '#F59E0B',
   blue:     '#3B82F6',
+  red:      '#EF4444',
 };
 
 // ─── Types ─────────────────────────────────────────────
-type ReceiptStatus = 'PENDING' | 'ACCEPTED' | 'CANCELLED';
-type FilterTab = 'ALL' | 'PENDING' | 'ACCEPTED';
-
-interface ReceiptItem {
-  productName: string;
-  qty: number;
-  unit: string;
-  costPrice: number;
-}
-
-interface Receipt {
-  id: string;
-  number: string;
-  supplier: string;
-  date: string;
-  status: ReceiptStatus;
-  totalAmount: number;
-  itemsCount: number;
-  items: ReceiptItem[];
-  notes?: string;
-}
+type ReceiptStatus = Receipt['status'];
+type FilterTab = 'ALL' | 'PENDING' | 'RECEIVED';
 
 // ─── Status config ─────────────────────────────────────
 const STATUS_CFG: Record<ReceiptStatus, { bg: string; text: string; label: string; icon: string }> = {
-  PENDING:   { bg: '#FEF3C7', text: C.orange, label: 'Kutilmoqda',     icon: 'clock-outline'      },
-  ACCEPTED:  { bg: '#D1FAE5', text: C.green,  label: 'Qabul qilingan', icon: 'check-circle-outline'},
-  CANCELLED: { bg: '#F3F4F6', text: C.muted,  label: 'Bekor qilingan', icon: 'close-circle-outline'},
+  PENDING:   { bg: '#FEF3C7', text: C.orange, label: 'Kutilmoqda',     icon: 'clock-outline'       },
+  RECEIVED:  { bg: '#D1FAE5', text: C.green,  label: 'Qabul qilingan', icon: 'check-circle-outline' },
+  CANCELLED: { bg: '#F3F4F6', text: C.muted,  label: 'Bekor qilingan', icon: 'close-circle-outline' },
 };
-
-// ─── Mock data ─────────────────────────────────────────
-const MOCK_RECEIPTS: Receipt[] = [
-  {
-    id: '1', number: 'KR-00245', supplier: 'Loreal Distribution',
-    date: '2026-03-10', status: 'ACCEPTED', totalAmount: 4_850_000, itemsCount: 6,
-    items: [
-      { productName: "L'Oreal Professional Shampoo 500ml", qty: 24, unit: 'dona', costPrice: 38_000 },
-      { productName: 'Loreal Expert Conditioner', qty: 18, unit: 'dona', costPrice: 42_000 },
-      { productName: 'Loreal Serum Vitamin C', qty: 12, unit: 'dona', costPrice: 75_000 },
-      { productName: 'Loreal Hair Mask', qty: 10, unit: 'dona', costPrice: 95_000 },
-      { productName: 'Loreal Repair Cream', qty: 8, unit: 'dona', costPrice: 68_000 },
-      { productName: 'Loreal Oil Treatment', qty: 6, unit: 'dona', costPrice: 112_000 },
-    ],
-  },
-  {
-    id: '2', number: 'KR-00244', supplier: 'Nivea Uzbekistan',
-    date: '2026-03-09', status: 'PENDING', totalAmount: 2_340_000, itemsCount: 4,
-    items: [
-      { productName: 'Nivea Soft Cream 200ml', qty: 36, unit: 'dona', costPrice: 28_000 },
-      { productName: 'Nivea Body Lotion', qty: 24, unit: 'dona', costPrice: 35_000 },
-      { productName: 'Nivea Sun Protect SPF50', qty: 20, unit: 'dona', costPrice: 52_000 },
-      { productName: 'Nivea Lip Care', qty: 48, unit: 'dona', costPrice: 15_000 },
-    ],
-    notes: 'Yetkazib berish 2 kun kechikdi',
-  },
-  {
-    id: '3', number: 'KR-00243', supplier: 'Garnier Official',
-    date: '2026-03-08', status: 'ACCEPTED', totalAmount: 1_920_000, itemsCount: 3,
-    items: [
-      { productName: 'Garnier Micellar Water 400ml', qty: 30, unit: 'dona', costPrice: 32_000 },
-      { productName: 'Garnier BB Cream', qty: 20, unit: 'dona', costPrice: 45_000 },
-      { productName: 'Garnier Sheet Mask', qty: 60, unit: 'dona', costPrice: 12_000 },
-    ],
-  },
-  {
-    id: '4', number: 'KR-00242', supplier: 'Procter & Gamble',
-    date: '2026-03-07', status: 'ACCEPTED', totalAmount: 3_150_000, itemsCount: 5,
-    items: [
-      { productName: 'Pantene Pro-V Shampoo', qty: 30, unit: 'dona', costPrice: 36_000 },
-      { productName: 'Head & Shoulders', qty: 24, unit: 'dona', costPrice: 42_000 },
-      { productName: 'Olay Moisturizer', qty: 18, unit: 'dona', costPrice: 68_000 },
-      { productName: 'Gillette Shave Gel', qty: 20, unit: 'dona', costPrice: 38_000 },
-      { productName: 'Old Spice Deodorant', qty: 24, unit: 'dona', costPrice: 32_000 },
-    ],
-  },
-  {
-    id: '5', number: 'KR-00241', supplier: 'Chanel Boutique',
-    date: '2026-03-05', status: 'CANCELLED', totalAmount: 8_400_000, itemsCount: 2,
-    items: [
-      { productName: 'Chanel N°5 Eau de Parfum 100ml', qty: 5, unit: 'dona', costPrice: 1_200_000 },
-      { productName: 'Chanel Coco Mademoiselle 50ml', qty: 4, unit: 'dona', costPrice: 900_000 },
-    ],
-    notes: 'Yetkazib beruvchi tomonidan bekor qilindi',
-  },
-];
 
 // ─── Tabs ──────────────────────────────────────────────
 const TABS: { key: FilterTab; label: string }[] = [
   { key: 'ALL',      label: 'Hammasi'        },
   { key: 'PENDING',  label: 'Kutilmoqda'     },
-  { key: 'ACCEPTED', label: 'Qabul qilingan' },
+  { key: 'RECEIVED', label: 'Qabul qilingan' },
 ];
 
 // ─── Utils ─────────────────────────────────────────────
@@ -127,8 +56,8 @@ function fmt(n: number) { return n.toLocaleString('ru-RU'); }
 function StatsChips({ receipts }: { receipts: Receipt[] }) {
   const total    = receipts.length;
   const pending  = receipts.filter((r) => r.status === 'PENDING').length;
-  const accepted = receipts.filter((r) => r.status === 'ACCEPTED').length;
-  const totalAmt = receipts.reduce((s, r) => s + r.totalAmount, 0);
+  const received = receipts.filter((r) => r.status === 'RECEIVED').length;
+  const totalAmt = receipts.reduce((s, r) => s + r.totalCost, 0);
 
   return (
     <ScrollView
@@ -145,7 +74,7 @@ function StatsChips({ receipts }: { receipts: Receipt[] }) {
         <Text style={[styles.chipLabel, { color: C.orange }]}>Kutilmoqda</Text>
       </View>
       <View style={[styles.chip, { backgroundColor: '#D1FAE5' }]}>
-        <Text style={[styles.chipValue, { color: C.green }]}>{accepted}</Text>
+        <Text style={[styles.chipValue, { color: C.green }]}>{received}</Text>
         <Text style={[styles.chipLabel, { color: C.green }]}>Qabul qilingan</Text>
       </View>
       <View style={[styles.chip, { backgroundColor: '#EFF6FF' }]}>
@@ -167,8 +96,8 @@ function ReceiptCard({ receipt, onPress }: { receipt: Receipt; onPress: () => vo
             <MaterialCommunityIcons name="package-variant" size={20} color={C.primary} />
           </View>
           <View>
-            <Text style={styles.receiptNumber}>{receipt.number}</Text>
-            <Text style={styles.receiptSupplier}>{receipt.supplier}</Text>
+            <Text style={styles.receiptNumber}>{receipt.receiptNumber}</Text>
+            <Text style={styles.receiptSupplier}>{receipt.supplierName}</Text>
           </View>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -183,7 +112,7 @@ function ReceiptCard({ receipt, onPress }: { receipt: Receipt; onPress: () => vo
           <Text style={styles.receiptDot}>·</Text>
           <Text style={styles.receiptItems}>{receipt.itemsCount} ta mahsulot</Text>
         </View>
-        <Text style={styles.receiptAmount}>{fmt(receipt.totalAmount)} UZS</Text>
+        <Text style={styles.receiptAmount}>{fmt(receipt.totalCost)} UZS</Text>
       </View>
     </TouchableOpacity>
   );
@@ -201,7 +130,8 @@ function DetailSheet({
 }) {
   if (!receipt) return null;
   const cfg = STATUS_CFG[receipt.status];
-  const totalQty = receipt.items.reduce((s, i) => s + i.qty, 0);
+  const items = receipt.items ?? [];
+  const totalQty = items.reduce((s, i) => s + i.qty, 0);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -215,8 +145,8 @@ function DetailSheet({
         {/* Sheet header */}
         <View style={styles.sheetHeader}>
           <View>
-            <Text style={styles.sheetNumber}>{receipt.number}</Text>
-            <Text style={styles.sheetSupplier}>{receipt.supplier}</Text>
+            <Text style={styles.sheetNumber}>{receipt.receiptNumber}</Text>
+            <Text style={styles.sheetSupplier}>{receipt.supplierName}</Text>
           </View>
           <TouchableOpacity style={styles.sheetCloseBtn} onPress={onClose}>
             <Ionicons name="close" size={18} color={C.secondary} />
@@ -233,21 +163,21 @@ function DetailSheet({
           </Text>
         </View>
 
-        {receipt.notes && (
+        {receipt.notes ? (
           <View style={styles.notesRow}>
             <Ionicons name="information-circle-outline" size={14} color={C.orange} />
             <Text style={styles.notesText}>{receipt.notes}</Text>
           </View>
-        )}
+        ) : null}
 
         {/* Items */}
         <ScrollView showsVerticalScrollIndicator={false} style={styles.itemsScroll}>
-          <Text style={styles.itemsTitle}>Mahsulotlar ({receipt.items.length} ta)</Text>
-          {receipt.items.map((item, idx) => (
+          <Text style={styles.itemsTitle}>Mahsulotlar ({items.length} ta)</Text>
+          {items.map((item, idx) => (
             <View key={idx} style={styles.itemRow}>
               <View style={styles.itemLeft}>
                 <Text style={styles.itemIdx}>{idx + 1}</Text>
-                <View style={{ flex: 1 }}>
+                <View style={styles.itemNameWrap}>
                   <Text style={styles.itemName} numberOfLines={2}>{item.productName}</Text>
                   <Text style={styles.itemCost}>{fmt(item.costPrice)} UZS / dona</Text>
                 </View>
@@ -269,7 +199,7 @@ function DetailSheet({
           <View style={styles.sheetFooterRow}>
             <Text style={styles.sheetFooterLabel}>Jami narx:</Text>
             <Text style={[styles.sheetFooterValue, { color: C.primary, fontSize: 18 }]}>
-              {fmt(receipt.totalAmount)} UZS
+              {fmt(receipt.totalCost)} UZS
             </Text>
           </View>
         </View>
@@ -280,25 +210,60 @@ function DetailSheet({
 
 // ─── Main Screen ───────────────────────────────────────
 export default function KirimScreen() {
-  const [search, setSearch]           = useState('');
-  const [selected, setSelected]       = useState<Receipt | null>(null);
-  const [detailVisible, setDetail]    = useState(false);
-  const [activeTab, setActiveTab]     = useState<FilterTab>('ALL');
-  const listRef                       = useRef<FlatList<Receipt>>(null);
+  const [search, setSearch]        = useState('');
+  const [selected, setSelected]    = useState<Receipt | null>(null);
+  const [detailVisible, setDetail] = useState(false);
+  const [activeTab, setActiveTab]  = useState<FilterTab>('ALL');
+  const listRef                    = useRef<FlatList<Receipt>>(null);
+
+  const { list } = useKirimData();
+  const allReceipts = list.data?.items ?? [];
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return MOCK_RECEIPTS.filter((r) => {
-      const matchSearch = r.number.toLowerCase().includes(q) || r.supplier.toLowerCase().includes(q);
-      const matchTab    = activeTab === 'ALL' || r.status === activeTab;
+    return allReceipts.filter((r) => {
+      const matchSearch =
+        r.receiptNumber.toLowerCase().includes(q) ||
+        r.supplierName.toLowerCase().includes(q);
+      const matchTab = activeTab === 'ALL' || r.status === activeTab;
       return matchSearch && matchTab;
     });
-  }, [search, activeTab]);
+  }, [search, activeTab, allReceipts]);
 
   const openDetail = (receipt: Receipt) => {
     setSelected(receipt);
     setDetail(true);
   };
+
+  if (list.isLoading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Kirim</Text>
+        </View>
+        <View style={styles.centerFill}>
+          <ActivityIndicator size="large" color={C.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (list.isError) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Kirim</Text>
+        </View>
+        <View style={styles.centerFill}>
+          <MaterialCommunityIcons name="alert-circle-outline" size={48} color={C.muted} />
+          <Text style={styles.errorText}>Ma'lumot yuklanmadi</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => list.refetch()} activeOpacity={0.75}>
+            <Text style={styles.retryBtnText}>Qayta urinish</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -319,11 +284,11 @@ export default function KirimScreen() {
         ListHeaderComponent={
           <View style={styles.listHeader}>
             {/* Stats */}
-            <StatsChips receipts={MOCK_RECEIPTS} />
+            <StatsChips receipts={allReceipts} />
 
             {/* Search */}
             <View style={styles.searchRow}>
-              <Feather name="search" size={16} color={C.muted} style={{ marginRight: 8 }} />
+              <Feather name="search" size={16} color={C.muted} style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Raqam yoki yetkazib beruvchi..."
@@ -367,7 +332,7 @@ export default function KirimScreen() {
         renderItem={({ item }) => (
           <ReceiptCard receipt={item} onPress={() => openDetail(item)} />
         )}
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
           <View style={styles.empty}>
             <MaterialCommunityIcons name="package-variant-closed" size={48} color={C.muted} />
@@ -403,6 +368,14 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 32 },
   listHeader: { gap: 12, paddingBottom: 4 },
 
+  centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
+  errorText: { fontSize: 15, color: C.muted },
+  retryBtn: {
+    paddingHorizontal: 24, paddingVertical: 10, borderRadius: 10,
+    backgroundColor: C.primary,
+  },
+  retryBtnText: { fontSize: 14, fontWeight: '700', color: C.white },
+
   // Chips
   chipsRow: { paddingHorizontal: 16, gap: 10, paddingVertical: 16 },
   chip: {
@@ -419,15 +392,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, height: 44,
     marginHorizontal: 16, borderWidth: 1, borderColor: C.border,
   },
+  searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, fontSize: 14, color: C.text },
   resultCount: { fontSize: 12, color: C.muted, paddingHorizontal: 16 },
 
   // Tabs
-  tabsRow:      { paddingHorizontal: 16, gap: 8 },
-  tab:          { height: 36, paddingHorizontal: 18, borderRadius: 18, backgroundColor: C.white, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  tabActive:    { backgroundColor: C.primary, borderColor: C.primary },
-  tabText:      { fontSize: 14, fontWeight: '600', color: C.secondary },
-  tabTextActive:{ color: C.white },
+  tabsRow:       { paddingHorizontal: 16, gap: 8 },
+  tab:           { height: 36, paddingHorizontal: 18, borderRadius: 18, backgroundColor: C.white, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
+  tabActive:     { backgroundColor: C.primary, borderColor: C.primary },
+  tabText:       { fontSize: 14, fontWeight: '600', color: C.secondary },
+  tabTextActive: { color: C.white },
 
   // Receipt card
   receiptCard: {
@@ -436,25 +410,27 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
-  receiptHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  receiptLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 },
+  receiptHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  receiptLeft:    { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 },
   receiptIconWrap: {
     width: 38, height: 38, borderRadius: 10,
     backgroundColor: C.primary + '15', alignItems: 'center', justifyContent: 'center',
   },
-  receiptNumber: { fontSize: 15, fontWeight: '700', color: C.text },
+  receiptNumber:   { fontSize: 15, fontWeight: '700', color: C.text },
   receiptSupplier: { fontSize: 12, color: C.secondary, marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  statusText: { fontSize: 11, fontWeight: '700' },
-  receiptFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  receiptMeta: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  receiptDate: { fontSize: 12, color: C.muted },
-  receiptDot: { fontSize: 12, color: C.muted },
-  receiptItems: { fontSize: 12, color: C.secondary },
-  receiptAmount: { fontSize: 14, fontWeight: '700', color: C.text },
+  statusBadge:     { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  statusText:      { fontSize: 11, fontWeight: '700' },
+  receiptFooter:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  receiptMeta:     { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  receiptDate:     { fontSize: 12, color: C.muted },
+  receiptDot:      { fontSize: 12, color: C.muted },
+  receiptItems:    { fontSize: 12, color: C.secondary },
+  receiptAmount:   { fontSize: 14, fontWeight: '700', color: C.text },
+
+  separator: { height: 10 },
 
   // Empty
-  empty: { alignItems: 'center', paddingTop: 60, gap: 12 },
+  empty:     { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15, color: C.muted },
 
   // Detail sheet
@@ -475,7 +451,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 12,
   },
-  sheetNumber: { fontSize: 18, fontWeight: '800', color: C.text },
+  sheetNumber:   { fontSize: 18, fontWeight: '800', color: C.text },
   sheetSupplier: { fontSize: 13, color: C.secondary, marginTop: 3 },
   sheetCloseBtn: {
     width: 30, height: 30, borderRadius: 15,
@@ -493,21 +469,22 @@ const styles = StyleSheet.create({
   },
   notesText: { fontSize: 12, color: C.orange, flex: 1 },
   itemsScroll: { maxHeight: 320, paddingHorizontal: 20 },
-  itemsTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 10 },
+  itemsTitle:  { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 10 },
   itemRow: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.border,
   },
-  itemLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, flex: 1, marginRight: 8 },
+  itemLeft:    { flexDirection: 'row', alignItems: 'flex-start', gap: 10, flex: 1, marginRight: 8 },
+  itemNameWrap: { flex: 1 },
   itemIdx: {
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: C.primary + '15', textAlign: 'center',
     fontSize: 11, fontWeight: '700', color: C.primary, lineHeight: 22,
   },
-  itemName: { fontSize: 13, fontWeight: '600', color: C.text },
-  itemCost: { fontSize: 11, color: C.muted, marginTop: 2 },
+  itemName:  { fontSize: 13, fontWeight: '600', color: C.text },
+  itemCost:  { fontSize: 11, color: C.muted, marginTop: 2 },
   itemRight: { alignItems: 'flex-end', gap: 4 },
-  itemQty: { fontSize: 13, fontWeight: '700', color: C.text },
+  itemQty:   { fontSize: 13, fontWeight: '700', color: C.text },
   itemTotal: { fontSize: 12, color: C.secondary },
 
   // Sheet footer
@@ -516,7 +493,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: C.border,
     gap: 6,
   },
-  sheetFooterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sheetFooterRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sheetFooterLabel: { fontSize: 14, color: C.secondary },
   sheetFooterValue: { fontSize: 15, fontWeight: '700', color: C.text },
 });
