@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Receipt } from '../../api/inventory.api';
 import { useKirimData } from './useKirimData';
+import { formatUZS, formatCompact } from '../../utils/currency';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -49,9 +50,6 @@ const TABS: { key: FilterTab; label: string }[] = [
   { key: 'RECEIVED', label: 'Qabul qilingan' },
 ];
 
-// ─── Utils ─────────────────────────────────────────────
-function fmt(n: number) { return n.toLocaleString('ru-RU'); }
-
 // ─── Stats chips ───────────────────────────────────────
 function StatsChips({ receipts }: { receipts: Receipt[] }) {
   const total    = receipts.length;
@@ -78,7 +76,7 @@ function StatsChips({ receipts }: { receipts: Receipt[] }) {
         <Text style={[styles.chipLabel, { color: C.green }]}>Qabul qilingan</Text>
       </View>
       <View style={[styles.chip, { backgroundColor: '#EFF6FF' }]}>
-        <Text style={[styles.chipValue, { color: C.blue }]}>{fmt(totalAmt)}</Text>
+        <Text style={[styles.chipValue, { color: C.blue }]}>{formatCompact(totalAmt)}</Text>
         <Text style={[styles.chipLabel, { color: C.blue }]}>Jami summa</Text>
       </View>
     </ScrollView>
@@ -112,7 +110,7 @@ function ReceiptCard({ receipt, onPress }: { receipt: Receipt; onPress: () => vo
           <Text style={styles.receiptDot}>·</Text>
           <Text style={styles.receiptItems}>{receipt.itemsCount} ta mahsulot</Text>
         </View>
-        <Text style={styles.receiptAmount}>{fmt(receipt.totalCost)} UZS</Text>
+        <Text style={styles.receiptAmount}>{formatUZS(receipt.totalCost)}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -174,17 +172,17 @@ function DetailSheet({
         <ScrollView showsVerticalScrollIndicator={false} style={styles.itemsScroll}>
           <Text style={styles.itemsTitle}>Mahsulotlar ({items.length} ta)</Text>
           {items.map((item, idx) => (
-            <View key={idx} style={styles.itemRow}>
+            <View key={item.productId} style={styles.itemRow}>
               <View style={styles.itemLeft}>
                 <Text style={styles.itemIdx}>{idx + 1}</Text>
                 <View style={styles.itemNameWrap}>
                   <Text style={styles.itemName} numberOfLines={2}>{item.productName}</Text>
-                  <Text style={styles.itemCost}>{fmt(item.costPrice)} UZS / dona</Text>
+                  <Text style={styles.itemCost}>{formatUZS(item.costPrice)} / dona</Text>
                 </View>
               </View>
               <View style={styles.itemRight}>
                 <Text style={styles.itemQty}>{item.qty} {item.unit}</Text>
-                <Text style={styles.itemTotal}>{fmt(item.qty * item.costPrice)}</Text>
+                <Text style={styles.itemTotal}>{formatUZS(item.qty * item.costPrice)}</Text>
               </View>
             </View>
           ))}
@@ -198,8 +196,8 @@ function DetailSheet({
           </View>
           <View style={styles.sheetFooterRow}>
             <Text style={styles.sheetFooterLabel}>Jami narx:</Text>
-            <Text style={[styles.sheetFooterValue, { color: C.primary, fontSize: 18 }]}>
-              {fmt(receipt.totalCost)} UZS
+            <Text style={[styles.sheetFooterValue, styles.sheetFooterValueHighlight]}>
+              {formatUZS(receipt.totalCost)}
             </Text>
           </View>
         </View>
@@ -270,7 +268,8 @@ export default function KirimScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Kirim</Text>
-        <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
+        {/* onPress wired in T-143 (NewReceiptSheet) */}
+        <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7} disabled>
           <Ionicons name="add" size={22} color={C.primary} />
         </TouchableOpacity>
       </View>
@@ -495,5 +494,6 @@ const styles = StyleSheet.create({
   },
   sheetFooterRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sheetFooterLabel: { fontSize: 14, color: C.secondary },
-  sheetFooterValue: { fontSize: 15, fontWeight: '700', color: C.text },
+  sheetFooterValue:          { fontSize: 15, fontWeight: '700', color: C.text },
+  sheetFooterValueHighlight: { fontSize: 18, color: C.primary },
 });

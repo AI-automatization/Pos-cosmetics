@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { inventoryApi } from '../../api/inventory.api';
+import { inventoryApi } from '../../api';
+import { CONFIG } from '../../config';
 import type { ReceiptListResponse, CreateReceiptBody } from '../../api/inventory.api';
 
 function makeDemoReceipts(): ReceiptListResponse {
@@ -71,7 +72,7 @@ export function useKirimData() {
         return makeDemoReceipts();
       }
     },
-    refetchInterval: 60_000,
+    refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
   });
 
   const create = useMutation<

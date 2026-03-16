@@ -64,7 +64,7 @@ export interface CreateReceiptResponse {
   date: string;
   totalCost: number;
   itemsCount: number;
-  status: string;
+  status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
 }
 
 export const inventoryApi = {
