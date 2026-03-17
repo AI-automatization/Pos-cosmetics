@@ -33,6 +33,8 @@ export interface StockMovement {
   notes: string | null;
   userId: string;
   createdAt: string;
+  supplier?: string;
+  user?: { id: string; firstName?: string; lastName?: string; name?: string };
 }
 
 // --- DTOs ---
