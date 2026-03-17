@@ -109,12 +109,14 @@ export function useMovementsWithUsers(productId?: string) {
           [u.firstName, u.lastName].filter(Boolean).join(' ') || u.name || u.email || u.id,
         ]),
       );
-      return movements.map((m) => ({
-        ...m,
-        userName: (m.user
-          ? [m.user.firstName, m.user.lastName].filter(Boolean).join(' ') || m.user.name || ''
-          : userMap.get(m.userId) ?? '') || '—',
-      }));
+      return movements
+        .map((m) => ({
+          ...m,
+          userName: (m.user
+            ? [m.user.firstName, m.user.lastName].filter(Boolean).join(' ') || m.user.name || ''
+            : userMap.get(m.userId) ?? '') || '—',
+        }))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     },
     staleTime: 30_000,
   });
