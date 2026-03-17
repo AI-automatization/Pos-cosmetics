@@ -111,8 +111,8 @@ export class InventoryService {
       if (cached) return cached;
     }
 
-    const warehousePart = opts.warehouseId ? Prisma.sql`AND sm_filter.warehouse_id = ${opts.warehouseId}` : Prisma.empty;
-    const productPart = opts.productId ? Prisma.sql`AND sm_filter.product_id = ${opts.productId}` : Prisma.empty;
+    const _warehousePart = opts.warehouseId ? Prisma.sql`AND sm_filter.warehouse_id = ${opts.warehouseId}` : Prisma.empty;
+    const _productPart = opts.productId ? Prisma.sql`AND sm_filter.product_id = ${opts.productId}` : Prisma.empty;
 
     // Check if snapshot exists for this tenant
     const snapshotExists = await this.prisma.stockSnapshot.findFirst({
@@ -295,6 +295,40 @@ export class InventoryService {
     `;
 
     return rows;
+  }
+
+  // T-096: Tester/namuna harakatlari
+  async getTesterMovements(tenantId: string, from?: string, to?: string) {
+    const where: Record<string, unknown> = {
+      tenantId,
+      type: 'TESTER',
+    };
+    if (from || to) {
+      where['createdAt'] = {
+        ...(from ? { gte: new Date(from) } : {}),
+        ...(to ? { lte: new Date(to) } : {}),
+      };
+    }
+
+    const movements = await this.prisma.stockMovement.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        product: { select: { id: true, name: true, sku: true } },
+        warehouse: { select: { id: true, name: true } },
+      },
+    });
+
+    const totalCost = movements.reduce((sum, m) => {
+      const cost = m.costPrice ? Number(m.costPrice) * Number(m.quantity) : 0;
+      return sum + cost;
+    }, 0);
+
+    return {
+      items: movements,
+      totalCost,
+      count: movements.length,
+    };
   }
 
   async deductStock(tenantId: string, warehouseId: string, items: Array<{ productId: string; quantity: number }>, refId: string) {

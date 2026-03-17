@@ -131,8 +131,8 @@ export async function getActiveShifts(): Promise<ShiftInfo[]> {
   const shifts = await prisma.shift.findMany({
     where: { status: 'OPEN' },
     include: {
-      cashier: { select: { firstName: true, lastName: true } },
-      tenant:  { select: { name: true } },
+      user:   { select: { firstName: true, lastName: true } },
+      tenant: { select: { name: true } },
       _count: { select: { orders: true } },
     },
     orderBy: { openedAt: 'asc' },
@@ -151,7 +151,7 @@ export async function getActiveShifts(): Promise<ShiftInfo[]> {
 
       return {
         tenantName: s.tenant.name,
-        cashierName: `${s.cashier.firstName} ${s.cashier.lastName}`,
+        cashierName: `${s.user.firstName} ${s.user.lastName}`,
         openedAt: s.openedAt,
         ordersCount: s._count.orders,
         revenue: Number(revenue._sum.total ?? 0),

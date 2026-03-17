@@ -70,7 +70,12 @@ export class QueueService implements OnModuleDestroy {
         };
 
     for (const name of Object.values(QUEUE_NAMES)) {
-      this.queues.set(name, new Queue(name, { connection }));
+      const queue = new Queue(name, { connection });
+      // Handle Redis connection errors gracefully — unhandled 'error' events crash Node.js
+      queue.on('error', (err) => {
+        this.logger.warn(`Queue "${name}" error: ${err.message}`);
+      });
+      this.queues.set(name, queue);
     }
 
     this.logger.log(`QueueService initialized: ${Object.values(QUEUE_NAMES).join(', ')}`);
@@ -159,7 +164,7 @@ export class QueueService implements OnModuleDestroy {
    */
   async getDlqJobs(queueName?: QueueName, limit = 50) {
     const targets = queueName
-      ? [[queueName, this.queues.get(queueName)!] as [QueueName, (typeof this.queues extends Map<any, infer V> ? V : never)]]
+      ? [[queueName, this.queues.get(queueName)!] as [QueueName, (typeof this.queues extends Map<QueueName, infer V> ? V : never)]]
       : Array.from(this.queues.entries());
 
     const result: Array<{

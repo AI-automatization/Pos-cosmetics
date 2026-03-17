@@ -21,6 +21,7 @@ import {
   UpdateVariantDto,
   CreateProductPriceDto,
   UpdateProductPriceDto,
+  CreateCertificateDto,
 } from './dto';
 import { Prisma } from '@prisma/client';
 
@@ -674,5 +675,58 @@ export class CatalogService {
     if (!prices.length) return null;
     const p = prices[0];
     return { price: Number(p.price), priceType: p.priceType, minQty: p.minQty };
+  }
+
+  // ─── T-097: Product Certificates ──────────────────────────────
+
+  async getCertificates(tenantId: string, productId: string) {
+    await this.findProductOrThrow(tenantId, productId);
+    return this.prisma.productCertificate.findMany({
+      where: { tenantId, productId },
+      orderBy: { issuedAt: 'desc' },
+    });
+  }
+
+  async createCertificate(tenantId: string, productId: string, dto: CreateCertificateDto) {
+    await this.findProductOrThrow(tenantId, productId);
+    return this.prisma.productCertificate.create({
+      data: {
+        tenantId,
+        productId,
+        certNumber: dto.certNumber,
+        issuingAuthority: dto.issuingAuthority,
+        issuedAt: new Date(dto.issuedAt),
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+        fileUrl: dto.fileUrl,
+      },
+    });
+  }
+
+  async deleteCertificate(tenantId: string, productId: string, certId: string) {
+    const cert = await this.prisma.productCertificate.findFirst({
+      where: { id: certId, tenantId, productId },
+    });
+    if (!cert) throw new NotFoundException('Sertifikat topilmadi');
+    await this.prisma.productCertificate.delete({ where: { id: certId } });
+    return { success: true };
+  }
+
+  async getExpiringCertificates(tenantId: string, days = 30) {
+    const threshold = new Date();
+    threshold.setDate(threshold.getDate() + days);
+    return this.prisma.productCertificate.findMany({
+      where: {
+        tenantId,
+        expiresAt: { not: null, lte: threshold },
+      },
+      include: { product: { select: { id: true, name: true, sku: true } } },
+      orderBy: { expiresAt: 'asc' },
+    });
+  }
+
+  private async findProductOrThrow(tenantId: string, productId: string) {
+    const p = await this.prisma.product.findFirst({ where: { id: productId, tenantId } });
+    if (!p) throw new NotFoundException('Mahsulot topilmadi');
+    return p;
   }
 }

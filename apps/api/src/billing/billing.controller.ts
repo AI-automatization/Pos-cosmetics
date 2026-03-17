@@ -5,13 +5,10 @@ import {
   Delete,
   Param,
   Body,
-  Query,
   UseGuards,
-  ParseIntPipe,
-  DefaultValuePipe,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { IsString, IsIn, IsOptional, IsInt, Min, Max } from 'class-validator';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { IsString, IsOptional, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';

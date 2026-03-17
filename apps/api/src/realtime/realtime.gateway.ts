@@ -5,9 +5,8 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   ConnectedSocket,
-  MessageBody,
 } from '@nestjs/websockets';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -53,9 +52,10 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
       }>(token);
 
       // Metadatani socket ga yozamiz
-      (client as any).userId = payload.sub;
-      (client as any).tenantId = payload.tenantId;
-      (client as any).isAdmin = payload.isAdmin ?? false;
+      const c = client as typeof client & { userId: string; tenantId: string | null; isAdmin: boolean };
+      c.userId = payload.sub;
+      c.tenantId = payload.tenantId;
+      c.isAdmin = payload.isAdmin ?? false;
 
       // Room qo'shish: tenant room yoki admin room
       if (payload.isAdmin) {

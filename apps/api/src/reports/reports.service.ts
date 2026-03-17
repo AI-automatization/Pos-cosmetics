@@ -2,11 +2,9 @@ import {
   Injectable,
   Logger,
   ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { extractVAT } from '../common/utils/currency.util';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 // T-070: Shubhali faoliyat chegaralari

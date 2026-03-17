@@ -9,6 +9,8 @@ import {
   ParseUUIDPipe,
   UseGuards,
   Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,8 +23,10 @@ import {
 import { IsString, IsOptional } from 'class-validator';
 import { NotificationsService } from './notifications.service';
 import { PushService } from './push.service';
+import { NotifyService } from './notify.service';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 class RegisterFcmTokenDto {
   @ApiProperty({ example: 'fcm-token-string' })
@@ -35,6 +39,16 @@ class RegisterFcmTokenDto {
   platform?: string;
 }
 
+class VerifyTelegramDto {
+  @ApiProperty({ example: 'abc123def456', description: 'Bot dan olingan token' })
+  @IsString()
+  token!: string;
+
+  @ApiProperty({ example: '123456789', description: 'Telegram chat ID' })
+  @IsString()
+  chatId!: string;
+}
+
 @ApiTags('Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -43,6 +57,7 @@ export class NotificationsController {
   constructor(
     private readonly notificationsService: NotificationsService,
     private readonly pushService: PushService,
+    private readonly notifyService: NotifyService,
   ) {}
 
   // ─── IN-APP NOTIFICATIONS (T-103) ─────────────────────────────
@@ -112,6 +127,38 @@ export class NotificationsController {
   @ApiParam({ name: 'token', type: String })
   removeFcmToken(@Param('token') token: string) {
     return this.pushService.removeToken(token);
+  }
+
+  // ─── TELEGRAM LINKING (T-122) ─────────────────────────────────
+
+  @Post('telegram/link-token')
+  @ApiOperation({
+    summary: 'Telegram bog\'lash tokeni yaratish',
+    description: 'Qaytarilgan token ni t.me/BotName?start=TOKEN shaklida foydalanuvchiga ko\'rsating',
+  })
+  async createLinkToken(
+    @CurrentUser('userId') userId: string,
+    @CurrentUser('tenantId') tenantId: string,
+  ) {
+    const token = await this.notifyService.createLinkTokenForUser(userId, tenantId);
+    const botUsername = process.env['BOT_USERNAME'] ?? 'raos_bot';
+    return {
+      token,
+      link: `https://t.me/${botUsername}?start=${token}`,
+      expiresInMinutes: 15,
+    };
+  }
+
+  @Post('telegram/verify')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Bot tomonidan chatId ni saqlash (webhook uchun)',
+    description: 'Bot /start <token> qabul qilganda shu endpointni chaqiradi',
+  })
+  async verifyTelegramLink(@Body() dto: VerifyTelegramDto) {
+    const result = await this.notifyService.verifyLinkToken(dto.token, dto.chatId);
+    return result;
   }
 
   // ─── DEBT REMINDERS ───────────────────────────────────────────

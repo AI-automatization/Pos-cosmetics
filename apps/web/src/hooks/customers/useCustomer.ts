@@ -29,26 +29,7 @@ export function useCreateCustomer(onSuccess: (customer: Customer) => void) {
       onSuccess(customer);
     },
     onError: (err: unknown) => {
-      const msg = extractErrorMessage(err);
-      if (msg.includes('404') || msg.includes('connect') || msg.includes('Network')) {
-        // Demo mode — backend T-050 tayyor bo'lgunicha
-        const demoCustomer: Customer = {
-          id: `demo-${Date.now()}`,
-          name: 'Demo xaridor',
-          phone: '998901234567',
-          debtBalance: 0,
-          debtLimit: 1_000_000,
-          isBlocked: false,
-          hasOverdue: false,
-          overdueAmount: 0,
-          totalPurchases: 0,
-          lastVisitAt: null,
-        };
-        toast.success("Xaridor qo'shildi (demo rejim)");
-        onSuccess(demoCustomer);
-      } else {
-        toast.error(msg);
-      }
+      toast.error(extractErrorMessage(err));
     },
   });
 }

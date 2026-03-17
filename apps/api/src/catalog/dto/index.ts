@@ -6,3 +6,4 @@ export * from './link-product-supplier.dto';
 export * from './bundle.dto';
 export * from './variant.dto';
 export * from './price.dto';
+export * from './certificate.dto';

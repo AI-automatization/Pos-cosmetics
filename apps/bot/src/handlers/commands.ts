@@ -1,4 +1,5 @@
-import { Bot } from 'grammy';
+import { Bot, Context } from 'grammy';
+import { config } from '../config';
 import { getTodaySummary, getAllTenantsSummary } from '../services/report.service';
 import { getLowStockItems, getExpiringItems } from '../services/alert.service';
 import {
@@ -22,8 +23,15 @@ export function registerCommands(bot: Bot) {
   // ─── /start ─────────────────────────────────────────────────
 
   bot.command('start', async (ctx) => {
+    // Deep link: /start <token> — Telegram hisobini bog'lash
+    const payload = ctx.match?.trim();
+    if (payload && payload.length > 0) {
+      await handleLinkToken(ctx, payload);
+      return;
+    }
+
     await ctx.reply(
-      '👋 Salom\\! Men *RAOS* savdo tizimi botiман\\.\n\n' +
+      '👋 Salom\\! Men *RAOS* savdo tizimi botiman\\.\n\n' +
       '*Buyruqlar:*\n' +
       '📊 /report — Bugungi savdo hisoboti\n' +
       '📈 /sales — Joriy kun savdo statistikasi\n' +
@@ -68,7 +76,7 @@ export function registerCommands(bot: Bot) {
       }
 
       if (summaries.length === 1) {
-        const tenantId = await getTenantIdByName(summaries[0].tenant);
+        const tenantId = await getTenantIdByName(summaries[0]!.tenant);
         if (tenantId) {
           const detail = await getTodaySummary(tenantId);
           await ctx.reply(formatDailyReport(detail), { parse_mode: 'MarkdownV2' });
@@ -242,4 +250,41 @@ async function getTenantIdByName(name: string): Promise<string | null> {
   const { default: prisma } = await import('../prisma');
   const t = await prisma.tenant.findFirst({ where: { name }, select: { id: true } });
   return t?.id ?? null;
+}
+
+/**
+ * Deep link token orqali Telegram hisobini bog'lash.
+ * /start <token> qabul qilinganda chaqiriladi.
+ */
+async function handleLinkToken(ctx: Context, token: string): Promise<void> {
+  const chatId = String(ctx.chat?.id);
+  if (!chatId) {
+    await ctx.reply('Xatolik: chat ID topilmadi.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${config.apiUrl}/notifications/telegram/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, chatId }),
+    });
+
+    const data = (await res.json()) as { success: boolean; type?: string };
+
+    if (data.success) {
+      const who = data.type === 'user' ? 'Hisobingiz' : 'Profilingiz';
+      await ctx.reply(
+        `✅ ${who} RAOS ga muvaffaqiyatli bog'landi!\n\n` +
+        `Endi siz Telegram orqali bildirishnomalar olasiz.`,
+      );
+    } else {
+      await ctx.reply(
+        `❌ Token yaroqsiz yoki muddati o'tgan.\n\n` +
+        `Yangi link olish uchun RAOS tizimiga kiring.`,
+      );
+    }
+  } catch {
+    await ctx.reply('❌ Server bilan bog\'lanishda xatolik yuz berdi.');
+  }
 }
