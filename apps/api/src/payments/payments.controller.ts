@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Query,
   Body,
   Headers,
   Param,
@@ -33,6 +34,17 @@ export class PaymentsController {
     private readonly paymeProvider: PaymeProvider,
     private readonly clickProvider: ClickProvider,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List payment intents' })
+  listPayments(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('status') status?: string,
+  ) {
+    return this.paymentsService.listPayments(tenantId, { page, limit, status });
+  }
 
   @Post('intent')
   @ApiOperation({ summary: 'Create payment intent (single method)' })

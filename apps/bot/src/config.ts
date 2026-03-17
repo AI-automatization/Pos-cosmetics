@@ -18,9 +18,6 @@ export const config = {
     .map((s) => s.trim())
     .filter(Boolean),
 
-  // API base URL — Telegram link verification uchun
-  apiUrl: process.env.API_INTERNAL_URL ?? 'http://localhost:3003/api/v1',
-
   // Database (API bilan bir xil DB)
   databaseUrl: required('DATABASE_URL'),
 

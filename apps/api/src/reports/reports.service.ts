@@ -33,7 +33,7 @@ export class ReportsService {
 
     const [orderAgg, returnAgg] = await Promise.all([
       this.prisma.order.aggregate({
-        where: { tenantId, createdAt: { gte: today, lt: tomorrow }, status: { not: 'VOIDED' as any } },
+        where: { tenantId, createdAt: { gte: today, lt: tomorrow }, status: { not: 'VOIDED' as const } },
         _sum: { total: true },
         _count: { id: true },
       }),

@@ -23,14 +23,14 @@ async function fetchEnrichedStock(params: StockQuery): Promise<StockLevel[]> {
   return (rawLevels as Array<{ productId: string; warehouseId?: string; stock?: number; currentStock?: number }>).map((raw) => {
     const p = productMap.get(raw.productId);
     const currentStock = raw.currentStock ?? raw.stock ?? 0;
-    const minStock = Number(p?.minStockLevel ?? p?.minStock ?? 0);
+    const minStock = Number(p?.minStockLevel ?? 0);
     const status: StockStatus = currentStock <= 0 ? 'OUT' : currentStock <= minStock ? 'LOW' : 'OK';
     return {
       productId: raw.productId,
       productName: p?.name ?? raw.productId,
       barcode: p?.barcode ?? null,
       sku: p?.sku ?? '',
-      unit: typeof p?.unit === 'object' ? (p.unit as { name: string })?.name ?? '' : (p?.unit as string) ?? '',
+      unit: p ? (typeof p.unit === 'object' ? (p.unit as { name: string })?.name ?? '' : String(p.unit ?? '')) : '',
       currentStock,
       minStock,
       status,

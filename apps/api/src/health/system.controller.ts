@@ -1,6 +1,7 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
+import { NotificationType } from '@prisma/client';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
@@ -30,20 +31,12 @@ export class SystemController {
   async getHealth(@CurrentUser('tenantId') tenantId: string) {
     let dbLatencyMs: number | null = null;
     let dbOk = true;
-    let redisOk = true;
-
     try {
       const start = Date.now();
       await this.prisma.$queryRaw`SELECT 1`;
       dbLatencyMs = Date.now() - start;
     } catch {
       dbOk = false;
-    }
-
-    try {
-      redisOk = this.cache.isConnected();
-    } catch {
-      redisOk = false;
     }
 
     const ok = (latency?: number | null) => ({
@@ -68,7 +61,7 @@ export class SystemController {
 
     // Recent errors from notifications
     const errorNotifs = await this.prisma.notification.findMany({
-      where: { tenantId, type: { in: ['ERROR_ALERT', 'SYSTEM'] as any } },
+      where: { tenantId, type: { in: ['ERROR_ALERT', 'SYSTEM'] as NotificationType[] } },
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: { id: true, type: true, title: true, body: true, createdAt: true },
@@ -131,7 +124,7 @@ export class SystemController {
     const notifs = await this.prisma.notification.findMany({
       where: {
         tenantId,
-        type: { in: ['ERROR_ALERT', 'SYSTEM'] as any },
+        type: { in: ['ERROR_ALERT', 'SYSTEM'] as NotificationType[] },
       },
       orderBy: { createdAt: 'desc' },
       take,
