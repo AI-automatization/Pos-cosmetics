@@ -31,7 +31,7 @@ export const inventoryApi = {
       .get<StockMovement[]>('/inventory/movements', {
         params: productId ? { productId } : {},
       })
-      .then((r) => r.data);
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
 
   // Backend: POST /inventory/movements (single movement per request, requires warehouseId)
@@ -51,7 +51,7 @@ export const inventoryApi = {
         costPrice: item.costPrice,
         batchNumber: item.batchNumber,
         expiryDate: item.expiryDate,
-        note: dto.notes,
+        note: [dto.supplier, dto.notes].filter(Boolean).join(' | ') || undefined,
       });
     }
   },
