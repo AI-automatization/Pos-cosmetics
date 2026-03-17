@@ -112,9 +112,10 @@ export function useMovementsWithUsers(productId?: string) {
       return movements
         .map((m) => ({
           ...m,
+          productName: m.product?.name ?? m.productName ?? '—',
           userName: (m.user
             ? [m.user.firstName, m.user.lastName].filter(Boolean).join(' ') || m.user.name || ''
-            : userMap.get(m.userId) ?? '') || '—',
+            : userMap.get(m.userId ?? '') ?? '') || '—',
         }))
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     },

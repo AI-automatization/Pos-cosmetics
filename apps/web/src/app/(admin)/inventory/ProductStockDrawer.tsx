@@ -131,11 +131,11 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
                 {movements.map((m) => {
                   const isIn = m.type === 'IN';
                   const supplierText = isIn
-                    ? (m.notes?.split(' | ')[0] ?? m.notes ?? null)
+                    ? (m.note?.split(' | ')[0] ?? m.note ?? null)
                     : null;
-                  const extraNote = isIn && m.notes?.includes(' | ')
-                    ? m.notes.split(' | ').slice(1).join(' | ')
-                    : (!isIn ? m.notes : null);
+                  const extraNote = isIn && m.note?.includes(' | ')
+                    ? m.note.split(' | ').slice(1).join(' | ')
+                    : (!isIn ? m.note : null);
 
                   return (
                     <div

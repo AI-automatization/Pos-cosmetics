@@ -235,7 +235,7 @@ export default function InventoryPage() {
                   {movements.map((m) => {
                     const isIn = m.type === 'IN';
                     const noteSupplier = isIn
-                      ? (m.notes?.split(' | ')[0] ?? m.notes ?? '—')
+                      ? (m.note?.split(' | ')[0] ?? m.note ?? '—')
                       : '—';
                     return (
                       <tr key={m.id} className="transition hover:bg-gray-50">
