@@ -4,9 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { inventoryApi } from '@/api/inventory.api';
 import { catalogApi } from '@/api/catalog.api';
+import { usersApi } from '@/api/users.api';
 import { extractErrorMessage } from '@/lib/utils';
-import type { StockQuery, StockInDto, StockOutDto, StockLevel, StockStatus } from '@/types/inventory';
+import type { StockQuery, StockInDto, StockOutDto, StockLevel, StockStatus, StockMovement } from '@/types/inventory';
 import type { Product } from '@/types/catalog';
+import type { User } from '@/types/user';
 
 async function fetchEnrichedStock(params: StockQuery): Promise<StockLevel[]> {
   const [rawLevels, productsPage] = await Promise.all([
@@ -82,5 +84,41 @@ export function useStockOut() {
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
     },
+  });
+}
+
+export function useMovements(productId?: string) {
+  return useQuery({
+    queryKey: ['inventory', 'movements', productId ?? null],
+    queryFn: () => inventoryApi.getMovements(productId),
+    staleTime: 30_000,
+  });
+}
+
+export function useMovementsWithUsers(productId?: string) {
+  return useQuery({
+    queryKey: ['inventory', 'movements-with-users', productId ?? null],
+    queryFn: async (): Promise<(StockMovement & { userName: string })[]> => {
+      const [movements, users] = await Promise.all([
+        inventoryApi.getMovements(productId),
+        usersApi.listUsers().catch(() => [] as User[]),
+      ]);
+      const userMap = new Map(
+        users.map((u) => [
+          u.id,
+          [u.firstName, u.lastName].filter(Boolean).join(' ') || u.name || u.email || u.id,
+        ]),
+      );
+      return movements
+        .map((m) => ({
+          ...m,
+          productName: m.product?.name ?? m.productName ?? '—',
+          userName: (m.user
+            ? [m.user.firstName, m.user.lastName].filter(Boolean).join(' ') || m.user.name || ''
+            : userMap.get(m.userId ?? '') ?? '') || '—',
+        }))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    },
+    staleTime: 30_000,
   });
 }

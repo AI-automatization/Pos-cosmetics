@@ -28,10 +28,15 @@ export const inventoryApi = {
 
   getMovements(productId?: string) {
     return apiClient
-      .get<StockMovement[]>('/inventory/movements', {
+      .get<{ items: StockMovement[]; total: number } | StockMovement[]>('/inventory/movements', {
         params: productId ? { productId } : {},
       })
-      .then((r) => r.data);
+      .then((r) => {
+        const data = r.data;
+        if (Array.isArray(data)) return data;
+        if (data && Array.isArray((data as { items: StockMovement[] }).items)) return (data as { items: StockMovement[] }).items;
+        return [];
+      });
   },
 
   // Backend: POST /inventory/movements (single movement per request, requires warehouseId)
@@ -51,7 +56,7 @@ export const inventoryApi = {
         costPrice: item.costPrice,
         batchNumber: item.batchNumber,
         expiryDate: item.expiryDate,
-        note: dto.notes,
+        note: [dto.supplier, dto.notes].filter(Boolean).join(' | ') || undefined,
       });
     }
   },

@@ -22,17 +22,20 @@ export interface StockLevel {
 export interface StockMovement {
   id: string;
   productId: string;
-  productName: string;
+  productName?: string;
+  product?: { id: string; name: string; sku?: string };
   type: MovementType;
   quantity: number;
-  referenceType: MovementRefType;
-  referenceId: string | null;
+  referenceType?: MovementRefType;
+  referenceId?: string | null;
   batchNumber: string | null;
   expiryDate: string | null;
   costPrice: number;
-  notes: string | null;
-  userId: string;
+  note: string | null;
+  userId?: string;
   createdAt: string;
+  supplier?: string;
+  user?: { id: string; firstName?: string; lastName?: string; name?: string };
 }
 
 // --- DTOs ---
