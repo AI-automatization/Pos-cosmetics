@@ -35,9 +35,6 @@ export function ProductSearchSelect({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selected = products.find((p) => p.id === value);
-  const displayLabel = selected
-    ? `${selected.name}${selected.barcode ? ` (${selected.barcode})` : ''}`
-    : '';
 
   // Close on outside click
   useEffect(() => {
