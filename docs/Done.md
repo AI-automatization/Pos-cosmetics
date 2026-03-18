@@ -192,6 +192,16 @@
 
 *docs/Done.md | RAOS*
 
+## T-238 | 2026-03-18 | [FRONTEND] | Sidebar — rol asosida filtrlash va collapse
+
+- **Yechim:** Sidebar.tsx to'liq qayta yozildi. Single NAV_SECTIONS config (DRY — 5 ta alohida massiv o'rniga), role-based filtering (ALL, NO_CASHIER, STAFF, ADMIN_ONLY), collapse/compact mode localStorage persistence bilan (w-16/w-64), PanelLeftClose/PanelLeftOpen toggle.
+- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`
+
+## T-249 | 2026-03-18 | [FRONTEND] | Sidebar navigatsiya — bo'limlar va vizual tartib
+
+- **Yechim:** 5 ta section divider qo'shildi: Asosiy (Dashboard, POS), Katalog (Mahsulotlar, Kategoriyalar, Yetkazib beruvchilar, Inventar), Savdo (Sotuv, To'lovlar, Nasiya, Xaridorlar), Moliya (Moliya, Analitika, Hisobotlar), Sozlamalar. Collapsed holatda — thin border divider.
+- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`
+
 ## T-242 | 2026-03-18 | [FRONTEND] | Dashboard — KPI kartalar va empty state
 
 - **Yechim:** Dashboard sahifasi P&L breakdown, TrendBadge (% vs yesterday), StatCard tooltip, ProfitBreakdown paneli bilan to'liq qayta yozildi. Bugungi tushum, Yalpi foyda, O'rtacha chek, Kam zaxira ko'rsatkichlari.

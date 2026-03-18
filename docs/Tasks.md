@@ -2518,20 +2518,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-238 | P2 | [FRONTEND] | Sidebar — rol asosida filtrlash va collapse
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`
-- **Muammo:**
-  - 12 ta menu item — bo'limlarga ajratilmagan, vizual qiyin
-  - Admin va Manager uchun bir xil menu
-  - Collapse/compact mode yo'q
-- **Kutilgan:**
-  - Section dividers: Asosiy, Katalog, Moliya, Sozlamalar
-  - Role-based: Manager → Sozlamalar, Foydalanuvchilar yashiriladi
-  - Collapse toggle: faqat ikonalar ko'rinadi
-
 ---
 
 ## T-239 | P2 | [FRONTEND] | P&L hisobot sahifasi
@@ -2637,19 +2623,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 - **Muammo:** Backend to'liq Real Estate moduli mavjud, lekin frontend yo'q
 
 ---
-
-## T-249 | P2 | [FRONTEND] | Sidebar navigatsiya — bo'limlar va vizual tartib
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`
-- **Muammo (vizual):** 12 ta menu item ketma-ket, bo'limlarga ajratilmagan — qaysi nima ekanligini tushunish qiyin
-- **Kutilgan:**
-  - **Asosiy:** Dashboard, POS
-  - **Katalog:** Mahsulotlar, Kategoriyalar, Ta'minotchilar
-  - **Inventar:** Zaxira, Kirish, Chiqish
-  - **Moliya:** Savdolar, To'lovlar, Xarajatlar
-  - **Sozlamalar:** Foydalanuvchilar, Audit, Billing
 
 ---
 
