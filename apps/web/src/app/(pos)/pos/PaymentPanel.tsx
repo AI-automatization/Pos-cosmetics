@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Star,
 } from 'lucide-react';
-import { useLoyaltyAccount, pointsToMoney } from '@/hooks/customers/useLoyalty';
+import { useLoyaltyAccount, useLoyaltyConfig, pointsToMoney } from '@/hooks/customers/useLoyalty';
+import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
 import { formatPrice, cn } from '@/lib/utils';
@@ -41,6 +42,8 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const { data: loyaltyAccount } = useLoyaltyAccount(
     paymentMethod === 'bonus' ? selectedCustomer?.id : null,
   );
+  const { data: loyaltyConfig } = useLoyaltyConfig();
+  const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
 
   const { subtotal, discountAmount, total, change } = totals();
   const { mutate: completeSale, isPending, canComplete } = useCompleteSale(
@@ -327,7 +330,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                         {loyaltyAccount.points} ball
                       </p>
                       <p className="text-gray-400">
-                        ≈ {formatPrice(pointsToMoney(loyaltyAccount.points))}
+                        ≈ {formatPrice(pointsToMoney(loyaltyAccount.points, redeemRate))}
                       </p>
                     </div>
                     <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
@@ -336,7 +339,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                         {bonusPoints} ball
                       </p>
                       <p className="text-gray-400">
-                        = {formatPrice(bonusPoints * 100)}
+                        = {formatPrice(pointsToMoney(bonusPoints, redeemRate))}
                       </p>
                     </div>
                   </div>
