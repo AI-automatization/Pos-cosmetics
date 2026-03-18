@@ -192,6 +192,11 @@
 
 *docs/Done.md | RAOS*
 
+## T-239 | 2026-03-18 | [FRONTEND] | P&L hisobot sahifasi
+
+- **Yechim:** `/finance/pnl` sahifasi yaratildi. Period filter (7d/30d/90d/365d/custom), 5 ta KPI card (Revenue, COGS, Gross Profit, Expenses, Net Profit), P&L waterfall summary, Xarajatlar taqsimoti (category bars). Sidebar ga "Foyda va zarar" link qo'shildi.
+- **Fayl:** `apps/web/src/app/(admin)/finance/pnl/page.tsx`, `Sidebar.tsx`
+
 ## T-236 | 2026-03-18 | [FRONTEND] | Katta komponentlarni bo'lish (SRP)
 
 - **Yechim:** Dashboard 502→137 qator (6 sub-component: StatCards, WeeklyRevenueChart, ProfitBreakdown, TopProductsList, LowStockBanner, DemoContent). ProductForm 402→197 qator (4 sub-component: FormField, MarginBadge, ImageUpload, BarcodeFields). CartPanel 151 qator — bo'lish kerak emas.

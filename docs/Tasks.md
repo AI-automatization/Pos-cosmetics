@@ -2496,18 +2496,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-239 | P2 | [FRONTEND] | P&L hisobot sahifasi
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/finance/` (yangi `pnl/page.tsx`)
-- **Muammo:** Foydalanuvchi do'konning haqiqiy foydasi/zararini ko'ra olmaydi
-- **Kutilgan:**
-  - `/finance/pnl` — period filter bilan (hafta/oy/yil/custom)
-  - Kartalar: Revenue, COGS, Gross Profit, Expenses, Net Profit
-  - Oylik trend grafik
-  - Xarajatlar breakdown
-
 ---
 
 ---
