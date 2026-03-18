@@ -192,6 +192,11 @@
 
 *docs/Done.md | RAOS*
 
+## T-236 | 2026-03-18 | [FRONTEND] | Katta komponentlarni bo'lish (SRP)
+
+- **Yechim:** Dashboard 502→137 qator (6 sub-component: StatCards, WeeklyRevenueChart, ProfitBreakdown, TopProductsList, LowStockBanner, DemoContent). ProductForm 402→197 qator (4 sub-component: FormField, MarginBadge, ImageUpload, BarcodeFields). CartPanel 151 qator — bo'lish kerak emas.
+- **Fayl:** `dashboard/` (6 yangi), `catalog/products/` (4 yangi)
+
 ## T-244 | 2026-03-18 | [FRONTEND] | Barcha sahifalarda error state → empty state
 
 - **Yechim:** Reusable `ErrorState` (compact/full, retry button) va `EmptyState` (icon, title, CTA) komponentlari yaratildi. 8 ta sahifada inline error div almashtirildi: products, categories, suppliers, inventory, low-stock, orders, shifts, users. Empty state qo'shildi.

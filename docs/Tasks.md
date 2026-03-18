@@ -2490,16 +2490,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-236 | P2 | [FRONTEND] | Katta komponentlarni bo'lish (SRP)
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayllar:**
-  - `dashboard/page.tsx` — 644 qator → 4-5 komponentga bo'lish
-  - `ProductForm.tsx` — 438 qator → ProductBasicInfo, ProductPricing, ProductInventory
-  - `CartPanel.tsx` — 290+ qator → CartItem, CartSummary, CartActions
-- **Kutilgan:** Har komponent < 200 qator. Alohida fayllar.
-
 ---
 
 ---
