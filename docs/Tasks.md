@@ -2502,20 +2502,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-237 | P2 | [FRONTEND] | ProductForm yaxshilash — margin preview, rasm, tavsif
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/catalog/products/ProductForm.tsx`
-- **Muammo:**
-  - Sotish narxi va tannarx kiritilganda margin % ko'rinmaydi
-  - Rasm yuklash UI yo'q (backend S3 ga yuklaydi)
-  - Tavsif maydoni yo'q
-- **Kutilgan:**
-  - Real-time margin calculator: `(sellPrice - costPrice) / sellPrice * 100`
-  - Image upload: drag & drop + preview
-  - Tavsif: rich text yoki oddiy textarea
-
 ---
 
 ---

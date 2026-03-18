@@ -192,6 +192,11 @@
 
 *docs/Done.md | RAOS*
 
+## T-237 | 2026-03-18 | [FRONTEND] | ProductForm yaxshilash — margin preview, rasm, tavsif
+
+- **Yechim:** Real-time MarginBadge (green/yellow/red), ImageUpload (drag&drop + preview, local URL → S3 ready), description textarea (max 2000). Schema extended with `description` field.
+- **Fayl:** `apps/web/src/app/(admin)/catalog/products/ProductForm.tsx`
+
 ## T-240 | 2026-03-18 | [FRONTEND] | Mobil responsive Sidebar
 
 - **Yechim:** Sidebar `md:` dan kichik ekranlarda yashiriladi (`hidden md:flex`). Header ga hamburger Menu button qo'shildi (`md:hidden`). MobileSidebarContext orqali state boshqarish. Overlay drawer: backdrop + X close + Escape key + body scroll lock.
