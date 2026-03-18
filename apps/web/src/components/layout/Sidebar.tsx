@@ -125,7 +125,10 @@ const NAV_SECTIONS: NavSection[] = [
         label: 'Moliya',
         icon: Wallet,
         roles: ['OWNER', 'ADMIN'],
-        children: [{ label: 'Xarajatlar', href: '/finance/expenses' }],
+        children: [
+          { label: 'Foyda va zarar', href: '/finance/pnl' },
+          { label: 'Xarajatlar', href: '/finance/expenses' },
+        ],
       },
       { label: 'Analitika', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
       {
