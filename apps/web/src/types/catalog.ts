@@ -1,6 +1,19 @@
 // Catalog domain types
 // TODO: Move to packages/types/ after backend implements schemas (T-011)
 
+export interface BundleItem {
+  id: string;
+  bundleId: string;
+  componentId: string;
+  component?: { id: string; name: string; sku?: string; sellPrice: number };
+  quantity: number;
+}
+
+export interface AddBundleComponentDto {
+  componentId: string;
+  quantity: number;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -38,6 +51,7 @@ export interface Product {
   imageUrl: string | null;
   isActive: boolean;
   isBundle: boolean;
+  bundleItems?: BundleItem[];
   /** Nearest batch expiry date (populated by backend for expiryTracking products) */
   expiryDate?: string | null;
   tenantId: string;

@@ -12,6 +12,8 @@ import type {
   ProductVariant,
   CreateVariantDto,
   UpdateVariantDto,
+  BundleItem,
+  AddBundleComponentDto,
 } from '@/types/catalog';
 
 export const catalogApi = {
@@ -105,5 +107,25 @@ export const catalogApi = {
 
   deleteCategory(id: string) {
     return apiClient.delete<void>(`/catalog/categories/${id}`).then((r) => r.data);
+  },
+
+  // ─── Bundles ───
+
+  getBundleComponents(productId: string) {
+    return apiClient
+      .get<BundleItem[]>(`/catalog/products/${productId}/components`)
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  addBundleComponent(productId: string, dto: AddBundleComponentDto) {
+    return apiClient
+      .post<BundleItem>(`/catalog/products/${productId}/components`, dto)
+      .then((r) => r.data);
+  },
+
+  removeBundleComponent(productId: string, componentId: string) {
+    return apiClient
+      .delete<void>(`/catalog/products/${productId}/components/${componentId}`)
+      .then((r) => r.data);
   },
 };
