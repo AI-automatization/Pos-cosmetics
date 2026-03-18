@@ -22,6 +22,7 @@ export interface Product {
   id: string;
   name: string;
   barcode: string | null;
+  extraBarcodes?: string[];
   sku: string | null;
   categoryId: string | null;
   category: Pick<Category, 'id' | 'name'> | null;
@@ -83,6 +84,7 @@ export interface PaginatedResponse<T> {
 export interface CreateProductDto {
   name: string;
   barcode?: string;
+  extraBarcodes?: string[];
   sku?: string;
   categoryId?: string;
   unitId?: string;

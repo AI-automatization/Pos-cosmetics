@@ -56,6 +56,9 @@ export default function ProductsPage() {
     const dto: CreateProductDto = {
       name: formData.name,
       barcode: formData.barcode || undefined,
+      extraBarcodes: formData.extraBarcodes
+        ?.map((b) => b.value)
+        .filter((v) => v.trim().length > 0),
       sku: formData.sku,
       categoryId: formData.categoryId,
       costPrice: formData.costPrice,

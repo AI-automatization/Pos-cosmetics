@@ -1,15 +1,16 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
+import { X, Plus, Barcode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Category, Product } from '@/types/catalog';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
   barcode: z.string().optional(),
+  extraBarcodes: z.array(z.object({ value: z.string() })).optional(),
   sku: z.string().min(1, 'SKU kiritilishi shart').max(100),
   categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
@@ -60,6 +61,7 @@ export function ProductForm({
 }: ProductFormProps) {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<ProductFormData>({
@@ -68,13 +70,19 @@ export function ProductForm({
       ? {
           name: product.name ?? '',
           barcode: product.barcode ?? '',
+          extraBarcodes: (product.extraBarcodes ?? []).map((v) => ({ value: v })),
           sku: product.sku ?? '',
           categoryId: product.categoryId ?? '',
           costPrice: Number(product.costPrice),
           sellPrice: Number(product.sellPrice),
           minStockLevel: Number(product.minStockLevel ?? 0),
         }
-      : { costPrice: 0, sellPrice: 0, minStockLevel: 0 },
+      : { costPrice: 0, sellPrice: 0, minStockLevel: 0, extraBarcodes: [] },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'extraBarcodes',
   });
 
   return (
@@ -95,7 +103,7 @@ export function ProductForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="max-h-[80vh] overflow-y-auto p-6">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Nomi" error={errors.name?.message} required className="col-span-2">
               <input
@@ -109,9 +117,56 @@ export function ProductForm({
               <input {...register('sku')} placeholder="NIV-001" className={inputCls} />
             </Field>
 
-            <Field label="Barcode" error={errors.barcode?.message}>
+            <Field label="Asosiy barcode" error={errors.barcode?.message}>
               <input {...register('barcode')} placeholder="8901234567890" className={inputCls} />
             </Field>
+
+            {/* Extra barcodes */}
+            <div className="col-span-2">
+              <div className="mb-1 flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">
+                  Qo&apos;shimcha barcodlar
+                </label>
+                <button
+                  type="button"
+                  onClick={() => append({ value: '' })}
+                  className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Qo&apos;shish
+                </button>
+              </div>
+
+              {fields.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => append({ value: '' })}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2.5 text-sm text-gray-400 transition hover:border-blue-400 hover:text-blue-500"
+                >
+                  <Barcode className="h-4 w-4" />
+                  Qo&apos;shimcha barcode qo&apos;shish
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-center gap-2">
+                      <input
+                        {...register(`extraBarcodes.${index}.value`)}
+                        placeholder={`Barcode ${index + 1}`}
+                        className={cn(inputCls, 'flex-1')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <Field
               label="Kategoriya"
