@@ -192,6 +192,11 @@
 
 *docs/Done.md | RAOS*
 
+## T-244 | 2026-03-18 | [FRONTEND] | Barcha sahifalarda error state → empty state
+
+- **Yechim:** Reusable `ErrorState` (compact/full, retry button) va `EmptyState` (icon, title, CTA) komponentlari yaratildi. 8 ta sahifada inline error div almashtirildi: products, categories, suppliers, inventory, low-stock, orders, shifts, users. Empty state qo'shildi.
+- **Fayl:** `EmptyState.tsx`, `ErrorState.tsx` + 8 ta page.tsx
+
 ## T-237 | 2026-03-18 | [FRONTEND] | ProductForm yaxshilash — margin preview, rasm, tavsif
 
 - **Yechim:** Real-time MarginBadge (green/yellow/red), ImageUpload (drag&drop + preview, local URL → S3 ready), description textarea (max 2000). Schema extended with `description` field.

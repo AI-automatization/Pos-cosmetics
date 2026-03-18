@@ -2548,19 +2548,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-244 | P2 | [FRONTEND] | Barcha sahifalarda error state → empty state
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/*/page.tsx` (barcha sahifalar)
-- **Muammo (vizual):**
-  - Backend offline yoki xato bo'lganda qizil "Xato" matni chiqadi
-  - UX professional ko'rinmaydi
-- **Kutilgan:**
-  - Loading: Skeleton cards
-  - Error: Icon + "Ma'lumotlarni yuklab bo'lmadi" + "Qayta urinish" tugma
-  - Empty: Icon + "Hali ma'lumot yo'q" + CTA tugma
-
 ---
 
 ## T-245 | P3 | [FRONTEND] | Bundle (to'plam) mahsulotlar UI
