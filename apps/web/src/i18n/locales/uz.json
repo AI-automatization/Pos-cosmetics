@@ -65,7 +65,9 @@
     "billing": "Billing",
     "auditLog": "Audit log",
     "analytics": "Analitika",
-    "pos": "Kassa"
+    "pos": "Kassa",
+    "realEstate": "Ko'chmas mulk",
+    "reportBuilder": "Hisobot yaratish"
   },
   "dashboard": {
     "title": "Bosh sahifa",

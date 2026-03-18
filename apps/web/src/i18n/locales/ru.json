@@ -65,7 +65,9 @@
     "billing": "Биллинг",
     "auditLog": "Журнал аудита",
     "analytics": "Аналитика",
-    "pos": "Касса"
+    "pos": "Касса",
+    "realEstate": "Недвижимость",
+    "reportBuilder": "Конструктор отчётов"
   },
   "dashboard": {
     "title": "Главная",

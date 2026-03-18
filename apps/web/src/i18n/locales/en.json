@@ -65,7 +65,9 @@
     "billing": "Billing",
     "auditLog": "Audit Log",
     "analytics": "Analytics",
-    "pos": "POS"
+    "pos": "POS",
+    "realEstate": "Real Estate",
+    "reportBuilder": "Report Builder"
   },
   "dashboard": {
     "title": "Dashboard",

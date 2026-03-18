@@ -17,6 +17,7 @@ import {
   HandCoins,
   Wallet,
   TrendingUp,
+  Building2,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -135,6 +136,7 @@ const NAV_SECTIONS: NavSection[] = [
         ],
       },
       { label: 'Analitika', tKey: 'nav.analytics', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
+      { label: "Ko'chmas mulk", tKey: 'nav.realEstate', href: '/realestate', icon: Building2, roles: ['OWNER', 'ADMIN'] },
       {
         label: 'Hisobotlar', tKey: 'nav.reports',
         icon: BarChart2,
@@ -145,6 +147,7 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Top mahsulotlar', tKey: 'nav.topProducts', href: '/reports/top-products' },
           { label: 'Smenalar', tKey: 'nav.shiftReports', href: '/reports/shifts' },
           { label: 'Filiallar', tKey: 'nav.branchComparison', href: '/reports/branches' },
+          { label: 'Hisobot yaratish', tKey: 'nav.reportBuilder', href: '/reports/builder' },
         ],
       },
     ],
