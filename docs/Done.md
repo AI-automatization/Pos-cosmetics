@@ -183,6 +183,10 @@
 | — | 2026-03-09 | [FRONTEND] | `notifications.api.ts` `getUnreadCount` ga `.catch(()=>0)` + `useUnreadCount` hook ga `retry:false` — 404 da app crash qilmaydi | `apps/web/src/api/notifications.api.ts`, `apps/web/src/hooks/notifications/useNotifications.ts` |
 | — | 2026-03-09 | [FRONTEND] | `client.ts`: localhost fallback ochirildi, `withCredentials:true` qo'shildi | `apps/web/src/api/client.ts` |
 | — | 2026-03-09 | [FRONTEND] | `SyncStatusBar.tsx`: direct `fetch()` → `apiClient.get('/health/ping')` | `apps/web/src/components/SyncStatus/SyncStatusBar.tsx` |
+| T-228 | 2026-03-18 | [BACKEND] | Duplikat `20260310000001_add_bot_settings` migratsiya o'chirildi, `20260313` qoldirildi | `apps/api/prisma/migrations/` |
+| T-144 | 2026-03-18 | [BACKEND] | Employee `fired` status qo'shildi (active/inactive/fired) | `apps/api/src/employees/employees.controller.ts`, `employees.service.ts` |
+| T-145 | 2026-03-18 | [BACKEND] | Login email OR login field orqali; JWT da `hasPosAccess`, `hasAdminAccess` qo'shildi | `apps/api/src/identity/dto/login.dto.ts`, `identity.service.ts`, `strategies/jwt.strategy.ts` |
+| T-146 | 2026-03-18 | [BACKEND] | Fired/inactive/POS-revoke da sessiyalar + refreshToken avtomatik o'chiriladi | `apps/api/src/employees/employees.service.ts` |
 
 ---
 
