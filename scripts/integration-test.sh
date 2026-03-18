@@ -62,7 +62,7 @@ OWNER_PASS="TestPass123!"
 
 REGISTER=$(curl -sf -X POST "$API/auth/register" \
   -H "Content-Type: application/json" \
-  -d "{\"slug\":\"$SLUG\",\"name\":\"Test Do'kon\",\"email\":\"$OWNER_EMAIL\",\"password\":\"$OWNER_PASS\"}" \
+  -d "{\"slug\":\"$SLUG\",\"tenantName\":\"Test Dokon\",\"email\":\"$OWNER_EMAIL\",\"password\":\"$OWNER_PASS\",\"firstName\":\"Test\",\"lastName\":\"Owner\"}" \
   2>/dev/null || echo "ERROR")
 
 check "Tenant register → 201" "token\|success\|accessToken\|id" "$REGISTER"
@@ -237,7 +237,7 @@ section "Catalog Layer"
 PRODUCT=$(curl -sf -X POST "$API/catalog/products" \
   -H "Authorization: Bearer $OWNER_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Test Krem","sku":"TEST-001","categoryId":null,"retailPrice":15000,"unit":"dona"}' \
+  -d "{\"name\":\"Test Krem\",\"sku\":\"TEST-$(date +%s)\",\"sellPrice\":15000,\"costPrice\":10000}" \
   2>/dev/null || echo "ERROR")
 check "POST /catalog/products → mahsulot" "id\|name\|sku\|price\|error" "$PRODUCT"
 
