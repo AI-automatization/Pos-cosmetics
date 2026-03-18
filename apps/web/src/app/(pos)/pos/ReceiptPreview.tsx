@@ -14,13 +14,14 @@ interface ReceiptPreviewProps {
 }
 
 export function ReceiptPreview({ order, change = 0, onClose }: ReceiptPreviewProps) {
-  const { autoPrint, toggleAutoPrint, print } = useReceiptPrint();
+  const { autoPrint, toggleAutoPrint, print, openDrawerOnCash, enabled } = useReceiptPrint();
 
   // Auto-print on mount if setting is enabled
-  useAutoTriggerPrint(autoPrint);
+  useAutoTriggerPrint(autoPrint && enabled);
 
-  // T-111: Auto-open cash drawer for cash payments
+  // T-111: Auto-open cash drawer for cash payments (respects settings)
   useEffect(() => {
+    if (!openDrawerOnCash) return;
     const hasCash = order.payments?.some((p) => p.method === 'CASH');
     if (hasCash) {
       openCashDrawer();

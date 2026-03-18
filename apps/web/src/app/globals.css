@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ─── 80mm Thermal Receipt Print Styles ─────────────────────────────── */
+/* ─── Thermal Receipt Print Styles (80mm default, 58mm via data attr) ── */
 @media print {
   /* Hide everything on the page */
   body > * {
@@ -16,13 +16,13 @@
     width: 100%;
   }
 
-  /* 80mm thermal paper size */
+  /* 80mm thermal paper (default) */
   @page {
     size: 80mm auto;
     margin: 0;
   }
 
-  /* Receipt inner styles */
+  /* Receipt inner styles — 80mm */
   #receipt-print-area .receipt-body {
     width: 72mm;      /* 80mm paper - 4mm left/right padding */
     margin: 0 auto;
@@ -32,6 +32,25 @@
     color: #000;
     background: #fff;
     padding: 4mm 4mm 8mm;
+  }
+
+  /* 58mm paper override via data attribute */
+  html[data-paper-width="58"] #receipt-print-area .receipt-body {
+    width: 48mm;      /* 58mm paper - 5mm left/right */
+    font-size: 8pt;
+    padding: 3mm 5mm 6mm;
+  }
+
+  html[data-paper-width="58"] #receipt-print-area .receipt-large {
+    font-size: 10pt;
+  }
+
+  html[data-paper-width="58"] #receipt-print-area .receipt-small {
+    font-size: 7pt;
+  }
+
+  html[data-paper-width="58"] #receipt-print-area .receipt-total-row {
+    font-size: 10pt;
   }
 
   #receipt-print-area .receipt-center {
