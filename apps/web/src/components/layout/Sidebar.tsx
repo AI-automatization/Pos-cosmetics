@@ -83,6 +83,7 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Zaxira holati', href: '/inventory' },
           { label: 'Kam zaxira', href: '/inventory/low-stock' },
           { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
+          { label: "Ko'chirish", href: '/inventory/transfer' },
         ],
       },
     ],

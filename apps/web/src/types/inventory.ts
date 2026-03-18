@@ -69,3 +69,35 @@ export interface StockQuery {
   search?: string;
   lowStockOnly?: boolean;
 }
+
+// ─── Stock Transfers ───
+
+export type TransferStatus = 'REQUESTED' | 'APPROVED' | 'SHIPPED' | 'RECEIVED' | 'CANCELLED';
+
+export interface TransferItem {
+  id: string;
+  productId: string;
+  product?: { id: string; name: string; sku?: string };
+  quantity: number;
+}
+
+export interface StockTransfer {
+  id: string;
+  fromBranchId: string;
+  fromBranch?: { id: string; name: string };
+  toBranchId: string;
+  toBranch?: { id: string; name: string };
+  status: TransferStatus;
+  items: TransferItem[];
+  notes?: string;
+  requestedBy?: { id: string; firstName?: string; lastName?: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTransferDto {
+  fromBranchId: string;
+  toBranchId: string;
+  items: { productId: string; quantity: number }[];
+  notes?: string;
+}
