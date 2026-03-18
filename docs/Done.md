@@ -192,6 +192,11 @@
 
 *docs/Done.md | RAOS*
 
+## T-240 | 2026-03-18 | [FRONTEND] | Mobil responsive Sidebar
+
+- **Yechim:** Sidebar `md:` dan kichik ekranlarda yashiriladi (`hidden md:flex`). Header ga hamburger Menu button qo'shildi (`md:hidden`). MobileSidebarContext orqali state boshqarish. Overlay drawer: backdrop + X close + Escape key + body scroll lock.
+- **Fayl:** `Sidebar.tsx`, `Header.tsx`, `PageLayout.tsx`, `mobile-sidebar-context.ts`, `(admin)/layout.tsx`
+
 ## T-238 | 2026-03-18 | [FRONTEND] | Sidebar — rol asosida filtrlash va collapse
 
 - **Yechim:** Sidebar.tsx to'liq qayta yozildi. Single NAV_SECTIONS config (DRY — 5 ta alohida massiv o'rniga), role-based filtering (ALL, NO_CASHIER, STAFF, ADMIN_ONLY), collapse/compact mode localStorage persistence bilan (w-16/w-64), PanelLeftClose/PanelLeftOpen toggle.

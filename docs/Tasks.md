@@ -2534,17 +2534,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-240 | P2 | [FRONTEND] | Mobil responsive Sidebar
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`, `Header.tsx`
-- **Muammo:** Sidebar mobil qurilmalarda har doim ko'rinadi, joy olmaydi
-- **Kutilgan:**
-  - `md:` dan kichik ekranlarda yashiriladi
-  - Header da hamburger menu
-  - Overlay drawer pattern
-
 ---
 
 ## T-241 | P2 | [IKKALASI] | packages/types — etishmayotgan shared typelar
