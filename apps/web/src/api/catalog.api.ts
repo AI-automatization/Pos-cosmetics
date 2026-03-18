@@ -14,6 +14,8 @@ import type {
   UpdateVariantDto,
   BundleItem,
   AddBundleComponentDto,
+  ProductCertificate,
+  CreateCertificateDto,
 } from '@/types/catalog';
 
 export const catalogApi = {
@@ -126,6 +128,26 @@ export const catalogApi = {
   removeBundleComponent(productId: string, componentId: string) {
     return apiClient
       .delete<void>(`/catalog/products/${productId}/components/${componentId}`)
+      .then((r) => r.data);
+  },
+
+  // ─── Certificates ───
+
+  getCertificates(productId: string) {
+    return apiClient
+      .get<ProductCertificate[]>(`/catalog/products/${productId}/certificates`)
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  createCertificate(productId: string, dto: CreateCertificateDto) {
+    return apiClient
+      .post<ProductCertificate>(`/catalog/products/${productId}/certificates`, dto)
+      .then((r) => r.data);
+  },
+
+  deleteCertificate(productId: string, certId: string) {
+    return apiClient
+      .delete<void>(`/catalog/products/${productId}/certificates/${certId}`)
       .then((r) => r.data);
   },
 };

@@ -14,6 +14,25 @@ export interface AddBundleComponentDto {
   quantity: number;
 }
 
+export interface ProductCertificate {
+  id: string;
+  productId: string;
+  certNumber: string;
+  issuingAuthority: string;
+  issuedAt: string;
+  expiresAt?: string | null;
+  fileUrl?: string | null;
+  createdAt: string;
+}
+
+export interface CreateCertificateDto {
+  certNumber: string;
+  issuingAuthority: string;
+  issuedAt: string;
+  expiresAt?: string;
+  fileUrl?: string;
+}
+
 export interface Category {
   id: string;
   name: string;
