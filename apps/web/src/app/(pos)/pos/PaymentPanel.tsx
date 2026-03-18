@@ -10,7 +10,9 @@ import {
   UserCircle,
   AlertTriangle,
   ChevronRight,
+  Star,
 } from 'lucide-react';
+import { useLoyaltyAccount, pointsToMoney } from '@/hooks/customers/useLoyalty';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
 import { formatPrice, cn } from '@/lib/utils';
@@ -32,8 +34,13 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     cardAmount, setCardAmount,
     orderDiscount, orderDiscountType, setOrderDiscount,
     selectedCustomer, setSelectedCustomer,
+    bonusPoints, setBonusPoints,
     totals,
   } = usePOSStore();
+
+  const { data: loyaltyAccount } = useLoyaltyAccount(
+    paymentMethod === 'bonus' ? selectedCustomer?.id : null,
+  );
 
   const { subtotal, discountAmount, total, change } = totals();
   const { mutate: completeSale, isPending, canComplete } = useCompleteSale(
@@ -60,6 +67,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     { key: 'card', label: 'Karta', icon: <CreditCard className="h-4 w-4" />, shortcut: 'F6' },
     { key: 'split', label: 'Aralash', icon: <SplitSquareVertical className="h-4 w-4" />, shortcut: 'F7' },
     { key: 'nasiya', label: 'Nasiya', icon: <UserCircle className="h-4 w-4" />, shortcut: 'F8' },
+    { key: 'bonus', label: 'Bonuslar', icon: <Star className="h-4 w-4" />, shortcut: 'F9' },
   ];
 
   if (items.length === 0) {
@@ -141,13 +149,15 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
               type="button"
               onClick={() => {
                 setPaymentMethod(m.key);
-                if (m.key !== 'nasiya') setSelectedCustomer(null);
+                if (m.key !== 'nasiya' && m.key !== 'bonus') setSelectedCustomer(null);
               }}
               className={cn(
                 'flex flex-col items-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition',
                 paymentMethod === m.key
                   ? m.key === 'nasiya'
                     ? 'border-orange-400 bg-orange-50 text-orange-700'
+                    : m.key === 'bonus'
+                    ? 'border-violet-400 bg-violet-50 text-violet-700'
                     : 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
               )}
@@ -275,6 +285,102 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       )}
 
+      {/* Bonus payment panel */}
+      {paymentMethod === 'bonus' && (
+        <div className="shrink-0 border-b border-gray-100 p-3">
+          {!selectedCustomer ? (
+            <button
+              type="button"
+              onClick={() => setShowCustomerModal(true)}
+              className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-violet-300 bg-violet-50 px-4 py-3 transition hover:border-violet-400 hover:bg-violet-100"
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-violet-700">
+                <Star className="h-5 w-5" />
+                Xaridorni tanlang
+              </div>
+              <ChevronRight className="h-4 w-4 text-violet-400" />
+            </button>
+          ) : (
+            <div className="rounded-xl border border-violet-200 bg-violet-50 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-violet-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{selectedCustomer.name}</p>
+                    <p className="text-xs text-gray-500">+{selectedCustomer.phone}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerModal(true)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  O'zgartirish
+                </button>
+              </div>
+              {loyaltyAccount ? (
+                <>
+                  <div className="mb-2 flex gap-2 text-xs">
+                    <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
+                      <p className="text-gray-500">Mavjud bonuslar</p>
+                      <p className="font-bold text-violet-700">
+                        {loyaltyAccount.points} ball
+                      </p>
+                      <p className="text-gray-400">
+                        ≈ {formatPrice(pointsToMoney(loyaltyAccount.points))}
+                      </p>
+                    </div>
+                    <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
+                      <p className="text-gray-500">Sarflash</p>
+                      <p className="font-bold text-violet-700">
+                        {bonusPoints} ball
+                      </p>
+                      <p className="text-gray-400">
+                        = {formatPrice(bonusPoints * 100)}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs font-medium text-gray-600">
+                      Nechta ball sarflamoqchi? (kerak: {Math.ceil(total / 100)} ball)
+                    </p>
+                    <input
+                      type="number"
+                      value={bonusPoints || ''}
+                      min={0}
+                      max={loyaltyAccount.points}
+                      onChange={(e) => setBonusPoints(parseFloat(e.target.value) || 0)}
+                      placeholder={String(Math.ceil(total / 100))}
+                      className="w-full rounded-lg border border-violet-200 px-3 py-1.5 text-right text-sm font-bold text-gray-900 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20"
+                    />
+                    <div className="mt-1.5 flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setBonusPoints(Math.ceil(total / 100))}
+                        className="flex-1 rounded-lg border border-violet-200 bg-violet-100 py-1 text-xs font-medium text-violet-700 transition hover:bg-violet-200"
+                      >
+                        Kerakli: {Math.ceil(total / 100)} ball
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBonusPoints(loyaltyAccount.points)}
+                        className="flex-1 rounded-lg border border-gray-200 py-1 text-xs text-gray-600 transition hover:bg-gray-50"
+                      >
+                        Hammasi: {loyaltyAccount.points}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-lg bg-white/80 px-3 py-2 text-xs text-gray-400 text-center">
+                  Bonus hisobi topilmadi
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Complete button */}
       <div className="mt-auto shrink-0 p-3">
         <button
@@ -286,6 +392,8 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             canComplete && !isPending
               ? paymentMethod === 'nasiya'
                 ? 'bg-orange-500 text-white hover:bg-orange-600 active:scale-98 shadow-lg shadow-orange-200'
+                : paymentMethod === 'bonus'
+                ? 'bg-violet-600 text-white hover:bg-violet-700 active:scale-98 shadow-lg shadow-violet-200'
                 : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-98 shadow-lg shadow-blue-200'
               : 'cursor-not-allowed bg-gray-100 text-gray-400',
           )}
@@ -295,10 +403,18 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           ) : (
             <>
               <Check className="h-5 w-5" />
-              {paymentMethod === 'nasiya' ? 'Nasiyaga berish' : 'Sotuv yakunlash'}
+              {paymentMethod === 'nasiya'
+                ? 'Nasiyaga berish'
+                : paymentMethod === 'bonus'
+                ? 'Bonuslar bilan to\'lash'
+                : 'Sotuv yakunlash'}
               <span className={cn(
                 'ml-1 rounded px-1.5 py-0.5 text-xs font-normal',
-                paymentMethod === 'nasiya' ? 'bg-orange-400' : 'bg-blue-500',
+                paymentMethod === 'nasiya'
+                  ? 'bg-orange-400'
+                  : paymentMethod === 'bonus'
+                  ? 'bg-violet-500'
+                  : 'bg-blue-500',
               )}>
                 F10
               </span>

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Dependencies
 node_modules/
 .pnpm-store/
@@ -75,3 +76,66 @@ apps/mobile/js_errors.txt
 
 # Playwright MCP
 .playwright-mcp/
+=======
+# Dependencies
+node_modules/
+.pnpm-store/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+.next/
+.turbo/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.staging
+.env.production
+.env.staging.secret
+.env.production.secret
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+apps/api/prisma/migrations/**/migration_lock.toml
+
+# Tauri
+apps/pos/src-tauri/target/
+
+# React Native
+apps/mobile/android/app/build/
+apps/mobile/ios/Pods/
+apps/mobile/.expo/
+
+# MinIO data
+minio-data/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temp
+tmp/
+temp/
+*.tmp
+>>>>>>> Stashed changes

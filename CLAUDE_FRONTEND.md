@@ -444,6 +444,15 @@ export function ConditionalRender({ roles, children }: {
   /trends           → Sales trends
   /deadstock        → Dead stock alerts
   /forecasting      → Demand forecasting
+/owner                        → Owner monitoring panel (CLAUDE_FRONTEND_OWNER.md)
+  /dashboard        → Revenue cards + Sales trend + Branch comparison
+  /analytics        → Revenue/Orders/Product analytics + period filter
+  /inventory        → Stock monitoring (All/Low/Out/Expiring/Expired tabs)
+  /debts            → Debt summary + Aging report + Customer debt table
+  /shifts           → Shift monitoring (revenue, orders, payment breakdown)
+  /employees        → Employee performance + Suspicious activity
+  /alerts           → LOW_STOCK, SUSPICIOUS_ACTIVITY, NASIYA_OVERDUE ...
+  /system           → API/DB/Worker health + POS sync + Error logs
 /settings
   /tenant           → Company settings
   /users            → User management

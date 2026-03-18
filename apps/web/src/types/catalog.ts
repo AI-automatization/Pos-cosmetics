@@ -37,6 +37,8 @@ export interface Product {
   imageUrl: string | null;
   isActive: boolean;
   isBundle: boolean;
+  /** Nearest batch expiry date (populated by backend for expiryTracking products) */
+  expiryDate?: string | null;
   tenantId: string;
   createdAt: string;
   updatedAt: string;

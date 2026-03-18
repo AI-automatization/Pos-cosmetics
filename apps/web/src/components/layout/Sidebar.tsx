@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useCurrentUser } from '@/hooks/auth/useAuth';
 
 interface NavItem {
   label: string;
@@ -28,7 +29,7 @@ interface NavItem {
   children?: { label: string; href: string }[];
 }
 
-const NAV_ITEMS: NavItem[] = [
+const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'POS Kassa', href: '/pos', icon: Monitor },
   {
@@ -108,6 +109,145 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+const OWNER_NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Analitika', href: '/analytics', icon: TrendingUp },
+  {
+    label: 'Hisobotlar',
+    icon: BarChart2,
+    children: [
+      { label: 'Umumiy', href: '/reports' },
+      { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
+      { label: 'Top mahsulotlar', href: '/reports/top-products' },
+      { label: 'Smenalar', href: '/reports/shifts' },
+      { label: 'Filiallar', href: '/reports/branches' },
+    ],
+  },
+  {
+    label: 'Moliya',
+    icon: Wallet,
+    children: [{ label: 'Xarajatlar', href: '/finance/expenses' }],
+  },
+  {
+    label: 'Nasiya',
+    icon: HandCoins,
+    children: [
+      { label: 'Qarzlar ro\'yxati', href: '/nasiya' },
+      { label: 'Aging hisobot', href: '/nasiya/aging' },
+    ],
+  },
+  {
+    label: 'Xaridorlar',
+    icon: Users,
+    children: [{ label: 'Barcha xaridorlar', href: '/customers' }],
+  },
+];
+
+const MANAGER_NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'POS Kassa', href: '/pos', icon: Monitor },
+  {
+    label: 'Katalog',
+    icon: Package,
+    children: [
+      { label: 'Mahsulotlar', href: '/catalog/products' },
+      { label: 'Kategoriyalar', href: '/catalog/categories' },
+      { label: 'Yetkazib beruvchilar', href: '/catalog/suppliers' },
+    ],
+  },
+  {
+    label: 'Inventar',
+    icon: Warehouse,
+    children: [
+      { label: 'Zaxira holati', href: '/inventory' },
+      { label: 'Kam zaxira', href: '/inventory/low-stock' },
+      { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
+    ],
+  },
+  {
+    label: 'Sotuv',
+    icon: ShoppingCart,
+    children: [
+      { label: 'Buyurtmalar', href: '/sales/orders' },
+      { label: 'Qaytarishlar', href: '/sales/returns' },
+      { label: 'Smenalar', href: '/sales/shifts' },
+      { label: 'Aksiyalar', href: '/sales/promotions' },
+    ],
+  },
+  { label: 'To\'lovlar', href: '/payments/history', icon: CreditCard },
+  {
+    label: 'Nasiya',
+    icon: HandCoins,
+    children: [
+      { label: 'Qarzlar ro\'yxati', href: '/nasiya' },
+      { label: 'Aging hisobot', href: '/nasiya/aging' },
+    ],
+  },
+  {
+    label: 'Xaridorlar',
+    icon: Users,
+    children: [{ label: 'Barcha xaridorlar', href: '/customers' }],
+  },
+  {
+    label: 'Moliya',
+    icon: Wallet,
+    children: [{ label: 'Xarajatlar', href: '/finance/expenses' }],
+  },
+  { label: 'Analitika', href: '/analytics', icon: TrendingUp },
+  {
+    label: 'Hisobotlar',
+    icon: BarChart2,
+    children: [
+      { label: 'Umumiy', href: '/reports' },
+      { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
+      { label: 'Top mahsulotlar', href: '/reports/top-products' },
+      { label: 'Smenalar', href: '/reports/shifts' },
+      { label: 'Filiallar', href: '/reports/branches' },
+    ],
+  },
+  {
+    label: 'Sozlamalar',
+    icon: Settings,
+    children: [
+      { label: 'Filiallar', href: '/settings/branches' },
+      { label: 'Printer', href: '/settings/printer' },
+    ],
+  },
+];
+
+// VIEWER sees same nav as MANAGER (read-only access is not enforced at nav level)
+const VIEWER_NAV_ITEMS: NavItem[] = MANAGER_NAV_ITEMS;
+
+const CASHIER_NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'POS Kassa', href: '/pos', icon: Monitor },
+];
+
+function getNavItems(role: string | undefined): NavItem[] {
+  switch (role) {
+    case 'OWNER':   return OWNER_NAV_ITEMS;
+    case 'ADMIN':   return ADMIN_NAV_ITEMS;
+    case 'MANAGER': return MANAGER_NAV_ITEMS;
+    case 'VIEWER':  return VIEWER_NAV_ITEMS;
+    case 'CASHIER': return CASHIER_NAV_ITEMS;
+    default:        return ADMIN_NAV_ITEMS;
+  }
+}
+
+function NavSkeleton() {
+  return (
+    <div className="flex flex-col gap-1 p-3">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="h-9 animate-pulse rounded-lg bg-gray-100"
+          style={{ width: `${70 + (i % 3) * 10}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function NavGroup({ item }: { item: NavItem }) {
   const pathname = usePathname();
   const isActive = item.children?.some((c) => pathname.startsWith(c.href));
@@ -176,6 +316,9 @@ function NavGroup({ item }: { item: NavItem }) {
 }
 
 export function Sidebar() {
+  const { data: user, isLoading } = useCurrentUser();
+  const navItems = getNavItems(user?.role);
+
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
       {/* Logo */}
@@ -190,13 +333,17 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto p-3">
-        <div className="flex flex-col gap-0.5">
-          {NAV_ITEMS.map((item) => (
-            <NavGroup key={item.label} item={item} />
-          ))}
-        </div>
-      </nav>
+      {isLoading ? (
+        <NavSkeleton />
+      ) : (
+        <nav className="flex-1 overflow-y-auto p-3">
+          <div className="flex flex-col gap-0.5">
+            {navItems.map((item) => (
+              <NavGroup key={item.label} item={item} />
+            ))}
+          </div>
+        </nav>
+      )}
 
       {/* Footer */}
       <div className="border-t border-gray-200 px-4 py-3">

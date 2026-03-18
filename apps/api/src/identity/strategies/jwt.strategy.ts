@@ -10,9 +10,6 @@ export interface JwtPayload {
   role: string;
   branchId: string | null;
   isAdmin?: boolean;
-  // T-145: POS va Admin kirish xuquqlari
-  hasPosAccess?: boolean;
-  hasAdminAccess?: boolean;
 }
 
 @Injectable()
@@ -70,9 +67,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found or deactivated');
     }
 
-    const hasPosAccess = ['CASHIER', 'MANAGER', 'OWNER'].includes(user.role);
-    const hasAdminAccess = ['OWNER', 'ADMIN', 'MANAGER'].includes(user.role);
-
     return {
       userId: user.id,
       tenantId: user.tenantId,
@@ -82,8 +76,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       role: user.role,
       branchId: payload.branchId,
       isAdmin: false,
-      hasPosAccess,
-      hasAdminAccess,
     };
   }
 }
