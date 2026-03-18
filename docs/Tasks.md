@@ -1925,32 +1925,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-110 | P0 | [FRONTEND] | Thermal printer — ESC/POS integration
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/print/` (MVP: browser print, Tauri: native ESC/POS)
-- **Vazifa:**
-  - MVP: window.print() bilan 80mm template
-  - Tauri: ESC/POS binary commands, USB va network printer
-  - Auto-print on sale complete (setting)
-  - Test print button
-  - Common printers: Epson TM-T20, XPrinter XP-80, RONGTA RP80
-- **Kutilgan:** Thermal printer dan chek chiqadi
-
 ---
-
----
-
-## T-112 | P2 | [FRONTEND] | Label printer — Narx etiketka
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/print/`
-- **Vazifa:**
-  - Product label: name, barcode, price, expiry
-  - Label sizes: 30x20mm, 40x30mm, 58x40mm
-  - Batch print: selected products uchun
-  - Printers: Zebra, TSC, XPrinter label
-- **Kutilgan:** Narx etikekasi chop etsa bo'ladi
 
 ---
 
@@ -2224,20 +2199,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-137 | P2 | [FRONTEND] | i18n/Localization — O'zbek, Rus, English tillar
-- **Sana:** 2026-02-28
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/i18n/`
-- **Vazifa:**
-  - `next-intl` yoki `i18next` library
-  - 3 til: O'zbek (default), Русский, English
-  - Tarjima fayllari: `locales/uz.json`, `locales/ru.json`, `locales/en.json`
-  - Til almashtirish: header da dropdown
-  - Sana/vaqt formatlash: locale-aware (O'zbek: KK.OO.YYYY)
-  - Narx formatlash: `1 234 567 so'm` (UZS), `$1,234.56` (USD)
-  - UI elementlar: barcha button, label, placeholder, error message
-- **Kutilgan:** Admin panel 3 tilda ishlaydi, foydalanuvchi tanlaydi
-
 ---
 
 ## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
@@ -2509,35 +2470,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 - **Kutilgan:** packages/types ga qo'shish: `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion`
 
 ---
-
-## T-243 | P2 | [FRONTEND] | Admin Panel vs Founder Panel — dizayn bir xillashtirish
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/`, `apps/web/src/app/(founder)/`
-- **Muammo (vizual):**
-  - Admin Panel: yengil (light) tema
-  - Founder Panel: qorong'u (dark) tema
-  - Bir ilovada ikki xil dizayn tizimi — brend izchilligi yo'q
-- **Kutilgan:**
-  - Unified design system — bitta rang palitra
-  - Founder Panel: premium feel, lekin bir xil component library
-  - Yoki: ikkala panel uchun ham light tema, Founder uchun accent ranglar farqli
-
----
-
----
-
----
-
----
-
-## T-247 | P3 | [FRONTEND] | Mahsulot sertifikatlari UI
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/catalog/products/` (sertifikatlar tab)
-- **Muammo:** Backend `ProductCertificate` jadvalini qo'llab-quvvatlaydi, lekin UI yo'q
 
 ---
 

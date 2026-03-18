@@ -192,6 +192,31 @@
 
 *docs/Done.md | RAOS*
 
+## T-137 | 2026-03-19 | [FRONTEND] | i18n/Localization — O'zbek, Rus, English tillar
+
+- **Yechim:** Lightweight React context + JSON locale files (next-intl o'rniga). 3 til: uz (default), ru, en. LanguageSwitcher dropdown Header'da. Sidebar nav items tKey orqali tarjima. formatDate() va formatLocalPrice() locale-aware. localStorage'da saqlash.
+- **Fayl:** `i18n/index.ts`, `i18n/i18n-context.tsx`, `locales/uz.json`, `locales/ru.json`, `locales/en.json`, `providers.tsx`, `Header.tsx`, `Sidebar.tsx`
+
+## T-112 | 2026-03-19 | [FRONTEND] | Label printer — Narx etiketka
+
+- **Yechim:** LabelPrintModal yaxshilandi: 3 ta o'lcham tanlash (30x20, 40x30, 58x40mm), expiryDate ko'rsatish, dinamik font o'lchamlari. 30x20mm compact rejimda SKU yashiriladi. Preview proporsional kartalar bilan. Batch print har mahsulot uchun alohida nusxa soni.
+- **Fayl:** `LabelPrintModal.tsx`
+
+## T-110 | 2026-03-19 | [FRONTEND] | Thermal printer — ESC/POS integration (MVP)
+
+- **Yechim:** MVP to'liq: window.print() + 80mm/58mm thermal template. Printer settings (localStorage) va useReceiptPrint hook'i birlashtirildi — yagona `raos_printer_settings` kaliti. 58mm qog'oz CSS qo'llab-quvvatildi (data-paper-width attr). Copies (nusxa soni) ishlaydi. Test print paper width va copies sozlamalarini hurmat qiladi. ReceiptPreview openDrawerOnCash setting'ga ulandi. Tauri ESC/POS — Phase 2.
+- **Fayl:** `useReceiptPrint.ts`, `globals.css`, `ReceiptPreview.tsx`, `settings/printer/page.tsx`
+
+## T-243 | 2026-03-18 | [FRONTEND] | Admin Panel vs Founder Panel — dizayn bir xillashtirish
+
+- **Yechim:** Founder Panel dark tema (gray-950) dan light temaga o'tkazildi. Admin = blue accent, Founder = violet accent. 6 fayl o'zgartirildi: layout, FounderSidebar, overview, tenants, tenant detail, errors. Barcha ranglar unified: bg-white kartalar, border-gray-200, text-gray-900 sarlavhalar. Consistent design system.
+- **Fayl:** `(founder)/layout.tsx`, `FounderSidebar.tsx`, `overview/page.tsx`, `tenants/page.tsx`, `tenants/[id]/page.tsx`, `errors/page.tsx`
+
+## T-247 | 2026-03-18 | [FRONTEND] | Mahsulot sertifikatlari UI
+
+- **Yechim:** CertificatesSection komponent: sertifikatlar ro'yxati (expiry indikatorlari — qizil/sariq ring + badge), qo'shish form (certNumber, issuingAuthority, issuedAt, expiresAt, fileUrl), o'chirish. ProductForm ga integratsiya qilindi. Types + API methods to'liq.
+- **Fayl:** `CertificatesSection.tsx`, `ProductForm.tsx`, `catalog.api.ts`, `catalog.ts`
+
 ## T-245 | 2026-03-18 | [FRONTEND] | Bundle (to'plam) mahsulotlar UI
 
 - **Yechim:** BundleSection komponent yaratildi — komponentlar ro'yxati, ProductPicker (search + quantity), total price hisob. API: get/add/remove bundle components. ProductForm ga integratsiya qilindi (VariantsSection yonida).
