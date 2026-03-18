@@ -24,6 +24,7 @@ import {
 import { useState, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
+import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Types ─── */
 
@@ -31,11 +32,13 @@ type Role = 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER' | 'CASHIER';
 
 interface NavChild {
   label: string;
+  tKey?: string;
   href: string;
 }
 
 interface NavItem {
   label: string;
+  tKey?: string;
   href?: string;
   icon: React.ComponentType<{ className?: string }>;
   children?: NavChild[];
@@ -58,32 +61,32 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Asosiy',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ALL },
-      { label: 'POS Kassa', href: '/pos', icon: Monitor, roles: STAFF },
+      { label: 'Dashboard', tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ALL },
+      { label: 'POS Kassa', tKey: 'nav.pos', href: '/pos', icon: Monitor, roles: STAFF },
     ],
   },
   {
     title: 'Katalog',
     items: [
       {
-        label: 'Katalog',
+        label: 'Katalog', tKey: 'nav.catalog',
         icon: Package,
         roles: ['ADMIN', 'MANAGER', 'VIEWER'],
         children: [
-          { label: 'Mahsulotlar', href: '/catalog/products' },
-          { label: 'Kategoriyalar', href: '/catalog/categories' },
-          { label: 'Yetkazib beruvchilar', href: '/catalog/suppliers' },
+          { label: 'Mahsulotlar', tKey: 'nav.products', href: '/catalog/products' },
+          { label: 'Kategoriyalar', tKey: 'nav.categories', href: '/catalog/categories' },
+          { label: 'Yetkazib beruvchilar', tKey: 'nav.suppliers', href: '/catalog/suppliers' },
         ],
       },
       {
-        label: 'Inventar',
+        label: 'Inventar', tKey: 'nav.inventory',
         icon: Warehouse,
         roles: ['ADMIN', 'MANAGER', 'VIEWER'],
         children: [
-          { label: 'Zaxira holati', href: '/inventory' },
-          { label: 'Kam zaxira', href: '/inventory/low-stock' },
-          { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
-          { label: "Ko'chirish", href: '/inventory/transfer' },
+          { label: 'Zaxira holati', tKey: 'nav.stockLevels', href: '/inventory' },
+          { label: 'Kam zaxira', tKey: 'nav.lowStock', href: '/inventory/low-stock' },
+          { label: 'Yaroqlilik muddati', tKey: 'nav.expiry', href: '/inventory/expiry' },
+          { label: "Ko'chirish", tKey: 'nav.transfer', href: '/inventory/transfer' },
         ],
       },
     ],
@@ -92,30 +95,30 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Savdo',
     items: [
       {
-        label: 'Sotuv',
+        label: 'Sotuv', tKey: 'nav.sales',
         icon: ShoppingCart,
         roles: NO_CASHIER,
         children: [
-          { label: 'Buyurtmalar', href: '/sales/orders' },
-          { label: 'Qaytarishlar', href: '/sales/returns' },
-          { label: 'Smenalar', href: '/sales/shifts' },
+          { label: 'Buyurtmalar', tKey: 'nav.orders', href: '/sales/orders' },
+          { label: 'Qaytarishlar', tKey: 'nav.returns', href: '/sales/returns' },
+          { label: 'Smenalar', tKey: 'nav.shifts', href: '/sales/shifts' },
         ],
       },
-      { label: "To'lovlar", href: '/payments/history', icon: CreditCard, roles: NO_CASHIER },
+      { label: "To'lovlar", tKey: 'nav.paymentHistory', href: '/payments/history', icon: CreditCard, roles: NO_CASHIER },
       {
-        label: 'Nasiya',
+        label: 'Nasiya', tKey: 'nav.nasiya',
         icon: HandCoins,
         roles: NO_CASHIER,
         children: [
-          { label: "Qarzlar ro'yxati", href: '/nasiya' },
-          { label: 'Aging hisobot', href: '/nasiya/aging' },
+          { label: "Qarzlar ro'yxati", tKey: 'nav.nasiya', href: '/nasiya' },
+          { label: 'Aging hisobot', tKey: 'nav.aging', href: '/nasiya/aging' },
         ],
       },
       {
-        label: 'Xaridorlar',
+        label: 'Xaridorlar', tKey: 'nav.customers',
         icon: Users,
         roles: NO_CASHIER,
-        children: [{ label: 'Barcha xaridorlar', href: '/customers' }],
+        children: [{ label: 'Barcha xaridorlar', tKey: 'nav.customers', href: '/customers' }],
       },
     ],
   },
@@ -123,25 +126,25 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Moliya',
     items: [
       {
-        label: 'Moliya',
+        label: 'Moliya', tKey: 'nav.finance',
         icon: Wallet,
         roles: ['OWNER', 'ADMIN'],
         children: [
-          { label: 'Foyda va zarar', href: '/finance/pnl' },
-          { label: 'Xarajatlar', href: '/finance/expenses' },
+          { label: 'Foyda va zarar', tKey: 'nav.pnl', href: '/finance/pnl' },
+          { label: 'Xarajatlar', tKey: 'nav.expenses', href: '/finance/expenses' },
         ],
       },
-      { label: 'Analitika', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
+      { label: 'Analitika', tKey: 'nav.analytics', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
       {
-        label: 'Hisobotlar',
+        label: 'Hisobotlar', tKey: 'nav.reports',
         icon: BarChart2,
         roles: NO_CASHIER,
         children: [
-          { label: 'Umumiy', href: '/reports' },
-          { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
-          { label: 'Top mahsulotlar', href: '/reports/top-products' },
-          { label: 'Smenalar', href: '/reports/shifts' },
-          { label: 'Filiallar', href: '/reports/branches' },
+          { label: 'Umumiy', tKey: 'nav.reports', href: '/reports' },
+          { label: 'Kunlik sotuv', tKey: 'nav.dailyRevenue', href: '/reports/daily-revenue' },
+          { label: 'Top mahsulotlar', tKey: 'nav.topProducts', href: '/reports/top-products' },
+          { label: 'Smenalar', tKey: 'nav.shiftReports', href: '/reports/shifts' },
+          { label: 'Filiallar', tKey: 'nav.branchComparison', href: '/reports/branches' },
         ],
       },
     ],
@@ -150,14 +153,14 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Sozlamalar',
     items: [
       {
-        label: 'Sozlamalar',
+        label: 'Sozlamalar', tKey: 'nav.settings',
         icon: Settings,
         roles: ADMIN_ONLY,
         children: [
-          { label: 'Foydalanuvchilar', href: '/settings/users' },
-          { label: 'Printer', href: '/settings/printer' },
-          { label: 'Audit log', href: '/settings/audit-log' },
-          { label: 'Hisob va tarif', href: '/settings/billing' },
+          { label: 'Foydalanuvchilar', tKey: 'nav.users', href: '/settings/users' },
+          { label: 'Printer', tKey: 'nav.printer', href: '/settings/printer' },
+          { label: 'Audit log', tKey: 'nav.auditLog', href: '/settings/audit-log' },
+          { label: 'Hisob va tarif', tKey: 'nav.billing', href: '/settings/billing' },
         ],
       },
     ],
@@ -226,12 +229,14 @@ function NavLink({
   collapsed: boolean;
 }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const active = pathname === item.href || pathname.startsWith(item.href + '/');
+  const label = item.tKey ? t(item.tKey) : item.label;
 
   return (
     <Link
       href={item.href}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
       className={cn(
         'flex items-center rounded-lg px-3 py-2 text-sm font-medium transition',
         collapsed ? 'justify-center' : 'gap-3',
@@ -241,15 +246,17 @@ function NavLink({
       )}
     >
       <item.icon className="h-5 w-5 shrink-0" />
-      {!collapsed && item.label}
+      {!collapsed && label}
     </Link>
   );
 }
 
 function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const isActive = item.children?.some((c) => pathname.startsWith(c.href));
   const [open, setOpen] = useState(isActive ?? false);
+  const label = item.tKey ? t(item.tKey) : item.label;
 
   if (item.href) {
     return <NavLink item={item as NavItem & { href: string }} collapsed={collapsed} />;
@@ -260,7 +267,7 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
     return (
       <Link
         href={firstHref}
-        title={item.label}
+        title={label}
         className={cn(
           'flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition',
           isActive
@@ -286,7 +293,7 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
         )}
       >
         <item.icon className="h-5 w-5 shrink-0" />
-        <span className="flex-1 text-left">{item.label}</span>
+        <span className="flex-1 text-left">{label}</span>
         <ChevronDown
           className={cn('h-4 w-4 transition-transform', open && 'rotate-180')}
         />
@@ -296,6 +303,7 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
         <div className="ml-8 mt-1 flex flex-col gap-0.5">
           {item.children?.map((child) => {
             const active = pathname.startsWith(child.href);
+            const childLabel = child.tKey ? t(child.tKey) : child.label;
             return (
               <Link
                 key={child.href}
@@ -307,7 +315,7 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
                     : 'text-gray-600 hover:text-gray-900',
                 )}
               >
-                {child.label}
+                {childLabel}
               </Link>
             );
           })}
