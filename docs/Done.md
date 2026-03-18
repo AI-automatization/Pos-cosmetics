@@ -192,6 +192,11 @@
 
 *docs/Done.md | RAOS*
 
+## T-245 | 2026-03-18 | [FRONTEND] | Bundle (to'plam) mahsulotlar UI
+
+- **Yechim:** BundleSection komponent yaratildi — komponentlar ro'yxati, ProductPicker (search + quantity), total price hisob. API: get/add/remove bundle components. ProductForm ga integratsiya qilindi (VariantsSection yonida).
+- **Fayl:** `BundleSection.tsx`, `ProductForm.tsx`, `catalog.api.ts`, `catalog.ts`
+
 ## T-246 | 2026-03-18 | [FRONTEND] | Filiallar o'rtasida tovar ko'chirish UI
 
 - **Yechim:** `/inventory/transfer` sahifasi yaratildi. TransferCard (from→to branch, items, status badge, action buttons), status filter tabs (ALL/REQUESTED/APPROVED/SHIPPED/RECEIVED/CANCELLED), API + hooks + types to'liq. Sidebar ga "Ko'chirish" link.

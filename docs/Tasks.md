@@ -2528,13 +2528,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-245 | P3 | [FRONTEND] | Bundle (to'plam) mahsulotlar UI
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/catalog/products/` (yangi `BundleForm.tsx`)
-- **Muammo:** Backend `is_bundle` va `BundleItem` jadvalini qo'llab-quvvatlaydi, lekin UI yo'q
-
 ---
 
 ---
