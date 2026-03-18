@@ -19,8 +19,9 @@ import {
   TrendingUp,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
 
@@ -312,20 +313,22 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   );
 }
 
-/* ─── Main Sidebar ─── */
+/* ─── Sidebar Content (shared between desktop & mobile) ─── */
 
-export function Sidebar() {
+function SidebarContent({
+  collapsed,
+  toggle,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  toggle: () => void;
+  onNavigate?: () => void;
+}) {
   const { data: user, isLoading } = useCurrentUser();
-  const { collapsed, toggle } = useCollapsed();
   const sections = getNavSections(user?.role);
 
   return (
-    <aside
-      className={cn(
-        'flex h-full shrink-0 flex-col border-r border-gray-200 bg-white transition-[width] duration-200',
-        collapsed ? 'w-16' : 'w-64',
-      )}
-    >
+    <>
       {/* Logo */}
       <div className={cn(
         'flex h-16 items-center border-b border-gray-200',
@@ -335,12 +338,22 @@ export function Sidebar() {
           <Store className="h-4 w-4 text-white" />
         </div>
         {!collapsed && (
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-semibold text-gray-900">RAOS</p>
             <p className="text-xs text-gray-500">
               {user?.role === 'OWNER' ? 'Owner Panel' : 'Admin Panel'}
             </p>
           </div>
+        )}
+        {!collapsed && onNavigate && (
+          <button
+            type="button"
+            onClick={onNavigate}
+            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 md:hidden"
+            aria-label="Yopish"
+          >
+            <X className="h-5 w-5" />
+          </button>
         )}
       </div>
 
@@ -348,7 +361,7 @@ export function Sidebar() {
       {isLoading ? (
         <NavSkeleton collapsed={collapsed} />
       ) : (
-        <nav className="flex-1 overflow-y-auto p-2">
+        <nav className="flex-1 overflow-y-auto p-2" onClick={onNavigate}>
           {sections.map((section) => (
             <div key={section.title}>
               <SectionLabel title={section.title} collapsed={collapsed} />
@@ -362,8 +375,8 @@ export function Sidebar() {
         </nav>
       )}
 
-      {/* Collapse toggle + footer */}
-      <div className="border-t border-gray-200 p-2">
+      {/* Collapse toggle (desktop only) */}
+      <div className="hidden border-t border-gray-200 p-2 md:block">
         <button
           type="button"
           onClick={toggle}
@@ -380,6 +393,64 @@ export function Sidebar() {
           )}
         </button>
       </div>
-    </aside>
+    </>
+  );
+}
+
+/* ─── Main Sidebar ─── */
+
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
+  const { collapsed, toggle } = useCollapsed();
+
+  // Close on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onMobileClose?.();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [mobileOpen, onMobileClose]);
+
+  // Prevent body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [mobileOpen]);
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          'hidden h-full shrink-0 flex-col border-r border-gray-200 bg-white transition-[width] duration-200 md:flex',
+          collapsed ? 'w-16' : 'w-64',
+        )}
+      >
+        <SidebarContent collapsed={collapsed} toggle={toggle} />
+      </aside>
+
+      {/* Mobile overlay drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 transition-opacity"
+            onClick={onMobileClose}
+          />
+          {/* Drawer */}
+          <aside className="relative flex h-full w-64 flex-col bg-white shadow-xl">
+            <SidebarContent collapsed={false} toggle={toggle} onNavigate={onMobileClose} />
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

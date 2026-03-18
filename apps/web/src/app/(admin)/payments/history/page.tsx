@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CreditCard, Banknote, Smartphone, Search, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
+import { useMobileSidebar } from '@/components/layout/mobile-sidebar-context';
 import { formatPrice, cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { ordersApi } from '@/api/orders.api';
@@ -55,6 +56,7 @@ function useOrders(page: number) {
 }
 
 export default function PaymentsHistoryPage() {
+  const { toggle } = useMobileSidebar();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const { data, isLoading } = useOrders(page);
@@ -69,7 +71,7 @@ export default function PaymentsHistoryPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Header title="To'lovlar tarixi" subtitle={`Jami: ${data?.total ?? 0} ta buyurtma`} />
+      <Header title="To'lovlar tarixi" subtitle={`Jami: ${data?.total ?? 0} ta buyurtma`} onMenuToggle={toggle} />
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 w-full max-w-sm">
           <Search className="h-4 w-4 text-gray-400 shrink-0" />

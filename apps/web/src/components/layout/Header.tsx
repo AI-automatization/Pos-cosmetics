@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, LogOut, ChevronDown, User } from 'lucide-react';
+import { Bell, LogOut, ChevronDown, User, Menu } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
 import { useUnreadCount, useMarkAllRead } from '@/hooks/notifications/useNotifications';
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 interface HeaderProps {
   title: string;
   subtitle?: string;
+  onMenuToggle?: () => void;
 }
 
 function NotificationBell() {
@@ -103,12 +104,24 @@ function UserMenu() {
   );
 }
 
-export function Header({ title, subtitle }: HeaderProps) {
+export function Header({ title, subtitle, onMenuToggle }: HeaderProps) {
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
-      <div>
-        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 md:px-6">
+      <div className="flex items-center gap-3">
+        {onMenuToggle && (
+          <button
+            type="button"
+            onClick={onMenuToggle}
+            className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 md:hidden"
+            aria-label="Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+        <div>
+          <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
