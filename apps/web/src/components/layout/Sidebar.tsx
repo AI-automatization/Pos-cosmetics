@@ -17,256 +17,253 @@ import {
   HandCoins,
   Wallet,
   TrendingUp,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
+
+/* ─── Types ─── */
+
+type Role = 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER' | 'CASHIER';
+
+interface NavChild {
+  label: string;
+  href: string;
+}
 
 interface NavItem {
   label: string;
   href?: string;
   icon: React.ComponentType<{ className?: string }>;
-  children?: { label: string; href: string }[];
+  children?: NavChild[];
+  roles: Role[];
 }
 
-const ADMIN_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'POS Kassa', href: '/pos', icon: Monitor },
-  {
-    label: 'Katalog',
-    icon: Package,
-    children: [
-      { label: 'Mahsulotlar', href: '/catalog/products' },
-      { label: 'Kategoriyalar', href: '/catalog/categories' },
-      { label: 'Yetkazib beruvchilar', href: '/catalog/suppliers' },
-    ],
-  },
-  {
-    label: 'Inventar',
-    icon: Warehouse,
-    children: [
-      { label: 'Zaxira holati', href: '/inventory' },
-      { label: 'Kam zaxira', href: '/inventory/low-stock' },
-      { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
-    ],
-  },
-  {
-    label: 'Sotuv',
-    icon: ShoppingCart,
-    children: [
-      { label: 'Buyurtmalar', href: '/sales/orders' },
-      { label: 'Qaytarishlar', href: '/sales/returns' },
-      { label: 'Smenalar', href: '/sales/shifts' },
-      { label: 'Aksiyalar', href: '/sales/promotions' },
-    ],
-  },
-  { label: 'To\'lovlar', href: '/payments/history', icon: CreditCard },
-  {
-    label: 'Nasiya',
-    icon: HandCoins,
-    children: [
-      { label: 'Qarzlar ro\'yxati', href: '/nasiya' },
-      { label: 'Aging hisobot', href: '/nasiya/aging' },
-    ],
-  },
-  {
-    label: 'Xaridorlar',
-    icon: Users,
-    children: [
-      { label: 'Barcha xaridorlar', href: '/customers' },
-    ],
-  },
-  {
-    label: 'Moliya',
-    icon: Wallet,
-    children: [
-      { label: 'Xarajatlar', href: '/finance/expenses' },
-    ],
-  },
-  { label: 'Analitika', href: '/analytics', icon: TrendingUp },
-  {
-    label: 'Hisobotlar',
-    icon: BarChart2,
-    children: [
-      { label: 'Umumiy', href: '/reports' },
-      { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
-      { label: 'Top mahsulotlar', href: '/reports/top-products' },
-      { label: 'Smenalar', href: '/reports/shifts' },
-      { label: 'Filiallar', href: '/reports/branches' },
-      { label: 'Eksport', href: '/reports/export' },
-    ],
-  },
-  {
-    label: 'Sozlamalar',
-    icon: Settings,
-    children: [
-      { label: 'Filiallar', href: '/settings/branches' },
-      { label: 'Printer', href: '/settings/printer' },
-      { label: 'Foydalanuvchilar', href: '/settings/users' },
-      { label: 'Audit log', href: '/settings/audit-log' },
-      { label: 'Hisob va tarif', href: '/settings/billing' },
-    ],
-  },
-];
-
-const OWNER_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Analitika', href: '/analytics', icon: TrendingUp },
-  {
-    label: 'Hisobotlar',
-    icon: BarChart2,
-    children: [
-      { label: 'Umumiy', href: '/reports' },
-      { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
-      { label: 'Top mahsulotlar', href: '/reports/top-products' },
-      { label: 'Smenalar', href: '/reports/shifts' },
-      { label: 'Filiallar', href: '/reports/branches' },
-    ],
-  },
-  {
-    label: 'Moliya',
-    icon: Wallet,
-    children: [{ label: 'Xarajatlar', href: '/finance/expenses' }],
-  },
-  {
-    label: 'Nasiya',
-    icon: HandCoins,
-    children: [
-      { label: 'Qarzlar ro\'yxati', href: '/nasiya' },
-      { label: 'Aging hisobot', href: '/nasiya/aging' },
-    ],
-  },
-  {
-    label: 'Xaridorlar',
-    icon: Users,
-    children: [{ label: 'Barcha xaridorlar', href: '/customers' }],
-  },
-];
-
-const MANAGER_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'POS Kassa', href: '/pos', icon: Monitor },
-  {
-    label: 'Katalog',
-    icon: Package,
-    children: [
-      { label: 'Mahsulotlar', href: '/catalog/products' },
-      { label: 'Kategoriyalar', href: '/catalog/categories' },
-      { label: 'Yetkazib beruvchilar', href: '/catalog/suppliers' },
-    ],
-  },
-  {
-    label: 'Inventar',
-    icon: Warehouse,
-    children: [
-      { label: 'Zaxira holati', href: '/inventory' },
-      { label: 'Kam zaxira', href: '/inventory/low-stock' },
-      { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
-    ],
-  },
-  {
-    label: 'Sotuv',
-    icon: ShoppingCart,
-    children: [
-      { label: 'Buyurtmalar', href: '/sales/orders' },
-      { label: 'Qaytarishlar', href: '/sales/returns' },
-      { label: 'Smenalar', href: '/sales/shifts' },
-      { label: 'Aksiyalar', href: '/sales/promotions' },
-    ],
-  },
-  { label: 'To\'lovlar', href: '/payments/history', icon: CreditCard },
-  {
-    label: 'Nasiya',
-    icon: HandCoins,
-    children: [
-      { label: 'Qarzlar ro\'yxati', href: '/nasiya' },
-      { label: 'Aging hisobot', href: '/nasiya/aging' },
-    ],
-  },
-  {
-    label: 'Xaridorlar',
-    icon: Users,
-    children: [{ label: 'Barcha xaridorlar', href: '/customers' }],
-  },
-  {
-    label: 'Moliya',
-    icon: Wallet,
-    children: [{ label: 'Xarajatlar', href: '/finance/expenses' }],
-  },
-  { label: 'Analitika', href: '/analytics', icon: TrendingUp },
-  {
-    label: 'Hisobotlar',
-    icon: BarChart2,
-    children: [
-      { label: 'Umumiy', href: '/reports' },
-      { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
-      { label: 'Top mahsulotlar', href: '/reports/top-products' },
-      { label: 'Smenalar', href: '/reports/shifts' },
-      { label: 'Filiallar', href: '/reports/branches' },
-    ],
-  },
-  {
-    label: 'Sozlamalar',
-    icon: Settings,
-    children: [
-      { label: 'Filiallar', href: '/settings/branches' },
-      { label: 'Printer', href: '/settings/printer' },
-    ],
-  },
-];
-
-// VIEWER sees same nav as MANAGER (read-only access is not enforced at nav level)
-const VIEWER_NAV_ITEMS: NavItem[] = MANAGER_NAV_ITEMS;
-
-const CASHIER_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'POS Kassa', href: '/pos', icon: Monitor },
-];
-
-function getNavItems(role: string | undefined): NavItem[] {
-  switch (role) {
-    case 'OWNER':   return OWNER_NAV_ITEMS;
-    case 'ADMIN':   return ADMIN_NAV_ITEMS;
-    case 'MANAGER': return MANAGER_NAV_ITEMS;
-    case 'VIEWER':  return VIEWER_NAV_ITEMS;
-    case 'CASHIER': return CASHIER_NAV_ITEMS;
-    default:        return ADMIN_NAV_ITEMS;
-  }
+interface NavSection {
+  title: string;
+  items: NavItem[];
 }
 
-function NavSkeleton() {
+/* ─── Navigation Config (single source of truth) ─── */
+
+const ALL: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
+const NO_CASHIER: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'];
+const STAFF: Role[] = ['ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
+const ADMIN_ONLY: Role[] = ['ADMIN'];
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    title: 'Asosiy',
+    items: [
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ALL },
+      { label: 'POS Kassa', href: '/pos', icon: Monitor, roles: STAFF },
+    ],
+  },
+  {
+    title: 'Katalog',
+    items: [
+      {
+        label: 'Katalog',
+        icon: Package,
+        roles: ['ADMIN', 'MANAGER', 'VIEWER'],
+        children: [
+          { label: 'Mahsulotlar', href: '/catalog/products' },
+          { label: 'Kategoriyalar', href: '/catalog/categories' },
+          { label: 'Yetkazib beruvchilar', href: '/catalog/suppliers' },
+        ],
+      },
+      {
+        label: 'Inventar',
+        icon: Warehouse,
+        roles: ['ADMIN', 'MANAGER', 'VIEWER'],
+        children: [
+          { label: 'Zaxira holati', href: '/inventory' },
+          { label: 'Kam zaxira', href: '/inventory/low-stock' },
+          { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Savdo',
+    items: [
+      {
+        label: 'Sotuv',
+        icon: ShoppingCart,
+        roles: NO_CASHIER,
+        children: [
+          { label: 'Buyurtmalar', href: '/sales/orders' },
+          { label: 'Qaytarishlar', href: '/sales/returns' },
+          { label: 'Smenalar', href: '/sales/shifts' },
+        ],
+      },
+      { label: "To'lovlar", href: '/payments/history', icon: CreditCard, roles: NO_CASHIER },
+      {
+        label: 'Nasiya',
+        icon: HandCoins,
+        roles: NO_CASHIER,
+        children: [
+          { label: "Qarzlar ro'yxati", href: '/nasiya' },
+          { label: 'Aging hisobot', href: '/nasiya/aging' },
+        ],
+      },
+      {
+        label: 'Xaridorlar',
+        icon: Users,
+        roles: NO_CASHIER,
+        children: [{ label: 'Barcha xaridorlar', href: '/customers' }],
+      },
+    ],
+  },
+  {
+    title: 'Moliya',
+    items: [
+      {
+        label: 'Moliya',
+        icon: Wallet,
+        roles: ['OWNER', 'ADMIN'],
+        children: [{ label: 'Xarajatlar', href: '/finance/expenses' }],
+      },
+      { label: 'Analitika', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
+      {
+        label: 'Hisobotlar',
+        icon: BarChart2,
+        roles: NO_CASHIER,
+        children: [
+          { label: 'Umumiy', href: '/reports' },
+          { label: 'Kunlik sotuv', href: '/reports/daily-revenue' },
+          { label: 'Top mahsulotlar', href: '/reports/top-products' },
+          { label: 'Smenalar', href: '/reports/shifts' },
+          { label: 'Filiallar', href: '/reports/branches' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Sozlamalar',
+    items: [
+      {
+        label: 'Sozlamalar',
+        icon: Settings,
+        roles: ADMIN_ONLY,
+        children: [
+          { label: 'Foydalanuvchilar', href: '/settings/users' },
+          { label: 'Printer', href: '/settings/printer' },
+          { label: 'Audit log', href: '/settings/audit-log' },
+          { label: 'Hisob va tarif', href: '/settings/billing' },
+        ],
+      },
+    ],
+  },
+];
+
+/* ─── Helpers ─── */
+
+function getNavSections(role: string | undefined): NavSection[] {
+  const r = (role ?? 'ADMIN') as Role;
+  return NAV_SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => item.roles.includes(r)),
+  })).filter((section) => section.items.length > 0);
+}
+
+const COLLAPSE_KEY = 'raos-sidebar-collapsed';
+
+function useCollapsed() {
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(COLLAPSE_KEY) === '1';
+  });
+  const toggle = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0');
+      return next;
+    });
+  }, []);
+  return { collapsed, toggle };
+}
+
+/* ─── Components ─── */
+
+function NavSkeleton({ collapsed }: { collapsed: boolean }) {
   return (
     <div className="flex flex-col gap-1 p-3">
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
           className="h-9 animate-pulse rounded-lg bg-gray-100"
-          style={{ width: `${70 + (i % 3) * 10}%` }}
+          style={{ width: collapsed ? '100%' : `${70 + (i % 3) * 10}%` }}
         />
       ))}
     </div>
   );
 }
 
-function NavGroup({ item }: { item: NavItem }) {
+function SectionLabel({ title, collapsed }: { title: string; collapsed: boolean }) {
+  if (collapsed) {
+    return <div className="mx-3 my-1 border-t border-gray-200" />;
+  }
+  return (
+    <p className="mb-1 mt-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-gray-400 first:mt-0">
+      {title}
+    </p>
+  );
+}
+
+function NavLink({
+  item,
+  collapsed,
+}: {
+  item: NavItem & { href: string };
+  collapsed: boolean;
+}) {
+  const pathname = usePathname();
+  const active = pathname === item.href || pathname.startsWith(item.href + '/');
+
+  return (
+    <Link
+      href={item.href}
+      title={collapsed ? item.label : undefined}
+      className={cn(
+        'flex items-center rounded-lg px-3 py-2 text-sm font-medium transition',
+        collapsed ? 'justify-center' : 'gap-3',
+        active
+          ? 'bg-blue-50 text-blue-700'
+          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+      )}
+    >
+      <item.icon className="h-5 w-5 shrink-0" />
+      {!collapsed && item.label}
+    </Link>
+  );
+}
+
+function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const pathname = usePathname();
   const isActive = item.children?.some((c) => pathname.startsWith(c.href));
   const [open, setOpen] = useState(isActive ?? false);
 
   if (item.href) {
-    const active = pathname === item.href || pathname.startsWith(item.href + '/');
+    return <NavLink item={item as NavItem & { href: string }} collapsed={collapsed} />;
+  }
+
+  if (collapsed) {
+    const firstHref = item.children?.[0]?.href ?? '#';
     return (
       <Link
-        href={item.href}
+        href={firstHref}
+        title={item.label}
         className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-          active
+          'flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition',
+          isActive
             ? 'bg-blue-50 text-blue-700'
             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
         )}
       >
         <item.icon className="h-5 w-5 shrink-0" />
-        {item.label}
       </Link>
     );
   }
@@ -315,39 +312,73 @@ function NavGroup({ item }: { item: NavItem }) {
   );
 }
 
+/* ─── Main Sidebar ─── */
+
 export function Sidebar() {
   const { data: user, isLoading } = useCurrentUser();
-  const navItems = getNavItems(user?.role);
+  const { collapsed, toggle } = useCollapsed();
+  const sections = getNavSections(user?.role);
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
+    <aside
+      className={cn(
+        'flex h-full shrink-0 flex-col border-r border-gray-200 bg-white transition-[width] duration-200',
+        collapsed ? 'w-16' : 'w-64',
+      )}
+    >
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-gray-200 px-4">
+      <div className={cn(
+        'flex h-16 items-center border-b border-gray-200',
+        collapsed ? 'justify-center px-2' : 'gap-3 px-4',
+      )}>
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
           <Store className="h-4 w-4 text-white" />
         </div>
-        <div>
-          <p className="text-sm font-semibold text-gray-900">RAOS</p>
-          <p className="text-xs text-gray-500">Admin Panel</p>
-        </div>
+        {!collapsed && (
+          <div>
+            <p className="text-sm font-semibold text-gray-900">RAOS</p>
+            <p className="text-xs text-gray-500">
+              {user?.role === 'OWNER' ? 'Owner Panel' : 'Admin Panel'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Nav */}
       {isLoading ? (
-        <NavSkeleton />
+        <NavSkeleton collapsed={collapsed} />
       ) : (
-        <nav className="flex-1 overflow-y-auto p-3">
-          <div className="flex flex-col gap-0.5">
-            {navItems.map((item) => (
-              <NavGroup key={item.label} item={item} />
-            ))}
-          </div>
+        <nav className="flex-1 overflow-y-auto p-2">
+          {sections.map((section) => (
+            <div key={section.title}>
+              <SectionLabel title={section.title} collapsed={collapsed} />
+              <div className="flex flex-col gap-0.5">
+                {section.items.map((item) => (
+                  <NavGroup key={item.label} item={item} collapsed={collapsed} />
+                ))}
+              </div>
+            </div>
+          ))}
         </nav>
       )}
 
-      {/* Footer */}
-      <div className="border-t border-gray-200 px-4 py-3">
-        <p className="text-xs text-gray-400">RAOS v1.0 · Kosmetika POS</p>
+      {/* Collapse toggle + footer */}
+      <div className="border-t border-gray-200 p-2">
+        <button
+          type="button"
+          onClick={toggle}
+          title={collapsed ? 'Kengaytirish' : 'Yig\'ish'}
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-4 w-4" />
+          ) : (
+            <>
+              <PanelLeftClose className="h-4 w-4" />
+              <span className="text-xs">Yig&#39;ish</span>
+            </>
+          )}
+        </button>
       </div>
     </aside>
   );
