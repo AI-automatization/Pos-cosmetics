@@ -1974,11 +1974,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Mas'ul:** —
 - **Vazifa:** Earn points (1 point/1000 UZS). Tiers: Bronze/Silver/Gold. Birthday bonus. Redeem as payment.
 
-## T-117 | P3 | [FRONTEND] | Customer display — 2-ekran (ikkinchi monitor)
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** POS da ikkinchi ekran: scan qilingan tovar, running total, reklama. VFD yoki monitor.
-
 ## T-118 | P3 | [BACKEND] | 1C export — Buxgalteriya integratsiya
 - **Sana:** 2026-02-26
 - **Mas'ul:** —
@@ -1998,16 +1993,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Sana:** 2026-02-26
 - **Mas'ul:** —
 - **Vazifa:** Scheduled: kunlik savdo data → linked Google Sheet. Ko'p do'kon egalari Sheets da tahlil qiladi.
-
-## T-122 | P3 | [FRONTEND] | Custom report builder — Ad-hoc hisobotlar
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Dimension (product, category, date, branch, cashier) + metrics (revenue, qty, margin) tanlash → custom report. Excel export.
-
-## T-123 | P3 | [FRONTEND] | Weight scale integration — Gramm bilan sotish
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** USB/Serial tarozi → og'irlik o'qish → narx hisoblash. Kamdan-kam kosmetika uchun (aralash do'konlar).
 
 ## T-124 | P3 | [IKKALASI] | Feature flags — Per-tenant feature toggle
 - **Sana:** 2026-02-26
@@ -2470,15 +2455,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 - **Kutilgan:** packages/types ga qo'shish: `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion`
 
 ---
-
----
-
-## T-248 | P3 | [FRONTEND] | Ko'chmas mulk (Real Estate) moduli UI
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/realestate/` (yangi)
-- **Muammo:** Backend to'liq Real Estate moduli mavjud, lekin frontend yo'q
 
 ---
 
