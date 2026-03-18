@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Filter, Printer } from 'lucide-react';
+import { Plus, Filter, Printer, Package } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { SearchInput } from '@/components/common/SearchInput';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { ErrorState } from '@/components/common/ErrorState';
+import { EmptyState } from '@/components/common/EmptyState';
 import { ProductsTable } from './ProductsTable';
 import { ProductForm } from './ProductForm';
 import { LabelPrintModal } from './LabelPrintModal';
@@ -29,7 +31,7 @@ export default function ProductsPage() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [printProducts, setPrintProducts] = useState<Product[]>([]);
 
-  const { data, isLoading, isError } = useProducts({
+  const { data, isLoading, isError, refetch } = useProducts({
     page,
     limit: 20,
     search: search || undefined,
@@ -148,13 +150,13 @@ export default function ProductsPage() {
       {/* Content */}
       {isLoading && <LoadingSkeleton variant="table" rows={8} />}
 
-      {isError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Ma'lumotlarni yuklashda xatolik yuz berdi. Qayta urinib ko'ring.
-        </div>
+      {isError && <ErrorState compact onRetry={refetch} />}
+
+      {data && data.items.length === 0 && (
+        <EmptyState icon={Package} title="Mahsulotlar mavjud emas" description="Birinchi mahsulotni qo'shing" />
       )}
 
-      {data && (
+      {data && data.items.length > 0 && (
         <>
           <ProductsTable
             products={data.items}

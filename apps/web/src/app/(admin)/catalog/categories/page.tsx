@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, ChevronRight, FolderOpen } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronRight, FolderOpen, FolderX } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { ErrorState } from '@/components/common/ErrorState';
+import { EmptyState } from '@/components/common/EmptyState';
 import { CategoryForm } from './CategoryForm';
 import {
   useCategories,
@@ -95,7 +97,7 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
 
-  const { data: categories = [], isLoading, isError } = useCategories();
+  const { data: categories = [], isLoading, isError, refetch } = useCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
@@ -154,19 +156,12 @@ export default function CategoriesPage() {
     >
       {isLoading && <LoadingSkeleton variant="table" rows={5} />}
 
-      {isError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Ma'lumotlarni yuklashda xatolik yuz berdi.
-        </div>
-      )}
+      {isError && <ErrorState compact onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <>
           {categories.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 py-16 text-center">
-              <p className="text-sm text-gray-500">Kategoriyalar mavjud emas</p>
-              <p className="mt-1 text-xs text-gray-400">Birinchi kategoriyani qo'shing</p>
-            </div>
+            <EmptyState icon={FolderX} title="Kategoriyalar mavjud emas" description="Birinchi kategoriyani qo'shing" />
           ) : (
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
               <table className="w-full text-sm">
