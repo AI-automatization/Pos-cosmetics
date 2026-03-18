@@ -4,6 +4,7 @@ import type {
   TopProduct,
   ShiftReport,
   DashboardData,
+  ProfitSummary,
   DateRangeQuery,
 } from '@/types/reports';
 
@@ -11,22 +12,32 @@ export const reportsApi = {
   // B-010 fix: backend has no /reports/dashboard — aggregate from multiple endpoints
   async getDashboard(): Promise<DashboardData> {
     const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
 
-    const [salesSummary, weeklyRevenue, topProducts, lowStockRes] = await Promise.all([
+    const fetchProfit = (from: string, to: string): Promise<ProfitSummary | null> =>
       apiClient
-        .get('/reports/sales-summary', { params: { from: today, to: today } })
-        .then((r) => r.data),
-      apiClient
-        .get<DailyRevenue[]>('/reports/daily-revenue', { params: { from: weekAgo, to: today } })
-        .then((r) => r.data),
-      apiClient
-        .get<TopProduct[]>('/reports/top-products', { params: { from: weekAgo, to: today, limit: 5 } })
-        .then((r) => r.data),
-      apiClient
-        .get('/inventory/levels', { params: { lowStock: 'true' } })
-        .then((r) => r.data),
-    ]);
+        .get<ProfitSummary>('/reports/profit', { params: { from, to } })
+        .then((r) => r.data)
+        .catch(() => null);
+
+    const [salesSummary, weeklyRevenue, topProducts, lowStockRes, profit, profitYesterday] =
+      await Promise.all([
+        apiClient
+          .get('/reports/sales-summary', { params: { from: today, to: today } })
+          .then((r) => r.data),
+        apiClient
+          .get<DailyRevenue[]>('/reports/daily-revenue', { params: { from: weekAgo, to: today } })
+          .then((r) => r.data),
+        apiClient
+          .get<TopProduct[]>('/reports/top-products', { params: { from: weekAgo, to: today, limit: 5 } })
+          .then((r) => r.data),
+        apiClient
+          .get('/inventory/levels', { params: { lowStock: 'true' } })
+          .then((r) => r.data),
+        fetchProfit(today, today),
+        fetchProfit(yesterday, yesterday),
+      ]);
 
     // B-015 fix: normalize salesSummary shape to what dashboard/page.tsx expects
     // Backend returns { orders: { count, grossRevenue, totalDiscount }, netRevenue }
@@ -40,6 +51,8 @@ export const reportsApi = {
 
     return {
       today: { totalRevenue, ordersCount, netRevenue, discountAmount, averageOrderValue, returnsAmount: s.returns?.total ?? 0 },
+      profit,
+      profitYesterday,
       weeklyRevenue: Array.isArray(weeklyRevenue) ? weeklyRevenue : [],
       topProducts: Array.isArray(topProducts) ? topProducts : [],
       lowStockCount: Array.isArray(lowStockRes) ? lowStockRes.length : 0,

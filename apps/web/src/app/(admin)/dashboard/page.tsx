@@ -13,47 +13,88 @@ import {
 } from 'recharts';
 import {
   TrendingUp,
+  TrendingDown,
   ShoppingCart,
   AlertTriangle,
   ArrowUpRight,
   ArrowDownToLine,
+  Info,
+  PackageCheck,
 } from 'lucide-react';
 import { useDashboard } from '@/hooks/reports/useReports';
 import { formatPrice } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import type { ProfitSummary } from '@/types/reports';
+
+// ─── Trend badge ──────────────────────────────────────────────
+
+function TrendBadge({ current, previous }: { current: number; previous: number | undefined }) {
+  if (previous === undefined || previous === 0) return null;
+  const pct = ((current - previous) / previous) * 100;
+  const up = pct >= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium ${
+        up ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+      }`}
+    >
+      {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+      {Math.abs(pct).toFixed(1)}%
+    </span>
+  );
+}
+
+// ─── Stat card ────────────────────────────────────────────────
 
 function StatCard({
   title,
   value,
   sub,
+  tooltip,
+  trend,
   icon: Icon,
   accent = 'blue',
 }: {
   title: string;
   value: string;
   sub?: string;
+  tooltip?: string;
+  trend?: React.ReactNode;
   icon: React.ComponentType<{ className?: string }>;
-  accent?: 'blue' | 'green' | 'yellow' | 'red';
+  accent?: 'blue' | 'green' | 'yellow' | 'red' | 'purple';
 }) {
   const colors = {
     blue: 'bg-blue-50 text-blue-600',
     green: 'bg-green-50 text-green-600',
     yellow: 'bg-yellow-50 text-yellow-600',
     red: 'bg-red-50 text-red-600',
+    purple: 'bg-purple-50 text-purple-600',
   };
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5">
+    <div className="flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-5">
       <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${colors[accent]}`}>
         <Icon className="h-6 w-6" />
       </div>
-      <div className="min-w-0">
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
-        {sub && <p className="text-xs text-gray-400">{sub}</p>}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm text-gray-500">{title}</p>
+          {tooltip && (
+            <span title={tooltip} className="cursor-help text-gray-300 hover:text-gray-400">
+              <Info className="h-3.5 w-3.5" />
+            </span>
+          )}
+        </div>
+        <div className="mt-0.5 flex items-baseline gap-2">
+          <p className="text-xl font-bold text-gray-900">{value}</p>
+          {trend}
+        </div>
+        {sub && <p className="mt-0.5 text-xs text-gray-400">{sub}</p>}
       </div>
     </div>
   );
 }
+
+// ─── Chart tooltip ────────────────────────────────────────────
 
 function ChartTooltipContent({
   active,
@@ -78,11 +119,107 @@ function fmtDate(dateStr: string): string {
   return `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// ─── Profit breakdown card ────────────────────────────────────
+
+function ProfitBreakdown({ profit }: { profit: ProfitSummary }) {
+  const margin = parseFloat(profit.grossMarginPct);
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <h2 className="mb-3 text-sm font-semibold text-gray-700">Foyda tahlili (bugun)</h2>
+      <div className="flex flex-col gap-2">
+        <Row
+          label="Tushum"
+          value={profit.revenue}
+          tooltip="Barcha buyurtmalar jami summasi (chegirmadan oldin)"
+          color="text-gray-900"
+        />
+        <Row
+          label="Tannarx (COGS)"
+          value={-profit.cogs}
+          tooltip="Sotilgan mahsulotlarning kelish narxi summasi"
+          color="text-red-600"
+          prefix="−"
+        />
+        <Row
+          label="Qaytarishlar"
+          value={-profit.returns}
+          tooltip="Tasdiqlangan qaytarishlar summasi"
+          color="text-orange-600"
+          prefix="−"
+        />
+        <div className="my-1 border-t border-dashed border-gray-200" />
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-700">Yalpi foyda</span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-sm font-bold ${profit.grossProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}
+            >
+              {formatPrice(Math.abs(profit.grossProfit))}
+            </span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                margin >= 20
+                  ? 'bg-green-50 text-green-700'
+                  : margin >= 10
+                    ? 'bg-yellow-50 text-yellow-700'
+                    : 'bg-red-50 text-red-600'
+              }`}
+            >
+              {profit.grossMarginPct}%
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400">
+          * Sof foyda uchun xarajatlarni ham hisobga olish kerak
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  tooltip,
+  color,
+  prefix = '',
+}: {
+  label: string;
+  value: number;
+  tooltip: string;
+  color: string;
+  prefix?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-1">
+        <span className="text-sm text-gray-600">{label}</span>
+        <span title={tooltip} className="cursor-help text-gray-300 hover:text-gray-400">
+          <Info className="h-3 w-3" />
+        </span>
+      </div>
+      <span className={`text-sm font-medium ${color}`}>
+        {prefix}
+        {formatPrice(Math.abs(value))}
+      </span>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────
+
 export default function DashboardPage() {
   const { data, isLoading, isError } = useDashboard();
   const [todayStr, setTodayStr] = useState('');
   useEffect(() => {
-    setTodayStr(new Date().toLocaleDateString('uz-UZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    setTodayStr(
+      new Date().toLocaleDateString('uz-UZ', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+    );
   }, []);
 
   if (isLoading) {
@@ -106,7 +243,7 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 text-sm text-yellow-700">
           <p className="font-medium">Backend hali tayyor emas</p>
           <p className="mt-1 text-yellow-600">
-            Reports API (T-024) bajarilgach bu yerda real ma&apos;lumotlar ko&apos;rinadi.
+            Reports API bajarilgach bu yerda real ma&apos;lumotlar ko&apos;rinadi.
           </p>
         </div>
         <DemoContent />
@@ -114,7 +251,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { today, weeklyRevenue, topProducts, lowStockCount } = data ?? {};
+  const { today, profit, profitYesterday, weeklyRevenue, topProducts, lowStockCount } = data;
   if (!today || !weeklyRevenue || !topProducts) {
     return (
       <div className="flex flex-col gap-6 overflow-y-auto p-6">
@@ -134,21 +271,32 @@ export default function DashboardPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard
-          title="Bugungi savdo"
+          title="Bugungi tushum"
+          tooltip="Barcha buyurtmalar jami summasi (chegirmadan oldin)"
           value={formatPrice(today.totalRevenue)}
           sub={`${today.ordersCount} ta buyurtma`}
+          trend={
+            <TrendBadge current={today.totalRevenue} previous={profitYesterday?.revenue} />
+          }
           icon={TrendingUp}
           accent="blue"
         />
         <StatCard
-          title="Sof daromad"
-          value={formatPrice(today.netRevenue)}
-          sub={`Chegirma: −${formatPrice(today.discountAmount)}`}
+          title="Yalpi foyda"
+          tooltip="Tushum − Tannarx (COGS) − Qaytarishlar. Xarajatlar hisobga olinmaydi."
+          value={profit ? formatPrice(profit.grossProfit) : '—'}
+          sub={profit ? `Marja: ${profit.grossMarginPct}%` : 'Ma\'lumot yo\'q'}
+          trend={
+            profit && profitYesterday ? (
+              <TrendBadge current={profit.grossProfit} previous={profitYesterday.grossProfit} />
+            ) : undefined
+          }
           icon={ArrowUpRight}
-          accent="green"
+          accent={profit && profit.grossProfit >= 0 ? 'green' : 'red'}
         />
         <StatCard
           title="O'rtacha chek"
+          tooltip="Bugungi barcha buyurtmalar summasi / buyurtmalar soni"
           value={formatPrice(today.averageOrderValue)}
           sub="Bugungi o'rtacha"
           icon={ShoppingCart}
@@ -156,14 +304,15 @@ export default function DashboardPage() {
         />
         <StatCard
           title="Kam zaxira"
+          tooltip="Minimal zaxira darajasidan past mahsulotlar soni"
           value={`${lowStockCount} ta`}
           sub="Mahsulot kam yoki tugagan"
-          icon={AlertTriangle}
+          icon={PackageCheck}
           accent={lowStockCount > 0 ? 'yellow' : 'green'}
         />
       </div>
 
-      {/* Weekly chart + Top products */}
+      {/* Chart + top products + profit breakdown */}
       <div className="grid grid-cols-3 gap-4">
         {/* Bar chart */}
         <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-5">
@@ -172,10 +321,7 @@ export default function DashboardPage() {
           </h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart
-              data={weeklyRevenue.map((d) => ({
-                ...d,
-                label: fmtDate(d.date),
-              }))}
+              data={weeklyRevenue.map((d) => ({ ...d, label: fmtDate(d.date) }))}
               margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -197,37 +343,38 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Top products */}
+        {/* Profit breakdown or top products */}
+        {profit ? (
+          <ProfitBreakdown profit={profit} />
+        ) : (
+          <TopProductsList products={topProducts} />
+        )}
+      </div>
+
+      {/* Top products (full row) when profit is shown */}
+      {profit && (
         <div className="rounded-xl border border-gray-200 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700">Top mahsulotlar</h2>
-            <Link
-              href="/reports/top-products"
-              className="text-xs text-blue-600 hover:text-blue-700"
-            >
+            <h2 className="text-sm font-semibold text-gray-700">Top mahsulotlar (haftalik)</h2>
+            <Link href="/reports/top-products" className="text-xs text-blue-600 hover:text-blue-700">
               Barchasi →
             </Link>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {topProducts.slice(0, 5).map((p, idx) => (
               <div key={p.productId} className="flex items-center gap-2">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
                   {idx + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-gray-800">
-                    {p.productName}
-                  </p>
-                  <p className="text-xs text-gray-400">{p.quantity} ta</p>
+                  <p className="truncate text-xs font-medium text-gray-800">{p.productName}</p>
+                  <p className="text-xs text-gray-400">{p.quantity} ta · {formatPrice(p.revenue)}</p>
                 </div>
-                <span className="shrink-0 text-xs font-semibold text-gray-700">
-                  {formatPrice(p.revenue)}
-                </span>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Low stock warning */}
       {lowStockCount > 0 && (
@@ -248,6 +395,37 @@ export default function DashboardPage() {
           </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Subcomponents ────────────────────────────────────────────
+
+function TopProductsList({ products }: { products: { productId: string; productName: string; quantity: number; revenue: number }[] }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-gray-700">Top mahsulotlar</h2>
+        <Link href="/reports/top-products" className="text-xs text-blue-600 hover:text-blue-700">
+          Barchasi →
+        </Link>
+      </div>
+      <div className="flex flex-col gap-3">
+        {products.slice(0, 5).map((p, idx) => (
+          <div key={p.productId} className="flex items-center gap-2">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
+              {idx + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium text-gray-800">{p.productName}</p>
+              <p className="text-xs text-gray-400">{p.quantity} ta</p>
+            </div>
+            <span className="shrink-0 text-xs font-semibold text-gray-700">
+              {formatPrice(p.revenue)}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -275,10 +453,10 @@ function DemoContent() {
   return (
     <div className="grid grid-cols-3 gap-4">
       <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-5">
-        <p className="mb-1 text-sm font-semibold text-gray-700">
-          Haftalik savdo (demo)
+        <p className="mb-1 text-sm font-semibold text-gray-700">Haftalik savdo (demo)</p>
+        <p className="mb-4 text-xs text-gray-400">
+          Backend tayyor bo&apos;lgach real ma&apos;lumot ko&apos;rinadi
         </p>
-        <p className="mb-4 text-xs text-gray-400">Backend tayyor bo'lgach real ma'lumot ko'rinadi</p>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={DEMO_WEEKLY} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
