@@ -7,25 +7,62 @@
 ## 👋 ZONA
 
 ```
-apps/web/src/           → Admin Panel (Next.js)
-  pages/                → Sahifalar (route = 1 page)
-  components/           → Qayta ishlatiluvchi komponentlar
-  hooks/                → Custom React hooks
-  api/                  → HTTP client va endpoint lar
-  i18n/                 → Tarjimalar (uz, ru, en)
-  utils/                → Yordamchi funksiyalar
-  config/               → Konfiguratsiya
-  store/                → Global state (zustand)
+apps/web/src/                  → Admin Panel + POS (Next.js App Router)
+  app/
+    (admin)/                   → Admin Panel sahifalari
+      dashboard/page.tsx
+      catalog/products/        → ProductForm, ProductsTable, VariantsSection
+      catalog/categories/
+      catalog/suppliers/
+      inventory/               → page, stock-in, stock-out, expiry, low-stock
+      sales/orders/
+      sales/returns/
+      sales/shifts/
+      finance/expenses/
+      reports/                 → page, daily-revenue, top-products, branches, shifts
+      customers/
+      nasiya/                  → page, aging
+      payments/history/
+      settings/                → users, billing, printer, audit-log
+      analytics/page.tsx
+    (pos)/                     → POS Desktop (Web-based, offline-first)
+      pos/
+        page.tsx               → asosiy POS sahifa
+        CartPanel.tsx
+        PaymentPanel.tsx
+        ProductSearch.tsx
+        ReceiptPreview.tsx
+        ShiftBar.tsx
+        customer-display/      → Customer display window
+        shift/                 → ShiftOpenModal, ShiftCloseModal, ShiftReport
+    (founder)/                 → Owner Panel (founder ko'radi)
+      founder/
+        overview/
+        tenants/               → list, [id], new
+        analytics/
+        errors/
+    (auth)/                    → Login sahifalari
+  components/
+    layout/                    → Sidebar, Header, PageLayout, FounderSidebar
+    common/                    → ConfirmDialog, SearchInput, LoadingSkeleton
+    Receipt/                   → ReceiptTemplate, useReceiptPrint
+    SyncStatus/                → SyncStatusBar
+  hooks/
+    catalog/                   → useProducts, useCategories, useSuppliers, useProductCache, useVariants
+    customers/                 → useCustomer, useDebts, useLoyalty
+    finance/                   → useFinance
+    founder/                   → useFounder
+    inventory/                 → useInventory
+    pos/                       → useCompleteSale, useShift, useBarcodeScanner, usePOSKeyboard, useCustomerDisplayBroadcast
+    reports/                   → useReports
+    sales/                     → useOrders, useReturns, useShifts
+    settings/                  → useUsers, useBilling
+  api/                         → HTTP client va endpointlar
+  store/                       → Zustand global state (pos.store, sync.store)
+  types/                       → TypeScript type definitsiyalari
+  lib/                         → cashDrawer, productCache, utils
 
-apps/pos/src/           → POS Desktop (Tauri + React)
-  components/           → POS-specific komponentlar
-  hooks/                → POS hooks (offline, sync, print)
-  db/                   → SQLite local database
-  sync/                 → Outbox sync engine
-  print/                → Receipt printer integration
-  utils/                → POS utilities
-
-packages/ui/            → Shared UI components (Admin + POS)
+packages/ui/            → Shared UI components
 packages/types/         → Shared TypeScript types
 ```
 
@@ -40,65 +77,58 @@ packages/types/         → Shared TypeScript types
 
 ## 🏗️ KOMPONENT ARXITEKTURASI
 
-### 1. Fayl Tuzilishi — Max 300 Qator
+### 1. Fayl Tuzilishi — Max 400 Qator
 
 ```
 // Admin Panel — murakkab page alohida papkada:
-apps/web/src/
-  pages/
-    Dashboard/
-      index.tsx                // asosiy page export
-      DashboardStats.tsx       // page-specific component
-      useDashboardData.ts      // page-specific hook
-    Sales/
-      index.tsx
-      SalesTable.tsx
-      SalesFilters.tsx
-      useSalesData.ts
-    Inventory/
-      index.tsx
-      StockTable.tsx
-      StockMovements.tsx
-      useInventoryData.ts
-    Finance/
-      index.tsx
-      LedgerView.tsx
-      PaymentHistory.tsx
-      useFinanceData.ts
-  components/
-    layout/
-      Sidebar.tsx
-      Header.tsx
-      PageLayout.tsx
-    common/
-      DataTable.tsx
-      StatusBadge.tsx
-      SearchInput.tsx
-      ConfirmDialog.tsx
-      LoadingSkeleton.tsx
-    charts/
-      RevenueChart.tsx
-      StockChart.tsx
-      TrendChart.tsx
+apps/web/src/app/(admin)/
+  dashboard/page.tsx           // Dashboard stats + P&L
+  catalog/products/
+    page.tsx                   // asosiy list + CRUD trigger
+    ProductForm.tsx            // create/edit form
+    ProductsTable.tsx          // table component
+    VariantsSection.tsx        // product variants CRUD
+    LabelPrintModal.tsx        // barcode label print
+  catalog/categories/
+    page.tsx
+    CategoryForm.tsx
+  catalog/suppliers/page.tsx
+  inventory/page.tsx
+  sales/orders/page.tsx
+  reports/page.tsx
+  customers/page.tsx
+  ...
 
-// POS Desktop — tezkor, keyboard-first:
-apps/pos/src/
-  components/
-    SaleScreen/
-      index.tsx
-      ProductSearch.tsx
-      CartItems.tsx
-      PaymentPanel.tsx
-      ReceiptPreview.tsx
-    ShiftScreen/
-      index.tsx
-      ShiftOpen.tsx
-      ShiftClose.tsx
-      ShiftReport.tsx
-    SyncStatus/
-      index.tsx
-      SyncIndicator.tsx
-      OfflineBanner.tsx
+// POS Desktop — web-based, keyboard-first:
+apps/web/src/app/(pos)/pos/
+  page.tsx                     // asosiy POS sahifa
+  CartPanel.tsx
+  PaymentPanel.tsx
+  ProductSearch.tsx
+  ReceiptPreview.tsx
+  ShiftBar.tsx
+  shift/
+    ShiftOpenModal.tsx
+    ShiftCloseModal.tsx
+    ShiftReport.tsx
+  customer-display/            // Customer display window
+
+// Shared components:
+apps/web/src/components/
+  layout/
+    Sidebar.tsx
+    Header.tsx
+    PageLayout.tsx
+    FounderSidebar.tsx
+  common/
+    ConfirmDialog.tsx
+    SearchInput.tsx
+    LoadingSkeleton.tsx
+  Receipt/
+    ReceiptTemplate.tsx
+    useReceiptPrint.ts
+  SyncStatus/
+    SyncStatusBar.tsx
 ```
 
 ### 2. `any` TAQIQLANGAN
@@ -202,15 +232,22 @@ const { mutate, isPending } = useCreateSale();
 ```
 apps/web/src/api/
   client.ts              → axios instance + interceptors
-  auth.api.ts            → authApi (login, refresh, logout)
-  catalog.api.ts         → catalogApi (products, categories)
-  inventory.api.ts       → inventoryApi (stock, movements)
-  sales.api.ts           → salesApi (orders, returns)
-  payments.api.ts        → paymentsApi (intents, history)
-  finance.api.ts         → financeApi (ledger, reports)
-  realestate.api.ts      → realestateApi (properties, contracts)
-  analytics.api.ts       → analyticsApi (insights, trends)
-  index.ts               → re-export
+  billing.api.ts         → billingApi (subscription, plans)
+  catalog.api.ts         → catalogApi (products, categories, variants)
+  customer.api.ts        → customerApi (list, detail)
+  debt.api.ts            → debtApi (nasiya, aging)
+  finance.api.ts         → financeApi (expenses, ledger)
+  founder.api.ts         → founderApi (tenants, overview)
+  inventory.api.ts       → inventoryApi (stock, movements, transfers)
+  loyalty.api.ts         → loyaltyApi (account, config, redeem)
+  orders.api.ts          → ordersApi (create, list, detail)
+  reports.api.ts         → reportsApi (dashboard, profit, top-products)
+  returns.api.ts         → returnsApi (create, list)
+  sales.api.ts           → salesApi (orders, returns, history)
+  shift.api.ts           → shiftApi (open, close, current)
+  shifts.api.ts          → shiftsApi (list, report)
+  suppliers.api.ts       → suppliersApi (list, CRUD)
+  users.api.ts           → usersApi (list, CRUD, roles)
 ```
 
 ### 7. Axios Interceptors (MAJBURIY)
@@ -253,11 +290,25 @@ api.interceptors.response.use(
 
 ## 🖥️ POS DESKTOP — OFFLINE-FIRST QOIDALARI
 
-### Tauri + SQLite + React
+> ⚠️ POS `apps/web/src/app/(pos)/pos/` da joylashgan — alohida `apps/pos/` papkasi YO'Q.
+> POS Next.js route group `(pos)` ichida ishlaydi, zustand + React Query bilan.
+
+### POS Arxitekturasi
 
 ```typescript
-// POS da React Query EMAS — local SQLite dan o'qish:
-// hooks/useLocalSale.ts
+// POS da Zustand store (apps/web/src/store/pos.store.ts):
+// - cart items, selected customer, payment state
+// Sync state (apps/web/src/store/sync.store.ts):
+// - offline queue, sync status
+
+// Sale yaratish (apps/web/src/hooks/pos/useCompleteSale.ts):
+export function useCompleteSale() {
+  // 1. POST /sales/orders (online)
+  // 2. Offline: sync queue ga qo'sh (outbox pattern)
+  // 3. Receipt print trigger
+}
+
+// hooks/useLocalSale.ts (ESKI PATTERN — endi ishlatilmaydi)
 export function useLocalSale() {
   const db = useLocalDB();
 
@@ -412,54 +463,56 @@ export function ConditionalRender({ roles, children }: {
 
 ---
 
-## 📊 ADMIN PANEL PAGES
+## 📊 ADMIN PANEL PAGES (haqiqiy implemented routes)
 
 ```
-/login              → Login page
-/dashboard          → Overview stats, charts, alerts
+/                   → redirect by role (ADMIN → /dashboard, CASHIER → /pos)
+/dashboard          → Overview stats, P&L breakdown, top products
 /catalog
-  /products         → Product list + CRUD
+  /products         → Product list + CRUD + variants + label print
   /categories       → Category management
   /suppliers        → Supplier management
 /inventory
-  /stock            → Current stock levels
-  /movements        → Stock movement history
-  /transfers        → Branch transfers
+  /                 → Current stock levels
+  /stock-in         → Stock received (purchase)
+  /stock-out        → Manual stock deduction
+  /expiry           → Expiry date tracking
+  /low-stock        → Low stock alerts
 /sales
   /orders           → Sales history + details
   /returns          → Return management
-  /shifts           → Shift reports
+  /shifts           → Shift history
 /payments
   /history          → Payment history
-  /reconciliation   → Reconciliation status
 /finance
-  /ledger           → Journal entries
-  /reports          → P&L, Balance Sheet
-  /billing          → Subscription management
-/realestate
-  /properties       → Property list
-  /contracts        → Rental contracts
-  /payments         → Rental payments
-/ai-insights
-  /trends           → Sales trends
-  /deadstock        → Dead stock alerts
-  /forecasting      → Demand forecasting
-/owner                        → Owner monitoring panel (CLAUDE_FRONTEND_OWNER.md)
-  /dashboard        → Revenue cards + Sales trend + Branch comparison
-  /analytics        → Revenue/Orders/Product analytics + period filter
-  /inventory        → Stock monitoring (All/Low/Out/Expiring/Expired tabs)
-  /debts            → Debt summary + Aging report + Customer debt table
-  /shifts           → Shift monitoring (revenue, orders, payment breakdown)
-  /employees        → Employee performance + Suspicious activity
-  /alerts           → LOW_STOCK, SUSPICIOUS_ACTIVITY, NASIYA_OVERDUE ...
-  /system           → API/DB/Worker health + POS sync + Error logs
+  /expenses         → Expense tracking
+/reports
+  /                 → Reports overview
+  /daily-revenue    → Daily revenue chart
+  /top-products     → Best selling products
+  /branches         → Branch comparison
+  /shifts           → Shift reports
+/customers
+  /                 → Customer list
+  /[id]             → Customer detail + debt history + loyalty
+/nasiya
+  /                 → Active debts (nasiya)
+  /aging            → Debt aging report
+/analytics          → AI analytics page
 /settings
-  /tenant           → Company settings
-  /users            → User management
-  /branches         → Branch management
-  /roles            → Role permissions
-  /tax-rules        → Tax configuration
-  /integrations     → Payment providers, fiscal
+  /users            → User management + roles
+  /billing          → Subscription management
+  /printer          → Receipt printer settings
+  /audit-log        → Audit trail
+
+/pos                → POS screen (route group (pos))
+  /shift            → Shift open/close modals
+
+/founder            → Owner monitoring panel (CLAUDE_FRONTEND_OWNER.md)
+  /overview         → Revenue cards + branch comparison
+  /analytics        → Revenue/Orders analytics + period filter
+  /tenants          → Tenant list + [id] detail + new
+  /errors           → System error logs
 ```
 
 ---
@@ -565,7 +618,7 @@ api.interceptors.response.use(
 ❌ any type
 ❌ console.log production da
 ❌ inline style (style={{...}}) → Tailwind class
-❌ 300+ qatorli komponent → bo'lish kerak
+❌ 400+ qatorli komponent → bo'lish kerak
 ❌ Fixed width charts → ResponsiveContainer
 ❌ localStorage to'g'ridan → useLocalStorage hook
 ❌ Hardcoded text → i18n translation keys
@@ -576,4 +629,4 @@ api.interceptors.response.use(
 
 ---
 
-*CLAUDE_FRONTEND.md | RAOS | v1.0*
+*CLAUDE_FRONTEND.md | RAOS | v1.1*
