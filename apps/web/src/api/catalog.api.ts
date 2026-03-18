@@ -9,6 +9,9 @@ import type {
   UpdateProductDto,
   CreateCategoryDto,
   UpdateCategoryDto,
+  ProductVariant,
+  CreateVariantDto,
+  UpdateVariantDto,
 } from '@/types/catalog';
 
 export const catalogApi = {
@@ -50,6 +53,32 @@ export const catalogApi = {
 
   deleteProduct(id: string) {
     return apiClient.delete<void>(`/catalog/products/${id}`).then((r) => r.data);
+  },
+
+  // --- Variants ---
+
+  getVariants(productId: string) {
+    return apiClient
+      .get<ProductVariant[]>(`/catalog/products/${productId}/variants`)
+      .then((r) => r.data);
+  },
+
+  createVariant(productId: string, dto: CreateVariantDto) {
+    return apiClient
+      .post<ProductVariant>(`/catalog/products/${productId}/variants`, dto)
+      .then((r) => r.data);
+  },
+
+  updateVariant(productId: string, variantId: string, dto: UpdateVariantDto) {
+    return apiClient
+      .patch<ProductVariant>(`/catalog/products/${productId}/variants/${variantId}`, dto)
+      .then((r) => r.data);
+  },
+
+  deleteVariant(productId: string, variantId: string) {
+    return apiClient
+      .delete<void>(`/catalog/products/${productId}/variants/${variantId}`)
+      .then((r) => r.data);
   },
 
   // --- Units ---

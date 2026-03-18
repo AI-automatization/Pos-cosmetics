@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { X, Plus, Barcode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Category, Product } from '@/types/catalog';
+import { VariantsSection } from './VariantsSection';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
@@ -212,6 +213,14 @@ export function ProductForm({
                 className={inputCls}
               />
             </Field>
+
+            {product ? (
+              <VariantsSection productId={product.id} />
+            ) : (
+              <p className="col-span-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400">
+                Variantlar mahsulot saqlangandan keyin qo&apos;shiladi
+              </p>
+            )}
           </div>
 
           <div className="mt-6 flex justify-end gap-3">

@@ -99,6 +99,36 @@ export interface CreateProductDto {
 
 export type UpdateProductDto = Partial<CreateProductDto>;
 
+// --- Product Variants ---
+
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  tenantId: string;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  costPrice: number;
+  costCurrency: string;
+  sellPrice: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateVariantDto {
+  name: string;
+  sku?: string;
+  barcode?: string;
+  costPrice?: number;
+  sellPrice?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export type UpdateVariantDto = Partial<CreateVariantDto>;
+
 export interface CreateCategoryDto {
   name: string;
   parentId?: string;
