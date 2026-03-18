@@ -3,11 +3,14 @@
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Plus, Barcode, Upload, ImageIcon } from 'lucide-react';
-import { useState, useCallback, useRef } from 'react';
-import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
+import { useState } from 'react';
 import type { Category, Product } from '@/types/catalog';
 import { VariantsSection } from './VariantsSection';
+import { Field, inputCls } from './FormField';
+import { MarginBadge } from './MarginBadge';
+import { ImageUpload } from './ImageUpload';
+import { BarcodeFields } from './BarcodeFields';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
@@ -31,197 +34,29 @@ interface ProductFormProps {
   onClose: () => void;
 }
 
-interface FieldProps {
-  label: string;
-  error?: string;
-  required?: boolean;
-  className?: string;
-  children: React.ReactNode;
+function buildDefaultValues(product?: Product | null): ProductFormData {
+  if (!product) return { costPrice: 0, sellPrice: 0, minStockLevel: 0, extraBarcodes: [], description: '', name: '', sku: '', categoryId: '' };
+  const p = product as unknown as Record<string, unknown>;
+  return {
+    name: product.name ?? '',
+    barcode: product.barcode ?? '',
+    extraBarcodes: (product.extraBarcodes ?? []).map((v) => ({ value: v })),
+    sku: product.sku ?? '',
+    categoryId: product.categoryId ?? '',
+    description: (p.description as string) ?? '',
+    costPrice: Number(product.costPrice),
+    sellPrice: Number(product.sellPrice),
+    minStockLevel: Number(product.minStockLevel ?? 0),
+  };
 }
 
-function Field({ label, error, required, className, children }: FieldProps) {
-  return (
-    <div className={cn(className)}>
-      <label className="mb-1 block text-sm font-medium text-gray-700">
-        {label}
-        {required && <span className="ml-0.5 text-red-500">*</span>}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
-  );
-}
-
-const inputCls =
-  'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
-
-/* ─── Margin Calculator ─── */
-
-function MarginBadge({ costPrice, sellPrice }: { costPrice: number; sellPrice: number }) {
-  if (!sellPrice || sellPrice <= 0) return null;
-  const margin = ((sellPrice - costPrice) / sellPrice) * 100;
-  const profit = sellPrice - costPrice;
-  const isNegative = margin < 0;
-  const isLow = margin >= 0 && margin < 15;
-
-  return (
-    <div
-      className={cn(
-        'col-span-2 flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm',
-        isNegative
-          ? 'border-red-200 bg-red-50 text-red-700'
-          : isLow
-            ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
-            : 'border-green-200 bg-green-50 text-green-700',
-      )}
-    >
-      <span>
-        Margin: <strong>{margin.toFixed(1)}%</strong>
-      </span>
-      <span>
-        Foyda: <strong>{profit.toLocaleString('uz-UZ')} so&#39;m</strong>
-      </span>
-    </div>
-  );
-}
-
-/* ─── Image Upload (drag & drop + preview) ─── */
-
-function ImageUpload({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (url: string) => void;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = useCallback(
-    async (file: File) => {
-      if (!file.type.startsWith('image/')) return;
-      if (file.size > 5 * 1024 * 1024) return; // 5MB max
-
-      setUploading(true);
-      try {
-        // Preview via local URL for now — real S3 upload can be added later
-        const localUrl = URL.createObjectURL(file);
-        onChange(localUrl);
-      } finally {
-        setUploading(false);
-      }
-    },
-    [onChange],
-  );
-
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragging(false);
-      const file = e.dataTransfer.files[0];
-      if (file) handleFile(file);
-    },
-    [handleFile],
-  );
-
-  return (
-    <div className="col-span-2">
-      <label className="mb-1 block text-sm font-medium text-gray-700">Rasm</label>
-
-      {value ? (
-        <div className="relative inline-block">
-          <img
-            src={value}
-            alt="Mahsulot rasmi"
-            className="h-28 w-28 rounded-lg border border-gray-200 object-cover"
-          />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="absolute -right-2 -top-2 rounded-full bg-white p-1 shadow-md transition hover:bg-red-50"
-          >
-            <X className="h-3.5 w-3.5 text-red-500" />
-          </button>
-        </div>
-      ) : (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
-          onClick={() => fileRef.current?.click()}
-          className={cn(
-            'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed py-6 text-sm transition',
-            dragging
-              ? 'border-blue-400 bg-blue-50 text-blue-600'
-              : 'border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-500',
-          )}
-        >
-          {uploading ? (
-            <span className="text-blue-500">Yuklanmoqda...</span>
-          ) : (
-            <>
-              {dragging ? (
-                <Upload className="h-8 w-8" />
-              ) : (
-                <ImageIcon className="h-8 w-8" />
-              )}
-              <span>Rasm tashlang yoki bosing</span>
-              <span className="text-xs text-gray-300">PNG, JPG — max 5MB</span>
-            </>
-          )}
-        </div>
-      )}
-
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
-        }}
-      />
-    </div>
-  );
-}
-
-export function ProductForm({
-  product,
-  categories,
-  isPending,
-  onSubmit,
-  onClose,
-}: ProductFormProps) {
-  const {
-    register,
-    control,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<ProductFormData>({
+export function ProductForm({ product, categories, isPending, onSubmit, onClose }: ProductFormProps) {
+  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
-    defaultValues: product
-      ? {
-          name: product.name ?? '',
-          barcode: product.barcode ?? '',
-          extraBarcodes: (product.extraBarcodes ?? []).map((v) => ({ value: v })),
-          sku: product.sku ?? '',
-          categoryId: product.categoryId ?? '',
-          description: ((product as unknown as Record<string, unknown>).description as string) ?? '',
-          costPrice: Number(product.costPrice),
-          sellPrice: Number(product.sellPrice),
-          minStockLevel: Number(product.minStockLevel ?? 0),
-        }
-      : { costPrice: 0, sellPrice: 0, minStockLevel: 0, extraBarcodes: [], description: '' },
+    defaultValues: buildDefaultValues(product),
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'extraBarcodes',
-  });
-
+  const { fields, append, remove } = useFieldArray({ control, name: 'extraBarcodes' });
   const costPrice = watch('costPrice') ?? 0;
   const sellPrice = watch('sellPrice') ?? 0;
   const [imageUrl, setImageUrl] = useState<string>(
@@ -264,52 +99,12 @@ export function ProductForm({
               <input {...register('barcode')} placeholder="8901234567890" className={inputCls} />
             </Field>
 
-            {/* Extra barcodes */}
-            <div className="col-span-2">
-              <div className="mb-1 flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">
-                  Qo&apos;shimcha barcodlar
-                </label>
-                <button
-                  type="button"
-                  onClick={() => append({ value: '' })}
-                  className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Qo&apos;shish
-                </button>
-              </div>
-
-              {fields.length === 0 ? (
-                <button
-                  type="button"
-                  onClick={() => append({ value: '' })}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2.5 text-sm text-gray-400 transition hover:border-blue-400 hover:text-blue-500"
-                >
-                  <Barcode className="h-4 w-4" />
-                  Qo&apos;shimcha barcode qo&apos;shish
-                </button>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-center gap-2">
-                      <input
-                        {...register(`extraBarcodes.${index}.value`)}
-                        placeholder={`Barcode ${index + 1}`}
-                        className={cn(inputCls, 'flex-1')}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <BarcodeFields
+              register={register}
+              fields={fields}
+              append={append}
+              remove={remove}
+            />
 
             <Field
               label="Kategoriya"
@@ -332,7 +127,7 @@ export function ProductForm({
                 {...register('description')}
                 rows={3}
                 placeholder="Mahsulot haqida qisqacha ma'lumot..."
-                className={cn(inputCls, 'resize-none')}
+                className={`${inputCls} resize-none`}
               />
             </Field>
 
