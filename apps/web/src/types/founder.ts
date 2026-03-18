@@ -32,7 +32,7 @@ export interface LiveSaleTick {
   id: string;
   tenantName: string;
   amount: number;
-  method: 'CASH' | 'CARD' | 'NASIYA';
+  method: 'CASH' | 'CARD' | 'TERMINAL' | 'NASIYA' | 'DEBT' | 'CLICK' | 'PAYME' | 'TRANSFER';
   at: string;
 }
 

@@ -26,11 +26,18 @@ export const salesApi = {
 
     // Create and settle payment intents for POS flow
     if (dto.payments.length > 0) {
+      // Map frontend payment methods to backend PaymentMethod enum
+      const methodMap: Record<string, string> = {
+        CASH: 'CASH',
+        CARD: 'TERMINAL',
+        NASIYA: 'DEBT',
+        BONUS: 'CASH',
+      };
       const intents = await apiClient
         .post<{ id: string }[]>('/payments/split', {
           payments: dto.payments.map((p) => ({
             orderId: order.id,
-            method: p.method,
+            method: methodMap[p.method] ?? p.method,
             amount: p.amount,
           })),
         })

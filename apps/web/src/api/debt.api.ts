@@ -71,8 +71,12 @@ export const debtApi = {
       return raw.map(normalizeDebt);
     }),
 
-  payDebt: (debtId: string, dto: PayDebtDto): Promise<DebtPayment> =>
-    apiClient.post<DebtPayment>(`/nasiya/${debtId}/pay`, dto).then((r) => r.data),
+  payDebt: (debtId: string, dto: PayDebtDto): Promise<DebtPayment> => {
+    const methodMap: Record<string, string> = { CASH: 'CASH', CARD: 'TERMINAL', TRANSFER: 'TRANSFER' };
+    return apiClient
+      .post<DebtPayment>(`/nasiya/${debtId}/pay`, { ...dto, method: methodMap[dto.method] ?? dto.method })
+      .then((r) => r.data);
+  },
 
   getSummary: (): Promise<NasiyaSummary> =>
     apiClient.get('/nasiya').then((r) => {

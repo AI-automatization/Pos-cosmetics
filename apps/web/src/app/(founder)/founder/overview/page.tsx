@@ -233,7 +233,7 @@ export default function FounderOverviewPage() {
                     'rounded-full px-2 py-0.5 text-xs font-medium',
                     tick.method === 'CASH'
                       ? 'bg-green-900/60 text-green-400'
-                      : tick.method === 'CARD'
+                      : tick.method === 'CARD' || tick.method === 'TERMINAL'
                       ? 'bg-blue-900/60 text-blue-400'
                       : 'bg-orange-900/60 text-orange-400',
                   )}

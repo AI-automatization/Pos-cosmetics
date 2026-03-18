@@ -15,7 +15,9 @@ interface OrderWithCustomer extends Order {
 const METHOD_LABEL: Record<string, string> = {
   CASH: 'Naqd',
   CARD: 'Karta',
+  TERMINAL: 'Karta',
   NASIYA: 'Nasiya',
+  DEBT: 'Nasiya',
   TRANSFER: "Bank o'tkazma",
   CLICK: 'Click',
   PAYME: 'Payme',
@@ -24,7 +26,9 @@ const METHOD_LABEL: Record<string, string> = {
 const METHOD_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   CASH: Banknote,
   CARD: CreditCard,
+  TERMINAL: CreditCard,
   NASIYA: CreditCard,
+  DEBT: CreditCard,
   TRANSFER: ArrowUpRight,
   CLICK: Smartphone,
   PAYME: Smartphone,

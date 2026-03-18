@@ -3,7 +3,7 @@ import { apiClient } from './client';
 export interface PaymentIntent {
   id: string;
   orderId: string;
-  method: 'CASH' | 'CARD' | 'NASIYA' | 'CLICK' | 'PAYME';
+  method: 'CASH' | 'TERMINAL' | 'CLICK' | 'PAYME' | 'TRANSFER' | 'DEBT';
   status: 'CREATED' | 'CONFIRMED' | 'SETTLED' | 'FAILED' | 'REVERSED';
   amount: number;
   provider: string | null;
