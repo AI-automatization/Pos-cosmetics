@@ -2537,13 +2537,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-246 | P3 | [FRONTEND] | Filiallar o'rtasida tovar ko'chirish UI
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(admin)/inventory/transfer/page.tsx` (yangi)
-- **Muammo:** Backend `StockTransfer` jadvalini qo'llab-quvvatlaydi, lekin UI yo'q
-
 ---
 
 ## T-247 | P3 | [FRONTEND] | Mahsulot sertifikatlari UI

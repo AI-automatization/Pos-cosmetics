@@ -192,6 +192,11 @@
 
 *docs/Done.md | RAOS*
 
+## T-246 | 2026-03-18 | [FRONTEND] | Filiallar o'rtasida tovar ko'chirish UI
+
+- **Yechim:** `/inventory/transfer` sahifasi yaratildi. TransferCard (from→to branch, items, status badge, action buttons), status filter tabs (ALL/REQUESTED/APPROVED/SHIPPED/RECEIVED/CANCELLED), API + hooks + types to'liq. Sidebar ga "Ko'chirish" link.
+- **Fayl:** `transfer/page.tsx`, `inventory.api.ts`, `useInventory.ts`, `inventory.ts`, `Sidebar.tsx`
+
 ## T-239 | 2026-03-18 | [FRONTEND] | P&L hisobot sahifasi
 
 - **Yechim:** `/finance/pnl` sahifasi yaratildi. Period filter (7d/30d/90d/365d/custom), 5 ta KPI card (Revenue, COGS, Gross Profit, Expenses, Net Profit), P&L waterfall summary, Xarajatlar taqsimoti (category bars). Sidebar ga "Foyda va zarar" link qo'shildi.
