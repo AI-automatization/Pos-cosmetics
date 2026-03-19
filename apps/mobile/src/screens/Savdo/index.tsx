@@ -10,9 +10,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import ProductCard, { Product } from './ProductCard';
 import ScannerModal from './ScannerModal';
 import PaymentSheet, { type PaymentMethod } from './PaymentSheet';
+import { useShiftStore } from '../../store/shiftStore';
+import { type TabParamList } from '../../navigation/types';
 
 // ─── Ranglar ───────────────────────────────────────────
 const C = {
@@ -55,6 +58,9 @@ function formatPrice(n: number): string {
 
 // ─── Screen ────────────────────────────────────────────
 export default function SavdoScreen() {
+  const navigation = useNavigation<NavigationProp<TabParamList>>();
+  const { isShiftOpen } = useShiftStore();
+
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -80,6 +86,16 @@ export default function SavdoScreen() {
         );
       }
       return [...prev, { product, qty: 1 }];
+    });
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart((prev) => {
+      const updated = prev.filter((i) => i.product.id !== productId);
+      if (updated.length === 0) {
+        setPaymentVisible(false);
+      }
+      return updated;
     });
   };
 
@@ -190,7 +206,18 @@ export default function SavdoScreen() {
         cart={cart}
         total={totalPrice}
         onClose={() => setPaymentVisible(false)}
-        onConfirm={(_method: PaymentMethod, _received: number) => {
+        onRemoveItem={removeFromCart}
+        onConfirm={(method: PaymentMethod, _received: number) => {
+          if (method === 'NASIYA') {
+            navigation.navigate('Nasiya', {
+              openNewDebt: true,
+              amount: totalPrice,
+              products: cart,
+            });
+            setPaymentVisible(false);
+            setCart([]);
+            return;
+          }
           setPaymentVisible(false);
           setCart([]);
         }}
@@ -218,13 +245,23 @@ export default function SavdoScreen() {
             <Text style={styles.cartTotal}>{formatPrice(totalPrice)}</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.payButton}
-            activeOpacity={0.85}
-            onPress={() => setPaymentVisible(true)}
-          >
-            <Text style={styles.payButtonText}>To'lov  →</Text>
-          </TouchableOpacity>
+          {isShiftOpen ? (
+            <TouchableOpacity
+              style={styles.payButton}
+              activeOpacity={0.85}
+              onPress={() => setPaymentVisible(true)}
+            >
+              <Text style={styles.payButtonText}>To'lov  →</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.payButton, styles.payButtonDisabled]}
+              disabled
+              activeOpacity={1}
+            >
+              <Text style={styles.payButtonText}>Smena oching</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -407,6 +444,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
+  },
+  payButtonDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   payButtonText: {
     color: C.white,

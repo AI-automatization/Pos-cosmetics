@@ -12,7 +12,16 @@ export type TabParamList = {
   Dashboard: undefined;
   Savdo: undefined;
   SavdoTarixi: undefined;
-  Nasiya: undefined;
+  Nasiya:
+    | {
+        openNewDebt?: boolean;
+        amount?: number;
+        products?: Array<{
+          product: { id: string; name: string; sellPrice: number };
+          qty: number;
+        }>;
+      }
+    | undefined;
   Kirim: undefined;
   Settings: undefined;
 };
