@@ -22,22 +22,6 @@
 
 ---
 
-## T-201 | P1 | [BACKEND] | Owner Dashboard Analytics API endpointlari
-
-- **Sana:** 2026-03-12
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/analytics/`
-- **Muammo:** `apps/mobile-owner` dashboard ekrani quyidagi endpointlarni talab qiladi, lekin ular to'liq emas yoki yo'q
-- **Kerakli endpointlar:**
-  - `GET /analytics/revenue?period=today|week|month|year&branchId=` → `{ today, week, month, year, todayTrend, weekTrend, monthTrend, yearTrend }`
-  - `GET /analytics/sales-trend?period=7d|30d&branchId=` → `{ labels: string[], values: number[] }`
-  - `GET /analytics/branch-comparison?metric=revenue|orders` → `{ branches: [{ branchId, branchName, value }] }`
-  - `GET /analytics/top-products?limit=10&branchId=` → `{ products: [{ productId, name, quantity, revenue }] }`
-- **Kutilgan:** Response format `apps/mobile-owner/src/api/analytics.api.ts` bilan mos bo'lsin
-- **Auth:** JWT Bearer — faqat `OWNER` role
-
----
-
 ## T-202 | P1 | [BACKEND] | Low Stock & Inventory Alerts endpoint
 
 - **Sana:** 2026-03-12
@@ -111,18 +95,6 @@
 
 ---
 
-## T-207 | P1 | [BACKEND] | System Health endpoint
-
-- **Sana:** 2026-03-12
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/system/`
-- **Muammo:** Mobile-owner SystemHealth ekrani uchun service status va sync status kerak
-- **Kerakli endpointlar:**
-  - `GET /system/health` → `{ services: [{ name, status: 'ok'|'warn'|'error', latencyMs }], syncStatus: [{ branchId, branchName, lastSyncAt, pendingCount }], recentErrors: [{ message, service, timestamp }] }`
-- **Auth:** JWT Bearer — faqat `OWNER` role
-
----
-
 ## T-208 | P2 | [BACKEND] | Push Notification device token registration
 
 - **Sana:** 2026-03-12
@@ -149,20 +121,6 @@
 - **Branch object:** `{ id: string, name: string, address?: string, isActive: boolean }`
 - **Auth:** JWT Bearer — `OWNER` role (faqat o'z tenant filiallarini ko'radi)
 - **Note:** Mobile-owner bu endpoint orqali branch selector ni to'ldiradi. `tenant_id` JWT dan olinadi.
-
----
-
-## T-210 | P1 | [BACKEND] | Analytics orders count endpoint — Dashboard 4-karta uchun
-
-- **Sana:** 2026-03-12
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/analytics/`
-- **Muammo:** Dashboard ekrani 4-kartasi "Buyurtmalar 247 ta" ko'rsatadi — `GET /analytics/orders` kerak
-- **Kerakli endpoint:**
-  - `GET /analytics/orders?branchId=&period=today|week|month|year` → `{ total: number, avgOrderValue: number, trend: number }`
-  - `trend` = joriy davrning oldingi davr bilan solishtirgan % o'zgarishi
-- **Auth:** JWT Bearer — faqat `OWNER` role
-- **Note:** `RevenueData` bilan parallel chaqiriladi. Alohida endpoint sifatida izolyatsiya qilingan.
 
 ---
 
@@ -238,19 +196,6 @@
 - **percentage** = `(amount / totalRevenue) * 100` — backend tomonidan hisoblanadi
 - **Auth:** JWT Bearer — faqat `OWNER` role
 - **Frontend:** `apps/mobile-owner/src/screens/Shifts/PaymentBreakdownChart.tsx` — horizontal bars chart tayyor
-
----
-
-## T-215 | P2 | [BACKEND] | `StockValueData.byBranch` — Inventory stock value by branch
-
-- **Sana:** 2026-03-12
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/inventory/`
-- **Muammo:** Analytics screen `StockValueByBranch` chart uchun filial bo'yicha tovar qiymati kerak
-- **Kerakli endpoint:**
-  - `GET /inventory/stock-value?period=today|week|month|year` → `{ total: number, byBranch: [{ branchId, branchName, value }] }`
-- **Frontend:** `apps/mobile-owner/src/api/inventory.api.ts` — `StockValueData` interface tekshirib ko'r
-- **Auth:** JWT Bearer — faqat `OWNER` role
 
 ---
 
@@ -494,31 +439,6 @@ Sherzod Mirzayev  — debt: 650_000,   overdue: 31 kun
 
 ---
 
-## T-221 | P1 | [BACKEND] | `GET /analytics/revenue` — Response format mismatch
-
-- **Sana:** 2026-03-14
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/ai/analytics.controller.ts` + yangi analytics service
-- **Muammo:** Backend hozir `GET /analytics/revenue` dan `[{ period, amount, currency, trend, branchId, branchName }]` array qaytaradi. Mobile-owner `{ today, week, month, year, todayTrend, weekTrend, monthTrend, yearTrend }` object kutadi.
-- **Kerakli response format:**
-  ```json
-  {
-    "today": 1936000,
-    "week": 12450000,
-    "month": 48750000,
-    "year": 185000000,
-    "todayTrend": 12.5,
-    "weekTrend": 8.3,
-    "monthTrend": -3.1,
-    "yearTrend": 5.2
-  }
-  ```
-- **Query params:** `?branch_id=&period=today|week|month|year`
-- **Auth:** JWT Bearer — faqat `OWNER` role
-- **Frontend fayl:** `apps/mobile-owner/src/api/analytics.api.ts` → `RevenueData` interface
-
----
-
 ## T-222 | P1 | [BACKEND] | `GET /inventory/out-of-stock` — Omborda yo'q tovarlar
 
 - **Sana:** 2026-03-14
@@ -697,36 +617,6 @@ GET    /employees/:id/suspicious-activity              → SuspiciousActivityAle
 - **Suspicious triggers:** refund > 3× avg order, void after payment, discount > 30%, 5+ voids in 2 hours
 - **Auth:** JWT Bearer — faqat `OWNER` role
 - **Frontend fayl:** `apps/mobile-owner/src/api/employees.api.ts`
-
----
-
-## T-225 | P1 | [BACKEND] | Biometric auth — `POST /auth/biometric/register` + `POST /auth/biometric/verify`
-
-- **Sana:** 2026-03-14
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/identity/auth.controller.ts`
-- **Muammo:** Mobile-owner biometric login (fingerprint/face) ishlatadi. Backend da bu endpointlar yo'q.
-
-### Kerakli endpointlar:
-
-```
-POST /auth/biometric/register
-Body: { publicKey: string, deviceId: string }
-→ { success: true, biometricToken: string }
-
-POST /auth/biometric/verify
-Body: { biometricToken: string, deviceId: string }
-→ { access_token: string, refresh_token: string, user: User }
-```
-
-### Implementatsiya yondashuvi:
-- Register: Foydalanuvchi logindan keyin biometric key ni serverda saqlash
-- Verify: Saqlangan biometric key orqali access token qaytarish
-- `user_biometric_keys` jadvali: `(userId, publicKey, deviceId, createdAt)`
-- Biometric token 30 kunlik, har verify da yangilanadi
-- **Auth (register):** JWT Bearer — autentifikatsiya qilingan foydalanuvchi
-- **Auth (verify):** Public (token orqali)
-- **Frontend fayl:** `apps/mobile-owner/src/hooks/useBiometricAuth.ts`, `apps/mobile-owner/src/api/auth.api.ts`
 
 ---
 

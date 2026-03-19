@@ -10,6 +10,8 @@ export interface JwtPayload {
   role: string;
   branchId: string | null;
   isAdmin?: boolean;
+  hasPosAccess?: boolean;
+  hasAdminAccess?: boolean;
 }
 
 @Injectable()

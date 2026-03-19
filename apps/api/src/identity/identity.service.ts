@@ -246,6 +246,23 @@ export class IdentityService {
     return tokens;
   }
 
+  /** T-225: Biometric verify dan keyin userId bo'yicha token yaratish */
+  async loginById(userId: string): Promise<AuthTokens> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { id: true, tenantId: true, role: true, isActive: true },
+    });
+    if (!user.isActive) throw new UnauthorizedException('User inactive');
+    const hasPosAccess   = ['CASHIER', 'MANAGER', 'OWNER'].includes(user.role);
+    const hasAdminAccess = ['OWNER', 'ADMIN', 'MANAGER'].includes(user.role);
+    const tokens = await this.generateTokens({
+      sub: user.id, tenantId: user.tenantId, role: user.role,
+      branchId: null,
+    } as Parameters<typeof this.generateTokens>[0]);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    return tokens;
+  }
+
   /** Admin tomonidan foydalanuvchi lockini ochish (T-067) */
   async unlockUser(adminUserId: string, targetUserId: string): Promise<void> {
     await this.prisma.userLock.delete({ where: { userId: targetUserId } }).catch(() => null);

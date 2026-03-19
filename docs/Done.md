@@ -398,3 +398,45 @@
 - **Yechim:** `sales.api.ts` va `debt.api.ts` da methodMap qo'shildi: `CARD→TERMINAL`, `NASIYA→DEBT`, `BONUS→CASH`
 - **Fayllar:** `apps/web/src/api/sales.api.ts`, `apps/web/src/api/debt.api.ts`, `apps/web/src/api/payments.api.ts`, `apps/web/src/types/founder.ts`, `apps/web/src/app/(admin)/payments/history/page.tsx`
 
+---
+
+## T-225 | 2026-03-19 | [BACKEND] | Biometric auth — register va verify real implementatsiya
+
+- **Yechim:** `POST /auth/biometric/register` va `POST /auth/biometric/verify` endpointlari real implementatsiya qilindi. `user_biometric_keys` jadvali orqali publicKey + deviceId saqlanadi. Verify da biometric token tekshiriladi va JWT access/refresh token qaytariladi.
+- **Fayllar:** `apps/api/src/identity/auth.controller.ts`, `apps/api/src/identity/identity.service.ts`
+
+---
+
+## T-221 | 2026-03-19 | [BACKEND] | Analytics revenue response format to'g'irlandi
+
+- **Yechim:** `GET /analytics/revenue` endi array emas, mobile-owner kutgan `{ today, week, month, year, todayTrend, weekTrend, monthTrend, yearTrend }` object formatida qaytaradi. Real DB dan hisoblangan qiymatlar.
+- **Fayllar:** `apps/api/src/ai/analytics.controller.ts`
+
+---
+
+## T-215 | 2026-03-19 | [BACKEND] | Stock value by branch endpoint
+
+- **Yechim:** `GET /inventory/stock-value?period=today|week|month|year` endpointi qo'shildi. `{ total, byBranch: [{ branchId, branchName, value }] }` formatida tovar qiymatini filial bo'yicha qaytaradi.
+- **Fayllar:** `apps/api/src/ai/analytics.controller.ts`
+
+---
+
+## T-210 | 2026-03-19 | [BACKEND] | Analytics orders count endpoint
+
+- **Yechim:** `GET /analytics/orders?branchId=&period=today|week|month|year` endpointi qo'shildi. `{ total, avgOrderValue, trend }` formatida buyurtmalar sonini qaytaradi. Dashboard 4-kartasi uchun.
+- **Fayllar:** `apps/api/src/ai/analytics.controller.ts`
+
+---
+
+## T-207 | 2026-03-19 | [BACKEND] | System Health endpoint — tasdiqlandi
+
+- **Yechim:** `GET /system/health` endpointi allaqachon mavjud edi va to'g'ri ishlaydi. `{ services, syncStatus, recentErrors }` formatida qaytaradi. Tasdiqlangan va yopildi.
+- **Fayllar:** `apps/api/src/system/`
+
+---
+
+## T-201 | 2026-03-19 | [BACKEND] | Owner Dashboard Analytics API endpointlari
+
+- **Yechim:** `GET /analytics/sales-trend`, `GET /analytics/branch-comparison`, `GET /analytics/top-products`, `GET /analytics/revenue-by-branch` endpointlari qo'shildi. Barcha endpointlar mobile-owner `analytics.api.ts` interfeyslari bilan mos formatda qaytaradi.
+- **Fayllar:** `apps/api/src/ai/analytics.controller.ts`
+
