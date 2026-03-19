@@ -192,6 +192,38 @@
 
 *docs/Done.md | RAOS*
 
+## T-062 | 2026-03-19 | [BACKEND] | Outbox pattern — Server-side sync endpoint
+
+- **Yechim:** `SyncModule`, `SyncService`, `SyncController` yaratildi. `POST /sync/inbound` — POS dan kelgan batch events qabul qiladi (idempotency_key orqali duplicate reject). `GET /sync/outbound?since=timestamp` — server dan yangilangan mahsulotlar, narxlar, kategoriyalarni qaytaradi. `GET /sync/status` — pending queue holati.
+- **Fayllar:** `apps/api/src/sync/sync.controller.ts`, `apps/api/src/sync/sync.service.ts`, `apps/api/src/sync/sync.module.ts`
+- **Commit:** (sessiya 14)
+
+---
+
+## T-061 | 2026-03-19 | [BACKEND] | Real-time events — WebSocket Gateway
+
+- **Yechim:** NestJS WebSocket Gateway (Socket.io) yaratildi. Room-based: tenant_id room (tenant admin), `admin` room (founder). Events: `sale:completed`, `error:new`, `sync:status`, `shift:changed`. JWT auth for WebSocket connections.
+- **Fayllar:** `apps/api/src/realtime/realtime.gateway.ts`, `apps/api/src/realtime/realtime.module.ts`
+- **Commit:** (sessiya 14)
+
+---
+
+## T-059 | 2026-03-19 | [BACKEND] | Tenant provisioning wizard — One-click setup
+
+- **Yechim:** `POST /admin/tenants/provision` endpointi qo'shildi. Yangi tenant yaratishda: tenant record, owner user (vaqtinchalik parol bilan), default branch, seed kategoriyalar (7 ta kosmetika kategoriyasi), default units (5 ta), default settings (UZS, 12% QQS, fiskal o'chirilgan). Response: tenant slug + owner credentials.
+- **Fayllar:** `apps/api/src/admin/admin-auth.controller.ts`
+- **Commit:** (sessiya 14)
+
+---
+
+## T-058 | 2026-03-19 | [BACKEND] | Tenant impersonation — "Login as" any tenant
+
+- **Yechim:** `POST /admin/impersonate/:tenantId` endpointi qo'shildi. Vaqtinchalik JWT token (1 soat) qaytaradi. Barcha impersonation audit_logs ga yoziladi (who, when, which tenant). Faqat SUPER_ADMIN roli uchun.
+- **Fayllar:** `apps/api/src/admin/admin-auth.controller.ts`
+- **Commit:** (sessiya 14)
+
+---
+
 ## T-248 | 2026-03-19 | [FRONTEND] | Ko'chmas mulk (Real Estate) moduli UI
 
 - **Yechim:** Real Estate sahifa: mulk kartalari (OFFICE/WAREHOUSE/RETAIL/APARTMENT), status filter, search, stats kartalar (jami mulk, ijarada, oylik ijara, muddati o'tgan). To'lovlar tab — jadval bilan. Backend hali tayyor emas (T-140), ErrorState ko'rsatadi.
