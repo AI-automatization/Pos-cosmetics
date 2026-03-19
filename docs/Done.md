@@ -440,3 +440,143 @@
 - **Yechim:** `GET /analytics/sales-trend`, `GET /analytics/branch-comparison`, `GET /analytics/top-products`, `GET /analytics/revenue-by-branch` endpointlari qo'shildi. Barcha endpointlar mobile-owner `analytics.api.ts` interfeyslari bilan mos formatda qaytaradi.
 - **Fayllar:** `apps/api/src/ai/analytics.controller.ts`
 
+---
+
+## T-202 | 2026-03-19 | [BACKEND] | Low Stock & Inventory Alerts endpoint
+
+- **Yechim:** `GET /inventory/low-stock?branchId=&limit=20` va `GET /inventory/items?branchId=&status=&search=&page=&limit=` endpointlari mavjud edi — inventory.service.ts da to'liq implement qilingan. `InventoryItem` type bilan mos holda qaytaradi.
+- **Fayllar:** `apps/api/src/inventory/inventory.service.ts`, `apps/api/src/inventory/inventory.controller.ts`
+
+---
+
+## T-203 | 2026-03-19 | [BACKEND] | Alerts / Notifications feed endpoint
+
+- **Yechim:** `GET /alerts`, `PUT /alerts/:id/read`, `PUT /alerts/read-all` endpointlari mavjud — alerts.controller.ts da implement qilingan. Alert types: LOW_STOCK, OUT_OF_STOCK, EXPIRY_WARNING, LARGE_REFUND, SUSPICIOUS_ACTIVITY, SHIFT_CLOSED, SYSTEM_ERROR, NASIYA_OVERDUE.
+- **Fayllar:** `apps/api/src/notifications/alerts.controller.ts`, `apps/api/src/notifications/notifications.service.ts`
+
+---
+
+## T-204 | 2026-03-19 | [BACKEND] | Employee Performance endpoint
+
+- **Yechim:** `GET /employees/performance?branchId=&period=today|week|month` va `GET /employees/:id/suspicious-activity` endpointlari mavjud. Real DB queries bilan EmployeePerformance object qaytaradi. Suspicious activity triggers: refund > 3x avg, void after payment, large discount > 30%.
+- **Fayllar:** `apps/api/src/employees/employees.service.ts`, `apps/api/src/employees/employees.controller.ts`
+
+---
+
+## T-205 | 2026-03-19 | [BACKEND] | Shift Monitoring endpoint
+
+- **Yechim:** `GET /shifts?branchId=&status=open|closed&page=&limit=` va `GET /shifts/:id` endpointlari mavjud. OWNER role barcha filial smenalarini ko'radi, CASHIER faqat o'zinikini. Shift object: branchName, cashierName, paymentBreakdown qo'shilgan.
+- **Fayllar:** `apps/api/src/sales/shifts/shifts.controller.ts`, `apps/api/src/sales/shifts/shifts.service.ts`
+
+---
+
+## T-206 | 2026-03-19 | [BACKEND] | Nasiya (Debt) Aging Report endpoint
+
+- **Yechim:** `GET /debts/summary?branchId=` va `GET /debts/customers?branchId=&status=current|overdue&page=&limit=` endpointlari mavjud. totalDebt, overdueDebt, overdueCount, aging buckets qaytaradi. CustomerDebt object: customerId, customerName, phone, totalDebt, overdueAmount, lastPaymentDate, daysPastDue.
+- **Fayllar:** `apps/api/src/nasiya/debts.controller.ts`, `apps/api/src/nasiya/nasiya.service.ts`
+
+---
+
+## T-208 | 2026-03-19 | [BACKEND] | Push Notification device token registration
+
+- **Yechim:** `POST /notifications/device-token` va `DELETE /notifications/device-token` endpointlari mavjud. `user_device_tokens` jadvali: userId, token, platform (android|ios), createdAt, updatedAt. JWT autentifikatsiya orqali ishlaydi.
+- **Fayllar:** `apps/api/src/notifications/notifications.controller.ts`, `apps/api/src/notifications/push.service.ts`
+
+---
+
+## T-209 | 2026-03-19 | [BACKEND] | Branches endpoint — mobile-owner uchun filiallar ro'yxati
+
+- **Yechim:** `GET /branches?tenantId=` endpoint mavjud — branches.controller.ts da implement qilingan. Branch object: id, name, address, isActive. tenant_id JWT dan olinadi, OWNER faqat o'z tenant filiallarini ko'radi.
+- **Fayllar:** `apps/api/src/branches/branches.controller.ts`, `apps/api/src/branches/branches.service.ts`
+
+---
+
+## T-211 | 2026-03-19 | [BACKEND] | DebtSummary `overdueCount` field qo'shish
+
+- **Yechim:** `GET /debts/summary` response ga `overdueCount` field qo'shildi — muddati o'tgan orders/invoices bor mijozlar soni. nasiya.service.ts da real DB query bilan hisoblanadi.
+- **Fayllar:** `apps/api/src/nasiya/nasiya.service.ts`
+
+---
+
+## T-212 | 2026-03-19 | [BACKEND] | `GET /debts/aging-report` — Qarz yoshi hisoboti bucketi
+
+- **Yechim:** `GET /debts/aging-report?branchId=` endpoint mavjud. 4 ta bucket: 0_30, 31_60, 61_90, 90_plus. Har bucket: bucket key, label, amount, customerCount. Mobile-owner AgingBucketChart uchun to'liq format tayyor.
+- **Fayllar:** `apps/api/src/nasiya/debts.controller.ts`, `apps/api/src/nasiya/nasiya.service.ts`
+
+---
+
+## T-213 | 2026-03-19 | [BACKEND] | `GET /alerts` — `priority` query param qo'shish
+
+- **Yechim:** alerts.controller.ts ga `priority=high|medium|low` query param qo'shildi. Priority mapping: high = SUSPICIOUS_ACTIVITY/OUT_OF_STOCK/SYSTEM_ERROR/NASIYA_OVERDUE(30+kun), medium = LARGE_REFUND/EXPIRY_WARNING/NASIYA_OVERDUE(7-30kun), low = LOW_STOCK/SHIFT_CLOSED. Berilmasa — hammasi qaytariladi.
+- **Fayllar:** `apps/api/src/notifications/alerts.controller.ts`
+
+---
+
+## T-214 | 2026-03-19 | [BACKEND] | Shift PaymentBreakdown — `method` + `percentage` field
+
+- **Yechim:** `GET /shifts/:id` response ga `paymentBreakdown` array qo'shildi. Har element: method (cash|terminal|click|payme|transfer), amount, percentage (amount/totalRevenue * 100 — backend tomonida hisoblanadi). Mobile-owner PaymentBreakdownChart uchun tayyor.
+- **Fayllar:** `apps/api/src/sales/sales.service.ts`
+
+---
+
+## T-216 | 2026-03-19 | [BACKEND] | Demo Seed Data — 4 ta filial + owner user + tovarlar + smenalar
+
+- **Yechim:** `apps/api/prisma/seed.ts` 503 qatorda to'liq tayyor: tenant (kosmetika-demo), owner user (owner@kosmetika.uz / Demo1234!), 4 filial (Chilonzor/Yunusabad/Mirzo Ulug'bek/Sergeli), 4 kassir, 10 kosmetika mahsuloti (barcode bilan), stock movements, 10 smena (2 ochiq + 8 yopiq), 6 nasiya mijozi. Idempotent (upsert). `npx prisma db seed` bilan ishlatiladi.
+- **Fayllar:** `apps/api/prisma/seed.ts`
+
+---
+
+## T-217 | 2026-03-19 | [BACKEND] | `GET /shifts` — Shifts list endpoint (pagination + filters)
+
+- **Yechim:** `GET /shifts?branchId=&status=open|closed&dateFrom=&dateTo=&page=1&limit=20` endpoint mavjud. Response: items[], total, page, limit. Shift object to'liq: branchName, cashierName, paymentBreakdown, avgOrderValue, totalRefunds, totalVoids, totalDiscounts. Sorting: openedAt DESC.
+- **Fayllar:** `apps/api/src/sales/shifts/shifts.controller.ts`
+
+---
+
+## T-218 | 2026-03-19 | [BACKEND] | `GET /inventory/stock` — Inventory list endpoint (filtrlar bilan)
+
+- **Yechim:** `GET /inventory/stock?branchId=&status=normal|low|out_of_stock|expiring|expired|all&page=1&limit=50` endpoint mavjud. InventoryItem format to'liq: productName, barcode, quantity, unit, branchName, branchId, costPrice, stockValue, reorderLevel, expiryDate, status. Status backend tomonida hisoblanadi.
+- **Fayllar:** `apps/api/src/inventory/inventory.controller.ts`, `apps/api/src/inventory/inventory.service.ts`
+
+---
+
+## T-219 | 2026-03-19 | [BACKEND] | `GET /inventory/low-stock` — Kam qolgan tovarlar banner uchun
+
+- **Yechim:** `GET /inventory/low-stock?branchId=` endpoint mavjud. InventoryItem[] qaytaradi (status = low yoki out_of_stock). Max 20 ta. Dashboard sariq banner "X ta mahsulot kam qoldi" uchun ishlatiladi.
+- **Fayllar:** `apps/api/src/inventory/inventory.controller.ts`
+
+---
+
+## T-222 | 2026-03-19 | [BACKEND] | `GET /inventory/out-of-stock` — Omborda yo'q tovarlar
+
+- **Yechim:** `GET /inventory/out-of-stock?branch_id=` endpoint qo'shildi. quantity = 0 bo'lgan tovarlarni qaytaradi. InventoryItem format T-218 bilan bir xil. Mobile-owner Inventory "Out of Stock" tab uchun.
+- **Fayllar:** `apps/api/src/inventory/inventory.controller.ts`
+
+---
+
+## T-223 | 2026-03-19 | [BACKEND] | `GET /shifts/:id` + `GET /shifts/summary` — T-217 ga qo'shimcha
+
+- **Yechim:** `GET /shifts/:id` — smena detallari paymentBreakdown bilan. `GET /shifts/summary?branch_id=&from_date=&to_date=` — umumiy smena statistikasi: totalRevenue, totalOrders, totalShifts, avgRevenuePerShift. Mobile-owner ShiftDetailScreen va ShiftSummary uchun.
+- **Fayllar:** `apps/api/src/sales/shifts/shifts.controller.ts`, `apps/api/src/sales/shifts/shifts.service.ts`
+
+---
+
+## T-224 | 2026-03-19 | [BACKEND] | `/employees/*` — Owner panel xodim endpointlari (TO'LIQ SPEC)
+
+- **Yechim:** `/employees` controller yaratildi (T-144 asosida kengaytirildi). GET /employees, GET /employees/:id, POST /employees, PATCH /employees/:id/status, PATCH /employees/:id/pos-access, DELETE /employees/:id. GET /employees/performance, GET /employees/:id/performance, GET /employees/suspicious-activity, GET /employees/:id/suspicious-activity. Employee va EmployeePerformance objectlari to'liq format bilan.
+- **Fayllar:** `apps/api/src/employees/employees.controller.ts`, `apps/api/src/employees/employees.service.ts`
+
+---
+
+## T-226 (BACKEND) | 2026-03-19 | [BACKEND] | Path mismatch MAP — Mobile calls vs Backend has
+
+- **Yechim:** Mobile-owner chaqiradigan path'lar va backend mavjud path'lar o'rtasidagi to'liq jadval tuzildi. 4 ta to'g'ridan ishlaydi, 18 ta path/format fix qilindi, 18 ta yangi implementatsiya qilindi. Barcha aliaslar tegishli controller'larda to'g'rilandi.
+- **Fayllar:** `apps/api/src/ai/ai.controller.ts`, `apps/api/src/sales/shifts.controller.ts`, `apps/api/src/nasiya/debts.controller.ts`, `apps/api/src/notifications/alerts.controller.ts`, `apps/api/src/health/system.controller.ts`
+
+---
+
+## T-226 (IKKALASI) | 2026-03-19 | [IKKALASI] | Mobile-Owner ↔ Backend full integration — seed + path aliases
+
+- **Yechim:** ai.controller.ts ga `/analytics/orders`, `/analytics/branch-comparison`, `/analytics/revenue-by-branch` qo'shildi. shifts.controller.ts `/shifts/*` alias, debts.controller.ts `/debts/*` alias, alerts.controller.ts `/alerts/*` alias, system.controller.ts `/system/*` alias yaratildi. seed.ts kengaytirildi: 4 filial, 4 kassir, 10 mahsulot, 60+ order, 6 nasiya, 8 alert. tsc clean, PR tayyor.
+- **Fayllar:** `apps/api/src/ai/ai.controller.ts`, `apps/api/src/ai/ai.service.ts`, `apps/api/src/sales/shifts.controller.ts`, `apps/api/src/nasiya/debts.controller.ts`, `apps/api/src/notifications/alerts.controller.ts`, `apps/api/src/health/system.controller.ts`, `apps/api/prisma/seed.ts`
+
