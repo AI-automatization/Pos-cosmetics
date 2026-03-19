@@ -28,6 +28,7 @@ interface Props {
   total: number;
   onClose: () => void;
   onConfirm: (method: PaymentMethod, received: number) => void;
+  onRemoveItem?: (productId: string) => void;
 }
 
 // ─── Utils ────────────────────────────────────────────
@@ -42,7 +43,7 @@ const METHODS: { key: PaymentMethod; label: string; icon: string; color: string 
 ];
 
 // ─── Component ────────────────────────────────────────
-export default function PaymentSheet({ visible, cart, total, onClose, onConfirm }: Props) {
+export default function PaymentSheet({ visible, cart, total, onClose, onConfirm, onRemoveItem }: Props) {
   const [method, setMethod]         = useState<PaymentMethod>('NAQD');
   const [split, setSplit]           = useState(false);
   const [received, setReceived]     = useState('');
@@ -109,6 +110,35 @@ export default function PaymentSheet({ visible, cart, total, onClose, onConfirm 
                   <Text style={styles.summaryTotal}>{fmt(total)}</Text>
                 </View>
               </View>
+
+              {cart.length > 0 && (
+                <ScrollView
+                  style={styles.itemList}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                >
+                  {cart.map((item) => (
+                    <View key={item.product.id} style={styles.itemRow}>
+                      <Text style={styles.itemName} numberOfLines={1}>
+                        {item.product.name}
+                      </Text>
+                      <Text style={styles.itemQty}>×{item.qty}</Text>
+                      <Text style={styles.itemPrice}>
+                        {fmt(item.product.sellPrice * item.qty)}
+                      </Text>
+                      {onRemoveItem != null && (
+                        <TouchableOpacity
+                          style={styles.itemRemoveBtn}
+                          onPress={() => onRemoveItem(item.product.id)}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="close" size={14} color="#EF4444" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
             </View>
 
             {/* Payment method */}
@@ -459,5 +489,47 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
+  },
+
+  // Cart items list
+  itemList: {
+    marginTop: 12,
+    maxHeight: 140,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: 8,
+  },
+  itemName: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  itemQty: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    fontWeight: '500',
+    minWidth: 24,
+    textAlign: 'center',
+  },
+  itemPrice: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111827',
+    minWidth: 80,
+    textAlign: 'right',
+  },
+  itemRemoveBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
