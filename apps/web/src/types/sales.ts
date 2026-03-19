@@ -15,7 +15,7 @@ export interface CartItem {
 }
 
 export type DiscountType = 'percent' | 'fixed';
-export type PaymentMethod = 'cash' | 'card' | 'split' | 'nasiya';
+export type PaymentMethod = 'cash' | 'card' | 'split' | 'nasiya' | 'bonus';
 
 export interface CartTotals {
   subtotal: number;       // before discount
@@ -40,7 +40,7 @@ export interface CreateOrderItemDto {
 }
 
 export interface PaymentEntryDto {
-  method: 'CASH' | 'CARD' | 'NASIYA';
+  method: 'CASH' | 'CARD' | 'NASIYA' | 'BONUS';
   amount: number;
 }
 

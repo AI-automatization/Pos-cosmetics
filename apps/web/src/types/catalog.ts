@@ -1,6 +1,38 @@
 // Catalog domain types
 // TODO: Move to packages/types/ after backend implements schemas (T-011)
 
+export interface BundleItem {
+  id: string;
+  bundleId: string;
+  componentId: string;
+  component?: { id: string; name: string; sku?: string; sellPrice: number };
+  quantity: number;
+}
+
+export interface AddBundleComponentDto {
+  componentId: string;
+  quantity: number;
+}
+
+export interface ProductCertificate {
+  id: string;
+  productId: string;
+  certNumber: string;
+  issuingAuthority: string;
+  issuedAt: string;
+  expiresAt?: string | null;
+  fileUrl?: string | null;
+  createdAt: string;
+}
+
+export interface CreateCertificateDto {
+  certNumber: string;
+  issuingAuthority: string;
+  issuedAt: string;
+  expiresAt?: string;
+  fileUrl?: string;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -22,6 +54,7 @@ export interface Product {
   id: string;
   name: string;
   barcode: string | null;
+  extraBarcodes?: string[];
   sku: string | null;
   categoryId: string | null;
   category: Pick<Category, 'id' | 'name'> | null;
@@ -37,6 +70,9 @@ export interface Product {
   imageUrl: string | null;
   isActive: boolean;
   isBundle: boolean;
+  bundleItems?: BundleItem[];
+  /** Nearest batch expiry date (populated by backend for expiryTracking products) */
+  expiryDate?: string | null;
   tenantId: string;
   createdAt: string;
   updatedAt: string;
@@ -81,6 +117,7 @@ export interface PaginatedResponse<T> {
 export interface CreateProductDto {
   name: string;
   barcode?: string;
+  extraBarcodes?: string[];
   sku?: string;
   categoryId?: string;
   unitId?: string;
@@ -94,6 +131,36 @@ export interface CreateProductDto {
 }
 
 export type UpdateProductDto = Partial<CreateProductDto>;
+
+// --- Product Variants ---
+
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  tenantId: string;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  costPrice: number;
+  costCurrency: string;
+  sellPrice: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateVariantDto {
+  name: string;
+  sku?: string;
+  barcode?: string;
+  costPrice?: number;
+  sellPrice?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export type UpdateVariantDto = Partial<CreateVariantDto>;
 
 export interface CreateCategoryDto {
   name: string;

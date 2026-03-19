@@ -6,7 +6,7 @@ import { inventoryApi } from '@/api/inventory.api';
 import { catalogApi } from '@/api/catalog.api';
 import { usersApi } from '@/api/users.api';
 import { extractErrorMessage } from '@/lib/utils';
-import type { StockQuery, StockInDto, StockOutDto, StockLevel, StockStatus, StockMovement } from '@/types/inventory';
+import type { StockQuery, StockInDto, StockOutDto, StockLevel, StockStatus, StockMovement, TransferStatus, CreateTransferDto } from '@/types/inventory';
 import type { Product } from '@/types/catalog';
 import type { User } from '@/types/user';
 
@@ -120,5 +120,49 @@ export function useMovementsWithUsers(productId?: string) {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     },
     staleTime: 30_000,
+  });
+}
+
+// ─── Transfers ───
+
+const TRANSFERS_KEY = 'transfers';
+
+export function useTransfers(params?: { status?: TransferStatus; branchId?: string }) {
+  return useQuery({
+    queryKey: [TRANSFERS_KEY, params?.status, params?.branchId],
+    queryFn: () => inventoryApi.listTransfers(params),
+    staleTime: 30_000,
+  });
+}
+
+export function useCreateTransfer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: CreateTransferDto) => inventoryApi.createTransfer(dto),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [TRANSFERS_KEY] });
+      toast.success("Ko'chirish so'rovi yaratildi");
+    },
+    onError: (err) => toast.error(extractErrorMessage(err)),
+  });
+}
+
+export function useTransferAction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { id: string; action: 'approve' | 'ship' | 'receive' | 'cancel' }) => {
+      const map = {
+        approve: inventoryApi.approveTransfer,
+        ship: inventoryApi.shipTransfer,
+        receive: inventoryApi.receiveTransfer,
+        cancel: inventoryApi.cancelTransfer,
+      };
+      return map[action](id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [TRANSFERS_KEY] });
+      toast.success("Transfer holati yangilandi");
+    },
+    onError: (err) => toast.error(extractErrorMessage(err)),
   });
 }

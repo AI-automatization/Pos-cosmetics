@@ -43,8 +43,21 @@ export function useLogin() {
       return tokens;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      router.push('/dashboard');
+      try {
+        const user = await authApi.me();
+        queryClient.setQueryData(['auth', 'me'], user);
+
+        if (user.role === 'OWNER') {
+          router.push('/analytics');
+        } else if (user.role === 'CASHIER') {
+          router.push('/pos');
+        } else {
+          router.push('/dashboard');
+        }
+      } catch {
+        // /auth/me failed after login — still deliver user somewhere usable
+        router.push('/dashboard');
+      }
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));

@@ -14,7 +14,8 @@ interface POSState {
   paymentMethod: PaymentMethod;
   cashAmount: number;
   cardAmount: number;
-  selectedCustomer: Customer | null; // nasiya uchun
+  bonusPoints: number;               // bonus to'lovda sarflanadigan ball soni
+  selectedCustomer: Customer | null; // nasiya / bonus uchun
 
   // Shift
   shiftId: string | null;
@@ -39,6 +40,7 @@ interface POSState {
   setPaymentMethod: (method: PaymentMethod) => void;
   setCashAmount: (amount: number) => void;
   setCardAmount: (amount: number) => void;
+  setBonusPoints: (points: number) => void;
   setSelectedCustomer: (customer: Customer | null) => void;
 
   // Shift actions
@@ -63,6 +65,7 @@ export const usePOSStore = create<POSState>()(
   paymentMethod: 'cash',
   cashAmount: 0,
   cardAmount: 0,
+  bonusPoints: 0,
   selectedCustomer: null,
   shiftId: null,
   cashierName: 'Kassir',
@@ -87,9 +90,11 @@ export const usePOSStore = create<POSState>()(
 
     const total = Math.max(0, subtotal - discountAmount);
 
+    const { bonusPoints } = get();
     let paidAmount = 0;
     if (paymentMethod === 'cash') paidAmount = cashAmount;
     else if (paymentMethod === 'card') paidAmount = total;
+    else if (paymentMethod === 'bonus') paidAmount = bonusPoints * 100;
     else paidAmount = cashAmount + cardAmount;
 
     const change =
@@ -143,6 +148,7 @@ export const usePOSStore = create<POSState>()(
       orderDiscountType: 'percent',
       cashAmount: 0,
       cardAmount: 0,
+      bonusPoints: 0,
       paymentMethod: 'cash',
       selectedCustomer: null,
     }),
@@ -150,6 +156,7 @@ export const usePOSStore = create<POSState>()(
   setPaymentMethod: (method) => set({ paymentMethod: method }),
   setCashAmount: (amount) => set({ cashAmount: Math.max(0, amount) }),
   setCardAmount: (amount) => set({ cardAmount: Math.max(0, amount) }),
+  setBonusPoints: (points) => set({ bonusPoints: Math.max(0, points) }),
   setSelectedCustomer: (customer) => set({ selectedCustomer: customer }),
 
   openShift: (shiftId, cashierName, openingCash) =>

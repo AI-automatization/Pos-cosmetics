@@ -17,18 +17,18 @@ Salom! Men RAOS loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
   1. Polat (Backend & DevOps & Testing API & SWAGGER)
   2. AbdulazizYormatov (Frontend — Web , React Electron Desktop App, Admin Panel)
-  3. Ibrat (Mobile — React Native Android + iOS)
+  3. Ibrat (Mobile — React Native Android)
   4. Abdulaziz (Mobile — React Native IOS)
-  5. Bekzod (Tester & Architector)
+  4. Bekzod (Tester & Architector)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 - Polat → `CLAUDE_BACKEND.md`
-- AbdulazizYormatov → `CLAUDE_FRONTEND.md`
+- AbdulazizYormatov → `CLAUDE_FRONTEND.md` + `CLAUDE_FRONTEND_OWNER.md` (Owner panel da)
+- Ibrat → `CLAUDE_MOBILE.md`
 - Abdulaziz → `CLAUDE_MOBILE.md`
 - Bekzod → `CLAUDE_BACKEND.md`
-- Ibrat → `CLAUDE_MOBILE.md` + `CLAUDE_OWNER_MOBILE.md` (ikkala faylni ham o'qi)
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 
@@ -70,7 +70,6 @@ apps/
   web/             → Abdulaziz zonasi (Admin Panel — Next.js)
   pos/             → Abdulaziz zonasi (POS Desktop — Tauri)
   mobile/          → Ibrat zonasi (React Native — Android)
-  mobile-owner/    → Ibrat & OwnerMobile zonasi (React Native — Android + iOS, READ-ONLY)
 packages/
   types/           → UMUMIY — kelishib o'zgartirish
   utils/           → UMUMIY — kelishib o'zgartirish
@@ -352,6 +351,41 @@ Har sessiya boshida:
 
 ---
 
+## 🤖 AGENTLAR TIZIMI
+
+RAOS da Claude Code subagentlari mavjud — `.claude/agents/` papkasida.
+
+**Sessiya boshida agent ishlatish tartibi:**
+
+```
+1. VS Code ochildi
+   → "session-start agentini ishga tushir"
+
+2. P0 task ko'rsatdi (masalan type xatoliklar)
+   → "type-fixer agentini ishga tushir"
+
+3. Merge conflict ko'rsatdi
+   → "conflict-resolver agentini ishga tushir"
+
+4. Tasks.md eskirgan (git da commit bor, Tasks.md da hali ochiq)
+   → "tasks-done-sync agentini ishga tushir"
+
+5. Yangi feature boshlash
+   → "orchestrator agentini ishga tushir"
+   → "component-builder: [vazifa]"
+
+6. Commit qilishdan oldin
+   → "frontend-reviewer: [fayl]ni review qil"
+```
+
+**Barcha agentlar:** `session-start`, `orchestrator`, `conflict-resolver`,
+`type-fixer`, `tasks-done-sync`, `component-builder`, `api-integrator`,
+`frontend-reviewer`, `type-checker`
+
+To'liq qo'llanma: `docs/AGENTS_GUIDE.md`
+
+---
+
 ## 🔐 SECURITY CHECKLIST
 
 ```
@@ -514,17 +548,16 @@ pnpm -r exec tsc --noEmit
 
 ## 📚 KEYIN O'QILADIGAN FAYLLAR
 
-| Fayl                       | Kim uchun                                                         |
-| -------------------------- | ----------------------------------------------------------------- |
-| `CLAUDE_BACKEND.md`        | Polat (Backend & DevOps), Bekzod (Tester & Architector)           |
-| `CLAUDE_FRONTEND.md`       | AbdulazizYormatov (Frontend — Web, Desktop, Admin Panel)          |
-| `CLAUDE_MOBILE.md`         | Ibrat (apps/mobile), Abdulaziz (IOS)                              |
-| `CLAUDE_OWNER_MOBILE.md`   | Ibrat (apps/mobile-owner)                                         |
-| `docs/Tasks.md`            | Ochiq vazifalar                                                   |
-| `docs/Done.md`             | Bajarilgan ishlar                                                 |
+| Fayl                        | Kim uchun                                               |
+| --------------------------- | ------------------------------------------------------- |
+| `CLAUDE_BACKEND.md`         | Polat (Backend & DevOps), Bekzod (Tester & Architector) |
+| `CLAUDE_FRONTEND.md`        | AbdulazizYormatov (Frontend — Web, Admin Panel, POS)    |
+| `CLAUDE_FRONTEND_OWNER.md`  | AbdulazizYormatov (Owner Panel — /founder/* sahifalari) |
+| `CLAUDE_MOBILE.md`          | Ibrat (Android), Abdulaziz (IOS)                        |
+| `docs/AGENTS_GUIDE.md`      | Hammaga — Claude agentlari to'liq qo'llanmasi           |
+| `docs/Tasks.md`             | Ochiq vazifalar                                         |
+| `docs/Done.md`              | Bajarilgan ishlar                                       |
 
 ---
 
-_CLAUDE.md | RAOS | v1.0_
-
-claude --dangerously-skip-permissions
+_CLAUDE.md | RAOS | v1.1_

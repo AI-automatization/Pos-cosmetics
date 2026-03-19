@@ -44,6 +44,15 @@ export interface AbcGroup {
   revenueShare: number;
 }
 
+interface AbcRawRow {
+  productId: string;
+  productName: string;
+  revenue: number;
+  revenuePct: number;
+  cumulativePct: number;
+  category: 'A' | 'B' | 'C';
+}
+
 export interface CashierPerf {
   userId: string;
   name: string;
@@ -81,10 +90,40 @@ export const analyticsApi = {
       .get<MarginItem[]>('/analytics/margin', { params })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
-  getAbc(params: { from?: string; to?: string } = {}) {
+  getAbc(params: { from?: string; to?: string } = {}): Promise<AbcGroup[]> {
     return apiClient
-      .get<AbcGroup[]>('/analytics/abc', { params })
-      .then((r) => (Array.isArray(r.data) ? r.data : []));
+      .get<AbcRawRow[] | AbcGroup[]>('/analytics/abc', { params })
+      .then((r) => {
+        const raw = Array.isArray(r.data) ? r.data : [];
+        if (raw.length === 0) return [];
+        // Backend returns flat rows with 'category' field — group them
+        if ('category' in raw[0]) {
+          const rows = raw as AbcRawRow[];
+          const totalRev = rows.reduce((s, r) => s + Number(r.revenue), 0);
+          const groups: Record<string, AbcGroup> = {};
+          for (const row of rows) {
+            const g = row.category;
+            if (!groups[g]) {
+              groups[g] = { group: g, products: [], totalRevenue: 0, revenueShare: 0 };
+            }
+            groups[g].products.push({
+              productId: row.productId,
+              productName: row.productName,
+              revenue: Number(row.revenue),
+              pct: Number(row.revenuePct),
+            });
+            groups[g].totalRevenue += Number(row.revenue);
+          }
+          for (const g of Object.values(groups)) {
+            g.revenueShare = totalRev > 0 ? (g.totalRevenue / totalRev) * 100 : 0;
+          }
+          return (['A', 'B', 'C'] as const)
+            .map((k) => groups[k])
+            .filter((g): g is AbcGroup => !!g);
+        }
+        // Already grouped format
+        return raw as AbcGroup[];
+      });
   },
   getCashierPerformance(params: { from?: string; to?: string } = {}) {
     return apiClient

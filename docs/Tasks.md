@@ -17,25 +17,6 @@
 
 ---
 
-## T-200 | P1 | [MOBILE] | mobile-owner — Stitch AI dizayn stilini implement qilish ✅ DONE
-
-- **Sana:** 2026-03-12
-- **Mas'ul:** Ibrat
-- **Stitch link:** https://stitch.withgoogle.com/projects/7549251643181014276
-- **Bajarilgan o'zgarishlar (2026-03-12):**
-  - ✅ `ScreenLayout.tsx` — `logoMode` prop: RAOS icon + center branch pill + bell badge
-  - ✅ `HeaderBranchSelector.tsx` — rounded-full pill, #1E40AF text
-  - ✅ `LowStockAlertList.tsx` — amber banner "#FEF3C7", count + chevron
-  - ✅ `Dashboard/index.tsx` — lowStock banner first, logoMode enabled
-  - ✅ `RevenueSummaryGrid.tsx` — cards without accent bar, amount formatted (14,250,000 UZS)
-  - ✅ `DebtSummaryCards.tsx` — 3 full-width stacked cards (Stitch nasiya layout)
-  - ✅ `TabNavigator.tsx` — 5 tabs: DASHBOARD | ANALITIKA | XABARLAR | XODIMLAR | SOZLAMALAR
-  - ✅ `navigation/types.ts` — TabParamList 5 tab
-  - ✅ `i18n/uz|en|ru.json` — `lowStockCount`, `orderCount`, `statusNormal/Low/Out`, `persons`
-  - ✅ `debts.api.ts` — `DebtSummary.overdueCount` field qo'shildi
-
----
-
 ## 🔴 POLAT UCHUN — OWNER PANEL BACKEND VAZIFALAR (T-201 dan T-208)
 ## Backend tayyor bo'lmasa owner panel ishlaydi faqat mock data bilan!
 
@@ -936,53 +917,6 @@ Body: { biometricToken: string, deviceId: string }
 
 ---
 
-## T-016 | P0 | [FRONTEND] | Admin Panel — Catalog UI (Products CRUD + Categories)
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Catalog/`
-- **Vazifa:**
-  - Products list sahifasi: DataTable (sortable, filterable, paginated)
-  - Product qo'shish/tahrirlash form: name, barcode, sku, category, cost_price, sell_price, unit, min_stock, image
-  - Categories tree view + CRUD
-  - Barcode search (text input, barcode scanner ready)
-  - React Query hooks: useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct
-  - Zod validation: productSchema, categorySchema
-  - Loading skeletons, error handling, toast notifications
-- **Kutilgan:** Admin paneldan mahsulot va kategoriyalarni boshqarsa bo'ladi
-
----
-
-## T-017 | P0 | [FRONTEND] | POS Sale Screen — Cart + Barcode + Payment
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/POS/` (MVP da web-based POS, Tauri keyinroq)
-- **Vazifa:**
-  - **Layout:** Chap — product search/list + cart | O'ng — total, discount, payment
-  - **Barcode scan:** input field, barcode scanner (keyboard wedge) support
-  - **Cart:** product qo'shish, quantity +/-, item o'chirish, line discount
-  - **Discount:** butun orderga discount (% yoki fixed)
-  - **Payment panel:** Cash / Card tanlash, summa kiritish, qaytim hisoblash
-  - **Split payment:** Cash + Card kombinatsiya
-  - **Keyboard shortcuts:** F1=search, F5=cash, F6=card, F10=complete, Esc=cancel
-  - **Receipt preview:** sotuvdan keyin chek ko'rinishi
-  - Shift status bar (yuqorida): cashier nomi, shift vaqti, savdolar soni
-- **Kutilgan:** Tez, keyboard-first POS sale qilsa bo'ladi
-
----
-
-## T-018 | P0 | [FRONTEND] | Shift management UI — Open/Close shift
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/POS/Shift/`
-- **Vazifa:**
-  - Shift ochish: opening cash summasini kiritish
-  - Shift yopish: closing cash, expected vs actual, notes
-  - Shift report: savdolar soni, jami summa, cash/card breakdown
-  - POS ekranga kirish uchun shift OPEN bo'lishi shart
-- **Kutilgan:** Cashier shift ochib-yopib ishlasa bo'ladi
-
----
-
 ## T-019 | P0 | [BACKEND] | Receipt printing — ESC/POS format endpoint
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -993,23 +927,6 @@ Body: { biometricToken: string, deviceId: string }
   - Keyinroq ESC/POS binary format ham (Tauri POS uchun)
   - MVP da: HTML receipt template (browser print)
 - **Kutilgan:** Chek print qilsa bo'ladi (browser print)
-
----
-
-## T-020 | P0 | [FRONTEND] | Receipt print UI — Browser print + template
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/components/Receipt/`
-- **Vazifa:**
-  - Receipt HTML template (80mm thermal printer o'lchamida)
-  - Do'kon nomi, manzil, INN, sana/vaqt
-  - Items table: nomi, qty, narx, summa
-  - Subtotal, discount, tax, TOTAL
-  - Payment method, qaytim
-  - Fiscal status (PENDING placeholder)
-  - window.print() orqali chop etish
-  - Auto-print option (sale complete dan keyin)
-- **Kutilgan:** Thermal printer dan chek chiqadi
 
 ---
 
@@ -1051,22 +968,6 @@ Body: { biometricToken: string, deviceId: string }
 
 ---
 
-## T-023 | P0 | [FRONTEND] | Inventory UI — Stock levels + Kirim (nakladnoy)
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Inventory/`
-- **Vazifa:**
-  - **Stock levels page:** DataTable — product nomi, barcode, current qty, min level, status (OK/LOW/OUT)
-  - Color coding: yashil (OK), sariq (LOW), qizil (OUT OF STOCK)
-  - **Kirim (Stock In) page:** Form — supplier (text), items (product select + qty + cost_price + expiry_date), notes
-  - Items qo'shish: barcode scan yoki product search
-  - **Chiqim (Stock Out) page:** Form — reason (DAMAGE/WRITE_OFF/OTHER), items + qty
-  - **Low stock alert page:** faqat past bo'lganlar, filterable
-  - Barcha sahifalar: React Query hooks, loading, error handling
-- **Kutilgan:** Admin paneldan ombor boshqarsa bo'ladi
-
----
-
 ## T-024 | P1 | [BACKEND] | Reports module — Daily revenue, top products, basic finance
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -1080,20 +981,6 @@ Body: { biometricToken: string, deviceId: string }
   - **Shift report:** GET /reports/shift/:shiftId — smena hisoboti
   - Barcha reportlarda tenant_id filter MAJBURIY
 - **Kutilgan:** Asosiy hisobotlar API tayyor
-
----
-
-## T-025 | P1 | [FRONTEND] | Reports UI — Dashboard + Daily sales + Top products
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Dashboard/`, `apps/web/src/pages/Reports/`
-- **Vazifa:**
-  - **Dashboard:** bugungi savdo, haftalik trend chart, top 5 product, low stock alerts
-  - **Daily revenue page:** date range picker, bar chart (Recharts), table
-  - **Top products page:** date range, list with qty + revenue
-  - **Shift reports:** smena tanlash, details table
-  - ResponsiveContainer charts, loading skeletons
-- **Kutilgan:** Admin panelda hisobotlar ko'rinadi
 
 ---
 
@@ -1221,22 +1108,6 @@ Body: { biometricToken: string, deviceId: string }
 
 ---
 
-## T-038 | P0 | [IKKALASI] | Shared types — API contract (request/response DTOs)
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat + AbdulazizYormatov
-- **Fayl:** `packages/types/`
-- **Vazifa:**
-  - Product, Category, Unit types
-  - Order, OrderItem, Shift types
-  - PaymentIntent types
-  - StockMovement types
-  - Return types
-  - Common: PaginatedResponse<T>, ApiError, SortOrder
-  - Frontend va Backend bir xil type ishlatishi SHART
-- **Kutilgan:** `packages/types` da barcha shared typelar tayyor
-
----
-
 ## T-039 | P0 | [BACKEND] | Domain events setup — EventEmitter2 integration
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -1274,18 +1145,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-041 | P2 | [FRONTEND] | Supplier management — CRUD + product linking
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Catalog/Suppliers/`
-- **Vazifa:**
-  - Suppliers CRUD: name, phone, company, address
-  - Product-supplier linking
-  - Kirim (stock-in) da supplier tanlash
-- **Kutilgan:** Yetkazib beruvchilarni boshqarsa bo'ladi
-
----
-
 ## T-042 | P2 | [BACKEND] | Supplier module — CRUD service
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -1299,43 +1158,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 ---
 
 ## ⚪ P3 — PAST (Phase 2+, keyinroq)
-
----
-
-## T-043 | P3 | [BACKEND] | Loyalty module — Bonus points system
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Xaridor loyalty: points earn (sale), points redeem (discount). Customer card / phone number.
-
-## T-044 | P3 | [FRONTEND] | Loyalty UI — Customer points + redeem
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** POS da customer tanlash, points ko'rsatish, points bilan to'lash.
-
-## T-045 | P3 | [BACKEND] | Bundles/Sets — Kosmetika setlar (skincare set, gift set)
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Bundle product: bir nechta product ni bitta narxda sotish. Stock deduction har component dan.
-
-## T-046 | P3 | [BACKEND] | Serial number tracking — Qimmat brendlar uchun
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Product variant-level serial number. Kirimda serial qo'shish, sotishda serial tanlash.
-
-## T-047 | P3 | [IKKALASI] | Multi-branch support — Filiallar
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Branch CRUD, branch-level stock, branch-level reports, stock transfer between branches.
-
-## T-048 | P3 | [BACKEND] | Supplier order automation — Auto-reorder
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Min stock level ga yetganda supplier ga avtomatik buyurtma (notification yoki draft order).
-
-## T-049 | P3 | [IKKALASI] | POS Desktop — Tauri + SQLite offline-first
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Web POS → Tauri desktop app. SQLite local DB, outbox sync, ESC/POS printer. CLAUDE_FRONTEND.md dagi offline-first arxitektura.
 
 ---
 
@@ -1392,37 +1214,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-052 | P0 | [FRONTEND] | Nasiya UI — POS da qarzga sotish
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/POS/`
-- **Vazifa:**
-  - POS payment panelda "Nasiya" tugmasi (F7)
-  - Nasiya tanlanganda: customer search modal (telefon orqali)
-  - Customer topilmasa: tezkor yaratish (name + phone)
-  - Customer debt limit va status ko'rsatish (qancha qarzi bor, limit qancha)
-  - Overdue customer → qizil ogohlantirish "Bu xaridor muddati o'tgan qarzga ega!"
-  - Nasiya savdo tasdiqlash → order yaratiladi + debt record
-- **Kutilgan:** Kassir nasiyaga sotsa bo'ladi, customer tezkor topiladi
-
----
-
-## T-053 | P0 | [FRONTEND] | Nasiya management UI — Qarzlar ro'yxati + to'lov qabul
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Customers/`
-- **Vazifa:**
-  - **Customers list:** DataTable — name, phone, total debt, last visit, status
-  - **Customer profile:** purchase history, debt history, to'lovlar
-  - **Debt list:** DataTable — customer, amount, remaining, due_date, status, age (days)
-  - Color coding: yashil (current), sariq (0-30 overdue), qizil (30+ overdue)
-  - **Debt payment form:** customer tanlash → amount kiritish → method → confirm
-  - **Aging report page:** 4 bucket (0-30, 31-60, 61-90, 90+), jami summalar, pie chart
-  - **Dashboard widget:** "Jami nasiya: X so'm | Overdue: Y so'm"
-- **Kutilgan:** Admin/manager nasiyalarni to'liq boshqarsa bo'ladi
-
----
-
 ## T-054 | P1 | [BACKEND] | Nasiya reminders — SMS/Telegram orqali eslatish
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -1472,34 +1263,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
   - GET /admin/errors — BARCHA tenantlardan error log (filter: tenant, severity, date)
   - GET /admin/sales/live — real-time savdo stream (WebSocket yoki SSE)
 - **Kutilgan:** Founder barcha do'konlarning real-time datalarini ko'radi
-
----
-
-## T-057 | P0 | [FRONTEND] | Founder Dashboard UI — Main monitoring panel
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Admin/`
-- **Vazifa:**
-  - **Alohida layout** /admin/* — SaaS owner uchun (tenant admin paneldan farqli)
-  - **Overview page:**
-    - Card grid: jami tenantlar, active tenants, bugungi jami savdo, jami orders
-    - Live sales ticker (so'nggi 10 ta savdo real-time)
-    - Revenue chart (barcha tenantlar aggregated, daily)
-    - Top 5 tenants by revenue (bar chart)
-  - **Tenants list page:**
-    - DataTable: name, slug, sales today, revenue today, errors 24h, last activity, status
-    - Traffic light: yashil (active, no errors), sariq (active, errors), qizil (inactive > 24h)
-    - Search, filter by status
-  - **Tenant detail page:**
-    - Savdo chart, top products, error list, active users, shift history
-    - "Login as" tugmasi (impersonation)
-  - **Error log page:**
-    - Barcha tenantlardan centralized errors
-    - Filter: tenant, type (API/client/sync), severity, date
-    - Error detail: stack trace, user, request info
-  - **Real-time notifications:**
-    - Browser notification: yangi error, tenant down, big refund
-- **Kutilgan:** Founder bitta ekrandan BARCHA do'konlarni monitoring qiladi
 
 ---
 
@@ -1575,39 +1338,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
     - Financial (sale, payment, stock movement): event-sourcing, reject true duplicates
     - Non-financial (product name, category): last-write-wins + timestamp
 - **Kutilgan:** POS offline ishlagan data serverga to'g'ri sync bo'ladi
-
----
-
-## T-063 | P0 | [IKKALASI] | Sync engine package — Core offline logic
-- **Sana:** 2026-02-26
-- **Mas'ul:** Polat + AbdulazizYormatov
-- **Fayl:** `packages/sync-engine/`
-- **Vazifa:**
-  - `sync_outbox` table schema (for SQLite and PostgreSQL)
-  - OutboxManager: append event, process queue (FIFO), mark sent/failed
-  - SyncWorker: background process, exponential backoff (1s→2s→4s→8s, max 5min)
-  - ConflictResolver: strategy pattern (event-sourcing vs last-write-wins)
-  - IdempotencyKeyGenerator: UUID v4 + tenant + timestamp
-  - ConnectivityDetector: active ping every 30s, degrade detection (latency > 5s)
-  - SyncStatus: online/offline/syncing/error states
-- **Kutilgan:** Offline-first core logic tayyor, POS va server ishlatsa bo'ladi
-
----
-
-## T-064 | P0 | [FRONTEND] | Sync status UI — Persistent status bar
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/components/SyncStatus/`
-- **Vazifa:**
-  - POS ekranda persistent status bar:
-    - 🟢 "Online — synced" (hammasi yaxshi)
-    - 🔵 "Online — syncing (14 pending)" (yuborilmoqda)
-    - 🔴 "Offline — 47 unsynced" (internet yo'q)
-    - 🟡 "Slow connection" (latency > 5s)
-  - Click → pending queue details (qaysi savdolar sync bo'lmagan)
-  - Auto-retry indicator
-  - Last sync timestamp
-- **Kutilgan:** Kassir doim sync holatini ko'radi
 
 ---
 
@@ -2193,52 +1923,13 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-109 | P2 | [FRONTEND] | Billing UI — Plan tanlash, to'lov
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/pages/Settings/Billing/`
-- **Vazifa:**
-  - Current plan info, usage stats (products used / limit)
-  - Plan comparison table
-  - Upgrade/downgrade flow
-  - Invoice history, PDF download
-  - Payment method management
-- **Kutilgan:** Tenant o'z subscriptionni boshqarsa bo'ladi
-
----
-
 ### ═══════════════════════════════════════
 ### 🔧 HARDWARE INTEGRATION
 ### ═══════════════════════════════════════
 
 ---
 
-## T-110 | P0 | [FRONTEND] | Thermal printer — ESC/POS integration
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/print/` (MVP: browser print, Tauri: native ESC/POS)
-- **Vazifa:**
-  - MVP: window.print() bilan 80mm template
-  - Tauri: ESC/POS binary commands, USB va network printer
-  - Auto-print on sale complete (setting)
-  - Test print button
-  - Common printers: Epson TM-T20, XPrinter XP-80, RONGTA RP80
-- **Kutilgan:** Thermal printer dan chek chiqadi
-
 ---
-
----
-
-## T-112 | P2 | [FRONTEND] | Label printer — Narx etiketka
-- **Sana:** 2026-02-26
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/print/`
-- **Vazifa:**
-  - Product label: name, barcode, price, expiry
-  - Label sizes: 30x20mm, 40x30mm, 58x40mm
-  - Batch print: selected products uchun
-  - Printers: Zebra, TSC, XPrinter label
-- **Kutilgan:** Narx etikekasi chop etsa bo'ladi
 
 ---
 
@@ -2287,11 +1978,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Mas'ul:** —
 - **Vazifa:** Earn points (1 point/1000 UZS). Tiers: Bronze/Silver/Gold. Birthday bonus. Redeem as payment.
 
-## T-117 | P3 | [FRONTEND] | Customer display — 2-ekran (ikkinchi monitor)
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** POS da ikkinchi ekran: scan qilingan tovar, running total, reklama. VFD yoki monitor.
-
 ## T-118 | P3 | [BACKEND] | 1C export — Buxgalteriya integratsiya
 - **Sana:** 2026-02-26
 - **Mas'ul:** —
@@ -2311,16 +1997,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Sana:** 2026-02-26
 - **Mas'ul:** —
 - **Vazifa:** Scheduled: kunlik savdo data → linked Google Sheet. Ko'p do'kon egalari Sheets da tahlil qiladi.
-
-## T-122 | P3 | [FRONTEND] | Custom report builder — Ad-hoc hisobotlar
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** Dimension (product, category, date, branch, cashier) + metrics (revenue, qty, margin) tanlash → custom report. Excel export.
-
-## T-123 | P3 | [FRONTEND] | Weight scale integration — Gramm bilan sotish
-- **Sana:** 2026-02-26
-- **Mas'ul:** —
-- **Vazifa:** USB/Serial tarozi → og'irlik o'qish → narx hisoblash. Kamdan-kam kosmetika uchun (aralash do'konlar).
 
 ## T-124 | P3 | [IKKALASI] | Feature flags — Per-tenant feature toggle
 - **Sana:** 2026-02-26
@@ -2867,73 +2543,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-134 | P0 | [FRONTEND] | App Shell — Base layout (sidebar, navigation, header)
-- **Sana:** 2026-02-28
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/components/Layout/`
-- **Vazifa:**
-  - **Sidebar:** Logo, navigation links, collapse/expand
-    - Dashboard, Catalog (Products, Categories), Sales (POS, Orders, Returns), Inventory (Stock, Kirim, Chiqim, Expiry), Customers (List, Debts), Reports, Settings (Users, Audit, Billing)
-  - **Header:** Branch selector, user avatar + dropdown (profile, logout), notifications bell
-  - **Auth layout:** Login page uchun alohida layout (sidebar yo'q)
-  - **POS layout:** POS mode uchun minimal layout (full screen, sidebar yo'q)
-  - **Responsive:** mobile collapsed sidebar, desktop fixed sidebar
-  - **Active route highlighting**, breadcrumbs
-  - Tailwind + shadcn/ui component library
-- **Kutilgan:** Admin panel navigatsiya va layout tayyor, sahifalar qo'shsa bo'ladi
-
----
-
-## T-135 | P0 | [FRONTEND] | Login/Auth pages — Login, register-tenant, forgot password
-- **Sana:** 2026-02-28
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/app/(auth)/`
-- **Vazifa:**
-  - **Login page:** tenant slug + username/phone + password
-  - **Register tenant page:** do'kon nomi, INN, owner name, phone, password (POST /auth/register-tenant)
-  - **Forgot password:** phone orqali reset (keyinroq SMS OTP bilan)
-  - JWT token saqlash: access token → memory, refresh token → httpOnly cookie
-  - Auto-redirect: login → dashboard, unauthenticated → login
-  - Form validation: zod + react-hook-form
-  - Loading states, error messages (noto'g'ri parol, user topilmadi, account locked)
-  - "Parolni ko'rsatish" toggle
-- **Kutilgan:** Login ishlaydi, token boshqaruvi tayyor
-
----
-
-## T-136 | P0 | [FRONTEND] | API client setup — Axios interceptors + React Query
-- **Sana:** 2026-02-28
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/lib/`
-- **Vazifa:**
-  - Axios instance: baseURL, default headers, timeout
-  - **Request interceptor:** Authorization: Bearer token qo'shish
-  - **Response interceptor:**
-    - 401 → refresh token bilan yangilash, qayta so'rov
-    - 403 → "Ruxsat yo'q" toast
-    - 5xx → "Server xatosi" toast + client error log yuborish
-    - Network error → "Internet aloqasi yo'q" banner
-  - React Query provider: defaultOptions (staleTime, retry, refetchOnWindowFocus)
-  - Query key factory: `queryKeys.products.list(filters)`, `queryKeys.orders.detail(id)`
-  - Typed API functions: `api.products.getAll()`, `api.orders.create(data)`, etc.
-- **Kutilgan:** Frontend dan API ga xavfsiz va standart tarzda so'rov yuboriladi
-
----
-
-## T-137 | P2 | [FRONTEND] | i18n/Localization — O'zbek, Rus, English tillar
-- **Sana:** 2026-02-28
-- **Mas'ul:** AbdulazizYormatov
-- **Fayl:** `apps/web/src/i18n/`
-- **Vazifa:**
-  - `next-intl` yoki `i18next` library
-  - 3 til: O'zbek (default), Русский, English
-  - Tarjima fayllari: `locales/uz.json`, `locales/ru.json`, `locales/en.json`
-  - Til almashtirish: header da dropdown
-  - Sana/vaqt formatlash: locale-aware (O'zbek: KK.OO.YYYY)
-  - Narx formatlash: `1 234 567 so'm` (UZS), `$1,234.56` (USD)
-  - UI elementlar: barcha button, label, placeholder, error message
-- **Kutilgan:** Admin panel 3 tilda ishlaydi, foydalanuvchi tanlaydi
-
 ---
 
 ## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
@@ -3068,39 +2677,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-141 | P1 | [FRONTEND] | Web — Backend↔Frontend API contract tekshiruvi
-
-- **Sana:** 2026-03-09
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/api/`
-- **Muammo:** Frontend endpoint URL lari backend controller lari bilan mos kelmasligi mumkin
-- **Vazifa:** Backend controller larini o'qib, frontend API call larini solishtirish. Nomuvofiqliklarni frontendda tuzatish.
-- **Kutilgan:** Barcha API call lar to'g'ri endpoint larga yo'naltirilgan
-
----
-
-## T-142 | P1 | [FRONTEND] | Web — Playwright bilan localhost da to'liq UI test
-
-- **Sana:** 2026-03-09
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/`
-- **Muammo:** UI xatolari production ga chiqishi mumkin
-- **Vazifa:** `pnpm --filter web dev` ishga tushirib, Playwright bilan login, dashboard, asosiy sahifalarni test qilish. Topilgan xatolarni tuzatish.
-- **Kutilgan:** Barcha asosiy sahifalar xatosiz ishlaydi
-
----
-
-## T-143 | P0 | [FRONTEND] | Web — Production deploy va 200 OK tekshiruvi
-
-- **Sana:** 2026-03-09
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/`
-- **Muammo:** Deploy muvaffaqiyatli bo'lishi va `https://web-production-5b0b7.up.railway.app` 200 qaytarishi kerak
-- **Vazifa:** Build → Push → Railway deploy → curl tekshiruvi
-- **Kutilgan:** HTTP 200, app ishlaydi
-
----
-
 ---
 
 ### ═══════════════════════════════════════
@@ -3232,3 +2808,35 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 ---
 
 *docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.1 | 2026-03-15*
+
+---
+
+## 🔴 ABDULAZIZ — FRONTEND WEB AUDIT TASKLARI (2026-03-18) — T-236..T-249
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+## T-241 | P2 | [IKKALASI] | packages/types — etishmayotgan shared typelar
+
+- **Sana:** 2026-03-18
+- **Mas'ul:** AbdulazizYormatov + Polat (kelishib)
+- **Fayl:** `packages/types/src/`
+- **Muammo:** `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion` typelar yo'q shared package da
+- **Kutilgan:** packages/types ga qo'shish: `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion`
+
+---
+
+---
+
+---
+
+*docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.2 | 2026-03-18 (AbdulazizYormatov audit)*

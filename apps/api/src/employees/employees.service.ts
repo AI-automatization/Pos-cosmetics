@@ -78,22 +78,38 @@ export class EmployeesService {
   }
 
   // ─── UPDATE STATUS ────────────────────────────────────────────
-  async updateStatus(tenantId: string, id: string, status: 'active' | 'inactive') {
+  // T-144: fired status qo'shildi | T-146: fired → sessiyalar o'chiriladi
+  async updateStatus(tenantId: string, id: string, status: 'active' | 'inactive' | 'fired') {
     const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) throw new NotFoundException('Employee not found');
 
+    const isActive = status === 'active';
+
     const updated = await this.prisma.user.update({
       where: { id },
-      data: { isActive: status === 'active' },
+      data: { isActive },
       select: {
         id: true, firstName: true, lastName: true, email: true,
         role: true, isActive: true, createdAt: true, botSettings: true,
       },
     });
+
+    // T-146: fired yoki inactive → barcha sessiyalar va refresh token ni o'chirish
+    if (status === 'fired' || status === 'inactive') {
+      await Promise.all([
+        this.prisma.session.deleteMany({ where: { userId: id, tenantId } }),
+        this.prisma.user.update({
+          where: { id },
+          data: { refreshToken: null, refreshTokenExp: null },
+        }),
+      ]);
+    }
+
     return this.toEmployee(updated);
   }
 
   // ─── UPDATE POS ACCESS ────────────────────────────────────────
+  // T-146: POS access olinganda → sessiyalar o'chiriladi
   async updatePosAccess(tenantId: string, id: string, hasPosAccess: boolean) {
     const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) throw new NotFoundException('Employee not found');
@@ -108,6 +124,18 @@ export class EmployeesService {
         role: true, isActive: true, createdAt: true, botSettings: true,
       },
     });
+
+    // T-146: POS access olinganda kassir darhol chiqarilishi kerak
+    if (!hasPosAccess) {
+      await Promise.all([
+        this.prisma.session.deleteMany({ where: { userId: id, tenantId } }),
+        this.prisma.user.update({
+          where: { id },
+          data: { refreshToken: null, refreshTokenExp: null },
+        }),
+      ]);
+    }
+
     return this.toEmployee(updated);
   }
 

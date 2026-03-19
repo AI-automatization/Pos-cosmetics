@@ -5,6 +5,7 @@ import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen, User } fr
 import { useStock, useMovementsWithUsers } from '@/hooks/inventory/useInventory';
 import { SearchInput } from '@/components/common/SearchInput';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ErrorState } from '@/components/common/ErrorState';
 import { StockInModal } from './StockInModal';
 import { StockOutModal } from './StockOutModal';
 import { ProductStockDrawer } from './ProductStockDrawer';
@@ -55,7 +56,7 @@ export default function InventoryPage() {
   const [stockOutOpen, setStockOutOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<StockLevel | null>(null);
 
-  const { data: stock, isLoading, isError } = useStock({ search: search || undefined });
+  const { data: stock, isLoading, isError, refetch } = useStock({ search: search || undefined });
   const { data: movements, isLoading: movLoading } = useMovementsWithUsers();
 
   return (
@@ -141,9 +142,7 @@ export default function InventoryPage() {
           {isLoading ? (
             <LoadingSkeleton variant="table" rows={8} />
           ) : isError ? (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              Ma&apos;lumotlarni yuklashda xato yuz berdi
-            </div>
+            <ErrorState compact onRetry={refetch} />
           ) : (
             <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
               <table className="w-full text-sm">

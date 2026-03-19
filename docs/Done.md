@@ -186,6 +186,10 @@
 | — | 2026-03-09 | [FRONTEND] | `notifications.api.ts` `getUnreadCount` ga `.catch(()=>0)` + `useUnreadCount` hook ga `retry:false` — 404 da app crash qilmaydi | `apps/web/src/api/notifications.api.ts`, `apps/web/src/hooks/notifications/useNotifications.ts` |
 | — | 2026-03-09 | [FRONTEND] | `client.ts`: localhost fallback ochirildi, `withCredentials:true` qo'shildi | `apps/web/src/api/client.ts` |
 | — | 2026-03-09 | [FRONTEND] | `SyncStatusBar.tsx`: direct `fetch()` → `apiClient.get('/health/ping')` | `apps/web/src/components/SyncStatus/SyncStatusBar.tsx` |
+| T-228 | 2026-03-18 | [BACKEND] | Duplikat `20260310000001_add_bot_settings` migratsiya o'chirildi, `20260313` qoldirildi | `apps/api/prisma/migrations/` |
+| T-144 | 2026-03-18 | [BACKEND] | Employee `fired` status qo'shildi (active/inactive/fired) | `apps/api/src/employees/employees.controller.ts`, `employees.service.ts` |
+| T-145 | 2026-03-18 | [BACKEND] | Login email OR login field orqali; JWT da `hasPosAccess`, `hasAdminAccess` qo'shildi | `apps/api/src/identity/dto/login.dto.ts`, `identity.service.ts`, `strategies/jwt.strategy.ts` |
+| T-146 | 2026-03-18 | [BACKEND] | Fired/inactive/POS-revoke da sessiyalar + refreshToken avtomatik o'chiriladi | `apps/api/src/employees/employees.service.ts` |
 
 ---
 
@@ -202,3 +206,210 @@
 ---
 
 *docs/Done.md | RAOS*
+
+## T-248 | 2026-03-19 | [FRONTEND] | Ko'chmas mulk (Real Estate) moduli UI
+
+- **Yechim:** Real Estate sahifa: mulk kartalari (OFFICE/WAREHOUSE/RETAIL/APARTMENT), status filter, search, stats kartalar (jami mulk, ijarada, oylik ijara, muddati o'tgan). To'lovlar tab — jadval bilan. Backend hali tayyor emas (T-140), ErrorState ko'rsatadi.
+- **Fayl:** `types/realestate.ts`, `api/realestate.api.ts`, `hooks/realestate/useRealestate.ts`, `app/(admin)/realestate/page.tsx`, `Sidebar.tsx`
+
+## T-117 | 2026-03-19 | [FRONTEND] | Customer display — 2-ekran (ikkinchi monitor)
+
+- **Yechim:** BroadcastChannel orqali POS → customer display aloqa. Idle, cart, sale-complete ekranlar. window.open() bilan ochiladi. Allaqachon implement qilingan edi.
+- **Fayl:** `app/(pos)/pos/customer-display/page.tsx`, `hooks/pos/useCustomerDisplayBroadcast.ts`
+
+## T-122 | 2026-03-19 | [FRONTEND] | Custom report builder — Ad-hoc hisobotlar
+
+- **Yechim:** Report builder sahifa: dimension tanlash (product/category/branch/cashier/date), metric tanlash (revenue/qty/orders/margin), date range. Natija jadvalda tfoot bilan jami. CSV export barcha turlar uchun (sales, order-items, products, inventory, customers, debts).
+- **Fayl:** `app/(admin)/reports/builder/page.tsx`, `Sidebar.tsx`
+
+## T-123 | 2026-03-19 | [FRONTEND] | Weight scale integration — Gramm bilan sotish
+
+- **Yechim:** Web Serial API hook (useWeightScale) — USB/Serial tarozi bilan bog'lanish. Chromium browserlarda ishlaydi. WeightScaleWidget — POS uchun kompakt UI. Settings localStorage'da. Type declarations web-serial.d.ts.
+- **Fayl:** `hooks/pos/useWeightScale.ts`, `app/(pos)/pos/WeightScaleWidget.tsx`, `types/web-serial.d.ts`
+
+## T-137 | 2026-03-19 | [FRONTEND] | i18n/Localization — O'zbek, Rus, English tillar
+
+- **Yechim:** Lightweight React context + JSON locale files (next-intl o'rniga). 3 til: uz (default), ru, en. LanguageSwitcher dropdown Header'da. Sidebar nav items tKey orqali tarjima. formatDate() va formatLocalPrice() locale-aware. localStorage'da saqlash.
+- **Fayl:** `i18n/index.ts`, `i18n/i18n-context.tsx`, `locales/uz.json`, `locales/ru.json`, `locales/en.json`, `providers.tsx`, `Header.tsx`, `Sidebar.tsx`
+
+## T-112 | 2026-03-19 | [FRONTEND] | Label printer — Narx etiketka
+
+- **Yechim:** LabelPrintModal yaxshilandi: 3 ta o'lcham tanlash (30x20, 40x30, 58x40mm), expiryDate ko'rsatish, dinamik font o'lchamlari. 30x20mm compact rejimda SKU yashiriladi. Preview proporsional kartalar bilan. Batch print har mahsulot uchun alohida nusxa soni.
+- **Fayl:** `LabelPrintModal.tsx`
+
+## T-110 | 2026-03-19 | [FRONTEND] | Thermal printer — ESC/POS integration (MVP)
+
+- **Yechim:** MVP to'liq: window.print() + 80mm/58mm thermal template. Printer settings (localStorage) va useReceiptPrint hook'i birlashtirildi — yagona `raos_printer_settings` kaliti. 58mm qog'oz CSS qo'llab-quvvatildi (data-paper-width attr). Copies (nusxa soni) ishlaydi. Test print paper width va copies sozlamalarini hurmat qiladi. ReceiptPreview openDrawerOnCash setting'ga ulandi. Tauri ESC/POS — Phase 2.
+- **Fayl:** `useReceiptPrint.ts`, `globals.css`, `ReceiptPreview.tsx`, `settings/printer/page.tsx`
+
+## T-243 | 2026-03-18 | [FRONTEND] | Admin Panel vs Founder Panel — dizayn bir xillashtirish
+
+- **Yechim:** Founder Panel dark tema (gray-950) dan light temaga o'tkazildi. Admin = blue accent, Founder = violet accent. 6 fayl o'zgartirildi: layout, FounderSidebar, overview, tenants, tenant detail, errors. Barcha ranglar unified: bg-white kartalar, border-gray-200, text-gray-900 sarlavhalar. Consistent design system.
+- **Fayl:** `(founder)/layout.tsx`, `FounderSidebar.tsx`, `overview/page.tsx`, `tenants/page.tsx`, `tenants/[id]/page.tsx`, `errors/page.tsx`
+
+## T-247 | 2026-03-18 | [FRONTEND] | Mahsulot sertifikatlari UI
+
+- **Yechim:** CertificatesSection komponent: sertifikatlar ro'yxati (expiry indikatorlari — qizil/sariq ring + badge), qo'shish form (certNumber, issuingAuthority, issuedAt, expiresAt, fileUrl), o'chirish. ProductForm ga integratsiya qilindi. Types + API methods to'liq.
+- **Fayl:** `CertificatesSection.tsx`, `ProductForm.tsx`, `catalog.api.ts`, `catalog.ts`
+
+## T-245 | 2026-03-18 | [FRONTEND] | Bundle (to'plam) mahsulotlar UI
+
+- **Yechim:** BundleSection komponent yaratildi — komponentlar ro'yxati, ProductPicker (search + quantity), total price hisob. API: get/add/remove bundle components. ProductForm ga integratsiya qilindi (VariantsSection yonida).
+- **Fayl:** `BundleSection.tsx`, `ProductForm.tsx`, `catalog.api.ts`, `catalog.ts`
+
+## T-246 | 2026-03-18 | [FRONTEND] | Filiallar o'rtasida tovar ko'chirish UI
+
+- **Yechim:** `/inventory/transfer` sahifasi yaratildi. TransferCard (from→to branch, items, status badge, action buttons), status filter tabs (ALL/REQUESTED/APPROVED/SHIPPED/RECEIVED/CANCELLED), API + hooks + types to'liq. Sidebar ga "Ko'chirish" link.
+- **Fayl:** `transfer/page.tsx`, `inventory.api.ts`, `useInventory.ts`, `inventory.ts`, `Sidebar.tsx`
+
+## T-239 | 2026-03-18 | [FRONTEND] | P&L hisobot sahifasi
+
+- **Yechim:** `/finance/pnl` sahifasi yaratildi. Period filter (7d/30d/90d/365d/custom), 5 ta KPI card (Revenue, COGS, Gross Profit, Expenses, Net Profit), P&L waterfall summary, Xarajatlar taqsimoti (category bars). Sidebar ga "Foyda va zarar" link qo'shildi.
+- **Fayl:** `apps/web/src/app/(admin)/finance/pnl/page.tsx`, `Sidebar.tsx`
+
+## T-236 | 2026-03-18 | [FRONTEND] | Katta komponentlarni bo'lish (SRP)
+
+- **Yechim:** Dashboard 502→137 qator (6 sub-component: StatCards, WeeklyRevenueChart, ProfitBreakdown, TopProductsList, LowStockBanner, DemoContent). ProductForm 402→197 qator (4 sub-component: FormField, MarginBadge, ImageUpload, BarcodeFields). CartPanel 151 qator — bo'lish kerak emas.
+- **Fayl:** `dashboard/` (6 yangi), `catalog/products/` (4 yangi)
+
+## T-244 | 2026-03-18 | [FRONTEND] | Barcha sahifalarda error state → empty state
+
+- **Yechim:** Reusable `ErrorState` (compact/full, retry button) va `EmptyState` (icon, title, CTA) komponentlari yaratildi. 8 ta sahifada inline error div almashtirildi: products, categories, suppliers, inventory, low-stock, orders, shifts, users. Empty state qo'shildi.
+- **Fayl:** `EmptyState.tsx`, `ErrorState.tsx` + 8 ta page.tsx
+
+## T-237 | 2026-03-18 | [FRONTEND] | ProductForm yaxshilash — margin preview, rasm, tavsif
+
+- **Yechim:** Real-time MarginBadge (green/yellow/red), ImageUpload (drag&drop + preview, local URL → S3 ready), description textarea (max 2000). Schema extended with `description` field.
+- **Fayl:** `apps/web/src/app/(admin)/catalog/products/ProductForm.tsx`
+
+## T-240 | 2026-03-18 | [FRONTEND] | Mobil responsive Sidebar
+
+- **Yechim:** Sidebar `md:` dan kichik ekranlarda yashiriladi (`hidden md:flex`). Header ga hamburger Menu button qo'shildi (`md:hidden`). MobileSidebarContext orqali state boshqarish. Overlay drawer: backdrop + X close + Escape key + body scroll lock.
+- **Fayl:** `Sidebar.tsx`, `Header.tsx`, `PageLayout.tsx`, `mobile-sidebar-context.ts`, `(admin)/layout.tsx`
+
+## T-238 | 2026-03-18 | [FRONTEND] | Sidebar — rol asosida filtrlash va collapse
+
+- **Yechim:** Sidebar.tsx to'liq qayta yozildi. Single NAV_SECTIONS config (DRY — 5 ta alohida massiv o'rniga), role-based filtering (ALL, NO_CASHIER, STAFF, ADMIN_ONLY), collapse/compact mode localStorage persistence bilan (w-16/w-64), PanelLeftClose/PanelLeftOpen toggle.
+- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`
+
+## T-249 | 2026-03-18 | [FRONTEND] | Sidebar navigatsiya — bo'limlar va vizual tartib
+
+- **Yechim:** 5 ta section divider qo'shildi: Asosiy (Dashboard, POS), Katalog (Mahsulotlar, Kategoriyalar, Yetkazib beruvchilar, Inventar), Savdo (Sotuv, To'lovlar, Nasiya, Xaridorlar), Moliya (Moliya, Analitika, Hisobotlar), Sozlamalar. Collapsed holatda — thin border divider.
+- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`
+
+## T-242 | 2026-03-18 | [FRONTEND] | Dashboard — KPI kartalar va empty state
+
+- **Yechim:** Dashboard sahifasi P&L breakdown, TrendBadge (% vs yesterday), StatCard tooltip, ProfitBreakdown paneli bilan to'liq qayta yozildi. Bugungi tushum, Yalpi foyda, O'rtacha chek, Kam zaxira ko'rsatkichlari.
+- **Fayllar:** `app/(admin)/dashboard/page.tsx`, `types/reports.ts`, `api/reports.api.ts`
+- **Commit:** `5ce5414`
+
+---
+
+## T-136 | 2026-03-18 | [FRONTEND] | API client setup — Axios interceptors + React Query
+
+- **Yechim:** `api/client.ts` — axios instance, JWT interceptor, 401 refresh, 402 billing event. React Query provider `providers.tsx` da. 17 ta API fayl yaratildi.
+- **Fayllar:** `api/client.ts`, `app/providers.tsx`
+- **Commit:** multiple (early commits)
+
+---
+
+## T-135 | 2026-03-18 | [FRONTEND] | Login/Auth pages — Login, register-tenant, forgot password
+
+- **Yechim:** `app/page.tsx` — role-based redirect (OWNER→analytics, CASHIER→pos, default→dashboard). Auth flow token-based.
+- **Fayllar:** `app/page.tsx`, `hooks/auth/useAuth.ts`
+- **Commit:** `e79275a`
+
+---
+
+## T-134 | 2026-03-18 | [FRONTEND] | App Shell — Base layout (sidebar, navigation, header)
+
+- **Yechim:** Sidebar 5 rol uchun (OWNER/ADMIN/MANAGER/VIEWER/CASHIER), Header bilan branchSelector, PageLayout wrapper. Route group layoutlar: `(admin)/layout.tsx`, `(pos)/layout.tsx`, `(founder)/layout.tsx`.
+- **Fayllar:** `components/layout/Sidebar.tsx`, `components/layout/Header.tsx`, `components/layout/PageLayout.tsx`
+- **Commit:** `9a87076`
+
+---
+
+## T-109 | 2026-03-18 | [FRONTEND] | Billing UI — Plan tanlash, to'lov
+
+- **Yechim:** `settings/billing/page.tsx` — subscription plan ko'rsatish, billing API integration.
+- **Fayllar:** `app/(admin)/settings/billing/page.tsx`, `api/billing.api.ts`, `hooks/settings/useBilling.ts`
+- **Commit:** multiple
+
+---
+
+## T-063 | 2026-03-18 | [IKKALASI] | Sync engine package — Core offline logic
+
+- **Yechim:** `packages/sync-engine/src/index.ts` — sync queue, conflict resolution, outbox pattern. SyncStatusBar komponentda ishlatiladi.
+- **Fayllar:** `packages/sync-engine/src/index.ts`
+- **Commit:** multiple
+
+---
+
+## T-044 | 2026-03-18 | [FRONTEND] | Loyalty UI — Customer points + redeem
+
+- **Yechim:** `LoyaltyConfig` + `LoyaltyAccount` typelar, `loyalty.api.ts` (getConfig, getAccount, redeem), `useLoyalty.ts` hooklar, PaymentPanel da bonus ball ko'rsatish va sarflash.
+- **Fayllar:** `types/loyalty.ts`, `api/loyalty.api.ts`, `hooks/customers/useLoyalty.ts`, `app/(pos)/pos/PaymentPanel.tsx`
+- **Commit:** `9a947d9`
+
+---
+
+## T-041 | 2026-03-18 | [FRONTEND] | Supplier management — CRUD + product linking
+
+- **Yechim:** `catalog/suppliers/page.tsx` — yetkazib beruvchilar ro'yxati + CRUD. `suppliers.api.ts` + `useSuppliers.ts` hook.
+- **Fayllar:** `app/(admin)/catalog/suppliers/page.tsx`, `api/suppliers.api.ts`, `hooks/catalog/useSuppliers.ts`
+- **Commit:** multiple
+
+---
+
+## T-235 | 2026-03-18 | [FRONTEND] | LoyaltyAccount — to'liq type va dinamik konversiya
+
+- **Yechim:** `LoyaltyConfig` ga `isActive` + `minRedeem` qo'shildi. `LoyaltyAccount` da backend qaytarmaydigan fieldlar (`tier`, `totalEarned`, `totalRedeemed`) optional qilindi. `loyalty.api.ts` ga `getConfig()` qo'shildi. `useLoyaltyConfig()` hook — 5 daqiqa stale, `DEFAULT_LOYALTY_CONFIG` placeholder. `PaymentPanel.tsx`: hardcoded `* 100` → dinamik `pointsToMoney(points, redeemRate)`.
+- **Fayllar:** `types/loyalty.ts`, `api/loyalty.api.ts`, `hooks/customers/useLoyalty.ts`, `pos/PaymentPanel.tsx`
+- **Commit:** `9a947d9`
+
+---
+
+## T-234 | 2026-03-18 | [FRONTEND] | Dashboard — to'g'ri foyda hisobi
+
+- **Yechim:** `ProfitSummary` type qo'shildi. `getDashboard()` da `/reports/profit` bugun + kecha parallel chaqiriladi. Dashboard: "Yalpi foyda" kartasi (grossProfit + marja %), `TrendBadge` (% vs yesterday), `ProfitBreakdown` paneli (Tushum → -COGS → -Qaytarishlar → Yalpi foyda). Har metrikaga tooltip (Info icon + `title` attribute).
+- **Fayllar:** `types/reports.ts`, `api/reports.api.ts`, `app/(admin)/dashboard/page.tsx`
+- **Commit:** `5ce5414`
+
+---
+
+## T-233 | 2026-03-18 | [FRONTEND] | ProductForm — variant UI (rang, hajm, tur)
+
+- **Yechim:** `VariantsSection` komponenti — mahsulot tahrirlashda ko'rsatiladi, yaratishda "saqlangandan keyin qo'shiladi" xabari. CRUD: `useVariants/useCreateVariant/useUpdateVariant/useDeleteVariant` hooks. Inline qator ustiga bosib tahrirlash, o'chirish tugmasi.
+- **Fayllar:** `types/catalog.ts`, `api/catalog.api.ts`, `hooks/catalog/useVariants.ts`, `products/VariantsSection.tsx`, `products/ProductForm.tsx`
+- **Commit:** `38c273b`
+
+---
+
+## T-232 | 2026-03-18 | [FRONTEND] | Multi-barcode support in ProductForm
+
+- **Yechim:** `useFieldArray` yordamida dinamik barcode ro'yxati. Zod schema'da `extraBarcodes: z.array(z.object({ value: z.string() }))`. Tahrirlashda `product.extraBarcodes` dan pre-populate. `page.tsx` da submit paytida bo'sh qiymatlar filter qilinib DTO ga uzatiladi.
+- **Fayllar:** `apps/web/src/types/catalog.ts`, `apps/web/src/app/(admin)/catalog/products/ProductForm.tsx`, `apps/web/src/app/(admin)/catalog/products/page.tsx`
+- **Commit:** `a10175a`
+
+---
+
+## T-231 | 2026-03-18 | [FRONTEND] | Role-based sidebar + post-login redirect
+
+- **Yechim:** `Sidebar.tsx` — 5 ta rol uchun alohida nav arrays (OWNER/ADMIN/MANAGER/VIEWER/CASHIER) + `getNavItems(role)` helper + skeleton loader. `useAuth.ts` — login da `authApi.me()` → `setQueryData` → OWNER→/analytics, CASHIER→/pos, boshqalar→/dashboard
+- **Fayllar:** `apps/web/src/components/layout/Sidebar.tsx`, `apps/web/src/hooks/auth/useAuth.ts`
+- **Commits:** `9a87076`, `e79275a`
+
+---
+
+## T-230 | 2026-03-18 | [FRONTEND] | CreateOrderItem payload — уже исправлено в e1d7ffb
+
+- **Yechim:** `sales.api.ts` da to'g'ri mapping mavjud: `sellPrice→unitPrice`, `lineDiscount(%)→discountAmount(fixed)`, `orderDiscountType→PERCENT/FIXED`. Hech qanday o'zgartirish kerak emas.
+- **Fayllar:** `apps/web/src/api/sales.api.ts` (allaqachon to'g'ri)
+
+---
+
+## T-229 | 2026-03-18 | [FRONTEND] | PaymentMethod enum mismatch — CARD→TERMINAL, NASIYA→DEBT
+
+- **Yechim:** `sales.api.ts` va `debt.api.ts` da methodMap qo'shildi: `CARD→TERMINAL`, `NASIYA→DEBT`, `BONUS→CASH`
+- **Fayllar:** `apps/web/src/api/sales.api.ts`, `apps/web/src/api/debt.api.ts`, `apps/web/src/api/payments.api.ts`, `apps/web/src/types/founder.ts`, `apps/web/src/app/(admin)/payments/history/page.tsx`
+

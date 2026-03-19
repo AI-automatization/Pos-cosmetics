@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { X, Printer } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, cn } from '@/lib/utils';
 import type { Product } from '@/types/catalog';
 
 interface LabelPrintModalProps {
@@ -10,63 +10,94 @@ interface LabelPrintModalProps {
   onClose: () => void;
 }
 
+type LabelSize = '30x20' | '40x30' | '58x40';
+
+const LABEL_SIZES: { value: LabelSize; label: string; w: string; h: string; wPx: number; hPx: number }[] = [
+  { value: '30x20', label: '30×20 mm', w: '30mm', h: '20mm', wPx: 100, hPx: 56 },
+  { value: '40x30', label: '40×30 mm', w: '40mm', h: '30mm', wPx: 130, hPx: 76 },
+  { value: '58x40', label: '58×40 mm', w: '58mm', h: '40mm', wPx: 180, hPx: 100 },
+];
+
+function fmtExpiry(d?: string | null) {
+  if (!d) return null;
+  const date = new Date(d);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+}
+
+function buildPrintHtml(
+  products: Product[],
+  copies: Record<string, number>,
+  size: LabelSize,
+) {
+  const cfg = LABEL_SIZES.find((s) => s.value === size)!;
+  const isSmall = size === '30x20';
+
+  const labels = products.flatMap((p) => {
+    const count = copies[p.id] ?? 1;
+    const expiry = fmtExpiry(p.expiryDate);
+    return Array.from({ length: count }, () => {
+      return `<div class="label">
+        <div class="label-name">${p.name}</div>
+        ${!isSmall ? `<div class="label-sku">SKU: ${p.sku ?? '—'}</div>` : ''}
+        ${p.barcode ? `<div class="label-barcode">|||  ${p.barcode}  |||</div>` : ''}
+        <div class="label-bottom">
+          <div class="label-price">${formatPrice(Number(p.sellPrice))}</div>
+          ${expiry ? `<div class="label-expiry">Muddat: ${expiry}</div>` : ''}
+        </div>
+      </div>`;
+    });
+  });
+
+  const nameFontSize = isSmall ? '7pt' : size === '40x30' ? '8pt' : '9pt';
+  const priceFontSize = isSmall ? '9pt' : size === '40x30' ? '10pt' : '11pt';
+  const smallFontSize = isSmall ? '5.5pt' : '7pt';
+
+  return `<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Courier New', monospace; background: #fff; }
+  .labels { display: flex; flex-wrap: wrap; gap: 2mm; padding: 3mm; }
+  .label {
+    width: ${cfg.w}; height: ${cfg.h};
+    border: 0.5px solid #ccc;
+    padding: ${isSmall ? '1.5mm 2mm' : '2mm 3mm'};
+    display: flex; flex-direction: column; justify-content: space-between;
+    page-break-inside: avoid;
+    overflow: hidden;
+  }
+  .label-name { font-size: ${nameFontSize}; font-weight: bold; line-height: 1.2; max-height: 2.4em; overflow: hidden; }
+  .label-sku { font-size: ${smallFontSize}; color: #555; }
+  .label-barcode { font-size: ${isSmall ? '6pt' : '7pt'}; letter-spacing: 1.5px; text-align: center; }
+  .label-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  .label-price { font-size: ${priceFontSize}; font-weight: bold; }
+  .label-expiry { font-size: ${smallFontSize}; color: #666; }
+  @page { margin: 3mm; }
+</style>
+</head>
+<body>
+  <div class="labels">${labels.join('')}</div>
+  <script>window.onload = function() { window.print(); window.close(); }<\/script>
+</body>
+</html>`;
+}
+
 export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
   const [copies, setCopies] = useState<Record<string, number>>(
     Object.fromEntries(products.map((p) => [p.id, 1])),
   );
-  const printRef = useRef<HTMLDivElement>(null);
+  const [labelSize, setLabelSize] = useState<LabelSize>('40x30');
 
   const handlePrint = () => {
-    const printContents = printRef.current?.innerHTML;
-    if (!printContents) return;
-
     const win = window.open('', '_blank', 'width=800,height=600');
     if (!win) return;
-
-    win.document.write(`
-      <html>
-        <head>
-          <title>Yorliq chop etish</title>
-          <style>
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: monospace; background: #fff; }
-            .labels { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; }
-            .label {
-              width: 60mm; height: 30mm;
-              border: 1px solid #ccc;
-              padding: 4px 6px;
-              display: flex; flex-direction: column; justify-content: space-between;
-              page-break-inside: avoid;
-            }
-            .label-name { font-size: 9pt; font-weight: bold; line-height: 1.2; max-height: 2.4em; overflow: hidden; }
-            .label-sku { font-size: 7pt; color: #555; }
-            .label-barcode { font-size: 8pt; letter-spacing: 2px; text-align: center; }
-            .label-price { font-size: 11pt; font-weight: bold; text-align: right; }
-            @page { margin: 5mm; }
-          </style>
-        </head>
-        <body>
-          <div class="labels">${printContents}</div>
-          <script>window.onload = function() { window.print(); window.close(); }</script>
-        </body>
-      </html>
-    `);
+    win.document.write(buildPrintHtml(products, copies, labelSize));
     win.document.close();
   };
 
-  const labelElements = products.flatMap((p) => {
-    const count = copies[p.id] ?? 1;
-    return Array.from({ length: count }, (_, i) => (
-      <div key={`${p.id}-${i}`} className="label">
-        <div className="label-name">{p.name}</div>
-        <div className="label-sku">SKU: {p.sku}</div>
-        {p.barcode && <div className="label-barcode">|||  {p.barcode}  |||</div>}
-        <div className="label-price">{formatPrice(Number(p.sellPrice))}</div>
-      </div>
-    ));
-  });
-
   const totalLabels = products.reduce((s, p) => s + (copies[p.id] ?? 1), 0);
+  const cfg = LABEL_SIZES.find((s) => s.value === labelSize)!;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-8">
@@ -82,13 +113,38 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
           </button>
         </div>
 
+        {/* Label size selector */}
+        <div className="border-b border-gray-100 px-6 py-3">
+          <p className="mb-2 text-xs font-medium text-gray-500">Yorliq o&apos;lchami</p>
+          <div className="flex gap-2">
+            {LABEL_SIZES.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => setLabelSize(s.value)}
+                className={cn(
+                  'rounded-lg border px-3 py-1.5 text-sm font-medium transition',
+                  labelSize === s.value
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Copies per product */}
         <div className="max-h-60 divide-y divide-gray-100 overflow-y-auto px-6 py-3">
           {products.map((p) => (
             <div key={p.id} className="flex items-center justify-between py-2.5">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-900">{p.name}</p>
-                <p className="text-xs text-gray-400">{p.sku} · {formatPrice(Number(p.sellPrice))}</p>
+                <p className="text-xs text-gray-400">
+                  {p.sku} · {formatPrice(Number(p.sellPrice))}
+                  {p.expiryDate && ` · Muddat: ${fmtExpiry(p.expiryDate)}`}
+                </p>
               </div>
               <div className="ml-4 flex items-center gap-2">
                 <label className="text-xs text-gray-500">Nusxa:</label>
@@ -110,35 +166,38 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
           ))}
         </div>
 
-        {/* Preview area (hidden, used for print) */}
+        {/* Preview */}
         <div className="mx-6 mb-4 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">Ko&apos;rinish:</p>
-          <div
-            ref={printRef}
-            className="flex flex-wrap gap-1"
-            style={{ display: 'none' }}
-          >
-            {labelElements.map((el) => el)}
-          </div>
+          <p className="mb-2 text-xs font-medium text-gray-500">Ko&apos;rinish ({cfg.label}):</p>
           <div className="flex flex-wrap gap-2">
-            {products.slice(0, 3).map((p) => (
+            {products.slice(0, 4).map((p) => {
+              const expiry = fmtExpiry(p.expiryDate);
+              return (
+                <div
+                  key={p.id}
+                  className="flex flex-col justify-between rounded border border-gray-300 bg-white p-1.5"
+                  style={{ width: `${cfg.wPx}px`, height: `${cfg.hPx}px` }}
+                >
+                  <p className="line-clamp-1 text-[8px] font-bold leading-tight">{p.name}</p>
+                  {labelSize !== '30x20' && (
+                    <p className="text-[6px] text-gray-500">SKU: {p.sku}</p>
+                  )}
+                  {p.barcode && (
+                    <p className="text-center font-mono text-[6px] tracking-widest">||| {p.barcode} |||</p>
+                  )}
+                  <div className="flex items-end justify-between">
+                    <span className="text-[9px] font-bold">{formatPrice(Number(p.sellPrice))}</span>
+                    {expiry && <span className="text-[5px] text-gray-500">{expiry}</span>}
+                  </div>
+                </div>
+              );
+            })}
+            {products.length > 4 && (
               <div
-                key={p.id}
-                className="flex flex-col justify-between rounded border border-gray-300 bg-white p-2"
-                style={{ width: '140px', height: '70px' }}
+                className="flex items-center justify-center rounded border border-dashed border-gray-300 bg-white text-xs text-gray-400"
+                style={{ width: `${cfg.wPx * 0.6}px`, height: `${cfg.hPx}px` }}
               >
-                <p className="line-clamp-1 text-xs font-bold leading-tight">{p.name}</p>
-                <p className="text-[10px] text-gray-500">SKU: {p.sku}</p>
-                {p.barcode && (
-                  <p className="text-center font-mono text-[8px] tracking-widest">||| {p.barcode} |||</p>
-                )}
-                <p className="text-right text-xs font-bold">{formatPrice(Number(p.sellPrice))}</p>
-              </div>
-            ))}
-            {products.length > 3 && (
-              <div className="flex items-center justify-center rounded border border-dashed border-gray-300 bg-white text-xs text-gray-400"
-                style={{ width: '80px', height: '70px' }}>
-                +{products.length - 3} ta
+                +{products.length - 4} ta
               </div>
             )}
           </div>
