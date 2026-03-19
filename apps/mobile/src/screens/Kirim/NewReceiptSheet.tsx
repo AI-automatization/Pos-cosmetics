@@ -10,8 +10,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
   ScrollView,
 } from 'react-native';
 import type { UseMutationResult } from '@tanstack/react-query';
@@ -266,43 +264,6 @@ export default function NewReceiptSheet({
 
   return (
     <>
-      {/* ── Camera Modal ───────────────────────────────── */}
-      <Modal
-        visible={cameraOpen}
-        animationType="slide"
-        onRequestClose={() => {
-          setCameraOpen(false);
-          setIsScanActive(true);
-        }}
-      >
-        <View style={styles.cameraModal}>
-          <View style={styles.cameraWrap}>
-            <CameraSection
-              isScanActive={isScanActive}
-              onActivate={() => setIsScanActive(true)}
-              onBarcodeScanned={handleBarcodeScanned}
-            />
-          </View>
-
-          {scanLoading && (
-            <View style={styles.scanLoadingRow}>
-              <ActivityIndicator color={C.primary} size="small" />
-              <Text style={styles.scanLoadingText}>Mahsulot qidirilmoqda...</Text>
-            </View>
-          )}
-
-          <TouchableOpacity
-            style={styles.cameraCloseBtn}
-            onPress={() => {
-              setCameraOpen(false);
-              setIsScanActive(true);
-            }}
-          >
-            <Text style={styles.cameraCloseBtnText}>Yopish</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
       {/* ── New Receipt Sheet ──────────────────────────── */}
       <Modal
         visible={visible}
@@ -310,9 +271,8 @@ export default function NewReceiptSheet({
         animationType="slide"
         onRequestClose={handleClose}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.overlay}>
-            <KeyboardAvoidingView
+        <View style={styles.overlay}>
+          <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               style={styles.kav}
             >
@@ -333,7 +293,7 @@ export default function NewReceiptSheet({
 
                 <ScrollView
                   showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
+                  keyboardShouldPersistTaps="always"
                   style={styles.scroll}
                 >
                   {/* ── Section: Yetkazib beruvchi ──────── */}
@@ -620,8 +580,37 @@ export default function NewReceiptSheet({
                 </View>
               </View>
             </KeyboardAvoidingView>
-          </View>
-        </TouchableWithoutFeedback>
+
+            {/* ── Camera Overlay (inside same modal to avoid iOS nested modal issue) ── */}
+            {cameraOpen && (
+              <View style={styles.cameraModal}>
+                <View style={styles.cameraWrap}>
+                  <CameraSection
+                    isScanActive={isScanActive}
+                    onActivate={() => setIsScanActive(true)}
+                    onBarcodeScanned={handleBarcodeScanned}
+                  />
+                </View>
+
+                {scanLoading && (
+                  <View style={styles.scanLoadingRow}>
+                    <ActivityIndicator color={C.primary} size="small" />
+                    <Text style={styles.scanLoadingText}>Mahsulot qidirilmoqda...</Text>
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={styles.cameraCloseBtn}
+                  onPress={() => {
+                    setCameraOpen(false);
+                    setIsScanActive(true);
+                  }}
+                >
+                  <Text style={styles.cameraCloseBtnText}>Yopish</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+        </View>
       </Modal>
     </>
   );
@@ -629,15 +618,16 @@ export default function NewReceiptSheet({
 
 // ─── Styles ────────────────────────────────────────────
 const styles = StyleSheet.create({
-  // Camera modal
+  // Camera overlay (absolute, covers entire modal)
   cameraModal: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000',
     justifyContent: 'space-between',
     paddingBottom: SHEET_PADDING_BOTTOM,
+    zIndex: 100,
   },
   cameraWrap: {
-    height: CAMERA_HEIGHT,
+    flex: 1,
     marginTop: CAMERA_MARGIN_TOP,
   },
   scanLoadingRow: {
@@ -707,7 +697,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scroll: { flexGrow: 0 },
+  scroll: { flexShrink: 1 },
 
   // Section headers
   sectionTitle: {

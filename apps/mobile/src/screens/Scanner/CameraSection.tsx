@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { CameraView } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -11,6 +11,22 @@ interface Props {
 
 export default function CameraSection({ isScanActive, onActivate, onBarcodeScanned }: Props) {
   const { t } = useTranslation();
+  const [permission, requestPermission] = useCameraPermissions();
+
+  if (!permission) {
+    return <View style={styles.cameraContainer} />;
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={[styles.cameraContainer, styles.permissionContainer]}>
+        <Text style={styles.permissionText}>Kamera ruxsati kerak</Text>
+        <TouchableOpacity style={styles.activateBtn} onPress={requestPermission}>
+          <Text style={styles.activateBtnText}>📷 Ruxsat berish</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.cameraContainer}>
@@ -38,6 +54,19 @@ export default function CameraSection({ isScanActive, onActivate, onBarcodeScann
 const styles = StyleSheet.create({
   cameraContainer: { flex: 1 },
   camera: { flex: 1 },
+  permissionContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    gap: 16,
+  },
+  permissionText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.4)',
