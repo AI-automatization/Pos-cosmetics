@@ -227,73 +227,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-125 | P0 | [BACKEND] | Swagger/OpenAPI documentation — API docs setup
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/main.ts`, `apps/api/src/**/*.dto.ts`
-- **Vazifa:**
-  - `@nestjs/swagger` — SwaggerModule.setup('/api/docs')
-  - Barcha DTO larga `@ApiProperty()` decorator
-  - Controller larga `@ApiTags()`, `@ApiBearerAuth()`, `@ApiOperation()`, `@ApiResponse()`
-  - Swagger JSON export: `/api/docs-json` (frontend client generate uchun)
-  - Grouping: Identity, Catalog, Sales, Inventory, Payments, Reports, Admin
-  - Auth: Swagger UI da Bearer token kiritish imkoniyati
-- **Kutilgan:** `/api/docs` da to'liq interaktiv API dokumentatsiya
-
----
-
-## T-126 | P0 | [BACKEND] | Test infrastructure — Jest setup + first tests
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/jest.config.ts`, `apps/api/src/**/*.spec.ts`
-- **Vazifa:**
-  - Jest config: `apps/api/jest.config.ts` (ts-jest, moduleNameMapper, coverage)
-  - Test DB: `DATABASE_URL_TEST` in .env, test Prisma client
-  - Unit test namuna: `identity.service.spec.ts` — register, login, refresh token
-  - Integration test namuna: `auth.controller.spec.ts` — POST /auth/login, POST /auth/register
-  - Test utilities: `createTestApp()`, `createTestUser()`, `getAuthToken()`
-  - Coverage threshold: 50% minimum (boshlang'ich)
-  - `pnpm --filter api test` script
-- **Kutilgan:** Test infra tayyor, namuna testlar ishlaydi, CI da run bo'ladi
-
----
-
-## T-127 | P1 | [BACKEND] | Database seed data — Development uchun test data
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/prisma/seed.ts`
-- **Vazifa:**
-  - `prisma db seed` — development uchun sample data yaratish
-  - Seed data:
-    - 1 tenant (Kosmetika do'koni "Gul Kosmetika")
-    - 1 owner user (admin@test.com / password123)
-    - 1 cashier user (cashier@test.com / password123)
-    - 1 branch (default)
-    - 10 categories (Terini parvarish, Soch, Makiyaj, Atir, Tirnoq, ...)
-    - 5 units (dona, quti, set, ml, gram)
-    - 30+ products (har kategoriyadan, barcode, narx, min_stock bilan)
-    - 5 customers (telefon, nasiya bilan)
-  - Idempotent: qayta run qilsa xato bermaydi
-  - package.json: `"prisma": { "seed": "ts-node prisma/seed.ts" }`
-- **Kutilgan:** `pnpm --filter api db:seed` bilan tayyor test muhit
-
----
-
-## T-128 | P0 | [DEVOPS] | .gitignore yangilash — Keraksiz fayllarni ignore
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `.gitignore`
-- **Vazifa:**
-  - `tsconfig.tsbuildinfo` — barcha apps da
-  - `.claude/settings.local.json` — local Claude config
-  - `logs/` — runtime log fayllar
-  - `.env.local`, `.env.staging`, `.env.production`
-  - `*.tsbuildinfo`
-  - `apps/api/dist/`
-  - `apps/web/.next/`
-- **Kutilgan:** Git status da keraksiz fayllar ko'rinmaydi
-
----
 
 ### ═══════════════════════════════════════
 ### 📁 FAYL YUKLASH & MEDIA
@@ -301,50 +234,9 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-129 | P1 | [BACKEND] | File upload service — MinIO S3 integration
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/common/upload/`
-- **Vazifa:**
-  - `UploadModule`, `UploadService`
-  - MinIO client: `@aws-sdk/client-s3`
-  - POST /upload — single file upload (image: jpeg/png/webp, max 5MB)
-  - POST /upload/bulk — multiple files (max 10)
-  - Buckets: `product-images`, `receipts`, `certificates`, `exports`
-  - Auto-resize: thumbnail (200px), medium (800px), original
-  - Presigned URL: GET /upload/:key — vaqtinchalik download link
-  - Mimetype + size validation, tenant_id folder isolation
-- **Kutilgan:** Product image va fayllarni yuklash ishlaydi
-
 ---
 
-## T-130 | P1 | [BACKEND] | Product bulk import/export — CSV/Excel
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/catalog/import/`
-- **Vazifa:**
-  - POST /products/import — CSV/XLSX fayldan bulk import
-  - Template: GET /products/import/template — bo'sh Excel template yuklab olish
-  - Import flow: upload → validate → preview (errors ko'rsatish) → confirm → save
-  - Validation: barcode uniqueness, category exists, price > 0, required fields
-  - Duplicate handling: barcode mavjud → update yoki skip (user tanlaydi)
-  - GET /products/export — barcha productlarni Excel ga chiqarish
-  - BullMQ: 500+ row → async job, tayyor bo'lganda notification
-- **Kutilgan:** Do'kon ochishda 500-1000 ta productni tezkor kiritsa bo'ladi
-
 ---
-
-## T-131 | P1 | [BACKEND] | Barcode generation — Barcodesiz product uchun
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/catalog/`
-- **Vazifa:**
-  - Barcode format: EAN-13 (internal), prefix: tenant-specific (e.g. 200XXXXX)
-  - Auto-generate: product yaratishda barcode yo'q bo'lsa → internal barcode yaratish
-  - GET /products/:id/barcode — barcode image (SVG/PNG) generate qilish
-  - Batch barcode generate: POST /products/generate-barcodes — tanlangan products uchun
-  - `bwip-js` library
-- **Kutilgan:** Barcodesiz productlarga ham barcode berib, etiketka chop etsa bo'ladi
 
 ---
 
@@ -354,41 +246,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-132 | P1 | [BACKEND] | Tenant settings — Configurable per-tenant sozlamalar
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/identity/settings/`
-- **Vazifa:**
-  - `tenant_settings` jadvali: id, tenant_id, key, value (JSON), updated_at
-  - Settings:
-    - `currency` — UZS (default), USD
-    - `tax_rate` — 12 (default QQS)
-    - `tax_inclusive` — true/false (narxga QQS kirganmi)
-    - `receipt_header` — do'kon nomi, manzil, INN, telefon
-    - `receipt_footer` — "Xaridingiz uchun rahmat!"
-    - `logo_url` — receipt va admin panel uchun
-    - `shift_required` — savdo qilish uchun shift ochish shartmi
-    - `debt_limit_default` — yangi customer uchun default nasiya limit
-    - `rounding` — 100 yoki 1000 ga yaxlitlash
-    - `low_stock_threshold` — default min_stock_level
-  - GET /settings — tenant sozlamalari
-  - PATCH /settings — yangilash (faqat ADMIN/OWNER)
-  - Default values: birinchi marta o'qilganda avtomatik yaratiladi
-- **Kutilgan:** Har do'kon o'zi uchun sozlama qilsa bo'ladi
-
 ---
-
-## T-133 | P1 | [BACKEND] | Price history — Narx o'zgarishi tarixi
-- **Sana:** 2026-02-28
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/catalog/`
-- **Vazifa:**
-  - `price_changes` jadvali: id, tenant_id, product_id, old_cost_price, new_cost_price, old_sell_price, new_sell_price, changed_by (user_id), reason, created_at
-  - Product update qilinganda narx o'zgargan bo'lsa → avtomatik log
-  - GET /products/:id/price-history — narx o'zgarish tarixi
-  - Margin tahlili: cost va sell price trend chart uchun data
-  - ⚠️ Immutable — price_changes UPDATE/DELETE TAQIQLANGAN
-- **Kutilgan:** Narx o'zgarishi izlanadi, margin trend ko'rinadi
 
 ---
 
@@ -400,17 +258,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
-
-- **Sana:** 2026-03-08
-- **Mas'ul:** Polat / Bekzod
-- **Fayl:** `apps/api/src/inventory/inventory.service.ts` → `getStockLevels()`
-- **Muammo:** `getStockLevels()` snapshot mavjud bo'lsa `stock_snapshots` + delta yondashuvi ishlatadi. Ammo snapshot DAN KEYIN qo'shilgan yangi mahsulotlar faqat `stock_movements`da bo'ladi, `stock_snapshots`da yo'q. Natijada LEFT JOIN orqali ular ko'rinmaydi.
-- **Kutilgan:** Snapshot'dan keyingi yangi mahsulotlar ham `GET /api/v1/inventory/levels`da ko'rinishi kerak.
-- **Taklif:** SQL'ga UNION ALL qo'shing — snapshot'da bo'lmagan, lekin `stock_movements`da (snapshot vaqtidan keyin) bo'lgan mahsulotlarni ham qo'shsin.
-- **Workaround (hozircha):** `stock_snapshots` jadvali bo'sh bo'lsa, full aggregate mode ishlaydi va barcha mahsulotlar ko'rinadi.
-
----
 
 ## T-139 | P1 | [IKKALASI] | ibrat/feat-mobile-app → main merge va Railway deploy
 
@@ -427,15 +274,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-140 | P1 | [BACKEND] | Real estate controller — routes bo'sh
-
-- **Sana:** 2026-03-09
-- **Mas'ul:** Polat
-- **Fayl:** `apps/api/src/realestate/realestate.controller.ts`
-- **Muammo:** Controller `@Controller('real-estate')` deklaratsiya qilingan lekin HECH QANDAY route yo'q. Mobile app `/real-estate/properties`, `/real-estate/stats`, `/real-estate/payments` ga murojaat qiladi — hammasi 404. `safeQueryFn` ushlab turadi.
-- **Kutilgan:** `getProperties()`, `getStats()`, `getRentalPayments()`, `getAllPayments()` endpointlari qo'shilsin
-
----
 
 ## 📊 STATISTIKA
 
@@ -522,35 +360,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 
 
-## T-227 | P1 | [IKKALASI] | Integration test checklist — mobile-owner endpoints
-
-- **Sana:** 2026-03-15
-- **Mas'ul:** Ibrat (Mobile) + Bekzod (Test)
-- **Vazifa:**
-  - [ ] Login: `POST /auth/login` (owner@kosmetika.uz / Demo1234! / kosmetika-demo)
-  - [ ] `GET /analytics/revenue` — today/week/month/year + trends
-  - [ ] `GET /analytics/orders` — total, avgOrderValue, trend
-  - [ ] `GET /analytics/branch-comparison` — 4 filial
-  - [ ] `GET /analytics/revenue-by-branch` — 4 filial
-  - [ ] `GET /analytics/sales-trend` — kunlik grafik
-  - [ ] `GET /analytics/top-products` — top 10
-  - [ ] `GET /shifts` — paginated list
-  - [ ] `GET /shifts/summary` — total revenue, orders
-  - [ ] `GET /shifts/active` — ochiq smenalar
-  - [ ] `GET /shifts/:id` — smena detali
-  - [ ] `GET /debts/summary` — totalDebt, overdueDebt
-  - [ ] `GET /debts/aging-report` — buckets
-  - [ ] `GET /debts/customers` — paginated
-  - [ ] `GET /alerts` — paginated
-  - [ ] `GET /alerts/unread-count`
-  - [ ] `PATCH /alerts/:id/read`
-  - [ ] `GET /system/health` — DB + Redis
-  - [ ] `GET /system/sync-status` — filiallar
-  - [ ] `GET /employees` — list
-  - [ ] `GET /inventory/out-of-stock`
-  - [ ] Seed data: `npx ts-node prisma/seed.ts`
-
----
 
 
 *docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.1 | 2026-03-15*
@@ -571,15 +380,6 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 
 ---
 
-## T-241 | P2 | [IKKALASI] | packages/types — etishmayotgan shared typelar
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** AbdulazizYormatov + Polat (kelishib)
-- **Fayl:** `packages/types/src/`
-- **Muammo:** `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion` typelar yo'q shared package da
-- **Kutilgan:** packages/types ga qo'shish: `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion`
-
----
 
 ---
 

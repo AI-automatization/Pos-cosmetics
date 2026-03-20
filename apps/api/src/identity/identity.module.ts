@@ -6,6 +6,8 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { UsersController } from './users.controller';
 import { IdentityInfoController } from './identity-info.controller';
+import { TenantSettingsController } from './tenant-settings.controller';
+import { TenantSettingsService } from './tenant-settings.service';
 import { IdentityService } from './identity.service';
 import { PinService } from './pin.service';
 import { SessionService } from './session.service';
@@ -30,9 +32,10 @@ import { TenantGuard } from './guards/tenant.guard';
       }),
     }),
   ],
-  controllers: [AuthController, UsersController, IdentityInfoController],
+  controllers: [AuthController, UsersController, IdentityInfoController, TenantSettingsController],
   providers: [
     IdentityService,
+    TenantSettingsService,
     PinService,
     SessionService,
     ApiKeyService,

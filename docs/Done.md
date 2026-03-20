@@ -185,8 +185,40 @@
 | — | 2026-03-09 | [FRONTEND] | `SyncStatusBar.tsx`: direct `fetch()` → `apiClient.get('/health/ping')` | `apps/web/src/components/SyncStatus/SyncStatusBar.tsx` |
 | T-228 | 2026-03-18 | [BACKEND] | Duplikat `20260310000001_add_bot_settings` migratsiya o'chirildi, `20260313` qoldirildi | `apps/api/prisma/migrations/` |
 | T-144 | 2026-03-18 | [BACKEND] | Employee `fired` status qo'shildi (active/inactive/fired) | `apps/api/src/employees/employees.controller.ts`, `employees.service.ts` |
+
+---
+
+## 2026-03-13 SESSIYA — DEVELOPER TOOLING & BACKEND FEATURES
+
+| # | Sana | Kategoriya | Yechim | Fayl(lar) |
+|---|------|-----------|--------|-----------|
+| T-125 | 2026-03-10 | [BACKEND] | Swagger/OpenAPI — `@nestjs/swagger` DocumentBuilder + SwaggerModule.setup allaqachon `apps/api/src/main.ts` da mavjud edi. `/api/docs` interaktiv API dokumentatsiya ishlayapti | `apps/api/src/main.ts` |
+| T-127 | 2026-03-10 | [BACKEND] | Database seed data — `apps/api/prisma/seed.ts` (503 qator) mavjud edi: kosmetika-demo tenant, owner@kosmetika.uz / Demo1234!, 4 filial, kategoriyalar, mahsulotlar, mijozlar. `pnpm --filter api db:seed` ishlaydi | `apps/api/prisma/seed.ts` |
+| T-128 | 2026-03-13 | [DEVOPS] | `.gitignore` yangilandi — git conflict tozalandi, test artifacts, mobile logs (`apps/mobile/logs/`), playwright MCP fayllar qo'shildi | `.gitignore` |
+| T-126 | 2026-03-13 | [BACKEND] | Jest test infratuzilmasi — `jest.config.js`, `apps/api/src/identity/test/` va `apps/api/src/catalog/test/` spec fayllar, 6/6 PASS | `apps/api/jest.config.js`, `apps/api/src/identity/test/`, `apps/api/src/catalog/test/` |
+| T-129 | 2026-03-13 | [BACKEND] | File upload service — MinIO S3 integratsiya. `POST /upload`, `POST /upload/bulk`, `GET /upload/presign`, `DELETE /upload` endpointlari | `apps/api/src/upload/upload.service.ts`, `upload.controller.ts`, `upload.module.ts` |
+| T-130 | 2026-03-13 | [BACKEND] | Product bulk import/export — CSV/Excel. `POST /catalog/products/import`, `GET /catalog/products/export?format=xlsx\|csv` | `apps/api/src/catalog/import-export/product-import.service.ts` |
+| T-131 | 2026-03-13 | [BACKEND] | Barcode generation — EAN-13. `GET /catalog/products/:id/barcode?format=ean13\|code128\|qrcode` (bwip-js kutubxonasi) | `apps/api/src/catalog/catalog.controller.ts` |
+| T-132 | 2026-03-13 | [BACKEND] | Tenant settings — `GET /settings`, `PATCH /settings`; `tenant_settings` jadvali va migration | `apps/api/src/identity/tenant-settings.service.ts`, `apps/api/src/identity/tenant-settings.controller.ts`, `apps/api/prisma/migrations/20260313000000_add_tenant_settings_price_changes/` |
+| T-133 | 2026-03-13 | [BACKEND] | Price history — `GET /catalog/price-changes`, `GET /catalog/products/:id/price-changes`; `price_changes` jadvali | `apps/api/src/catalog/price-history.service.ts` |
+| T-138 | 2026-03-13 | [BACKEND] | Stock levels bug — snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi. UNION ALL pattern qo'shildi: snapshot'da bo'lmagan lekin `stock_movements`da bo'lgan mahsulotlar ham aggregatga qo'shiladi | `apps/api/src/inventory/inventory.service.ts` |
+| T-140 | 2026-03-13 | [BACKEND] | Real estate controller — routes bo'sh edi. `getProperties()`, `getStats()`, `getRentalPayments()`, `getAllPayments()` stub endpointlari qo'shildi | `apps/api/src/realestate/realestate.controller.ts` |
+| T-241 | 2026-03-13 | [IKKALASI] | packages/types — `TenantSettings`, `PriceChange`, `UploadResult`, `ImportResult` shared typelar qo'shildi | `packages/types/src/settings.ts` |
 | T-145 | 2026-03-18 | [BACKEND] | Login email OR login field orqali; JWT da `hasPosAccess`, `hasAdminAccess` qo'shildi | `apps/api/src/identity/dto/login.dto.ts`, `identity.service.ts`, `strategies/jwt.strategy.ts` |
 | T-146 | 2026-03-18 | [BACKEND] | Fired/inactive/POS-revoke da sessiyalar + refreshToken avtomatik o'chiriladi | `apps/api/src/employees/employees.service.ts` |
+
+---
+
+## 2026-03-13 SESSIYA — BACKEND INFRA (T-126, T-129..T-133)
+
+| T-# | Kategoriya | Yechim | Fayl(lar) |
+|-----|-----------|--------|-----------|
+| T-126 | [BACKEND] | Jest test infra — `jest.config.js` (ts-jest, moduleNameMapper, coverage), unit testlar: `tenant-settings.service.spec.ts`, `price-history.service.spec.ts`. E2E config: `test/jest-e2e.config.js`. 6/6 testlar PASS | `apps/api/jest.config.js`, `apps/api/src/identity/test/tenant-settings.service.spec.ts`, `apps/api/src/catalog/test/price-history.service.spec.ts`, `apps/api/test/jest-e2e.config.js` |
+| T-129 | [BACKEND] | MinIO file upload — `UploadModule`, `UploadService` (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`). POST /upload (single, max 5MB), POST /upload/bulk (max 10), GET /upload/presign, DELETE /upload. Bucket: product-images, receipts, certificates, exports. Mimetype+size validation, tenant_id folder isolation. Paketlar: multer, @nestjs/platform-express | `apps/api/src/upload/upload.service.ts`, `upload.controller.ts`, `upload.module.ts` |
+| T-130 | [BACKEND] | Product bulk import/export — CSV va XLSX qo'llab-quvvatlaydi. POST /catalog/products/import (upsert by SKU/barcode, validation errors return), GET /catalog/products/export. Paket: exceljs | `apps/api/src/catalog/import-export/product-import.service.ts`, `product-import.controller.ts` |
+| T-131 | [BACKEND] | Barcode generation — GET /catalog/products/:id/barcode?format=ean13\|code128\|qrcode. PNG image qaytaradi. Paket: bwip-js | `apps/api/src/catalog/catalog.controller.ts` |
+| T-132 | [BACKEND] | Tenant settings — `tenant_settings` jadvali qo'shildi. GET /settings, PATCH /settings (ADMIN/OWNER only). 10 ta sozlama: currency, tax_rate, tax_inclusive, receipt_header/footer, logo_url, shift_required, debt_limit_default, rounding, low_stock_threshold. Migration: 20260313000000_add_tenant_settings_price_changes | `apps/api/src/identity/tenant-settings.service.ts`, `tenant-settings.controller.ts`, `apps/api/prisma/schema.prisma` |
+| T-133 | [BACKEND] | Price history — `price_changes` jadvali (immutable). Product narxi o'zgarganda avtomatik log. GET /catalog/price-changes, GET /catalog/products/:id/price-changes. TAQIQLANGAN: UPDATE/DELETE | `apps/api/src/catalog/price-history.service.ts`, `apps/api/prisma/schema.prisma` |
 
 ---
 
@@ -611,4 +643,11 @@
 
 - **Yechim:** ai.controller.ts ga `/analytics/orders`, `/analytics/branch-comparison`, `/analytics/revenue-by-branch` qo'shildi. shifts.controller.ts `/shifts/*` alias, debts.controller.ts `/debts/*` alias, alerts.controller.ts `/alerts/*` alias, system.controller.ts `/system/*` alias yaratildi. seed.ts kengaytirildi: 4 filial, 4 kassir, 10 mahsulot, 60+ order, 6 nasiya, 8 alert. tsc clean, PR tayyor.
 - **Fayllar:** `apps/api/src/ai/ai.controller.ts`, `apps/api/src/ai/ai.service.ts`, `apps/api/src/sales/shifts.controller.ts`, `apps/api/src/nasiya/debts.controller.ts`, `apps/api/src/notifications/alerts.controller.ts`, `apps/api/src/health/system.controller.ts`, `apps/api/prisma/seed.ts`
+
+---
+
+## T-227 | 2026-03-13 | [IKKALASI] | Integration test checklist — mobile-owner endpoints
+
+- **Yechim:** `scripts/test-mobile-owner-endpoints.sh` skripti yaratildi — 25 endpoint avtomatik test qiladi. Barcha backend endpointlar mavjudligi tasdiqlandi (grep bilan). API ishga tushgach: `bash scripts/test-mobile-owner-endpoints.sh` yoki `BASE_URL=https://api-production-c5b6.up.railway.app bash scripts/test-mobile-owner-endpoints.sh`
+- **Fayl:** `scripts/test-mobile-owner-endpoints.sh`
 

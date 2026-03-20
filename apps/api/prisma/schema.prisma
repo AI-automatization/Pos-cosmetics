@@ -48,6 +48,8 @@ model Tenant {
   productCertificates ProductCertificate[]
   promotions          Promotion[]
   telegramLinkTokens  TelegramLinkToken[]
+  settings            TenantSettings?
+  priceChanges        PriceChange[]
 
   @@map("tenants")
 }
@@ -201,6 +203,7 @@ model Product {
   prices           ProductPrice[]
   transferItems    StockTransferItem[]
   certificates     ProductCertificate[]
+  priceChanges     PriceChange[]
 
   @@index([tenantId])
   @@index([tenantId, barcode])
@@ -1321,4 +1324,51 @@ model TelegramLinkToken {
   @@index([token])
   @@index([tenantId])
   @@map("telegram_link_tokens")
+}
+
+// ============================================
+// TENANT SETTINGS (T-132)
+// ============================================
+
+model TenantSettings {
+  id              String   @id @default(uuid())
+  tenantId        String   @unique @map("tenant_id")
+  currency        String   @default("UZS")
+  language        String   @default("uz")
+  timezone        String   @default("Asia/Tashkent")
+  taxRate         Decimal  @default(0) @map("tax_rate") @db.Decimal(5, 2)
+  receiptHeader   String?  @map("receipt_header")
+  receiptFooter   String?  @map("receipt_footer")
+  lowStockThreshold Int    @default(5) @map("low_stock_threshold")
+  expiryAlertDays Int      @default(30) @map("expiry_alert_days")
+  extra           Json     @default("{}") // extensible key-value
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("tenant_settings")
+}
+
+// ============================================
+// PRICE HISTORY (T-133)
+// ============================================
+
+model PriceChange {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  productId  String   @map("product_id")
+  userId     String?  @map("user_id")
+  field      String   // "price" | "costPrice" | "wholesalePrice"
+  oldValue   Decimal  @map("old_value") @db.Decimal(15, 2)
+  newValue   Decimal  @map("new_value") @db.Decimal(15, 2)
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([tenantId, createdAt])
+  @@map("price_changes")
 }
