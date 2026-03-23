@@ -99,6 +99,21 @@ export default function SavdoScreen() {
     });
   };
 
+  const decrementFromCart = (product: Product) => {
+    setCart((prev) => {
+      const item = prev.find((i) => i.product.id === product.id);
+      if (!item) return prev;
+      if (item.qty === 1) {
+        const updated = prev.filter((i) => i.product.id !== product.id);
+        if (updated.length === 0) setPaymentVisible(false);
+        return updated;
+      }
+      return prev.map((i) =>
+        i.product.id === product.id ? { ...i, qty: i.qty - 1 } : i,
+      );
+    });
+  };
+
   const handleScanned = (barcode: string) => {
     setScannerVisible(false);
     // Barkod bo'yicha mahsulot qidirish (hozircha name bo'yicha)
@@ -191,6 +206,7 @@ export default function SavdoScreen() {
             product={item}
             cartQty={cartQty(item.id)}
             onPress={addToCart}
+            onDecrement={decrementFromCart}
           />
         )}
         ListEmptyComponent={
