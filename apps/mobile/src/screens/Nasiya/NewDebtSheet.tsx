@@ -65,19 +65,18 @@ export default function NewDebtSheet({
   const [form, setForm]       = useState<FormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
 
-  // Pre-fill totalAmount when initialAmount provided
+  // Unified effect: pre-fill on open, reset on close
   React.useEffect(() => {
-    if (visible && initialAmount !== undefined && initialAmount > 0) {
-      setForm((prev) => ({ ...prev, totalAmount: String(initialAmount) }));
-    }
-  }, [visible, initialAmount]);
-
-  // Reset form when sheet closes
-  React.useEffect(() => {
-    if (!visible) {
+    if (visible) {
+      if (initialAmount !== undefined && initialAmount > 0) {
+        setForm({ ...EMPTY_FORM, totalAmount: String(initialAmount) });
+      } else {
+        setForm(EMPTY_FORM);
+      }
+    } else {
       setForm(EMPTY_FORM);
     }
-  }, [visible]);
+  }, [visible, initialAmount]);
 
   const set = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));

@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import { useRoute, useNavigation, type RouteProp, type NavigationProp } from '@react-navigation/native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { DebtRecord } from '../../api/nasiya.api';
 import type { TabParamList } from '../../navigation/types';
@@ -84,14 +84,17 @@ export default function NasiyaScreen() {
   const [newDebtVisible, setNewDebtVisible] = useState(false);
 
   const route = useRoute<RouteProp<TabParamList, 'Nasiya'>>();
+  const navigation = useNavigation<NavigationProp<TabParamList>>();
 
   // Auto-open from Savdo NASIYA payment
   useEffect(() => {
     const params = route.params;
     if (params?.openNewDebt) {
       setNewDebtVisible(true);
+      // Clear params so re-navigation does not re-trigger the sheet
+      navigation.setParams({ openNewDebt: undefined, amount: undefined, products: undefined });
     }
-  }, [route.params]);
+  }, [route.params, navigation]);
 
   const {
     currentItems,
