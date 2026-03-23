@@ -10,6 +10,8 @@ import {
   Patch,
   Post,
   Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -30,6 +32,9 @@ import { IdentityService } from './identity.service';
 import { PinService } from './pin.service';
 import { SessionService } from './session.service';
 import { ApiKeyService, API_KEY_SCOPES } from './api-key.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { randomUUID } from 'crypto';
 
 class CreateApiKeyDto {
   @ApiProperty({ example: 'POS-Branch-1' })
@@ -62,6 +67,7 @@ export class AuthController {
     private readonly pinService: PinService,
     private readonly sessionService: SessionService,
     private readonly apiKeyService: ApiKeyService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Public()
@@ -297,25 +303,102 @@ export class AuthController {
   }
 
   // ─── T-225: BIOMETRIC ─────────────────────────────────────────
+
+  /**
+   * POST /auth/biometric/register
+   * Logged-in user device uchun biometric token yaratadi.
+   * Token 30 kunlik, botSettings JSON da saqlanadi.
+   */
   @Post('biometric/register')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'T-225: Biometrik ID ni ro\'yxatdan o\'tkazish (stub — WebAuthn keyinroq)' })
-  registerBiometric(
+  @ApiOperation({ summary: 'T-225: Qurilma uchun biometric token ro\'yxatdan o\'tkazish' })
+  async registerBiometric(
     @CurrentUser('userId') userId: string,
-    @Body() _body: { biometricId: string; deviceInfo?: string },
+    @Body() body: { publicKey: string; deviceId: string },
   ) {
-    // Stub: haqiqiy WebAuthn/TouchID integratsiya keyingi sprint
-    return { success: true, userId, biometricRegistered: true, message: 'Biometric registered (stub)' };
+    const biometricToken = randomUUID();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const existing = (user.botSettings ?? {}) as Record<string, unknown>;
+    const keys = (existing['biometricKeys'] ?? {}) as Record<string, unknown>;
+
+    keys[body.deviceId] = {
+      token: biometricToken,
+      publicKey: body.publicKey,
+      expiresAt: expiresAt.toISOString(),
+    };
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { botSettings: { ...existing, biometricKeys: keys } as object },
+    });
+
+    return { success: true, biometricToken, expiresAt };
   }
 
+  /**
+   * POST /auth/biometric/verify
+   * biometricToken + deviceId orqali foydalanuvchi identifikatsiya va JWT qaytaradi.
+   */
+  @Public()
   @Post('biometric/verify')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'T-225: Biometrik ID tekshirish (stub)' })
-  verifyBiometric(
-    @Body() _body: { biometricId: string; userId: string },
+  @ApiOperation({ summary: 'T-225: Biometric token orqali login — JWT qaytaradi' })
+  async verifyBiometric(
+    @Body() body: { biometricToken: string; deviceId: string },
   ) {
-    // Stub: real login flow uchun T-225 kengaytirish kerak
-    return { success: true, verified: true, message: 'Biometric verify (stub)' };
+    // Token bo'yicha foydalanuvchini topamiz
+    const users = await this.prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true, tenantId: true, email: true, role: true, firstName: true, lastName: true, botSettings: true },
+    });
+
+    const now = Date.now();
+    let found: (typeof users)[0] | null = null;
+
+    for (const u of users) {
+      const settings = (u.botSettings ?? {}) as Record<string, unknown>;
+      const keys = (settings['biometricKeys'] ?? {}) as Record<string, Record<string, string>>;
+      const entry = keys[body.deviceId];
+      if (entry && entry['token'] === body.biometricToken) {
+        if (new Date(entry['expiresAt']).getTime() > now) {
+          found = u;
+          break;
+        }
+      }
+    }
+
+    if (!found) {
+      throw new UnauthorizedException('Biometric token yaroqsiz yoki muddati o\'tgan');
+    }
+
+    // Token muddatini yangilaymiz
+    const settings = (found.botSettings ?? {}) as Record<string, unknown>;
+    const keys = (settings['biometricKeys'] ?? {}) as Record<string, Record<string, string>>;
+    keys[body.deviceId] = {
+      ...keys[body.deviceId],
+      expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+    };
+    await this.prisma.user.update({
+      where: { id: found.id },
+      data: { botSettings: { ...settings, biometricKeys: keys } as object },
+    });
+
+    const tokens = await this.identityService.loginById(found.id);
+    return {
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      user: {
+        id: found.id,
+        email: found.email,
+        firstName: found.firstName,
+        lastName: found.lastName,
+        role: found.role,
+        tenantId: found.tenantId,
+      },
+    };
   }
 }
