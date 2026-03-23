@@ -23,7 +23,7 @@ interface Props {
 export default function DebtDetailSheet({ visible, debt, onClose, onPay }: Props) {
   if (!debt) return null;
 
-  const remaining = debt.remaining;
+  const remaining = Number(debt.remaining);
   const isPaid = debt.status === 'PAID';
 
   return (
@@ -53,11 +53,11 @@ export default function DebtDetailSheet({ visible, debt, onClose, onPay }: Props
           <View style={styles.amountsRow}>
             <View style={styles.amountBox}>
               <Text style={styles.amountLabel}>Jami nasiya</Text>
-              <Text style={styles.amountValue}>{formatUZS(debt.totalAmount)}</Text>
+              <Text style={styles.amountValue}>{formatUZS(Number(debt.totalAmount))}</Text>
             </View>
             <View style={styles.amountBox}>
               <Text style={styles.amountLabel}>To'langan</Text>
-              <Text style={[styles.amountValue, styles.amountGreen]}>{formatUZS(debt.paidAmount)}</Text>
+              <Text style={[styles.amountValue, styles.amountGreen]}>{formatUZS(Number(debt.paidAmount))}</Text>
             </View>
             <View style={styles.amountBox}>
               <Text style={styles.amountLabel}>Qoldiq</Text>
@@ -84,7 +84,7 @@ export default function DebtDetailSheet({ visible, debt, onClose, onPay }: Props
                   <View style={styles.payLeft}>
                     <MaterialCommunityIcons name="cash" size={16} color={C.green} />
                     <View style={styles.payInfo}>
-                      <Text style={styles.payAmount}>{formatUZS(p.amount)}</Text>
+                      <Text style={styles.payAmount}>{formatUZS(Number(p.amount))}</Text>
                       {p.notes ? <Text style={styles.payNote}>{p.notes}</Text> : null}
                     </View>
                   </View>

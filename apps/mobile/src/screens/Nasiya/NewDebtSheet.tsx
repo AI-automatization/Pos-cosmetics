@@ -76,7 +76,7 @@ export default function NewDebtSheet({
     } else {
       setForm(EMPTY_FORM);
     }
-  }, [visible, initialAmount]);
+  }, [visible, initialAmount, initialProducts]);
 
   const set = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
