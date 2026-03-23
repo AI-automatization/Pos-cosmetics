@@ -186,14 +186,13 @@ function HistoryCard({ shift }: { shift: ShiftRecord }) {
 // ─── Main Screen ───────────────────────────────────────
 export default function SmenaScreen() {
   const { isShiftOpen, openShift, closeShift } = useShiftStore();
-  const [isActive, setIsActive]   = useState(isShiftOpen);
   const [loading, setLoading]     = useState(false);
 
-  const shift = isActive ? ACTIVE_SHIFT : null;
+  const shift = isShiftOpen ? ACTIVE_SHIFT : null;
   const netRevenue = shift ? shift.totalRevenue - shift.expenses : 0;
 
   const handleToggleShift = () => {
-    if (isActive) {
+    if (isShiftOpen) {
       Alert.alert(
         'Smenani yopish',
         'Joriy smenani yopmoqchimisiz?',
@@ -204,14 +203,14 @@ export default function SmenaScreen() {
             style: 'destructive',
             onPress: () => {
               setLoading(true);
-              setTimeout(() => { setLoading(false); setIsActive(false); closeShift(); }, 800);
+              setTimeout(() => { setLoading(false); closeShift(); }, 800);
             },
           },
         ],
       );
     } else {
       setLoading(true);
-      setTimeout(() => { setLoading(false); setIsActive(true); openShift(); }, 800);
+      setTimeout(() => { setLoading(false); openShift(); }, 800);
     }
   };
 
@@ -223,17 +222,17 @@ export default function SmenaScreen() {
           <Text style={styles.headerTitle}>Smena</Text>
           <Text style={styles.headerDate}>10 mart, 2026</Text>
         </View>
-        <View style={[styles.statusPill, isActive ? styles.statusPillActive : styles.statusPillClosed]}>
-          <View style={[styles.statusDot, { backgroundColor: isActive ? C.green : C.muted }]} />
-          <Text style={[styles.statusText, { color: isActive ? C.green : C.muted }]}>
-            {isActive ? 'Faol' : 'Yopilgan'}
+        <View style={[styles.statusPill, isShiftOpen ? styles.statusPillActive : styles.statusPillClosed]}>
+          <View style={[styles.statusDot, { backgroundColor: isShiftOpen ? C.green : C.muted }]} />
+          <Text style={[styles.statusText, { color: isShiftOpen ? C.green : C.muted }]}>
+            {isShiftOpen ? 'Faol' : 'Yopilgan'}
           </Text>
         </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {isActive && shift ? (
+        {isShiftOpen && shift ? (
           <>
             {/* Active shift card */}
             <View style={styles.shiftCard}>
@@ -341,7 +340,7 @@ export default function SmenaScreen() {
       {/* Open / Close button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.toggleBtn, isActive ? styles.toggleBtnClose : styles.toggleBtnOpen]}
+          style={[styles.toggleBtn, isShiftOpen ? styles.toggleBtnClose : styles.toggleBtnOpen]}
           onPress={handleToggleShift}
           activeOpacity={0.85}
           disabled={loading}
@@ -351,12 +350,12 @@ export default function SmenaScreen() {
           ) : (
             <>
               <Ionicons
-                name={isActive ? 'lock-closed-outline' : 'play-circle-outline'}
+                name={isShiftOpen ? 'lock-closed-outline' : 'play-circle-outline'}
                 size={22}
                 color={C.white}
               />
               <Text style={styles.toggleBtnText}>
-                {isActive ? 'Smenani yopish' : 'Smena ochish'}
+                {isShiftOpen ? 'Smenani yopish' : 'Smena ochish'}
               </Text>
             </>
           )}
