@@ -5,14 +5,13 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { DebtRecord } from '../../api/nasiya.api';
+import { formatUZS } from '../../utils/currency';
 
 const C = {
   bg: '#F5F5F7', white: '#FFFFFF', text: '#111827',
   muted: '#9CA3AF', border: '#F3F4F6', primary: '#5B5BD6',
   green: '#10B981', red: '#EF4444', orange: '#F59E0B',
 };
-
-function fmt(n: number) { return n.toLocaleString('ru-RU') + ' UZS'; }
 
 interface Props {
   visible: boolean;
@@ -54,16 +53,16 @@ export default function DebtDetailSheet({ visible, debt, onClose, onPay }: Props
           <View style={styles.amountsRow}>
             <View style={styles.amountBox}>
               <Text style={styles.amountLabel}>Jami nasiya</Text>
-              <Text style={styles.amountValue}>{fmt(debt.totalAmount)}</Text>
+              <Text style={styles.amountValue}>{formatUZS(debt.totalAmount)}</Text>
             </View>
             <View style={styles.amountBox}>
               <Text style={styles.amountLabel}>To'langan</Text>
-              <Text style={[styles.amountValue, styles.amountGreen]}>{fmt(debt.paidAmount)}</Text>
+              <Text style={[styles.amountValue, styles.amountGreen]}>{formatUZS(debt.paidAmount)}</Text>
             </View>
             <View style={styles.amountBox}>
               <Text style={styles.amountLabel}>Qoldiq</Text>
               <Text style={[styles.amountValue, remaining > 0 ? styles.amountRed : styles.amountGreen]}>
-                {fmt(remaining)}
+                {formatUZS(remaining)}
               </Text>
             </View>
           </View>
@@ -71,7 +70,7 @@ export default function DebtDetailSheet({ visible, debt, onClose, onPay }: Props
           {/* Debt notes */}
           {debt.notes ? (
             <View style={styles.notesBox}>
-              <Ionicons name="document-text-outline" size={14} color={C.orange} style={{ marginRight: 6 }} />
+              <Ionicons name="document-text-outline" size={14} color={C.orange} style={styles.noteIcon} />
               <Text style={styles.notesText}>{debt.notes}</Text>
             </View>
           ) : null}
@@ -85,7 +84,7 @@ export default function DebtDetailSheet({ visible, debt, onClose, onPay }: Props
                   <View style={styles.payLeft}>
                     <MaterialCommunityIcons name="cash" size={16} color={C.green} />
                     <View style={styles.payInfo}>
-                      <Text style={styles.payAmount}>{fmt(p.amount)}</Text>
+                      <Text style={styles.payAmount}>{formatUZS(p.amount)}</Text>
                       {p.notes ? <Text style={styles.payNote}>{p.notes}</Text> : null}
                     </View>
                   </View>
@@ -152,6 +151,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFBEB', borderRadius: 10,
     padding: 10, marginTop: 12,
   },
+  noteIcon: { marginRight: 6 },
   notesText: { flex: 1, fontSize: 13, color: '#92400E' },
   section: { marginTop: 16 },
   sectionTitle: {
