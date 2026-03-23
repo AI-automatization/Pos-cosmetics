@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useShiftStore } from '../../store/shiftStore';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -184,7 +185,8 @@ function HistoryCard({ shift }: { shift: ShiftRecord }) {
 
 // ─── Main Screen ───────────────────────────────────────
 export default function SmenaScreen() {
-  const [isActive, setIsActive]   = useState(true);
+  const { isShiftOpen, openShift, closeShift } = useShiftStore();
+  const [isActive, setIsActive]   = useState(isShiftOpen);
   const [loading, setLoading]     = useState(false);
 
   const shift = isActive ? ACTIVE_SHIFT : null;
@@ -202,14 +204,14 @@ export default function SmenaScreen() {
             style: 'destructive',
             onPress: () => {
               setLoading(true);
-              setTimeout(() => { setLoading(false); setIsActive(false); }, 800);
+              setTimeout(() => { setLoading(false); setIsActive(false); closeShift(); }, 800);
             },
           },
         ],
       );
     } else {
       setLoading(true);
-      setTimeout(() => { setLoading(false); setIsActive(true); }, 800);
+      setTimeout(() => { setLoading(false); setIsActive(true); openShift(); }, 800);
     }
   };
 
