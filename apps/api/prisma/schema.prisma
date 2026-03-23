@@ -804,6 +804,7 @@ enum UserRole {
   OWNER
   ADMIN
   MANAGER
+  WAREHOUSE
   CASHIER
   VIEWER
 }
