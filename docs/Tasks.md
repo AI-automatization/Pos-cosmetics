@@ -35,41 +35,6 @@
 # ══════════════════════════════════════════════════════════════
 
 ---
-# ══════════════════════════════════════════════════════════════
-# OCHIQ VAZIFALAR — P0 (KRITIK)
-# ══════════════════════════════════════════════════════════════
-
----
-
-## T-125 | P0 | [BACKEND] | Swagger/OpenAPI documentation — API docs setup
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/main.ts`, `apps/api/src/**/*.dto.ts`
-- **Muammo:** Swagger dokumentatsiya to'liq sozlanmagan. DTO larga `@ApiProperty()` kerak.
-- **Kutilgan:** `/api/docs` da to'liq interaktiv API dokumentatsiya, barcha endpointlar bilan
-
----
-
-## T-126 | P0 | [BACKEND] | Test infrastructure — Jest setup + first tests
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/jest.config.ts`, `apps/api/src/**/*.spec.ts`
-- **Muammo:** Test infra hali to'liq sozlanmagan. Unit va integration testlar yo'q.
-- **Kutilgan:** Jest config tayyor, namuna testlar ishlaydi, CI da run bo'ladi. Coverage 50%+.
-
----
-
-## T-140 | P0 | [BACKEND] | Real estate controller — routes bo'sh
-
-- **Sana:** 2026-03-09
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/realestate/realestate.controller.ts`
-- **Muammo:** Controller `@Controller('real-estate')` deklaratsiya qilingan lekin HECH QANDAY route yo'q. Frontend UI tayyor (T-248), lekin backend 404 qaytaradi.
-- **Kutilgan:** `getProperties()`, `getStats()`, `getRentalPayments()`, `getAllPayments()` endpointlari qo'shilsin
-
----
 
 ## T-301 | P0 | [BACKEND] | Biometric auth — POST /auth/biometric/register + verify
 
@@ -103,111 +68,6 @@
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
-
----
-
-## T-129 | P1 | [BACKEND] | File upload service — MinIO S3 integration
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/common/upload/`
-- **Muammo:** File upload service mavjud emas. Product image, sertifikat, eksport fayllari uchun kerak.
-- **Kutilgan:**
-  - `UploadModule`, `UploadService` (`@aws-sdk/client-s3`)
-  - POST /upload — single file (image: jpeg/png/webp, max 5MB)
-  - POST /upload/bulk — multiple files (max 10)
-  - Buckets: `product-images`, `receipts`, `certificates`, `exports`
-  - Auto-resize: thumbnail (200px), medium (800px), original
-  - Presigned URL: GET /upload/:key
-
----
-
-## T-130 | P1 | [BACKEND] | Product bulk import/export — CSV/Excel
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/import/`
-- **Muammo:** Do'kon ochishda 500-1000 ta productni tezkor kiritish mumkin emas.
-- **Kutilgan:**
-  - POST /products/import — CSV/XLSX fayldan bulk import
-  - GET /products/import/template — bo'sh template yuklab olish
-  - Validation: barcode uniqueness, category exists, price > 0
-  - 500+ row -> async BullMQ job
-
----
-
-## T-131 | P1 | [BACKEND] | Barcode generation — Barcodesiz product uchun
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/`
-- **Muammo:** Barcodesiz productlarga internal barcode generatsiya qilish kerak.
-- **Kutilgan:**
-  - EAN-13 internal format, tenant-specific prefix
-  - Auto-generate: product yaratishda barcode yo'q bo'lsa
-  - GET /products/:id/barcode — barcode image (SVG/PNG)
-  - `bwip-js` library
-
----
-
-## T-132 | P1 | [BACKEND] | Tenant settings — Configurable per-tenant sozlamalar
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/identity/settings/`
-- **Muammo:** Har do'kon uchun individual sozlamalar tizimi yo'q (currency, tax_rate, receipt header/footer, rounding, va h.k.)
-- **Kutilgan:**
-  - `tenant_settings` jadvali: id, tenant_id, key, value (JSON), updated_at
-  - GET /settings — tenant sozlamalari
-  - PATCH /settings — yangilash (faqat ADMIN/OWNER)
-  - Default values birinchi marta o'qilganda avtomatik yaratiladi
-
----
-
-## T-133 | P1 | [BACKEND] | Price history — Narx o'zgarishi tarixi
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/`
-- **Muammo:** Narx o'zgarishi log qilinmaydi. Margin trend tahlili uchun kerak.
-- **Kutilgan:**
-  - `price_changes` jadvali: id, tenant_id, product_id, old/new cost/sell price, changed_by, reason, created_at
-  - GET /products/:id/price-history — IMMUTABLE, UPDATE/DELETE TAQIQLANGAN
-
----
-
-## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
-
-- **Sana:** 2026-03-08
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/inventory.service.ts` -> `getStockLevels()`
-- **Muammo:** `getStockLevels()` snapshot mavjud bo'lsa `stock_snapshots` + delta yondashuvi ishlatadi. Ammo snapshotDAN KEYIN qo'shilgan yangi mahsulotlar `stock_snapshots` da yo'q -> LEFT JOIN orqali ular ko'rinmaydi.
-- **Kutilgan:** SQL ga UNION ALL qo'shish — snapshotda bo'lmagan, lekin stock_movements da bo'lgan mahsulotlarni ham qo'shsin.
-
----
-
-## T-058 | P1 | [BACKEND] | Tenant impersonation — "Login as" any tenant
-
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/admin/`
-- **Muammo:** SaaS owner debug uchun har qanday tenant ga kirish imkoniyati yo'q.
-- **Kutilgan:**
-  - POST /admin/impersonate/:tenantId — vaqtinchalik token (1 soat, read-only option)
-  - Barcha impersonation audit log ga yoziladi
-  - Faqat SUPER_ADMIN roli
-
----
-
-## T-059 | P1 | [BACKEND] | Tenant provisioning wizard — One-click setup
-
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/admin/`
-- **Muammo:** Yangi tenant yaratish murakkab — seed categories, units, default settings, owner user.
-- **Kutilgan:**
-  - POST /admin/tenants/provision — yangi tenant yaratish (tenant + owner + branch + categories + units + settings)
-  - Response: tenant slug, owner credentials
 
 ---
 
@@ -361,46 +221,9 @@
 
 ---
 
-## T-227 | P1 | [IKKALASI] | Integration test checklist — mobile-owner endpoints
-
-- **Sana:** 2026-03-15
-- **Mas'ul:** Ibrat + Bekzod
-- **Vazifa:**
-  - [ ] Login: `POST /auth/login`
-  - [ ] Analytics: revenue, orders, branch-comparison, sales-trend, top-products
-  - [ ] Shifts: list, summary, active, detail
-  - [ ] Debts: summary, aging-report, customers
-  - [ ] Alerts: list, unread-count, mark-read
-  - [ ] System: health, sync-status
-  - [ ] Employees: list
-  - [ ] Inventory: out-of-stock
-  - [ ] Seed data test
-
----
-
-## T-241 | P1 | [IKKALASI] | packages/types — etishmayotgan shared typelar
-
-- **Sana:** 2026-03-18
-- **Mas'ul:** Ibrat + AbdulazizYormatov (kelishib)
-- **Fayl:** `packages/types/src/`
-- **Muammo:** `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion` typelar yo'q shared package da
-- **Kutilgan:** packages/types ga qo'shish — web, mobile, backend birgalikda ishlatadi
-
----
-
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA)
 # ══════════════════════════════════════════════════════════════
-
----
-
-## T-128 | P2 | [DEVOPS] | .gitignore yangilash — keraksiz fayllarni ignore
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `.gitignore`
-- **Muammo:** Ba'zi fayllar git da kuzatilmoqda: `tsconfig.tsbuildinfo`, `logs/`, `.claude/settings.local.json`
-- **Kutilgan:** Barcha keraksiz fayllar ignore qilingan
 
 ---
 
@@ -483,25 +306,23 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **31** | **5** | **18** | **3** | **5** |
+| **21** | **2** | **11** | **2** | **6** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 5 | 12 | 0 | 4 | **21** |
+| [BACKEND] | 2 | 7 | 0 | 5 | **14** |
 | [FRONTEND] | 0 | 4 | 2 | 0 | **6** |
-| [DEVOPS] | 0 | 0 | 1 | 0 | **1** |
-| [IKKALASI] | 0 | 2 | 0 | 1 | **3** |
+| [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 5 | 12 | 1 | 0 | **18** |
+| **Ibrat** (Full-Stack) | 2 | 7 | 0 | 0 | **9** |
 | **AbdulazizYormatov** (Team Lead, Frontend) | 0 | 4 | 2 | 0 | **6** |
-| **Ibrat + AbdulazizYormatov** (birgalikda) | 0 | 2 | 0 | 0 | **2** |
-| **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
+| **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
 ---
 
