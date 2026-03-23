@@ -14,6 +14,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import ProductCard, { Product } from './ProductCard';
 import ScannerModal from './ScannerModal';
 import PaymentSheet, { type PaymentMethod } from './PaymentSheet';
+import LowStockSheet from './LowStockSheet';
 import { useShiftStore } from '../../store/shiftStore';
 import { type TabParamList } from '../../navigation/types';
 
@@ -66,6 +67,7 @@ export default function SavdoScreen() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [paymentVisible, setPaymentVisible] = useState(false);
+  const [lowStockVisible, setLowStockVisible] = useState(false);
 
   // Filtered products
   const products = useMemo(() => {
@@ -75,6 +77,17 @@ export default function SavdoScreen() {
       return matchCat && matchSearch;
     });
   }, [search, activeCategory]);
+
+  // Low stock and out of stock products
+  const lowStockProducts = useMemo(
+    () => MOCK_PRODUCTS.filter((p) => p.stockQty > 0 && p.stockQty <= p.minStockLevel),
+    [],
+  );
+  const outOfStockProducts = useMemo(
+    () => MOCK_PRODUCTS.filter((p) => p.stockQty === 0),
+    [],
+  );
+  const alertCount = lowStockProducts.length + outOfStockProducts.length;
 
   // Cart helpers
   const addToCart = (product: Product) => {
@@ -141,8 +154,17 @@ export default function SavdoScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Savdo</Text>
-        <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.headerIcon}
+          activeOpacity={0.7}
+          onPress={() => setLowStockVisible(true)}
+        >
           <Ionicons name="notifications-outline" size={22} color={C.text} />
+          {alertCount > 0 && (
+            <View style={styles.bellBadge}>
+              <Text style={styles.bellBadgeText}>{alertCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -246,6 +268,14 @@ export default function SavdoScreen() {
         onScanned={handleScanned}
       />
 
+      {/* Low stock sheet */}
+      <LowStockSheet
+        visible={lowStockVisible}
+        onClose={() => setLowStockVisible(false)}
+        lowStockProducts={lowStockProducts}
+        outOfStockProducts={outOfStockProducts}
+      />
+
       {/* Cart bar */}
       {totalItems > 0 && (
         <View style={styles.cartBar}>
@@ -316,6 +346,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.07,
     shadowRadius: 4,
     elevation: 2,
+    position: 'relative',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
   },
 
   // Search
