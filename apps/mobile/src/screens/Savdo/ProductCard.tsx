@@ -70,11 +70,12 @@ export default function ProductCard({ product, cartQty, onPress, onDecrement }: 
             </TouchableOpacity>
             <Text style={styles.controlQty}>{cartQty}</Text>
             <TouchableOpacity
-              style={[styles.controlBtn, styles.controlBtnAdd]}
-              onPress={() => onPress(product)}
-              activeOpacity={0.7}
+              style={[styles.controlBtn, styles.controlBtnAdd, isOut && styles.controlBtnAddDisabled]}
+              onPress={() => !isOut && onPress(product)}
+              disabled={isOut}
+              activeOpacity={isOut ? 1 : 0.7}
             >
-              <Text style={[styles.controlBtnText, { color: '#FFFFFF' }]}>+</Text>
+              <Text style={[styles.controlBtnText, styles.controlBtnTextLight]}>+</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -168,11 +169,17 @@ const styles = StyleSheet.create({
   controlBtnAdd: {
     backgroundColor: '#5B5BD6',
   },
+  controlBtnAddDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
   controlBtnText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#374151',
     lineHeight: 16,
+  },
+  controlBtnTextLight: {
+    color: '#FFFFFF',
   },
   controlQty: {
     fontSize: 13,
