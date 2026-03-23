@@ -1,134 +1,81 @@
-import { api } from './client';
+import api from './client';
 
-export interface Debtor {
+export type DebtStatus = 'ACTIVE' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+
+export interface DebtCustomer {
   id: string;
-  customerId: string;
-  customerName: string;
-  customerPhone: string;
-  totalDebt: number;
-  currency: string;
-  lastPaymentAt: string | null;
-  dueDate: string | null;
-  overdueAmount: number;
-  branchId: string;
-  branchName: string;
-  status: string;
-  createdAt: string;
+  name: string;
+  phone: string | null;
 }
 
 export interface DebtPayment {
   id: string;
-  debtorId: string;
   amount: number;
-  currency: string;
-  paymentMethod: string;
-  note: string | null;
-  createdAt: string;
-}
-
-export interface RecordPaymentDto {
-  debtorId: string;
-  amount: number;
-  paymentMethod: string;
-  note?: string;
-}
-
-// Backend response shape from GET /nasiya/:id
-interface DebtRecordRaw {
-  id: string;
-  customerId: string;
-  totalAmount: string | number;
-  paidAmount: string | number;
-  remaining: string | number;
-  dueDate: string | null;
-  notes: string | null;
-  status: string;
-  createdAt: string;
-  customer: { id: string; name: string; phone: string };
-  payments?: DebtPaymentRaw[];
-}
-
-interface DebtPaymentRaw {
-  id: string;
-  debtRecordId: string;
-  amount: string | number;
   method: string;
   notes: string | null;
   createdAt: string;
 }
 
-// Backend GET /nasiya returns paginated { items, total, page, limit }
-interface PaginatedDebts {
-  items: DebtRecordRaw[];
+export interface DebtRecord {
+  id: string;
+  customerId: string;
+  orderId: string | null;
+  totalAmount: number;
+  paidAmount: number;
+  remaining: number;
+  status: DebtStatus;
+  dueDate: string | null;
+  notes: string | null;
+  createdAt: string;
+  customer: DebtCustomer;
+  payments: DebtPayment[];
+}
+
+export interface DebtListResponse {
+  items: DebtRecord[];
   total: number;
   page: number;
   limit: number;
 }
 
-function mapDebtorRaw(raw: DebtRecordRaw): Debtor {
-  const remaining = Number(raw.remaining);
-  const isOverdue =
-    raw.status === 'OVERDUE' ||
-    (raw.dueDate != null && new Date(raw.dueDate) < new Date() && remaining > 0);
-
-  return {
-    id: raw.id,
-    customerId: raw.customerId,
-    customerName: raw.customer?.name ?? '',
-    customerPhone: raw.customer?.phone ?? '',
-    totalDebt: remaining,
-    currency: 'UZS',
-    lastPaymentAt: raw.payments?.[0]?.createdAt ?? null,
-    dueDate: raw.dueDate ?? null,
-    overdueAmount: isOverdue ? remaining : 0,
-    branchId: '',
-    branchName: '',
-    status: raw.status,
-    createdAt: raw.createdAt,
-  };
-}
-
-function mapPaymentRaw(raw: DebtPaymentRaw, debtorId: string): DebtPayment {
-  return {
-    id: raw.id,
-    debtorId,
-    amount: Number(raw.amount),
-    currency: 'UZS',
-    paymentMethod: raw.method,
-    note: raw.notes ?? null,
-    createdAt: raw.createdAt,
-  };
+export interface NasiyaSummary {
+  overdueCount: number;
+  overdueAmount: number;
 }
 
 export const nasiyaApi = {
-  // GET /nasiya — list all debts, map to Debtor[]
-  getDebtors: async (_branchId?: string): Promise<Debtor[]> => {
-    const { data } = await api.get<PaginatedDebts>('/nasiya', {
-      params: { limit: 100 },
-    });
-    return (data.items ?? []).map(mapDebtorRaw);
+  getList: async (status?: DebtStatus): Promise<DebtListResponse> => {
+    const params: Record<string, string | number> = { limit: 100 };
+    if (status) params['status'] = status;
+    const { data } = await api.get<DebtListResponse>('/nasiya', { params });
+    return data;
   },
 
-  // GET /nasiya/:id — single debt record
-  getDebtorById: async (id: string): Promise<Debtor & { payments: DebtPayment[] }> => {
-    const { data } = await api.get<DebtRecordRaw>(`/nasiya/${id}`);
-    const debtor = mapDebtorRaw(data);
-    const payments = (data.payments ?? []).map((p) => mapPaymentRaw(p, id));
-    return { ...debtor, payments };
+  getOverdue: async (): Promise<DebtRecord[]> => {
+    const { data } = await api.get<DebtRecord[]>('/nasiya/overdue');
+    return data;
   },
 
-  // POST /nasiya/:id/pay — record payment for a debt
-  recordPayment: async (dto: RecordPaymentDto): Promise<DebtPayment> => {
-    const { data } = await api.post<DebtPaymentRaw>(`/nasiya/${dto.debtorId}/pay`, {
-      amount: dto.amount,
-      method: dto.paymentMethod ?? 'CASH',
-      notes: dto.note,
-    });
-    return mapPaymentRaw(data, dto.debtorId);
+  getById: async (id: string): Promise<DebtRecord> => {
+    const { data } = await api.get<DebtRecord>(`/nasiya/${id}`);
+    return data;
   },
 
-  // POST /nasiya/:id/remind — send reminder (backend may not support)
-  sendReminder: async (debtorId: string): Promise<void> => {
-    await api.post(`/nasiya/${debtorId}/remind`).catch(() => null);
+  pay: async (id: string, amount: number, notes?: string): Promise<void> => {
+    await api.post(`/nasiya/${id}/pay`, { amount, method: 'CASH', notes });
+  },
+
+  sendReminder: async (id: string): Promise<void> => {
+    await api.post(`/nasiya/${id}/remind`);
+  },
+
+  create: async (body: {
+    customerName: string;
+    phone?: string;
+    totalAmount: number;
+    dueDate?: string;
+    notes?: string;
+  }): Promise<void> => {
+    await api.post('/nasiya', body);
   },
 };

@@ -1,23 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import * as LocalAuthentication from 'expo-local-authentication';
 
-interface BiometricAuthResult {
-  isAvailable: boolean;
-  isEnrolled: boolean;
-  authenticate: () => Promise<boolean>;
-}
-
-export function useBiometricAuth(): BiometricAuthResult {
+export function useBiometricAuth() {
   const [isAvailable, setIsAvailable] = useState(false);
-  const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      const hardware = await LocalAuthentication.hasHardwareAsync();
-      const enrolled = await LocalAuthentication.isEnrolledAsync();
-      setIsAvailable(hardware);
-      setIsEnrolled(enrolled);
-    })();
+    LocalAuthentication.hasHardwareAsync().then((has) => {
+      if (!has) return setIsAvailable(false);
+      LocalAuthentication.isEnrolledAsync().then(setIsAvailable);
+    });
   }, []);
 
   const authenticate = useCallback(async (): Promise<boolean> => {
@@ -29,5 +20,5 @@ export function useBiometricAuth(): BiometricAuthResult {
     return result.success;
   }, []);
 
-  return { isAvailable, isEnrolled, authenticate };
+  return { isAvailable, authenticate };
 }

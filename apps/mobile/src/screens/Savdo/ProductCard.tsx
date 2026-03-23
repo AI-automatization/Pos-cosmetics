@@ -1,0 +1,171 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
+export interface Product {
+  id: string;
+  name: string;
+  sellPrice: number;
+  categoryId: string;
+  stockQty: number;
+  minStockLevel: number;
+  placeholderColor: string;
+}
+
+interface Props {
+  product: Product;
+  cartQty: number;
+  onPress: (product: Product) => void;
+}
+
+function formatPrice(n: number): string {
+  return n.toLocaleString('ru-RU') + ' UZS';
+}
+
+type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
+
+function stockStatus(qty: number, min: number): StockStatus {
+  if (qty === 0) return 'out_of_stock';
+  if (qty <= min) return 'low_stock';
+  return 'in_stock';
+}
+
+export default function ProductCard({ product, cartQty, onPress }: Props) {
+  const status = stockStatus(product.stockQty, product.minStockLevel);
+  const isOut = status === 'out_of_stock';
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, isOut && styles.cardDisabled]}
+      onPress={() => !isOut && onPress(product)}
+      activeOpacity={isOut ? 1 : 0.78}
+    >
+      {/* Image area */}
+      <View style={[styles.imageArea, { backgroundColor: product.placeholderColor }]}>
+        <Text style={styles.imageInitial}>{product.name[0]}</Text>
+
+        {/* Stock badge */}
+        {!isOut && (
+          <View style={[styles.badge, status === 'low_stock' ? styles.badgeLow : styles.badgeIn]}>
+            <Text style={styles.badgeText}>{product.stockQty} DONA</Text>
+          </View>
+        )}
+
+        {/* Out of stock overlay */}
+        {isOut && (
+          <View style={styles.outOverlay}>
+            <Text style={styles.outText}>TUGAGAN</Text>
+          </View>
+        )}
+
+        {/* Cart qty indicator */}
+        {cartQty > 0 && (
+          <View style={styles.cartBadge}>
+            <Text style={styles.cartBadgeText}>{cartQty}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Info */}
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
+        <Text style={[styles.price, isOut && styles.priceOut]}>
+          {formatPrice(product.sellPrice)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+    margin: 5,
+  },
+  cardDisabled: {
+    opacity: 0.75,
+  },
+  imageArea: {
+    height: 130,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageInitial: {
+    fontSize: 42,
+    fontWeight: '700',
+    color: 'rgba(0,0,0,0.15)',
+  },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  badgeIn: {
+    backgroundColor: '#10B981',
+  },
+  badgeLow: {
+    backgroundColor: '#F59E0B',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  outOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  cartBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#5B5BD6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  info: {
+    padding: 10,
+    gap: 4,
+  },
+  name: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111827',
+    lineHeight: 18,
+  },
+  price: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#5B5BD6',
+  },
+  priceOut: {
+    color: '#9CA3AF',
+  },
+});

@@ -7,7 +7,7 @@ interface Props {
   entry: CountEntry;
 }
 
-export default function CountEntryCard({ entry }: Props): React.JSX.Element {
+export default function CountEntryCard({ entry }: Props) {
   const { t } = useTranslation();
   const diff = entry.actualQty - entry.systemQty;
 

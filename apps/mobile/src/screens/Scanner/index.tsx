@@ -4,14 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
 import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ProductResultCard from './ProductResultCard';
 import CameraSection from './CameraSection';
 import CountSection from './CountSection';
 import CountQtyModal from './CountQtyModal';
 import { useScannerData } from './useScannerData';
 
-export default function ScannerScreen(): React.JSX.Element {
+export default function ScannerScreen() {
   const { t } = useTranslation();
   const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();

@@ -1835,6 +1835,10 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+---
+
+---
+
 ## T-103 | P1 | [BACKEND] | Push notifications — Firebase + notification service
 - **Sana:** 2026-02-26
 - **Mas'ul:** Polat
@@ -2001,6 +2005,183 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## 🔌 MOBILE iOS — Backend API Talablari (2026-03-12)
+> Mobile ekranlar kod ko'rib chiqildi. Quyidagi backend endpointlar KERAK.
+> Mas'ul: Polat (Backend)
+
+---
+
+## T-134 | P0 | [BACKEND] | API URL alignment — Mobile endpoint mosligi
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/inventory/`, `apps/api/src/customers/nasiya/`
+- **Muammo:** Mobile app da ishlatilayotgan URL lar backend task larda belgilangan URL lardan farq qiladi:
+  - `GET /inventory/products/:id/stock` (mobile) ≠ `GET /inventory/stock/:id` (T-022)
+  - `GET /inventory/levels?lowStock=true` (mobile) ≠ `GET /inventory/low-stock` (T-022)
+  - `GET /nasiya`, `POST /nasiya/:id/pay` (mobile) ≠ `GET /debts`, `POST /debts/:id/pay` (T-051)
+- **Vazifa:**
+  - Inventory controller da endpoint URL larni mobile bilan moslashtirish:
+    - `GET /inventory/products/:productId/stock` → `ProductStockLevel[]` qaytaradi: `[{ warehouseId, warehouseName, stock, nearestExpiry }]`
+    - `GET /inventory/levels?lowStock=true` → `LowStockItem[]`
+  - Nasiya controller da `/nasiya` prefix ishlatish (T-051 da `/debts` o'rniga):
+    - `GET /nasiya?status=&limit=&page=`
+    - `GET /nasiya/overdue`
+    - `GET /nasiya/:id`
+    - `POST /nasiya/:id/pay`
+    - `POST /nasiya/:id/remind` → Telegram/SMS reminder yuborish
+  - `GET /catalog/products/barcode/:code` response ga `nearestExpiry: string | null` field qo'shish
+- **Kutilgan:** Mobile app ni backend bilan moslashtirish uchun URL lar standarti aniqlangan
+
+---
+
+## T-135 | P0 | [BACKEND] | GET /auth/me — Tenant va branch info bilan
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/identity/`
+- **Muammo:** Settings ekrani `user.tenant.name` ishlatadi, lekin hozirgi `/auth/me` response da tenant info yo'q
+- **Vazifa:**
+  - `GET /auth/me` response ni kengaytirish:
+    ```json
+    {
+      "id": "...",
+      "firstName": "...",
+      "lastName": "...",
+      "email": "...",
+      "role": "CASHIER",
+      "tenant": { "id": "...", "name": "Xurmo Cosmetics", "slug": "xurmo" },
+      "branch": { "id": "...", "name": "Asosiy filial" }
+    }
+    ```
+  - `@raos/types` da `AuthUser` type yangilanishi kerak (T-038 ga bog'liq)
+- **Kutilgan:** Settings ekrani: profil ismi, email, tenant nomi to'g'ri ko'rinadi
+
+---
+
+## T-136 | P0 | [BACKEND] | GET /catalog/products — Mobile POS uchun product ro'yxati
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/catalog/`
+- **Muammo:** Savdo ekrani hozir MOCK data ishlatadi. `GET /catalog/products` mobile uchun optimallashtirilmagan.
+- **Vazifa:**
+  - `GET /catalog/products` endpointiga qo'shimcha filter va response field lar qo'shish:
+    - Query params: `categoryId`, `search`, `is_active` (default: true), `page`, `limit` (default: 20)
+    - Response item: `{ id, name, sellPrice, categoryId, categoryName, stockQty, minStockLevel, barcode, imageUrl }`
+    - `stockQty` — real-time current stock (inventory dan calculated)
+  - `GET /catalog/categories` — oddiy list: `[{ id, name, parentId }]`
+  - ⚠️ `stockQty` uchun stock_movements yoki stock_snapshots dan SUM — n+1 query bo'lmasin
+  - Redis cache (5 daqiqa TTL) — catalog har savdoda so'raladi
+- **Kutilgan:** Savdo ekrani real mahsulotlar ko'rsatadi, qidiruv va kategori filter ishlaydi
+
+---
+
+## T-137 | P0 | [BACKEND] | POST /sales/orders — Mobile savdo yaratish (Naqd/Karta/Nasiya)
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/`
+- **Muammo:** Mobile Savdo ekranida PaymentSheet `onConfirm` hech qanday API chaqirmaydi — backend endpoint tayyor emas yoki mobile bilan kelishuv yo'q.
+- **Vazifa:**
+  - `POST /sales/orders` request body:
+    ```json
+    {
+      "items": [{ "productId": "...", "quantity": 2, "unitPrice": 85000 }],
+      "paymentMethod": "NAQD | KARTA | NASIYA",
+      "receivedAmount": 100000,
+      "splitPayment": { "naqd": 50000, "karta": 50000 },
+      "customerId": "...",
+      "discountAmount": 0,
+      "notes": "..."
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "id": "...",
+      "orderNumber": 10245,
+      "total": 85000,
+      "change": 15000,
+      "status": "COMPLETED"
+    }
+    ```
+  - **NASIYA case:** `customerId` MAJBURIY. Debt record avtomatik yaratiladi (T-051)
+  - **Split payment:** `splitPayment` field da naqd + karta yig'indisi `total` ga teng bo'lishi shart
+  - `shiftId` — JWT dan current shift avtomatik olinadi (cashier faqat o'z shiftida savdo qila oladi)
+  - Shift OPEN emasligini tekshirish → 400 error
+  - `sale.created` event emit (T-039)
+- **Kutilgan:** Mobile da savdo qilganda order + payment + inventory deduction ishlaydi
+
+---
+
+## T-138 | P0 | [BACKEND] | GET /sales/shifts/current — Stats bilan (Mobile Sales ekrani)
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/`
+- **Muammo:** Mobile Sales ekrani shift kartasida `cashier nomi`, `boshlanish vaqti` va stats (TUSHUM, SONI, O'RTACHA) ko'rsatadi. Hozir MOCK data.
+- **Vazifa:**
+  - `GET /sales/shifts/current` response ni kengaytirish:
+    ```json
+    {
+      "id": "...",
+      "cashierName": "Azamat Akhmedov",
+      "openedAt": "2026-03-12T08:30:00Z",
+      "status": "OPEN",
+      "stats": {
+        "totalRevenue": 4200000,
+        "ordersCount": 48,
+        "avgOrderValue": 87500,
+        "naqdAmount": 2100000,
+        "kartaAmount": 1500000,
+        "nasiyaAmount": 600000
+      }
+    }
+    ```
+  - Stats — faqat current shift ning orderlaridan calculated (real-time)
+  - Shift yo'q bo'lsa (smena ochilmagan) → `null` qaytarish (hozir ham shunday, OK)
+- **Kutilgan:** Mobile Sales ekranida shift statistikasi real data bilan ko'rinadi
+
+---
+
+## T-139 | P0 | [BACKEND] | GET /sales/orders — Mobile orders tarixi (filter + pagination)
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/sales/`
+- **Muammo:** Mobile Sales History ekrani orders ro'yxatini ko'rsatadi. T-014 da endpoint bor, lekin mobile `salesApi.getOrders({ from, to, page, limit })` chaqiradi.
+- **Vazifa:**
+  - `GET /sales/orders` query params: `from` (ISO date), `to` (ISO date), `page`, `limit`, `shiftId`
+  - Response item: `{ id, orderNumber, createdAt, itemsCount, total, paymentMethod }`
+  - `paymentMethod` — primary payment (NAQD/KARTA/NASIYA)
+  - `from`/`to` filter: `createdAt` field bo'yicha (tenant_id filter MAJBURIY)
+  - Default: bugungi kun
+  - `GET /sales/orders/:id` — SaleDetailScreen uchun full order + items
+- **Kutilgan:** Mobile Sales History to'g'ri tartibda, filterlangan order ro'yxatini ko'rsatadi
+
+---
+
+## T-140 | P0 | [BACKEND] | POST /inventory/stock-in — Mobile Kirim (nakladnoy qabul)
+- **Sana:** 2026-03-12
+- **Mas'ul:** Polat
+- **Fayl:** `apps/api/src/inventory/`
+- **Muammo:** Mobile Kirim ekrani placeholder. Backend `POST /inventory/stock-in` (T-022) bor, lekin mobile bilan kelishuv yo'q.
+- **Vazifa:**
+  - `POST /inventory/stock-in` request body:
+    ```json
+    {
+      "supplierId": "...",
+      "supplierName": "Tayyor LLC",
+      "invoiceNumber": "INV-2024-001",
+      "items": [
+        { "productId": "...", "quantity": 50, "costPrice": 40000, "batchNumber": "B001", "expiryDate": "2027-01-01" }
+      ],
+      "notes": "..."
+    }
+    ```
+  - Response: `{ id, receiptNumber, date, totalCost, itemsCount, status: "RECEIVED" }`
+  - `GET /inventory/receipts?page=&limit=&from=&to=` — Kirim tarixi ro'yxati
+    - Response item: `{ id, receiptNumber, date, supplierName, itemsCount, totalCost, status }`
+  - `GET /inventory/receipts/:id` — detail (items bilan)
+  - stock_movements da type=IN yozuv yaratiladi (T-022 bilan mos)
+- **Kutilgan:** Mobile dan kirim qabul qilsa bo'ladi, kirimlar tarixi ko'rinadi
+
+---
 # ════════════════════════════════════════════════════════════════
 # TOPILGAN KAMCHILIKLAR — Developer Tooling & DX (T-125+)
 # ════════════════════════════════════════════════════════════════
@@ -2227,6 +2408,15 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Umumiy | P0 | P1 | P2 | P3 |
 |--------|----|----|----|----|
+| **130** | **38** | **55** | **17** | **20** |
+
+### MVP (T-011 — T-049): 39 task
+### Production Features (T-050 — T-124): 75 task
+### Mobile iOS Backend API (T-134 — T-140): 7 task
+### Mobile iOS Figma Screens: ✅ HAMMASI BAJARILDI (T-125 — T-133)
+### Mobile iOS Kirim Screen (T-141 — T-144): ✅ HAMMASI BAJARILDI
+### Mobile iOS Nasiya Screen (T-145 — T-149): ✅ HAMMASI BAJARILDI
+
 | **127** | **34** | **58** | **15** | **20** |
 
 ### MVP (T-011 — T-049): 39 task
@@ -2239,6 +2429,11 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
+| [BACKEND] | 18 | 32 | 8 | 7 | **65** |
+| [FRONTEND] | 7 | 11 | 3 | 4 | **25** |
+| [MOBILE] | — | 11 | 2 | — | **13** |
+| [DEVOPS] | 2 | 2 | — | — | **4** |
+
 | [BACKEND] | 20 | 38 | 8 | 7 | **73** |
 | [FRONTEND] | 10 | 11 | 4 | 4 | **29** |
 | [MOBILE] | — | 3 | 1 | — | **4** |
@@ -2252,6 +2447,10 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
+| **Polat** (Backend & DevOps) | 18 | 33 | 7 | — | **58** |
+| **AbdulazizYormatov** (Frontend) | 9 | 9 | 3 | — | **21** |
+| **Ibrat + Abdulaziz** (Mobile) | 3 | 15 | 4 | — | **22** |
+
 | **Polat** (Backend & DevOps) | 21 | 39 | 7 | — | **67** |
 | **AbdulazizYormatov** (Frontend) | 12 | 9 | 4 | — | **25** |
 | **Ibrat + Abdulaziz** (Mobile) | — | 3 | 1 | — | **4** |
@@ -2289,6 +2488,8 @@ Sprint 8 (Hafta 8+):   Mobile app + Telegram bot + Analytics + Polish
 ```
 
 ---
+
+*docs/Tasks.md | RAOS Kosmetika POS — Full Production v2.0 | 2026-03-12*
 
 ---
 

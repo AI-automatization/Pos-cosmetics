@@ -1,60 +1,58 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { TOKEN_KEYS } from '@/config/constants';
-import { authApi } from '@/api';
 
-interface UserInfo {
+interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: string;
   tenantId: string;
-  branchId?: string;
+  tenant?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 interface AuthState {
-  user: UserInfo | null;
+  user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-
-  login: (email: string, password: string, slug?: string) => Promise<void>;
-  logout: () => Promise<void>;
-  loadUser: () => Promise<void>;
+  setUser: (user: User, accessToken: string, refreshToken: string) => Promise<void>;
+  clearAuth: () => Promise<void>;
+  loadFromStorage: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: true,
 
-  login: async (email, password, slug = 'raos-demo') => {
-    const tokens = await authApi.login({ slug, email, password });
-    await SecureStore.setItemAsync(TOKEN_KEYS.ACCESS, tokens.accessToken);
-    await SecureStore.setItemAsync(TOKEN_KEYS.REFRESH, tokens.refreshToken);
-    const user = await authApi.me();
+  setUser: async (user, accessToken, refreshToken) => {
+    await SecureStore.setItemAsync('access_token', accessToken);
+    await SecureStore.setItemAsync('refresh_token', refreshToken);
+    await SecureStore.setItemAsync('user', JSON.stringify(user));
     set({ user, isAuthenticated: true });
   },
 
-  logout: async () => {
-    await authApi.logout().catch(() => null);
-    await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS);
-    await SecureStore.deleteItemAsync(TOKEN_KEYS.REFRESH);
+  clearAuth: async () => {
+    await SecureStore.deleteItemAsync('access_token');
+    await SecureStore.deleteItemAsync('refresh_token');
+    await SecureStore.deleteItemAsync('user');
     set({ user: null, isAuthenticated: false });
   },
 
-  loadUser: async () => {
+  loadFromStorage: async () => {
+    const token = await SecureStore.getItemAsync('access_token');
+    const userStr = await SecureStore.getItemAsync('user');
+    if (!token || !userStr) {
+      return false;
+    }
     try {
-      const token = await SecureStore.getItemAsync(TOKEN_KEYS.ACCESS);
-      if (!token) {
-        set({ isLoading: false });
-        return;
-      }
-      const user = await authApi.me();
-      set({ user, isAuthenticated: true, isLoading: false });
+      const user = JSON.parse(userStr) as User;
+      set({ user, isAuthenticated: true });
+      return true;
     } catch {
-      await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS);
-      await SecureStore.deleteItemAsync(TOKEN_KEYS.REFRESH);
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      return false;
     }
   },
 }));

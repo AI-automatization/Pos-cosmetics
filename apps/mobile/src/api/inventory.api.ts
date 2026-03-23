@@ -1,15 +1,12 @@
-import { api } from './client';
-import type { PaginatedResponse } from '@raos/types';
+import api from './client';
 
-export interface StockItem {
+export interface LowStockItem {
   productId: string;
   productName: string;
-  sku: string;
   warehouseId: string;
   warehouseName: string;
-  quantity: number;
-  threshold: number;
-  isLow: boolean;
+  stock: number;
+  minStockLevel: number;
 }
 
 export interface ProductStockLevel {
@@ -19,65 +16,89 @@ export interface ProductStockLevel {
   nearestExpiry: string | null;
 }
 
-// Backend raw shape from /inventory/stock and /inventory/levels
-interface StockLevelRaw {
+export interface ReceiptItem {
   productId: string;
-  warehouseId: string;
-  stock: number;
-  // May be present on low-stock endpoint
-  productName?: string;
-  sku?: string;
-  warehouseName?: string;
-  minStockLevel?: number;
+  productName: string;
+  qty: number;
+  unit: string;
+  costPrice: number;
+  batchNumber?: string;
+  expiryDate?: string;
 }
 
-function mapStockItem(raw: StockLevelRaw, isLow: boolean): StockItem {
-  return {
-    productId: raw.productId,
-    productName: raw.productName ?? raw.productId,
-    sku: raw.sku ?? '',
-    warehouseId: raw.warehouseId,
-    warehouseName: raw.warehouseName ?? raw.warehouseId,
-    quantity: raw.stock,
-    threshold: raw.minStockLevel ?? 0,
-    isLow,
-  };
+export interface Receipt {
+  id: string;
+  receiptNumber: string;
+  date: string;
+  supplierName: string;
+  itemsCount: number;
+  totalCost: number;
+  status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
+  items?: ReceiptItem[];
+  notes?: string;
 }
 
-// READ ONLY — financial mutations TAQIQLANGAN
+export interface ReceiptListResponse {
+  items: Receipt[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CreateReceiptBody {
+  supplierName: string;
+  invoiceNumber?: string;
+  items: {
+    productId: string;
+    quantity: number;
+    costPrice: number;
+    batchNumber?: string;
+    expiryDate?: string;
+  }[];
+  notes?: string;
+}
+
+export interface CreateReceiptResponse {
+  id: string;
+  receiptNumber: string;
+  date: string;
+  totalCost: number;
+  itemsCount: number;
+  status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
+}
+
 export const inventoryApi = {
-  // GET /inventory/stock — Backend returns plain StockLevelRaw[]; wrapped here as PaginatedResponse
-  getStock: async (branchId?: string): Promise<PaginatedResponse<StockItem>> => {
-    const { data } = await api.get<StockLevelRaw[]>('/inventory/stock', {
-      params: { branchId },
+  getLowStock: async (): Promise<LowStockItem[]> => {
+    const { data } = await api.get<LowStockItem[]>('/inventory/levels', {
+      params: { lowStock: true },
     });
-    const items = Array.isArray(data) ? data : [];
-    return {
-      data: items.map((raw) => mapStockItem(raw, false)),
-      meta: { total: items.length, page: 1, limit: items.length, totalPages: 1 },
-    };
+    return data;
   },
 
-  // GET /inventory/stock/low — Backend returns plain StockLevelRaw[]
-  getLowStock: async (branchId?: string): Promise<StockItem[]> => {
-    const { data } = await api.get<StockLevelRaw[]>('/inventory/stock/low', {
-      params: { branchId },
-    });
-    const items = Array.isArray(data) ? data : [];
-    return items.map((raw) => mapStockItem(raw, true));
-  },
-
-  // GET /inventory/levels?productId=xxx — stock per warehouse for a single product
   getProductStock: async (productId: string): Promise<ProductStockLevel[]> => {
-    const { data } = await api.get<StockLevelRaw[]>('/inventory/levels', {
-      params: { productId },
-    });
-    const items = Array.isArray(data) ? data : [];
-    return items.map((raw) => ({
-      warehouseId: raw.warehouseId,
-      warehouseName: raw.warehouseName ?? raw.warehouseId,
-      stock: raw.stock,
-      nearestExpiry: null,
-    }));
+    const { data } = await api.get<ProductStockLevel[]>(
+      `/inventory/products/${productId}/stock`,
+    );
+    return data;
+  },
+
+  getReceipts: async (params?: {
+    page?: number;
+    limit?: number;
+    from?: string;
+    to?: string;
+  }): Promise<ReceiptListResponse> => {
+    const { data } = await api.get<ReceiptListResponse>('/inventory/receipts', { params });
+    return data;
+  },
+
+  getReceiptById: async (id: string): Promise<Receipt> => {
+    const { data } = await api.get<Receipt>(`/inventory/receipts/${id}`);
+    return data;
+  },
+
+  createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {
+    const { data } = await api.post<CreateReceiptResponse>('/inventory/receipts', body);
+    return data;
   },
 };

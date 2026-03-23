@@ -1,33 +1,53 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import { api } from '@/api';
+import { Platform } from 'react-native';
+import api from '../api/client';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
-export function useNotifications(): void {
+export function useNotifications() {
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
+
   useEffect(() => {
-    if (!Device.isDevice) return;
+    registerForPushNotifications();
 
-    void registerForPushNotifications();
+    notificationListener.current = Notifications.addNotificationReceivedListener(
+      (_notification) => {
+        // In-app notification — handled by notification handler above
+      },
+    );
 
-    const subscription = Notifications.addNotificationReceivedListener((notification) => {
-      if (__DEV__) {
-        console.log('[Notification received]', notification);
-      }
-    });
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(
+      (_response) => {
+        // Navigate based on notification data (future: deep links)
+      },
+    );
 
-    return () => subscription.remove();
+    return () => {
+      notificationListener.current?.remove();
+      responseListener.current?.remove();
+    };
   }, []);
 }
 
 async function registerForPushNotifications(): Promise<void> {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'RAOS Alerts',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+    });
+  }
+
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
@@ -38,10 +58,12 @@ async function registerForPushNotifications(): Promise<void> {
 
   if (finalStatus !== 'granted') return;
 
-  const token = await Notifications.getExpoPushTokenAsync();
+  const tokenData = await Notifications.getExpoPushTokenAsync();
+  const expoPushToken = tokenData.data;
 
-  // Backend endpoint: POST /notifications/fcm-token
-  await api
-    .post('/notifications/fcm-token', { token: token.data, platform: 'android' })
-    .catch(() => null);
+  try {
+    await api.post('/notifications/register-token', { token: expoPushToken });
+  } catch {
+    // Token registration fails silently — notifications are non-blocking
+  }
 }

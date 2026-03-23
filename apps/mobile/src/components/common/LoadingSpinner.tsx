@@ -1,28 +1,18 @@
 import React from 'react';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
-interface LoadingSpinnerProps {
-  message?: string;
-}
-
-export default function LoadingSpinner({ message }: LoadingSpinnerProps): React.JSX.Element {
+export default function LoadingSpinner() {
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#1a56db" />
-      {message ? <Text style={styles.message}>{message}</Text> : null}
+    <View style={styles.center}>
+      <ActivityIndicator size="large" color="#6366F1" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  center: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
-  },
-  message: {
-    fontSize: 14,
-    color: '#6b7280',
+    justifyContent: 'center',
   },
 });

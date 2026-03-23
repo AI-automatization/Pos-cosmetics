@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import type { ProductInfo } from '@/api/catalog.api';
-import type { ProductStockLevel } from '@/api/inventory.api';
-import { formatCurrency, formatDate } from '@/utils/format';
+import type { ProductInfo } from '../../api/catalog.api';
+import type { ProductStockLevel } from '../../api/inventory.api';
+import { formatUZS } from '../../utils/currency';
+import { formatDate } from '../../utils/date';
 
 interface Props {
   product: ProductInfo;
@@ -29,7 +30,7 @@ export default function ProductResultCard({
   onScanAgain,
   onAddToCount,
   isCountMode,
-}: Props): React.JSX.Element {
+}: Props) {
   const { t } = useTranslation();
 
   const totalStock = stockLevels.reduce((sum, s) => sum + s.stock, 0);
@@ -45,7 +46,7 @@ export default function ProductResultCard({
 
       <View style={styles.row}>
         <Text style={styles.label}>{t('scanner.price')}</Text>
-        <Text style={styles.value}>{formatCurrency(product.sellPrice, product.currency)}</Text>
+        <Text style={styles.value}>{formatUZS(product.sellPrice)}</Text>
       </View>
 
       <View style={styles.row}>

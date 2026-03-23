@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { catalogApi } from '@/api/catalog.api';
-import { inventoryApi } from '@/api/inventory.api';
-import type { ProductInfo } from '@/api/catalog.api';
+import { catalogApi } from '../../api/catalog.api';
+import { inventoryApi } from '../../api/inventory.api';
+import type { ProductInfo } from '../../api/catalog.api';
 
 export type ScannerMode = 'scan' | 'count';
 
