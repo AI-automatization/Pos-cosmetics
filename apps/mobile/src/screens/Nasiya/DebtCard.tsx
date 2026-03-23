@@ -9,6 +9,7 @@ import { extractErrorMessage } from '../../utils/error';
 interface Props {
   debt: DebtRecord;
   onPay: (debt: DebtRecord) => void;
+  onPress?: (debt: DebtRecord) => void;
 }
 
 const STATUS_COLORS: Record<DebtStatus, { bg: string; text: string }> = {
@@ -51,7 +52,7 @@ function formatDueDate(dueDate: string | null, t: ReturnType<typeof useTranslati
   });
 }
 
-export default function DebtCard({ debt, onPay }: Props) {
+export default function DebtCard({ debt, onPay, onPress }: Props) {
   const { t } = useTranslation();
   const [reminding, setReminding]             = useState(false);
   const [paymentsExpanded, setPayExpanded]    = useState(false);
@@ -82,7 +83,11 @@ export default function DebtCard({ debt, onPay }: Props) {
   };
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onPress?.(debt)}
+      activeOpacity={0.9}
+    >
       {/* Header row */}
       <View style={styles.header}>
         <View style={styles.customerInfo}>
@@ -263,7 +268,7 @@ export default function DebtCard({ debt, onPay }: Props) {
           </TouchableOpacity>
         </View>
       </Modal>
-    </View>
+    </TouchableOpacity>
   );
 }
 

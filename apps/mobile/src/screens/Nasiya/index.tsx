@@ -17,6 +17,7 @@ import { useNasiyaData, FilterTab } from './useNasiyaData';
 import DebtCard from './DebtCard';
 import PayModal from './PayModal';
 import NewDebtSheet from './NewDebtSheet';
+import DebtDetailSheet from './DebtDetailSheet';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 // ─── Colors ────────────────────────────────────────────
@@ -82,6 +83,8 @@ export default function NasiyaScreen() {
   const [selectedDebt, setSelectedDebt]   = useState<DebtRecord | null>(null);
   const [payVisible, setPayVisible]       = useState(false);
   const [newDebtVisible, setNewDebtVisible] = useState(false);
+  const [detailDebt, setDetailDebt]       = useState<DebtRecord | null>(null);
+  const [detailVisible, setDetailVisible] = useState(false);
 
   const route = useRoute<RouteProp<TabParamList, 'Nasiya'>>();
   const navigation = useNavigation<NavigationProp<TabParamList>>();
@@ -117,6 +120,11 @@ export default function NasiyaScreen() {
   const handlePay = (debt: DebtRecord) => {
     setSelectedDebt(debt);
     setPayVisible(true);
+  };
+
+  const handleDebtPress = (debt: DebtRecord) => {
+    setDetailDebt(debt);
+    setDetailVisible(true);
   };
 
   const handlePaySuccess = () => {
@@ -195,6 +203,7 @@ export default function NasiyaScreen() {
             <DebtCard
               debt={item}
               onPay={handlePay}
+              onPress={handleDebtPress}
             />
           )}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
@@ -206,15 +215,6 @@ export default function NasiyaScreen() {
           }
         />
       )}
-
-      {/* FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.85}
-        onPress={() => setNewDebtVisible(true)}
-      >
-        <Ionicons name="add" size={28} color={C.white} />
-      </TouchableOpacity>
 
       {/* Payment Modal */}
       <PayModal
@@ -231,6 +231,14 @@ export default function NasiyaScreen() {
         onSuccess={() => { setNewDebtVisible(false); refetchAll(); }}
         initialAmount={route.params?.amount}
         initialProducts={route.params?.products}
+      />
+
+      {/* Debt Detail Sheet */}
+      <DebtDetailSheet
+        visible={detailVisible}
+        debt={detailDebt}
+        onClose={() => setDetailVisible(false)}
+        onPay={(debt) => { setDetailVisible(false); handlePay(debt); }}
       />
     </SafeAreaView>
   );
@@ -309,13 +317,4 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15, color: C.muted },
 
-  // FAB
-  fab: {
-    position: 'absolute', bottom: 24, right: 20,
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: C.primary,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: C.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,
-  },
 });
