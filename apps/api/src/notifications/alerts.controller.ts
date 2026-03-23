@@ -70,16 +70,20 @@ export class AlertsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get alerts (paginated) — mobile-owner format' })
+  @ApiOperation({ summary: 'T-213: Get alerts (paginated) — mobile-owner format' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: ['all', 'unread', 'read'] })
+  @ApiQuery({ name: 'priority', required: false, enum: ['high', 'medium', 'low'] })
+  @ApiQuery({ name: 'branch_id', required: false })
   async getAlerts(
     @CurrentUser('userId') userId: string,
     @CurrentUser('tenantId') tenantId: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('status') status?: string,
+    @Query('priority') priority?: 'high' | 'medium' | 'low',
+    @Query('branch_id') _branchId?: string,
   ) {
     const unreadOnly = status === 'unread';
     const result = await this.notificationsService.getNotifications(userId, tenantId, {
@@ -87,10 +91,12 @@ export class AlertsController {
       limit,
       unreadOnly,
     });
-    return {
-      ...result,
-      items: result.items.map(toAlert),
-    };
+    let items = result.items.map(toAlert);
+    // T-213: priority filter (client-side after fetch, DB filtering later)
+    if (priority) {
+      items = items.filter((a) => a.priority === priority);
+    }
+    return { ...result, items };
   }
 
   @Get('unread-count')

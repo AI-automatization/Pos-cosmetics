@@ -202,7 +202,9 @@ export class InventoryService {
         ? Prisma.sql`AND ss.product_id = ${opts.productId}`
         : Prisma.empty;
 
+      // T-138 FIX: UNION ALL — snapshot'da bo'lmagan yangi mahsulotlarni ham qo'shish
       grouped = await this.prisma.$queryRaw<{ productId: string; warehouseId: string; stock: number }[]>`
+        -- Part 1: snapshot'dagi mahsulotlar + keyingi delta
         SELECT
           ss.product_id    AS "productId",
           ss.warehouse_id  AS "warehouseId",
@@ -227,6 +229,30 @@ export class InventoryService {
         WHERE ss.tenant_id = ${tenantId}
         ${snapWhere}
         ${snapProduct}
+
+        UNION ALL
+
+        -- Part 2 (T-138): snapshot'dan KEYIN qo'shilgan yangi mahsulotlar
+        SELECT
+          sm2.product_id   AS "productId",
+          sm2.warehouse_id AS "warehouseId",
+          SUM(
+            CASE
+              WHEN sm2.type IN ('IN', 'RETURN_IN', 'TRANSFER_IN') THEN sm2.quantity
+              WHEN sm2.type = 'ADJUSTMENT' THEN sm2.quantity
+              ELSE -sm2.quantity
+            END
+          )::float AS stock
+        FROM stock_movements sm2
+        WHERE sm2.tenant_id = ${tenantId}
+          AND sm2.created_at > ${snapshotExists.calculatedAt}
+          AND NOT EXISTS (
+            SELECT 1 FROM stock_snapshots ss2
+            WHERE ss2.tenant_id = ${tenantId}
+              AND ss2.product_id = sm2.product_id
+              AND ss2.warehouse_id = sm2.warehouse_id
+          )
+        GROUP BY sm2.product_id, sm2.warehouse_id
       `;
     } else {
       // Fallback: full history aggregate (snapshot hali yo'q)
