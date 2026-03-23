@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { DebtRecord } from '../../api/nasiya.api';
+import type { TabParamList } from '../../navigation/types';
 import { useNasiyaData, FilterTab } from './useNasiyaData';
 import DebtCard from './DebtCard';
 import PayModal from './PayModal';
@@ -80,6 +82,16 @@ export default function NasiyaScreen() {
   const [selectedDebt, setSelectedDebt]   = useState<DebtRecord | null>(null);
   const [payVisible, setPayVisible]       = useState(false);
   const [newDebtVisible, setNewDebtVisible] = useState(false);
+
+  const route = useRoute<RouteProp<TabParamList, 'Nasiya'>>();
+
+  // Auto-open from Savdo NASIYA payment
+  useEffect(() => {
+    const params = route.params;
+    if (params?.openNewDebt) {
+      setNewDebtVisible(true);
+    }
+  }, [route.params]);
 
   const {
     currentItems,
@@ -214,6 +226,8 @@ export default function NasiyaScreen() {
         visible={newDebtVisible}
         onClose={() => setNewDebtVisible(false)}
         onSuccess={() => { setNewDebtVisible(false); refetchAll(); }}
+        initialAmount={route.params?.amount}
+        initialProducts={route.params?.products}
       />
     </SafeAreaView>
   );
