@@ -284,21 +284,8 @@
 
 ---
 
-## T-318 | P1 | [BACKEND] | RBAC guards — WAREHOUSE uchun endpoint himoyasi
 
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/inventory.controller.ts`, `apps/api/src/catalog/catalog.controller.ts`
-- **Muammo:** WAREHOUSE roli qo'shilgandan keyin, endpoint da to'g'ri ruxsatlar kerak.
-- **Kutilgan:**
-  - `inventory.controller.ts` — WAREHOUSE roli ham ruxsatli (stock operations)
-  - `catalog.controller.ts` — WAREHOUSE faqat GET (read-only)
-  - `sales.controller.ts` — WAREHOUSE TAQIQLANGAN (savdo qila olmaydi)
-  - `finance.controller.ts` — WAREHOUSE TAQIQLANGAN
-  - `settings.controller.ts` — WAREHOUSE TAQIQLANGAN
-  - Middleware: WAREHOUSE `/warehouse/*` dan tashqariga chiqsa → 403
 
----
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA)
@@ -502,7 +489,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **40** | **1** | **17** | **10** | **6** |
+| **39** | **1** | **16** | **10** | **6** |
 
 ### Kategoriya bo'yicha
 
