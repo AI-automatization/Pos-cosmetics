@@ -4,7 +4,7 @@
 
 # Barcha dasturchilar uchun UMUMIY qoidalar
 
-# Template: VENTRA Claude CLI System v2
+# RAOS v3.0 — Jamoa restrukturizatsiyasi (2026-03-23)
 
 ---
 
@@ -15,22 +15,30 @@
 ```
 Salom! Men RAOS loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
-  1. Polat (Backend & DevOps & Testing API & SWAGGER)
-  2. AbdulazizYormatov (Frontend — Web , React Electron Desktop App, Admin Panel)
-  3. Ibrat (Mobile — React Native Android)
-  4. Abdulaziz (Mobile — React Native IOS)
-  4. Bekzod (Tester & Architector)
+  1. Ibrat (Full-Stack — Web + Backend + DevOps)
+  2. Abdulaziz (Mobile — React Native Android + iOS)
+  3. AbdulazizYormatov (Team Lead — Arxitektura & Code Review)
+  4. Bekzod (PM — Project Management & QA)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
-- Polat → `CLAUDE_BACKEND.md`
-- AbdulazizYormatov → `CLAUDE_FRONTEND.md` + `CLAUDE_FRONTEND_OWNER.md` (Owner panel da)
-- Ibrat → `CLAUDE_MOBILE.md`
+- Ibrat → `CLAUDE_FULLSTACK.md`
 - Abdulaziz → `CLAUDE_MOBILE.md`
-- Bekzod → `CLAUDE_BACKEND.md`
+- AbdulazizYormatov → `CLAUDE_FULLSTACK.md` + `CLAUDE_MOBILE.md` (read-only review uchun)
+- Bekzod → `CLAUDE_FULLSTACK.md` (read-only, project overview uchun)
+
+### Jamoa Tuzilishi (2026-03-23 dan)
+
+| Rol | Ism | Mas'uliyat | Zona |
+|-----|-----|-----------|------|
+| **Full-Stack Dev** | Ibrat | Backend API + Web Admin + POS + Bot + Worker + DevOps | apps/api, apps/web, apps/pos, apps/bot, apps/worker, docker/, prisma/ |
+| **Mobile Dev** | Abdulaziz | Android + iOS (staff app + owner app) | apps/mobile, apps/mobile-owner |
+| **Team Lead** | AbdulazizYormatov | Code review, arxitektura qarorlari, PR tasdiqlash | Barcha zonalar (read + review) |
+| **PM** | Bekzod | Task prioritizatsiya, sprint planning, QA, yangi g'oyalar | docs/, CLAUDE*.md, test |
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
+> **Eslatma:** Polat 2026-03-23 dan loyihani tark etdi. Barcha backend vazifalari Ibrat ga o'tdi.
 
 ---
 
@@ -64,20 +72,21 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 ```
 apps/
-  api/             → Bekzod & Yormatov zonasi (Backend API — NestJS)
-  worker/          → Bekzod & Yormatov zonasi (BullMQ processors)
-  bot/             → Bekzod & Yormatov zonasi (Telegram bot — grammY)
-  web/             → Abdulaziz zonasi (Admin Panel — Next.js)
-  pos/             → Abdulaziz zonasi (POS Desktop — Tauri)
-  mobile/          → Ibrat zonasi (React Native — Android)
+  api/             → Ibrat zonasi (Backend API — NestJS)
+  worker/          → Ibrat zonasi (BullMQ processors)
+  bot/             → Ibrat zonasi (Telegram bot — grammY)
+  web/             → Ibrat zonasi (Admin Panel — Next.js)
+  pos/             → Ibrat zonasi (POS Desktop — Tauri)
+  mobile/          → Abdulaziz zonasi (React Native — Android + iOS)
+  mobile-owner/    → Abdulaziz zonasi (Owner Mobile App — React Native)
 packages/
   types/           → UMUMIY — kelishib o'zgartirish
   utils/           → UMUMIY — kelishib o'zgartirish
   ui/              → UMUMIY — shared UI components
   sync-engine/     → UMUMIY — offline sync logic
-prisma/            → Bekzod & Yormatov boshqaradi (schema + migrations)
-docker/            → Bekzod & Yormatov boshqaradi (infra)
-docs/              → Hammaga ochiq
+prisma/            → Ibrat boshqaradi (schema + migrations)
+docker/            → Ibrat boshqaradi (infra)
+docs/              → Hammaga ochiq (Bekzod — PM sifatida boshqaradi)
 ```
 
 ---
@@ -165,9 +174,10 @@ Events stored in event_log table (immutable).
 ❌ Financial data uchun last-write-wins conflict resolution
 ❌ Production DB ga qo'lda SQL yozish
 ❌ Secret/API key ni kodga yozish
-❌ Eskiz.uz SMS API — TAQIQLANGAN (Polat qaroriga ko'ra, 2026-03-09)
+❌ Eskiz.uz SMS API — TAQIQLANGAN (2026-03-09 dan)
     → O'rniga: Telegram Bot API (birlamchi) + SMTP Email (zaxira)
     → Service: apps/api/src/notifications/notify.service.ts (NotifyService)
+❌ Demo/mock data ni production ga deploy qilish — hooklar orqali tekshirish
 ```
 
 ---
@@ -207,7 +217,7 @@ Events stored in event_log table (immutable).
 ```
 [BACKEND]   — API, DB, Worker, Bot, Ledger, Fiscal, Payments
 [FRONTEND]  — Admin Panel UI, POS Desktop UI
-[MOBILE]    — React Native Android app
+[MOBILE]    — React Native Android + iOS (staff app + owner app)
 [DEVOPS]    — Docker, CI/CD, Monitoring, Infra
 [SECURITY]  — Auth, RBAC, Encryption, Audit
 [OFFLINE]   — Sync engine, conflict resolution, SQLite
@@ -247,12 +257,10 @@ Events stored in event_log table (immutable).
 git pull origin main
 
 # Branch format:
-bekzod/feat-[feature-name]
-bekzod/fix-[bug-description]
-abdulaziz/feat-[feature-name]
 ibrat/feat-[feature-name]
-yormatov/feat-[feature-name]
-yormatov/fix-[bug-description]
+ibrat/fix-[bug-description]
+abdulaziz/feat-[feature-name]
+abdulaziz/fix-[bug-description]
 
 # Commit format (Conventional Commits — MAJBURIY):
 feat(module): short description in English
@@ -550,14 +558,12 @@ pnpm -r exec tsc --noEmit
 
 | Fayl                        | Kim uchun                                               |
 | --------------------------- | ------------------------------------------------------- |
-| `CLAUDE_BACKEND.md`         | Polat (Backend & DevOps), Bekzod (Tester & Architector) |
-| `CLAUDE_FRONTEND.md`        | AbdulazizYormatov (Frontend — Web, Admin Panel, POS)    |
-| `CLAUDE_FRONTEND_OWNER.md`  | AbdulazizYormatov (Owner Panel — /founder/* sahifalari) |
-| `CLAUDE_MOBILE.md`          | Ibrat (Android), Abdulaziz (IOS)                        |
+| `CLAUDE_FULLSTACK.md`       | Ibrat (Full-Stack — Web + Backend + DevOps)             |
+| `CLAUDE_MOBILE.md`          | Abdulaziz (Mobile — Android + iOS)                      |
 | `docs/AGENTS_GUIDE.md`      | Hammaga — Claude agentlari to'liq qo'llanmasi           |
-| `docs/Tasks.md`             | Ochiq vazifalar                                         |
+| `docs/Tasks.md`             | Ochiq vazifalar (Bekzod — PM boshqaradi)                |
 | `docs/Done.md`              | Bajarilgan ishlar                                       |
 
 ---
 
-_CLAUDE.md | RAOS | v1.1_
+_CLAUDE.md | RAOS | v2.0 | 2026-03-23 — Jamoa restrukturizatsiyasi_

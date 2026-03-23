@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-02-28
+# Yangilangan: 2026-03-23
 
 ---
 
@@ -219,6 +219,42 @@
 | T-131 | [BACKEND] | Barcode generation — GET /catalog/products/:id/barcode?format=ean13\|code128\|qrcode. PNG image qaytaradi. Paket: bwip-js | `apps/api/src/catalog/catalog.controller.ts` |
 | T-132 | [BACKEND] | Tenant settings — `tenant_settings` jadvali qo'shildi. GET /settings, PATCH /settings (ADMIN/OWNER only). 10 ta sozlama: currency, tax_rate, tax_inclusive, receipt_header/footer, logo_url, shift_required, debt_limit_default, rounding, low_stock_threshold. Migration: 20260313000000_add_tenant_settings_price_changes | `apps/api/src/identity/tenant-settings.service.ts`, `tenant-settings.controller.ts`, `apps/api/prisma/schema.prisma` |
 | T-133 | [BACKEND] | Price history — `price_changes` jadvali (immutable). Product narxi o'zgarganda avtomatik log. GET /catalog/price-changes, GET /catalog/products/:id/price-changes. TAQIQLANGAN: UPDATE/DELETE | `apps/api/src/catalog/price-history.service.ts`, `apps/api/prisma/schema.prisma` |
+
+---
+
+## 2026-03-23 SESSIYA — Jamoa qayta tashkil etildi, Tasks.md tozalandi
+
+> Polat loyihadan chiqdi. Barcha bajarilgan tasklar Tasks.md dan shu yerga ko'chirildi.
+
+| T-# | Sana | Kategoriya | Yechim | Fayl(lar) |
+|-----|------|-----------|--------|-----------|
+| T-201 | 2026-03-15 | [BACKEND] | Owner Dashboard Analytics — revenue, sales-trend, branch-comparison, top-products endpointlar T-226 da qo'shildi | `apps/api/src/ai/` |
+| T-202 | 2026-03-15 | [BACKEND] | Low Stock & Inventory Alerts — inventory/low-stock endpoint mavjud | `apps/api/src/inventory/` |
+| T-203 | 2026-03-15 | [BACKEND] | Alerts/Notifications feed — alerts.controller.ts T-226 da yaratildi | `apps/api/src/notifications/alerts.controller.ts` |
+| T-204 | 2026-03-18 | [BACKEND] | Employee Performance — employees module to'liq yaratildi | `apps/api/src/employees/` |
+| T-205 | 2026-03-15 | [BACKEND] | Shift Monitoring — shifts.controller.ts alias T-226 da yaratildi | `apps/api/src/sales/shifts.controller.ts` |
+| T-206 | 2026-03-15 | [BACKEND] | Nasiya Aging Report — debts.controller.ts alias T-226 da yaratildi | `apps/api/src/nasiya/debts.controller.ts` |
+| T-207 | 2026-03-15 | [BACKEND] | System Health — system.controller.ts T-226 da yaratildi | `apps/api/src/health/system.controller.ts` |
+| T-208 | 2026-03-01 | [BACKEND] | Push Notification device token — FCM token registration T-103 da bajarildi | `apps/api/src/notifications/` |
+| T-209 | 2026-03-01 | [BACKEND] | Branches endpoint — T-047 da bajarildi | `apps/api/src/branches/` |
+| T-210 | 2026-03-15 | [BACKEND] | Analytics orders count — T-226 da qo'shildi | `apps/api/src/ai/ai.controller.ts` |
+| T-211 | 2026-03-15 | [BACKEND] | DebtSummary overdueCount — T-226 nasiya.service.ts da qo'shildi | `apps/api/src/nasiya/nasiya.service.ts` |
+| T-212 | 2026-03-15 | [BACKEND] | Debts aging-report — T-226 da yaratildi | `apps/api/src/nasiya/` |
+| T-213 | 2026-03-15 | [BACKEND] | Alerts priority param — alerts.controller.ts da | `apps/api/src/notifications/alerts.controller.ts` |
+| T-214 | 2026-03-15 | [BACKEND] | Shift PaymentBreakdown — shifts alias controller da | `apps/api/src/sales/` |
+| T-215 | 2026-03-15 | [BACKEND] | StockValue byBranch — inventory endpoint | `apps/api/src/inventory/` |
+| T-216 | 2026-03-15 | [BACKEND] | Demo Seed Data — T-226 da kengaytirilgan seed | `apps/api/prisma/seed.ts` |
+| T-217 | 2026-03-15 | [BACKEND] | GET /shifts list — T-226 shifts alias | `apps/api/src/sales/` |
+| T-218 | 2026-03-15 | [BACKEND] | GET /inventory/stock list — mavjud | `apps/api/src/inventory/` |
+| T-219 | 2026-03-15 | [BACKEND] | GET /inventory/low-stock — mavjud | `apps/api/src/inventory/` |
+| T-220 | 2026-03-15 | [BACKEND] | Owner Panel Swagger test — T-226 bilan birga test qilindi | -- |
+| T-221 | 2026-03-19 | [BACKEND] | Analytics revenue format fix — web da transformer qo'shildi | `apps/web/src/app/(admin)/analytics/page.tsx` |
+| T-222 | 2026-03-15 | [BACKEND] | Inventory out-of-stock — T-226 da qo'shildi | `apps/api/src/inventory/` |
+| T-223 | 2026-03-15 | [BACKEND] | Shifts detail + summary — T-226 da qo'shildi | `apps/api/src/sales/` |
+| T-224 | 2026-03-18 | [BACKEND] | Employee full CRUD — T-144 da bajarildi | `apps/api/src/employees/` |
+| T-225 | -- | [BACKEND] | Biometric auth — hali bajarilmagan, T-301 ga ko'chirildi | -- |
+| T-226 | 2026-03-15 | [IKKALASI] | Mobile-Owner full integration — 9 ta fayl, seed, alias controllerlar | `apps/api/src/` (ko'p fayl) |
+| T-139 | 2026-03-15 | [IKKALASI] | Mobile branch merge — T-226 doirasida amalga oshirildi | `apps/api/` |
 
 ---
 
