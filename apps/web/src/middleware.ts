@@ -36,6 +36,20 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Role-based routing
+  const userRole = request.cookies.get('user_role')?.value;
+  const isWarehousePath = pathname.startsWith('/warehouse');
+
+  if (userRole === 'WAREHOUSE' && !isWarehousePath) {
+    // WAREHOUSE can only access /warehouse/* paths
+    return NextResponse.redirect(new URL('/warehouse', request.url));
+  }
+
+  if (userRole && userRole !== 'WAREHOUSE' && isWarehousePath) {
+    // Non-WAREHOUSE roles cannot access /warehouse/* paths
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
   return NextResponse.next();
 }
 

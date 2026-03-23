@@ -36,89 +36,6 @@
 
 ---
 
-## T-301 | P0 | [BACKEND] | Biometric auth — POST /auth/biometric/register + verify
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/identity/auth.controller.ts`
-- **Muammo:** Mobile-owner biometric login (fingerprint/face) ishlatadi. Backend da bu endpointlar yo'q. T-225 da spec bor edi lekin hali implement qilinmagan.
-- **Kutilgan:**
-  - `POST /auth/biometric/register` — { publicKey, deviceId } -> biometricToken
-  - `POST /auth/biometric/verify` — { biometricToken, deviceId } -> access_token + refresh_token
-  - `user_biometric_keys` jadvali: (userId, publicKey, deviceId, createdAt)
-  - Biometric token 30 kunlik, har verify da yangilanadi
-
----
-
-## T-321 | P0 | [BACKEND] | Analytics — недостающие endpoints + замена demo-данных
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/ai/ai.controller.ts`, `apps/api/src/ai/ai.service.ts`
-- **Muammo:** Мобилка вызывает эти endpoints и получает 404 или неверный формат. Часть endpoints возвращает demo (захардкоженные) данные вместо реальных.
-- **Kutilgan:**
-  - `GET /analytics/orders` — список заказов с аналитикой (нет в backend)
-  - `GET /analytics/revenue-by-branch` — выручка по филиалам (нет)
-  - `GET /analytics/employee-performance` — производительность сотрудников (нет)
-  - `GET /analytics/sales-trend` — исправить формат ответа (мобилка получает 404)
-  - `GET /analytics/revenue` — заменить demo-данные на реальные из БД
-  - `GET /analytics/insights` — убрать захардкоженные тексты → реальный AI анализ
-  - `/analytics/branches/comparison` vs `/analytics/branch-comparison` → унифицировать
-
----
-
-## T-322 | P0 | [BACKEND] | Inventory — недостающие endpoints
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/inventory.controller.ts`
-- **Muammo:** Мобилка вызывает эти endpoints и получает 404.
-- **Kutilgan:**
-  - `GET /inventory/out-of-stock` — товары с нулевым остатком (нет в backend)
-  - `GET /inventory/stock-value` — общая стоимость склада (qty × purchase_price, нет)
-
----
-
-## T-323 | P0 | [BACKEND] | Shifts — недостающие endpoints
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/sales/shifts.controller.ts`
-- **Muammo:** Мобилка вызывает эти endpoints и получает 404.
-- **Kutilgan:**
-  - `GET /shifts/summary` — сводка по всем сменам за период (нет)
-  - `GET /shifts/:id` — детали конкретной смены (нет)
-
----
-
-## T-324 | P0 | [BACKEND] | Employees — недостающие endpoints
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/employees/employees.controller.ts`
-- **Muammo:** Мобилка и Super Admin вызывают эти endpoints и получают 404.
-- **Kutilgan:**
-  - `GET /employees/performance` — топ сотрудников по продажам (нет)
-  - `GET /employees/:id/performance` — детальная статистика сотрудника (нет)
-  - `GET /employees/suspicious-activity` — аномальная активность (нет)
-  - `PATCH /employees/:id/status` — активировать/деактивировать (нет)
-  - `PATCH /employees/:id/pos-access` — разрешить/запретить доступ к POS (нет)
-
----
-
-## T-325 | P0 | [BACKEND] | System — недостающие endpoints (sync-status, errors)
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/health/` yoki `apps/api/src/common/system/` (yangi)
-- **Muammo:** Мобилка (System Health экран) и Super Admin вызывают эти endpoints и получают 404.
-- **Kutilgan:**
-  - `GET /system/sync-status` — статус синхронизации POS по каждому филиалу
-  - `GET /system/errors` — последние системные ошибки
-  - Формат sync-status: `{ branch_id, branch_name, last_sync_at, pending_count, status: 'ok'|'warn'|'error' }[]`
-
----
-
 ## T-302 | P0 | [BACKEND] | Offline sync engine — Outbox pattern to'liq implementatsiya
 
 - **Sana:** 2026-03-23
@@ -290,39 +207,6 @@
 
 ---
 
-## T-316 | P1 | [BACKEND] | WAREHOUSE roli — Prisma enum + migratsiya
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `prisma/schema.prisma`, `packages/types/src/auth.ts`
-- **Muammo:** `UserRole` enum da `WAREHOUSE` roli yo'q. Ombor xodimlari alohida rol bilan ishlashi kerak.
-- **Kutilgan:**
-  - `prisma/schema.prisma` da `UserRole` enum ga `WAREHOUSE` qo'shish (CASHIER va MANAGER orasida, daraja: 2.5)
-  - `packages/types/src/auth.ts` da `UserRole` enum yangilash
-  - `npx prisma migrate dev --name add-warehouse-role` migratsiya
-  - `identity.service.ts` da `ROLE_HIERARCHY` ga `WAREHOUSE: 2.5` qo'shish
-  - `employees.service.ts` da WAREHOUSE rol tanlov imkoniyati
-
----
-
-## T-317 | P1 | [FRONTEND] | route group (warehouse) + layout + sidebar
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/`
-- **Muammo:** WAREHOUSE roli uchun alohida panel yo'q. Hozir (admin) panelda ko'rinishi kerak bo'lmagan narsalar ko'rinadi.
-- **Kutilgan:**
-  - `apps/web/src/app/(warehouse)/layout.tsx` — ombor panel layouti
-  - `apps/web/src/app/(warehouse)/warehouse/` — asosiy sahifalar
-  - `apps/web/src/components/layout/WarehouseSidebar.tsx` — faqat ombor bo'limlari:
-    - Inventar (stock levels, stock-in, stock-out, transfer)
-    - Mahsulotlar (read-only catalog)
-    - Muddati o'tayotganlar (expiry)
-    - Kam qolganlar (low-stock)
-  - Login redirect: `WAREHOUSE → /warehouse`
-  - Route guard: WAREHOUSE roli `/admin/*` ga kira olmaydi
-
----
 
 ## T-326 | P1 | [BACKEND] | API path conflicts унификация (кроме T-311)
 
@@ -618,13 +502,13 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **42** | **7** | **19** | **10** | **6** |
+| **40** | **1** | **17** | **10** | **6** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 7 | 13 | 2 | 5 | **27** |
+| [BACKEND] | 1 | 11 | 2 | 5 | **19** |
 | [FRONTEND] | 0 | 6 | 4 | 0 | **10** |
 | [MOBILE] | 0 | 0 | 3 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
@@ -633,7 +517,7 @@
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 7 | 15 | 3 | 0 | **25** |
+| **Ibrat** (Full-Stack) | 1 | 13 | 3 | 0 | **17** |
 | **AbdulazizYormatov** (Team Lead, Frontend) | 0 | 4 | 2 | 0 | **6** |
 | **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |

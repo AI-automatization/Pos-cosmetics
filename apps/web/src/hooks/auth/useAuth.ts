@@ -7,14 +7,19 @@ import { authApi, type LoginPayload } from '@/api/auth.api';
 import { extractErrorMessage } from '@/lib/utils';
 
 const SESSION_COOKIE = 'session_active';
+const ROLE_COOKIE = 'user_role';
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
-function setSessionCookie() {
-  const maxAge = 7 * 24 * 60 * 60; // 7 days
-  document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${maxAge}; SameSite=Lax`;
+function setSessionCookie(role?: string) {
+  document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  if (role) {
+    document.cookie = `${ROLE_COOKIE}=${role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  }
 }
 
 function clearSessionCookie() {
   document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
+  document.cookie = `${ROLE_COOKIE}=; path=/; max-age=0`;
 }
 
 export function useCurrentUser() {
@@ -46,8 +51,11 @@ export function useLogin() {
       try {
         const user = await authApi.me();
         queryClient.setQueryData(['auth', 'me'], user);
+        setSessionCookie(user.role); // set role cookie for middleware routing
 
-        if (user.role === 'OWNER') {
+        if (user.role === 'WAREHOUSE') {
+          router.push('/warehouse');
+        } else if (user.role === 'OWNER') {
           router.push('/analytics');
         } else if (user.role === 'CASHIER') {
           router.push('/pos');
