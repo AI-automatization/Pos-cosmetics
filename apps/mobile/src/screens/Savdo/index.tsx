@@ -26,6 +26,7 @@ const C = {
   text: '#111827',
   muted: '#9CA3AF',
   border: '#E5E7EB',
+  danger: '#EF4444',
 };
 
 // ─── Mock ma'lumotlar ───────────────────────────────────
@@ -78,15 +79,9 @@ export default function SavdoScreen() {
     });
   }, [search, activeCategory]);
 
-  // Low stock and out of stock products
-  const lowStockProducts = useMemo(
-    () => MOCK_PRODUCTS.filter((p) => p.stockQty > 0 && p.stockQty <= p.minStockLevel),
-    [],
-  );
-  const outOfStockProducts = useMemo(
-    () => MOCK_PRODUCTS.filter((p) => p.stockQty === 0),
-    [],
-  );
+  // Low stock and out of stock products (static mock — no deps needed)
+  const lowStockProducts = MOCK_PRODUCTS.filter((p) => p.stockQty > 0 && p.stockQty <= p.minStockLevel);
+  const outOfStockProducts = MOCK_PRODUCTS.filter((p) => p.stockQty === 0);
   const alertCount = lowStockProducts.length + outOfStockProducts.length;
 
   // Cart helpers
@@ -297,7 +292,7 @@ export default function SavdoScreen() {
               activeOpacity={0.85}
               onPress={() => setPaymentVisible(true)}
             >
-              <Text style={styles.payButtonText}>To'lov  →</Text>
+              <Text style={styles.payButtonText}>To'lov →</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -355,7 +350,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#EF4444',
+    backgroundColor: C.danger,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -480,7 +475,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#EF4444',
+    backgroundColor: C.danger,
     alignItems: 'center',
     justifyContent: 'center',
   },

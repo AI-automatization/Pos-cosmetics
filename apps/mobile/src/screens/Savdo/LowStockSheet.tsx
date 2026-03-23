@@ -9,7 +9,7 @@ import type { Product } from './ProductCard';
 const C = {
   bg: '#F5F5F7', white: '#FFFFFF', text: '#111827',
   muted: '#9CA3AF', border: '#F3F4F6', primary: '#5B5BD6',
-  orange: '#F59E0B', red: '#EF4444',
+  orange: '#F59E0B', red: '#EF4444', handleBar: '#E5E7EB',
 };
 
 interface Props {
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   },
   handle: {
     width: 40, height: 5, borderRadius: 3,
-    backgroundColor: '#E5E7EB', alignSelf: 'center', marginTop: 12, marginBottom: 4,
+    backgroundColor: C.handleBar, alignSelf: 'center', marginTop: 12, marginBottom: 4,
   },
   header: {
     flexDirection: 'row', alignItems: 'flex-start',
