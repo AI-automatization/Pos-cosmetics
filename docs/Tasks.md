@@ -45,19 +45,6 @@
 
 
 
-## T-305 | P1 | [BACKEND] | Support CRM — tiket-sistema mijozlar uchun
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/support/` (yangi modul)
-- **Muammo:** Mijozlar (tenant egalari) texnik muammo yoki savol bilan murojaat qilish tizimi yo'q.
-- **Kutilgan:**
-  - `support_tickets` jadvali: id, tenant_id, user_id, subject, description, status (OPEN/IN_PROGRESS/RESOLVED/CLOSED), priority, created_at
-  - `ticket_messages` jadvali: id, ticket_id, sender_type (USER/SUPPORT), message, created_at
-  - CRUD: POST /support/tickets, GET /support/tickets, GET /support/tickets/:id
-  - Admin: GET /admin/support/tickets — barcha tenantlardan
-
----
 
 ## T-306 | P1 | [FRONTEND] | Promotions UI — Backend bor, UI yo'q
 

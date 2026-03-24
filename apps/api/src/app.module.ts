@@ -31,6 +31,7 @@ import { AdminModule } from './admin/admin.module';
 import { BillingModule } from './billing/billing.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { SyncModule } from './sync/sync.module';
+import { SupportModule } from './support/support.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { QueueModule } from './common/queue/queue.module';
 import { AppCacheModule } from './common/cache/cache.module';
@@ -86,6 +87,7 @@ import { UploadModule } from './upload/upload.module';
     EmployeesModule,
     UploadModule,
     FeatureFlagsModule,
+    SupportModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)

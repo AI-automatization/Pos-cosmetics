@@ -1391,3 +1391,59 @@ model FeatureFlag {
   @@index([tenantId])
   @@map("feature_flags")
 }
+
+// ============================================
+// SUPPORT CRM (T-305)
+// ============================================
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TicketSenderType {
+  USER
+  SUPPORT
+}
+
+model SupportTicket {
+  id          String         @id @default(uuid())
+  tenantId    String         @map("tenant_id")
+  userId      String         @map("user_id")
+  subject     String
+  description String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  messages    TicketMessage[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([userId])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id         String           @id @default(uuid())
+  ticketId   String           @map("ticket_id")
+  senderType TicketSenderType @map("sender_type")
+  senderId   String?          @map("sender_id")
+  message    String
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  ticket     SupportTicket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
