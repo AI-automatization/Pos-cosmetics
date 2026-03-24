@@ -43,6 +43,8 @@
 | T-304 | 2026-03-24 | BACKEND | Fiscal integration: FiscalAdapterService real REGOS API (fetch, REGOS_API_URL/KEY env), stub fallback, sendReceipt+sendZReport, Z-report non-blocking fiscal send in createZReport, BullMQ retry 3x, circuit breaker, ReportsModule imports TaxModule | fiscal-adapter.service.ts, reports.service.ts, reports.module.ts |
 | T-305 | 2026-03-24 | BACKEND | Support CRM: SupportTicket+TicketMessage Prisma models, SupportService (CRUD+messages+status), POST/GET /support/tickets, GET /support/tickets/:id, POST /support/tickets/:id/messages, PATCH status, GET /admin/support/tickets (pagination) | support.module.ts, support.service.ts, support.controller.ts, schema.prisma |
 | T-315 | 2026-03-24 | BACKEND | Finance moliyaviy modul: GET /finance/pnl (revenue-COGS-returns-expenses+margin), GET /finance/balance-sheet (cash+receivables→assets, retainedEarnings→equity), GET /finance/cash-flow (inflow/outflow/net), ledger JournalLines dan hisoblash, fix /expenses → /finance/expenses, sub→userId fix | finance.service.ts, finance.controller.ts, finance.module.ts |
+| T-327 | 2026-03-24 | BACKEND+FRONTEND | Warehouse invoices: WarehouseInvoice+WarehouseInvoiceItem Prisma models, POST/GET /warehouse/invoices+/:id (snapshot), stock movements IN auto-create, stock-in page (form: invoiceNumber+items table+purchasePrice+totalCost), useWarehouseInvoices hook | warehouse-invoice.service.ts, warehouse-invoice.controller.ts, stock-in/page.tsx, warehouse.api.ts |
+| T-328 | 2026-03-24 | BACKEND+FRONTEND | Write-off: WriteOffReason enum (DAMAGED/EXPIRED/LOST/OTHER), WRITE_OFF StockMovementType, POST /inventory/write-off, write-off page (reason select+items table+confirm badge) | warehouse-invoice.service.ts, write-off/page.tsx, schema.prisma |
 
 ---
 

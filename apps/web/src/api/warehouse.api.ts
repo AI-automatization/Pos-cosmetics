@@ -1,0 +1,66 @@
+import { apiClient } from './client';
+
+export interface InvoiceItem {
+  productId: string;
+  quantity: number;
+  purchasePrice: number;
+  warehouseId?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface CreateInvoiceDto {
+  supplierId?: string;
+  invoiceNumber?: string;
+  note?: string;
+  branchId?: string;
+  items: InvoiceItem[];
+}
+
+export interface WarehouseInvoice {
+  id: string;
+  tenantId: string;
+  supplierId?: string;
+  invoiceNumber?: string;
+  note?: string;
+  totalCost: number;
+  createdBy: string;
+  createdAt: string;
+  items: {
+    id: string;
+    productId: string;
+    quantity: number;
+    purchasePrice: number;
+    totalCost: number;
+    batchNumber?: string;
+    expiryDate?: string;
+  }[];
+}
+
+export type WriteOffReason = 'DAMAGED' | 'EXPIRED' | 'LOST' | 'OTHER';
+
+export interface WriteOffDto {
+  reason: WriteOffReason;
+  note?: string;
+  warehouseId?: string;
+  items: { productId: string; qty: number }[];
+}
+
+export const warehouseApi = {
+  // T-327
+  createInvoice: (dto: CreateInvoiceDto) =>
+    apiClient.post<WarehouseInvoice>('/warehouse/invoices', dto),
+
+  listInvoices: (params?: { from?: string; to?: string; supplierId?: string; page?: number }) =>
+    apiClient.get<{ invoices: WarehouseInvoice[]; total: number; page: number; limit: number }>(
+      '/warehouse/invoices',
+      { params },
+    ),
+
+  getInvoice: (id: string) =>
+    apiClient.get<WarehouseInvoice>(`/warehouse/invoices/${id}`),
+
+  // T-328
+  writeOff: (dto: WriteOffDto) =>
+    apiClient.post('/inventory/write-off', dto),
+};

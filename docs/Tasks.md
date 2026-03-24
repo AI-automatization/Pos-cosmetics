@@ -105,36 +105,7 @@
 
 
 
-## T-327 | P1 | [FRONTEND] | Warehouse: Приход товара с накладной (invoice snapshot)
 
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/`, `apps/api/src/inventory/`
-- **Muammo:** Текущий stock-in (T-320) — simplified DTO. Нужна полноценная накладная как неизменяемый snapshot-документ.
-- **Kutilgan:**
-  - Форма приёма: филиал + поставщик + таблица товаров (штрихкод, кол-во, цена закупки)
-  - После сохранения накладная = snapshot (не редактируется — только reversal)
-  - `POST /warehouse/invoices` — создать накладную (создаёт stock-in движения)
-  - `GET /warehouse/invoices` — список накладных с фильтром по дате/поставщику
-  - `GET /warehouse/invoices/:id` — детали накладной
-  - Цена закупки → событие Finance модуля (расход) через domain event
-
----
-
-## T-328 | P1 | [FRONTEND] | Warehouse: Списание (write-off) с причиной
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/write-off/` (yangi), `apps/api/src/inventory/`
-- **Muammo:** Нет страницы и API для списания товара с причиной.
-- **Kutilgan:**
-  - Страница `/warehouse/write-off` — форма списания
-  - Причины: `DAMAGED` (повреждён) / `EXPIRED` (просрочен) / `LOST` (потерян) / `OTHER`
-  - `POST /inventory/write-off` — `{ productId, qty, reason, note, warehouseId }`
-  - Создаёт stock movement типа `OUT` с reference_type = `WRITE_OFF`
-  - История: кто, когда, причина — в stock history
-
----
 
 
 ## T-330 | P1 | [FRONTEND] | POS: 80мм термопринтер ESC/POS интеграция
