@@ -6,6 +6,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from './prisma/prisma.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { IpBlockMiddleware } from './common/middleware/ip-block.middleware';
 import { HealthModule } from './health/health.module';
 import { IdentityModule } from './identity/identity.module';
 import { CatalogModule } from './catalog/catalog.module';
@@ -92,5 +93,6 @@ import { UploadModule } from './upload/upload.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer.apply(IpBlockMiddleware).forRoutes('*');
   }
 }
