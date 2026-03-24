@@ -151,46 +151,8 @@
 
 ---
 
-## T-311 | P1 | [BACKEND] | /alerts vs /notifications — path unifikatsiyasi
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/notifications/alerts.controller.ts`, `notifications.controller.ts`
-- **Muammo:** Ikkita controller bir xil ma'lumotni beradi: `/alerts` (mobile uchun) va `/notifications` (web uchun). Path va format konflikt bor.
-- **Kutilgan:**
-  - Bitta yagona path tanlash (masalan `/notifications` asosiy, `/alerts` deprecated alias)
-  - Yoki router middleware bilan birlashtirish
-  - Mobile va web bir xil format olishi kerak
 
 
-## T-312 | P1 | [BACKEND] | IP Manager — Redis integratsiya tezkor bloklash
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/common/guards/`
-- **Muammo:** IP bloklash hozir DB orqali. Redis integratsiya qilsa — tezkor bloklash va DDoS himoya yaxshilanadi.
-- **Kutilgan:**
-  - Redis set: blocked IPs (TTL bilan)
-  - Middleware: har request da Redis dan IP tekshirish (O(1))
-  - Admin API: POST /admin/ip-block, DELETE /admin/ip-unblock
-  - Auto-block: 100+ failed login 1 soatda -> 24h block
-
----
-
-## T-313 | P1 | [BACKEND] | Feature Flags — Redis orqali, deploy siz qo'llash
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/common/feature-flags/` (yangi)
-- **Muammo:** Feature flags hozir yo'q. Yangi funksiyalarni tenant bo'yicha gradual rollout qilish imkoniyati kerak.
-- **Kutilgan:**
-  - `feature_flags` jadvali + Redis cache
-  - GET /admin/feature-flags — ro'yxat
-  - PATCH /admin/feature-flags/:key — enable/disable per tenant
-  - @FeatureFlag('loyalty') decorator — endpoint yoki service da ishlatish
-  - Redis cache: 1 min TTL, deploy kerak emas
-
----
 
 ## T-315 | P1 | [BACKEND] | Accountant moliyaviy modul — to'liq implementatsiya
 
@@ -489,7 +451,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **39** | **1** | **16** | **10** | **6** |
+| **36** | **1** | **13** | **10** | **6** |
 
 ### Kategoriya bo'yicha
 

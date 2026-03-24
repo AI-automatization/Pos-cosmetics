@@ -87,6 +87,9 @@
 | T-316 | 2026-03-23 | WAREHOUSE role — Prisma UserRole enum ga WAREHOUSE qo'shildi, migration yaratildi, ROLE_HIERARCHY 2.5 ga belgilandi, packages/types/src/auth.ts yangilandi | `prisma/schema.prisma`, `migrations/20260323000000_add_warehouse_role/`, `identity.service.ts`, `packages/types/src/auth.ts` |
 | T-317 | 2026-03-23 | (warehouse) route group — layout.tsx (WarehouseSidebar + main), WarehouseSidebar (amber, 8 nav items: Dashboard/Invoices/Write-off/Inventory/Expiry/Low-stock/History/Suppliers), placeholder warehouse/page.tsx | `apps/web/src/app/(warehouse)/layout.tsx`, `warehouse/page.tsx`, `components/layout/WarehouseSidebar.tsx` |
 | T-318 | 2026-03-23 | WAREHOUSE RBAC guards — WarehouseReadOnlyGuard (catalog read-only), inventory @Roles(+WAREHOUSE), sales @Roles(-WAREHOUSE), login redirects WAREHOUSE→/warehouse, middleware restricts WAREHOUSE to /warehouse/* | `warehouse-read-only.guard.ts`, `catalog.controller.ts`, `inventory.controller.ts`, `sales.controller.ts`, `useAuth.ts`, `middleware.ts` |
+| T-311 | 2026-03-23 | /alerts vs /notifications unification — /notifications now returns enriched format (description+priority+branchId+entityId); /alerts marked deprecated in Swagger; both return identical format | `notifications.controller.ts`, `alerts.controller.ts` |
+| T-312 | 2026-03-24 | IP Manager Redis — IpBlockService (block/unblock/auto-block 100 failed in 1h → 24h ban); IpBlockMiddleware (global, 403 on blocked IP); POST/DELETE/GET /admin/ip-block endpoints (SuperAdmin) | `ip-block.service.ts`, `ip-block.middleware.ts`, `cache.module.ts`, `admin-auth.controller.ts`, `app.module.ts` |
+| T-313 | 2026-03-24 | Feature Flags Redis — feature_flags table (key+tenantId unique, ''=global), FeatureFlagsService (Redis 1min cache), GET/PATCH/DELETE /admin/feature-flags/:key, @FeatureFlag() decorator + FeatureFlagGuard | `feature-flags/` (service, controller, module, decorator), `schema.prisma`, migration |
 
 ---
 
