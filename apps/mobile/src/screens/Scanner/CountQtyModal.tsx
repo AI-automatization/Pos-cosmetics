@@ -18,7 +18,7 @@ export default function CountQtyModal({
   onChangeQty,
   onConfirm,
   onClose,
-}: Props): React.JSX.Element {
+}: Props) {
   const { t } = useTranslation();
 
   return (

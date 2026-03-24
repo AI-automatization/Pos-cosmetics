@@ -3,7 +3,7 @@ import {
   Body, Param, Query, UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
 import { EmployeesService } from './employees.service';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -92,12 +92,12 @@ export class EmployeesController {
 
   // PATCH /employees/:id/status
   @Patch(':id/status')
-  @ApiOperation({ summary: 'T-224: Xodim statusini o\'zgartirish' })
+  @ApiOperation({ summary: 'T-144: Xodim statusini o\'zgartirish (active|inactive|fired)' })
   @ApiParam({ name: 'id', type: String })
   updateStatus(
     @CurrentUser('tenantId') tenantId: string,
     @Param('id') id: string,
-    @Body() body: { status: 'active' | 'inactive' },
+    @Body() body: { status: 'active' | 'inactive' | 'fired' },
   ) {
     return this.svc.updateStatus(tenantId, id, body.status);
   }

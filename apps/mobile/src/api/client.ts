@@ -1,53 +1,54 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { API_BASE_URL, TOKEN_KEYS } from '@/config/constants';
+import { CONFIG } from '../config';
+import { useAuthStore } from '../store/auth.store';
 
-let navigationRef: { reset: (state: object) => void } | null = null;
-
-export function setNavigationRef(ref: { reset: (state: object) => void }): void {
-  navigationRef = ref;
-}
-
-export const api = axios.create({
-  baseURL: API_BASE_URL,
+const api = axios.create({
+  baseURL: CONFIG.API_URL,
   timeout: 15_000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Request: JWT token qo'shish
 api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync(TOKEN_KEYS.ACCESS);
+  const token = await SecureStore.getItemAsync('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Response: 401 → refresh, boshqa xatolar
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401 && !error.config._retry) {
-      error.config._retry = true;
-      try {
-        const refreshToken = await SecureStore.getItemAsync(TOKEN_KEYS.REFRESH);
-        if (!refreshToken) throw new Error('No refresh token');
+  (res) => res,
+  async (err: unknown) => {
+    if (!axios.isAxiosError(err)) return Promise.reject(err);
 
-        const { data } = await api.post<{ accessToken: string }>('/auth/refresh', {
+    const status = err.response?.status;
+    const config = err.config as typeof err.config & { _retry?: boolean };
+
+    if (status === 401 && !config?._retry) {
+      config._retry = true;
+      try {
+        const refreshToken = await SecureStore.getItemAsync('refresh_token');
+        if (!refreshToken) throw new Error('no_refresh');
+
+        const { data } = await axios.post(`${CONFIG.API_URL}/auth/refresh`, {
           token: refreshToken,
         });
-
-        await SecureStore.setItemAsync(TOKEN_KEYS.ACCESS, data.accessToken);
-        error.config.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(error.config);
+        await SecureStore.setItemAsync('access_token', data.accessToken);
+        if (config.headers) {
+          config.headers.Authorization = `Bearer ${data.accessToken}`;
+        }
+        return api(config);
       } catch {
-        await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS);
-        await SecureStore.deleteItemAsync(TOKEN_KEYS.REFRESH);
-        navigationRef?.reset({ index: 0, routes: [{ name: 'Auth' }] });
+        // Dev modeda avtomatik logout qilmaymiz — demo data ishlashi uchun
+        if (!__DEV__) {
+          await useAuthStore.getState().clearAuth();
+        }
       }
     }
-    return Promise.reject(error);
+
+    return Promise.reject(err);
   },
 );
+
+export default api;

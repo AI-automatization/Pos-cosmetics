@@ -1,39 +1,50 @@
 import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { initI18n } from '@/i18n';
-import RootNavigator from '@/navigation/RootNavigator';
-import { useNotifications } from '@/hooks/useNotifications';
+
+import './i18n';
+import { useAuthStore } from './store/auth.store';
+import RootNavigator from './navigation/RootNavigator';
+import { useNotifications } from './hooks/useNotifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10_000),
+      staleTime: 30_000,
     },
   },
 });
 
-function AppContent(): React.JSX.Element {
-  useNotifications();
-  return <RootNavigator />;
-}
+function AppContent() {
+  const loadFromStorage = useAuthStore((s) => s.loadFromStorage);
+  const [ready, setReady] = useState(false);
 
-export default function App(): React.JSX.Element {
-  const [i18nReady, setI18nReady] = useState(false);
+  useNotifications();
 
   useEffect(() => {
-    void initI18n().then(() => setI18nReady(true));
-  }, []);
+    loadFromStorage().finally(() => setReady(true));
+  }, [loadFromStorage]);
 
-  if (!i18nReady) {
+  if (!ready) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#1a56db" />
+      <View style={styles.splash}>
+        <ActivityIndicator size="large" color="#6366F1" />
       </View>
     );
   }
 
+  return (
+    <NavigationContainer>
+      <StatusBar style="dark" />
+      <RootNavigator />
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppContent />
@@ -42,10 +53,10 @@ export default function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  loader: {
+  splash: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
   },
 });

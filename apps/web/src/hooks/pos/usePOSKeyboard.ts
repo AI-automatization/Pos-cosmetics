@@ -7,7 +7,8 @@ export interface POSKeyboardHandlers {
   onF5?: () => void;  // Cash payment
   onF6?: () => void;  // Card payment
   onF7?: () => void;  // Split payment
-  onF8?: () => void;  // Print receipt
+  onF8?: () => void;  // Nasiya payment
+  onF9?: () => void;  // Bonus payment
   onF10?: () => void; // Complete sale
   onEsc?: () => void; // Cancel
 }
@@ -39,6 +40,10 @@ export function usePOSKeyboard(handlers: POSKeyboardHandlers) {
         case 'F8':
           e.preventDefault();
           handlers.onF8?.();
+          break;
+        case 'F9':
+          e.preventDefault();
+          handlers.onF9?.();
           break;
         case 'F10':
           e.preventDefault();

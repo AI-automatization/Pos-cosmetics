@@ -1,97 +1,130 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '@/navigation/types';
-import { useBiometricAuth } from '@/hooks/useBiometricAuth';
-import { useAuthStore } from '@/store/auth.store';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import * as SecureStore from 'expo-secure-store';
+import type { AuthStackParamList } from '../../navigation/types';
+import { authApi } from '../../api';
+import { useAuthStore } from '../../store/auth.store';
+import { useBiometricAuth } from '../../hooks/useBiometricAuth';
+import { extractErrorMessage } from '../../utils/error';
 
-type Props = {
-  navigation: NativeStackNavigationProp<AuthStackParamList, 'Biometric'>;
-};
+type Props = NativeStackScreenProps<AuthStackParamList, 'Biometric'>;
 
-export default function BiometricScreen({ navigation }: Props): React.JSX.Element {
+export default function BiometricScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { isAvailable, isEnrolled, authenticate } = useBiometricAuth();
-  const { loadUser } = useAuthStore();
+  const { authenticate } = useBiometricAuth();
+  const { setUser, loadFromStorage } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAvailable || !isEnrolled) {
-      Alert.alert(t('common.error'), 'Qurilmada barmoq izi mavjud emas', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    }
-  }, [isAvailable, isEnrolled, navigation, t]);
+    attemptBiometric();
+  }, []);
 
-  const handleBiometric = async (): Promise<void> => {
-    const success = await authenticate();
-    if (success) {
-      await loadUser();
-    } else {
-      Alert.alert(t('common.error'), 'Barmoq izi tanilmadi');
+  const attemptBiometric = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const success = await authenticate();
+      if (!success) {
+        setError(t('auth.loginError'));
+        return;
+      }
+      // Try to restore session from stored tokens
+      const restored = await loadFromStorage();
+      if (restored) return;
+
+      // Tokens expired — refresh via API
+      const me = await authApi.me();
+      await SecureStore.getItemAsync('access_token').then((token) => {
+        if (token) setUser(me, token, '');
+      });
+    } catch (err) {
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.icon}>🔐</Text>
-      <Text style={styles.title}>{t('auth.biometric')}</Text>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <Text style={styles.icon}>👆</Text>
+        <Text style={styles.title}>{t('auth.biometricPrompt')}</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleBiometric} accessibilityRole="button">
-        <Text style={styles.buttonText}>{t('auth.biometric')}</Text>
-      </TouchableOpacity>
+        {loading && <ActivityIndicator size="large" color="#6366F1" style={styles.spinner} />}
 
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-        accessibilityRole="button"
-      >
-        <Text style={styles.backText}>{t('common.cancel')}</Text>
-      </TouchableOpacity>
-    </View>
+        {error && <Text style={styles.error}>{error}</Text>}
+
+        <TouchableOpacity style={styles.retryButton} onPress={attemptBiometric} disabled={loading}>
+          <Text style={styles.retryText}>Qayta urinish</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.fallbackButton}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.fallbackText}>{t('auth.biometricFallback')}</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    padding: 24,
-    gap: 16,
+    justifyContent: 'center',
+    padding: 32,
   },
   icon: {
     fontSize: 64,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#111827',
     textAlign: 'center',
+    marginBottom: 24,
   },
-  button: {
-    backgroundColor: '#1a56db',
+  spinner: {
+    marginVertical: 16,
+  },
+  error: {
+    color: '#DC2626',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#6366F1',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 8,
-    minWidth: 200,
-    alignItems: 'center',
     minHeight: 48,
     justifyContent: 'center',
+    marginBottom: 12,
   },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 16,
+  retryText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 15,
   },
-  backButton: {
+  fallbackButton: {
     paddingVertical: 12,
     minHeight: 48,
     justifyContent: 'center',
   },
-  backText: {
-    color: '#6b7280',
-    fontSize: 15,
+  fallbackText: {
+    color: '#6366F1',
+    fontSize: 14,
   },
 });

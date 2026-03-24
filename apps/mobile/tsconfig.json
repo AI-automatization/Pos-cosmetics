@@ -3,22 +3,14 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
     "jsx": "react-native",
+    "moduleResolution": "bundler",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "baseUrl": ".",
+    "noImplicitAny": true,
     "paths": {
-      "@/*": ["src/*"],
-      "@raos/types": ["../../packages/types/src"]
-    },
-    "types": ["jest"]
+      "@raos/types": ["../../packages/types/src/index.ts"]
+    }
   },
-  "include": ["src", "index.js", "jest.setup.ts"],
+  "include": ["src", "index.js"],
   "exclude": ["node_modules"]
 }

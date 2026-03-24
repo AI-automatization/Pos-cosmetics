@@ -1,56 +1,57 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { extractErrorMessage } from '@/utils/error';
+import { extractErrorMessage } from '../../utils/error';
 
 interface ErrorViewProps {
   error: unknown;
-  onRetry?: () => void;
+  onRetry: () => void;
 }
 
-export default function ErrorView({ error, onRetry }: ErrorViewProps): React.JSX.Element {
+export default function ErrorView({ error, onRetry }: ErrorViewProps) {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.icon}>⚠️</Text>
+    <View style={styles.center}>
+      <Text style={styles.emoji}>⚠️</Text>
       <Text style={styles.message}>{extractErrorMessage(error)}</Text>
-      {onRetry ? (
-        <TouchableOpacity style={styles.button} onPress={onRetry} accessibilityRole="button">
-          <Text style={styles.buttonText}>{t('common.retry')}</Text>
-        </TouchableOpacity>
-      ) : null}
+      <TouchableOpacity onPress={onRetry} style={styles.button}>
+        <Text style={styles.buttonText}>{t('common.retry')}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  center: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 24,
-    gap: 12,
   },
-  icon: {
+  emoji: {
     fontSize: 40,
+    marginBottom: 12,
   },
   message: {
-    fontSize: 15,
-    color: '#374151',
+    fontSize: 16,
+    color: '#6B7280',
     textAlign: 'center',
+    marginBottom: 16,
   },
   button: {
-    backgroundColor: '#1a56db',
+    backgroundColor: '#6366F1',
     paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 8,
+    minWidth: 48,
     minHeight: 48,
+    alignItems: 'center',
     justifyContent: 'center',
   },
   buttonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 14,
   },
 });

@@ -9,7 +9,7 @@ import { StockInModal } from './StockInModal';
 import { StockOutModal } from './StockOutModal';
 import { ProductStockDrawer } from './ProductStockDrawer';
 import { cn } from '@/lib/utils';
-import type { StockStatus } from '@/types/inventory';
+import type { StockLevel, StockStatus } from '@/types/inventory';
 
 function StatusBadge({ status }: { status: StockStatus }) {
   const config: Record<string, { label: string; className: string }> = {

@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, ChevronLeft, ChevronRight, CheckCircle, RotateCcw, XCircle, Receipt } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ChevronRight, CheckCircle, RotateCcw, XCircle, Receipt, ShoppingCart } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ErrorState } from '@/components/common/ErrorState';
+import { EmptyState } from '@/components/common/EmptyState';
 import { useOrders } from '@/hooks/sales/useOrders';
 import { formatPrice, formatDate, cn } from '@/lib/utils';
 import type { OrderStatus, PaymentMethod } from '@/types/order';
@@ -44,7 +46,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
   const LIMIT = 20;
 
-  const { data, isLoading, isError } = useOrders({
+  const { data, isLoading, isError, refetch } = useOrders({
     page,
     limit: LIMIT,
     status: statusFilter !== 'ALL' ? statusFilter : undefined,
@@ -80,19 +82,12 @@ export default function OrdersPage() {
 
       {isLoading && <LoadingSkeleton variant="table" rows={8} />}
 
-      {isError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Ma&apos;lumotlarni yuklashda xatolik yuz berdi.
-        </div>
-      )}
+      {isError && <ErrorState compact onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <>
           {orders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 py-16 text-center">
-              <ShoppingBag className="mb-3 h-10 w-10 text-gray-300" />
-              <p className="text-sm text-gray-500">Buyurtmalar mavjud emas</p>
-            </div>
+            <EmptyState icon={ShoppingCart} title="Buyurtmalar mavjud emas" />
           ) : (
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
               <table className="w-full text-sm">

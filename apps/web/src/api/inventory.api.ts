@@ -5,6 +5,9 @@ import type {
   StockInDto,
   StockOutDto,
   StockQuery,
+  StockTransfer,
+  CreateTransferDto,
+  TransferStatus,
 } from '@/types/inventory';
 
 export const inventoryApi = {
@@ -28,7 +31,7 @@ export const inventoryApi = {
 
   getMovements(productId?: string) {
     return apiClient
-      .get<StockMovement[]>('/inventory/movements', {
+      .get<{ items: StockMovement[]; total: number } | StockMovement[]>('/inventory/movements', {
         params: productId ? { productId } : {},
       })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
@@ -71,5 +74,37 @@ export const inventoryApi = {
         note: dto.notes ?? dto.reason,
       });
     }
+  },
+
+  // ─── Transfers ───
+
+  listTransfers(params?: { status?: TransferStatus; branchId?: string; page?: number; limit?: number }) {
+    return apiClient
+      .get<{ items: StockTransfer[]; total: number }>('/inventory/transfers', { params })
+      .then((r) => {
+        const d = r.data;
+        if (Array.isArray(d)) return { items: d as StockTransfer[], total: (d as StockTransfer[]).length };
+        return { items: d?.items ?? [], total: d?.total ?? 0 };
+      });
+  },
+
+  createTransfer(dto: CreateTransferDto) {
+    return apiClient.post<StockTransfer>('/inventory/transfers', dto).then((r) => r.data);
+  },
+
+  approveTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/approve`).then((r) => r.data);
+  },
+
+  shipTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/ship`).then((r) => r.data);
+  },
+
+  receiveTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/receive`).then((r) => r.data);
+  },
+
+  cancelTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/cancel`).then((r) => r.data);
   },
 };

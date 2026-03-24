@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Clock, ChevronLeft, ChevronRight, CheckCircle, Lock } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ErrorState } from '@/components/common/ErrorState';
+import { EmptyState } from '@/components/common/EmptyState';
 import { useShifts } from '@/hooks/sales/useShifts';
 import { formatPrice, formatDate, cn } from '@/lib/utils';
 import type { ShiftStatus } from '@/types/shift';
@@ -34,7 +36,7 @@ export default function ShiftsPage() {
   const [statusFilter, setStatusFilter] = useState<ShiftStatus | 'ALL'>('ALL');
   const LIMIT = 20;
 
-  const { data, isLoading, isError } = useShifts({
+  const { data, isLoading, isError, refetch } = useShifts({
     page,
     limit: LIMIT,
     status: statusFilter !== 'ALL' ? statusFilter : undefined,
@@ -70,19 +72,12 @@ export default function ShiftsPage() {
 
       {isLoading && <LoadingSkeleton variant="table" rows={8} />}
 
-      {isError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Ma&apos;lumotlarni yuklashda xatolik yuz berdi.
-        </div>
-      )}
+      {isError && <ErrorState compact onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <>
           {shifts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 py-16 text-center">
-              <Clock className="mb-3 h-10 w-10 text-gray-300" />
-              <p className="text-sm text-gray-500">Smenalar mavjud emas</p>
-            </div>
+            <EmptyState icon={Clock} title="Smenalar mavjud emas" />
           ) : (
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
               <table className="w-full text-sm">

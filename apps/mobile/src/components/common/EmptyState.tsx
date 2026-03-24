@@ -2,13 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 interface EmptyStateProps {
-  message: string;
   icon?: string;
+  message: string;
 }
 
-export default function EmptyState({ message, icon = '📭' }: EmptyStateProps): React.JSX.Element {
+export default function EmptyState({ icon = '📭', message }: EmptyStateProps) {
   return (
-    <View style={styles.container}>
+    <View style={styles.center}>
       <Text style={styles.icon}>{icon}</Text>
       <Text style={styles.message}>{message}</Text>
     </View>
@@ -16,19 +16,19 @@ export default function EmptyState({ message, icon = '📭' }: EmptyStateProps):
 }
 
 const styles = StyleSheet.create({
-  container: {
+  center: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
-    gap: 12,
+    justifyContent: 'center',
+    padding: 32,
   },
   icon: {
     fontSize: 40,
+    marginBottom: 12,
   },
   message: {
     fontSize: 15,
-    color: '#6b7280',
+    color: '#9CA3AF',
     textAlign: 'center',
   },
 });

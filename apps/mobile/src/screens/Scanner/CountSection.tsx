@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import EmptyState from '@/components/common/EmptyState';
+import EmptyState from '../../components/common/EmptyState';
 import CountEntryCard from './CountEntryCard';
 import type { CountEntry } from './useScannerData';
 
@@ -19,7 +19,7 @@ export default function CountSection({
   totalActualQty,
   onClear,
   onStartScan,
-}: Props): React.JSX.Element {
+}: Props) {
   const { t } = useTranslation();
   const diff = totalActualQty - totalSystemQty;
 

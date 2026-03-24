@@ -1,205 +1,304 @@
 import React, { useState } from 'react';
 import {
-  FlatList,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
+  FlatList,
+  ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
-import ScreenLayout from '@/components/layout/ScreenLayout';
-import Card from '@/components/common/Card';
-import Badge from '@/components/common/Badge';
-import ErrorView from '@/components/common/ErrorView';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import EmptyState from '@/components/common/EmptyState';
-import { useDebtors } from '@/hooks/useNasiya';
-import { useAppStore } from '@/store/app.store';
-import { formatCurrency } from '@/utils/format';
-import type { NasiyaStackParamList } from '@/navigation/types';
-import type { Debtor } from '@/api/nasiya.api';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import type { DebtRecord } from '../../api/nasiya.api';
+import { useNasiyaData, FilterTab } from './useNasiyaData';
+import DebtCard from './DebtCard';
+import PayModal from './PayModal';
+import NewDebtSheet from './NewDebtSheet';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
-type NavProp = NativeStackNavigationProp<NasiyaStackParamList, 'DebtorsList'>;
+// ─── Colors ────────────────────────────────────────────
+const C = {
+  bg:       '#F5F5F7',
+  white:    '#FFFFFF',
+  text:     '#111827',
+  muted:    '#9CA3AF',
+  secondary:'#6B7280',
+  border:   '#F3F4F6',
+  primary:  '#5B5BD6',
+  red:      '#EF4444',
+};
 
-function DebtorRow({ item, onPress }: { item: Debtor; onPress: () => void }): React.JSX.Element {
-  const { t } = useTranslation();
-  const isOverdue = item.overdueAmount > 0;
+// ─── Tabs ──────────────────────────────────────────────
+const TABS: { key: FilterTab; label: string }[] = [
+  { key: 'ALL',     label: 'Hammasi'         },
+  { key: 'OVERDUE', label: "Muddati o'tgan"  },
+  { key: 'PAID',    label: "To'langan"       },
+];
+
+// ─── Utils ─────────────────────────────────────────────
+function fmt(n: number) { return n.toLocaleString('ru-RU'); }
+
+// ─── Summary Card ──────────────────────────────────────
+function SummaryCard({
+  totalDebt,
+  overdueCount,
+  overdueAmount,
+  totalCount,
+}: {
+  totalDebt: number;
+  overdueCount: number;
+  overdueAmount: number;
+  totalCount: number;
+}) {
+  return (
+    <View style={styles.summaryCard}>
+      <View style={styles.summaryMain}>
+        <Text style={styles.summaryLabel}>Jami nasiya</Text>
+        <Text style={styles.summaryAmount}>{fmt(totalDebt)} UZS</Text>
+        <Text style={styles.summaryCount}>{totalCount} ta mijoz</Text>
+      </View>
+      <View style={styles.summaryDivider} />
+      <View style={styles.summaryOverdue}>
+        <View style={styles.overdueBadge}>
+          <Text style={styles.overdueBadgeText}>!</Text>
+        </View>
+        <View>
+          <Text style={styles.overdueLabel}>Muddati o'tgan</Text>
+          <Text style={styles.overdueAmount}>{fmt(overdueAmount)} UZS</Text>
+          <Text style={styles.overdueCount}>{overdueCount} ta</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─── Main Screen ───────────────────────────────────────
+export default function NasiyaScreen() {
+  const [activeTab, setActiveTab]       = useState<FilterTab>('ALL');
+  const [search, setSearch]             = useState('');
+  const [selectedDebt, setSelectedDebt]   = useState<DebtRecord | null>(null);
+  const [payVisible, setPayVisible]       = useState(false);
+  const [newDebtVisible, setNewDebtVisible] = useState(false);
+
+  const {
+    currentItems,
+    totalDebt,
+    overdueCount,
+    overdueAmount,
+    isLoading,
+    refetchAll,
+  } = useNasiyaData(activeTab);
+
+  const filtered = currentItems.filter((d) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      d.customer.name.toLowerCase().includes(q) ||
+      (d.customer.phone ?? '').includes(search)
+    );
+  });
+
+  const handlePay = (debt: DebtRecord) => {
+    setSelectedDebt(debt);
+    setPayVisible(true);
+  };
+
+  const handlePaySuccess = () => {
+    refetchAll();
+  };
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.debtorRow}>
-        <View style={styles.debtorInfo}>
-          <Text style={styles.debtorName}>{item.customerName}</Text>
-          <Text style={styles.debtorPhone}>{item.customerPhone}</Text>
-          <Text style={styles.debtorBranch}>{item.branchName}</Text>
-        </View>
-        <View style={styles.debtorRight}>
-          <Text style={[styles.debtAmount, isOverdue && styles.debtAmountOverdue]}>
-            {formatCurrency(item.totalDebt, item.currency)}
-          </Text>
-          {isOverdue && (
-            <Badge
-              label={t('nasiya.overdue')}
-              variant="error"
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Nasiya</Text>
+        <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
+          <Ionicons name="filter-outline" size={20} color={C.text} />
+        </TouchableOpacity>
+      </View>
+
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(d) => d.id}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={styles.listHeader}>
+              {/* Summary card */}
+              <SummaryCard
+                totalDebt={totalDebt}
+                overdueCount={overdueCount}
+                overdueAmount={overdueAmount}
+                totalCount={currentItems.length}
+              />
+
+              {/* Search */}
+              <View style={styles.searchRow}>
+                <Feather name="search" size={16} color={C.muted} style={{ marginRight: 8 }} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Mijoz qidirish..."
+                  placeholderTextColor={C.muted}
+                  value={search}
+                  onChangeText={setSearch}
+                />
+                {search.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearch('')}>
+                    <Feather name="x" size={16} color={C.muted} />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Tabs */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.tabsRow}
+              >
+                {TABS.map((tab) => (
+                  <TouchableOpacity
+                    key={tab.key}
+                    style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+                    onPress={() => setActiveTab(tab.key)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
+                      {tab.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <Text style={styles.resultCount}>{filtered.length} ta natija</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <DebtCard
+              debt={item}
+              onPay={handlePay}
             />
           )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-export default function DebtorsListScreen(): React.JSX.Element {
-  const { t } = useTranslation();
-  const navigation = useNavigation<NavProp>();
-  const { selectedBranchId } = useAppStore();
-  const { data, isLoading, error, refetch } = useDebtors(selectedBranchId ?? undefined);
-  const [search, setSearch] = useState('');
-
-  if (isLoading) return <LoadingSpinner message={t('common.loading')} />;
-  if (error) return <ErrorView error={error} onRetry={refetch} />;
-
-  const filtered = data?.filter((d) =>
-    d.customerName.toLowerCase().includes(search.toLowerCase()) ||
-    d.customerPhone.includes(search),
-  ) ?? [];
-
-  const totalDebt = filtered.reduce((sum, d) => sum + d.totalDebt, 0);
-  const currency = filtered[0]?.currency ?? 'UZS';
-
-  return (
-    <ScreenLayout title={t('nasiya.title')} onRefresh={refetch} isRefreshing={isLoading}>
-      {/* Summary */}
-      <Card>
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{filtered.length}</Text>
-            <Text style={styles.summaryLabel}>{t('nasiya.debtors')}</Text>
-          </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <Text style={[styles.summaryValue, styles.summaryDebt]}>
-              {formatCurrency(totalDebt, currency)}
-            </Text>
-            <Text style={styles.summaryLabel}>{t('nasiya.totalDebt')}</Text>
-          </View>
-        </View>
-      </Card>
-
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('nasiya.searchPlaceholder')}
-          value={search}
-          onChangeText={setSearch}
-          clearButtonMode="while-editing"
+          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <MaterialCommunityIcons name="account-off-outline" size={48} color={C.muted} />
+              <Text style={styles.emptyText}>Nasiya topilmadi</Text>
+            </View>
+          }
         />
-      </View>
-
-      {/* List */}
-      {filtered.length === 0 ? (
-        <EmptyState message={search ? t('nasiya.noSearchResults') : t('nasiya.noDebtors')} />
-      ) : (
-        <Card>
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <DebtorRow
-                item={item}
-                onPress={() => navigation.navigate('DebtDetail', { debtorId: item.id, customerName: item.customerName })}
-              />
-            )}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
-        </Card>
       )}
-    </ScreenLayout>
+
+      {/* FAB */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.85}
+        onPress={() => setNewDebtVisible(true)}
+      >
+        <Ionicons name="add" size={28} color={C.white} />
+      </TouchableOpacity>
+
+      {/* Payment Modal */}
+      <PayModal
+        visible={payVisible}
+        debt={selectedDebt}
+        onClose={() => setPayVisible(false)}
+        onSuccess={handlePaySuccess}
+      />
+
+      {/* New Debt Sheet */}
+      <NewDebtSheet
+        visible={newDebtVisible}
+        onClose={() => setNewDebtVisible(false)}
+        onSuccess={() => { setNewDebtVisible(false); refetchAll(); }}
+      />
+    </SafeAreaView>
   );
 }
 
+// ─── Styles ────────────────────────────────────────────
 const styles = StyleSheet.create({
-  debtorRow: {
+  safe: { flex: 1, backgroundColor: C.bg },
+
+  // Header
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: C.white,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
   },
-  debtorInfo: {
-    flex: 1,
+  headerTitle: { fontSize: 22, fontWeight: '800', color: C.text },
+  headerIcon: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
   },
-  debtorName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
+
+  // List
+  content: { paddingBottom: 100 },
+  listHeader: { gap: 12, paddingBottom: 4 },
+
+  // Summary card (purple)
+  summaryCard: {
+    margin: 16, marginBottom: 0,
+    backgroundColor: C.primary,
+    borderRadius: 16, padding: 20,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
   },
-  debtorPhone: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 2,
+  summaryMain: { flex: 1 },
+  summaryLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: '500' },
+  summaryAmount: { fontSize: 22, fontWeight: '800', color: C.white, marginTop: 4 },
+  summaryCount: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  summaryDivider: { width: 1, height: 60, backgroundColor: 'rgba(255,255,255,0.2)' },
+  summaryOverdue: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  overdueBadge: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: 'rgba(239,68,68,0.3)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  debtorBranch: {
-    fontSize: 12,
-    color: '#9ca3af',
-    marginTop: 1,
+  overdueBadgeText: { color: '#FECACA', fontSize: 14, fontWeight: '800' },
+  overdueLabel: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
+  overdueAmount: { fontSize: 14, fontWeight: '700', color: C.white },
+  overdueCount: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
+
+  // Search
+  searchRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: C.white, borderRadius: 12,
+    paddingHorizontal: 14, height: 44,
+    marginHorizontal: 16, borderWidth: 1, borderColor: C.border,
   },
-  debtorRight: {
-    alignItems: 'flex-end',
-    gap: 4,
+  searchInput: { flex: 1, fontSize: 14, color: C.text },
+
+  // Tabs
+  tabsRow: { paddingHorizontal: 16, gap: 8 },
+  tab: {
+    height: 36, paddingHorizontal: 18, borderRadius: 18,
+    backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
+    alignItems: 'center', justifyContent: 'center',
   },
-  debtAmount: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#374151',
-  },
-  debtAmountOverdue: {
-    color: '#dc2626',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  summaryDebt: {
-    color: '#dc2626',
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 2,
-  },
-  summaryDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#e5e7eb',
-  },
-  searchContainer: {
-    marginBottom: 8,
-  },
-  searchInput: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#111827',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#f3f4f6',
+  tabActive: { backgroundColor: C.primary, borderColor: C.primary },
+  tabText: { fontSize: 14, fontWeight: '600', color: C.secondary },
+  tabTextActive: { color: C.white },
+  resultCount: { fontSize: 12, color: C.muted, paddingHorizontal: 16, paddingTop: 4 },
+
+  // Empty
+  empty: { alignItems: 'center', paddingTop: 60, gap: 12 },
+  emptyText: { fontSize: 15, color: C.muted },
+
+  // FAB
+  fab: {
+    position: 'absolute', bottom: 24, right: 20,
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: C.primary,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: C.primary, shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,
   },
 });

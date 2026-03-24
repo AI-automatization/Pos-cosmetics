@@ -40,8 +40,18 @@ export interface ShiftReport {
   discrepancy: number | null;
 }
 
+export interface ProfitSummary {
+  revenue: number;
+  cogs: number;
+  returns: number;
+  grossProfit: number;
+  grossMarginPct: string; // e.g. "18.50"
+}
+
 export interface DashboardData {
   today: SalesSummary;
+  profit: ProfitSummary | null;
+  profitYesterday: ProfitSummary | null;
   weeklyRevenue: DailyRevenue[];
   topProducts: TopProduct[];
   lowStockCount: number;

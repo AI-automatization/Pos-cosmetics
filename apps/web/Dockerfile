@@ -14,10 +14,14 @@ COPY apps/web/ ./apps/web/
 COPY packages/types/ ./packages/types/
 COPY packages/ui/ ./packages/ui/
 
+# Ensure public dir exists (Next.js standalone requires it)
+RUN mkdir -p ./apps/web/public
+
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# NEXT_PUBLIC_* variables must be available at build time (baked into JS bundle)
-ARG NEXT_PUBLIC_API_URL=https://api-production-c5b6.up.railway.app/api/v1
+# NEXT_PUBLIC_* vars are baked into the JS bundle at build time.
+# Railway injects service env vars as Docker build args when ARG is declared.
+ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN pnpm --filter web build
@@ -34,9 +38,9 @@ ENV PORT=3001
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-COPY --from=builder /app/apps/web/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 USER nextjs
 EXPOSE 3001

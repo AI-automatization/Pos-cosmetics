@@ -39,43 +39,55 @@ const COMMON_PRINTERS = [
   { value: 'custom', label: 'Boshqa...' },
 ];
 
-// DEMO_RECEIPT — test chek uchun HTML
-const TEST_RECEIPT_HTML = `
-<html>
+function buildTestReceiptHtml(paperWidth: '58' | '80') {
+  const w = paperWidth === '58' ? '48mm' : '72mm';
+  const fs = paperWidth === '58' ? '10px' : '12px';
+  const now = new Date().toLocaleString('uz-UZ');
+  return `<html>
 <head>
 <style>
-  @page { size: 80mm auto; margin: 0; }
-  body { font-family: monospace; font-size: 12px; width: 72mm; margin: 4mm auto; }
+  @page { size: ${paperWidth}mm auto; margin: 0; }
+  body { font-family: 'Courier New', monospace; font-size: ${fs}; width: ${w}; margin: 4mm auto; color: #000; }
   .center { text-align: center; }
   .bold { font-weight: bold; }
   .line { border-top: 1px dashed #000; margin: 4px 0; }
   .row { display: flex; justify-content: space-between; }
+  .small { font-size: ${paperWidth === '58' ? '8px' : '10px'}; color: #444; }
 </style>
 </head>
 <body>
-  <div class="center bold" style="font-size:14px">RAOS POS</div>
-  <div class="center">Test cheki</div>
-  <div class="center" style="font-size:10px">Printer ulanishini tekshirish</div>
+  <div class="center bold" style="font-size:${paperWidth === '58' ? '12px' : '14px'}">RAOS POS</div>
+  <div class="center">Test cheki (${paperWidth}mm)</div>
+  <div class="center small">Printer ulanishini tekshirish</div>
   <div class="line"></div>
   <div class="row"><span>Mahsulot A × 2</span><span>20,000</span></div>
   <div class="row"><span>Mahsulot B × 1</span><span>15,000</span></div>
+  <div class="row"><span>Mahsulot C × 3</span><span>45,000</span></div>
   <div class="line"></div>
-  <div class="row bold"><span>JAMI:</span><span>35,000</span></div>
+  <div class="row bold"><span>JAMI:</span><span>80,000 so'm</span></div>
   <div class="line"></div>
-  <div class="center" style="font-size:10px">Xarid uchun rahmat!</div>
-  <div class="center" style="font-size:9px;margin-top:4px">${new Date().toLocaleString('uz-UZ')}</div>
+  <div class="row small"><span>Naqd pul:</span><span>100,000</span></div>
+  <div class="row small bold"><span>Qaytim:</span><span>20,000</span></div>
+  <div class="line"></div>
+  <div class="center small">Xarid uchun rahmat!</div>
+  <div class="center" style="font-size:9px;margin-top:4px">${now}</div>
+  <div class="center" style="font-size:8px;margin-top:2px;color:#888">RAOS · raos.uz</div>
 </body>
-</html>
-`;
+</html>`;
+}
 
-function testPrint() {
-  const win = window.open('', '_blank', 'width=400,height=600');
-  if (!win) return;
-  win.document.write(TEST_RECEIPT_HTML);
-  win.document.close();
-  win.focus();
-  win.print();
-  win.close();
+function testPrint(paperWidth: '58' | '80', copies: number) {
+  for (let i = 0; i < copies; i++) {
+    setTimeout(() => {
+      const win = window.open('', '_blank', 'width=400,height=600');
+      if (!win) return;
+      win.document.write(buildTestReceiptHtml(paperWidth));
+      win.document.close();
+      win.focus();
+      win.print();
+      win.close();
+    }, i * 800);
+  }
 }
 
 export default function PrinterSettingsPage() {
@@ -98,7 +110,7 @@ export default function PrinterSettingsPage() {
 
   const handleTest = () => {
     setTesting(true);
-    testPrint();
+    testPrint(settings.paperWidth, settings.copies);
     setTimeout(() => setTesting(false), 1500);
   };
 

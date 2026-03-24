@@ -384,10 +384,10 @@ export default function AnalyticsPage() {
                           {g.group}
                         </span>
                         <span className="text-xs font-medium text-gray-500">
-                          {g.products.length} mahsulot
+                          {(g.products ?? []).length} mahsulot
                         </span>
                       </div>
-                      <p className="text-sm font-semibold text-gray-900">{formatPrice(g.totalRevenue)}</p>
+                      <p className="text-sm font-semibold text-gray-900">{formatPrice(g.totalRevenue ?? 0)}</p>
                       <p className="text-xs text-gray-500">{Number(g.revenueShare).toFixed(1)}% daromad</p>
                     </div>
                   ))}
@@ -400,7 +400,7 @@ export default function AnalyticsPage() {
                     <div className="overflow-hidden rounded-lg border border-gray-100">
                       <table className="w-full text-sm">
                         <tbody className="divide-y divide-gray-50">
-                          {g.products.slice(0, 5).map((p) => (
+                          {(g.products ?? []).slice(0, 5).map((p) => (
                             <tr key={p.productId} className="hover:bg-gray-50">
                               <td className="px-3 py-2 font-medium text-gray-900">{p.productName}</td>
                               <td className="px-3 py-2 text-right font-semibold text-gray-900">
@@ -629,7 +629,7 @@ export default function AnalyticsPage() {
                 <span className="text-xl font-black" style={{ color: ABC_COLORS[g.group] }}>
                   {g.group}
                 </span>
-                <p className="text-xs text-gray-500 mt-1">{g.products.length} mahsulot</p>
+                <p className="text-xs text-gray-500 mt-1">{(g.products ?? []).length} mahsulot</p>
                 <p className="text-xs font-medium text-gray-700">
                   {Number(g.revenueShare).toFixed(0)}% daromad
                 </p>

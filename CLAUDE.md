@@ -4,7 +4,7 @@
 
 # Barcha dasturchilar uchun UMUMIY qoidalar
 
-# Template: VENTRA Claude CLI System v2
+# RAOS v3.0 — Jamoa restrukturizatsiyasi (2026-03-23)
 
 ---
 
@@ -15,22 +15,30 @@
 ```
 Salom! Men RAOS loyihasidaman.
 Kimligingizni aniqlay olmayman — ismingiz kim?
-  1. Polat (Backend & DevOps & Testing API & SWAGGER)
-  2. AbdulazizYormatov (Frontend — Web , React Electron Desktop App, Admin Panel)
-  3. Ibrat (Mobile — React Native Android + iOS)
-  4. Abdulaziz (Mobile — React Native IOS)
-  5. Bekzod (Tester & Architector)
+  1. Ibrat (Full-Stack — Web + Backend + DevOps)
+  2. Abdulaziz (Mobile — React Native Android + iOS)
+  3. AbdulazizYormatov (Team Lead — Arxitektura & Code Review)
+  4. Bekzod (PM — Project Management & QA)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
-- Polat → `CLAUDE_BACKEND.md`
-- AbdulazizYormatov → `CLAUDE_FRONTEND.md`
+- Ibrat → `CLAUDE_FULLSTACK.md`
 - Abdulaziz → `CLAUDE_MOBILE.md`
-- Bekzod → `CLAUDE_BACKEND.md`
-- Ibrat → `CLAUDE_MOBILE.md` + `CLAUDE_OWNER_MOBILE.md` (ikkala faylni ham o'qi)
+- AbdulazizYormatov → `CLAUDE_FULLSTACK.md` + `CLAUDE_MOBILE.md` (read-only review uchun)
+- Bekzod → `CLAUDE_FULLSTACK.md` (read-only, project overview uchun)
+
+### Jamoa Tuzilishi (2026-03-23 dan)
+
+| Rol | Ism | Mas'uliyat | Zona |
+|-----|-----|-----------|------|
+| **Full-Stack Dev** | Ibrat | Backend API + Web Admin + POS + Bot + Worker + DevOps | apps/api, apps/web, apps/pos, apps/bot, apps/worker, docker/, prisma/ |
+| **Mobile Dev** | Abdulaziz | Android + iOS (staff app + owner app) | apps/mobile, apps/mobile-owner |
+| **Team Lead** | AbdulazizYormatov | Code review, arxitektura qarorlari, PR tasdiqlash | Barcha zonalar (read + review) |
+| **PM** | Bekzod | Task prioritizatsiya, sprint planning, QA, yangi g'oyalar | docs/, CLAUDE*.md, test |
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
+> **Eslatma:** Polat 2026-03-23 dan loyihani tark etdi. Barcha backend vazifalari Ibrat ga o'tdi.
 
 ---
 
@@ -64,21 +72,21 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 ```
 apps/
-  api/             → Bekzod & Yormatov zonasi (Backend API — NestJS)
-  worker/          → Bekzod & Yormatov zonasi (BullMQ processors)
-  bot/             → Bekzod & Yormatov zonasi (Telegram bot — grammY)
-  web/             → Abdulaziz zonasi (Admin Panel — Next.js)
-  pos/             → Abdulaziz zonasi (POS Desktop — Tauri)
-  mobile/          → Ibrat zonasi (React Native — Android)
-  mobile-owner/    → Ibrat & OwnerMobile zonasi (React Native — Android + iOS, READ-ONLY)
+  api/             → Ibrat zonasi (Backend API — NestJS)
+  worker/          → Ibrat zonasi (BullMQ processors)
+  bot/             → Ibrat zonasi (Telegram bot — grammY)
+  web/             → Ibrat zonasi (Admin Panel — Next.js)
+  pos/             → Ibrat zonasi (POS Desktop — Tauri)
+  mobile/          → Abdulaziz zonasi (React Native — Android + iOS)
+  mobile-owner/    → Abdulaziz zonasi (Owner Mobile App — React Native)
 packages/
   types/           → UMUMIY — kelishib o'zgartirish
   utils/           → UMUMIY — kelishib o'zgartirish
   ui/              → UMUMIY — shared UI components
   sync-engine/     → UMUMIY — offline sync logic
-prisma/            → Bekzod & Yormatov boshqaradi (schema + migrations)
-docker/            → Bekzod & Yormatov boshqaradi (infra)
-docs/              → Hammaga ochiq
+prisma/            → Ibrat boshqaradi (schema + migrations)
+docker/            → Ibrat boshqaradi (infra)
+docs/              → Hammaga ochiq (Bekzod — PM sifatida boshqaradi)
 ```
 
 ---
@@ -166,9 +174,10 @@ Events stored in event_log table (immutable).
 ❌ Financial data uchun last-write-wins conflict resolution
 ❌ Production DB ga qo'lda SQL yozish
 ❌ Secret/API key ni kodga yozish
-❌ Eskiz.uz SMS API — TAQIQLANGAN (Polat qaroriga ko'ra, 2026-03-09)
+❌ Eskiz.uz SMS API — TAQIQLANGAN (2026-03-09 dan)
     → O'rniga: Telegram Bot API (birlamchi) + SMTP Email (zaxira)
     → Service: apps/api/src/notifications/notify.service.ts (NotifyService)
+❌ Demo/mock data ni production ga deploy qilish — hooklar orqali tekshirish
 ```
 
 ---
@@ -208,7 +217,7 @@ Events stored in event_log table (immutable).
 ```
 [BACKEND]   — API, DB, Worker, Bot, Ledger, Fiscal, Payments
 [FRONTEND]  — Admin Panel UI, POS Desktop UI
-[MOBILE]    — React Native Android app
+[MOBILE]    — React Native Android + iOS (staff app + owner app)
 [DEVOPS]    — Docker, CI/CD, Monitoring, Infra
 [SECURITY]  — Auth, RBAC, Encryption, Audit
 [OFFLINE]   — Sync engine, conflict resolution, SQLite
@@ -248,12 +257,10 @@ Events stored in event_log table (immutable).
 git pull origin main
 
 # Branch format:
-bekzod/feat-[feature-name]
-bekzod/fix-[bug-description]
-abdulaziz/feat-[feature-name]
 ibrat/feat-[feature-name]
-yormatov/feat-[feature-name]
-yormatov/fix-[bug-description]
+ibrat/fix-[bug-description]
+abdulaziz/feat-[feature-name]
+abdulaziz/fix-[bug-description]
 
 # Commit format (Conventional Commits — MAJBURIY):
 feat(module): short description in English
@@ -349,6 +356,41 @@ Har sessiya boshida:
 2. errors-*.log va client-*.log dan so'nggi errorlarni o'qi
 3. Takroriy/kritik errorlarni → docs/Tasks.md ga P0/P1 task sifatida yoz
 ```
+
+---
+
+## 🤖 AGENTLAR TIZIMI
+
+RAOS da Claude Code subagentlari mavjud — `.claude/agents/` papkasida.
+
+**Sessiya boshida agent ishlatish tartibi:**
+
+```
+1. VS Code ochildi
+   → "session-start agentini ishga tushir"
+
+2. P0 task ko'rsatdi (masalan type xatoliklar)
+   → "type-fixer agentini ishga tushir"
+
+3. Merge conflict ko'rsatdi
+   → "conflict-resolver agentini ishga tushir"
+
+4. Tasks.md eskirgan (git da commit bor, Tasks.md da hali ochiq)
+   → "tasks-done-sync agentini ishga tushir"
+
+5. Yangi feature boshlash
+   → "orchestrator agentini ishga tushir"
+   → "component-builder: [vazifa]"
+
+6. Commit qilishdan oldin
+   → "frontend-reviewer: [fayl]ni review qil"
+```
+
+**Barcha agentlar:** `session-start`, `orchestrator`, `conflict-resolver`,
+`type-fixer`, `tasks-done-sync`, `component-builder`, `api-integrator`,
+`frontend-reviewer`, `type-checker`
+
+To'liq qo'llanma: `docs/AGENTS_GUIDE.md`
 
 ---
 
@@ -514,17 +556,14 @@ pnpm -r exec tsc --noEmit
 
 ## 📚 KEYIN O'QILADIGAN FAYLLAR
 
-| Fayl                       | Kim uchun                                                         |
-| -------------------------- | ----------------------------------------------------------------- |
-| `CLAUDE_BACKEND.md`        | Polat (Backend & DevOps), Bekzod (Tester & Architector)           |
-| `CLAUDE_FRONTEND.md`       | AbdulazizYormatov (Frontend — Web, Desktop, Admin Panel)          |
-| `CLAUDE_MOBILE.md`         | Ibrat (apps/mobile), Abdulaziz (IOS)                              |
-| `CLAUDE_OWNER_MOBILE.md`   | Ibrat (apps/mobile-owner)                                         |
-| `docs/Tasks.md`            | Ochiq vazifalar                                                   |
-| `docs/Done.md`             | Bajarilgan ishlar                                                 |
+| Fayl                        | Kim uchun                                               |
+| --------------------------- | ------------------------------------------------------- |
+| `CLAUDE_FULLSTACK.md`       | Ibrat (Full-Stack — Web + Backend + DevOps)             |
+| `CLAUDE_MOBILE.md`          | Abdulaziz (Mobile — Android + iOS)                      |
+| `docs/AGENTS_GUIDE.md`      | Hammaga — Claude agentlari to'liq qo'llanmasi           |
+| `docs/Tasks.md`             | Ochiq vazifalar (Bekzod — PM boshqaradi)                |
+| `docs/Done.md`              | Bajarilgan ishlar                                       |
 
 ---
 
-_CLAUDE.md | RAOS | v1.0_
-
-claude --dangerously-skip-permissions
+_CLAUDE.md | RAOS | v2.0 | 2026-03-23 — Jamoa restrukturizatsiyasi_
