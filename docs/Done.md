@@ -39,6 +39,7 @@
 | T-326 | 2026-03-24 | BACKEND | Path conflict cleanup: analytics.controller.ts — removed 6 dead-code duplicate endpoints (shadowed by ai.controller.ts), kept stock-value + insights; debts.controller.ts marked @deprecated | analytics.controller.ts, debts.controller.ts |
 | T-329 | 2026-03-24 | BACKEND | HR invite flow: NotifyService.createInviteTokenForUser() (7-day TTL via TelegramLinkToken), POST /employees auto-generates token + returns inviteLink, EmployeesModule imports NotificationsModule | notify.service.ts, employees.service.ts, employees.module.ts |
 | T-303 | 2026-03-24 | BACKEND | PDF export: PdfExportService (HTML→PDF fallback, 4 report types: daily-revenue/pnl/z-report/tax-report), GET /reports/export/pdf/:reportType endpoint, ReportsModule updated | pdf-export.service.ts, reports.controller.ts, reports.module.ts |
+| T-302 | 2026-03-24 | BACKEND | Offline sync Outbox pattern: POST /sync/inbound (idempotency+DUPLICATE/PROCESSED/FAILED, ArrayMaxSize 100), GET /sync/outbound (products/categories/prices since timestamp), GET /sync/status, SyncOutbox Prisma model, financial=event-sourcing, non-financial=last-write-wins | sync.service.ts, sync.controller.ts, sync.dto.ts, schema.prisma |
 
 ---
 

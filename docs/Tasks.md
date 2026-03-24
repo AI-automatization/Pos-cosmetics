@@ -36,20 +36,6 @@
 
 ---
 
-## T-302 | P0 | [BACKEND] | Offline sync engine — Outbox pattern to'liq implementatsiya
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/sync/`
-- **Muammo:** `sync.service.ts` mavjud lekin minimal. POS uchun to'liq Outbox pattern kerak: idempotency keys, sequence numbers, conflict resolution (financial = event-sourcing, non-financial = last-write-wins), batch processing.
-- **Kutilgan:**
-  - POST /sync/inbound — POS dan batch data qabul qilish (100 events/request)
-  - GET /sync/outbound?since=timestamp — server o'zgarishlarni berish
-  - Idempotency check: duplicate event reject (409)
-  - Financial data: event-sourcing, HECH QACHON last-write-wins
-  - Non-financial: last-write-wins + timestamp
-
----
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
