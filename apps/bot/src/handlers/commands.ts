@@ -305,9 +305,9 @@ export function registerCommands(bot: Bot) {
     }
   });
 
-  // ─── /shift ─────────────────────────────────────────────────
+  // ─── /shift + /shifts (alias) ───────────────────────────────
 
-  bot.command('shift', async (ctx) => {
+  async function handleShifts(ctx: Context): Promise<void> {
     const user = await getAuthUser(ctx);
     if (!user) return;
 
@@ -317,10 +317,13 @@ export function registerCommands(bot: Bot) {
       const shifts = await getActiveShifts(user.tenantId);
       await ctx.reply(formatShiftList(shifts), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /shift]', err);
+      console.error('[Bot /shifts]', err);
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
-  });
+  }
+
+  bot.command('shift',  handleShifts);
+  bot.command('shifts', handleShifts);
 
   // ─── /lowstock ──────────────────────────────────────────────
 
@@ -339,9 +342,9 @@ export function registerCommands(bot: Bot) {
     }
   });
 
-  // ─── /expiring ──────────────────────────────────────────────
+  // ─── /expiry + /expiring (alias) ────────────────────────────
 
-  bot.command('expiring', async (ctx) => {
+  async function handleExpiry(ctx: Context): Promise<void> {
     const user = await getAuthUser(ctx);
     if (!user) return;
 
@@ -353,10 +356,13 @@ export function registerCommands(bot: Bot) {
       const items = await getExpiringItems(days, user.tenantId);
       await ctx.reply(formatExpiryAlert(items), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /expiring]', err);
+      console.error('[Bot /expiry]', err);
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
-  });
+  }
+
+  bot.command('expiry',   handleExpiry);
+  bot.command('expiring', handleExpiry);
 
   // ─── Matn xabarlari — 3-bosqichli login conversation ─────────
   //

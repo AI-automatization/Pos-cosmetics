@@ -163,21 +163,6 @@
 
 ---
 
-## T-335 | P2 | [BACKEND] | Telegram Bot: команды /stock, /lowstock, /expiry, /debt, /shifts
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/bot/src/`
-- **Muammo:** Telegram бот имеет базовые команды. Нет команд для проверки склада, долгов и смен.
-- **Kutilgan:**
-  - `/stock ШТРИХКОД` — остаток товара по штрихкоду (Warehouse, Manager)
-  - `/lowstock` — список low stock товаров (Warehouse, Manager)
-  - `/expiry` — товары с истекающим сроком ≤ 30 дней (Warehouse, Manager)
-  - `/debt ТЕЛЕФОН` — долг клиента по номеру (Cashier, Manager)
-  - `/shifts` — активные смены по всем филиалам (Manager, Owner)
-  - `/logout` — выход из аккаунта (все роли)
-  - Авто-уведомления: low stock каждый час, сроки в 08:00, долги в 09:00
-
 ---
 
 ## T-336 | P2 | [FRONTEND] | Warehouse: история движений товара (stock history)
