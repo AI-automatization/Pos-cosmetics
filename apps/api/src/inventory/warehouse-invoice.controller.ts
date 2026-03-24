@@ -62,6 +62,29 @@ export class WarehouseInvoiceController {
   ) {
     return this.svc.getInvoice(tenantId, invoiceId);
   }
+
+  // ─── T-319/T-320: DASHBOARD ───────────────────────────────────────────────
+
+  @Get('dashboard')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'T-319/T-320: Ombor dashboard (stats, low stock, expiry, movements)' })
+  getDashboard(@CurrentUser('tenantId') tenantId: string) {
+    return this.svc.getDashboard(tenantId);
+  }
+
+  @Get('movements/today')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'T-320: Bugungi harakatlar' })
+  getTodayMovements(@CurrentUser('tenantId') tenantId: string) {
+    return this.svc.getTodayMovements(tenantId);
+  }
+
+  @Get('alerts')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'T-320: Kritik ogohlantirishlar (muddati o\'tgan/yaqin)' })
+  getAlerts(@CurrentUser('tenantId') tenantId: string) {
+    return this.svc.getAlerts(tenantId);
+  }
 }
 
 // ─── T-328: Write-off ────────────────────────────────────────────────────────

@@ -41,3 +41,18 @@ export function useWriteOff() {
     onError: () => toast.error('Xato yuz berdi'),
   });
 }
+
+export function useWarehouseDashboard() {
+  return useQuery({
+    queryKey: ['warehouse-dashboard'],
+    queryFn: () => warehouseApi.getDashboard().then((r) => r.data),
+    refetchInterval: 60_000,
+  });
+}
+
+export function useWarehouseAlerts() {
+  return useQuery({
+    queryKey: ['warehouse-alerts'],
+    queryFn: () => warehouseApi.getAlerts().then((r) => r.data),
+  });
+}

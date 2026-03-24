@@ -46,6 +46,8 @@
 | T-327 | 2026-03-24 | BACKEND+FRONTEND | Warehouse invoices: WarehouseInvoice+WarehouseInvoiceItem Prisma models, POST/GET /warehouse/invoices+/:id (snapshot), stock movements IN auto-create, stock-in page (form: invoiceNumber+items table+purchasePrice+totalCost), useWarehouseInvoices hook | warehouse-invoice.service.ts, warehouse-invoice.controller.ts, stock-in/page.tsx, warehouse.api.ts |
 | T-328 | 2026-03-24 | BACKEND+FRONTEND | Write-off: WriteOffReason enum (DAMAGED/EXPIRED/LOST/OTHER), WRITE_OFF StockMovementType, POST /inventory/write-off, write-off page (reason select+items table+confirm badge) | warehouse-invoice.service.ts, write-off/page.tsx, schema.prisma |
 | T-330 | 2026-03-24 | FRONTEND | ESC/POS: lib/escpos.ts (buildEscPosReceipt bytes + sendToNetworkPrinter proxy + isPrinterProxyAvailable), printer settings: storeName/inn/address/footerText fields, autoPrint+copies+80mm already exist, fallback=window.print | escpos.ts, settings/printer/page.tsx |
+| T-319 | 2026-03-24 | FRONTEND | Warehouse dashboard: stat cards (totalProducts/lowStock/expiry/todayMovements), low stock list, recent movements list, expiry warning list, RefreshCw button, useWarehouseDashboard/useWarehouseAlerts hooks | warehouse/page.tsx, useWarehouseInvoices.ts |
+| T-320 | 2026-03-24 | BACKEND | Warehouse API: GET /warehouse/dashboard (stats+lowStockItems+expiryItems+recentMovements), GET /warehouse/movements/today, GET /warehouse/alerts (expired/soonExpiring) | warehouse-invoice.service.ts, warehouse-invoice.controller.ts |
 
 ---
 

@@ -118,35 +118,6 @@
 
 ---
 
-## T-319 | P2 | [FRONTEND] | Warehouse dashboard sahifasi
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx`
-- **Muammo:** WAREHOUSE panel uchun asosiy dashboard sahifasi yo'q.
-- **Kutilgan:**
-  - Bugungi stock holati (stat kartalar)
-  - Kam qolgan mahsulotlar ro'yxati
-  - Muddati o'tayotgan mahsulotlar
-  - So'nggi stock harakatlari (in/out)
-  - Transfer kutayotganlar
-
----
-
-## T-320 | P2 | [BACKEND] | Warehouse API endpoints — ombor uchun maxsus
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/`, `apps/api/src/sync/`
-- **Muammo:** WAREHOUSE roli uchun maxsus API endpointlar kerak (dashboard stats, quick actions).
-- **Kutilgan:**
-  - `GET /warehouse/dashboard` — stock summary (total products, low stock count, expiry count, today's movements)
-  - `GET /warehouse/movements/today` — bugungi harakatlar
-  - `POST /warehouse/stock-in` — tezkor qabul qilish (simplified DTO)
-  - `POST /warehouse/stock-out` — tezkor chiqarish
-  - `GET /warehouse/alerts` — kritik ogohlantirishlar
-
----
 
 ## T-331 | P2 | [FRONTEND] | Web Onboarding для Owner: первый вход в CRM
 

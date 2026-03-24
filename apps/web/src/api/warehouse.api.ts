@@ -63,4 +63,19 @@ export const warehouseApi = {
   // T-328
   writeOff: (dto: WriteOffDto) =>
     apiClient.post('/inventory/write-off', dto),
+
+  // T-319/T-320
+  getDashboard: () =>
+    apiClient.get<{
+      stats: { totalProducts: number; todayMovementsIn: number; todayMovementsOut: number; lowStockCount: number; expiryCount: number };
+      lowStockItems: { productId: string; name: string; totalQty: number }[];
+      expiryItems: { productId: string; expiryDate: string; batchNumber?: string }[];
+      recentMovements: { id: string; type: string; quantity: number; createdAt: string; product: { name: string } }[];
+    }>('/warehouse/dashboard'),
+
+  getTodayMovements: () =>
+    apiClient.get<{ id: string; type: string; quantity: number; createdAt: string; product: { name: string } }[]>('/warehouse/movements/today'),
+
+  getAlerts: () =>
+    apiClient.get<{ expired: number; soonExpiring: number; alerts: { type: string; productId: string; expiryDate: string }[] }>('/warehouse/alerts'),
 };
