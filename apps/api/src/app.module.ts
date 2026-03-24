@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { IpBlockMiddleware } from './common/middleware/ip-block.middleware';
+import { FeatureFlagsModule } from './common/feature-flags/feature-flags.module';
 import { HealthModule } from './health/health.module';
 import { IdentityModule } from './identity/identity.module';
 import { CatalogModule } from './catalog/catalog.module';
@@ -84,6 +85,7 @@ import { UploadModule } from './upload/upload.module';
     RealtimeModule,
     EmployeesModule,
     UploadModule,
+    FeatureFlagsModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)

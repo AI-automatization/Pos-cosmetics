@@ -1373,3 +1373,21 @@ model PriceChange {
   @@index([tenantId, createdAt])
   @@map("price_changes")
 }
+
+// ============================================
+// FEATURE FLAGS (T-313)
+// ============================================
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String
+  tenantId    String   @default("") @map("tenant_id") // "" = global default
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([key, tenantId], name: "key_tenantId")
+  @@index([tenantId])
+  @@map("feature_flags")
+}
