@@ -36,6 +36,7 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 | **Mobile Dev** | Abdulaziz | Android + iOS (staff app + owner app) | apps/mobile, apps/mobile-owner |
 | **Team Lead** | AbdulazizYormatov | Code review, arxitektura qarorlari, PR tasdiqlash | Barcha zonalar (read + review) |
 | **PM** | Bekzod | Task prioritizatsiya, sprint planning, QA, yangi g'oyalar | docs/, CLAUDE*.md, test |
+| **Warehouse Staff** | — | Inventar boshqaruvi (ombor) | apps/web/(warehouse)/, apps/api/src/inventory/ |
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 > **Eslatma:** Polat 2026-03-23 dan loyihani tark etdi. Barcha backend vazifalari Ibrat ga o'tdi.
@@ -178,6 +179,7 @@ Events stored in event_log table (immutable).
     → O'rniga: Telegram Bot API (birlamchi) + SMTP Email (zaxira)
     → Service: apps/api/src/notifications/notify.service.ts (NotifyService)
 ❌ Demo/mock data ni production ga deploy qilish — hooklar orqali tekshirish
+❌ WAREHOUSE roli bilan finance, ledger, sales endpointlarga kirish
 ```
 
 ---
