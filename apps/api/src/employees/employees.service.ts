@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotifyService } from '../notifications/notify.service';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class EmployeesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notify: NotifyService,
+  ) {}
 
   // ─── LIST ─────────────────────────────────────────────────────
   async getAll(tenantId: string, branchId?: string) {
@@ -51,6 +55,7 @@ export class EmployeesService {
   }
 
   // ─── CREATE ───────────────────────────────────────────────────
+  // T-329: invite token (7d TTL) avtomatik yaratiladi
   async create(tenantId: string, dto: {
     firstName: string;
     lastName: string;
@@ -74,7 +79,9 @@ export class EmployeesService {
         role: true, isActive: true, createdAt: true, botSettings: true,
       },
     });
-    return this.toEmployee(user);
+
+    const { inviteLink } = await this.notify.createInviteTokenForUser(user.id, tenantId);
+    return { ...this.toEmployee(user), inviteLink };
   }
 
   // ─── UPDATE STATUS ────────────────────────────────────────────
