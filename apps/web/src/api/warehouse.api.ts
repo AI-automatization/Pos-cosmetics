@@ -78,4 +78,36 @@ export const warehouseApi = {
 
   getAlerts: () =>
     apiClient.get<{ expired: number; soonExpiring: number; alerts: { type: string; productId: string; expiryDate: string }[] }>('/warehouse/alerts'),
+
+  // T-336
+  listMovements: (params?: {
+    productId?: string;
+    type?: string;
+    userId?: string;
+    from?: string;
+    to?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get<{
+      movements: StockMovement[];
+      total: number;
+      page: number;
+      limit: number;
+    }>('/warehouse/movements', { params }),
 };
+
+export interface StockMovement {
+  id: string;
+  type: string;
+  quantity: number;
+  refType: string | null;
+  refId:   string | null;
+  batchNumber: string | null;
+  expiryDate:  string | null;
+  note: string | null;
+  createdAt: string;
+  product:   { name: string; sku: string | null } | null;
+  user:      { firstName: string; lastName: string } | null;
+  warehouse: { name: string } | null;
+}

@@ -56,3 +56,10 @@ export function useWarehouseAlerts() {
     queryFn: () => warehouseApi.getAlerts().then((r) => r.data),
   });
 }
+
+export function useWarehouseMovements(params?: Parameters<typeof warehouseApi.listMovements>[0]) {
+  return useQuery({
+    queryKey: ['warehouse-movements', params],
+    queryFn: () => warehouseApi.listMovements(params).then((r) => r.data),
+  });
+}

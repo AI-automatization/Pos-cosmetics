@@ -72,6 +72,29 @@ export class WarehouseInvoiceController {
     return this.svc.getDashboard(tenantId);
   }
 
+  @Get('movements')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'T-336: Tovar harakatlar tarixi (filters + pagination)' })
+  @ApiQuery({ name: 'productId', required: false })
+  @ApiQuery({ name: 'type',      required: false, enum: ['IN','OUT','WRITE_OFF','TRANSFER_IN','TRANSFER_OUT','ADJUSTMENT'] })
+  @ApiQuery({ name: 'userId',    required: false })
+  @ApiQuery({ name: 'from',      required: false, example: '2026-03-01' })
+  @ApiQuery({ name: 'to',        required: false, example: '2026-03-31' })
+  @ApiQuery({ name: 'page',      required: false })
+  @ApiQuery({ name: 'limit',     required: false })
+  listMovements(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('productId') productId?: string,
+    @Query('type')      type?: string,
+    @Query('userId')    userId?: string,
+    @Query('from')      from?: string,
+    @Query('to')        to?: string,
+    @Query('page',  new DefaultValuePipe(1),  ParseIntPipe) page  = 1,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit = 50,
+  ) {
+    return this.svc.listMovements(tenantId, { productId, type, userId, from, to, page, limit });
+  }
+
   @Get('movements/today')
   @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'T-320: Bugungi harakatlar' })

@@ -165,18 +165,6 @@
 
 ---
 
-## T-336 | P2 | [FRONTEND] | Warehouse: история движений товара (stock history)
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/history/` (yangi)
-- **Muammo:** Нет страницы с подробной историей движений по товарам для warehouse.
-- **Kutilgan:**
-  - Страница `/warehouse/history` — список всех движений
-  - Фильтр: товар / тип (IN/OUT/TRANSFER/WRITE_OFF) / дата / пользователь
-  - Колонки: дата, товар, тип, количество (+/-), кто, причина/источник
-  - Экспорт в CSV
-
 ---
 
 ## T-310 | P2 | [FRONTEND] | POS tablet layout — iPad/Android tablet uchun adaptiv

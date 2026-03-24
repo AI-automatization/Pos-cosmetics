@@ -382,6 +382,53 @@ export class WarehouseInvoiceService {
     };
   }
 
+  // ─── T-336: Movement history with filters ────────────────────────────────
+
+  async listMovements(
+    tenantId: string,
+    params: {
+      productId?: string;
+      type?: string;
+      userId?: string;
+      from?: string;
+      to?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
+    const page  = params.page  ?? 1;
+    const limit = params.limit ?? 50;
+    const skip  = (page - 1) * limit;
+
+    const where: Record<string, unknown> = { tenantId };
+    if (params.productId) where['productId'] = params.productId;
+    if (params.type)      where['type']      = params.type;
+    if (params.userId)    where['userId']    = params.userId;
+    if (params.from || params.to) {
+      where['createdAt'] = {
+        ...(params.from ? { gte: new Date(params.from) } : {}),
+        ...(params.to   ? { lte: new Date(params.to)   } : {}),
+      };
+    }
+
+    const [movements, total] = await Promise.all([
+      this.prisma.stockMovement.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: {
+          product:   { select: { name: true, sku: true } },
+          user:      { select: { firstName: true, lastName: true } },
+          warehouse: { select: { name: true } },
+        },
+      }),
+      this.prisma.stockMovement.count({ where }),
+    ]);
+
+    return { movements, total, page, limit };
+  }
+
   private async resolveWarehouseId(tenantId: string, warehouseId?: string): Promise<string> {
     if (warehouseId) {
       const exists = await this.prisma.warehouse.findFirst({ where: { id: warehouseId, tenantId } });

@@ -50,6 +50,7 @@
 | T-320 | 2026-03-24 | BACKEND | Warehouse API: GET /warehouse/dashboard (stats+lowStockItems+expiryItems+recentMovements), GET /warehouse/movements/today, GET /warehouse/alerts (expired/soonExpiring) | warehouse-invoice.service.ts, warehouse-invoice.controller.ts |
 | T-331 | 2026-03-24 | FRONTEND | Web Onboarding wizard: 4-step (branch→employees→products→dashboard), progress bar, localStorage persistence (raos_onboarding_completed), skip button, completion screen | onboarding/page.tsx |
 | T-335 | 2026-03-24 | BACKEND | Telegram Bot commands: /expiry+/expiring aliases, /shifts+/shift aliases, debt cron 09:00 (getOverdueDebtSummary + formatDebtSummaryAlert), config.debtCheckCron | commands.ts, alerts.cron.ts, alert.service.ts, formatter.ts, config.ts |
+| T-336 | 2026-03-24 | BACKEND+FRONTEND | Warehouse movement history: GET /warehouse/movements (filters: type/from/to/productId/userId, pagination), history/page.tsx (table+filters+CSV export), StockMovement type, useWarehouseMovements hook | warehouse-invoice.service.ts, warehouse-invoice.controller.ts, warehouse.api.ts, useWarehouseInvoices.ts, history/page.tsx |
 
 ---
 
