@@ -29,7 +29,7 @@ function buildCsv(rows: ReturnType<typeof useWarehouseMovements>['data']): strin
   if (!rows) return '';
   const header = ['Sana', 'Mahsulot', 'SKU', 'Turi', 'Miqdor', 'Ombor', 'Kim', 'Manba/Sabab'].join(',');
   const lines = rows.movements.map((m) => {
-    const meta = TYPE_META[m.type] ?? { sign: '' };
+    const _meta = TYPE_META[m.type] ?? { sign: '' };
     const sign = ['IN', 'TRANSFER_IN'].includes(m.type) ? '+' : '-';
     return [
       new Date(m.createdAt).toLocaleDateString('uz-UZ'),

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, ChevronLeft, ChevronRight, CheckCircle, RotateCcw, XCircle, Receipt, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, RotateCcw, XCircle, Receipt, ShoppingCart } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';

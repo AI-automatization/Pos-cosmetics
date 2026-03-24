@@ -114,7 +114,7 @@ function StatBox({
   return (
     <View style={styles.statBox}>
       <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
-        <MaterialCommunityIcons name={icon as any} size={20} color={iconColor} />
+        <MaterialCommunityIcons name={icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']} size={20} color={iconColor} />
       </View>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
@@ -138,7 +138,7 @@ function DetailRow({
   return (
     <View style={styles.detailRow}>
       {icon ? (
-        <MaterialCommunityIcons name={icon as any} size={16} color={C.muted} style={{ marginRight: 8 }} />
+        <MaterialCommunityIcons name={icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']} size={16} color={C.muted} style={{ marginRight: 8 }} />
       ) : (
         <View style={styles.detailDot} />
       )}

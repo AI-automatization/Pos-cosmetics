@@ -67,7 +67,7 @@ function MenuRow({
       disabled={!onPress}
     >
       <View style={[styles.menuIcon, { backgroundColor: iconBg }]}>
-        <MaterialCommunityIcons name={icon as any} size={18} color={iconColor} />
+        <MaterialCommunityIcons name={icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']} size={18} color={iconColor} />
       </View>
       <Text style={[styles.menuLabel, danger && { color: C.red }]}>{label}</Text>
       <View style={styles.menuRight}>

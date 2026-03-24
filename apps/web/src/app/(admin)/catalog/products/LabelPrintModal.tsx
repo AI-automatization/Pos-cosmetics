@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { X, Printer } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
 import type { Product } from '@/types/catalog';
@@ -78,7 +78,7 @@ function buildPrintHtml(
 </head>
 <body>
   <div class="labels">${labels.join('')}</div>
-  <script>window.onload = function() { window.print(); window.close(); }<\/script>
+  <script>window.onload = function() { window.print(); window.close(); }</script>
 </body>
 </html>`;
 }

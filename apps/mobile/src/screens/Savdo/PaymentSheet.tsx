@@ -124,7 +124,7 @@ export default function PaymentSheet({ visible, cart, total, onClose, onConfirm 
                     activeOpacity={0.75}
                   >
                     <View style={[styles.methodIcon, { backgroundColor: m.color + '20' }]}>
-                      <MaterialCommunityIcons name={m.icon as any} size={22} color={m.color} />
+                      <MaterialCommunityIcons name={m.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']} size={22} color={m.color} />
                     </View>
                     <Text style={[styles.methodLabel, active && { color: m.color }]}>{m.label}</Text>
                     {active && (

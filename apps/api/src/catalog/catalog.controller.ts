@@ -10,7 +10,6 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Res,
-  NotFoundException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import {

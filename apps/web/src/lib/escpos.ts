@@ -8,8 +8,8 @@ const TIMEOUT_MS = 3000;
 // ESC/POS command bytes
 const ESC = 0x1b;
 const GS = 0x1d;
-const LF = 0x0a;
-const CR = 0x0d;
+const _LF = 0x0a;
+const _CR = 0x0d;
 
 function encode(text: string): Uint8Array {
   return new TextEncoder().encode(text);

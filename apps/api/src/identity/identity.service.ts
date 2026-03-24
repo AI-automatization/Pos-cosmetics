@@ -254,8 +254,6 @@ export class IdentityService {
       select: { id: true, tenantId: true, role: true, isActive: true },
     });
     if (!user.isActive) throw new UnauthorizedException('User inactive');
-    const hasPosAccess   = ['CASHIER', 'MANAGER', 'OWNER'].includes(user.role);
-    const hasAdminAccess = ['OWNER', 'ADMIN', 'MANAGER'].includes(user.role);
     const tokens = await this.generateTokens({
       sub: user.id, tenantId: user.tenantId, role: user.role,
       branchId: null,

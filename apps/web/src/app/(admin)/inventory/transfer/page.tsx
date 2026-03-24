@@ -7,7 +7,7 @@ import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useTransfers, useTransferAction } from '@/hooks/inventory/useInventory';
-import { cn, formatPrice } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { TransferStatus, StockTransfer } from '@/types/inventory';
 
 /* ─── Status config ─── */
