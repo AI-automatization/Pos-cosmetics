@@ -170,20 +170,6 @@
 ---
 
 
-## T-326 | P1 | [BACKEND] | API path conflicts унификация (кроме T-311)
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/`
-- **Muammo:** Несколько endpoints дублируются под разными путями — путаница между мобилкой и вебом.
-- **Kutilgan:**
-  - `/inventory/low-stock` vs `/inventory/stock/low` → один путь, второй deprecated alias
-  - `/employees` vs `/users` → унифицировать (один путь + alias)
-  - `/debts/*` vs `/nasiya/*` → унифицировать (одна коллекция endpoints)
-  - `/system/health` vs `/health` → выбрать один (предпочтительно `/health`)
-  - `/analytics/branches/comparison` vs `/analytics/branch-comparison` → унифицировать
-
----
 
 ## T-327 | P1 | [FRONTEND] | Warehouse: Приход товара с накладной (invoice snapshot)
 
@@ -451,7 +437,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **36** | **1** | **13** | **10** | **6** |
+| **35** | **1** | **12** | **10** | **6** |
 
 ### Kategoriya bo'yicha
 

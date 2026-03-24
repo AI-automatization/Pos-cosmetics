@@ -90,6 +90,7 @@
 | T-311 | 2026-03-23 | /alerts vs /notifications unification — /notifications now returns enriched format (description+priority+branchId+entityId); /alerts marked deprecated in Swagger; both return identical format | `notifications.controller.ts`, `alerts.controller.ts` |
 | T-312 | 2026-03-24 | IP Manager Redis — IpBlockService (block/unblock/auto-block 100 failed in 1h → 24h ban); IpBlockMiddleware (global, 403 on blocked IP); POST/DELETE/GET /admin/ip-block endpoints (SuperAdmin) | `ip-block.service.ts`, `ip-block.middleware.ts`, `cache.module.ts`, `admin-auth.controller.ts`, `app.module.ts` |
 | T-313 | 2026-03-24 | Feature Flags Redis — feature_flags table (key+tenantId unique, ''=global), FeatureFlagsService (Redis 1min cache), GET/PATCH/DELETE /admin/feature-flags/:key, @FeatureFlag() decorator + FeatureFlagGuard | `feature-flags/` (service, controller, module, decorator), `schema.prisma`, migration |
+| T-326 | 2026-03-24 | API path conflicts — analytics.controller.ts: removed 6 dead-code duplicates (shadowed by ai.controller.ts), kept stock-value+insights; debts.controller.ts marked @deprecated (canonical path = /nasiya/*) | `analytics.controller.ts`, `debts.controller.ts` |
 
 ---
 
