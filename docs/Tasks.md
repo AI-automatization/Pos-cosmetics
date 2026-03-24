@@ -119,18 +119,6 @@
 ---
 
 
-## T-331 | P2 | [FRONTEND] | Web Onboarding для Owner: первый вход в CRM
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/onboarding/` (yangi)
-- **Muammo:** Новый Owner после регистрации видит пустую страницу. Нет guided setup.
-- **Kutilgan:**
-  - Шаги: 1) Создать филиал → 2) Добавить сотрудников → 3) Добавить товары → 4) Готово
-  - Прогресс-бар (stepper component)
-  - Пропуск любого шага → /dashboard
-  - Статус onboarding сохраняется в tenant settings
-
 ---
 
 ## T-332 | P2 | [MOBILE] | Mobile: экран System Health (мониторинг инфраструктуры)

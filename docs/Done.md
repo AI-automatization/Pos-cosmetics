@@ -48,6 +48,7 @@
 | T-330 | 2026-03-24 | FRONTEND | ESC/POS: lib/escpos.ts (buildEscPosReceipt bytes + sendToNetworkPrinter proxy + isPrinterProxyAvailable), printer settings: storeName/inn/address/footerText fields, autoPrint+copies+80mm already exist, fallback=window.print | escpos.ts, settings/printer/page.tsx |
 | T-319 | 2026-03-24 | FRONTEND | Warehouse dashboard: stat cards (totalProducts/lowStock/expiry/todayMovements), low stock list, recent movements list, expiry warning list, RefreshCw button, useWarehouseDashboard/useWarehouseAlerts hooks | warehouse/page.tsx, useWarehouseInvoices.ts |
 | T-320 | 2026-03-24 | BACKEND | Warehouse API: GET /warehouse/dashboard (stats+lowStockItems+expiryItems+recentMovements), GET /warehouse/movements/today, GET /warehouse/alerts (expired/soonExpiring) | warehouse-invoice.service.ts, warehouse-invoice.controller.ts |
+| T-331 | 2026-03-24 | FRONTEND | Web Onboarding wizard: 4-step (branch→employees→products→dashboard), progress bar, localStorage persistence (raos_onboarding_completed), skip button, completion screen | onboarding/page.tsx |
 
 ---
 
