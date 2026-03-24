@@ -44,19 +44,6 @@
 ---
 
 
-## T-304 | P1 | [BACKEND] | Fiscal integration — O'zbekiston real fiskal operator
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/tax/fiscal-adapter.service.ts`
-- **Muammo:** Hozir faqat placeholder/stub mavjud (T-081). Real fiskal operator (REGOS yoki boshqa) ulanmagan. Soliq idorasiga chek yuborilmaydi.
-- **Kutilgan:**
-  - Real fiskal operator API adapter (REGOS yoki O'z DYQ talab qilgan operator)
-  - Receipt yuborish -> fiscal_id + QR code olish
-  - Queue orqali: savdo -> fiscal queue -> retry (3x, exponential)
-  - Z-report fiskal operatorga yuborish
-
----
 
 ## T-305 | P1 | [BACKEND] | Support CRM — tiket-sistema mijozlar uchun
 
