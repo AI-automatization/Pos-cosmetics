@@ -14,7 +14,7 @@ export default function ProfileScreen() {
       <Text style={styles.sectionTitle}>{t('settings.profile')}</Text>
       <View style={styles.row}>
         <Text style={styles.label}>{t('settings.name')}</Text>
-        <Text style={styles.value}>{user.name}</Text>
+        <Text style={styles.value}>{user.firstName} {user.lastName}</Text>
       </View>
       <View style={styles.row}>
         <Text style={styles.label}>{t('settings.email')}</Text>

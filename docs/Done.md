@@ -31,6 +31,14 @@
 | T-229 | 2026-03-22 | MOBILE | Refresh body `{token}` → `{userId, refreshToken}`; response `data.access_token` → `data.accessToken`; userId SecureStore da saqlanadi | client.ts, auth.store.ts |
 | T-230 | 2026-03-22 | MOBILE | User.name field → firstName + lastName; ProfileScreen `user.name` → `user.firstName + user.lastName`; DEV bypass yangilandi | auth.api.ts, ProfileScreen.tsx, LoginScreen.tsx |
 | T-231 | 2026-03-22 | MOBILE | AsyncStorage → expo-secure-store (SecureStore.setItemAsync/getItemAsync/deleteItemAsync) — client.ts va auth.store.ts | client.ts, auth.store.ts |
+| T-317 | 2026-03-24 | FRONTEND | Warehouse layout: WarehouseSidebar (amber, 8 nav items) + (warehouse) route group layout + placeholder dashboard page | WarehouseSidebar.tsx, (warehouse)/layout.tsx, warehouse/page.tsx |
+| T-318 | 2026-03-24 | BACKEND+FRONTEND | WAREHOUSE role RBAC: WarehouseReadOnlyGuard (non-GET → 403), catalog/inventory controllers, login redirect → /warehouse, middleware role routing (WAREHOUSE ↔ /warehouse) | warehouse-read-only.guard.ts, catalog.controller.ts, inventory.controller.ts, useAuth.ts, middleware.ts |
+| T-311 | 2026-03-24 | BACKEND | Notifications enrichment: description/priority/branchId fields added to GET /notifications, /alerts deprecated with @ApiOperation({deprecated:true}) | notifications.controller.ts, alerts.controller.ts |
+| T-312 | 2026-03-24 | BACKEND | IP blocking: IpBlockService (Redis 24h TTL, 100 failed attempts threshold), IpBlockMiddleware, POST/DELETE/GET /admin/ip-block endpoints | ip-block.service.ts, ip-block.middleware.ts, admin-auth.controller.ts |
+| T-313 | 2026-03-24 | BACKEND | Feature flags: FeatureFlagsService (Redis cache 1min), @FeatureFlag() decorator + FeatureFlagGuard, CRUD endpoints /admin/feature-flags, @Global() module, FeatureFlag Prisma model | feature-flags.service.ts, feature-flag.decorator.ts, feature-flags.controller.ts, schema.prisma |
+| T-326 | 2026-03-24 | BACKEND | Path conflict cleanup: analytics.controller.ts — removed 6 dead-code duplicate endpoints (shadowed by ai.controller.ts), kept stock-value + insights; debts.controller.ts marked @deprecated | analytics.controller.ts, debts.controller.ts |
+| T-329 | 2026-03-24 | BACKEND | HR invite flow: NotifyService.createInviteTokenForUser() (7-day TTL via TelegramLinkToken), POST /employees auto-generates token + returns inviteLink, EmployeesModule imports NotificationsModule | notify.service.ts, employees.service.ts, employees.module.ts |
+| T-303 | 2026-03-24 | BACKEND | PDF export: PdfExportService (HTML→PDF fallback, 4 report types: daily-revenue/pnl/z-report/tax-report), GET /reports/export/pdf/:reportType endpoint, ReportsModule updated | pdf-export.service.ts, reports.controller.ts, reports.module.ts |
 
 ---
 

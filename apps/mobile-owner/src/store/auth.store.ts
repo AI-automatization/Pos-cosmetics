@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { AuthTokens, User } from '../api/auth.api';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
+const USER_ID_KEY = 'user_id';
 
 interface AuthState {
   user: User | null;
@@ -22,16 +23,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
 
   login: async (tokens: AuthTokens, user: User) => {
-    await AsyncStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
-    await AsyncStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
-    await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, tokens.accessToken);
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    await SecureStore.setItemAsync(USER_ID_KEY, user.id);
     set({ user, isAuthenticated: true, isLoading: false });
   },
 
   logout: async () => {
-    await AsyncStorage.removeItem(ACCESS_TOKEN_KEY);
-    await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
-    await AsyncStorage.removeItem(USER_KEY);
+    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(USER_KEY);
+    await SecureStore.deleteItemAsync(USER_ID_KEY);
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 
@@ -40,8 +43,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkAuth: async () => {
     set({ isLoading: true });
     try {
-      const token = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-      const userJson = token ? await AsyncStorage.getItem(USER_KEY) : null;
+      const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+      const userJson = token ? await SecureStore.getItemAsync(USER_KEY) : null;
       if (token && userJson) {
         const user = JSON.parse(userJson) as User;
         set({ user, isAuthenticated: true, isLoading: false });

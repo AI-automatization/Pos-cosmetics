@@ -57,18 +57,6 @@
 
 ---
 
-## T-303 | P1 | [BACKEND] | PDF export — pdfmake/exceljs buxgalter hisobotlari uchun
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/reports/`
-- **Muammo:** Buxgalter uchun professional PDF hisobotlar eksport qilish imkoniyati yo'q. CSV/Excel bor (T-087), lekin PDF formatda rasmiy hisobotlar kerak.
-- **Kutilgan:**
-  - GET /reports/export/pdf/:reportType — daily-revenue, pnl, z-report, tax-report
-  - `pdfmake` yoki `@react-pdf/renderer` kutubxonasi
-  - Shablon: do'kon logosi, INN/STIR, jadvallar, jami
-
----
 
 ## T-304 | P1 | [BACKEND] | Fiscal integration — O'zbekiston real fiskal operator
 
@@ -202,20 +190,6 @@
 
 ---
 
-## T-329 | P1 | [BACKEND] | HR invite flow: email → invite link → Telegram привязка
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/identity/`, `apps/bot/src/`
-- **Muammo:** Owner создаёт сотрудника, но нет автоматической привязки Telegram через invite link.
-- **Kutilgan:**
-  - `POST /employees` создаёт invite token (UUID, 7 дней TTL)
-  - Email сотруднику: `t.me/raos_bot?start=TOKEN`
-  - Bot: `/start TOKEN` → ищет invite token в БД → привязывает `telegram_chat_id`
-  - После привязки: все уведомления идут в Telegram (birlamchi kanal)
-  - `user_invites` jadvali: `{ id, token, user_id, expires_at, used_at }`
-
----
 
 ## T-330 | P1 | [FRONTEND] | POS: 80мм термопринтер ESC/POS интеграция
 
