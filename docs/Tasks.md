@@ -102,20 +102,6 @@
 
 
 
-## T-315 | P1 | [BACKEND] | Accountant moliyaviy modul — to'liq implementatsiya
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/finance/`
-- **Muammo:** Finance moduli hozir faqat expenses CRUD bor. Buxgalter uchun to'liq moliyaviy hisobotlar kerak: balans, P&L, cash flow.
-- **Kutilgan:**
-  - GET /finance/balance-sheet — aktiv/passiv/kapital
-  - GET /finance/cash-flow — kirim/chiqim oqimi
-  - GET /finance/pnl — daromad - xarajat = foyda (davriy)
-  - Ledger entries dan avtomatik hisoblash
-  - 1C export format (T-118 bilan bog'liq)
-
----
 
 
 
