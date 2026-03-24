@@ -64,7 +64,8 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 | Worker         | BullMQ + Redis 7                 | —    |
 | Frontend Admin | Next.js + Tailwind + React Query | 3001 |
 | POS Desktop    | Tauri + SQLite (offline-first)   | —    |
-| Mobile         | React Native (Android only)      | —    |
+| Mobile (Staff) | React Native (Android + iOS)     | —    |
+| Mobile (Owner) | React Native (Android + iOS)     | —    |
 | Bot            | grammY (Telegram)                | —    |
 | Object Storage | S3-compatible (MinIO dev)        | 9000 |
 
@@ -77,8 +78,8 @@ apps/
   bot/             → Ibrat zonasi (Telegram bot — grammY)
   web/             → Ibrat zonasi (Admin Panel — Next.js)
   pos/             → Ibrat zonasi (POS Desktop — Tauri)
-  mobile/          → Abdulaziz zonasi (React Native — Android + iOS)
-  mobile-owner/    → Abdulaziz zonasi (Owner Mobile App — React Native)
+  mobile/          → Abdulaziz zonasi (Staff App — React Native Android + iOS)
+  mobile-owner/    → Abdulaziz zonasi (Owner App — React Native Android + iOS)
 packages/
   types/           → UMUMIY — kelishib o'zgartirish
   utils/           → UMUMIY — kelishib o'zgartirish
@@ -162,7 +163,7 @@ Events stored in event_log table (immutable).
 ❌ any type — TypeScript strict mode
 ❌ console.log — Backend: NestJS Logger, Frontend: faqat DEV mode
 ❌ 400+ qatorli fayl — bo'lish kerak (SRP)
-❌ Inline styles — Tailwind class ishlatish
+❌ Inline styles — Web: Tailwind class ishlatish | Mobile: StyleSheet.create ishlatish
 ❌ Magic numbers — const bilan nomlash: MAX_RETRIES = 3
 ❌ Nested try/catch — flat error handling
 ❌ Hardcoded secrets — .env ishlatish
@@ -482,7 +483,11 @@ pnpm --filter web dev        # Admin    → :3001
 pnpm --filter worker dev     # Worker
 pnpm --filter bot dev        # Telegram bot
 pnpm --filter pos dev        # POS Desktop (Tauri)
-pnpm --filter mobile start   # React Native
+pnpm --filter mobile start         # React Native Staff App
+pnpm --filter mobile-owner start   # React Native Owner App
+# iOS uchun (birinchi marta):
+cd apps/mobile && npx pod-install   # CocoaPods install
+pnpm --filter mobile run ios        # iOS simulator
 
 # 5. Type check (push oldin):
 pnpm -r exec tsc --noEmit
@@ -543,7 +548,7 @@ pnpm -r exec tsc --noEmit
 - Holding dashboard
 - AI basic analytics
 - Real estate module
-- Mobile app (Android)
+- Mobile app (Android + iOS)
 
 ### Phase 3 (12–24 months)
 
@@ -566,4 +571,4 @@ pnpm -r exec tsc --noEmit
 
 ---
 
-_CLAUDE.md | RAOS | v2.0 | 2026-03-23 — Jamoa restrukturizatsiyasi_
+_CLAUDE.md | RAOS | v3.0 | 2026-03-24 — Mobile iOS qo'shildi, mobile-owner aniqlashtirildi_

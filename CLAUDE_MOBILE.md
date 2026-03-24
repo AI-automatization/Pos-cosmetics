@@ -293,7 +293,8 @@ api.interceptors.response.use(
 ## 🔔 PUSH NOTIFICATIONS
 
 ```typescript
-// FCM (Firebase Cloud Messaging) — Android only:
+// FCM (Firebase Cloud Messaging) — Android + iOS:
+// Android: FCM direct | iOS: FCM → APNs bridge
 export function useNotifications() {
   useEffect(() => {
     // 1. Permission so'rash
@@ -482,6 +483,43 @@ describe('useDashboard', () => {
 
 ---
 
+## 🍎 iOS SETUP (ABDULAZIZ UCHUN)
+
+```bash
+# Birinchi marta / yangi muhit:
+cd apps/mobile
+npx pod-install          # CocoaPods dependency install (Pods/ papka yaratiladi)
+
+# Simulator ishlatish:
+pnpm --filter mobile run ios
+# Yoki aniq device:
+pnpm --filter mobile run ios --device "iPhone 15"
+
+# Qurilish muammo bo'lsa:
+cd ios && pod deintegrate && pod install   # Pods ni tozalab qayta install
+```
+
+### Talablar
+```
+✓ Xcode 15+ (App Store dan)
+✓ CocoaPods: sudo gem install cocoapods  (yoki brew install cocoapods)
+✓ Node.js, pnpm, Ruby (sistem)
+✓ iOS Simulator (Xcode dan keladi)
+✓ Apple Developer Account — TestFlight/App Store uchun (Abdulaziz koordinatsiyasi)
+```
+
+### iOS-specific ehtiyot qoidalar
+```
+⚠️ ios/Pods/ — git ignore (commitlama, .gitignore da)
+⚠️ ios/.xcode.env.local — git ignore (shaxsiy muhit)
+⚠️ Provisioning profile va sertifikatlar — Abdulaziz boshqaradi
+⚠️ SecureStore iOS da Keychain orqali ishlaydi — Android Keystore dan farqli
+⚠️ Face ID → LocalAuthentication.authenticateAsync (biometric prompt iOS da farqli)
+⚠️ FCM iOS da APNs bridge kerak — GoogleService-Info.plist kerak
+```
+
+---
+
 ## 📱 MOBILE-OWNER APP QISQACHA
 
 > Owner App = READ-ONLY monitoring dashboard. Financial mutations TAQIQLANGAN!
@@ -500,4 +538,4 @@ describe('useDashboard', () => {
 
 ---
 
-*CLAUDE_MOBILE.md | RAOS | v2.0 | 2026-03-23 — Abdulaziz yagona mobile dev*
+*CLAUDE_MOBILE.md | RAOS | v2.1 | 2026-03-24 — iOS setup bo'limi qo'shildi, FCM iOS qo'llab-quvvatlashi aniqlashtirildi*
