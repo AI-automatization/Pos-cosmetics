@@ -17,6 +17,11 @@ interface PrinterSettings {
   paperWidth: '58' | '80';
   copies: number;
   openDrawerOnCash: boolean;
+  // T-330: Receipt customization
+  storeName: string;
+  inn: string;
+  address: string;
+  footerText: string;
 }
 
 const DEFAULT_SETTINGS: PrinterSettings = {
@@ -29,6 +34,10 @@ const DEFAULT_SETTINGS: PrinterSettings = {
   paperWidth: '80',
   copies: 1,
   openDrawerOnCash: false,
+  storeName: '',
+  inn: '',
+  address: '',
+  footerText: 'Xaridingiz uchun rahmat!',
 };
 
 const COMMON_PRINTERS = [
@@ -359,6 +368,53 @@ export default function PrinterSettingsPage() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* T-330: Receipt customization */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <h3 className="mb-4 text-sm font-semibold text-gray-800">Chek sarlavhasi va footer</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Do'kon nomi</label>
+            <input
+              type="text"
+              value={settings.storeName}
+              onChange={(e) => update('storeName', e.target.value)}
+              placeholder="Gulsanam Kosmetika"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">INN/STIR</label>
+            <input
+              type="text"
+              value={settings.inn}
+              onChange={(e) => update('inn', e.target.value)}
+              placeholder="123456789"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono outline-none focus:border-blue-400"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Manzil</label>
+            <input
+              type="text"
+              value={settings.address}
+              onChange={(e) => update('address', e.target.value)}
+              placeholder="Toshkent sh., Chilonzor t."
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Footer matni</label>
+            <input
+              type="text"
+              value={settings.footerText}
+              onChange={(e) => update('footerText', e.target.value)}
+              placeholder="Xaridingiz uchun rahmat!"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
+            />
+          </div>
         </div>
       </div>
 

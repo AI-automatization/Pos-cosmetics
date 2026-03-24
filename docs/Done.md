@@ -45,6 +45,7 @@
 | T-315 | 2026-03-24 | BACKEND | Finance moliyaviy modul: GET /finance/pnl (revenue-COGS-returns-expenses+margin), GET /finance/balance-sheet (cash+receivables→assets, retainedEarnings→equity), GET /finance/cash-flow (inflow/outflow/net), ledger JournalLines dan hisoblash, fix /expenses → /finance/expenses, sub→userId fix | finance.service.ts, finance.controller.ts, finance.module.ts |
 | T-327 | 2026-03-24 | BACKEND+FRONTEND | Warehouse invoices: WarehouseInvoice+WarehouseInvoiceItem Prisma models, POST/GET /warehouse/invoices+/:id (snapshot), stock movements IN auto-create, stock-in page (form: invoiceNumber+items table+purchasePrice+totalCost), useWarehouseInvoices hook | warehouse-invoice.service.ts, warehouse-invoice.controller.ts, stock-in/page.tsx, warehouse.api.ts |
 | T-328 | 2026-03-24 | BACKEND+FRONTEND | Write-off: WriteOffReason enum (DAMAGED/EXPIRED/LOST/OTHER), WRITE_OFF StockMovementType, POST /inventory/write-off, write-off page (reason select+items table+confirm badge) | warehouse-invoice.service.ts, write-off/page.tsx, schema.prisma |
+| T-330 | 2026-03-24 | FRONTEND | ESC/POS: lib/escpos.ts (buildEscPosReceipt bytes + sendToNetworkPrinter proxy + isPrinterProxyAvailable), printer settings: storeName/inn/address/footerText fields, autoPrint+copies+80mm already exist, fallback=window.print | escpos.ts, settings/printer/page.tsx |
 
 ---
 

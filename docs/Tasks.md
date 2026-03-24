@@ -108,20 +108,6 @@
 
 
 
-## T-330 | P1 | [FRONTEND] | POS: 80мм термопринтер ESC/POS интеграция
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/settings/printer/`, `apps/web/src/hooks/pos/`
-- **Muammo:** POS должен автоматически печатать чек на 80мм термопринтере после оплаты. Сейчас только browser print.
-- **Kutilgan:**
-  - `/settings/printer` — выбор порта принтера (USB / сетевой IP:Port)
-  - Автопечать после успешной оплаты (не блокирует завершение продажи)
-  - ESC/POS команды (библиотека `escpos` или `node-escpos`)
-  - Fallback: браузерная печать если принтер недоступен
-  - Настройка: логотип магазина, INN/STIR, footer текст
-
----
 
 
 
