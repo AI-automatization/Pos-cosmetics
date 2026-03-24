@@ -79,6 +79,13 @@ export const warehouseApi = {
   getAlerts: () =>
     apiClient.get<{ expired: number; soonExpiring: number; alerts: { type: string; productId: string; expiryDate: string }[] }>('/warehouse/alerts'),
 
+  // Inventar (stock levels)
+  getStockLevels: (params?: { warehouseId?: string; lowStock?: boolean; search?: string }) =>
+    apiClient.get<{ productId: string; name: string; sku: string | null; totalQty: number; warehouseName: string; warehouseId: string; minStockLevel: number | null }[]>(
+      '/inventory/levels',
+      { params },
+    ),
+
   // T-336
   listMovements: (params?: {
     productId?: string;

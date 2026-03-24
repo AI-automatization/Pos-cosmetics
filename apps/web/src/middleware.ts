@@ -39,14 +39,22 @@ export function middleware(request: NextRequest) {
   // Role-based routing
   const userRole = request.cookies.get('user_role')?.value;
   const isWarehousePath = pathname.startsWith('/warehouse');
+  const isManagerPath = pathname.startsWith('/manager');
+  const isPosPath = pathname.startsWith('/pos');
 
   if (userRole === 'WAREHOUSE' && !isWarehousePath) {
-    // WAREHOUSE can only access /warehouse/* paths
     return NextResponse.redirect(new URL('/warehouse', request.url));
   }
 
+  if (userRole === 'CASHIER' && !isPosPath) {
+    return NextResponse.redirect(new URL('/pos', request.url));
+  }
+
+  if (userRole === 'MANAGER' && !isManagerPath && !isWarehousePath && !isPosPath) {
+    return NextResponse.redirect(new URL('/manager-dashboard', request.url));
+  }
+
   if (userRole && userRole !== 'WAREHOUSE' && isWarehousePath) {
-    // Non-WAREHOUSE roles cannot access /warehouse/* paths
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

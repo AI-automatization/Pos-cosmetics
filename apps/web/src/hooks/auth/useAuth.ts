@@ -55,10 +55,10 @@ export function useLogin() {
 
         if (user.role === 'WAREHOUSE') {
           router.push('/warehouse');
-        } else if (user.role === 'OWNER') {
-          router.push('/analytics');
         } else if (user.role === 'CASHIER') {
           router.push('/pos');
+        } else if (user.role === 'MANAGER') {
+          router.push('/manager-dashboard');
         } else {
           router.push('/dashboard');
         }

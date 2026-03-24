@@ -57,6 +57,13 @@ export function useWarehouseAlerts() {
   });
 }
 
+export function useStockLevels(params?: Parameters<typeof warehouseApi.getStockLevels>[0]) {
+  return useQuery({
+    queryKey: ['stock-levels', params],
+    queryFn: () => warehouseApi.getStockLevels(params).then((r) => r.data),
+  });
+}
+
 export function useWarehouseMovements(params?: Parameters<typeof warehouseApi.listMovements>[0]) {
   return useQuery({
     queryKey: ['warehouse-movements', params],
