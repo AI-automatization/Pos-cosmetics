@@ -1,8 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
+const USER_KEY = 'user_data';
 
 interface RetryableConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -17,7 +18,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+  const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -32,28 +33,30 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
-        if (!refreshToken) throw new Error('No refresh token');
+        const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+        const userJson = await SecureStore.getItemAsync(USER_KEY);
+        const userId = userJson ? (JSON.parse(userJson) as { id: string }).id : null;
+        if (!refreshToken || !userId) throw new Error('No refresh credentials');
 
-        const { data } = await axios.post<{ access_token: string; refresh_token: string }>(
+        const { data } = await axios.post<{ accessToken: string; refreshToken: string }>(
           `${process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000'}/auth/refresh`,
-          { token: refreshToken },
+          { userId, refreshToken },
         );
 
-        await AsyncStorage.setItem(ACCESS_TOKEN_KEY, data.access_token);
-        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token);
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, data.accessToken);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refreshToken);
 
-        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return apiClient(originalRequest);
       } catch {
-        const currentToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+        const currentToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
         // DEV bypass: dev-token bilan logout qilma
         if (__DEV__ && currentToken === 'dev-token') {
           return Promise.reject(error);
         }
 
-        await AsyncStorage.removeItem(ACCESS_TOKEN_KEY);
-        await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
+        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
 
         const { useAuthStore } = await import('../store/auth.store');
         useAuthStore.getState().logout();

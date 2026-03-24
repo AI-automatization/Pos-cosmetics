@@ -41,10 +41,11 @@ import {
 } from './dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { WarehouseReadOnlyGuard } from '../common/guards/warehouse-read-only.guard';
 
 @ApiTags('Catalog')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, WarehouseReadOnlyGuard)
 @Controller('catalog')
 export class CatalogController {
   constructor(

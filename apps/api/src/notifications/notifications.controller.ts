@@ -28,6 +28,39 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 
+// Notification type → mobile priority mapping (same as alerts.controller.ts)
+const PRIORITY_MAP: Record<string, 'low' | 'medium' | 'high'> = {
+  LOW_STOCK: 'medium',
+  OUT_OF_STOCK: 'high',
+  EXPIRY_WARNING: 'medium',
+  LARGE_REFUND: 'high',
+  NASIYA_OVERDUE: 'high',
+  SHIFT_CHANGED: 'low',
+  SALE_COMPLETED: 'low',
+  ERROR_ALERT: 'high',
+  SYSTEM: 'medium',
+};
+
+function enrichNotification(n: {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  isRead: boolean;
+  createdAt: Date;
+  data?: unknown;
+}) {
+  const d = (n.data ?? {}) as Record<string, unknown>;
+  return {
+    ...n,
+    description: n.body,   // mobile-compatible alias
+    priority: PRIORITY_MAP[n.type] ?? 'medium',
+    branchId: (d['branchId'] as string) ?? '',
+    branchName: (d['branchName'] as string) ?? '',
+    entityId: (d['entityId'] as string) ?? '',
+  };
+}
+
 class RegisterFcmTokenDto {
   @ApiProperty({ example: 'fcm-token-string' })
   @IsString()
@@ -63,22 +96,26 @@ export class NotificationsController {
   // ─── IN-APP NOTIFICATIONS (T-103) ─────────────────────────────
 
   @Get()
-  @ApiOperation({ summary: 'Foydalanuvchi bildirnomalari (sahifalangan)' })
+  @ApiOperation({
+    summary: 'Foydalanuvchi bildirnomalari (sahifalangan)',
+    description: 'Canonical endpoint — /alerts is a deprecated mobile alias. Returns unified format with description + priority fields.',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'unreadOnly', required: false, type: Boolean })
-  getNotifications(
+  async getNotifications(
     @CurrentUser('userId') userId: string,
     @CurrentUser('tenantId') tenantId: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('unreadOnly') unreadOnly?: string,
   ) {
-    return this.notificationsService.getNotifications(userId, tenantId, {
+    const result = await this.notificationsService.getNotifications(userId, tenantId, {
       page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,
       unreadOnly: unreadOnly === 'true',
     });
+    return { ...result, items: result.items.map(enrichNotification) };
   }
 
   @Get('unread-count')

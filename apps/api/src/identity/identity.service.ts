@@ -36,6 +36,7 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   OWNER: 5,
   ADMIN: 4,
   MANAGER: 3,
+  WAREHOUSE: 2.5,
   CASHIER: 2,
   VIEWER: 1,
 };

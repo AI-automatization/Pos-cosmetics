@@ -17,10 +17,12 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 /**
- * /debts/* — top-level alias for mobile-owner app.
- * Backend stores debt data under /nasiya/*, this controller delegates to NasiyaService.
+ * /debts/* — DEPRECATED mobile alias for /nasiya/*.
+ * Full CRUD lives at /nasiya/*. This controller provides read-only mobile summary endpoints.
+ * T-326: path conflict resolution — canonical path is /nasiya/*.
+ * @deprecated Use /nasiya/* for full functionality
  */
-@ApiTags('Debts')
+@ApiTags('Debts (deprecated alias — use /nasiya)')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('debts')

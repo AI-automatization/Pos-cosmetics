@@ -795,6 +795,7 @@ enum UserRole {
   OWNER
   ADMIN
   MANAGER
+  WAREHOUSE
   CASHIER
   VIEWER
 }
@@ -853,6 +854,14 @@ enum StockMovementType {
   TRANSFER_OUT
   RETURN_IN
   TESTER
+  WRITE_OFF
+}
+
+enum WriteOffReason {
+  DAMAGED
+  EXPIRED
+  LOST
+  OTHER
 }
 
 enum DebtStatus {

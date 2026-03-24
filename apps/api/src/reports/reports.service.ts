@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FiscalAdapterService } from '../tax/fiscal-adapter.service';
 
 // T-070: Shubhali faoliyat chegaralari
 const FRAUD_THRESHOLDS = {
@@ -21,6 +22,7 @@ export class ReportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emitter: EventEmitter2,
+    private readonly fiscalAdapter: FiscalAdapterService,
   ) {}
 
   // ─── DAILY REPORT (T-226) ─────────────────────────────────────
@@ -334,6 +336,20 @@ export class ReportsService {
       tenantId,
       revenue: totalRevenue,
       orders: orderAgg._count.id,
+    });
+
+    // ─── Fiskal operatorga Z-report yuborish (non-blocking) ──────────────────
+    this.fiscalAdapter.sendZReport({
+      tenantId,
+      sequenceNumber,
+      date: dayStart,
+      totalRevenue,
+      totalTax,
+      totalOrders: orderAgg._count.id,
+      cashAmount: paymentMap['CASH'] ?? 0,
+      terminalAmount: paymentMap['TERMINAL'] ?? 0,
+    }).catch((err: unknown) => {
+      this.logger.warn(`[ZReport] Fiscal Z-report send failed (non-critical): ${(err as Error).message}`, { tenantId });
     });
 
     return zReport;

@@ -28,10 +28,12 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TransferService, CreateTransferDto } from './transfer.service';
 import { TransferStatus } from '@prisma/client';
+import { Roles } from '../common/decorators';
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
 @Controller('inventory')
 export class InventoryController {
   constructor(
@@ -48,6 +50,7 @@ export class InventoryController {
   }
 
   @Post('warehouses')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Create warehouse' })
   createWarehouse(
     @CurrentUser('tenantId') tenantId: string,

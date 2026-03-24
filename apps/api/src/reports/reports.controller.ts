@@ -9,11 +9,12 @@ import {
   NotFoundException,
   Res,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { ExportService, ExportFormat } from './export.service';
+import { PdfExportService, PdfReportType } from './pdf-export.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -30,6 +31,7 @@ export class ReportsController {
   constructor(
     private readonly reportsService: ReportsService,
     private readonly exportService: ExportService,
+    private readonly pdfExportService: PdfExportService,
   ) {}
 
   // ─── DAILY REPORT (T-226 alias) ───────────────────────────────
@@ -301,5 +303,29 @@ export class ReportsController {
     const result = await this.exportService.exportDebts(tenantId, parseExportFormat(format));
     const dateStr = new Date().toISOString().slice(0, 10);
     this.sendFile(res, result, `nasiyalar-${dateStr}`);
+  }
+
+  // ─── T-303: PDF EXPORT ────────────────────────────────────────────────────
+
+  @Get('export/pdf/:reportType')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  @ApiOperation({ summary: 'T-303: PDF hisobot eksport — daily-revenue | pnl | z-report | tax-report' })
+  @ApiParam({ name: 'reportType', enum: ['daily-revenue', 'pnl', 'z-report', 'tax-report'] })
+  @ApiQuery({ name: 'from', required: false, example: '2026-03-01' })
+  @ApiQuery({ name: 'to', required: false, example: '2026-03-24' })
+  async exportPdf(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('reportType') reportType: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Res() res?: Response,
+  ) {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const result = await this.pdfExportService.exportPdf(
+      tenantId,
+      reportType as PdfReportType,
+      { from, to },
+    );
+    this.sendFile(res!, result, `hisobot-${reportType}-${dateStr}`);
   }
 }

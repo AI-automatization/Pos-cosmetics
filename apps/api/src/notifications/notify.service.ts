@@ -101,6 +101,23 @@ export class NotifyService {
   }
 
   /**
+   * T-329: HR invite token — 7 kun TTL.
+   * POST /employees da avtomatik chaqiriladi.
+   * Qaytarilgan link: t.me/{BOT_USERNAME}?start=TOKEN
+   */
+  async createInviteTokenForUser(userId: string, tenantId: string): Promise<{ token: string; inviteLink: string }> {
+    const token = randomBytes(16).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 kun
+
+    await this.prisma.telegramLinkToken.create({
+      data: { token, userId, tenantId, expiresAt },
+    });
+
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME ?? 'raos_bot';
+    return { token, inviteLink: `https://t.me/${botUsername}?start=${token}` };
+  }
+
+  /**
    * Mijoz uchun Telegram bog'lash tokeni yaratish.
    */
   async createLinkTokenForCustomer(customerId: string, tenantId: string): Promise<string> {
