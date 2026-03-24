@@ -23,6 +23,7 @@ export type TabParamList = {
       }
     | undefined;
   Kirim: undefined;
+  Ombor: undefined;
   Settings: undefined;
 };
 

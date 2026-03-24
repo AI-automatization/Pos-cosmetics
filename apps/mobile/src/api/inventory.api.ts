@@ -75,6 +75,13 @@ export const inventoryApi = {
     return data;
   },
 
+  getStockLevels: async (search?: string): Promise<LowStockItem[]> => {
+    const { data } = await api.get<LowStockItem[]>('/inventory/levels', {
+      params: search ? { search } : undefined,
+    });
+    return data;
+  },
+
   getProductStock: async (productId: string): Promise<ProductStockLevel[]> => {
     const { data } = await api.get<ProductStockLevel[]>(
       `/inventory/products/${productId}/stock`,

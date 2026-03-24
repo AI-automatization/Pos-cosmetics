@@ -8,6 +8,7 @@ import SavdoScreen from '../screens/Savdo';
 import SalesNavigator from './SalesNavigator';
 import NasiyaScreen from '../screens/Nasiya';
 import KirimScreen from '../screens/Kirim';
+import OmborScreen from '../screens/Ombor';
 import SettingsScreen from '../screens/Settings';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -102,6 +103,20 @@ export default function TabNavigator() {
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
               name={focused ? 'archive' : 'archive-outline'}
+              size={22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Ombor"
+        component={OmborScreen}
+        options={{
+          tabBarLabel: 'Ombor',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'cube' : 'cube-outline'}
               size={22}
               color={color}
             />
