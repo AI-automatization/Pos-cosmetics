@@ -12,7 +12,12 @@
       "Bash(__NEW_LINE_cd81fa465e74a2e9__ echo:*)",
       "Bash(__NEW_LINE_257b6ebe1dcacce4__ echo:*)",
       "Bash(__NEW_LINE_81bbd8d75b23be81__ echo:*)",
-      "mcp__playwright__browser_navigate"
+      "mcp__playwright__browser_navigate",
+      "Bash(rm \"C:\\\\Users\\\\asus\\\\Desktop\\\\Pos-cosmetics\\\\apps\\\\web\\\\src\\\\app\\\\\\(auth\\)\\\\403\\\\page.tsx\" 2>/dev/null; rmdir \"C:\\\\Users\\\\asus\\\\Desktop\\\\Pos-cosmetics\\\\apps\\\\web\\\\src\\\\app\\\\\\(auth\\)\\\\403\" 2>/dev/null; echo \"done\")",
+      "Bash(ls -d /c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\\\\\(admin\\\\\\)/*/ | wc -l && ls -d /c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\\\\\(admin\\\\\\)/*/ | tail -15)",
+      "Bash(find \"/c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\(admin\\)\" -maxdepth 1 -type d | sort)",
+      "Bash(ls /c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\\\\\(pos\\\\\\)/ 2>/dev/null)",
+      "Bash(git add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

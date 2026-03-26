@@ -48,7 +48,7 @@ export default function LoginScreen({ navigation }: Props) {
     setIsLoading(true);
     try {
       const response = await authApi.login(email.trim(), password);
-      await login(response.tokens, response.user);
+      await login({ accessToken: response.accessToken, refreshToken: response.refreshToken }, response.user);
       navigation.replace('Biometric');
     } catch (err) {
       setError(extractErrorMessage(err));
@@ -147,8 +147,8 @@ export default function LoginScreen({ navigation }: Props) {
               onPress={() => {
                 completeOnboarding();
                 void login(
-                  { access_token: 'dev-token', refresh_token: 'dev-refresh' },
-                  { id: 'dev-u1', name: 'Ibrat (Dev)', email: 'dev@raos.uz', role: 'OWNER', tenantId: 'dev-tenant' }
+                  { accessToken: 'dev-token', refreshToken: 'dev-refresh' },
+                  { id: 'dev-u1', firstName: 'Ibrat', lastName: '(Dev)', email: 'dev@raos.uz', role: 'OWNER', tenantId: 'dev-tenant' }
                 );
               }}
             >

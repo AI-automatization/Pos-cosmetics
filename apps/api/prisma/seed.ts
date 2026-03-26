@@ -120,11 +120,12 @@ async function main() {
 
   // Also create the original raos-demo users for backwards compat
   const legacyUsers = [
-    { email: 'owner@raos.uz',   firstName: 'Sardor',  lastName: 'Karimov',  role: UserRole.OWNER },
-    { email: 'admin@raos.uz',   firstName: 'Dilnoza', lastName: 'Yusupova', role: UserRole.ADMIN },
-    { email: 'manager@raos.uz', firstName: 'Jasur',   lastName: 'Toshmatov',role: UserRole.MANAGER },
-    { email: 'cashier@raos.uz', firstName: 'Malika',  lastName: 'Rahimova', role: UserRole.CASHIER },
-    { email: 'viewer@raos.uz',  firstName: 'Bobur',   lastName: 'Nazarov',  role: UserRole.VIEWER },
+    { email: 'owner@raos.uz',     firstName: 'Sardor',  lastName: 'Karimov',   role: UserRole.OWNER },
+    { email: 'admin@raos.uz',     firstName: 'Dilnoza', lastName: 'Yusupova',  role: UserRole.ADMIN },
+    { email: 'manager@raos.uz',   firstName: 'Jasur',   lastName: 'Toshmatov', role: UserRole.MANAGER },
+    { email: 'cashier@raos.uz',   firstName: 'Malika',  lastName: 'Rahimova',  role: UserRole.CASHIER },
+    { email: 'viewer@raos.uz',    firstName: 'Bobur',   lastName: 'Nazarov',   role: UserRole.VIEWER },
+    { email: 'warehouse@raos.uz', firstName: 'Sherzod', lastName: 'Ergashev',  role: UserRole.WAREHOUSE },
   ];
   for (const u of legacyUsers) {
     await prisma.user.upsert({

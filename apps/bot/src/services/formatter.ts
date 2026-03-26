@@ -242,4 +242,22 @@ export function formatShiftList(shifts: {
   return `🔄 *AKTIV SMENALAR* \\(${esc(shifts.length)} ta\\)\n\n` + lines.join('\n\n');
 }
 
+// ─── Overdue debt summary alert (09:00 cron) ──────────────────
+
+export function formatDebtSummaryAlert(rows: {
+  tenantName: string;
+  overdueCount: number;
+  totalOverdue: number;
+}[]): string {
+  if (rows.length === 0) return '✅ Muddati o\'tgan qarz yo\'q';
+
+  const lines = rows.map((r) =>
+    `🏪 *${esc(r.tenantName)}*\n` +
+    `  💸 Muddati o'tgan: ${esc(r.overdueCount)} ta\n` +
+    `  💰 Jami: *${esc(money(r.totalOverdue))}*`,
+  );
+
+  return `🔴 *MUDDATI O\'TGAN QARZLAR*\n\n` + lines.join('\n\n');
+}
+
 export { money, esc };

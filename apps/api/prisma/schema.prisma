@@ -804,6 +804,7 @@ enum UserRole {
   OWNER
   ADMIN
   MANAGER
+  WAREHOUSE
   CASHIER
   VIEWER
 }
@@ -862,6 +863,14 @@ enum StockMovementType {
   TRANSFER_OUT
   RETURN_IN
   TESTER
+  WRITE_OFF
+}
+
+enum WriteOffReason {
+  DAMAGED
+  EXPIRED
+  LOST
+  OTHER
 }
 
 enum DebtStatus {
@@ -1371,4 +1380,120 @@ model PriceChange {
   @@index([productId])
   @@index([tenantId, createdAt])
   @@map("price_changes")
+}
+
+// ============================================
+// FEATURE FLAGS (T-313)
+// ============================================
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String
+  tenantId    String   @default("") @map("tenant_id") // "" = global default
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([key, tenantId], name: "key_tenantId")
+  @@index([tenantId])
+  @@map("feature_flags")
+}
+
+// ============================================
+// WAREHOUSE INVOICES (T-327)
+// ============================================
+
+model WarehouseInvoice {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  branchId      String?  @map("branch_id")
+  supplierId    String?  @map("supplier_id")
+  invoiceNumber String?  @map("invoice_number")
+  note          String?
+  totalCost     Decimal  @default(0) @map("total_cost") @db.Decimal(15, 2)
+  createdBy     String   @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  // ⚠️ IMMUTABLE after creation — no updatedAt
+
+  items WarehouseInvoiceItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, supplierId])
+  @@map("warehouse_invoices")
+}
+
+model WarehouseInvoiceItem {
+  id            String           @id @default(uuid())
+  invoiceId     String           @map("invoice_id")
+  productId     String           @map("product_id")
+  quantity      Int
+  purchasePrice Decimal          @map("purchase_price") @db.Decimal(15, 2)
+  totalCost     Decimal          @map("total_cost") @db.Decimal(15, 2)
+  warehouseId   String?          @map("warehouse_id")
+  batchNumber   String?          @map("batch_number")
+  expiryDate    DateTime?        @map("expiry_date")
+
+  invoice       WarehouseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([productId])
+  @@map("warehouse_invoice_items")
+}
+
+// ============================================
+// SUPPORT CRM (T-305)
+// ============================================
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TicketSenderType {
+  USER
+  SUPPORT
+}
+
+model SupportTicket {
+  id          String         @id @default(uuid())
+  tenantId    String         @map("tenant_id")
+  userId      String         @map("user_id")
+  subject     String
+  description String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  messages    TicketMessage[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([userId])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id         String           @id @default(uuid())
+  ticketId   String           @map("ticket_id")
+  senderType TicketSenderType @map("sender_type")
+  senderId   String?          @map("sender_id")
+  message    String
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  ticket     SupportTicket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_messages")
 }

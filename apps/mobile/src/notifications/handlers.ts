@@ -21,7 +21,7 @@ export function handleNotificationResponse(
   response: Notifications.NotificationResponse,
   navigate: (screen: string, params?: object) => void,
 ): void {
-  const data = response.notification.request.content.data as NotificationPayload | undefined;
+  const data = response.notification.request.content.data as unknown as NotificationPayload | undefined;
   if (!data) return;
 
   switch (data.type) {

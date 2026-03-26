@@ -27,6 +27,7 @@ import { AdminMetricsService } from './admin-metrics.service';
 import { AdminLoginDto, AdminCreateDto } from './dto/admin-login.dto';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { QueueService, QUEUE_NAMES, QueueName } from '../common/queue/queue.service';
+import { IpBlockService } from '../common/cache/ip-block.service';
 
 @ApiTags('Super Admin')
 @Controller('admin')
@@ -35,6 +36,7 @@ export class AdminAuthController {
     private readonly adminAuthService: AdminAuthService,
     private readonly adminMetricsService: AdminMetricsService,
     private readonly queueService: QueueService,
+    private readonly ipBlockService: IpBlockService,
   ) {}
 
   // ─── PUBLIC: Login ─────────────────────────────────────────────
@@ -212,6 +214,53 @@ export class AdminAuthController {
     },
   ) {
     return this.adminAuthService.provisionTenant(dto);
+  }
+
+  // ─── T-312: IP Block Manager ──────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Post('ip-block')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-312: Block an IP address (default 24h)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['ip'],
+      properties: {
+        ip: { type: 'string', example: '192.168.1.100' },
+        ttlHours: { type: 'number', example: 24, description: 'Block duration in hours (default 24)' },
+        reason: { type: 'string', example: 'DDoS attempt' },
+      },
+    },
+  })
+  async blockIp(
+    @Body() dto: { ip: string; ttlHours?: number; reason?: string },
+  ) {
+    const ttl = (dto.ttlHours ?? 24) * 3600;
+    await this.ipBlockService.blockIp(dto.ip, ttl, dto.reason ?? 'manual');
+    return { success: true, ip: dto.ip, ttlHours: dto.ttlHours ?? 24 };
+  }
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Delete('ip-unblock/:ip')
+  @ApiOperation({ summary: 'T-312: Unblock an IP address' })
+  async unblockIp(@Param('ip') ip: string) {
+    await this.ipBlockService.unblockIp(ip);
+    return { success: true, ip };
+  }
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('ip-block/:ip/stats')
+  @ApiOperation({ summary: 'T-312: Get failed login count for an IP' })
+  async getIpStats(@Param('ip') ip: string) {
+    const [isBlocked, failedCount] = await Promise.all([
+      this.ipBlockService.isBlocked(ip),
+      this.ipBlockService.getFailedCount(ip),
+    ]);
+    return { ip, isBlocked, failedCount };
   }
 
   // ─── T-094: Dead Letter Queue ──────────────────────────────────────────────

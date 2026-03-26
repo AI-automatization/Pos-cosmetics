@@ -13,7 +13,7 @@ export default function ProfileScreen(): React.JSX.Element {
     <ScreenLayout>
       <Card>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
+          <Text style={styles.avatarText}>{user?.firstName?.charAt(0).toUpperCase() ?? '?'}</Text>
         </View>
 
         <View style={styles.field}>
@@ -24,7 +24,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
         <View style={styles.field}>
           <Text style={styles.label}>{t('settings.profile')}</Text>
-          <Text style={styles.value}>{user?.name}</Text>
+          <Text style={styles.value}>{user?.firstName}</Text>
         </View>
         <View style={styles.divider} />
 

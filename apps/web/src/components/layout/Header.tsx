@@ -6,7 +6,7 @@ import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
 import { useUnreadCount, useMarkAllRead } from '@/hooks/notifications/useNotifications';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { useTranslation } from '@/i18n/i18n-context';
-import { LOCALES, type Locale } from '@/i18n';
+import { LOCALES } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -118,8 +118,6 @@ function LanguageSwitcher() {
     if (open) document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
-
-  const current = LOCALES.find((l) => l.value === locale) ?? LOCALES[0];
 
   return (
     <div ref={ref} className="relative">

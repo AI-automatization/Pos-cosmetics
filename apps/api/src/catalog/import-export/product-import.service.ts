@@ -238,7 +238,7 @@ export class ProductImportService {
     };
   }
 
-  private validateRow(row: ProductRow, lineNum: number) {
+  private validateRow(row: ProductRow, _lineNum: number) {
     if (!row.name) throw new Error(`name (nomi) majburiy`);
     if (isNaN(row.price) || row.price < 0) throw new Error(`narx noto'g'ri: ${row.price}`);
   }

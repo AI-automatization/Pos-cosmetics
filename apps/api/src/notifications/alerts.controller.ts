@@ -59,10 +59,11 @@ function toAlert(n: {
 }
 
 /**
- * /alerts/* — top-level alias for mobile-owner app.
- * Transforms Notification shape → mobile Alert shape.
+ * /alerts/* — DEPRECATED mobile alias for /notifications/*.
+ * Use /notifications instead — both endpoints now return the same unified format.
+ * @deprecated Use /notifications
  */
-@ApiTags('Alerts')
+@ApiTags('Alerts (deprecated — use /notifications)')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('alerts')
@@ -70,7 +71,7 @@ export class AlertsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'T-213: Get alerts (paginated) — mobile-owner format' })
+  @ApiOperation({ summary: 'T-213: Get alerts — DEPRECATED, use GET /notifications', deprecated: true })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: ['all', 'unread', 'read'] })
@@ -100,7 +101,7 @@ export class AlertsController {
   }
 
   @Get('unread-count')
-  @ApiOperation({ summary: 'Unread alerts count — returns { count }' })
+  @ApiOperation({ summary: 'Unread alerts count — DEPRECATED, use GET /notifications/unread-count', deprecated: true })
   getUnreadCount(
     @CurrentUser('userId') userId: string,
     @CurrentUser('tenantId') tenantId: string,

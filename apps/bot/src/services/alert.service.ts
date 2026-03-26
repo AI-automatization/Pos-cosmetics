@@ -133,6 +133,35 @@ export async function getExpiringItems(
   return rows;
 }
 
+// ─── Overdue Debts (for daily 09:00 cron) ─────────────────────
+
+export interface OverdueDebtSummary {
+  tenantName: string;
+  overdueCount: number;
+  totalOverdue: number;
+}
+
+export async function getOverdueDebtSummary(tenantId?: string): Promise<OverdueDebtSummary[]> {
+  const rows = await prisma.$queryRaw<{
+    tenantName: string;
+    overdueCount: number;
+    totalOverdue: number;
+  }[]>`
+    SELECT
+      t.name         AS "tenantName",
+      COUNT(*)::int  AS "overdueCount",
+      SUM(d.remaining)::float AS "totalOverdue"
+    FROM debt_records d
+    JOIN tenants t ON t.id = d.tenant_id
+    WHERE d.status = 'OVERDUE'
+      ${tenantId ? Prisma.sql`AND d.tenant_id = ${tenantId}` : Prisma.empty}
+    GROUP BY t.id, t.name
+    ORDER BY "totalOverdue" DESC
+    LIMIT 20
+  `;
+  return rows;
+}
+
 // ─── Suspicious Refunds ────────────────────────────────────────
 
 export interface SuspiciousRefund {

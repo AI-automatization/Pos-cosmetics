@@ -6,8 +6,8 @@ import { Bot } from 'grammy';
 import { config } from '../config';
 import prisma from '../prisma';
 import { BotSettings, DEFAULT_SETTINGS } from '../services/auth.service';
-import { getLowStockItems, getExpiringItems, getRecentSuspiciousRefunds } from '../services/alert.service';
-import { formatLowStockAlert, formatExpiryAlert, formatRefundAlert } from '../services/formatter';
+import { getLowStockItems, getExpiringItems, getRecentSuspiciousRefunds, getOverdueDebtSummary } from '../services/alert.service';
+import { formatLowStockAlert, formatExpiryAlert, formatRefundAlert, formatDebtSummaryAlert } from '../services/formatter';
 
 // ─── Tenant OWNER larini topish ──────────────────────────────
 
@@ -98,7 +98,25 @@ export function startCronJobs(bot: Bot): void {
     }
   }, { timezone: 'Asia/Tashkent' });
 
-  // ─── 3. Suspicious refunds — har 15 daqiqa ──────────────────
+  // ─── 3. Overdue debts — har kuni 09:00 ─────────────────────
+  cron.schedule(config.debtCheckCron, async () => {
+    console.log('[Cron] Debt check started');
+    try {
+      const owners = await getTenantOwners();
+
+      for (const owner of owners) {
+        const rows = await getOverdueDebtSummary(owner.tenantId);
+        if (rows.length === 0) continue;
+
+        await sendToUser(bot, owner.chatId, formatDebtSummaryAlert(rows));
+        console.log(`[Cron] Debt alert → tenant=${owner.tenantId} count=${rows.length}`);
+      }
+    } catch (err) {
+      console.error('[Cron] Debt check failed:', (err as Error).message);
+    }
+  }, { timezone: 'Asia/Tashkent' });
+
+  // ─── 4. Suspicious refunds — har 15 daqiqa ──────────────────
   cron.schedule('*/15 * * * *', async () => {
     try {
       const owners = await getTenantOwners();
@@ -119,7 +137,7 @@ export function startCronJobs(bot: Bot): void {
     }
   }, { timezone: 'Asia/Tashkent' });
 
-  // ─── 4. Kunlik savdo hisoboti — har kuni 20:00 ──────────────
+  // ─── 5. Kunlik savdo hisoboti — har kuni 20:00 ──────────────
   cron.schedule('0 20 * * *', async () => {
     console.log('[Cron] Daily report started');
     try {
@@ -142,6 +160,7 @@ export function startCronJobs(bot: Bot): void {
   console.log('[Bot] Cron jobs registered:');
   console.log(`  Low stock:  ${config.lowStockCheckCron} (per-tenant)`);
   console.log(`  Expiry:     ${config.expiryCheckCron} (per-tenant)`);
+  console.log(`  Debts:      ${config.debtCheckCron} (per-tenant)`);
   console.log('  Refunds:    */15 * * * * (per-tenant)');
   console.log('  Daily:      0 20 * * * (per-tenant)');
 }

@@ -56,10 +56,8 @@ export default function ScreenLayout({
   });
 
   const unreadCount = alerts?.filter((a) => !a.isRead).length ?? 0;
-  const initials = user ? getInitials(user.name) : '?';
-  const roleLine = [user?.role, user?.branchId ? user.branchId.slice(0, 8) : null]
-    .filter(Boolean)
-    .join(' • ');
+  const initials = user ? getInitials(`${user.firstName} ${user.lastName}`) : '?';
+  const roleLine = user?.role ?? '';
 
   const content = scrollable ? (
     <ScrollView
@@ -95,7 +93,7 @@ export default function ScreenLayout({
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.userName} numberOfLines={1}>
-              {user?.name ?? ''}
+              {user ? `${user.firstName} ${user.lastName}` : ''}
             </Text>
             <Text style={styles.userMeta} numberOfLines={1}>
               {roleLine}
