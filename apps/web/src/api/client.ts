@@ -25,7 +25,8 @@ apiClient.interceptors.response.use(
       err.config._retry = true;
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        const { data } = await apiClient.post('/auth/refresh', { refreshToken });
+        const userId = localStorage.getItem('user_id');
+        const { data } = await apiClient.post('/auth/refresh', { userId, refreshToken });
         localStorage.setItem('access_token', data.accessToken);
         if (data.refreshToken) localStorage.setItem('refresh_token', data.refreshToken);
         err.config.headers.Authorization = `Bearer ${data.accessToken}`;
@@ -33,6 +34,7 @@ apiClient.interceptors.response.use(
       } catch {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_id');
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }

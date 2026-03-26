@@ -51,6 +51,7 @@ export function useLogin() {
       try {
         const user = await authApi.me();
         queryClient.setQueryData(['auth', 'me'], user);
+        localStorage.setItem('user_id', user.id);
         setSessionCookie(user.role); // set role cookie for middleware routing
 
         if (user.role === 'WAREHOUSE') {
@@ -84,6 +85,7 @@ export function useLogout() {
       } finally {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_id');
         clearSessionCookie();
         queryClient.clear();
       }
@@ -95,6 +97,7 @@ export function useLogout() {
       // Even on error, clear local state and redirect
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_id');
       clearSessionCookie();
       router.push('/login');
     },
