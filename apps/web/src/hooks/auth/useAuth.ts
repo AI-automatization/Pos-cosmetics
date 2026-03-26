@@ -58,7 +58,7 @@ export function useLogin() {
         } else if (user.role === 'CASHIER') {
           router.push('/pos');
         } else if (user.role === 'MANAGER') {
-          router.push('/manager-dashboard');
+          router.push('/dashboard');
         } else {
           router.push('/dashboard');
         }

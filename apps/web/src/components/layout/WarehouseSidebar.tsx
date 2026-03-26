@@ -70,15 +70,6 @@ export function WarehouseSidebar() {
         </div>
       </nav>
 
-      {/* Back to admin */}
-      <div className="border-t border-gray-200 p-3">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-gray-400 transition hover:text-gray-600"
-        >
-          ← Admin panelga
-        </Link>
-      </div>
     </aside>
   );
 }

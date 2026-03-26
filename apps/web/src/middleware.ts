@@ -39,7 +39,6 @@ export function middleware(request: NextRequest) {
   // Role-based routing
   const userRole = request.cookies.get('user_role')?.value;
   const isWarehousePath = pathname.startsWith('/warehouse');
-  const isManagerPath = pathname.startsWith('/manager');
   const isPosPath = pathname.startsWith('/pos');
 
   if (userRole === 'WAREHOUSE' && !isWarehousePath) {
@@ -50,9 +49,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/pos', request.url));
   }
 
-  if (userRole === 'MANAGER' && !isManagerPath && !isWarehousePath && !isPosPath) {
-    return NextResponse.redirect(new URL('/manager-dashboard', request.url));
-  }
+  // MANAGER admin panelni role-filtered Sidebar bilan ishlatadi — alohida redirect kerak emas
 
   if (userRole && userRole !== 'WAREHOUSE' && isWarehousePath) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
