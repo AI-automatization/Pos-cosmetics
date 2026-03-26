@@ -36,10 +36,51 @@
 
 ---
 
+## T-337 | P0 | [SECURITY] | Auth guard yo'q — Warehouse va Finance controllerlar ochiq
+
+- **Sana:** 2026-03-26
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/inventory/warehouse-invoice.controller.ts`, `apps/api/src/finance/finance.controller.ts`
+- **Muammo:** `WarehouseInvoiceController`, `WriteOffController`, `FinanceController` da `@UseGuards(JwtAuthGuard)` qo'yilmagan. Agar global guard bo'lmasa — barcha endpointlar autentifikatsiyasiz ochiq.
+- **Kutilgan:** Har controller da `@UseGuards(JwtAuthGuard)` yoki `@UseGuards(JwtAuthGuard, RolesGuard)` qo'shilishi SHART.
+- **Topildi:** Code review (backend-reviewer agent, 2026-03-26)
+
+---
+
+## T-338 | P0 | [SECURITY] | Tenant isolation buzilgan — Support listAllTickets
+
+- **Sana:** 2026-03-26
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/support/support.service.ts:94`
+- **Muammo:** `listAllTickets` metodida `tenantId` filter yo'q — BARCHA tenantlar tiketlarini qaytaradi. `@Roles(UserRole.OWNER)` tenant owner ni tekshiradi, lekin boshqa tenantlardan himoya qilmaydi.
+- **Kutilgan:** `where` ga `tenantId` filter qo'shish yoki `SUPER_ADMIN` role ajratish.
+- **Topildi:** Code review (backend-reviewer agent, 2026-03-26)
+
+---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
+
+---
+
+## T-339 | P1 | [BACKEND] | console.log bot cron da — Logger ishlatish kerak
+
+- **Sana:** 2026-03-26
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/bot/src/cron/alerts.cron.ts:132,141,143,145`
+- **Muammo:** Yangi debt cron da `console.log`/`console.error` ishlatilgan. RAOS standartiga ko'ra faqat structured logger ruxsat.
+- **Kutilgan:** `console.log` → Logger wrapper ga almashtirish.
+
+---
+
+## T-340 | P1 | [BACKEND] | warehouse-invoice.service.ts — 450 qator, SRP buzilgan
+
+- **Sana:** 2026-03-26
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/inventory/warehouse-invoice.service.ts`
+- **Muammo:** 4 ta DTO class + dashboard + invoice CRUD + write-off + movements + alerts bitta faylda (450+ qator). SRP va 400 qator limit buzilgan.
+- **Kutilgan:** DTO larni `dto/warehouse-invoice.dto.ts` ga ajratish. Dashboard/alerts alohida service. Har fayl < 400 qator.
 
 ---
 
@@ -49,7 +90,7 @@
 ## T-306 | P1 | [FRONTEND] | Promotions UI — Backend bor, UI yo'q
 
 - **Sana:** 2026-03-23
-- **Mas'ul:** AbdulazizYormatov
+- **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/app/(admin)/promotions/page.tsx` (yangi)
 - **Muammo:** Promotions engine backend da tayyor (T-099): PERCENT/FIXED/BUY_X_GET_Y/BUNDLE. Lekin admin panelda aksiyalar boshqarish UI yo'q.
 - **Kutilgan:**
@@ -63,7 +104,7 @@
 ## T-307 | P1 | [FRONTEND] | Bundles UI — Backend bor, UI to'liq emas
 
 - **Sana:** 2026-03-23
-- **Mas'ul:** AbdulazizYormatov
+- **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/app/(admin)/catalog/products/`
 - **Muammo:** BundleSection komponent yaratilgan (T-245), lekin to'plam narxi avtomatik hisoblanishi, POS da to'plam tanlash va maxsus chegirma qo'llash UI kerak.
 - **Kutilgan:**
@@ -75,7 +116,7 @@
 ## T-308 | P1 | [FRONTEND] | Real-time updates UI — WebSocket/SSE integratsiya
 
 - **Sana:** 2026-03-23
-- **Mas'ul:** AbdulazizYormatov
+- **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/hooks/realtime/`
 - **Muammo:** Backend da `realtime.gateway.ts` (Socket.io) mavjud. Lekin frontend da WebSocket ulanish va real-time data yangilanishi yo'q.
 - **Kutilgan:**
@@ -89,7 +130,7 @@
 ## T-309 | P1 | [FRONTEND] | ExchangeRate UI — valyuta kursi ko'rsatish
 
 - **Sana:** 2026-03-23
-- **Mas'ul:** AbdulazizYormatov
+- **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/app/(admin)/finance/` yoki dashboard
 - **Muammo:** Backend da CBU exchange rate service bor (T-082/T-105). Lekin admin panelda valyuta kursi ko'rsatilmaydi.
 - **Kutilgan:**
@@ -170,7 +211,7 @@
 ## T-310 | P2 | [FRONTEND] | POS tablet layout — iPad/Android tablet uchun adaptiv
 
 - **Sana:** 2026-03-23
-- **Mas'ul:** AbdulazizYormatov
+- **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/app/(pos)/pos/`
 - **Muammo:** POS sahifasi faqat desktop uchun mo'ljallangan (3-column layout). Tablet da foydalanish qiyin.
 - **Kutilgan:**
@@ -183,7 +224,7 @@
 ## T-314 | P2 | [FRONTEND] | Subscription upgrade/downgrade UI — owner uchun
 
 - **Sana:** 2026-03-23
-- **Mas'ul:** AbdulazizYormatov
+- **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/app/(admin)/settings/subscription/page.tsx` (yangi)
 - **Muammo:** Billing backend tayyor (T-108). Lekin owner admin panelda o'z obunasini ko'rish, upgrade/downgrade qilish UI yo'q.
 - **Kutilgan:**
