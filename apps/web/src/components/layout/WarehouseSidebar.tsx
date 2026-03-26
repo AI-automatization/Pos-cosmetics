@@ -18,8 +18,8 @@ import { cn } from '@/lib/utils';
 
 const NAV = [
   { label: 'Dashboard', href: '/warehouse', icon: LayoutDashboard, exact: true },
-  { label: 'Приход (Накладная)', href: '/warehouse/invoices', icon: PackagePlus },
-  { label: 'Списание', href: '/warehouse/write-off', icon: PackageMinus },
+  { label: 'Nakladnoylar', href: '/warehouse/invoices', icon: PackagePlus },
+  { label: 'Hisobdan chiqarish', href: '/warehouse/write-off', icon: PackageMinus },
   { label: 'Inventar', href: '/warehouse/inventory', icon: Package },
   { label: "Muddati o'tayotganlar", href: '/warehouse/expiry', icon: AlertTriangle },
   { label: 'Kam qolganlar', href: '/warehouse/low-stock', icon: TrendingDown },
