@@ -2251,6 +2251,75 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## T-321 | P0 | [BACKEND] | Analytics — недостающие endpoints + замена demo-данных
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/ai/ai.controller.ts`, `apps/api/src/ai/ai.service.ts`
+- **Muammo:** Мобилка вызывает эти endpoints и получает 404 или неверный формат. Часть endpoints возвращает demo (захардкоженные) данные вместо реальных.
+- **Kutilgan:**
+  - `GET /analytics/orders` — список заказов с аналитикой (нет в backend)
+  - `GET /analytics/revenue-by-branch` — выручка по филиалам (нет)
+  - `GET /analytics/employee-performance` — производительность сотрудников (нет)
+  - `GET /analytics/sales-trend` — исправить формат ответа (мобилка получает 404)
+  - `GET /analytics/revenue` — заменить demo-данные на реальные из БД
+  - `GET /analytics/insights` — убрать захардкоженные тексты → реальный AI анализ
+  - `/analytics/branches/comparison` vs `/analytics/branch-comparison` → унифицировать
+
+---
+
+## T-322 | P0 | [BACKEND] | Inventory — недостающие endpoints
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/inventory/inventory.controller.ts`
+- **Muammo:** Мобилка вызывает эти endpoints и получает 404.
+- **Kutilgan:**
+  - `GET /inventory/out-of-stock` — товары с нулевым остатком (нет в backend)
+  - `GET /inventory/stock-value` — общая стоимость склада (qty × purchase_price, нет)
+
+---
+
+## T-323 | P0 | [BACKEND] | Shifts — недостающие endpoints
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/sales/shifts.controller.ts`
+- **Muammo:** Мобилка вызывает эти endpoints и получает 404.
+- **Kutilgan:**
+  - `GET /shifts/summary` — сводка по всем сменам за период (нет)
+  - `GET /shifts/:id` — детали конкретной смены (нет)
+
+---
+
+## T-324 | P0 | [BACKEND] | Employees — недостающие endpoints
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/employees/employees.controller.ts`
+- **Muammo:** Мобилка и Super Admin вызывают эти endpoints и получают 404.
+- **Kutilgan:**
+  - `GET /employees/performance` — топ сотрудников по продажам (нет)
+  - `GET /employees/:id/performance` — детальная статистика сотрудника (нет)
+  - `GET /employees/suspicious-activity` — аномальная активность (нет)
+  - `PATCH /employees/:id/status` — активировать/деактивировать (нет)
+  - `PATCH /employees/:id/pos-access` — разрешить/запретить доступ к POS (нет)
+
+---
+
+## T-325 | P0 | [BACKEND] | System — недостающие endpoints (sync-status, errors)
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/health/` yoki `apps/api/src/common/system/` (yangi)
+- **Muammo:** Мобилка (System Health экран) и Super Admin вызывают эти endpoints и получают 404.
+- **Kutilgan:**
+  - `GET /system/sync-status` — статус синхронизации POS по каждому филиалу
+  - `GET /system/errors` — последние системные ошибки
+  - Формат sync-status: `{ branch_id, branch_name, last_sync_at, pending_count, status: 'ok'|'warn'|'error' }[]`
+
+---
+
 ## T-302 | P0 | [BACKEND] | Offline sync engine — Outbox pattern to'liq implementatsiya
 
 - **Sana:** 2026-03-23
@@ -2269,111 +2338,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
-
----
-
-## T-129 | P1 | [BACKEND] | File upload service — MinIO S3 integration
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/common/upload/`
-- **Muammo:** File upload service mavjud emas. Product image, sertifikat, eksport fayllari uchun kerak.
-- **Kutilgan:**
-  - `UploadModule`, `UploadService` (`@aws-sdk/client-s3`)
-  - POST /upload — single file (image: jpeg/png/webp, max 5MB)
-  - POST /upload/bulk — multiple files (max 10)
-  - Buckets: `product-images`, `receipts`, `certificates`, `exports`
-  - Auto-resize: thumbnail (200px), medium (800px), original
-  - Presigned URL: GET /upload/:key
-
----
-
-## T-130 | P1 | [BACKEND] | Product bulk import/export — CSV/Excel
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/import/`
-- **Muammo:** Do'kon ochishda 500-1000 ta productni tezkor kiritish mumkin emas.
-- **Kutilgan:**
-  - POST /products/import — CSV/XLSX fayldan bulk import
-  - GET /products/import/template — bo'sh template yuklab olish
-  - Validation: barcode uniqueness, category exists, price > 0
-  - 500+ row -> async BullMQ job
-
----
-
-## T-131 | P1 | [BACKEND] | Barcode generation — Barcodesiz product uchun
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/`
-- **Muammo:** Barcodesiz productlarga internal barcode generatsiya qilish kerak.
-- **Kutilgan:**
-  - EAN-13 internal format, tenant-specific prefix
-  - Auto-generate: product yaratishda barcode yo'q bo'lsa
-  - GET /products/:id/barcode — barcode image (SVG/PNG)
-  - `bwip-js` library
-
----
-
-## T-132 | P1 | [BACKEND] | Tenant settings — Configurable per-tenant sozlamalar
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/identity/settings/`
-- **Muammo:** Har do'kon uchun individual sozlamalar tizimi yo'q (currency, tax_rate, receipt header/footer, rounding, va h.k.)
-- **Kutilgan:**
-  - `tenant_settings` jadvali: id, tenant_id, key, value (JSON), updated_at
-  - GET /settings — tenant sozlamalari
-  - PATCH /settings — yangilash (faqat ADMIN/OWNER)
-  - Default values birinchi marta o'qilganda avtomatik yaratiladi
-
----
-
-## T-133 | P1 | [BACKEND] | Price history — Narx o'zgarishi tarixi
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/`
-- **Muammo:** Narx o'zgarishi log qilinmaydi. Margin trend tahlili uchun kerak.
-- **Kutilgan:**
-  - `price_changes` jadvali: id, tenant_id, product_id, old/new cost/sell price, changed_by, reason, created_at
-  - GET /products/:id/price-history — IMMUTABLE, UPDATE/DELETE TAQIQLANGAN
-
----
-
-## T-138 | P1 | [BACKEND] | Stock levels — Snapshot dan keyin qo'shilgan mahsulotlar ko'rinmaydi
-
-- **Sana:** 2026-03-08
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/inventory.service.ts` -> `getStockLevels()`
-- **Muammo:** `getStockLevels()` snapshot mavjud bo'lsa `stock_snapshots` + delta yondashuvi ishlatadi. Ammo snapshotDAN KEYIN qo'shilgan yangi mahsulotlar `stock_snapshots` da yo'q -> LEFT JOIN orqali ular ko'rinmaydi.
-- **Kutilgan:** SQL ga UNION ALL qo'shish — snapshotda bo'lmagan, lekin stock_movements da bo'lgan mahsulotlarni ham qo'shsin.
-
----
-
-## T-058 | P1 | [BACKEND] | Tenant impersonation — "Login as" any tenant
-
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/admin/`
-- **Muammo:** SaaS owner debug uchun har qanday tenant ga kirish imkoniyati yo'q.
-- **Kutilgan:**
-  - POST /admin/impersonate/:tenantId — vaqtinchalik token (1 soat, read-only option)
-  - Barcha impersonation audit log ga yoziladi
-  - Faqat SUPER_ADMIN roli
-
----
-
-## T-059 | P1 | [BACKEND] | Tenant provisioning wizard — One-click setup
-
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/admin/`
-- **Muammo:** Yangi tenant yaratish murakkab — seed categories, units, default settings, owner user.
-- **Kutilgan:**
-  - POST /admin/tenants/provision — yangi tenant yaratish (tenant + owner + branch + categories + units + settings)
-  - Response: tenant slug, owner credentials
 
 ---
 
@@ -2527,30 +2491,129 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-227 | P1 | [IKKALASI] | Integration test checklist — mobile-owner endpoints
+## T-316 | P1 | [BACKEND] | WAREHOUSE roli — Prisma enum + migratsiya
 
-- **Sana:** 2026-03-15
-- **Mas'ul:** Ibrat + Bekzod
-- **Vazifa:**
-  - [ ] Login: `POST /auth/login`
-  - [ ] Analytics: revenue, orders, branch-comparison, sales-trend, top-products
-  - [ ] Shifts: list, summary, active, detail
-  - [ ] Debts: summary, aging-report, customers
-  - [ ] Alerts: list, unread-count, mark-read
-  - [ ] System: health, sync-status
-  - [ ] Employees: list
-  - [ ] Inventory: out-of-stock
-  - [ ] Seed data test
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `prisma/schema.prisma`, `packages/types/src/auth.ts`
+- **Muammo:** `UserRole` enum da `WAREHOUSE` roli yo'q. Ombor xodimlari alohida rol bilan ishlashi kerak.
+- **Kutilgan:**
+  - `prisma/schema.prisma` da `UserRole` enum ga `WAREHOUSE` qo'shish (CASHIER va MANAGER orasida, daraja: 2.5)
+  - `packages/types/src/auth.ts` da `UserRole` enum yangilash
+  - `npx prisma migrate dev --name add-warehouse-role` migratsiya
+  - `identity.service.ts` da `ROLE_HIERARCHY` ga `WAREHOUSE: 2.5` qo'shish
+  - `employees.service.ts` da WAREHOUSE rol tanlov imkoniyati
 
 ---
 
-## T-241 | P1 | [IKKALASI] | packages/types — etishmayotgan shared typelar
+## T-317 | P1 | [FRONTEND] | route group (warehouse) + layout + sidebar
 
-- **Sana:** 2026-03-18
-- **Mas'ul:** Ibrat + AbdulazizYormatov (kelishib)
-- **Fayl:** `packages/types/src/`
-- **Muammo:** `ProductVariant`, `Bundle`, `LoyaltyAccount`, `Promotion` typelar yo'q shared package da
-- **Kutilgan:** packages/types ga qo'shish — web, mobile, backend birgalikda ishlatadi
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/`
+- **Muammo:** WAREHOUSE roli uchun alohida panel yo'q. Hozir (admin) panelda ko'rinishi kerak bo'lmagan narsalar ko'rinadi.
+- **Kutilgan:**
+  - `apps/web/src/app/(warehouse)/layout.tsx` — ombor panel layouti
+  - `apps/web/src/app/(warehouse)/warehouse/` — asosiy sahifalar
+  - `apps/web/src/components/layout/WarehouseSidebar.tsx` — faqat ombor bo'limlari:
+    - Inventar (stock levels, stock-in, stock-out, transfer)
+    - Mahsulotlar (read-only catalog)
+    - Muddati o'tayotganlar (expiry)
+    - Kam qolganlar (low-stock)
+  - Login redirect: `WAREHOUSE → /warehouse`
+  - Route guard: WAREHOUSE roli `/admin/*` ga kira olmaydi
+
+---
+
+## T-326 | P1 | [BACKEND] | API path conflicts унификация (кроме T-311)
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/`
+- **Muammo:** Несколько endpoints дублируются под разными путями — путаница между мобилкой и вебом.
+- **Kutilgan:**
+  - `/inventory/low-stock` vs `/inventory/stock/low` → один путь, второй deprecated alias
+  - `/employees` vs `/users` → унифицировать (один путь + alias)
+  - `/debts/*` vs `/nasiya/*` → унифицировать (одна коллекция endpoints)
+  - `/system/health` vs `/health` → выбрать один (предпочтительно `/health`)
+  - `/analytics/branches/comparison` vs `/analytics/branch-comparison` → унифицировать
+
+---
+
+## T-327 | P1 | [FRONTEND] | Warehouse: Приход товара с накладной (invoice snapshot)
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/`, `apps/api/src/inventory/`
+- **Muammo:** Текущий stock-in (T-320) — simplified DTO. Нужна полноценная накладная как неизменяемый snapshot-документ.
+- **Kutilgan:**
+  - Форма приёма: филиал + поставщик + таблица товаров (штрихкод, кол-во, цена закупки)
+  - После сохранения накладная = snapshot (не редактируется — только reversal)
+  - `POST /warehouse/invoices` — создать накладную (создаёт stock-in движения)
+  - `GET /warehouse/invoices` — список накладных с фильтром по дате/поставщику
+  - `GET /warehouse/invoices/:id` — детали накладной
+  - Цена закупки → событие Finance модуля (расход) через domain event
+
+---
+
+## T-328 | P1 | [FRONTEND] | Warehouse: Списание (write-off) с причиной
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/write-off/` (yangi), `apps/api/src/inventory/`
+- **Muammo:** Нет страницы и API для списания товара с причиной.
+- **Kutilgan:**
+  - Страница `/warehouse/write-off` — форма списания
+  - Причины: `DAMAGED` (повреждён) / `EXPIRED` (просрочен) / `LOST` (потерян) / `OTHER`
+  - `POST /inventory/write-off` — `{ productId, qty, reason, note, warehouseId }`
+  - Создаёт stock movement типа `OUT` с reference_type = `WRITE_OFF`
+  - История: кто, когда, причина — в stock history
+
+---
+
+## T-329 | P1 | [BACKEND] | HR invite flow: email → invite link → Telegram привязка
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/identity/`, `apps/bot/src/`
+- **Muammo:** Owner создаёт сотрудника, но нет автоматической привязки Telegram через invite link.
+- **Kutilgan:**
+  - `POST /employees` создаёт invite token (UUID, 7 дней TTL)
+  - Email сотруднику: `t.me/raos_bot?start=TOKEN`
+  - Bot: `/start TOKEN` → ищет invite token в БД → привязывает `telegram_chat_id`
+  - После привязки: все уведомления идут в Telegram (birlamchi kanal)
+  - `user_invites` jadvali: `{ id, token, user_id, expires_at, used_at }`
+
+---
+
+## T-330 | P1 | [FRONTEND] | POS: 80мм термопринтер ESC/POS интеграция
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(admin)/settings/printer/`, `apps/web/src/hooks/pos/`
+- **Muammo:** POS должен автоматически печатать чек на 80мм термопринтере после оплаты. Сейчас только browser print.
+- **Kutilgan:**
+  - `/settings/printer` — выбор порта принтера (USB / сетевой IP:Port)
+  - Автопечать после успешной оплаты (не блокирует завершение продажи)
+  - ESC/POS команды (библиотека `escpos` или `node-escpos`)
+  - Fallback: браузерная печать если принтер недоступен
+  - Настройка: логотип магазина, INN/STIR, footer текст
+
+---
+
+## T-318 | P1 | [BACKEND] | RBAC guards — WAREHOUSE uchun endpoint himoyasi
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/inventory/inventory.controller.ts`, `apps/api/src/catalog/catalog.controller.ts`
+- **Muammo:** WAREHOUSE roli qo'shilgandan keyin, endpoint da to'g'ri ruxsatlar kerak.
+- **Kutilgan:**
+  - `inventory.controller.ts` — WAREHOUSE roli ham ruxsatli (stock operations)
+  - `catalog.controller.ts` — WAREHOUSE faqat GET (read-only)
+  - `sales.controller.ts` — WAREHOUSE TAQIQLANGAN (savdo qila olmaydi)
+  - `finance.controller.ts` — WAREHOUSE TAQIQLANGAN
+  - `settings.controller.ts` — WAREHOUSE TAQIQLANGAN
+  - Middleware: WAREHOUSE `/warehouse/*` dan tashqariga chiqsa → 403
 
 ---
 
@@ -2560,13 +2623,120 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-128 | P2 | [DEVOPS] | .gitignore yangilash — keraksiz fayllarni ignore
+## T-319 | P2 | [FRONTEND] | Warehouse dashboard sahifasi
 
-- **Sana:** 2026-02-28
+- **Sana:** 2026-03-23
 - **Mas'ul:** Ibrat
-- **Fayl:** `.gitignore`
-- **Muammo:** Ba'zi fayllar git da kuzatilmoqda: `tsconfig.tsbuildinfo`, `logs/`, `.claude/settings.local.json`
-- **Kutilgan:** Barcha keraksiz fayllar ignore qilingan
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx`
+- **Muammo:** WAREHOUSE panel uchun asosiy dashboard sahifasi yo'q.
+- **Kutilgan:**
+  - Bugungi stock holati (stat kartalar)
+  - Kam qolgan mahsulotlar ro'yxati
+  - Muddati o'tayotgan mahsulotlar
+  - So'nggi stock harakatlari (in/out)
+  - Transfer kutayotganlar
+
+---
+
+## T-320 | P2 | [BACKEND] | Warehouse API endpoints — ombor uchun maxsus
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/inventory/`, `apps/api/src/sync/`
+- **Muammo:** WAREHOUSE roli uchun maxsus API endpointlar kerak (dashboard stats, quick actions).
+- **Kutilgan:**
+  - `GET /warehouse/dashboard` — stock summary (total products, low stock count, expiry count, today's movements)
+  - `GET /warehouse/movements/today` — bugungi harakatlar
+  - `POST /warehouse/stock-in` — tezkor qabul qilish (simplified DTO)
+  - `POST /warehouse/stock-out` — tezkor chiqarish
+  - `GET /warehouse/alerts` — kritik ogohlantirishlar
+
+---
+
+## T-331 | P2 | [FRONTEND] | Web Onboarding для Owner: первый вход в CRM
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(admin)/onboarding/` (yangi)
+- **Muammo:** Новый Owner после регистрации видит пустую страницу. Нет guided setup.
+- **Kutilgan:**
+  - Шаги: 1) Создать филиал → 2) Добавить сотрудников → 3) Добавить товары → 4) Готово
+  - Прогресс-бар (stepper component)
+  - Пропуск любого шага → /dashboard
+  - Статус onboarding сохраняется в tenant settings
+
+---
+
+## T-332 | P2 | [MOBILE] | Mobile: экран System Health (мониторинг инфраструктуры)
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile-owner/src/screens/SystemHealth/` (yangi)
+- **Muammo:** Owner/Manager не видит статус инфраструктуры с телефона.
+- **Kutilgan:**
+  - Статусы: 🟢/🟡/🔴 API / DB / Worker / Fiscal
+  - Статус синхронизации POS по каждому филиалу (pending_count, last_sync_at)
+  - Последние ошибки (GET /system/errors)
+  - Pull-to-refresh + автообновление каждые 30 сек
+
+---
+
+## T-333 | P2 | [MOBILE] | Mobile: экран просмотра склада (read-only)
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile-owner/src/screens/Warehouse/` (yangi)
+- **Muammo:** Owner/Manager не может проверить остатки склада с мобильного.
+- **Kutilgan:**
+  - Список товаров с остатками, поиск по названию/штрихкоду
+  - Вкладка 🔴 Low stock — товары ниже минимума
+  - Вкладка 🟡 Истекающие сроки — предупреждение за 30 дней
+  - Только просмотр — изменения только через Warehouse ERP (веб)
+
+---
+
+## T-334 | P2 | [MOBILE] | Mobile: HR экран управления сотрудниками
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile-owner/src/screens/HR/` (yangi)
+- **Muammo:** Owner/Manager не может управлять сотрудниками с мобильного.
+- **Kutilgan:**
+  - Список сотрудников по филиалу (роль, статус, last active)
+  - Создание аккаунта (имя, роль, email → invite flow T-329)
+  - Деактивировать/активировать аккаунт
+  - Статистика сотрудника: продажи за месяц, количество смен
+
+---
+
+## T-335 | P2 | [BACKEND] | Telegram Bot: команды /stock, /lowstock, /expiry, /debt, /shifts
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/bot/src/`
+- **Muammo:** Telegram бот имеет базовые команды. Нет команд для проверки склада, долгов и смен.
+- **Kutilgan:**
+  - `/stock ШТРИХКОД` — остаток товара по штрихкоду (Warehouse, Manager)
+  - `/lowstock` — список low stock товаров (Warehouse, Manager)
+  - `/expiry` — товары с истекающим сроком ≤ 30 дней (Warehouse, Manager)
+  - `/debt ТЕЛЕФОН` — долг клиента по номеру (Cashier, Manager)
+  - `/shifts` — активные смены по всем филиалам (Manager, Owner)
+  - `/logout` — выход из аккаунта (все роли)
+  - Авто-уведомления: low stock каждый час, сроки в 08:00, долги в 09:00
+
+---
+
+## T-336 | P2 | [FRONTEND] | Warehouse: история движений товара (stock history)
+
+- **Sana:** 2026-03-23
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/history/` (yangi)
+- **Muammo:** Нет страницы с подробной историей движений по товарам для warehouse.
+- **Kutilgan:**
+  - Страница `/warehouse/history` — список всех движений
+  - Фильтр: товар / тип (IN/OUT/TRANSFER/WRITE_OFF) / дата / пользователь
+  - Колонки: дата, товар, тип, количество (+/-), кто, причина/источник
+  - Экспорт в CSV
 
 ---
 
@@ -2669,25 +2839,27 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **31** | **5** | **18** | **3** | **5** |
+| **42** | **7** | **19** | **10** | **6** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 5 | 12 | 0 | 4 | **21** |
-| [FRONTEND] | 0 | 4 | 2 | 0 | **6** |
-| [DEVOPS] | 0 | 0 | 1 | 0 | **1** |
-| [IKKALASI] | 0 | 2 | 0 | 1 | **3** |
+| [BACKEND] | 7 | 13 | 2 | 5 | **27** |
+| [FRONTEND] | 0 | 6 | 4 | 0 | **10** |
+| [MOBILE] | 0 | 0 | 3 | 0 | **3** |
+| [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 5 | 12 | 1 | 0 | **18** |
+| **Ibrat** (Full-Stack) | 7 | 15 | 3 | 0 | **25** |
 | **AbdulazizYormatov** (Team Lead, Frontend) | 0 | 4 | 2 | 0 | **6** |
-| **Ibrat + AbdulazizYormatov** (birgalikda) | 0 | 2 | 0 | 0 | **2** |
-| **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
+| **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
+| **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
+
+> Yangilangan: 2026-03-23 — Miro доска tahlilidan 16 ta yangi vazifa qo'shildi (T-321…T-336)
 
 ---
 

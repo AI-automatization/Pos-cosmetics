@@ -26,6 +26,11 @@
 | BUG-007 | 2026-03-02 | BACKEND | Users jadvalida `is_active` ustun camelCase: `u.is_active` → `u."isActive"` | ai.service.ts, reports.service.ts |
 | BUG-008 | 2026-03-02 | BACKEND | StockMovementType enum: `ADJUSTMENT_IN`, `RETURN_OUT`, `ADJUSTMENT_OUT`, `TESTER` mavjud emas | export.service.ts |
 | BUG-009 | 2026-03-02 | BACKEND | Transfer controller: `@CurrentUser('sub')` → `@CurrentUser('userId')` (JWT validate `userId` qaytaradi, `sub` emas) | inventory.controller.ts |
+| T-227 | 2026-03-22 | MOBILE | auth.api.ts login() missing slug → `process.env.EXPO_PUBLIC_TENANT_SLUG` dan olib `{ email, password, slug }` yuborildi | auth.api.ts |
+| T-228 | 2026-03-22 | MOBILE | LoginResponse format mismatch → `{ accessToken, refreshToken, user }` flat camelCase formatga moslashtrildi; AuthTokens fields renamed | auth.api.ts, auth.store.ts, LoginScreen.tsx |
+| T-229 | 2026-03-22 | MOBILE | Refresh body `{token}` → `{userId, refreshToken}`; response `data.access_token` → `data.accessToken`; userId SecureStore da saqlanadi | client.ts, auth.store.ts |
+| T-230 | 2026-03-22 | MOBILE | User.name field → firstName + lastName; ProfileScreen `user.name` → `user.firstName + user.lastName`; DEV bypass yangilandi | auth.api.ts, ProfileScreen.tsx, LoginScreen.tsx |
+| T-231 | 2026-03-22 | MOBILE | AsyncStorage → expo-secure-store (SecureStore.setItemAsync/getItemAsync/deleteItemAsync) — client.ts va auth.store.ts | client.ts, auth.store.ts |
 
 ---
 
@@ -232,7 +237,6 @@
 | T-125 | 2026-03-12 | Login Screen iOS — Figma ga 1:1 mos. Logo box (purple R), RAOS subtitle, email/parol inputlar (ikonkalar bilan), eye toggle, "Parolni unutdingizmi?", Kirish tugma, YOKI divider, barmoq izi tugma, til tanlash (UZ/RU/EN). Auto-demo-auth `auth.store.ts` dan olib tashlandi — LoginScreen dagi "Demo kirish" tugmasi orqali kirish. | `apps/mobile/src/screens/Auth/LoginScreen.tsx`, `apps/mobile/src/store/auth.store.ts` |
 
 ---
-
 ## 2026-03-13 SESSIYA — BACKEND INFRA (T-126, T-129..T-133)
 
 | T-# | Kategoriya | Yechim | Fayl(lar) |
