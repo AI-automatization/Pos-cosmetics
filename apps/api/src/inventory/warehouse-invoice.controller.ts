@@ -1,18 +1,18 @@
 import {
   Controller, Get, Post, Param, Body, Query,
-  DefaultValuePipe, ParseIntPipe,
+  DefaultValuePipe, ParseIntPipe, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import {
-  WarehouseInvoiceService,
-  CreateInvoiceDto,
-  WriteOffDto,
-} from './warehouse-invoice.service';
+import { WarehouseInvoiceService } from './warehouse-invoice.service';
+import { CreateInvoiceDto, WriteOffDto } from './dto/warehouse-invoice.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
 
 @ApiTags('Warehouse')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('warehouse')
 export class WarehouseInvoiceController {
   constructor(private readonly svc: WarehouseInvoiceService) {}
@@ -114,6 +114,7 @@ export class WarehouseInvoiceController {
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('inventory')
 export class WriteOffController {
   constructor(private readonly svc: WarehouseInvoiceService) {}

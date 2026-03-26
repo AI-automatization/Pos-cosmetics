@@ -9,6 +9,7 @@ import { CreateTicketDto, AddMessageDto, UpdateTicketStatusDto } from './dto/sup
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
 
 @ApiTags('Support')
 @ApiBearerAuth()
@@ -87,13 +88,12 @@ export class SupportController {
 
 @ApiTags('Admin')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SuperAdminGuard)
 @Controller('admin/support')
 export class AdminSupportController {
   constructor(private readonly supportService: SupportService) {}
 
   @Get('tickets')
-  @Roles(UserRole.OWNER)
   @ApiOperation({ summary: 'T-305: Barcha tenantlardan tiketlar (Super Admin)' })
   @ApiQuery({ name: 'status', enum: TicketStatus, required: false })
   @ApiQuery({ name: 'page', required: false, example: 1 })

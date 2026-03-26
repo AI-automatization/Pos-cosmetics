@@ -51,6 +51,8 @@ export class ExpenseFilterDto {
   limit?: number;
 }
 
+type LedgerRow = { account: string; type: string; total: number };
+
 @Injectable()
 export class FinanceService {
   private readonly logger = new Logger(FinanceService.name);
@@ -145,8 +147,6 @@ export class FinanceService {
   // ─── T-315: PROFIT & LOSS ────────────────────────────────────────────────
 
   async getPnl(tenantId: string, from: Date, to: Date) {
-    type LedgerRow = { account: string; type: string; total: number };
-
     const rows = await this.prisma.$queryRaw<LedgerRow[]>`
       SELECT
         jl.account,
@@ -201,8 +201,6 @@ export class FinanceService {
   // ─── T-315: BALANCE SHEET ────────────────────────────────────────────────
 
   async getBalanceSheet(tenantId: string, asOf: Date) {
-    type LedgerRow = { account: string; type: string; total: number };
-
     const rows = await this.prisma.$queryRaw<LedgerRow[]>`
       SELECT
         jl.account,
