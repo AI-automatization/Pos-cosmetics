@@ -60,8 +60,9 @@ COPY --from=builder /app/node_modules/.bin/prisma  ./node_modules/.bin/prisma
 COPY --from=builder /app/node_modules/prisma        ./node_modules/prisma
 
 # Startup script (referenced by railway.toml startCommand)
+# sed strips Windows CRLF (\r) so Alpine sh doesn't fail with "not found"
 COPY --from=builder /app/apps/api/start.sh ./start.sh
-RUN chmod +x ./start.sh
+RUN sed -i 's/\r$//' ./start.sh && chmod +x ./start.sh
 
 # Non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 && \
