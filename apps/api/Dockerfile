@@ -59,6 +59,10 @@ COPY --from=builder /deploy/prisma       ./prisma
 COPY --from=builder /app/node_modules/.bin/prisma  ./node_modules/.bin/prisma
 COPY --from=builder /app/node_modules/prisma        ./node_modules/prisma
 
+# Startup script (referenced by railway.toml startCommand)
+COPY --from=builder /app/apps/api/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 && \
     mkdir -p /app/logs && chown -R nestjs:nodejs /app/logs
