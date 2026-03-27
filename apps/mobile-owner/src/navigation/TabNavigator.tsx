@@ -13,6 +13,7 @@ import InventoryScreen from '../screens/Inventory';
 import EmployeesNavigator from './EmployeesNavigator';
 import AlertsScreen from '../screens/Alerts';
 import SettingsScreen from '../screens/Settings';
+import SystemHealthScreen from '../screens/SystemHealth';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -81,6 +82,12 @@ export default function TabNavigator() {
       <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarIcon: tabIcon('cube-outline'), title: 'OMBOR' }} />
       <Tab.Screen name="Employees" component={EmployeesNavigator} options={{ tabBarIcon: tabIcon('people-outline'), title: 'XODIMLAR' }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarIcon: tabIcon('settings-outline'), title: 'SOZLAMALAR' }} />
+
+      <Tab.Screen
+        name="SystemHealth"
+        component={SystemHealthScreen}
+        options={{ tabBarIcon: tabIcon('pulse-outline'), title: 'SISTEMA' }}
+      />
 
       {/* Hidden tab — navigable via bell icon in header */}
       <Tab.Screen
