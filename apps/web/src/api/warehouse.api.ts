@@ -77,7 +77,7 @@ export const warehouseApi = {
     apiClient.get<{ id: string; type: string; quantity: number; createdAt: string; product: { name: string } }[]>('/warehouse/movements/today'),
 
   getAlerts: () =>
-    apiClient.get<{ expired: number; soonExpiring: number; alerts: { type: string; productId: string; expiryDate: string }[] }>('/warehouse/alerts'),
+    apiClient.get<{ expired: number; soonExpiring: number; alerts: { type: string; productId: string; expiryDate: string; batchNumber?: string | null; product?: { name: string } | null }[] }>('/warehouse/alerts'),
 
   // Inventar (stock levels)
   getStockLevels: (params?: { warehouseId?: string; lowStock?: boolean; search?: string }) =>

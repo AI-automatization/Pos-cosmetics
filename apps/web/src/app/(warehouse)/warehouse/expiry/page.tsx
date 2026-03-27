@@ -27,8 +27,8 @@ export default function ExpiryPage() {
       {/* Sarlavha */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Muddati o'tayotgan tovarlar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Muddati o'tgan yoki yaqin tovarlar</p>
+          <h1 className="text-2xl font-bold text-gray-900">Muddati o&apos;tayotgan tovarlar</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Muddati o&apos;tgan yoki yaqin tovarlar</p>
         </div>
         <button
           onClick={() => void refetch()}
@@ -45,7 +45,7 @@ export default function ExpiryPage() {
           {(data?.expired ?? 0) > 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm">
               <CalendarX className="h-4 w-4 text-red-500" />
-              <span className="text-red-700 font-medium">{data!.expired} ta mahsulot muddati o'tib ketgan!</span>
+              <span className="text-red-700 font-medium">{data!.expired} ta mahsulot muddati o&apos;tib ketgan!</span>
             </div>
           )}
           {(data?.soonExpiring ?? 0) > 0 && (
@@ -56,7 +56,7 @@ export default function ExpiryPage() {
           )}
           {(data?.expired ?? 0) === 0 && (data?.soonExpiring ?? 0) === 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm">
-              <span className="text-green-700 font-medium">Muddati o'tayotgan tovar yo'q ✓</span>
+              <span className="text-green-700 font-medium">Muddati o&apos;tayotgan tovar yo&apos;q ✓</span>
             </div>
           )}
         </div>
@@ -71,7 +71,7 @@ export default function ExpiryPage() {
       ) : alerts.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl py-16 flex flex-col items-center gap-2 text-gray-400">
           <AlertTriangle className="h-10 w-10 text-gray-300" />
-          <p className="text-sm">Muddati o'tayotgan tovar yo'q</p>
+          <p className="text-sm">Muddati o&apos;tayotgan tovar yo&apos;q</p>
         </div>
       ) : (
         <>
@@ -80,13 +80,13 @@ export default function ExpiryPage() {
             <div className="bg-white border border-red-200 rounded-xl overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-red-100 bg-red-50">
                 <CalendarX className="h-4 w-4 text-red-600" />
-                <h2 className="text-sm font-semibold text-red-800">Muddati o'tib ketgan ({expiredItems.length} ta)</h2>
+                <h2 className="text-sm font-semibold text-red-800">Muddati o&apos;tib ketgan ({expiredItems.length} ta)</h2>
               </div>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                    <th className="px-4 py-3 text-left">Mahsulot ID</th>
-                    <th className="px-4 py-3 text-left">Partiya</th>
+                    <th className="px-4 py-3 text-left">Mahsulot</th>
+                    <th className="px-4 py-3 text-left">Partiya №</th>
                     <th className="px-4 py-3 text-left">Muddati</th>
                     <th className="px-4 py-3 text-right">Qancha kechikdi</th>
                   </tr>
@@ -96,8 +96,10 @@ export default function ExpiryPage() {
                     const days = daysUntil(item.expiryDate);
                     return (
                       <tr key={idx} className="hover:bg-red-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-900 font-mono text-xs">{item.productId.slice(0, 8)}...</td>
-                        <td className="px-4 py-3 text-gray-500">{item.type ?? '—'}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {item.product?.name ?? item.productId}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">{item.batchNumber ?? '—'}</td>
                         <td className="px-4 py-3 text-red-600 font-medium">
                           {new Date(item.expiryDate).toLocaleDateString('uz-UZ')}
                         </td>
@@ -124,8 +126,8 @@ export default function ExpiryPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                    <th className="px-4 py-3 text-left">Mahsulot ID</th>
-                    <th className="px-4 py-3 text-left">Partiya</th>
+                    <th className="px-4 py-3 text-left">Mahsulot</th>
+                    <th className="px-4 py-3 text-left">Partiya №</th>
                     <th className="px-4 py-3 text-left">Muddati</th>
                     <th className="px-4 py-3 text-right">Qancha qoldi</th>
                   </tr>
@@ -135,8 +137,10 @@ export default function ExpiryPage() {
                     const days = daysUntil(item.expiryDate);
                     return (
                       <tr key={idx} className={cn('hover:bg-orange-50 transition-colors', days <= 7 && 'bg-orange-50/50')}>
-                        <td className="px-4 py-3 font-medium text-gray-900 font-mono text-xs">{item.productId.slice(0, 8)}...</td>
-                        <td className="px-4 py-3 text-gray-500">{item.type ?? '—'}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {item.product?.name ?? item.productId}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">{item.batchNumber ?? '—'}</td>
                         <td className="px-4 py-3 text-orange-600 font-medium">
                           {new Date(item.expiryDate).toLocaleDateString('uz-UZ')}
                         </td>

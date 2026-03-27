@@ -266,14 +266,14 @@ export class WarehouseInvoiceService {
 
     const expiredItems = await this.prisma.stockMovement.findMany({
       where: { tenantId, expiryDate: { lt: today } },
-      select: { productId: true, expiryDate: true, batchNumber: true },
+      select: { productId: true, expiryDate: true, batchNumber: true, product: { select: { name: true } } },
       distinct: ['productId'],
       take: 20,
     });
 
     const soonExpiring = await this.prisma.stockMovement.findMany({
       where: { tenantId, expiryDate: { gte: today, lte: in7Days } },
-      select: { productId: true, expiryDate: true, batchNumber: true },
+      select: { productId: true, expiryDate: true, batchNumber: true, product: { select: { name: true } } },
       distinct: ['productId'],
       take: 20,
     });
