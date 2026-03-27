@@ -84,6 +84,36 @@
 
 ---
 
+## T-341 | P1 | [FRONTEND] | Stock-in forma — yetkazib beruvchi, partiya, muddat maydonlari yo'q
+
+- **Sana:** 2026-03-27
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
+- **Muammo:** Yetkazib beruvchi (`supplierId`) tanlash yo'q; har item uchun `batchNumber` va `expiryDate` maydonlari ko'rsatilmaydi (DTO da bor, UI da yo'q); mahsulot `<select>` da qidiruv yo'q (500 ta tovar); saqlangandan keyin `/warehouse/invoices` ga redirect qilinmaydi.
+- **Kutilgan:** Supplier dropdown, batchNumber/expiryDate per-row, searchable product, redirect fix.
+
+---
+
+## T-342 | P1 | [FRONTEND] | Inventar `/inventory/levels` response mismatch — name/warehouseName yo'q
+
+- **Sana:** 2026-03-27
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/inventory/inventory.service.ts` → `getStockLevels()`
+- **Muammo:** Backend `{ productId, warehouseId, stock }` qaytaradi, lekin frontend `{ name, sku, totalQty, warehouseName, minStockLevel }` kutadi. Inventar va low-stock sahifalarida bo'sh ko'rinadi.
+- **Kutilgan:** Backend product + warehouse JOIN qo'shib enriched response qaytarishi kerak.
+
+---
+
+## T-343 | P2 | [FRONTEND] | Dashboard expiryItems — productName o'rniga productId ko'rsatilmoqda
+
+- **Sana:** 2026-03-27
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx:151`, `apps/api/src/inventory/warehouse-invoice.service.ts`
+- **Muammo:** `getDashboard()` da `expiryItems` product nomini qaytarmaydi. Frontend `item.productId` ko'rsatadi (UUID).
+- **Kutilgan:** Backend `product: { name }` include qilishi, frontend `item.product?.name` ko'rsatishi kerak.
+
+---
+
 
 
 

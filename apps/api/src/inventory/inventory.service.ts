@@ -278,23 +278,45 @@ export class InventoryService {
       `;
     }
 
+    // Enrich with product and warehouse names
+    const productIds = [...new Set(grouped.map((g) => g.productId))];
+    const warehouseIds = [...new Set(grouped.map((g) => g.warehouseId))];
+
+    const [enrichProducts, enrichWarehouses] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { id: { in: productIds }, tenantId },
+        select: { id: true, name: true, sku: true, minStockLevel: true },
+      }),
+      this.prisma.warehouse.findMany({
+        where: { id: { in: warehouseIds }, tenantId },
+        select: { id: true, name: true },
+      }),
+    ]);
+
+    const productMap = new Map(enrichProducts.map((p) => [p.id, p]));
+    const warehouseMap = new Map(enrichWarehouses.map((w) => [w.id, w]));
+
+    const enriched = grouped.map((g) => {
+      const p = productMap.get(g.productId);
+      const w = warehouseMap.get(g.warehouseId);
+      return {
+        productId: g.productId,
+        warehouseId: g.warehouseId,
+        totalQty: Number(g.stock),
+        name: p?.name ?? '',
+        sku: p?.sku ?? null,
+        minStockLevel: p?.minStockLevel ? Number(p.minStockLevel) : null,
+        warehouseName: w?.name ?? '',
+      };
+    });
+
     if (cacheKey) {
-      await this.cache.set(cacheKey, grouped, CACHE_TTL.STOCK_LEVELS);
+      await this.cache.set(cacheKey, enriched, CACHE_TTL.STOCK_LEVELS);
     }
 
-    if (!opts.lowStock) return grouped;
+    if (!opts.lowStock) return enriched;
 
-    const productIds = grouped.map((g) => g.productId);
-    const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds }, tenantId },
-      select: { id: true, name: true, minStockLevel: true, sku: true },
-    });
-
-    const productMap = new Map(products.map((p) => [p.id, p]));
-    return grouped.filter((g) => {
-      const p = productMap.get(g.productId);
-      return p && Number(g.stock) <= Number(p.minStockLevel);
-    });
+    return enriched.filter((item) => item.totalQty <= (item.minStockLevel ?? 5));
   }
 
   // ─── EXPIRY TRACKING (T-031) ─────────────────────────────────

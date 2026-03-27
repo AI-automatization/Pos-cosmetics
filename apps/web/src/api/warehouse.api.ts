@@ -69,7 +69,7 @@ export const warehouseApi = {
     apiClient.get<{
       stats: { totalProducts: number; todayMovementsIn: number; todayMovementsOut: number; lowStockCount: number; expiryCount: number };
       lowStockItems: { productId: string; name: string; totalQty: number }[];
-      expiryItems: { productId: string; expiryDate: string; batchNumber?: string }[];
+      expiryItems: { productId: string; expiryDate: string; batchNumber?: string; product?: { name: string } | null }[];
       recentMovements: { id: string; type: string; quantity: number; createdAt: string; product: { name: string } }[];
     }>('/warehouse/dashboard'),
 

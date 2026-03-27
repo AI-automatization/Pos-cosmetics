@@ -148,7 +148,7 @@ export default function WarehouseDashboardPage() {
           <ul className="divide-y divide-orange-50">
             {data!.expiryItems.map((item) => (
               <li key={item.productId} className="px-4 py-2.5 flex items-center justify-between text-sm">
-                <span className="text-gray-700">{item.productId}</span>
+                <span className="text-gray-700">{item.product?.name ?? item.productId}</span>
                 <span className="text-orange-600 font-medium">
                   {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('uz-UZ') : '—'}
                 </span>
