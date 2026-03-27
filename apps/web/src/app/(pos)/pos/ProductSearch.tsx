@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback } from 'react';
-import { Search, Barcode, Plus } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { Search, Barcode, Plus, Package } from 'lucide-react';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';
 import { useBarcodeScanner } from '@/hooks/pos/useBarcodeScanner';
 import { formatPrice, cn } from '@/lib/utils';
 import type { Product } from '@/types/catalog';
+import { BundleDetailModal } from './BundleDetailModal';
 
 interface ProductSearchProps {
   search: string;
@@ -34,9 +35,17 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
       )}
     >
       <div className="mb-1 flex items-start justify-between gap-1">
-        <p className="line-clamp-2 text-xs font-medium leading-snug text-gray-900">
-          {product.name}
-        </p>
+        <div className="min-w-0">
+          <p className="line-clamp-2 text-xs font-medium leading-snug text-gray-900">
+            {product.name}
+          </p>
+          {product.isBundle && (
+            <span className="mt-0.5 inline-flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+              <Package className="h-2.5 w-2.5" />
+              Bundle
+            </span>
+          )}
+        </div>
         <Plus className="h-4 w-4 shrink-0 text-gray-300 transition group-hover:text-blue-500" />
       </div>
       <p className="mt-auto text-sm font-bold text-blue-600">
@@ -63,6 +72,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
 
 export function ProductSearch({ search, onSearchChange, searchRef }: ProductSearchProps) {
   const addItem = usePOSStore((s) => s.addItem);
+  const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
 
   const { data, isFetching } = useProducts({
     search: search || undefined,
@@ -70,7 +80,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
     isActive: true,
   });
 
-  const handleAdd = useCallback(
+  const doAddItem = useCallback(
     (product: Product) => {
       addItem({
         productId: product.id,
@@ -79,9 +89,21 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         sku: product.sku ?? '',
         sellPrice: Number(product.sellPrice),
         unit: (product.unit?.shortName ?? product.unit?.name ?? 'dona') as import('@/types/catalog').ProductUnit,
+        isBundle: product.isBundle,
       });
     },
     [addItem],
+  );
+
+  const handleAdd = useCallback(
+    (product: Product) => {
+      if (product.isBundle) {
+        setBundleProduct(product);
+      } else {
+        doAddItem(product);
+      }
+    },
+    [doAddItem],
   );
 
   const handleBarcodeScan = useCallback(
@@ -142,6 +164,15 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
           </div>
         )}
       </div>
+
+      {/* Bundle detail modal */}
+      {bundleProduct && (
+        <BundleDetailModal
+          product={bundleProduct}
+          onConfirm={() => doAddItem(bundleProduct)}
+          onClose={() => setBundleProduct(null)}
+        />
+      )}
     </div>
   );
 }

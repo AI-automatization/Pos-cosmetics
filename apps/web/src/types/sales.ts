@@ -12,6 +12,7 @@ export interface CartItem {
   quantity: number;
   lineDiscount: number; // % (0-100)
   unit: ProductUnit;
+  isBundle?: boolean;
 }
 
 export type DiscountType = 'percent' | 'fixed';

@@ -16,10 +16,14 @@ import { ProfitBreakdown } from './ProfitBreakdown';
 import { TopProductsList, TopProductsGrid } from './TopProductsList';
 import { LowStockBanner } from './LowStockBanner';
 import { DemoContent } from './DemoContent';
+import { ExchangeRateWidget } from './ExchangeRateWidget';
+import { useRealtimeEvents } from '@/hooks/realtime/useRealtimeEvents';
 
 export default function DashboardPage() {
   const { data, isLoading, isError } = useDashboard();
   const [todayStr, setTodayStr] = useState('');
+  const { connected, newSaleCount, lastSale, clearNewSaleCount } = useRealtimeEvents();
+
   useEffect(() => {
     setTodayStr(
       new Date().toLocaleDateString('uz-UZ', {
@@ -73,8 +77,35 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-400">{todayStr}</p>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+          {/* Real-time ulanish holati */}
+          <span
+            className={[
+              'inline-flex h-2 w-2 rounded-full',
+              connected ? 'bg-green-400' : 'bg-gray-300',
+            ].join(' ')}
+            title={connected ? 'Real-time ulangan' : 'Ulanmagan'}
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Yangi savdo badge — faqat newSaleCount > 0 bo'lsa ko'rinadi */}
+          {newSaleCount > 0 && (
+            <button
+              type="button"
+              onClick={clearNewSaleCount}
+              className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 ring-1 ring-green-200 transition hover:bg-green-100"
+              title={lastSale ? `Oxirgi savdo: ${formatPrice(lastSale.total)}` : undefined}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              {newSaleCount} yangi savdo
+            </button>
+          )}
+          <p className="text-sm text-gray-400">{todayStr}</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
@@ -118,6 +149,11 @@ export default function DashboardPage() {
           icon={PackageCheck}
           accent={lowStockCount > 0 ? 'yellow' : 'green'}
         />
+      </div>
+
+      {/* USD/UZS valyuta kursi widget */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <ExchangeRateWidget />
       </div>
 
       <div className="grid grid-cols-3 gap-4">

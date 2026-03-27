@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { config } from '../config';
 import prisma from '../prisma';
+import { logger } from '../logger';
 
 // ─── Bot sozlamalari ──────────────────────────────────────────
 
@@ -214,7 +215,7 @@ export async function verifyCredentialsAndSendOtp(
     await sendOtpEmail(user.email, user.firstName, code);
     return 'email_sent';
   } catch (err) {
-    console.error('[Bot OTP email error]', err);
+    logger.error('[Bot OTP email error]', { error: (err as Error).message });
     otpStore.delete(chatId);
     return 'email_error';
   }

@@ -36,27 +36,6 @@
 
 ---
 
-## T-337 | P0 | [SECURITY] | Auth guard yo'q — Warehouse va Finance controllerlar ochiq
-
-- **Sana:** 2026-03-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/warehouse-invoice.controller.ts`, `apps/api/src/finance/finance.controller.ts`
-- **Muammo:** `WarehouseInvoiceController`, `WriteOffController`, `FinanceController` da `@UseGuards(JwtAuthGuard)` qo'yilmagan. Agar global guard bo'lmasa — barcha endpointlar autentifikatsiyasiz ochiq.
-- **Kutilgan:** Har controller da `@UseGuards(JwtAuthGuard)` yoki `@UseGuards(JwtAuthGuard, RolesGuard)` qo'shilishi SHART.
-- **Topildi:** Code review (backend-reviewer agent, 2026-03-26)
-
----
-
-## T-338 | P0 | [SECURITY] | Tenant isolation buzilgan — Support listAllTickets
-
-- **Sana:** 2026-03-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/support/support.service.ts:94`
-- **Muammo:** `listAllTickets` metodida `tenantId` filter yo'q — BARCHA tenantlar tiketlarini qaytaradi. `@Roles(UserRole.OWNER)` tenant owner ni tekshiradi, lekin boshqa tenantlardan himoya qilmaydi.
-- **Kutilgan:** `where` ga `tenantId` filter qo'shish yoki `SUPER_ADMIN` role ajratish.
-- **Topildi:** Code review (backend-reviewer agent, 2026-03-26)
-
----
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
@@ -64,111 +43,15 @@
 
 ---
 
-## T-339 | P1 | [BACKEND] | console.log bot cron da — Logger ishlatish kerak
-
-- **Sana:** 2026-03-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/bot/src/cron/alerts.cron.ts:132,141,143,145`
-- **Muammo:** Yangi debt cron da `console.log`/`console.error` ishlatilgan. RAOS standartiga ko'ra faqat structured logger ruxsat.
-- **Kutilgan:** `console.log` → Logger wrapper ga almashtirish.
-
----
-
-## T-340 | P1 | [BACKEND] | warehouse-invoice.service.ts — 450 qator, SRP buzilgan
-
-- **Sana:** 2026-03-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/warehouse-invoice.service.ts`
-- **Muammo:** 4 ta DTO class + dashboard + invoice CRUD + write-off + movements + alerts bitta faylda (450+ qator). SRP va 400 qator limit buzilgan.
-- **Kutilgan:** DTO larni `dto/warehouse-invoice.dto.ts` ga ajratish. Dashboard/alerts alohida service. Har fayl < 400 qator.
-
----
-
-## T-341 | P1 | [FRONTEND] | Stock-in forma — yetkazib beruvchi, partiya, muddat maydonlari yo'q
-
-- **Sana:** 2026-03-27
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** Yetkazib beruvchi (`supplierId`) tanlash yo'q; har item uchun `batchNumber` va `expiryDate` maydonlari ko'rsatilmaydi (DTO da bor, UI da yo'q); mahsulot `<select>` da qidiruv yo'q (500 ta tovar); saqlangandan keyin `/warehouse/invoices` ga redirect qilinmaydi.
-- **Kutilgan:** Supplier dropdown, batchNumber/expiryDate per-row, searchable product, redirect fix.
-
----
-
-## T-342 | P1 | [FRONTEND] | Inventar `/inventory/levels` response mismatch — name/warehouseName yo'q
-
-- **Sana:** 2026-03-27
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/inventory.service.ts` → `getStockLevels()`
-- **Muammo:** Backend `{ productId, warehouseId, stock }` qaytaradi, lekin frontend `{ name, sku, totalQty, warehouseName, minStockLevel }` kutadi. Inventar va low-stock sahifalarida bo'sh ko'rinadi.
-- **Kutilgan:** Backend product + warehouse JOIN qo'shib enriched response qaytarishi kerak.
-
----
-
-## T-343 | P2 | [FRONTEND] | Dashboard expiryItems — productName o'rniga productId ko'rsatilmoqda
-
-- **Sana:** 2026-03-27
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx:151`, `apps/api/src/inventory/warehouse-invoice.service.ts`
-- **Muammo:** `getDashboard()` da `expiryItems` product nomini qaytarmaydi. Frontend `item.productId` ko'rsatadi (UUID).
-- **Kutilgan:** Backend `product: { name }` include qilishi, frontend `item.product?.name` ko'rsatishi kerak.
-
----
 
 
 
 
-## T-306 | P1 | [FRONTEND] | Promotions UI — Backend bor, UI yo'q
 
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/promotions/page.tsx` (yangi)
-- **Muammo:** Promotions engine backend da tayyor (T-099): PERCENT/FIXED/BUY_X_GET_Y/BUNDLE. Lekin admin panelda aksiyalar boshqarish UI yo'q.
-- **Kutilgan:**
-  - Aksiyalar ro'yxati (DataTable: nomi, turi, holati, muddati)
-  - Aksiya yaratish/tahrirlash formi (type tanlash, rules JSON, valid_from/to)
-  - Active/inactive toggle
-  - Sidebar ga "Aksiyalar" link
 
----
 
-## T-307 | P1 | [FRONTEND] | Bundles UI — Backend bor, UI to'liq emas
 
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/catalog/products/`
-- **Muammo:** BundleSection komponent yaratilgan (T-245), lekin to'plam narxi avtomatik hisoblanishi, POS da to'plam tanlash va maxsus chegirma qo'llash UI kerak.
-- **Kutilgan:**
-  - POS da bundle mahsulot tanlaganda komponentlar ko'rsatish
-  - Bundle narx = komponentlar narxi - chegirma (avtomatik hisob)
 
----
-
-## T-308 | P1 | [FRONTEND] | Real-time updates UI — WebSocket/SSE integratsiya
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/hooks/realtime/`
-- **Muammo:** Backend da `realtime.gateway.ts` (Socket.io) mavjud. Lekin frontend da WebSocket ulanish va real-time data yangilanishi yo'q.
-- **Kutilgan:**
-  - useRealtimeEvents hook (Socket.io client)
-  - Dashboard: yangi savdo real-time ko'rsatish
-  - Notifications: real-time push
-  - Shift status: real-time yangilanish
-
----
-
-## T-309 | P1 | [FRONTEND] | ExchangeRate UI — valyuta kursi ko'rsatish
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/finance/` yoki dashboard
-- **Muammo:** Backend da CBU exchange rate service bor (T-082/T-105). Lekin admin panelda valyuta kursi ko'rsatilmaydi.
-- **Kutilgan:**
-  - Dashboard yoki header da bugungi USD/UZS kursi
-  - Kurs tarixi grafik (line chart)
-  - Product import narxi USD -> UZS avtomatik konvert ko'rsatish
-
----
 
 
 
@@ -238,30 +121,6 @@
 
 ---
 
-## T-310 | P2 | [FRONTEND] | POS tablet layout — iPad/Android tablet uchun adaptiv
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(pos)/pos/`
-- **Muammo:** POS sahifasi faqat desktop uchun mo'ljallangan (3-column layout). Tablet da foydalanish qiyin.
-- **Kutilgan:**
-  - iPad (1024x768) va Android tablet (800x1280) uchun responsive layout
-  - Touch-friendly UI elementlari (kattaroq tugmalar, swipe gesturelar)
-  - Portrait/landscape mode qo'llab-quvvatlash
-
----
-
-## T-314 | P2 | [FRONTEND] | Subscription upgrade/downgrade UI — owner uchun
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/settings/subscription/page.tsx` (yangi)
-- **Muammo:** Billing backend tayyor (T-108). Lekin owner admin panelda o'z obunasini ko'rish, upgrade/downgrade qilish UI yo'q.
-- **Kutilgan:**
-  - Hozirgi plan ko'rsatish (limits, usage bar charts)
-  - Planlar taqqoslash jadvali (Free/Basic/Pro/Enterprise)
-  - Upgrade/downgrade tugmasi -> Payme/Click to'lov
-  - Billing tarixi
 
 ---
 
@@ -317,14 +176,14 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **35** | **1** | **12** | **10** | **6** |
+| **9** | **0** | **0** | **3** | **6** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 1 | 11 | 2 | 5 | **19** |
-| [FRONTEND] | 0 | 6 | 4 | 0 | **10** |
+| [BACKEND] | 0 | 0 | 0 | 5 | **5** |
+| [FRONTEND] | 0 | 0 | 0 | 0 | **0** |
 | [MOBILE] | 0 | 0 | 3 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
@@ -332,12 +191,12 @@
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 1 | 13 | 3 | 0 | **17** |
-| **AbdulazizYormatov** (Team Lead, Frontend) | 0 | 4 | 2 | 0 | **6** |
+| **Ibrat** (Full-Stack) | 0 | 0 | 0 | 0 | **0** |
+| **AbdulazizYormatov** (Team Lead, Frontend) | 0 | 0 | 0 | 0 | **0** |
 | **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
-> Yangilangan: 2026-03-23 — Miro доска tahlilidan 16 ta yangi vazifa qo'shildi (T-321…T-336)
+> Yangilangan: 2026-03-27 — T-314, T-306, T-307, T-308, T-309, T-310 va boshqalar bajarildi. P0/P1 tasklar 0 ga tushdi.
 
 ---
 

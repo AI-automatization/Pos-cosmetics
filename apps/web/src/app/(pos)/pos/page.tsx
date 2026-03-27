@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
+import { Search, ShoppingCart, CreditCard } from 'lucide-react';
 import { ShiftBar } from './ShiftBar';
 import { ProductSearch } from './ProductSearch';
 import { CartPanel } from './CartPanel';
@@ -11,13 +12,64 @@ import { ShiftCloseModal } from './shift/ShiftCloseModal';
 import { usePOSKeyboard } from '@/hooks/pos/usePOSKeyboard';
 import { usePOSStore } from '@/store/pos.store';
 import { shiftApi } from '@/api/shift.api';
+import { cn } from '@/lib/utils';
 import type { Order } from '@/types/sales';
+
+type TabId = 'products' | 'cart' | 'payment';
+
+// ─── Tablet bottom tab bar ────────────────────────────────────────────────────
+
+function TabBar({
+  active,
+  onChange,
+  cartCount,
+}: {
+  active: TabId;
+  onChange: (t: TabId) => void;
+  cartCount: number;
+}) {
+  const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { id: 'products', label: 'Mahsulotlar', icon: Search },
+    { id: 'cart',     label: 'Savat',       icon: ShoppingCart },
+    { id: 'payment',  label: "To'lov",      icon: CreditCard },
+  ];
+
+  return (
+    <div className="flex shrink-0 border-t border-gray-200 bg-white">
+      {tabs.map(({ id, label, icon: Icon }) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onChange(id)}
+          className={cn(
+            'relative flex flex-1 flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition',
+            active === id ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700',
+          )}
+        >
+          <div className="relative">
+            <Icon className="h-5 w-5" />
+            {id === 'cart' && cartCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
+          </div>
+          <span>{label}</span>
+          {active === id && (
+            <span className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-blue-600" />
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function POSPage() {
   const [search, setSearch] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [lastChange, setLastChange] = useState(0);
   const [showCloseShift, setShowCloseShift] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('products');
   const searchRef = useRef<HTMLInputElement>(null);
 
   const { setPaymentMethod, shiftId, items, clearCart, openShift } = usePOSStore();
@@ -98,8 +150,8 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* Keyboard shortcut hint bar */}
-      <div className="flex shrink-0 items-center gap-4 bg-gray-800 px-4 py-1.5 text-xs text-gray-400">
+      {/* Keyboard shortcut hint bar — desktop only */}
+      <div className="hidden shrink-0 items-center gap-4 bg-gray-800 px-4 py-1.5 text-xs text-gray-400 lg:flex">
         {[
           ['F1', 'Qidirish'],
           ['F5', 'Naqd'],
@@ -118,23 +170,14 @@ export default function POSPage() {
         ))}
       </div>
 
-      {/* Main 3-column layout */}
-      <div className="flex min-h-0 flex-1">
-        {/* Left: Product search */}
+      {/* ── DESKTOP: 3-column layout (lg+) ─────────────────────── */}
+      <div className="hidden min-h-0 flex-1 lg:flex">
         <div className="flex w-[42%] flex-col border-r border-gray-200 bg-gray-50">
-          <ProductSearch
-            search={search}
-            onSearchChange={setSearch}
-            searchRef={searchRef}
-          />
+          <ProductSearch search={search} onSearchChange={setSearch} searchRef={searchRef} />
         </div>
-
-        {/* Middle: Cart */}
         <div className="flex w-[33%] flex-col border-r border-gray-200 bg-gray-50">
           <CartPanel />
         </div>
-
-        {/* Right: Payment */}
         <div className="flex w-[25%] flex-col bg-white">
           <PaymentPanel
             onSaleComplete={(order, change) => {
@@ -143,6 +186,34 @@ export default function POSPage() {
             }}
           />
         </div>
+      </div>
+
+      {/* ── TABLET: Tab-based layout (< lg) ────────────────────── */}
+      <div className="flex min-h-0 flex-1 flex-col lg:hidden">
+        {/* Tab panels */}
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <div className={cn('h-full flex-col bg-gray-50', activeTab === 'products' ? 'flex' : 'hidden')}>
+            <ProductSearch search={search} onSearchChange={setSearch} searchRef={searchRef} />
+          </div>
+          <div className={cn('h-full flex-col bg-gray-50', activeTab === 'cart' ? 'flex' : 'hidden')}>
+            <CartPanel />
+          </div>
+          <div className={cn('h-full flex-col bg-white', activeTab === 'payment' ? 'flex' : 'hidden')}>
+            <PaymentPanel
+              onSaleComplete={(order, change) => {
+                setCompletedOrder(order);
+                setLastChange(change ?? 0);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Bottom tab bar */}
+        <TabBar
+          active={activeTab}
+          onChange={setActiveTab}
+          cartCount={items.length}
+        />
       </div>
 
       {/* Shift Gate — blocks POS if no shift open */}

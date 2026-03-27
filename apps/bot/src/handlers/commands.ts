@@ -24,6 +24,7 @@ import {
   esc,
 } from '../services/formatter';
 import { getStockByBarcode, getDebtByPhone, getActiveShifts } from '../services/stock.service';
+import { logger } from '../logger';
 
 // ─── Login conversation state ─────────────────────────────────
 //
@@ -206,7 +207,7 @@ export function registerCommands(bot: Bot) {
       const detail = await getTodaySummary(user.tenantId);
       await ctx.reply(formatDailyReport(detail), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /report]', err);
+      logger.error('[Bot /report]', { error: (err as Error).message });
       await ctx.reply('❌ Xatolik yuz berdi\\. Qayta urinib ko\'ring\\.', { parse_mode: 'MarkdownV2' });
     }
   });
@@ -231,7 +232,7 @@ export function registerCommands(bot: Bot) {
 
       await ctx.reply(msg, { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /sales]', err);
+      logger.error('[Bot /sales]', { error: (err as Error).message });
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
   });
@@ -262,7 +263,7 @@ export function registerCommands(bot: Bot) {
       }
       await ctx.reply(formatStockInfo(info), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /stock]', err);
+      logger.error('[Bot /stock]', { error: (err as Error).message });
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
   });
@@ -300,7 +301,7 @@ export function registerCommands(bot: Bot) {
       }
       await ctx.reply(formatDebtInfo(info), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /debt]', err);
+      logger.error('[Bot /debt]', { error: (err as Error).message });
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
   });
@@ -317,7 +318,7 @@ export function registerCommands(bot: Bot) {
       const shifts = await getActiveShifts(user.tenantId);
       await ctx.reply(formatShiftList(shifts), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /shifts]', err);
+      logger.error('[Bot /shifts]', { error: (err as Error).message });
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
   }
@@ -337,7 +338,7 @@ export function registerCommands(bot: Bot) {
       const items = await getLowStockItems(user.tenantId);
       await ctx.reply(formatLowStockAlert(items), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /lowstock]', err);
+      logger.error('[Bot /lowstock]', { error: (err as Error).message });
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
   });
@@ -356,7 +357,7 @@ export function registerCommands(bot: Bot) {
       const items = await getExpiringItems(days, user.tenantId);
       await ctx.reply(formatExpiryAlert(items), { parse_mode: 'MarkdownV2' });
     } catch (err) {
-      console.error('[Bot /expiry]', err);
+      logger.error('[Bot /expiry]', { error: (err as Error).message });
       await ctx.reply('❌ Xatolik yuz berdi\\.', { parse_mode: 'MarkdownV2' });
     }
   }
@@ -466,7 +467,7 @@ export function registerCommands(bot: Bot) {
             break;
         }
       } catch (err) {
-        console.error('[Bot login step2]', err);
+        logger.error('[Bot login step2]', { error: (err as Error).message });
         loginSessions.delete(chatId);
         await ctx.reply(
           '❌ Server xatosi\\. Qayta urinish: /login',
@@ -527,7 +528,7 @@ export function registerCommands(bot: Bot) {
           { parse_mode: 'MarkdownV2' },
         );
       } catch (err) {
-        console.error('[Bot login step3]', err);
+        logger.error('[Bot login step3]', { error: (err as Error).message });
         loginSessions.delete(chatId);
         await ctx.reply(
           '❌ Server xatosi\\. Qayta urinish: /login',

@@ -102,6 +102,7 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { label: 'Buyurtmalar', tKey: 'nav.orders', href: '/sales/orders' },
           { label: 'Qaytarishlar', tKey: 'nav.returns', href: '/sales/returns' },
+          { label: 'Aksiyalar', tKey: 'nav.promotions', href: '/promotions' },
           { label: 'Smenalar', tKey: 'nav.shifts', href: '/sales/shifts' },
         ],
       },
@@ -133,6 +134,7 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { label: 'Foyda va zarar', tKey: 'nav.pnl', href: '/finance/pnl' },
           { label: 'Xarajatlar', tKey: 'nav.expenses', href: '/finance/expenses' },
+          { label: 'Valyuta kurslari', tKey: 'nav.exchangeRates', href: '/finance/exchange-rates' },
         ],
       },
       { label: 'Analitika', tKey: 'nav.analytics', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
