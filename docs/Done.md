@@ -748,3 +748,19 @@
 - **Yechim:** `scripts/test-mobile-owner-endpoints.sh` skripti yaratildi — 25 endpoint avtomatik test qiladi. Barcha backend endpointlar mavjudligi tasdiqlandi (grep bilan). API ishga tushgach: `bash scripts/test-mobile-owner-endpoints.sh` yoki `BASE_URL=https://api-production-c5b6.up.railway.app bash scripts/test-mobile-owner-endpoints.sh`
 - **Fayl:** `scripts/test-mobile-owner-endpoints.sh`
 
+---
+
+## T-332 | P2 | [MOBILE] | Mobile: System Health ekrani
+- **Bajarildi:** 2026-03-27
+- **Mas'ul:** Abdulaziz
+- **Yechim:** SystemHealth screen (ServiceStatusCard, SyncStatusList, RecentErrorsList) + useSystemHealth hook + system.api.ts. TabNavigator ga "SISTEMA" tab qo'shildi. HEALTH_REFETCH_INTERVAL=30_000ms. Commit: a118d59
+- **Fayllar:** apps/mobile-owner/src/screens/SystemHealth/, apps/mobile-owner/src/navigation/TabNavigator.tsx, types.ts, constants.ts
+
+---
+
+## T-333 | P2 | [MOBILE] | Mobile: экран просмотра склада (read-only)
+- **Bajarildi:** 2026-03-27
+- **Mas'ul:** Abdulaziz
+- **Yechim:** WarehouseScreen yaratildi — search bar (nomi/barcode), 3 tab (Barchasi / 🔴 Kam qolgan / 🟡 Muddati yaqin), FlatList + pull-to-refresh, demo fallback. inventoryApi.getLowStock + getExpiring + getStock ishlatildi. TabNavigator da "OMBOR" tab WarehouseScreen ga almashtirildi.
+- **Fayllar:** apps/mobile-owner/src/screens/Warehouse/index.tsx, useWarehouseData.ts, WarehouseItemRow.tsx, WarehouseList.tsx, apps/mobile-owner/src/navigation/TabNavigator.tsx
+

@@ -2363,32 +2363,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-332 | P2 | [MOBILE] | Mobile: экран System Health (мониторинг инфраструктуры)
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile-owner/src/screens/SystemHealth/` (yangi)
-- **Muammo:** Owner/Manager не видит статус инфраструктуры с телефона.
-- **Kutilgan:**
-  - Статусы: 🟢/🟡/🔴 API / DB / Worker / Fiscal
-  - Статус синхронизации POS по каждому филиалу (pending_count, last_sync_at)
-  - Последние ошибки (GET /system/errors)
-  - Pull-to-refresh + автообновление каждые 30 сек
-
----
-
-## T-333 | P2 | [MOBILE] | Mobile: экран просмотра склада (read-only)
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile-owner/src/screens/Warehouse/` (yangi)
-- **Muammo:** Owner/Manager не может проверить остатки склада с мобильного.
-- **Kutilgan:**
-  - Список товаров с остатками, поиск по названию/штрихкоду
-  - Вкладка 🔴 Low stock — товары ниже минимума
-  - Вкладка 🟡 Истекающие сроки — предупреждение за 30 дней
-  - Только просмотр — изменения только через Warehouse ERP (веб)
-
 ---
 
 ## T-334 | P2 | [MOBILE] | Mobile: HR экран управления сотрудниками
