@@ -2365,20 +2365,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-334 | P2 | [MOBILE] | Mobile: HR экран управления сотрудниками
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile-owner/src/screens/HR/` (yangi)
-- **Muammo:** Owner/Manager не может управлять сотрудниками с мобильного.
-- **Kutilgan:**
-  - Список сотрудников по филиалу (роль, статус, last active)
-  - Создание аккаунта (имя, роль, email → invite flow T-329)
-  - Деактивировать/активировать аккаунт
-  - Статистика сотрудника: продажи за месяц, количество смен
-
----
-
 ---
 
 ---

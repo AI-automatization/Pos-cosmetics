@@ -764,3 +764,11 @@
 - **Yechim:** WarehouseScreen yaratildi — search bar (nomi/barcode), 3 tab (Barchasi / 🔴 Kam qolgan / 🟡 Muddati yaqin), FlatList + pull-to-refresh, demo fallback. inventoryApi.getLowStock + getExpiring + getStock ishlatildi. TabNavigator da "OMBOR" tab WarehouseScreen ga almashtirildi.
 - **Fayllar:** apps/mobile-owner/src/screens/Warehouse/index.tsx, useWarehouseData.ts, WarehouseItemRow.tsx, WarehouseList.tsx, apps/mobile-owner/src/navigation/TabNavigator.tsx
 
+---
+
+## T-334 | P2 | [MOBILE] | Mobile: HR экран управления сотрудниками
+- **Bajarildi:** 2026-03-27
+- **Mas'ul:** Abdulaziz
+- **Yechim:** HRScreen yaratildi — xodimlar ro'yxati (rol/status/filial), statistika (jami/faol/nofaol), filter tablar, deaktivatsiya/aktivatsiya (Alert confirm), HRInviteSheet (ism+familiya+telefon+email+rol+filial → invite flow T-329). EmployeesNavigator da EmployeesScreen o'rniga HRScreen o'rnatildi.
+- **Fayllar:** apps/mobile-owner/src/screens/HR/index.tsx, HREmployeeRow.tsx, HRInviteSheet.tsx, useHRData.ts, apps/mobile-owner/src/navigation/EmployeesNavigator.tsx
+
