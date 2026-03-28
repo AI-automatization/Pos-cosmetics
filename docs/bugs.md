@@ -22,6 +22,19 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+---
+
+## 2026-03-28 TUZATILGAN (Backend Audit — Barcha Controllerlar)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-032 | 2026-03-28 | P1 | 2026-03-28 | `inventory.controller.ts` | **`@CurrentUser('sub')` → `undefined`** — `approveTransfer`, `shipTransfer`, `receiveTransfer` metodlarida `@CurrentUser('sub')` ishlatilgan. JWT strategy `validate()` `userId` qaytaradi, `sub` emas — shuning uchun `userId` parametri doim `undefined` bo'lgan. **Yechim:** `@CurrentUser('sub')` → `@CurrentUser('userId')` (3 joyda). |
+| B-033 | 2026-03-28 | P0 | 2026-03-28 | `support.controller.ts` + migration | **`GET /support/tickets` → 500 PRISMA_P2021** — `support_tickets` jadval production DB da mavjud emas (migration yaratilmagan). T-305 da schema qo'shilgan lekin `prisma migrate deploy` qilinmagan. **Yechim:** `20260328000000_add_support_tickets/migration.sql` yaratildi — `support_tickets` + `ticket_messages` jadvallari, enum'lar, foreign key va index'lar. `prisma migrate deploy` run qilish kerak. |
+| B-034 | 2026-03-28 | P2 | 2026-03-28 | `identity-info.controller.ts` | **`@UseGuards` yo'q** — `GET /identity/branches` global APP_GUARD (agar mavjud bo'lsa) orqali himoyalangan, lekin explicit `@UseGuards(JwtAuthGuard)` yo'q edi — defense-in-depth uchun zaif. **Yechim:** `@UseGuards(JwtAuthGuard)` qo'shildi. |
+| B-035 | 2026-03-28 | P2 | 2026-03-28 | `audit.controller.ts` | **`@UseGuards` yo'q, faqat `@Roles` bor** — `@Roles('OWNER', 'ADMIN')` decorator qo'yilgan lekin `@UseGuards(JwtAuthGuard, RolesGuard)` yo'q — `RolesGuard` ishlamagan. **Yechim:** `@UseGuards(JwtAuthGuard, RolesGuard)` qo'shildi. |
+| B-036 | 2026-03-28 | P2 | 2026-03-28 | `reports.controller.ts` | **`@UseGuards` yo'q** — Endpoint darajasida `@Roles` decoratorlari bor, lekin controller darajasida `@UseGuards(JwtAuthGuard, RolesGuard)` yo'q edi. **Yechim:** `@UseGuards(JwtAuthGuard, RolesGuard)` qo'shildi. |
+| B-037 | 2026-03-28 | P2 | 2026-03-28 | `exchange-rate.controller.ts` | **`@UseGuards` yo'q, faqat `@Roles` bor** — `@Roles('OWNER', 'ADMIN')` decorator endpoint darajasida bor, lekin `@UseGuards(JwtAuthGuard, RolesGuard)` yo'q — RolesGuard ishlamagan, `/exchange-rate/sync` (POST) himoyasiz bo'lgan. **Yechim:** `@UseGuards(JwtAuthGuard, RolesGuard)` controller darajasida qo'shildi. |
+
 ## 2026-03-05 TUZATILGAN (5-sessiya — Live API tour)
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |

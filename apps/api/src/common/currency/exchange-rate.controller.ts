@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Query, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Query, ParseIntPipe, DefaultValuePipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { ExchangeRateService } from './exchange-rate.service';
 import { Roles } from '../decorators/roles.decorator';
+import { JwtAuthGuard } from '../../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../../identity/guards/roles.guard';
 
 @ApiTags('Exchange Rate')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('exchange-rate')
 export class ExchangeRateController {
   constructor(private readonly exchangeRateService: ExchangeRateService) {}

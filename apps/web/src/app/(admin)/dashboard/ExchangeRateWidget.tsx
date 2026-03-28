@@ -1,7 +1,7 @@
 'use client';
 
 // Dashboard da kichik USD/UZS valyuta kursi widget (CBU)
-import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { useExchangeRate } from '@/hooks/finance/useExchangeRate';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';

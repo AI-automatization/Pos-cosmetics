@@ -104,7 +104,7 @@ export default function LowStockPage() {
             <tbody className="divide-y divide-gray-50">
               {filtered.map((item, idx) => {
                 const isOut = item.totalQty <= 0;
-                const isLow =
+                const _isLow =
                   !isOut &&
                   item.minStockLevel != null &&
                   item.totalQty <= item.minStockLevel;

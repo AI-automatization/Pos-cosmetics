@@ -133,7 +133,6 @@ export function useRealtimeEvents(): UseRealtimeEventsReturn {
 
       socket.on(RT_EVENTS.SYNC_STATUS, (payload: SyncStatusPayload) => {
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
           console.debug('[RT] sync:status', payload);
         }
       });
