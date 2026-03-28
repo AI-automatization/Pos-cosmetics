@@ -19,6 +19,7 @@ import PayModal from './PayModal';
 import NewDebtSheet from './NewDebtSheet';
 import DebtDetailSheet from './DebtDetailSheet';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ShiftGuard from '../../components/common/ShiftGuard';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -132,6 +133,7 @@ export default function NasiyaScreen() {
   };
 
   return (
+    <ShiftGuard>
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
@@ -241,6 +243,7 @@ export default function NasiyaScreen() {
         onPay={(debt) => { setDetailVisible(false); handlePay(debt); }}
       />
     </SafeAreaView>
+    </ShiftGuard>
   );
 }
 

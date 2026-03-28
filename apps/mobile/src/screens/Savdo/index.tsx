@@ -17,6 +17,7 @@ import PaymentSheet, { type PaymentMethod } from './PaymentSheet';
 import LowStockSheet from './LowStockSheet';
 import { useShiftStore } from '../../store/shiftStore';
 import { type TabParamList } from '../../navigation/types';
+import ShiftGuard from '../../components/common/ShiftGuard';
 
 // ─── Ranglar ───────────────────────────────────────────
 const C = {
@@ -144,6 +145,7 @@ export default function SavdoScreen() {
 
   // ─── Render ───────────────────────────────────────────
   return (
+    <ShiftGuard>
     <SafeAreaView style={styles.safe} edges={['top']}>
 
       {/* Header */}
@@ -306,6 +308,7 @@ export default function SavdoScreen() {
         </View>
       )}
     </SafeAreaView>
+    </ShiftGuard>
   );
 }
 

@@ -15,6 +15,7 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { LowStockItem } from '../../api/inventory.api';
 import { useOmborData } from './useOmborData';
 import OmborRequestSheet from './OmborRequestSheet';
+import ShiftGuard from '../../components/common/ShiftGuard';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -264,6 +265,7 @@ export default function OmborScreen() {
   );
 
   return (
+    <ShiftGuard>
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Header />
 
@@ -296,6 +298,7 @@ export default function OmborScreen() {
         items={allItems}
       />
     </SafeAreaView>
+    </ShiftGuard>
   );
 }
 
