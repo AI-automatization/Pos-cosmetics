@@ -2259,6 +2259,52 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## T-342 | P0 | [BACKEND] | Customer API — `GET /customers?search=` va `POST /customers` tekshirish
+
+- **Sana:** 2026-03-28
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/customers/customers.controller.ts`
+- **Muammo:** Mobile Nasiya ekrani `GET /customers?search=<ism>` va `POST /customers { name, phone }` endpointlarini chaqiradi. Agar bu endpointlar noto'g'ri response qaytarsa yoki yo'q bo'lsa — Nasiya ekrani `customerId` ola olmaydi va har bir nasiya yaratishda xato beradi.
+- **Kutilgan:**
+  - `GET /customers?search=Ali` → `[{ id: "uuid", name: "Ali", phone: "+998..." }]` (array)
+  - `POST /customers { name: "Ali", phone: "+998..." }` → `{ id: "uuid", name: "Ali", phone: "+998..." }`
+  - Ikkala endpoint ham JWT bilan himoyalangan bo'lsin
+- **Topildi:** Mobile backend integratsiya sessiyasi (Abdulaziz, 2026-03-28)
+
+---
+
+## T-343 | P0 | [BACKEND] | Dashboard report endpointlari ishlamayapti — demo data ko'rsatyapti
+
+- **Sana:** 2026-03-28
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/reports/reports.controller.ts`
+- **Muammo:** Mobile Dashboard (`useDashboardData.ts`) quyidagi 3 ta endpointni chaqiradi. Ular xato bersa `try/catch` ichida demo (soxta) raqamlar ko'rsatiladi. Hozir foydalanuvchi **real bo'lmagan statistika** ko'ryapti.
+- **Endpointlar:**
+  ```
+  GET /reports/sales-summary?from=2026-03-28&to=2026-03-28
+  GET /reports/daily-revenue?from=2026-03-22&to=2026-03-28
+  GET /reports/top-products?from=2026-03-28&to=2026-03-28&limit=5
+  ```
+- **Kutilgan response formatlar** (`@raos/types` dan):
+  - `SalesSummary`: `{ period, orders: { count, grossRevenue, subtotal, totalDiscount, totalTax }, returns, netRevenue, paymentBreakdown }`
+  - `DailyRevenue[]`: `{ date, revenue, orderCount }[]`
+  - `TopProduct[]`: `{ productId, productName, totalQty, totalRevenue }[]`
+- **Kutilgan:** Endpointlar to'g'ri ishlasa demo fallback avtomatik chiqib ketadi.
+- **Topildi:** Mobile backend integratsiya sessiyasi (Abdulaziz, 2026-03-28)
+
+---
+
+## T-344 | P1 | [BACKEND] | `POST /warehouse/invoices` — `supplierName` ixtiyoriy bo'lishi kerak
+
+- **Sana:** 2026-03-28
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/inventory/warehouse-invoice.service.ts` (DTO)
+- **Muammo:** Mobile Kirim ekrani `POST /warehouse/invoices` ga `{ invoiceNumber?, items[], note? }` yuboradi — `supplierName` yuborilmaydi (foydalanuvchi har doim tashuvchi nomini bilmaydi). Agar backend DTO da `supplierName` required bo'lsa — 400/422 xato beradi.
+- **Kutilgan:** `supplierName` DTO da `@IsOptional()` bo'lishi kerak. Yo'q bo'lsa `null` yoki `"Noma'lum"` default qo'yilsin.
+- **Topildi:** Mobile backend integratsiya sessiyasi (Abdulaziz, 2026-03-28)
+
+---
+
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
