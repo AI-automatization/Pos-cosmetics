@@ -15,6 +15,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { nasiyaApi } from '../../api/nasiya.api';
+import { extractErrorMessage } from '../../utils/error';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -108,13 +109,13 @@ export default function NewDebtSheet({
         dueDate:      form.dueDate.trim() || undefined,
         notes:        form.notes.trim() || undefined,
       });
-    } catch {
-      // Backend hali tayyor emas (T-134) — demo mode da muvaffaqiyatli deb hisoblanadi
+      setForm(EMPTY_FORM);
+      onSuccess();
+    } catch (err) {
+      Alert.alert('Xatolik', extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
-    setForm(EMPTY_FORM);
-    onSuccess();
   };
 
   return (

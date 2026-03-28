@@ -41,7 +41,7 @@ const PLACEHOLDER_COLORS = [
   '#E8F5E8', '#FFF0E0', '#E0F0FF', '#F0FFE0',
 ];
 function placeholderColor(id: string): string {
-  return PLACEHOLDER_COLORS[id.charCodeAt(0) % PLACEHOLDER_COLORS.length];
+  return PLACEHOLDER_COLORS[id.charCodeAt(0) % PLACEHOLDER_COLORS.length] ?? '#E8E8F5';
 }
 
 // ─── CatalogProduct → Product mapper ───────────────────
