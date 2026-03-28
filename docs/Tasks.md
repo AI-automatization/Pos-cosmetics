@@ -2432,16 +2432,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Mas'ul:** —
 - **Vazifa:** Scheduled: kunlik savdo data -> linked Google Sheet. Ko'p do'kon egalari Sheets da tahlil qiladi.
 
-## T-316 | P3 | [MOBILE] | DebtCard.tsx — 529 qator, 400 limitdan oshgan, SRP buzilgan
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Nasiya/DebtCard.tsx
-- **Muammo:** Fayl 529 qatordan iborat — CLAUDE.md da max 400 qator. Reminder action modal (~60 qator JSX + style) alohida `ReminderActionSheet.tsx` ga chiqarilishi kerak.
-- **Kutilgan:** Fayl 400 qatordan pastga tushiriladi.
-
----
-
 ## T-317 | P3 | [MOBILE] | Smena/index.tsx — 495 qator, 400 limitdan oshgan, SRP buzilgan
 
 - **Sana:** 2026-03-23

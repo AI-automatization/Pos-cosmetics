@@ -772,3 +772,14 @@
 - **Yechim:** HRScreen yaratildi — xodimlar ro'yxati (rol/status/filial), statistika (jami/faol/nofaol), filter tablar, deaktivatsiya/aktivatsiya (Alert confirm), HRInviteSheet (ism+familiya+telefon+email+rol+filial → invite flow T-329). EmployeesNavigator da EmployeesScreen o'rniga HRScreen o'rnatildi.
 - **Fayllar:** apps/mobile-owner/src/screens/HR/index.tsx, HREmployeeRow.tsx, HRInviteSheet.tsx, useHRData.ts, apps/mobile-owner/src/navigation/EmployeesNavigator.tsx
 
+---
+
+## T-316 | P3 | [MOBILE] | DebtCard.tsx — 529 qator, SRP buzilgan
+
+- **Bajarildi:** 2026-03-28
+- **Mas'ul:** Abdulaziz
+- **Yechim:** Reminder action modal (Modal JSX + 76 qator styles + handlePhoneCall + handleTelegramReminder) alohida ReminderActionSheet.tsx ga chiqarildi. DebtCard.tsx 529 → ~385 qatorga tushdi (400 limit ostida). Modal, ActivityIndicator, Alert, nasiyaApi, extractErrorMessage importlari DebtCard dan olib tashlandi.
+- **Fayllar:** apps/mobile/src/screens/Nasiya/DebtCard.tsx, ReminderActionSheet.tsx
+
+---
+
