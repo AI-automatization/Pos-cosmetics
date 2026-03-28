@@ -7,15 +7,20 @@ import {
   StyleSheet,
   FlatList,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import ProductCard, { Product } from './ProductCard';
 import ScannerModal from './ScannerModal';
 import PaymentSheet, { type PaymentMethod } from './PaymentSheet';
 import LowStockSheet from './LowStockSheet';
 import { useShiftStore } from '../../store/shiftStore';
+import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
+import { salesApi } from '../../api/sales.api';
 import { type TabParamList } from '../../navigation/types';
 import ShiftGuard from '../../components/common/ShiftGuard';
 
@@ -30,24 +35,31 @@ const C = {
   danger: '#EF4444',
 };
 
-// ─── Mock ma'lumotlar ───────────────────────────────────
-const CATEGORIES = [
-  { id: 'all', name: 'Hammasi' },
-  { id: 'yuz', name: 'Yuz' },
-  { id: 'soch', name: 'Soch' },
-  { id: 'tana', name: 'Tana' },
+// ─── Placeholder colors (product id dan deterministic) ──
+const PLACEHOLDER_COLORS = [
+  '#F5E6C8', '#F5D5E0', '#E8E8F5', '#D5E8F5',
+  '#E8F5E8', '#FFF0E0', '#E0F0FF', '#F0FFE0',
 ];
+function placeholderColor(id: string): string {
+  return PLACEHOLDER_COLORS[id.charCodeAt(0) % PLACEHOLDER_COLORS.length];
+}
 
-const MOCK_PRODUCTS: Product[] = [
-  { id: '1', name: "Chanel N°5 Eau de Parfum",     sellPrice: 1_200_000, categoryId: 'tana', stockQty: 15, minStockLevel: 5,  placeholderColor: '#F5E6C8' },
-  { id: '2', name: "Nivea Soft Moisturizing",        sellPrice:    85_000, categoryId: 'yuz',  stockQty: 2,  minStockLevel: 5,  placeholderColor: '#F5D5E0' },
-  { id: '3', name: "L'Oreal Professional Shampoo",   sellPrice:    45_000, categoryId: 'soch', stockQty: 0,  minStockLevel: 5,  placeholderColor: '#E8E8F5' },
-  { id: '4', name: "Vaseline Intensive Care",         sellPrice:   120_000, categoryId: 'tana', stockQty: 40, minStockLevel: 10, placeholderColor: '#D5E8F5' },
-  { id: '5', name: "Neutrogena Hand Cream",           sellPrice:    35_000, categoryId: 'tana', stockQty: 12, minStockLevel: 5,  placeholderColor: '#E8F5E8' },
-  { id: '6', name: "Garnier Micellar Water",          sellPrice:    55_000, categoryId: 'yuz',  stockQty: 8,  minStockLevel: 3,  placeholderColor: '#FFF0E0' },
-  { id: '7', name: "Pantene Pro-V Conditioner",       sellPrice:    38_000, categoryId: 'soch', stockQty: 3,  minStockLevel: 5,  placeholderColor: '#E0F0FF' },
-  { id: '8', name: "Dove Body Lotion",                sellPrice:    42_000, categoryId: 'tana', stockQty: 22, minStockLevel: 5,  placeholderColor: '#F0FFE0' },
-];
+// ─── CatalogProduct → Product mapper ───────────────────
+function toProduct(p: CatalogProduct): Product {
+  return {
+    id: p.id,
+    name: p.name,
+    sellPrice: p.sellPrice,
+    categoryId: p.categoryId ?? 'uncategorized',
+    stockQty: p.stockQuantity ?? 0,
+    minStockLevel: p.minStockLevel ?? 5,
+    placeholderColor: placeholderColor(p.id),
+  };
+}
+
+function formatPrice(n: number): string {
+  return n.toLocaleString('ru-RU') + ' UZS';
+}
 
 // ─── Cart item ─────────────────────────────────────────
 interface CartItem {
@@ -55,14 +67,10 @@ interface CartItem {
   qty: number;
 }
 
-function formatPrice(n: number): string {
-  return n.toLocaleString('ru-RU') + ' UZS';
-}
-
 // ─── Screen ────────────────────────────────────────────
 export default function SavdoScreen() {
   const navigation = useNavigation<NavigationProp<TabParamList>>();
-  const { isShiftOpen } = useShiftStore();
+  const { isShiftOpen, shiftId } = useShiftStore();
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -70,22 +78,48 @@ export default function SavdoScreen() {
   const [scannerVisible, setScannerVisible] = useState(false);
   const [paymentVisible, setPaymentVisible] = useState(false);
   const [lowStockVisible, setLowStockVisible] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
 
-  // Filtered products
+  // ─── API: mahsulotlar ───────────────────────────────
+  const { data: rawProducts = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['catalog-products'],
+    queryFn: () => catalogApi.getProducts(),
+    staleTime: 5 * 60_000,
+  });
+
+  // ─── API: kategoriyalar ─────────────────────────────
+  const { data: apiCategories = [] } = useQuery({
+    queryKey: ['catalog-categories'],
+    queryFn: () => catalogApi.getCategories(),
+    staleTime: 10 * 60_000,
+  });
+
+  // ─── Mahsulotlarni map qilish ───────────────────────
+  const allProducts = useMemo(() => rawProducts.map(toProduct), [rawProducts]);
+
+  // ─── Kategoriyalar (Hammasi + API dan) ──────────────
+  const categories = useMemo(() => [
+    { id: 'all', name: 'Hammasi' },
+    ...apiCategories.map((c) => ({ id: c.id, name: c.name })),
+  ], [apiCategories]);
+
+  // ─── Filterlangan mahsulotlar ───────────────────────
   const products = useMemo(() => {
-    return MOCK_PRODUCTS.filter((p) => {
+    return allProducts.filter((p) => {
       const matchCat = activeCategory === 'all' || p.categoryId === activeCategory;
       const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
-  }, [search, activeCategory]);
+  }, [allProducts, search, activeCategory]);
 
-  // Low stock and out of stock products (static mock — no deps needed)
-  const lowStockProducts = MOCK_PRODUCTS.filter((p) => p.stockQty > 0 && p.stockQty <= p.minStockLevel);
-  const outOfStockProducts = MOCK_PRODUCTS.filter((p) => p.stockQty === 0);
+  // ─── Kam qolgan / tugagan mahsulotlar ───────────────
+  const lowStockProducts = allProducts.filter(
+    (p) => p.stockQty > 0 && p.stockQty <= p.minStockLevel,
+  );
+  const outOfStockProducts = allProducts.filter((p) => p.stockQty === 0);
   const alertCount = lowStockProducts.length + outOfStockProducts.length;
 
-  // Cart helpers
+  // ─── Savat yordamchilari ────────────────────────────
   const addToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
@@ -101,9 +135,7 @@ export default function SavdoScreen() {
   const removeFromCart = (productId: string) => {
     setCart((prev) => {
       const updated = prev.filter((i) => i.product.id !== productId);
-      if (updated.length === 0) {
-        setPaymentVisible(false);
-      }
+      if (updated.length === 0) setPaymentVisible(false);
       return updated;
     });
   };
@@ -123,17 +155,71 @@ export default function SavdoScreen() {
     });
   };
 
-  const handleScanned = (barcode: string) => {
+  // ─── Barkod skanerlash ──────────────────────────────
+  const handleScanned = async (barcode: string) => {
     setScannerVisible(false);
-    // Barkod bo'yicha mahsulot qidirish (hozircha name bo'yicha)
-    const found = MOCK_PRODUCTS.find(
-      (p) => p.id === barcode || p.name.toLowerCase().includes(barcode.toLowerCase()),
+    // Avval yuklangan mahsulotlarda qidirish
+    const inList = allProducts.find(
+      (p) => p.name.toLowerCase().includes(barcode.toLowerCase()),
     );
-    if (found) {
+    if (inList) {
       setActiveCategory('all');
-      setSearch(found.name);
-    } else {
+      setSearch(inList.name);
+      return;
+    }
+    // API dan barcode bo'yicha qidirish
+    try {
+      const found = await catalogApi.getByBarcode(barcode);
+      const product = toProduct({
+        id: found.id,
+        name: found.name,
+        sku: found.sku,
+        barcode: found.barcode,
+        sellPrice: found.sellPrice,
+        costPrice: found.costPrice,
+        categoryId: null,
+        categoryName: found.categoryName,
+        unitName: found.unitName,
+        stockQuantity: found.stockQuantity,
+        minStockLevel: found.minStockLevel,
+        isActive: true,
+      });
+      addToCart(product);
+    } catch {
       setSearch(barcode);
+    }
+  };
+
+  // ─── Buyurtma yaratish ──────────────────────────────
+  const handleConfirm = async (method: PaymentMethod, _received: number) => {
+    if (method === 'NASIYA') {
+      navigation.navigate('Nasiya', {
+        openNewDebt: true,
+        amount: totalPrice,
+        products: cart,
+      });
+      setPaymentVisible(false);
+      setCart([]);
+      return;
+    }
+
+    setOrderLoading(true);
+    try {
+      await salesApi.createOrder({
+        shiftId: shiftId ?? undefined,
+        items: cart.map((i) => ({
+          productId: i.product.id,
+          quantity: i.qty,
+          unitPrice: i.product.sellPrice,
+        })),
+        notes: `To'lov: ${method}`,
+      });
+      setPaymentVisible(false);
+      setCart([]);
+    } catch {
+      Alert.alert('Xatolik', "Buyurtma saqlanmadi. Qayta urinib ko'ring.");
+    } finally {
+      setOrderLoading(false);
     }
   };
 
@@ -198,7 +284,7 @@ export default function SavdoScreen() {
         style={styles.categoriesScroll}
         contentContainerStyle={styles.categoriesRow}
       >
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <TouchableOpacity
             key={cat.id}
             style={[styles.catTab, activeCategory === cat.id && styles.catTabActive]}
@@ -213,27 +299,33 @@ export default function SavdoScreen() {
       </ScrollView>
 
       {/* Product grid */}
-      <FlatList
-        data={products}
-        keyExtractor={(p) => p.id}
-        numColumns={2}
-        style={styles.flatList}
-        contentContainerStyle={styles.grid}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <ProductCard
-            product={item}
-            cartQty={cartQty(item.id)}
-            onPress={addToCart}
-            onDecrement={decrementFromCart}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>Mahsulot topilmadi</Text>
-          </View>
-        }
-      />
+      {productsLoading ? (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color={C.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(p) => p.id}
+          numColumns={2}
+          style={styles.flatList}
+          contentContainerStyle={styles.grid}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <ProductCard
+              product={item}
+              cartQty={cartQty(item.id)}
+              onPress={addToCart}
+              onDecrement={decrementFromCart}
+            />
+          )}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>Mahsulot topilmadi</Text>
+            </View>
+          }
+        />
+      )}
 
       {/* Payment sheet */}
       <PaymentSheet
@@ -242,20 +334,7 @@ export default function SavdoScreen() {
         total={totalPrice}
         onClose={() => setPaymentVisible(false)}
         onRemoveItem={removeFromCart}
-        onConfirm={(method: PaymentMethod, _received: number) => {
-          if (method === 'NASIYA') {
-            navigation.navigate('Nasiya', {
-              openNewDebt: true,
-              amount: totalPrice,
-              products: cart,
-            });
-            setPaymentVisible(false);
-            setCart([]);
-            return;
-          }
-          setPaymentVisible(false);
-          setCart([]);
-        }}
+        onConfirm={handleConfirm}
       />
 
       {/* Scanner modal */}
@@ -290,11 +369,16 @@ export default function SavdoScreen() {
 
           {isShiftOpen ? (
             <TouchableOpacity
-              style={styles.payButton}
+              style={[styles.payButton, orderLoading && styles.payButtonDisabled]}
               activeOpacity={0.85}
               onPress={() => setPaymentVisible(true)}
+              disabled={orderLoading}
             >
-              <Text style={styles.payButtonText}>To'lov →</Text>
+              {orderLoading ? (
+                <ActivityIndicator size="small" color={C.white} />
+              ) : (
+                <Text style={styles.payButtonText}>To'lov →</Text>
+              )}
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -431,6 +515,13 @@ const styles = StyleSheet.create({
     color: C.white,
   },
 
+  // Loading
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   // Grid
   flatList: {
     flex: 1,
@@ -505,6 +596,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   payButtonDisabled: {
     backgroundColor: '#9CA3AF',

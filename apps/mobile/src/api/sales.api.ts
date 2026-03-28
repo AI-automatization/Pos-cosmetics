@@ -1,4 +1,4 @@
-import type { Order, Shift, OpenShiftPayload, CloseShiftPayload } from '@raos/types';
+import type { Order, Shift, OpenShiftPayload, CloseShiftPayload, CreateOrderPayload } from '@raos/types';
 import api from './client';
 
 export interface ShiftDetail extends Shift {
@@ -119,6 +119,11 @@ export const salesApi = {
     const { data } = await api.get<{ items: ShiftDetail[]; total: number }>('/sales/shifts', {
       params: { page, limit },
     });
+    return data;
+  },
+
+  createOrder: async (payload: CreateOrderPayload): Promise<Order> => {
+    const { data } = await api.post<Order>('/sales/orders', payload);
     return data;
   },
 };
