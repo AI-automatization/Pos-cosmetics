@@ -14,6 +14,8 @@ interface BackendDebt {
   id: string;
   customerId: string;
   orderId?: string | null;
+  orderNumber?: string | number | null;
+  order?: { id?: string; orderNumber?: string | number } | null;
   totalAmount: number | string;
   paidAmount: number | string;
   remaining: number | string;
@@ -41,12 +43,16 @@ function normalizeDebt(b: BackendDebt): Debt {
   const ageDays = b.dueDate
     ? Math.max(0, Math.floor((Date.now() - new Date(b.dueDate).getTime()) / 86400000))
     : 0;
+  const rawOrderNumber = b.orderNumber ?? b.order?.orderNumber ?? null;
+  const orderNumber = rawOrderNumber != null ? String(rawOrderNumber) : undefined;
+  const orderId = b.orderId ?? b.order?.id ?? '';
   return {
     id: b.id,
     customerId: b.customerId,
     customerName: b.customer?.name ?? '—',
     customerPhone: b.customer?.phone ?? '—',
-    orderId: b.orderId ?? '',
+    orderId,
+    orderNumber,
     originalAmount: Number(b.totalAmount),
     remainingAmount: Number(b.remaining),
     dueDate: b.dueDate ?? '',

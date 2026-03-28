@@ -62,13 +62,32 @@ export const reportsApi = {
   getDailyRevenue(params: DateRangeQuery) {
     return apiClient
       .get<DailyRevenue[]>('/reports/daily-revenue', { params })
-      .then((r) => r.data);
+      .then((r) => {
+        const data = r.data;
+        if (!Array.isArray(data)) return [];
+        return (data as unknown as Record<string, unknown>[]).map((d) => ({
+          date: String(d.date ?? ''),
+          revenue: Number(d.revenue ?? d.totalRevenue ?? 0),
+          ordersCount: Number(d.ordersCount ?? d.orders_count ?? d.count ?? 0),
+          discountAmount: Number(d.discountAmount ?? d.totalDiscount ?? 0),
+        }));
+      });
   },
 
   getTopProducts(params: DateRangeQuery & { limit?: number }) {
     return apiClient
       .get<TopProduct[]>('/reports/top-products', { params })
-      .then((r) => r.data);
+      .then((r) => {
+        const data = r.data;
+        if (!Array.isArray(data)) return [];
+        return (data as unknown as Record<string, unknown>[]).map((d) => ({
+          productId: String(d.productId ?? d.id ?? ''),
+          productName: String(d.productName ?? d.name ?? d.product_name ?? ''),
+          quantity: Number(d.quantity ?? d.totalQuantity ?? d.total_quantity ?? d.qty ?? 0),
+          revenue: Number(d.revenue ?? d.totalRevenue ?? d.total_revenue ?? 0),
+          ordersCount: Number(d.ordersCount ?? d.orders_count ?? d.orderCount ?? 0),
+        }));
+      });
   },
 
   // B-010 fix: backend has no /reports/shifts list — use /sales/shifts

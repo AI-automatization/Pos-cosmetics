@@ -312,7 +312,11 @@ export default function NasiyaPage() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-gray-900">
-                        {debt.orderNumber ?? `#${debt.orderId.slice(0, 8)}`}
+                        {debt.orderNumber
+                          ? `#${debt.orderNumber}`
+                          : debt.orderId
+                          ? `#${debt.orderId.slice(0, 8)}`
+                          : '—'}
                       </p>
                       <p className="text-xs text-gray-400">
                         {new Date(debt.createdAt).toLocaleDateString('uz-UZ')}
