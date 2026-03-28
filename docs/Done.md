@@ -774,6 +774,15 @@
 
 ---
 
+## T-317 | P3 | [MOBILE] | Smena/index.tsx — 495 qator, 400 limitdan oshgan, SRP buzilgan
+
+- **Bajarildi:** 2026-03-28
+- **Mas'ul:** Abdulaziz
+- **Yechim:** StatBox, DetailRow, HistoryCard sub-komponentlari + C colors + ShiftRecord interface + fmt utility SmenaComponents.tsx ga ko'chirildi. `icon as any` cast o'rniga `ComponentProps<typeof MaterialCommunityIcons>['name']` turi ishlatildi. index.tsx 495 → 346 qatorga tushdi.
+- **Fayllar:** apps/mobile/src/screens/Smena/index.tsx, apps/mobile/src/screens/Smena/SmenaComponents.tsx
+
+---
+
 ## T-316 | P3 | [MOBILE] | DebtCard.tsx — 529 qator, SRP buzilgan
 
 - **Bajarildi:** 2026-03-28
