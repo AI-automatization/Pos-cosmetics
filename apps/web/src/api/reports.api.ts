@@ -68,7 +68,7 @@ export const reportsApi = {
         return (data as unknown as Record<string, unknown>[]).map((d) => ({
           date: String(d.date ?? ''),
           revenue: Number(d.revenue ?? d.totalRevenue ?? 0),
-          ordersCount: Number(d.ordersCount ?? d.orders_count ?? d.count ?? 0),
+          ordersCount: Number(d.ordersCount ?? d.orderCount ?? d.orders_count ?? d.count ?? 0),
           discountAmount: Number(d.discountAmount ?? d.totalDiscount ?? 0),
         }));
       });
@@ -83,7 +83,7 @@ export const reportsApi = {
         return (data as unknown as Record<string, unknown>[]).map((d) => ({
           productId: String(d.productId ?? d.id ?? ''),
           productName: String(d.productName ?? d.name ?? d.product_name ?? ''),
-          quantity: Number(d.quantity ?? d.totalQuantity ?? d.total_quantity ?? d.qty ?? 0),
+          quantity: Number(d.quantity ?? d.totalQuantity ?? d.totalQty ?? d.total_quantity ?? d.qty ?? 0),
           revenue: Number(d.revenue ?? d.totalRevenue ?? d.total_revenue ?? 0),
           ordersCount: Number(d.ordersCount ?? d.orders_count ?? d.orderCount ?? 0),
         }));
