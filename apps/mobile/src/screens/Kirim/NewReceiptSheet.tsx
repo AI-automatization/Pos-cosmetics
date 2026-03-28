@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -13,9 +13,11 @@ import {
   ScrollView,
 } from 'react-native';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { catalogApi } from '../../api';
+import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import type { CreateReceiptBody, CreateReceiptResponse } from '../../api/inventory.api';
+import { extractErrorMessage } from '../../utils/error';
 import CameraSection from '../Scanner/CameraSection';
 import { formatUZS } from '../../utils/currency';
 
@@ -102,6 +104,23 @@ export default function NewReceiptSheet({
   const [cameraOpen, setCameraOpen]   = useState(false);
   const [isScanActive, setIsScanActive] = useState(true);
   const [scanLoading, setScanLoading] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
+
+  // Catalog products for manual entry search
+  const { data: catalogProducts = [] } = useQuery<CatalogProduct[]>({
+    queryKey: ['catalog-products-kirim'],
+    queryFn: () => catalogApi.getProducts(),
+    staleTime: 5 * 60_000,
+    enabled: visible,
+  });
+
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return [];
+    const q = productSearch.toLowerCase();
+    return catalogProducts
+      .filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [catalogProducts, productSearch]);
 
   const setField = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -115,6 +134,7 @@ export default function NewReceiptSheet({
     setScanLine(EMPTY_LINE);
     setCameraOpen(false);
     setIsScanActive(true);
+    setProductSearch('');
   };
 
   const handleClose = () => {
@@ -195,8 +215,8 @@ export default function NewReceiptSheet({
   const handleAddManualItem = () => {
     const qty  = parseFloat(manualLine.quantity);
     const cost = parseFloat(manualLine.costPrice);
-    if (!manualLine.productName.trim()) {
-      Alert.alert('Xatolik', "Mahsulot nomi bo'sh bo'lishi mumkin emas");
+    if (!manualLine.productId) {
+      Alert.alert('Xatolik', 'Katalogdan mahsulot tanlang');
       return;
     }
     if (!qty || qty <= 0) {
@@ -207,12 +227,12 @@ export default function NewReceiptSheet({
       Alert.alert('Xatolik', "Narx noto'g'ri");
       return;
     }
-    const productId = manualLine.productId.trim() || manualLine.productName.trim();
     setItems((prev) => [
       ...prev,
-      { ...manualLine, productId, key: `${Date.now()}-${Math.random()}` },
+      { ...manualLine, key: `${Date.now()}-${Math.random()}` },
     ]);
     setManualLine(EMPTY_LINE);
+    setProductSearch('');
     setAddMode('none');
   };
 
@@ -244,12 +264,11 @@ export default function NewReceiptSheet({
 
     try {
       await createMutation.mutateAsync(body);
-    } catch {
-      // Backend hali tayyor emas — demo mode, always succeed.
-      // TODO: Alert.alert('Xatolik', err.message) when backend is ready.
+      resetAll();
+      onSuccess();
+    } catch (err) {
+      Alert.alert('Xatolik', extractErrorMessage(err));
     }
-    resetAll();
-    onSuccess();
   };
 
   const loading = createMutation.isPending;
@@ -431,15 +450,55 @@ export default function NewReceiptSheet({
                     <View style={styles.miniForm}>
                       <Text style={styles.miniFormTitle}>Qo'lda kiritish</Text>
 
-                      <Text style={styles.label}>Mahsulot nomi *</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={manualLine.productName}
-                        onChangeText={setManualLineField('productName')}
-                        placeholder="Masalan: Nivea Krem 100ml"
-                        placeholderTextColor={C.muted}
-                        returnKeyType="next"
-                      />
+                      <Text style={styles.label}>Mahsulot *</Text>
+                      {manualLine.productId ? (
+                        <View style={styles.selectedProductRow}>
+                          <Text style={styles.selectedProductName} numberOfLines={1}>
+                            {manualLine.productName}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setManualLine((prev) => ({ ...prev, productId: '', productName: '', costPrice: '' }));
+                              setProductSearch('');
+                            }}
+                          >
+                            <Ionicons name="close-circle" size={20} color={C.muted} />
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <>
+                          <TextInput
+                            style={styles.input}
+                            value={productSearch}
+                            onChangeText={setProductSearch}
+                            placeholder="Mahsulot nomini kiriting..."
+                            placeholderTextColor={C.muted}
+                            returnKeyType="search"
+                          />
+                          {filteredProducts.length > 0 && (
+                            <View style={styles.productDropdown}>
+                              {filteredProducts.map((p) => (
+                                <TouchableOpacity
+                                  key={p.id}
+                                  style={styles.productDropdownItem}
+                                  onPress={() => {
+                                    setManualLine((prev) => ({
+                                      ...prev,
+                                      productId: p.id,
+                                      productName: p.name,
+                                      costPrice: String(p.costPrice),
+                                    }));
+                                    setProductSearch('');
+                                  }}
+                                >
+                                  <Text style={styles.productDropdownName} numberOfLines={1}>{p.name}</Text>
+                                  <Text style={styles.productDropdownPrice}>{p.costPrice.toLocaleString('ru-RU')}</Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          )}
+                        </>
+                      )}
 
                       <Text style={styles.label}>Miqdor (dona) *</Text>
                       <TextInput
@@ -905,5 +964,53 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: C.white,
+  },
+
+  // Product search & select
+  selectedProductRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: C.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: C.bg,
+    justifyContent: 'space-between',
+  },
+  selectedProductName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.text,
+    marginRight: 8,
+  },
+  productDropdown: {
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginTop: 4,
+    backgroundColor: C.white,
+  },
+  productDropdownItem: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  productDropdownName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.text,
+    flex: 1,
+  },
+  productDropdownPrice: {
+    fontSize: 12,
+    color: C.secondary,
+    marginLeft: 8,
   },
 });
