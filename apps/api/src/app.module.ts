@@ -41,7 +41,7 @@ import { CircuitBreakerModule } from './common/circuit-breaker/circuit-breaker.m
 import { ScheduleModule } from '@nestjs/schedule';
 import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
 import { EmployeesModule } from './employees/employees.module';
-import { UploadModule } from './upload/upload.module';
+import { DevSeedModule } from './common/dev-seed/dev-seed.module';
 
 @Module({
   imports: [
@@ -85,9 +85,7 @@ import { UploadModule } from './upload/upload.module';
     SyncModule,
     RealtimeModule,
     EmployeesModule,
-    UploadModule,
-    FeatureFlagsModule,
-    SupportModule,
+    DevSeedModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)

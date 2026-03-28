@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen, User } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen } from 'lucide-react';
 import { useStock, useMovementsWithUsers } from '@/hooks/inventory/useInventory';
 import { SearchInput } from '@/components/common/SearchInput';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
-import { ErrorState } from '@/components/common/ErrorState';
 import { StockInModal } from './StockInModal';
 import { StockOutModal } from './StockOutModal';
 import { ProductStockDrawer } from './ProductStockDrawer';
@@ -54,9 +53,9 @@ export default function InventoryPage() {
   const [tab, setTab] = useState<'stock' | 'movements'>('stock');
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockOutOpen, setStockOutOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<StockLevel | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
-  const { data: stock, isLoading, isError, refetch } = useStock({ search: search || undefined });
+  const { data: stock, isLoading, isError } = useStock({ search: search || undefined });
   const { data: movements, isLoading: movLoading } = useMovementsWithUsers();
 
   return (
@@ -102,7 +101,7 @@ export default function InventoryPage() {
           type="button"
           onClick={() => setTab('stock')}
           className={cn(
-            '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition',
+            'px-4 py-2 text-sm font-medium transition border-b-2 -mb-px',
             tab === 'stock'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700',
@@ -114,18 +113,13 @@ export default function InventoryPage() {
           type="button"
           onClick={() => setTab('movements')}
           className={cn(
-            '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition',
+            'px-4 py-2 text-sm font-medium transition border-b-2 -mb-px',
             tab === 'movements'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700',
           )}
         >
           Harakatlar tarixi
-          {movements && movements.length > 0 && (
-            <span className="ml-1.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
-              {movements.length}
-            </span>
-          )}
         </button>
       </div>
 
@@ -142,7 +136,9 @@ export default function InventoryPage() {
           {isLoading ? (
             <LoadingSkeleton variant="table" rows={8} />
           ) : isError ? (
-            <ErrorState compact onRetry={refetch} />
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Ma&apos;lumotlarni yuklashda xato yuz berdi
+            </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
               <table className="w-full text-sm">
@@ -160,14 +156,14 @@ export default function InventoryPage() {
                   {!stock || stock.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-4 py-10 text-center text-gray-400">
-                        {search ? "Qidiruv bo'yicha natija topilmadi" : "Mahsulotlar yo'q"}
+                        {search ? 'Qidiruv bo\'yicha natija topilmadi' : 'Mahsulotlar yo\'q'}
                       </td>
                     </tr>
                   ) : (
                     stock.map((item) => (
                       <tr
                         key={item.productId}
-                        onClick={() => setSelectedProduct(item)}
+                        onClick={() => setSelectedProductId(item.productId)}
                         className={cn(
                           'cursor-pointer transition hover:bg-blue-50/60',
                           item.status === 'OUT' && 'bg-red-50/40',
@@ -176,9 +172,7 @@ export default function InventoryPage() {
                       >
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-900">{item.productName}</div>
-                          <div className="text-xs text-gray-400">
-                            {item.sku} · {item.unit}
-                          </div>
+                          <div className="text-xs text-gray-400">{item.sku} · {item.unit}</div>
                         </td>
                         <td className="px-4 py-3 font-mono text-xs text-gray-500">
                           {item.barcode ?? '—'}
@@ -222,23 +216,18 @@ export default function InventoryPage() {
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
                     <th className="px-4 py-3 text-right font-medium text-gray-600">Miqdor</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Yetkazib beruvchi</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <User className="h-3.5 w-3.5" />
-                        Kim kiritgan
-                      </div>
-                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">Kim kiritgan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {movements.map((m) => {
                     const isIn = m.type === 'IN';
                     const noteSupplier = isIn
-                      ? (m.note?.split(' | ')[0] ?? m.note ?? '—')
+                      ? (m.notes?.split(' | ')[0] ?? m.notes ?? '—')
                       : '—';
                     return (
                       <tr key={m.id} className="transition hover:bg-gray-50">
-                        <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-500">
+                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 text-xs">
                           {formatDate(m.createdAt)}
                         </td>
                         <td className="px-4 py-3">
@@ -260,20 +249,12 @@ export default function InventoryPage() {
                             isIn ? 'text-green-600' : 'text-red-600',
                           )}
                         >
-                          {isIn ? '+' : '-'}
-                          {m.quantity}
+                          {isIn ? '+' : '-'}{m.quantity}
                         </td>
-                        <td className="max-w-[140px] truncate px-4 py-3 text-gray-600">
+                        <td className="max-w-[160px] truncate px-4 py-3 text-gray-600">
                           {noteSupplier}
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5 text-gray-700">
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                              <User className="h-3.5 w-3.5" />
-                            </div>
-                            {m.userName}
-                          </div>
-                        </td>
+                        <td className="px-4 py-3 text-gray-700">{m.userName}</td>
                       </tr>
                     );
                   })}
@@ -288,10 +269,10 @@ export default function InventoryPage() {
       <StockInModal isOpen={stockInOpen} onClose={() => setStockInOpen(false)} />
       <StockOutModal isOpen={stockOutOpen} onClose={() => setStockOutOpen(false)} />
 
-      {/* Product detail drawer — to'liq product ob'ekti uzatiladi */}
+      {/* Product detail drawer */}
       <ProductStockDrawer
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
+        productId={selectedProductId}
+        onClose={() => setSelectedProductId(null)}
       />
     </div>
   );

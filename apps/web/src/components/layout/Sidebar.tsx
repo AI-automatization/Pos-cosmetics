@@ -46,19 +46,38 @@ interface NavItem {
   roles: Role[];
 }
 
-interface NavSection {
-  title: string;
-  items: NavItem[];
-}
-
-/* ─── Navigation Config (single source of truth) ─── */
-
-const ALL: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
-const NO_CASHIER: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'];
-const STAFF: Role[] = ['ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
-const ADMIN_ONLY: Role[] = ['ADMIN'];
-
-const NAV_SECTIONS: NavSection[] = [
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'POS Kassa', href: '/pos', icon: Monitor },
+  {
+    label: 'Katalog',
+    icon: Package,
+    children: [
+      { label: 'Mahsulotlar', href: '/catalog/products' },
+      { label: 'Kategoriyalar', href: '/catalog/categories' },
+      { label: 'Yetkazib beruvchilar', href: '/catalog/suppliers' },
+    ],
+  },
+  {
+    label: 'Inventar',
+    icon: Warehouse,
+    children: [
+      { label: 'Zaxira holati', href: '/inventory' },
+      { label: 'Kam zaxira', href: '/inventory/low-stock' },
+      { label: 'Yaroqlilik muddati', href: '/inventory/expiry' },
+    ],
+  },
+  {
+    label: 'Sotuv',
+    icon: ShoppingCart,
+    children: [
+      { label: 'Buyurtmalar', href: '/sales/orders' },
+      { label: 'Qaytarishlar', href: '/sales/returns' },
+      { label: 'Smenalar', href: '/sales/shifts' },
+      { label: 'Aksiyalar', href: '/sales/promotions' },
+    ],
+  },
+  { label: 'To\'lovlar', href: '/payments/history', icon: CreditCard },
   {
     title: 'Asosiy',
     items: [

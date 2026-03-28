@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '../api/analytics.api';
 import { inventoryApi } from '../api/inventory.api';
+import { debtsApi } from '../api/debts.api';
 import { useBranchStore } from '../store/branch.store';
 import { QUERY_KEYS } from '../config/queryKeys';
 import { DASHBOARD_REFETCH_INTERVAL } from '../config/constants';
@@ -51,5 +52,11 @@ export function useDashboard() {
     refetchInterval: DASHBOARD_REFETCH_INTERVAL,
   });
 
-  return { revenue, orders, salesTrend, branchComparison, topProducts, lowStock };
+  const debtSummary = useQuery({
+    queryKey: QUERY_KEYS.debts.summary(selectedBranchId),
+    queryFn: () => debtsApi.getSummary(selectedBranchId),
+    refetchInterval: DASHBOARD_REFETCH_INTERVAL,
+  });
+
+  return { revenue, orders, salesTrend, branchComparison, topProducts, lowStock, debtSummary };
 }

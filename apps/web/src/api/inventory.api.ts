@@ -34,12 +34,7 @@ export const inventoryApi = {
       .get<{ items: StockMovement[]; total: number } | StockMovement[]>('/inventory/movements', {
         params: productId ? { productId } : {},
       })
-      .then((r) => {
-        const data = r.data;
-        if (Array.isArray(data)) return data;
-        if (data && Array.isArray((data as { items: StockMovement[] }).items)) return (data as { items: StockMovement[] }).items;
-        return [];
-      });
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
 
   // Backend: POST /inventory/movements (single movement per request, requires warehouseId)
