@@ -19,6 +19,8 @@ import {
 import { PaymentsService } from './payments.service';
 import { CreatePaymentIntentDto, SplitPaymentDto } from './dto/create-payment.dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
 import { PaymeProvider } from './providers/payme.provider';
@@ -26,7 +28,8 @@ import { ClickProvider } from './providers/click.provider';
 
 @ApiTags('Payments')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
 @Controller('payments')
 export class PaymentsController {
   constructor(

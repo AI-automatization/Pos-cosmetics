@@ -67,7 +67,10 @@
     "analytics": "Analitika",
     "pos": "Kassa",
     "realEstate": "Ko'chmas mulk",
-    "reportBuilder": "Hisobot yaratish"
+    "reportBuilder": "Hisobot yaratish",
+    "promotions": "Aksiyalar",
+    "exchangeRates": "Valyuta kurslari",
+    "movements": "Harakatlar"
   },
   "dashboard": {
     "title": "Bosh sahifa",
