@@ -792,3 +792,26 @@
 
 ---
 
+## T-341 | 2026-03-28 | [MOBILE] | ShiftGuard — Smena ochilmagan ekranlarda overlay
+
+- **Mas'ul:** Abdulaziz
+- **Yechim:** `ShiftGuard` komponenti yaratildi — `useShiftStore().isShiftOpen` tekshiradi, smena yopilgan bo'lsa `StyleSheet.absoluteFill` overlay ko'rsatadi (lock icon + "Smena ochilmagan" + "Smena ochish →" tugmasi). Savdo, Nasiya, Kirim, Ombor ekranlariga qo'shildi. Smena, Tarix, Sozlamalar — ochiq qoldi. Commit: a5fb771
+- **Fayllar:** apps/mobile/src/components/common/ShiftGuard.tsx (yangi), screens/Savdo/index.tsx, Nasiya/index.tsx, Kirim/index.tsx, Ombor/index.tsx
+
+---
+
+## T-342 | 2026-03-28 | [MOBILE] | Backend integratsiya — Smena, Kirim, Ombor, Savdo
+
+- **Mas'ul:** Abdulaziz
+- **Yechim:** Barcha asosiy ekranlar backend API ga ulandi:
+  - `shiftStore.ts` — `openShift`/`closeShift` → real API; `syncWithApi()` app start uchun
+  - `sales.api.ts` — `openShiftApi`, `closeShiftApi`, `getShiftById`, `getShifts`, `createOrder` qo'shildi
+  - `inventory.api.ts` — `/inventory/receipts` → `/warehouse/invoices` tuzatildi, field mapping
+  - `catalog.api.ts` — `getProducts()`, `getCategories()` qo'shildi
+  - `SmenaScreen` — mock data o'chirildi, real API ga ulandi
+  - `SavdoScreen` — MOCK_PRODUCTS o'chirildi, `catalogApi.getProducts()` + `salesApi.createOrder()` ulandi
+  - Commit: 5f42746, 2166f66
+- **Fayllar:** store/shiftStore.ts, api/sales.api.ts, api/inventory.api.ts, api/catalog.api.ts, screens/Smena/index.tsx, screens/Savdo/index.tsx
+
+---
+
