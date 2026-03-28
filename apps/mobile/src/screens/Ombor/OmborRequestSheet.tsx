@@ -53,7 +53,7 @@ interface RequestItem {
 }
 
 // ─── Helpers ────────────────────────────────────────────
-function getStatus(item: LowStockItem): StockStatus {
+function getStatus(item: { stock: number; minStockLevel: number }): StockStatus {
   if (item.stock === 0) return 'TUGADI';
   if (item.stock <= item.minStockLevel) return 'KAM';
   return 'NORMAL';
