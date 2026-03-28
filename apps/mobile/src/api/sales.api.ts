@@ -1,5 +1,16 @@
-import type { Order, Shift } from '@raos/types';
+import type { Order, Shift, OpenShiftPayload, CloseShiftPayload } from '@raos/types';
 import api from './client';
+
+export interface ShiftDetail extends Shift {
+  totalRevenue?: number;
+  totalOrders?: number;
+  cashAmount?: number;
+  cardAmount?: number;
+  nasiyaAmount?: number;
+  expenses?: number;
+  user?: { firstName: string; lastName: string };
+  paymentBreakdown?: { method: string; amount: number }[];
+}
 
 export interface SaleItem {
   productId: string;
@@ -87,5 +98,27 @@ export const salesApi = {
     } catch {
       return null;
     }
+  },
+
+  openShiftApi: async (payload: OpenShiftPayload): Promise<Shift> => {
+    const { data } = await api.post<Shift>('/sales/shifts/open', payload);
+    return data;
+  },
+
+  closeShiftApi: async (id: string, payload: CloseShiftPayload): Promise<Shift> => {
+    const { data } = await api.post<Shift>(`/sales/shifts/${id}/close`, payload);
+    return data;
+  },
+
+  getShiftById: async (id: string): Promise<ShiftDetail> => {
+    const { data } = await api.get<ShiftDetail>(`/sales/shifts/${id}`);
+    return data;
+  },
+
+  getShifts: async (page = 1, limit = 5): Promise<{ items: ShiftDetail[]; total: number }> => {
+    const { data } = await api.get<{ items: ShiftDetail[]; total: number }>('/sales/shifts', {
+      params: { page, limit },
+    });
+    return data;
   },
 };

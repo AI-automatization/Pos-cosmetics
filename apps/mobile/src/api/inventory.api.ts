@@ -113,17 +113,68 @@ export const inventoryApi = {
     from?: string;
     to?: string;
   }): Promise<ReceiptListResponse> => {
-    const { data } = await api.get<ReceiptListResponse>('/inventory/receipts', { params });
-    return data;
+    const { data } = await api.get<{ items?: unknown[]; data?: unknown[]; total: number; page: number; limit: number }>(
+      '/warehouse/invoices',
+      { params },
+    );
+    const items: Receipt[] = ((data.items ?? data.data) ?? []).map((r: any) => ({
+      id: r.id,
+      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
+      date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
+      supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
+      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
+      totalCost: r.totalCost,
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      notes: r.notes ?? r.note,
+    }));
+    return { items, total: data.total, page: data.page, limit: data.limit };
   },
 
   getReceiptById: async (id: string): Promise<Receipt> => {
-    const { data } = await api.get<Receipt>(`/inventory/receipts/${id}`);
-    return data;
+    const { data } = await api.get<any>(`/warehouse/invoices/${id}`);
+    const r = data;
+    return {
+      id: r.id,
+      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
+      date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
+      supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
+      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
+      totalCost: r.totalCost,
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      notes: r.notes ?? r.note,
+      items: r.items?.map((item: any) => ({
+        productId: item.productId,
+        productName: item.productName ?? item.product?.name ?? '',
+        qty: item.quantity ?? item.qty,
+        unit: item.unit ?? '',
+        costPrice: item.purchasePrice ?? item.costPrice,
+        batchNumber: item.batchNumber,
+        expiryDate: item.expiryDate,
+      })),
+    };
   },
 
   createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {
-    const { data } = await api.post<CreateReceiptResponse>('/inventory/receipts', body);
-    return data;
+    const payload = {
+      invoiceNumber: body.invoiceNumber,
+      note: body.notes,
+      items: body.items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        purchasePrice: item.costPrice,
+        batchNumber: item.batchNumber,
+        expiryDate: item.expiryDate,
+      })),
+    };
+    const { data } = await api.post<any>('/warehouse/invoices', payload);
+    const r = data;
+    return {
+      id: r.id,
+      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
+      date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
+      totalCost: r.totalCost,
+      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+    };
   },
 };

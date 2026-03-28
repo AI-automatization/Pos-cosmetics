@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,68 +10,110 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { useShiftStore } from '../../store/shiftStore';
+import { useAuthStore } from '../../store/auth.store';
+import { salesApi } from '../../api/sales.api';
 import { C, ShiftRecord, fmt, StatBox, DetailRow, HistoryCard } from './SmenaComponents';
 
-// ─── Mock data ─────────────────────────────────────────
-const ACTIVE_SHIFT: ShiftRecord = {
-  id: 'shift-001',
-  cashier: 'Azamat Akhmedov',
-  openedAt: '08:30',
-  closedAt: null,
-  openingCash: 500_000,
-  closingCash: null,
-  totalRevenue: 4_200_000,
-  totalOrders: 48,
-  cashAmount: 2_100_000,
-  cardAmount: 1_750_000,
-  nasiyaAmount: 350_000,
-  expenses: 120_000,
-};
-
-const SHIFT_HISTORY: ShiftRecord[] = [
-  {
-    id: 'shift-000',
-    cashier: 'Azamat Akhmedov',
-    openedAt: '08:15',
-    closedAt: '18:00',
-    openingCash: 500_000,
-    closingCash: 2_350_000,
-    totalRevenue: 3_850_000,
-    totalOrders: 42,
-    cashAmount: 1_900_000,
-    cardAmount: 1_500_000,
-    nasiyaAmount: 450_000,
-    expenses: 80_000,
-  },
-  {
-    id: 'shift-prev1',
-    cashier: 'Malika Yusupova',
-    openedAt: '09:00',
-    closedAt: '19:30',
-    openingCash: 300_000,
-    closingCash: 1_900_000,
-    totalRevenue: 2_900_000,
-    totalOrders: 31,
-    cashAmount: 1_400_000,
-    cardAmount: 1_100_000,
-    nasiyaAmount: 400_000,
-    expenses: 50_000,
-  },
-];
-
 // ─── Utils ─────────────────────────────────────────────
-function duration(_openedAt: string): string {
-  return '6 soat 12 daqiqa';
+function formatTime(date: Date | string | null | undefined): string {
+  if (!date) return '—';
+  return new Date(date).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString('uz-UZ', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function duration(openedAt: Date | string): string {
+  const diffMs = Date.now() - new Date(openedAt).getTime();
+  const totalMins = Math.floor(diffMs / 60_000);
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  if (h === 0) return `${m} daqiqa`;
+  return `${h} soat ${m} daqiqa`;
 }
 
 // ─── Main Screen ───────────────────────────────────────
 export default function SmenaScreen() {
-  const { isShiftOpen, openShift, closeShift } = useShiftStore();
-  const [loading, setLoading]     = useState(false);
+  const { isShiftOpen, shiftId, openShift, closeShift, syncWithApi } = useShiftStore();
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(false);
 
-  const shift = isShiftOpen ? ACTIVE_SHIFT : null;
+  const cashierName = user ? `${user.firstName} ${user.lastName}` : 'Kassir';
+
+  // App ochilganda API bilan sinxronlashtirish
+  useEffect(() => {
+    void syncWithApi();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Joriy smena detallari
+  const { data: shiftDetail, refetch: refetchDetail } = useQuery({
+    queryKey: ['shift-detail', shiftId],
+    queryFn: () => salesApi.getShiftById(shiftId!),
+    enabled: !!shiftId && isShiftOpen,
+    staleTime: 30_000,
+  });
+
+  // Smena tarixi
+  const { data: shiftsData } = useQuery({
+    queryKey: ['shifts-history'],
+    queryFn: () => salesApi.getShifts(1, 6),
+    staleTime: 60_000,
+  });
+
+  // API ma'lumotlarini ShiftRecord ga map qilish
+  const shift: ShiftRecord | null =
+    isShiftOpen && shiftDetail
+      ? {
+          id: shiftDetail.id,
+          cashier:
+            shiftDetail.user
+              ? `${shiftDetail.user.firstName} ${shiftDetail.user.lastName}`
+              : cashierName,
+          openedAt: formatTime(shiftDetail.openedAt),
+          closedAt: shiftDetail.closedAt ? formatTime(shiftDetail.closedAt) : null,
+          openingCash: shiftDetail.openingCash,
+          closingCash: shiftDetail.closingCash ?? null,
+          totalRevenue: shiftDetail.totalRevenue ?? 0,
+          totalOrders: shiftDetail.totalOrders ?? 0,
+          cashAmount: shiftDetail.cashAmount ?? 0,
+          cardAmount: shiftDetail.cardAmount ?? 0,
+          nasiyaAmount: shiftDetail.nasiyaAmount ?? 0,
+          expenses: shiftDetail.expenses ?? 0,
+        }
+      : null;
+
+  // Yopilgan smenalar tarixi
+  const historyShifts: ShiftRecord[] = (shiftsData?.items ?? [])
+    .filter((s) => s.status === 'CLOSED')
+    .slice(0, 3)
+    .map((s) => ({
+      id: s.id,
+      cashier:
+        s.user
+          ? `${s.user.firstName} ${s.user.lastName}`
+          : cashierName,
+      openedAt: formatTime(s.openedAt),
+      closedAt: s.closedAt ? formatTime(s.closedAt) : null,
+      openingCash: s.openingCash,
+      closingCash: s.closingCash ?? null,
+      totalRevenue: s.totalRevenue ?? 0,
+      totalOrders: s.totalOrders ?? 0,
+      cashAmount: s.cashAmount ?? 0,
+      cardAmount: s.cardAmount ?? 0,
+      nasiyaAmount: s.nasiyaAmount ?? 0,
+      expenses: s.expenses ?? 0,
+    }));
+
   const netRevenue = shift ? shift.totalRevenue - shift.expenses : 0;
+  const todayStr = formatDate(new Date());
 
   const handleToggleShift = () => {
     if (isShiftOpen) {
@@ -83,16 +125,30 @@ export default function SmenaScreen() {
           {
             text: 'Yopish',
             style: 'destructive',
-            onPress: () => {
+            onPress: async () => {
               setLoading(true);
-              setTimeout(() => { setLoading(false); closeShift(); }, 800);
+              try {
+                await closeShift(0);
+                void refetchDetail();
+              } catch {
+                Alert.alert('Xatolik', 'Smena yopishda xatolik yuz berdi');
+              } finally {
+                setLoading(false);
+              }
             },
           },
         ],
       );
     } else {
       setLoading(true);
-      setTimeout(() => { setLoading(false); openShift(); }, 800);
+      openShift(0)
+        .then(() => {
+          setLoading(false);
+        })
+        .catch(() => {
+          setLoading(false);
+          Alert.alert('Xatolik', 'Smena ochishda xatolik yuz berdi');
+        });
     }
   };
 
@@ -102,7 +158,7 @@ export default function SmenaScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Smena</Text>
-          <Text style={styles.headerDate}>10 mart, 2026</Text>
+          <Text style={styles.headerDate}>{todayStr}</Text>
         </View>
         <View style={[styles.statusPill, isShiftOpen ? styles.statusPillActive : styles.statusPillClosed]}>
           <View style={[styles.statusDot, { backgroundColor: isShiftOpen ? C.green : C.muted }]} />
@@ -114,7 +170,7 @@ export default function SmenaScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {isShiftOpen && shift ? (
+        {isShiftOpen && shiftDetail ? (
           <>
             {/* Active shift card */}
             <View style={styles.shiftCard}>
@@ -122,80 +178,92 @@ export default function SmenaScreen() {
                 <View style={styles.shiftLeft}>
                   <View style={styles.shiftDot} />
                   <View>
-                    <Text style={styles.shiftCashier}>{shift.cashier}</Text>
-                    <Text style={styles.shiftTime}>Boshlandi: {shift.openedAt}  •  {duration(shift.openedAt)}</Text>
+                    <Text style={styles.shiftCashier}>
+                      {shift?.cashier ?? cashierName}
+                    </Text>
+                    <Text style={styles.shiftTime}>
+                      Boshlandi: {formatTime(shiftDetail.openedAt)}  •  {duration(shiftDetail.openedAt)}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.shiftCashBox}>
                   <Text style={styles.shiftCashLabel}>Ochilish naqdi</Text>
-                  <Text style={styles.shiftCashValue}>{fmt(shift.openingCash)}</Text>
+                  <Text style={styles.shiftCashValue}>{fmt(shiftDetail.openingCash)}</Text>
                 </View>
               </View>
             </View>
 
             {/* Quick stats grid */}
-            <View style={styles.statsGrid}>
-              <StatBox
-                label="Tushum"
-                value={`${fmt(shift.totalRevenue)} UZS`}
-                icon="cash-register"
-                iconBg={C.primary + '18'}
-                iconColor={C.primary}
-                sub={`${shift.totalOrders} ta savdo`}
-              />
-              <StatBox
-                label="Naqd"
-                value={`${fmt(shift.cashAmount)} UZS`}
-                icon="cash-multiple"
-                iconBg="#D1FAE5"
-                iconColor={C.green}
-              />
-              <StatBox
-                label="Karta"
-                value={`${fmt(shift.cardAmount)} UZS`}
-                icon="credit-card-outline"
-                iconBg="#DBEAFE"
-                iconColor="#2563EB"
-              />
-              <StatBox
-                label="Nasiya"
-                value={`${fmt(shift.nasiyaAmount)} UZS`}
-                icon="receipt"
-                iconBg="#FEF3C7"
-                iconColor={C.orange}
-              />
-            </View>
+            {shift && (
+              <View style={styles.statsGrid}>
+                <StatBox
+                  label="Tushum"
+                  value={`${fmt(shift.totalRevenue)} UZS`}
+                  icon="cash-register"
+                  iconBg={C.primary + '18'}
+                  iconColor={C.primary}
+                  sub={`${shift.totalOrders} ta savdo`}
+                />
+                <StatBox
+                  label="Naqd"
+                  value={`${fmt(shift.cashAmount)} UZS`}
+                  icon="cash-multiple"
+                  iconBg="#D1FAE5"
+                  iconColor={C.green}
+                />
+                <StatBox
+                  label="Karta"
+                  value={`${fmt(shift.cardAmount)} UZS`}
+                  icon="credit-card-outline"
+                  iconBg="#DBEAFE"
+                  iconColor="#2563EB"
+                />
+                <StatBox
+                  label="Nasiya"
+                  value={`${fmt(shift.nasiyaAmount)} UZS`}
+                  icon="receipt"
+                  iconBg="#FEF3C7"
+                  iconColor={C.orange}
+                />
+              </View>
+            )}
 
             {/* Detailed report */}
-            <View style={styles.reportCard}>
-              <Text style={styles.reportTitle}>Batafsil hisobot</Text>
-
-              <DetailRow
-                label="Jami tushum"
-                value={`${fmt(shift.totalRevenue)} UZS`}
-                valueColor={C.primary}
-                icon="cash-register"
-              />
-              <View style={styles.reportDivider} />
-              <DetailRow
-                label="Nasiya (kredit)"
-                value={`${fmt(shift.nasiyaAmount)} UZS`}
-                valueColor={C.orange}
-                icon="receipt"
-              />
-              <DetailRow
-                label="Xarajatlar"
-                value={`− ${fmt(shift.expenses)} UZS`}
-                valueColor={C.red}
-                icon="minus-circle-outline"
-              />
-              <View style={styles.reportDivider} />
-              <View style={styles.netRow}>
-                <Text style={styles.netLabel}>Sof daromad</Text>
-                <Text style={styles.netValue}>{fmt(netRevenue)} UZS</Text>
+            {shift && (
+              <View style={styles.reportCard}>
+                <Text style={styles.reportTitle}>Batafsil hisobot</Text>
+                <DetailRow
+                  label="Jami tushum"
+                  value={`${fmt(shift.totalRevenue)} UZS`}
+                  valueColor={C.primary}
+                  icon="cash-register"
+                />
+                <View style={styles.reportDivider} />
+                <DetailRow
+                  label="Nasiya (kredit)"
+                  value={`${fmt(shift.nasiyaAmount)} UZS`}
+                  valueColor={C.orange}
+                  icon="receipt"
+                />
+                <DetailRow
+                  label="Xarajatlar"
+                  value={`− ${fmt(shift.expenses)} UZS`}
+                  valueColor={C.red}
+                  icon="minus-circle-outline"
+                />
+                <View style={styles.reportDivider} />
+                <View style={styles.netRow}>
+                  <Text style={styles.netLabel}>Sof daromad</Text>
+                  <Text style={styles.netValue}>{fmt(netRevenue)} UZS</Text>
+                </View>
               </View>
-            </View>
+            )}
           </>
+        ) : isShiftOpen ? (
+          /* Shift open but data loading */
+          <View style={styles.noShift}>
+            <ActivityIndicator size="large" color={C.primary} />
+          </View>
         ) : (
           /* No active shift */
           <View style={styles.noShift}>
@@ -208,10 +276,10 @@ export default function SmenaScreen() {
         )}
 
         {/* Shift history */}
-        {SHIFT_HISTORY.length > 0 && (
+        {historyShifts.length > 0 && (
           <View style={styles.historySection}>
             <Text style={styles.sectionTitle}>Oxirgi smenalar</Text>
-            {SHIFT_HISTORY.map((s) => (
+            {historyShifts.map((s) => (
               <HistoryCard key={s.id} shift={s} />
             ))}
           </View>
