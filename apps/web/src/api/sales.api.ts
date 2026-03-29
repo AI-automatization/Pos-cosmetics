@@ -33,13 +33,17 @@ export const salesApi = {
         NASIYA: 'DEBT',
         BONUS: 'CASH',
       };
+      const paymentsPayload = dto.payments
+        .filter((p) => p.amount > 0)
+        .map((p) => ({
+          orderId: order.id,
+          method: methodMap[p.method] ?? p.method,
+          amount: p.amount,
+        }));
+      if (paymentsPayload.length === 0) return order;
       const intents = await apiClient
         .post<{ id: string }[]>('/payments/split', {
-          payments: dto.payments.map((p) => ({
-            orderId: order.id,
-            method: methodMap[p.method] ?? p.method,
-            amount: p.amount,
-          })),
+          payments: paymentsPayload,
         })
         .then((r) => r.data);
       // Settle all intents so analytics/reports see SETTLED revenue

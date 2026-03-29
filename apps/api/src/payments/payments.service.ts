@@ -150,6 +150,14 @@ export class PaymentsService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
+        include: {
+          order: {
+            select: {
+              orderNumber: true,
+              customer: { select: { id: true, name: true, phone: true } },
+            },
+          },
+        },
       }),
       this.prisma.paymentIntent.count({ where }),
     ]);

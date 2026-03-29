@@ -16,7 +16,7 @@ interface ProductSearchProps {
 }
 
 function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }) {
-  const stock = product.currentStock ?? 0;
+  const stock = Math.max(0, product.currentStock ?? 0);
   const minStock = product.minStockLevel ?? 0;
   const isLowStock = stock > 0 && stock <= minStock;
   const isOutOfStock = stock === 0;
