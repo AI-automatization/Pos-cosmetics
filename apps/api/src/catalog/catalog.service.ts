@@ -335,11 +335,11 @@ export class CatalogService {
 
   // ─── SUPPLIERS ────────────────────────────────────────────────
 
-  async getSuppliers(tenantId: string, isActive?: boolean) {
+  async getSuppliers(tenantId: string, isActive: boolean = true) {
     return this.prisma.supplier.findMany({
       where: {
         tenantId,
-        ...(isActive !== undefined && { isActive }),
+        isActive,
       },
       orderBy: { name: 'asc' },
     });
