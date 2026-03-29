@@ -24,6 +24,21 @@
 
 ---
 
+## 2026-03-29 TUZATILGAN (B-038..B-042 — Schema + Frontend + Invoice)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-038 | 2026-03-29 | P1 | 2026-03-29 | `schema.prisma`, `20260329000000_fix_schema_B038` | `warehouse_invoice_items` va `ticket_messages` jadvallari `tenant_id NOT NULL` ustun va `@@index` siz yaratilgan — multi-tenant isolation buzilgan. `onDelete: Cascade → Restrict` ham tuzatildi. Migration Railway production ga deploy qilindi. |
+| B-040 | 2026-03-29 | P1 | 2026-03-29 | `orders.api.ts`, `shifts.api.ts` | **cashierName "--"** — API faqat `user: {firstName, lastName}` qaytaradi, lekin frontend `cashierName` fieldiga map qilmagan. `ordersApi.list()` va `shiftsApi.list()` da `user.firstName + user.lastName → cashierName` mapping qo'shildi. |
+| B-041 | 2026-03-29 | P0 | 2026-03-29 | `warehouse-invoice.service.ts` | **POST /warehouse/invoices → 500 PRISMA_P2011** — `createInvoice()` da items create operatsiyasida `tenantId` kiritilmagan. `Null constraint violation on tenant_id` xatosi. `tenantId` items map ga qo'shildi. |
+| B-042 | 2026-03-29 | P1 | 2026-03-29 | `support.service.ts` | **TypeScript error** — B-038 migrationdan keyin `TicketMessage` `tenantId NOT NULL` talab qildi, lekin `addMessage()` da `tenantId` kiritilmagan edi. Tuzatildi. |
+| B-043 | 2026-03-29 | P2 | 2026-03-29 | `payments.service.ts`, `payments/history/page.tsx` | **Xaridor ustuni "--"** — `listPayments` `order.customer` ni include qilmagan; page `o.customer?.name` o'rniga `o.customerName` ishlatishi kerak edi. Include + mapping qo'shildi. |
+| B-044 | 2026-03-29 | P2 | 2026-03-29 | `customers.service.ts` | **"Jami qarz" har doim 0** — `findAll` plain customer qaytargan, `debtBalance` aggregation yo'q. `debtRecord.groupBy` qo'shildi. |
+| B-045 | 2026-03-29 | P2 | 2026-03-29 | `ProductSearch.tsx` | **POS stock salbiy (masalan -99786)** — `currentStock` salbiy bo'lganda UI ni buzadi. `Math.max(0, stock)` qo'shildi. |
+| B-046 | 2026-03-29 | P1 | 2026-03-29 | `sales.api.ts` | **POST /payments/split → 400** — nol miqdorli to'lovlar (masalan split da card=0) backend validatsiyasini o'tkazmasdi. `p.amount > 0` filter qo'shildi. |
+
+---
+
 ## 2026-03-29 TUZATILGAN (Playwright Audit — MANAGER Role 403)
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |

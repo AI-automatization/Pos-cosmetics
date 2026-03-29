@@ -17,6 +17,14 @@
 
 | # | Sana | Tur | Muammo va yechim | Fayl |
 |---|------|-----|-----------------|------|
+| B-038 | 2026-03-29 | SCHEMA | `warehouse_invoice_items` + `ticket_messages`: `tenant_id NOT NULL` + `@@index` qo'shildi; `onDelete: Restrict`. Railway migrate deploy. | schema.prisma, migration |
+| B-040 | 2026-03-29 | FRONTEND | cashierName "--": `user.firstName+lastName → cashierName` mapping | orders.api.ts, shifts.api.ts |
+| B-041 | 2026-03-29 | BACKEND | POST /warehouse/invoices 500: items da `tenantId` yo'q → qo'shildi | warehouse-invoice.service.ts |
+| B-042 | 2026-03-29 | BACKEND | TS error: `ticketMessage.create` da `tenantId` yo'q → qo'shildi | support.service.ts |
+| B-043 | 2026-03-29 | BACKEND/FRONTEND | Xaridor "--" to'lovlar tarixida: `listPayments` include + customerName mapping | payments.service.ts, payments/history/page.tsx |
+| B-044 | 2026-03-29 | BACKEND | "Jami qarz" 0: `findAll` `debtRecord.groupBy` aggregation qo'shildi | customers.service.ts |
+| B-045 | 2026-03-29 | FRONTEND | POS stock salbiy: `Math.max(0, currentStock)` | ProductSearch.tsx |
+| B-046 | 2026-03-29 | FRONTEND | split 400: nol miqdorli to'lovlar filter `p.amount > 0` | sales.api.ts |
 | BUG-001 | 2026-03-02 | BACKEND | `::uuid` cast xatosi: Prisma $queryRaw da `${tenantId}::uuid` → DB TEXT type bilan mos kelmaydi. Barcha `::uuid` castlar olib tashlandi | inventory.service.ts |
 | BUG-002 | 2026-03-02 | BACKEND | Noto'g'ri ustun nomlari: `oi.total_price` → `oi.total`, `o.total_amount` → `o.total` | ai.service.ts |
 | BUG-003 | 2026-03-02 | BACKEND | OrderStatus enum: `CANCELLED` yo'q, raw SQL da `enum::text` cast kerak. `NOT IN ('CANCELLED','VOIDED')` → `::text = 'COMPLETED'` | ai.service.ts, reports.service.ts, cron.service.ts |

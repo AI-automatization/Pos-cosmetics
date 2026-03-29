@@ -39,6 +39,7 @@ export class WarehouseInvoiceService {
           createdBy: userId,
           items: {
             create: dto.items.map((item) => ({
+              tenantId,
               productId: item.productId,
               quantity: item.quantity,
               purchasePrice: item.purchasePrice,
