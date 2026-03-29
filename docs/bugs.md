@@ -24,6 +24,12 @@
 
 ---
 
+## 2026-03-29 TUZATILGAN (Playwright Audit — MANAGER Role 403)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-039 | 2026-03-29 | P1 | 2026-03-29 | `reports.controller.ts`, `exchange-rate.controller.ts` | MANAGER роли /reports/profit и /exchange-rate/history эндпоинтлари 403 қайтарарди — @Roles га MANAGER қўшилди |
+
 ## 2026-03-28 TUZATILGAN (Backend Audit — Barcha Controllerlar)
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |

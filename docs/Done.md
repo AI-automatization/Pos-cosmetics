@@ -70,6 +70,7 @@
 | T-307 | 2026-03-27 | FRONTEND | Bundles UI: BundleDetailModal.tsx (komponentlar ro'yxati, componentTotal, savings%, bundle narx); ProductSearch isBundle badge + modal trigger; CartPanel isBundle badge; CartItem.isBundle field; doAddItem isBundle pass | BundleDetailModal.tsx, ProductSearch.tsx, CartPanel.tsx, types/sales.ts |
 | T-310 | 2026-03-27 | FRONTEND | POS tablet layout: TabBar komponent (Mahsulotlar/Savat+badge/To'lov); lg+ da 3-column, lg- da tab-based single panel; keyboard shortcuts bar lg+ da yashirildi; portrait/landscape uchun CSS | pos/page.tsx |
 | T-314 | 2026-03-27 | FRONTEND | Subscription UI: settings/billing/page.tsx allaqachon mavjud (plan card+status badge+expiry, UsageBar filial/mahsulot/user uchun, PlanCard grid upgrade tugmasi bilan); useBilling.ts hooks; billingApi allaqachon ishlaydi | settings/billing/page.tsx, hooks/settings/useBilling.ts, api/billing.api.ts |
+| B-039 | 2026-03-29 | SECURITY | reports.controller.ts, exchange-rate.controller.ts — GET /reports/profit va GET /exchange-rate/history da @Roles('OWNER','ADMIN') edi, MANAGER yo'q edi → 403. @Roles ga 'MANAGER' qo'shildi. Playwright audit (scripts/audit-all-roles.mjs) bilan aniqlandi | reports.controller.ts, exchange-rate.controller.ts |
 
 ---
 
