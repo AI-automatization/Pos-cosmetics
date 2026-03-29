@@ -74,6 +74,12 @@ export function useLogin() {
   });
 }
 
+/** Returns true if current user can create/edit/delete (VIEWER cannot) */
+export function useCanEdit(): boolean {
+  const { data: user } = useCurrentUser();
+  return user?.role !== 'VIEWER';
+}
+
 export function useLogout() {
   const router = useRouter();
   const queryClient = useQueryClient();

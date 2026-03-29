@@ -11,6 +11,7 @@ import {
 } from '@/hooks/promotions/usePromotions';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { cn } from '@/lib/utils';
+import { useCanEdit } from '@/hooks/auth/useAuth';
 import type { Promotion, PromotionType, CreatePromotionDto } from '@/types/promotion';
 import { PROMO_TYPE_LABELS, PROMO_TYPE_COLORS, DEMO_PROMOTIONS } from '@/types/promotion';
 
@@ -286,6 +287,7 @@ export default function PromotionsPage() {
   const { mutate: deletePromo } = useDeletePromotion();
   const { mutate: toggle } = useTogglePromotion();
   const [modal, setModal] = useState<'create' | Promotion | null>(null);
+  const canEdit = useCanEdit();
 
   const items: Promotion[] = isError ? DEMO_PROMOTIONS : (promotions ?? []);
 
@@ -304,13 +306,15 @@ export default function PromotionsPage() {
             <p className="text-sm text-gray-500">{items.length} ta aksiya</p>
           </div>
         </div>
-        <button
-          onClick={() => setModal('create')}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          Yangi aksiya
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setModal('create')}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Yangi aksiya
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -326,7 +330,7 @@ export default function PromotionsPage() {
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Shartlar</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Muddat</th>
                 <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Amallar</th>
+                {canEdit && <th className="px-4 py-3 text-right font-medium text-gray-600">Amallar</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -369,24 +373,26 @@ export default function PromotionsPage() {
                         )}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => setModal(p)}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
-                          title="Tahrirlash"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(p.id)}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                          title="O'chirish"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {canEdit && (
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setModal(p)}
+                            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
+                            title="Tahrirlash"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p.id)}
+                            className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                            title="O'chirish"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

@@ -14,6 +14,7 @@ import {
   useUpdateCategory,
   useDeleteCategory,
 } from '@/hooks/catalog/useCategories';
+import { useCanEdit } from '@/hooks/auth/useAuth';
 import type { Category, CreateCategoryDto, UpdateCategoryDto } from '@/types/catalog';
 
 function buildTree(categories: Category[]): Category[] {
@@ -34,8 +35,8 @@ function buildTree(categories: Category[]): Category[] {
 interface CategoryRowProps {
   category: Category;
   depth: number;
-  onEdit: (cat: Category) => void;
-  onDelete: (cat: Category) => void;
+  onEdit?: (cat: Category) => void;
+  onDelete?: (cat: Category) => void;
 }
 
 function CategoryRow({ category, depth, onEdit, onDelete }: CategoryRowProps) {
@@ -57,26 +58,32 @@ function CategoryRow({ category, depth, onEdit, onDelete }: CategoryRowProps) {
         <td className="px-4 py-3 text-sm text-gray-500">
           {hasChildren ? `${category.children!.length} ta ichki kategoriya` : '—'}
         </td>
-        <td className="px-4 py-3">
-          <div className="flex items-center justify-end gap-1">
-            <button
-              type="button"
-              onClick={() => onEdit(category)}
-              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
-              aria-label="Tahrirlash"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onDelete(category)}
-              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-              aria-label="O'chirish"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        </td>
+        {(onEdit || onDelete) && (
+          <td className="px-4 py-3">
+            <div className="flex items-center justify-end gap-1">
+              {onEdit && (
+                <button
+                  type="button"
+                  onClick={() => onEdit(category)}
+                  className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
+                  aria-label="Tahrirlash"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(category)}
+                  className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                  aria-label="O'chirish"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </td>
+        )}
       </tr>
 
       {category.children?.map((child) => (
@@ -138,20 +145,23 @@ export default function CategoriesPage() {
   };
 
   const isPendingForm = createCategory.isPending || updateCategory.isPending;
+  const canEdit = useCanEdit();
 
   return (
     <PageLayout
       title="Kategoriyalar"
       subtitle={`Jami: ${categories.length} ta kategoriya`}
       actions={
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          Kategoriya qo'shish
-        </button>
+        canEdit ? (
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Kategoriya qo&apos;shish
+          </button>
+        ) : undefined
       }
     >
       {isLoading && <LoadingSkeleton variant="table" rows={5} />}
@@ -173,9 +183,11 @@ export default function CategoriesPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       Ichki kategoriyalar
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      Amallar
-                    </th>
+                    {canEdit && (
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        Amallar
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -184,8 +196,8 @@ export default function CategoriesPage() {
                       key={cat.id}
                       category={cat}
                       depth={0}
-                      onEdit={handleOpenEdit}
-                      onDelete={(c) => setDeletingCategory(c)}
+                      onEdit={canEdit ? handleOpenEdit : undefined}
+                      onDelete={canEdit ? (c) => setDeletingCategory(c) : undefined}
                     />
                   ))}
                 </tbody>

@@ -19,7 +19,7 @@ export class ExchangeRateController {
   }
 
   @Get('history')
-  @Roles('OWNER', 'ADMIN')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Kurs tarixi (oxirgi N kun)' })
   @ApiQuery({ name: 'days', required: false, example: 30 })
   getHistory(@Query('days', new DefaultValuePipe(30), ParseIntPipe) days: number) {

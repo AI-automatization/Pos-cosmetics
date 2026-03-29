@@ -108,7 +108,7 @@ export class ReportsController {
   // ─── PROFIT ESTIMATE ─────────────────────────────────────────
 
   @Get('profit')
-  @Roles('OWNER', 'ADMIN')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Foyda hisoboti (Revenue - COGS - Returns)' })
   @ApiQuery({ name: 'from', required: false })
   @ApiQuery({ name: 'to', required: false })

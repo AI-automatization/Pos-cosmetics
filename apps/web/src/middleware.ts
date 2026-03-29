@@ -9,9 +9,16 @@ export function middleware(request: NextRequest) {
 
   // Public paths — o'tkazib yuborish
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
-    // Agar foydalanuvchi allaqachon login qilgan bo'lsa, dashboardga redirect
+    // Agar foydalanuvchi allaqachon login qilgan bo'lsa, rol bo'yicha redirect
     const sessionActive = request.cookies.get('session_active')?.value;
     if (sessionActive && pathname === '/login') {
+      const role = request.cookies.get('user_role')?.value;
+      if (role === 'WAREHOUSE') {
+        return NextResponse.redirect(new URL('/warehouse', request.url));
+      }
+      if (role === 'CASHIER') {
+        return NextResponse.redirect(new URL('/pos', request.url));
+      }
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
@@ -52,6 +59,19 @@ export function middleware(request: NextRequest) {
   // MANAGER admin panelni role-filtered Sidebar bilan ishlatadi — alohida redirect kerak emas
 
   if (userRole && userRole !== 'WAREHOUSE' && isWarehousePath) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Finance va Settings faqat OWNER/ADMIN uchun
+  const isFinancePath = pathname.startsWith('/finance') || pathname.startsWith('/realestate');
+  const isSettingsPath = pathname.startsWith('/settings');
+  const privilegedRoles = ['OWNER', 'ADMIN'];
+
+  if (isFinancePath && userRole && !privilegedRoles.includes(userRole)) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  if (isSettingsPath && userRole && !privilegedRoles.includes(userRole)) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
