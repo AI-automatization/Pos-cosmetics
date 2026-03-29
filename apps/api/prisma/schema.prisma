@@ -1426,6 +1426,7 @@ model WarehouseInvoice {
 
 model WarehouseInvoiceItem {
   id            String           @id @default(uuid())
+  tenantId      String           @map("tenant_id")
   invoiceId     String           @map("invoice_id")
   productId     String           @map("product_id")
   quantity      Int
@@ -1435,8 +1436,9 @@ model WarehouseInvoiceItem {
   batchNumber   String?          @map("batch_number")
   expiryDate    DateTime?        @map("expiry_date")
 
-  invoice       WarehouseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice       WarehouseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
 
+  @@index([tenantId])
   @@index([invoiceId])
   @@index([productId])
   @@map("warehouse_invoice_items")
@@ -1486,6 +1488,7 @@ model SupportTicket {
 
 model TicketMessage {
   id         String           @id @default(uuid())
+  tenantId   String           @map("tenant_id")
   ticketId   String           @map("ticket_id")
   senderType TicketSenderType @map("sender_type")
   senderId   String?          @map("sender_id")
@@ -1494,6 +1497,7 @@ model TicketMessage {
 
   ticket     SupportTicket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
   @@index([ticketId])
   @@map("ticket_messages")
 }
