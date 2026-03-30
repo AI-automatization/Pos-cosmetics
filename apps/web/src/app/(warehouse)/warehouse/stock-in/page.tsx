@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Save, Package } from 'lucide-react';
+import { Plus, Trash2, Save, Package, X } from 'lucide-react';
 import { useCreateInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
 import { useProducts } from '@/hooks/catalog/useProducts';
-import { useSuppliers } from '@/hooks/catalog/useSuppliers';
+import { useSuppliers, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
 import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
 
 interface ItemRow extends InvoiceItem {
@@ -22,11 +22,15 @@ export default function StockInPage() {
   const { mutate: createInvoice, isPending } = useCreateInvoice();
   const { data: productsData } = useProducts({ limit: 500 });
   const { data: suppliers } = useSuppliers();
+  const { mutate: createSupplier, isPending: isCreatingSupplier } = useCreateSupplier();
   const products = productsData?.items ?? productsData ?? [];
 
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [note, setNote] = useState('');
   const [supplierId, setSupplierId] = useState('');
+
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
   const [items, setItems] = useState<ItemRow[]>([
     { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
   ]);
@@ -41,6 +45,20 @@ export default function StockInPage() {
     setItems((prev) => prev.map((r) => (r._key === key ? { ...r, ...patch } : r)));
 
   const totalCost = items.reduce((s, r) => s + r.quantity * r.purchasePrice, 0);
+
+  const handleCreateSupplier = (e: React.FormEvent) => {
+    e.preventDefault();
+    createSupplier(
+      { name: supplierForm.name, phone: supplierForm.phone, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
+      {
+        onSuccess: (newSupplier) => {
+          setSupplierId(newSupplier.id);
+          setShowSupplierModal(false);
+          setSupplierForm({ name: '', phone: '', company: '', address: '' });
+        },
+      },
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,16 +105,26 @@ export default function StockInPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Yetkazib beruvchi</label>
-            <select
-              value={supplierId}
-              onChange={(e) => setSupplierId(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="">— Tanlang —</option>
-              {(suppliers ?? []).map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={supplierId}
+                onChange={(e) => setSupplierId(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="">— Tanlang —</option>
+                {(suppliers ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setShowSupplierModal(true)}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-amber-600 border border-amber-300 rounded-md hover:bg-amber-50 whitespace-nowrap"
+              >
+                <Plus className="h-3 w-3" />
+                Kontragent
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Izoh</label>
@@ -262,6 +290,76 @@ export default function StockInPage() {
           </button>
         </div>
       </form>
+      {/* Supplier create modal */}
+      {showSupplierModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-gray-900">Yangi kontragent</h3>
+              <button type="button" onClick={() => setShowSupplierModal(false)}>
+                <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateSupplier} className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nomi *</label>
+                <input
+                  type="text"
+                  required
+                  value={supplierForm.name}
+                  onChange={(e) => setSupplierForm((f) => ({ ...f, name: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Telefon *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="+998XXXXXXXXX"
+                  value={supplierForm.phone}
+                  onChange={(e) => setSupplierForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Kompaniya</label>
+                <input
+                  type="text"
+                  value={supplierForm.company}
+                  onChange={(e) => setSupplierForm((f) => ({ ...f, company: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Manzil</label>
+                <input
+                  type="text"
+                  value={supplierForm.address}
+                  onChange={(e) => setSupplierForm((f) => ({ ...f, address: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowSupplierModal(false)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Bekor
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingSupplier}
+                  className="px-3 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700 disabled:opacity-50"
+                >
+                  {isCreatingSupplier ? 'Saqlanmoqda...' : 'Saqlash'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
