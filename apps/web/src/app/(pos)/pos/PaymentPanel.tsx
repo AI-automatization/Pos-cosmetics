@@ -29,16 +29,10 @@ interface PaymentPanelProps {
 const QUICK_CASH = [5000, 10000, 20000, 50000, 100000];
 
 export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
-  const {
-    items,
-    paymentMethod, setPaymentMethod,
-    cashAmount, setCashAmount,
-    cardAmount, setCardAmount,
-    orderDiscount, orderDiscountType, setOrderDiscount,
-    selectedCustomer, setSelectedCustomer,
-    bonusPoints, setBonusPoints,
-    totals,
-  } = usePOSStore();
+  const store = usePOSStore();
+  const cart = store.carts[store.activeCartId];
+  const { items, paymentMethod, cashAmount, cardAmount, orderDiscount, orderDiscountType, selectedCustomer, bonusPoints } = cart;
+  const { setPaymentMethod, setCashAmount, setCardAmount, setOrderDiscount, setSelectedCustomer, setBonusPoints, totals } = store;
 
   const { data: loyaltyAccount } = useLoyaltyAccount(
     paymentMethod === 'bonus' ? selectedCustomer?.id : null,

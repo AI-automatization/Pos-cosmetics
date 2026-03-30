@@ -113,7 +113,9 @@ function CartItemRow({ item }: { item: CartItem }) {
 }
 
 export function CartPanel() {
-  const { items, clearCart } = usePOSStore();
+  const store = usePOSStore();
+  const { items } = store.carts[store.activeCartId];
+  const { clearCart } = store;
 
   if (items.length === 0) {
     return (

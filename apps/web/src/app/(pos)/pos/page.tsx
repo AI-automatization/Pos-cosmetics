@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Search, ShoppingCart, CreditCard } from 'lucide-react';
+import { Search, ShoppingCart, CreditCard, Plus, X } from 'lucide-react';
 import { ShiftBar } from './ShiftBar';
 import { ProductSearch } from './ProductSearch';
 import { CartPanel } from './CartPanel';
@@ -11,11 +11,81 @@ import { ShiftOpenModal } from './shift/ShiftOpenModal';
 import { ShiftCloseModal } from './shift/ShiftCloseModal';
 import { usePOSKeyboard } from '@/hooks/pos/usePOSKeyboard';
 import { usePOSStore } from '@/store/pos.store';
+import type { CartState } from '@/store/pos.store';
 import { shiftApi } from '@/api/shift.api';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types/sales';
 
 type TabId = 'products' | 'cart' | 'payment';
+
+// ─── Cart tab bar (multi-cart) ────────────────────────────────────────────────
+
+function CartTabBar({
+  carts,
+  activeCartId,
+  onSwitch,
+  onAdd,
+  onRemove,
+}: {
+  carts: Record<string, CartState>;
+  activeCartId: string;
+  onSwitch: (id: string) => void;
+  onAdd: () => void;
+  onRemove: (id: string) => void;
+}) {
+  const cartList = Object.values(carts);
+  return (
+    <div className="flex shrink-0 items-center gap-1 border-b border-gray-200 bg-white px-3 py-1.5 overflow-x-auto">
+      {cartList.map((cart, idx) => (
+        <div key={cart.id} className="flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={() => onSwitch(cart.id)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap',
+              activeCartId === cart.id
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+            )}
+          >
+            <ShoppingCart className="h-3 w-3" />
+            Korzinka {idx + 1}
+            {cart.items.length > 0 && (
+              <span
+                className={cn(
+                  'rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none',
+                  activeCartId === cart.id
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-300 text-gray-600',
+                )}
+              >
+                {cart.items.length}
+              </span>
+            )}
+          </button>
+          {cartList.length > 1 && (
+            <button
+              type="button"
+              onClick={() => onRemove(cart.id)}
+              className="ml-0.5 rounded p-0.5 text-gray-400 hover:text-red-500 transition"
+              title="Savatni yopish"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={onAdd}
+        className="flex shrink-0 items-center gap-1 rounded-lg border border-dashed border-gray-300 px-2.5 py-1.5 text-xs text-gray-400 hover:border-blue-400 hover:text-blue-600 transition"
+        title="Yangi savat"
+      >
+        <Plus className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
 
 // ─── Tablet bottom tab bar ────────────────────────────────────────────────────
 
@@ -64,6 +134,8 @@ function TabBar({
   );
 }
 
+// ─── Main page ────────────────────────────────────────────────────────────────
+
 export default function POSPage() {
   const [search, setSearch] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
@@ -72,17 +144,20 @@ export default function POSPage() {
   const [activeTab, setActiveTab] = useState<TabId>('products');
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const { setPaymentMethod, shiftId, items, clearCart, openShift } = usePOSStore();
+  const store = usePOSStore();
+  const activeCart = store.carts[store.activeCartId];
+  const items = activeCart?.items ?? [];
+
   const [showRecovery, setShowRecovery] = useState(false);
 
   // Hydrate shift state from server on mount (handles page refresh / new session)
   useEffect(() => {
-    if (!shiftId) {
+    if (!store.shiftId) {
       shiftApi.getActiveShift().then((shift) => {
         if (shift) {
           const s = shift as typeof shift & { user?: { firstName?: string; lastName?: string } };
           const cashierName = [s.user?.firstName, s.user?.lastName].filter(Boolean).join(' ') || 'Kassir';
-          openShift(shift.id, cashierName, Number(shift.openingCash));
+          store.openShift(shift.id, cashierName, Number(shift.openingCash));
         }
       });
     }
@@ -102,10 +177,10 @@ export default function POSPage() {
 
   usePOSKeyboard({
     onF1: focusSearch,
-    onF5: () => setPaymentMethod('cash'),
-    onF6: () => setPaymentMethod('card'),
-    onF7: () => setPaymentMethod('split'),
-    onF8: () => setPaymentMethod('nasiya'),
+    onF5: () => store.setPaymentMethod('cash'),
+    onF6: () => store.setPaymentMethod('card'),
+    onF7: () => store.setPaymentMethod('split'),
+    onF8: () => store.setPaymentMethod('nasiya'),
     onEsc: () => {
       if (completedOrder) {
         setCompletedOrder(null);
@@ -118,7 +193,16 @@ export default function POSPage() {
     },
   });
 
-  const isShiftOpen = !!shiftId;
+  const handleSaleComplete = (order: Order, change: number) => {
+    setCompletedOrder(order);
+    setLastChange(change ?? 0);
+    // Remove the completed cart if multiple exist; otherwise clearCart was already called
+    if (Object.keys(store.carts).length > 1) {
+      store.removeCart(store.activeCartId);
+    }
+  };
+
+  const isShiftOpen = !!store.shiftId;
 
   return (
     <>
@@ -141,7 +225,7 @@ export default function POSPage() {
             </button>
             <button
               type="button"
-              onClick={() => { clearCart(); setShowRecovery(false); }}
+              onClick={() => { store.clearCart(); setShowRecovery(false); }}
               className="rounded-md border border-amber-300 px-3 py-1 text-xs text-amber-700 hover:bg-amber-100"
             >
               Tozalash
@@ -170,6 +254,15 @@ export default function POSPage() {
         ))}
       </div>
 
+      {/* Multi-cart tab bar */}
+      <CartTabBar
+        carts={store.carts}
+        activeCartId={store.activeCartId}
+        onSwitch={store.switchCart}
+        onAdd={store.addCart}
+        onRemove={store.removeCart}
+      />
+
       {/* ── DESKTOP: 3-column layout (lg+) ─────────────────────── */}
       <div className="hidden min-h-0 flex-1 lg:flex">
         <div className="flex w-[42%] flex-col border-r border-gray-200 bg-gray-50">
@@ -179,12 +272,7 @@ export default function POSPage() {
           <CartPanel />
         </div>
         <div className="flex w-[25%] flex-col bg-white">
-          <PaymentPanel
-            onSaleComplete={(order, change) => {
-              setCompletedOrder(order);
-              setLastChange(change ?? 0);
-            }}
-          />
+          <PaymentPanel onSaleComplete={handleSaleComplete} />
         </div>
       </div>
 
@@ -199,12 +287,7 @@ export default function POSPage() {
             <CartPanel />
           </div>
           <div className={cn('h-full flex-col bg-white', activeTab === 'payment' ? 'flex' : 'hidden')}>
-            <PaymentPanel
-              onSaleComplete={(order, change) => {
-                setCompletedOrder(order);
-                setLastChange(change ?? 0);
-              }}
-            />
+            <PaymentPanel onSaleComplete={handleSaleComplete} />
           </div>
         </div>
 

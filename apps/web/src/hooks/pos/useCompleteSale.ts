@@ -8,19 +8,10 @@ import { usePOSStore } from '@/store/pos.store';
 import type { Order } from '@/types/sales';
 
 export function useCompleteSale(onSuccess: (order: Order) => void) {
-  const {
-    items,
-    orderDiscount,
-    orderDiscountType,
-    paymentMethod,
-    cashAmount,
-    cardAmount,
-    selectedCustomer,
-    shiftId,
-    totals,
-    clearCart,
-    recordSale,
-  } = usePOSStore();
+  const store = usePOSStore();
+  const cart = store.carts[store.activeCartId];
+  const { items, orderDiscount, orderDiscountType, paymentMethod, cashAmount, cardAmount, selectedCustomer } = cart;
+  const { shiftId, totals, clearCart, recordSale } = store;
 
   const mutation = useMutation({
     mutationFn: () => {
