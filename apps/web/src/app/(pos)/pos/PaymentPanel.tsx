@@ -16,6 +16,7 @@ import { useLoyaltyAccount, useLoyaltyConfig, pointsToMoney } from '@/hooks/cust
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
+import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { formatPrice, cn } from '@/lib/utils';
 import { CustomerSearchModal } from './CustomerSearchModal';
 import type { Order } from '@/types/sales';
@@ -45,6 +46,9 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const { data: loyaltyConfig } = useLoyaltyConfig();
   const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
 
+  const { data: user } = useCurrentUser();
+  const isCashier = user?.role === 'CASHIER';
+
   const { subtotal, discountAmount, total, change } = totals();
   const { mutate: completeSale, isPending, canComplete } = useCompleteSale(
     (order) => onSaleComplete(order, change),
@@ -52,6 +56,12 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
+
+  const discountVal = parseFloat(discountInput) || 0;
+  const discountPct = discountType === 'percent'
+    ? discountVal
+    : subtotal > 0 ? (discountVal / subtotal) * 100 : 0;
+  const overLimit = isCashier && discountPct > 5;
   const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   // Sync local state when store resets after clearCart()
@@ -137,9 +147,19 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             onBlur={handleDiscountApply}
             onKeyDown={(e) => e.key === 'Enter' && handleDiscountApply()}
             placeholder="0"
-            className="flex-1 rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-blue-400"
+            className={cn(
+              'flex-1 rounded-lg border px-2 py-1.5 text-sm outline-none',
+              overLimit ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-200 focus:border-blue-400',
+            )}
           />
         </div>
+        {isCashier && (
+          <p className={cn('mt-1.5 text-xs', overLimit ? 'font-medium text-red-600' : 'text-amber-600')}>
+            {overLimit
+              ? '⚠️ Chegirma limitdan oshib ketdi (max 5%)'
+              : '⚠️ Kassir uchun maksimal chegirma: 5%'}
+          </p>
+        )}
       </div>
 
       {/* Payment method — 2×2 grid */}
@@ -389,7 +409,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         <button
           type="button"
           onClick={() => completeSale()}
-          disabled={!canComplete || isPending}
+          disabled={!canComplete || isPending || overLimit}
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-base font-bold transition',
             canComplete && !isPending
