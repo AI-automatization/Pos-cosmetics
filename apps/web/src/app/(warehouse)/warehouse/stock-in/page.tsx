@@ -202,8 +202,9 @@ export default function StockInPage() {
                         <input
                           type="date"
                           value={row.expiryDate ?? ''}
+                          required
                           onChange={(e) => updateRow(row._key, { expiryDate: e.target.value || undefined })}
-                          className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          className={`w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 ${row.productId && !row.expiryDate ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                         />
                       </td>
                       <td className="px-3 py-2 text-right font-medium text-gray-900">
@@ -249,7 +250,11 @@ export default function StockInPage() {
           </button>
           <button
             type="submit"
-            disabled={isPending || items.every((r) => !r.productId)}
+            disabled={
+              isPending ||
+              items.every((r) => !r.productId) ||
+              items.some((r) => r.productId && r.quantity > 0 && !r.expiryDate)
+            }
             className="flex items-center gap-2 px-4 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
