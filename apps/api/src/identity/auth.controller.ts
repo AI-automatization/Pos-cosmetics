@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -24,9 +25,9 @@ import {
 import { IsOptional, IsString, IsArray, IsNumber, Min, Max } from 'class-validator';
 import { Throttle } from '@nestjs/throttler';
 import { UserRole } from '@prisma/client';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { CurrentUser, Public } from '../common/decorators';
-import { LoginDto, RefreshTokenDto, RegisterTenantDto, SetPinDto, UpdateTenantInfoDto, VerifyPinDto } from './dto';
+import { LoginDto, RefreshTokenDto, RegisterTenantDto, SetPinDto, UpdateTenantInfoDto, VerifyPinDto, RegisterBiometricDto, VerifyBiometricDto } from './dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { IdentityService } from './identity.service';
 import { PinService } from './pin.service';
@@ -34,7 +35,7 @@ import { SessionService } from './session.service';
 import { ApiKeyService, API_KEY_SCOPES } from './api-key.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { randomUUID } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 
 class CreateApiKeyDto {
   @ApiProperty({ example: 'POS-Branch-1' })
@@ -58,6 +59,15 @@ class CreateApiKeyDto {
   @Max(3650)
   expiresInDays?: number;
 }
+
+const REFRESH_COOKIE = 'refreshToken';
+const REFRESH_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 kun
+  path: '/',
+};
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -87,12 +97,19 @@ export class AuthController {
   @ApiOperation({ summary: 'Login with email, password, and tenant slug' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.identityService.loginWithSession(dto, {
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.identityService.loginWithSession(dto, {
       ip: req.ip,
       userAgent: req.headers['user-agent'] as string | undefined,
       sessionService: this.sessionService,
     });
+    // T-347: refreshToken httpOnly cookie — XSS dan himoya
+    res.cookie(REFRESH_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
+    return { accessToken: tokens.accessToken };
   }
 
   @Public()
@@ -101,8 +118,23 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   @ApiResponse({ status: 200, description: 'Tokens refreshed' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
-  async refresh(@Body() dto: RefreshTokenDto) {
-    return this.identityService.refreshTokens(dto);
+  async refresh(
+    @Body() dto: RefreshTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // T-347: cookie prioritet, body fallback (mobile backward compat)
+    const refreshToken =
+      (req.cookies as Record<string, string>)?.[REFRESH_COOKIE] ?? dto.refreshToken;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token talab qilinadi');
+    }
+    const tokens = await this.identityService.refreshTokens({
+      userId: dto.userId,
+      refreshToken,
+    });
+    res.cookie(REFRESH_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
+    return { accessToken: tokens.accessToken };
   }
 
   @Post('logout')
@@ -110,8 +142,12 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout — invalidate refresh token' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  async logout(@CurrentUser('userId') userId: string) {
+  async logout(
+    @CurrentUser('userId') userId: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     await this.identityService.logout(userId);
+    res.clearCookie(REFRESH_COOKIE, { path: '/' });
     return { message: 'Logged out successfully' };
   }
 
@@ -316,7 +352,7 @@ export class AuthController {
   @ApiOperation({ summary: 'T-225: Qurilma uchun biometric token ro\'yxatdan o\'tkazish' })
   async registerBiometric(
     @CurrentUser('userId') userId: string,
-    @Body() body: { publicKey: string; deviceId: string },
+    @Body() dto: RegisterBiometricDto,
   ) {
     const biometricToken = randomUUID();
     const expiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000);
@@ -325,9 +361,9 @@ export class AuthController {
     const existing = (user.botSettings ?? {}) as Record<string, unknown>;
     const keys = (existing['biometricKeys'] ?? {}) as Record<string, unknown>;
 
-    keys[body.deviceId] = {
+    keys[dto.deviceId] = {
       token: biometricToken,
-      publicKey: body.publicKey,
+      publicKey: dto.publicKey,
       expiresAt: expiresAt.toISOString(),
     };
 
@@ -348,11 +384,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'T-225: Biometric token orqali login — JWT qaytaradi' })
   async verifyBiometric(
-    @Body() body: { biometricToken: string; deviceId: string },
+    @Body() dto: VerifyBiometricDto,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    // Token bo'yicha foydalanuvchini topamiz
+    // T-346 fix 1: tenantId filter — cross-tenant full table scan bartaraf etildi
     const users = await this.prisma.user.findMany({
-      where: { isActive: true },
+      where: { isActive: true, tenantId: dto.tenantId },
       select: { id: true, tenantId: true, email: true, role: true, firstName: true, lastName: true, botSettings: true },
     });
 
@@ -362,12 +399,19 @@ export class AuthController {
     for (const u of users) {
       const settings = (u.botSettings ?? {}) as Record<string, unknown>;
       const keys = (settings['biometricKeys'] ?? {}) as Record<string, Record<string, string>>;
-      const entry = keys[body.deviceId];
-      if (entry && entry['token'] === body.biometricToken) {
-        if (new Date(entry['expiresAt']).getTime() > now) {
-          found = u;
-          break;
-        }
+      const entry = keys[dto.deviceId];
+      if (!entry || new Date(entry['expiresAt']).getTime() <= now) continue;
+
+      // T-346 fix 2: timing attack — crypto.timingSafeEqual ishlatildi
+      const storedBuf = Buffer.from(entry['token'] ?? '', 'utf8');
+      const givenBuf = Buffer.from(dto.biometricToken, 'utf8');
+      const tokenMatch =
+        storedBuf.length === givenBuf.length &&
+        timingSafeEqual(storedBuf, givenBuf);
+
+      if (tokenMatch) {
+        found = u;
+        break;
       }
     }
 
@@ -378,8 +422,8 @@ export class AuthController {
     // Token muddatini yangilaymiz
     const settings = (found.botSettings ?? {}) as Record<string, unknown>;
     const keys = (settings['biometricKeys'] ?? {}) as Record<string, Record<string, string>>;
-    keys[body.deviceId] = {
-      ...keys[body.deviceId],
+    keys[dto.deviceId] = {
+      ...keys[dto.deviceId],
       expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
     };
     await this.prisma.user.update({
@@ -388,9 +432,10 @@ export class AuthController {
     });
 
     const tokens = await this.identityService.loginById(found.id);
+    // T-347: refreshToken httpOnly cookie — body dan olib tashlandi
+    res.cookie(REFRESH_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
     return {
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
+      accessToken: tokens.accessToken,
       user: {
         id: found.id,
         email: found.email,

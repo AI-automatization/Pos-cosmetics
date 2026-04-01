@@ -3,23 +3,18 @@ import {
   Body, Param, Query, UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { UserRole } from '@prisma/client';
 import { EmployeesService } from './employees.service';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-
-class CreateEmployeeDto {
-  @IsString() firstName!: string;
-  @IsString() lastName!: string;
-  @IsEmail() email!: string;
-  @IsString() @MinLength(6) password!: string;
-  @IsOptional() @IsString() role?: string;
-  @IsOptional() @IsString() phone?: string;
-}
+import { CreateEmployeeDto, UpdateStatusDto, UpdatePosAccessDto } from './dto/employee.dto';
 
 @ApiTags('Employees')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.OWNER, UserRole.ADMIN)
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly svc: EmployeesService) {}
@@ -97,9 +92,9 @@ export class EmployeesController {
   updateStatus(
     @CurrentUser('tenantId') tenantId: string,
     @Param('id') id: string,
-    @Body() body: { status: 'active' | 'inactive' | 'fired' },
+    @Body() dto: UpdateStatusDto,
   ) {
-    return this.svc.updateStatus(tenantId, id, body.status);
+    return this.svc.updateStatus(tenantId, id, dto.status);
   }
 
   // PATCH /employees/:id/pos-access
@@ -109,9 +104,9 @@ export class EmployeesController {
   updatePosAccess(
     @CurrentUser('tenantId') tenantId: string,
     @Param('id') id: string,
-    @Body() body: { hasPosAccess: boolean },
+    @Body() dto: UpdatePosAccessDto,
   ) {
-    return this.svc.updatePosAccess(tenantId, id, body.hasPosAccess);
+    return this.svc.updatePosAccess(tenantId, id, dto.hasPosAccess);
   }
 
   // GET /employees/:id/performance

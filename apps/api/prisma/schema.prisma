@@ -1439,6 +1439,7 @@ model WarehouseInvoiceItem {
   invoice       WarehouseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
 
   @@index([tenantId])
+  @@index([tenantId, invoiceId])
   @@index([invoiceId])
   @@index([productId])
   @@map("warehouse_invoice_items")
@@ -1498,6 +1499,7 @@ model TicketMessage {
   ticket     SupportTicket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
+  @@index([tenantId, ticketId])
   @@index([ticketId])
   @@map("ticket_messages")
 }

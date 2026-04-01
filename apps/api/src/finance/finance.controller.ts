@@ -9,7 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { FinanceService, CreateExpenseDto, ExpenseFilterDto } from './finance.service';
+import { FinanceService } from './finance.service';
+import { CreateExpenseDto, ExpenseFilterDto } from './dto/expense.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';

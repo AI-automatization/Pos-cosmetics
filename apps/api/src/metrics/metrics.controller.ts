@@ -1,26 +1,26 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiExcludeEndpoint } from '@nestjs/swagger';
-import { SkipThrottle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { Public } from '../common/decorators';
 import { MetricsService } from './metrics.service';
+import { MetricsSecretGuard } from './metrics-secret.guard';
 
-// Prometheus scrapes this endpoint — exempt from rate limiting + auth
-@SkipThrottle()
+/**
+ * GET /api/v1/metrics
+ * Prometheus-format metrics endpoint.
+ * T-348: X-Metrics-Secret header bilan himoyalangan.
+ * Prometheus config: --header 'X-Metrics-Secret: <METRICS_SECRET>'
+ */
 @ApiTags('Metrics')
 @Controller('metrics')
 @Public()
+@UseGuards(MetricsSecretGuard)
 export class MetricsController {
   constructor(private readonly metrics: MetricsService) {}
 
-  /**
-   * GET /api/v1/metrics
-   * Prometheus-format metrics endpoint.
-   * Access should be restricted at nginx level (allow only internal network).
-   */
   @Get()
-  @ApiExcludeEndpoint() // Don't show in Swagger (internal endpoint)
-  @ApiOperation({ summary: 'Prometheus metrics' })
+  @ApiExcludeEndpoint()
+  @ApiOperation({ summary: 'Prometheus metrics (X-Metrics-Secret required)' })
   async getMetrics(@Res() res: Response) {
     const text = await this.metrics.collect();
     res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
