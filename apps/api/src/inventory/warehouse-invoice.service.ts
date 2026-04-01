@@ -17,6 +17,7 @@ export class WarehouseInvoiceService {
   // ─── POST /warehouse/invoices ─────────────────────────────────────────────
 
   async createInvoice(tenantId: string, userId: string, dto: CreateInvoiceDto) {
+    if (!tenantId) throw new BadRequestException('Tenant context missing — please re-login');
     if (dto.items.length === 0) throw new BadRequestException('items bo\'sh bo\'lishi mumkin emas');
 
     const warehouseId = await this.resolveWarehouseId(tenantId, dto.items[0]?.warehouseId);

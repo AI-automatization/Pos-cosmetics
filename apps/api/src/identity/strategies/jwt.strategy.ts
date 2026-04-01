@@ -69,6 +69,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found or deactivated');
     }
 
+    if (!user.tenantId) {
+      throw new UnauthorizedException('User has no tenant assigned — contact admin');
+    }
+
     return {
       userId: user.id,
       tenantId: user.tenantId,
