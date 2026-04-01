@@ -21,6 +21,7 @@ import {
 const WAREHOUSE_POST_WHITELIST = [
   '/catalog/suppliers',
   '/catalog/products',
+  '/warehouse/invoices',
 ] as const;
 
 @Injectable()

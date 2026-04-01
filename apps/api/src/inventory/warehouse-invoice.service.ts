@@ -27,56 +27,69 @@ export class WarehouseInvoiceService {
     );
 
     // Snapshot: invoice + items + stock movements — all in one transaction
-    const invoice = await this.prisma.$transaction(async (tx) => {
-      const inv = await tx.warehouseInvoice.create({
-        data: {
-          tenantId,
-          branchId: dto.branchId ?? null,
-          supplierId: dto.supplierId ?? null,
-          invoiceNumber: dto.invoiceNumber ?? null,
-          note: dto.note ?? null,
-          totalCost,
-          createdBy: userId,
-          items: {
-            create: dto.items.map((item) => ({
-              tenantId,
-              productId: item.productId,
-              quantity: item.quantity,
-              purchasePrice: item.purchasePrice,
-              totalCost: item.quantity * item.purchasePrice,
-              warehouseId: item.warehouseId ?? warehouseId,
-              batchNumber: item.batchNumber ?? null,
-              expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
-            })),
-          },
-        },
-        include: { items: true },
-      });
-
-      // Create stock movements for each item
-      await Promise.all(
-        dto.items.map((item) =>
-          tx.stockMovement.create({
-            data: {
-              tenantId,
-              warehouseId: item.warehouseId ?? warehouseId,
-              productId: item.productId,
-              userId,
-              type: 'IN',
-              quantity: item.quantity,
-              costPrice: item.purchasePrice,
-              refType: 'INVOICE',
-              refId: inv.id,
-              note: dto.invoiceNumber ? `Nakladnoy: ${dto.invoiceNumber}` : 'Warehouse invoice',
-              batchNumber: item.batchNumber ?? null,
-              expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+    let invoice;
+    try {
+      invoice = await this.prisma.$transaction(async (tx) => {
+        const inv = await tx.warehouseInvoice.create({
+          data: {
+            tenantId,
+            branchId: dto.branchId ?? null,
+            supplierId: dto.supplierId ?? null,
+            invoiceNumber: dto.invoiceNumber ?? null,
+            note: dto.note ?? null,
+            totalCost,
+            createdBy: userId,
+            items: {
+              create: dto.items.map((item) => ({
+                tenantId,
+                productId: item.productId,
+                quantity: item.quantity,
+                purchasePrice: item.purchasePrice,
+                totalCost: item.quantity * item.purchasePrice,
+                warehouseId: item.warehouseId ?? warehouseId,
+                batchNumber: item.batchNumber ?? null,
+                expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+              })),
             },
-          }),
-        ),
-      );
+          },
+          include: { items: true },
+        });
 
-      return inv;
-    });
+        // Create stock movements for each item
+        await Promise.all(
+          dto.items.map((item) =>
+            tx.stockMovement.create({
+              data: {
+                tenantId,
+                warehouseId: item.warehouseId ?? warehouseId,
+                productId: item.productId,
+                userId,
+                type: 'IN',
+                quantity: item.quantity,
+                costPrice: item.purchasePrice,
+                refType: 'INVOICE',
+                refId: inv.id,
+                note: dto.invoiceNumber ? `Nakladnoy: ${dto.invoiceNumber}` : 'Warehouse invoice',
+                batchNumber: item.batchNumber ?? null,
+                expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+              },
+            }),
+          ),
+        );
+
+        return inv;
+      });
+    } catch (err) {
+      this.logger.error('[Invoice] createInvoice transaction failed', {
+        tenantId,
+        userId,
+        itemCount: dto.items.length,
+        warehouseId,
+        error: (err as Error).message,
+        stack: (err as Error).stack,
+      });
+      throw err;
+    }
 
     await this.cache.invalidatePattern(CacheService.key.stockLevels(tenantId, '*'));
     this.logger.log(`[Invoice] Created ${invoice.id}, ${dto.items.length} items, totalCost=${totalCost}`, { tenantId });

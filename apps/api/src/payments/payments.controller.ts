@@ -59,6 +59,7 @@ export class PaymentsController {
   }
 
   @Post('split')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'Create split payment (multiple methods)' })
   createSplit(
     @CurrentUser('tenantId') tenantId: string,
