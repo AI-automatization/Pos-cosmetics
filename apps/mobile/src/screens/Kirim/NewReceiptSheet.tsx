@@ -20,7 +20,6 @@ import CameraSection from '../Scanner/CameraSection';
 import { formatUZS } from '../../utils/currency';
 
 // ─── Constants ─────────────────────────────────────────
-const CAMERA_HEIGHT         = 260;
 const CAMERA_MARGIN_TOP     = 60;
 const SHEET_PADDING         = 24;
 const SHEET_PADDING_BOTTOM  = 40;

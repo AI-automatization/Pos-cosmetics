@@ -3,10 +3,19 @@ import api from './client';
 export interface LowStockItem {
   productId: string;
   productName: string;
+  sku: string;
   warehouseId: string;
   warehouseName: string;
   stock: number;
+  quantity: number;
   minStockLevel: number;
+  threshold: number;
+  isLow: boolean;
+}
+
+export interface StockListResponse {
+  data: LowStockItem[];
+  total: number;
 }
 
 export interface ProductStockLevel {
@@ -67,10 +76,19 @@ export interface CreateReceiptResponse {
   status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
 }
 
+export type StockItem = LowStockItem;
+
 export const inventoryApi = {
-  getLowStock: async (): Promise<LowStockItem[]> => {
+  getStock: async (branchId?: string): Promise<StockListResponse> => {
+    const { data } = await api.get<StockListResponse>('/inventory/levels', {
+      params: { branchId },
+    });
+    return data;
+  },
+
+  getLowStock: async (branchId?: string): Promise<LowStockItem[]> => {
     const { data } = await api.get<LowStockItem[]>('/inventory/levels', {
-      params: { lowStock: true },
+      params: { lowStock: true, branchId },
     });
     return data;
   },

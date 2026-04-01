@@ -1,5 +1,15 @@
 import { AxiosError } from 'axios';
 
+export function safeQueryFn<T>(fn: () => Promise<T>, defaultValue: T): () => Promise<T> {
+  return async () => {
+    try {
+      return await fn();
+    } catch {
+      return defaultValue;
+    }
+  };
+}
+
 export function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
     if (!err.response) return 'Internet aloqasi yo\'q';

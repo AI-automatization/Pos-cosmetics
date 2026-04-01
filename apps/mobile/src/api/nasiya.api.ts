@@ -11,9 +11,31 @@ export interface DebtCustomer {
 export interface DebtPayment {
   id: string;
   amount: number;
+  currency: string;
   method: string;
+  paymentMethod: string;
   notes: string | null;
+  note: string | null;
   createdAt: string;
+}
+
+export interface Debtor {
+  id: string;
+  customerName: string;
+  customerPhone: string | null;
+  totalDebt: number;
+  overdueAmount: number;
+  currency: string;
+  dueDate: string | null;
+  status: DebtStatus;
+  lastPayment: string | null;
+}
+
+export interface RecordPaymentDto {
+  debtorId: string;
+  amount: number;
+  paymentMethod: string;
+  note?: string;
 }
 
 export interface DebtRecord {
@@ -44,6 +66,24 @@ export interface NasiyaSummary {
 }
 
 export const nasiyaApi = {
+  getDebtors: async (branchId?: string): Promise<Debtor[]> => {
+    const { data } = await api.get<Debtor[]>('/nasiya/debtors', { params: { branchId } });
+    return data;
+  },
+
+  getDebtorById: async (id: string): Promise<Debtor & { payments: DebtPayment[] }> => {
+    const { data } = await api.get<Debtor & { payments: DebtPayment[] }>(`/nasiya/debtors/${id}`);
+    return data;
+  },
+
+  recordPayment: async (dto: RecordPaymentDto): Promise<void> => {
+    await api.post(`/nasiya/debtors/${dto.debtorId}/pay`, {
+      amount: dto.amount,
+      paymentMethod: dto.paymentMethod,
+      note: dto.note,
+    });
+  },
+
   getList: async (status?: DebtStatus): Promise<DebtListResponse> => {
     const params: Record<string, string | number> = { limit: 100 };
     if (status) params['status'] = status;

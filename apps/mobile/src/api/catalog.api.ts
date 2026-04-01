@@ -7,11 +7,14 @@ export interface ProductInfo {
   barcode: string;
   sellPrice: number;
   costPrice: number;
+  currency: string;
   categoryName: string;
   unitName: string;
   expiryTracking: boolean;
   minStockLevel: number;
   nearestExpiry: string | null;
+  stockQuantity: number;
+  expiryDate: string | null;
 }
 
 export const catalogApi = {

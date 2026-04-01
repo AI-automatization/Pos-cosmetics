@@ -8,9 +8,10 @@
     "strict": true,
     "noImplicitAny": true,
     "paths": {
+      "@/*": ["./src/*"],
       "@raos/types": ["../../packages/types/src/index.ts"]
     }
   },
   "include": ["src", "index.js"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/__tests__"]
 }
