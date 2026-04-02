@@ -14,7 +14,7 @@ import {
   CreateReturnDto,
   DiscountTypeEnum,
 } from './dto';
-import { ShiftStatus, OrderStatus, ReturnStatus, UserRole } from '@prisma/client';
+import { ShiftStatus, OrderStatus, ReturnStatus, UserRole, Prisma } from '@prisma/client';
 
 // Discount limits by role
 const DISCOUNT_LIMIT: Record<string, number> = {
@@ -101,6 +101,68 @@ export class SalesService {
     return this.prisma.shift.findFirst({
       where: { tenantId, userId, status: ShiftStatus.OPEN },
     });
+  }
+
+  // Mobile alias: GET /sales/shifts/active
+  async getActiveShifts(tenantId: string, branchId?: string) {
+    return this.prisma.shift.findMany({
+      where: { tenantId, status: ShiftStatus.OPEN, ...(branchId && { branchId }) },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+        branch: { select: { id: true, name: true } },
+      },
+      orderBy: { openedAt: 'desc' },
+    });
+  }
+
+  // Mobile alias: GET /sales/quick-stats
+  async getQuickStats(tenantId: string, branchId?: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const where = {
+      tenantId,
+      status: 'COMPLETED' as const,
+      createdAt: { gte: today },
+      ...(branchId && { branchId }),
+    };
+
+    const [orders, topProducts] = await this.prisma.$transaction([
+      this.prisma.order.findMany({ where, select: { total: true } }),
+      this.prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: { order: { ...where } },
+        _sum: { quantity: true, total: true },
+        orderBy: { _sum: { total: 'desc' } },
+        take: 5,
+      }),
+    ]);
+
+    const ordersCount = orders.length;
+    const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
+    const avgBasket = ordersCount > 0 ? totalRevenue / ordersCount : 0;
+
+    const productIds = topProducts.map((p) => p.productId);
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true },
+    });
+
+    return {
+      ordersCount,
+      avgBasket: Math.round(avgBasket),
+      currency: 'UZS',
+      topProducts: topProducts.map((p) => {
+        const product = products.find((pr) => pr.id === p.productId);
+        const sum = p._sum ?? {};
+        return {
+          productId: p.productId,
+          productName: product?.name ?? 'Unknown',
+          quantity: Number((sum as { quantity?: unknown }).quantity ?? 0),
+          revenue: Number((sum as { total?: unknown }).total ?? 0),
+        };
+      }),
+    };
   }
 
   async getShifts(tenantId: string, limit = 20, page = 1) {
@@ -394,5 +456,114 @@ export class SalesService {
         amount: p.amount,
       })),
     };
+  }
+
+  // ─── T-223: SHIFT BY ID ───────────────────────────────────────
+  async getShiftById(tenantId: string, shiftId: string) {
+    const shift = await this.prisma.shift.findFirst({
+      where: { id: shiftId, tenantId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+        branch: { select: { id: true, name: true } },
+        orders: {
+          where: { status: 'COMPLETED' },
+          include: {
+            paymentIntents: { select: { method: true, amount: true } },
+            returns: { select: { id: true } },
+          },
+        },
+      },
+    });
+
+    if (!shift) throw new NotFoundException('Shift not found');
+
+    const totalRevenue = shift.orders.reduce((s, o) => s + Number(o.total), 0);
+    const totalOrders = shift.orders.length;
+    const totalRefunds = shift.orders.reduce((s, o) => s + o.returns.length, 0);
+
+    const paymentMap = new Map<string, number>();
+    for (const order of shift.orders) {
+      for (const pi of order.paymentIntents) {
+        const m = pi.method.toLowerCase();
+        paymentMap.set(m, (paymentMap.get(m) ?? 0) + Number(pi.amount));
+      }
+    }
+    const paymentBreakdown = Array.from(paymentMap.entries()).map(([method, amount]) => ({
+      method,
+      amount,
+      percentage: totalRevenue > 0 ? parseFloat((amount / totalRevenue * 100).toFixed(1)) : 0,
+    }));
+
+    return {
+      id: shift.id,
+      branchId: shift.branchId,
+      branchName: shift.branch?.name ?? null,
+      cashierId: shift.userId,
+      cashierName: `${shift.user?.firstName ?? ''} ${shift.user?.lastName ?? ''}`.trim(),
+      openedAt: shift.openedAt,
+      closedAt: shift.closedAt,
+      status: shift.status.toLowerCase(),
+      totalRevenue,
+      totalOrders,
+      avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
+      totalRefunds,
+      totalVoids: 0,
+      totalDiscounts: shift.orders.filter((o) => Number(o.discountAmount) > 0).length,
+      paymentBreakdown,
+    };
+  }
+
+  // ─── T-223: SHIFT SUMMARY ─────────────────────────────────────
+  async getShiftSummary(tenantId: string, opts: { branchId?: string; fromDate?: string; toDate?: string }) {
+    const from = opts.fromDate
+      ? new Date(opts.fromDate)
+      : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
+    const to = opts.toDate ? new Date(opts.toDate) : new Date();
+
+    const shifts = await this.prisma.shift.findMany({
+      where: {
+        tenantId,
+        openedAt: { gte: from, lte: to },
+        ...(opts.branchId ? { branchId: opts.branchId } : {}),
+      },
+      include: {
+        orders: { where: { status: 'COMPLETED' }, select: { total: true } },
+      },
+    });
+
+    const totalRevenue = shifts.reduce(
+      (s, sh) => s + sh.orders.reduce((os, o) => os + Number(o.total), 0), 0,
+    );
+    const totalOrders = shifts.reduce((s, sh) => s + sh.orders.length, 0);
+    const totalShifts = shifts.length;
+
+    return {
+      totalRevenue,
+      totalOrders,
+      totalShifts,
+      avgRevenuePerShift: totalShifts > 0 ? Math.round(totalRevenue / totalShifts) : 0,
+    };
+  }
+
+  async listReturns(tenantId: string, query: { page?: number; limit?: number; status?: string }) {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ReturnWhereInput = { tenantId };
+    if (query.status) where.status = query.status as ReturnStatus;
+
+    const [items, total] = await Promise.all([
+      this.prisma.return.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: { items: true },
+      }),
+      this.prisma.return.count({ where }),
+    ]);
+
+    return { items, total, page, limit, pages: Math.ceil(total / limit) };
   }
 }

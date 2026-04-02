@@ -1,10 +1,12 @@
+# Root railway.toml — used by the web service (Root Directory = /)
+# Other services (api, worker, bot) have their own Root Directory set in Railway UI
+# and use their own railway.toml files.
+
 [build]
-# Root railway.toml used by the "web" service (Next.js Admin Panel)
-# API service uses apps/api/railway.toml (root directory = apps/api in Railway)
+# Build from repo root so Docker can access packages/types, packages/ui
 dockerfilePath = "apps/web/Dockerfile"
 
 [deploy]
-# Next.js standalone server — pnpm is NOT in the production image
 startCommand = "node apps/web/server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 60

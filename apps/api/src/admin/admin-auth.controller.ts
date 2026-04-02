@@ -11,7 +11,6 @@ import {
   Post,
   Query,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,11 +21,13 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { Public } from '../common/decorators';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminMetricsService } from './admin-metrics.service';
 import { AdminLoginDto, AdminCreateDto } from './dto/admin-login.dto';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { QueueService, QUEUE_NAMES, QueueName } from '../common/queue/queue.service';
+import { IpBlockService } from '../common/cache/ip-block.service';
 
 @ApiTags('Super Admin')
 @Controller('admin')
@@ -35,6 +36,7 @@ export class AdminAuthController {
     private readonly adminAuthService: AdminAuthService,
     private readonly adminMetricsService: AdminMetricsService,
     private readonly queueService: QueueService,
+    private readonly ipBlockService: IpBlockService,
   ) {}
 
   // ─── PUBLIC: Login ─────────────────────────────────────────────
@@ -46,18 +48,25 @@ export class AdminAuthController {
     return this.adminAuthService.login(dto);
   }
 
-  // ─── BOOTSTRAP: Birinchi admin yaratish (faqat bir marta) ──────
+  // ─── BOOTSTRAP: Birinchi Super Admin yaratish ──────────────────
   @Public()
   @Post('auth/bootstrap')
-  @ApiOperation({
-    summary: 'Birinchi Super Admin yaratish (faqat admin_users bo\'sh bo\'lsa)',
-    description: 'X-Bootstrap-Secret header: ADMIN_BOOTSTRAP_SECRET env var',
-  })
-  bootstrap(
-    @Body() dto: AdminCreateDto,
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Birinchi Super Admin yaratish (ADMIN_BOOTSTRAP_SECRET kerak)' })
+  bootstrap(@Body() dto: AdminCreateDto, @Headers('x-bootstrap-secret') secret: string) {
+    return this.adminAuthService.bootstrap(dto, secret);
+  }
+
+  // ─── BOOTSTRAP: User parolini reset qilish ─────────────────────
+  @Public()
+  @Post('auth/reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'User parolini reset qilish (ADMIN_BOOTSTRAP_SECRET kerak)' })
+  resetUserPassword(
+    @Body() body: { email: string; newPassword: string },
     @Headers('x-bootstrap-secret') secret: string,
   ) {
-    return this.adminAuthService.bootstrapAdmin(dto, secret);
+    return this.adminAuthService.resetUserPassword(body.email, body.newPassword, secret);
   }
 
   // ─── PROTECTED: Admin only endpoints ───────────────────────────
@@ -161,11 +170,15 @@ export class AdminAuthController {
     summary: 'T-058: Tenant impersonation — vaqtinchalik token (1 soat)',
     description: 'Super Admin ixtiyoriy tenant OWNER sifatida kiradi. Barcha harakatlar audit log ga yoziladi.',
   })
-  impersonate(@Param('tenantId') tenantId: string, @Request() req: { user: { sub: string; email?: string } }) {
+  impersonate(
+    @Param('tenantId') tenantId: string,
+    @CurrentUser('userId') adminId: string,
+    @CurrentUser('email') adminEmail: string,
+  ) {
     return this.adminAuthService.impersonateTenant(
       tenantId,
-      req.user.sub,
-      req.user.email ?? 'unknown',
+      adminId,
+      adminEmail ?? 'unknown',
     );
   }
 
@@ -201,6 +214,53 @@ export class AdminAuthController {
     },
   ) {
     return this.adminAuthService.provisionTenant(dto);
+  }
+
+  // ─── T-312: IP Block Manager ──────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Post('ip-block')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-312: Block an IP address (default 24h)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['ip'],
+      properties: {
+        ip: { type: 'string', example: '192.168.1.100' },
+        ttlHours: { type: 'number', example: 24, description: 'Block duration in hours (default 24)' },
+        reason: { type: 'string', example: 'DDoS attempt' },
+      },
+    },
+  })
+  async blockIp(
+    @Body() dto: { ip: string; ttlHours?: number; reason?: string },
+  ) {
+    const ttl = (dto.ttlHours ?? 24) * 3600;
+    await this.ipBlockService.blockIp(dto.ip, ttl, dto.reason ?? 'manual');
+    return { success: true, ip: dto.ip, ttlHours: dto.ttlHours ?? 24 };
+  }
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Delete('ip-unblock/:ip')
+  @ApiOperation({ summary: 'T-312: Unblock an IP address' })
+  async unblockIp(@Param('ip') ip: string) {
+    await this.ipBlockService.unblockIp(ip);
+    return { success: true, ip };
+  }
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('ip-block/:ip/stats')
+  @ApiOperation({ summary: 'T-312: Get failed login count for an IP' })
+  async getIpStats(@Param('ip') ip: string) {
+    const [isBlocked, failedCount] = await Promise.all([
+      this.ipBlockService.isBlocked(ip),
+      this.ipBlockService.getFailedCount(ip),
+    ]);
+    return { ip, isBlocked, failedCount };
   }
 
   // ─── T-094: Dead Letter Queue ──────────────────────────────────────────────

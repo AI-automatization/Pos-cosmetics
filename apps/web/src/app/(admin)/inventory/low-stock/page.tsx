@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useLowStock } from '@/hooks/inventory/useInventory';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ErrorState } from '@/components/common/ErrorState';
 import { cn } from '@/lib/utils';
 import type { StockStatus } from '@/types/inventory';
 
@@ -23,7 +24,7 @@ function StatusBadge({ status }: { status: StockStatus }) {
 }
 
 export default function LowStockPage() {
-  const { data: items, isLoading, isError } = useLowStock();
+  const { data: items, isLoading, isError, refetch } = useLowStock();
 
   const outCount = items?.filter((i) => i.status === 'OUT').length ?? 0;
   const lowCount = items?.filter((i) => i.status === 'LOW').length ?? 0;
@@ -74,9 +75,7 @@ export default function LowStockPage() {
       {isLoading ? (
         <LoadingSkeleton variant="table" rows={6} />
       ) : isError ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          Ma&apos;lumotlarni yuklashda xato yuz berdi
-        </div>
+        <ErrorState compact onRetry={refetch} />
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
           <table className="w-full text-sm">

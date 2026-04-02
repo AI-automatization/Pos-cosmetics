@@ -1,0 +1,17 @@
+appId: host.exp.exponent
+name: "Onboarding - Skip tugmasi"
+---
+- launchApp:
+    clearState: true
+
+# Slide 1 ko'rinishini tekshir
+- assertVisible: "RAOS ga xush kelibsiz!"
+- assertVisible: "O'tkazib yuborish"
+- assertVisible: "Keyingisi"
+
+# Skip bosish -> Login ga o'tish kerak
+- tapOn: "O'tkazib yuborish"
+
+# Auth screenga o'tganini tekshir
+- assertVisible: "RAOS"
+- assertVisible: "Retail & Asset Operating System"

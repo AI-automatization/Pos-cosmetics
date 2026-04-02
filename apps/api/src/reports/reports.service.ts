@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FiscalAdapterService } from '../tax/fiscal-adapter.service';
 
 // T-070: Shubhali faoliyat chegaralari
 const FRAUD_THRESHOLDS = {
@@ -21,7 +22,41 @@ export class ReportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emitter: EventEmitter2,
+    private readonly fiscalAdapter: FiscalAdapterService,
   ) {}
+
+  // ─── DAILY REPORT (T-226) ─────────────────────────────────────
+
+  async getDailyReport(tenantId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [orderAgg, returnAgg] = await Promise.all([
+      this.prisma.order.aggregate({
+        where: { tenantId, createdAt: { gte: today, lt: tomorrow }, status: { not: 'VOIDED' as const } },
+        _sum: { total: true },
+        _count: { id: true },
+      }),
+      this.prisma.return.aggregate({
+        where: { tenantId, createdAt: { gte: today, lt: tomorrow }, status: 'APPROVED' },
+        _sum: { total: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    const revenue = Number(orderAgg._sum.total ?? 0);
+    const returnTotal = Number(returnAgg._sum.total ?? 0);
+    return {
+      date: today.toISOString().slice(0, 10),
+      orders: orderAgg._count.id,
+      revenue,
+      returns: returnAgg._count.id,
+      returnTotal,
+      netRevenue: revenue - returnTotal,
+    };
+  }
 
   // ─── DAILY REVENUE ────────────────────────────────────────────
 
@@ -301,6 +336,20 @@ export class ReportsService {
       tenantId,
       revenue: totalRevenue,
       orders: orderAgg._count.id,
+    });
+
+    // ─── Fiskal operatorga Z-report yuborish (non-blocking) ──────────────────
+    this.fiscalAdapter.sendZReport({
+      tenantId,
+      sequenceNumber,
+      date: dayStart,
+      totalRevenue,
+      totalTax,
+      totalOrders: orderAgg._count.id,
+      cashAmount: paymentMap['CASH'] ?? 0,
+      terminalAmount: paymentMap['TERMINAL'] ?? 0,
+    }).catch((err: unknown) => {
+      this.logger.warn(`[ZReport] Fiscal Z-report send failed (non-critical): ${(err as Error).message}`, { tenantId });
     });
 
     return zReport;

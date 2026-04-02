@@ -41,10 +41,9 @@ function genTick(): LiveSaleTick {
 }
 
 function useLiveTicker() {
-  const [ticks, setTicks] = useState<LiveSaleTick[]>(() =>
-    Array.from({ length: 5 }, genTick),
-  );
+  const [ticks, setTicks] = useState<LiveSaleTick[]>([]);
   useEffect(() => {
+    setTicks(Array.from({ length: 5 }, genTick));
     const id = setInterval(() => {
       setTicks((prev) => [genTick(), ...prev].slice(0, 10));
     }, 3500);
@@ -76,46 +75,46 @@ export default function FounderOverviewPage() {
           value: stats.totalTenants.toString(),
           sub: `${stats.activeTenants} faol`,
           icon: Building2,
-          color: 'text-violet-400',
-          bg: 'bg-violet-500/10',
+          color: 'text-violet-600',
+          bg: 'bg-violet-50',
         },
         {
           label: 'Bugungi savdolar',
           value: stats.totalSalesToday.toString(),
           sub: 'barcha tenantlar',
           icon: ShoppingBag,
-          color: 'text-blue-400',
-          bg: 'bg-blue-500/10',
+          color: 'text-blue-600',
+          bg: 'bg-blue-50',
         },
         {
           label: "Bugungi daromad",
           value: formatPrice(stats.totalRevenueToday),
           sub: `${formatPrice(stats.totalRevenueMonth)} oy`,
           icon: TrendingUp,
-          color: 'text-emerald-400',
-          bg: 'bg-emerald-500/10',
+          color: 'text-emerald-600',
+          bg: 'bg-emerald-50',
         },
         {
           label: 'Xatolar (24h)',
           value: (errors?.length ?? 0).toString(),
           sub: criticalErrors.length > 0 ? `${criticalErrors.length} kritik!` : 'hammasi yaxshi',
           icon: AlertOctagon,
-          color: criticalErrors.length > 0 ? 'text-red-400' : 'text-gray-400',
-          bg: criticalErrors.length > 0 ? 'bg-red-500/10' : 'bg-gray-700/50',
+          color: criticalErrors.length > 0 ? 'text-red-600' : 'text-gray-400',
+          bg: criticalErrors.length > 0 ? 'bg-red-50' : 'bg-gray-50',
         },
       ]
     : [];
 
   const revenueFormatted = revenue?.map((p) => ({
     ...p,
-    date: p.date.slice(5), // MM-DD
-    revenueM: Math.round(p.revenue / 1_000_000), // million so'm
+    date: p.date.slice(5),
+    revenueM: Math.round(p.revenue / 1_000_000),
   })) ?? [];
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">Founder Overview</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Founder Overview</h1>
         <p className="mt-0.5 text-sm text-gray-500">Barcha tenantlar monitoringi</p>
       </div>
 
@@ -125,7 +124,7 @@ export default function FounderOverviewPage() {
           {STAT_CARDS.map((card) => (
             <div
               key={card.label}
-              className="rounded-xl border border-gray-800 bg-gray-900 p-4"
+              className="rounded-xl border border-gray-200 bg-white p-4"
             >
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-xs text-gray-500">{card.label}</p>
@@ -134,7 +133,7 @@ export default function FounderOverviewPage() {
                 </div>
               </div>
               <p className={cn('text-2xl font-bold', card.color)}>{card.value}</p>
-              <p className="mt-0.5 text-xs text-gray-600">{card.sub}</p>
+              <p className="mt-0.5 text-xs text-gray-400">{card.sub}</p>
             </div>
           ))}
         </div>
@@ -142,34 +141,34 @@ export default function FounderOverviewPage() {
 
       {/* Critical errors banner */}
       {criticalErrors.length > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-800 bg-red-950/50 px-4 py-3">
-          <AlertOctagon className="h-5 w-5 shrink-0 text-red-400" />
-          <p className="text-sm text-red-300">
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertOctagon className="h-5 w-5 shrink-0 text-red-600" />
+          <p className="text-sm text-red-700">
             <span className="font-semibold">{criticalErrors.length} ta KRITIK xato</span>
             {' — '}
             {criticalErrors.map((e) => e.tenantName).join(', ')}
           </p>
           <Link
             href="/founder/errors"
-            className="ml-auto rounded-lg border border-red-700 px-3 py-1 text-xs font-medium text-red-400 transition hover:bg-red-900/50"
+            className="ml-auto rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100"
           >
-            Ko'rish
+            Ko&apos;rish
           </Link>
         </div>
       )}
 
       <div className="grid grid-cols-3 gap-6">
         {/* Revenue chart */}
-        <div className="col-span-2 rounded-xl border border-gray-800 bg-gray-900 p-5">
-          <h2 className="mb-4 font-semibold text-gray-200">Daromad (14 kun, mln so'm)</h2>
+        <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-5">
+          <h2 className="mb-4 font-semibold text-gray-700">Daromad (14 kun, mln so&apos;m)</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={revenueFormatted}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} />
               <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} />
               <Tooltip
-                contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: 8 }}
-                labelStyle={{ color: '#e5e7eb' }}
+                contentStyle={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8 }}
+                labelStyle={{ color: '#374151' }}
                 formatter={(v: number | string | undefined) => [typeof v === 'number' ? `${v} mln` : String(v ?? ''), 'Daromad']}
               />
               <Bar dataKey="revenueM" fill="#7c3aed" radius={[4, 4, 0, 0]} />
@@ -178,8 +177,8 @@ export default function FounderOverviewPage() {
         </div>
 
         {/* Top 5 tenants */}
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-          <h2 className="mb-4 font-semibold text-gray-200">Top 5 tenant (bugun)</h2>
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 className="mb-4 font-semibold text-gray-700">Top 5 tenant (bugun)</h2>
           <div className="flex flex-col gap-3">
             {topTenants?.map((t, i) => {
               const maxRev = topTenants[0]?.revenue ?? 1;
@@ -187,17 +186,17 @@ export default function FounderOverviewPage() {
               return (
                 <div key={t.name}>
                   <div className="mb-1 flex items-center justify-between text-xs">
-                    <span className="text-gray-300">
-                      <span className="mr-2 text-gray-600">#{i + 1}</span>
+                    <span className="text-gray-700">
+                      <span className="mr-2 text-gray-400">#{i + 1}</span>
                       {t.name}
                     </span>
-                    <span className="font-medium text-violet-400">
+                    <span className="font-medium text-violet-600">
                       {formatPrice(t.revenue)}
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-gray-800">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
                     <div
-                      className="h-full rounded-full bg-violet-600 transition-all duration-500"
+                      className="h-full rounded-full bg-violet-500 transition-all duration-500"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -209,10 +208,10 @@ export default function FounderOverviewPage() {
       </div>
 
       {/* Live sales ticker */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
         <div className="mb-4 flex items-center gap-2">
-          <Activity className="h-4 w-4 text-emerald-400" />
-          <h2 className="font-semibold text-gray-200">Live savdolar</h2>
+          <Activity className="h-4 w-4 text-emerald-500" />
+          <h2 className="font-semibold text-gray-700">Live savdolar</h2>
           <span className="ml-1 flex h-2 w-2">
             <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -224,7 +223,7 @@ export default function FounderOverviewPage() {
               key={tick.id}
               className={cn(
                 'flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all',
-                i === 0 ? 'bg-emerald-950/60 text-white' : 'text-gray-400',
+                i === 0 ? 'bg-emerald-50 text-gray-900' : 'text-gray-500',
               )}
             >
               <div className="flex items-center gap-3">
@@ -232,10 +231,10 @@ export default function FounderOverviewPage() {
                   className={cn(
                     'rounded-full px-2 py-0.5 text-xs font-medium',
                     tick.method === 'CASH'
-                      ? 'bg-green-900/60 text-green-400'
-                      : tick.method === 'CARD'
-                      ? 'bg-blue-900/60 text-blue-400'
-                      : 'bg-orange-900/60 text-orange-400',
+                      ? 'bg-green-100 text-green-700'
+                      : tick.method === 'CARD' || tick.method === 'TERMINAL'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-orange-100 text-orange-700',
                   )}
                 >
                   {tick.method}
@@ -243,10 +242,10 @@ export default function FounderOverviewPage() {
                 <span className="text-xs">{tick.tenantName}</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-emerald-400">
+                <span className="font-semibold text-emerald-600">
                   +{formatPrice(tick.amount)}
                 </span>
-                <span className="text-xs text-gray-600">{formatTimeAgo(tick.at)}</span>
+                <span className="text-xs text-gray-400">{formatTimeAgo(tick.at)}</span>
               </div>
             </div>
           ))}

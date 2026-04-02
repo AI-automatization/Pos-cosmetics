@@ -6,6 +6,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from './prisma/prisma.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { IpBlockMiddleware } from './common/middleware/ip-block.middleware';
+import { FeatureFlagsModule } from './common/feature-flags/feature-flags.module';
 import { HealthModule } from './health/health.module';
 import { IdentityModule } from './identity/identity.module';
 import { CatalogModule } from './catalog/catalog.module';
@@ -29,6 +31,7 @@ import { AdminModule } from './admin/admin.module';
 import { BillingModule } from './billing/billing.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { SyncModule } from './sync/sync.module';
+import { SupportModule } from './support/support.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { QueueModule } from './common/queue/queue.module';
 import { AppCacheModule } from './common/cache/cache.module';
@@ -37,6 +40,8 @@ import { ExchangeRateModule } from './common/currency/exchange-rate.module';
 import { CircuitBreakerModule } from './common/circuit-breaker/circuit-breaker.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
+import { EmployeesModule } from './employees/employees.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -79,6 +84,10 @@ import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
     CronModule,
     SyncModule,
     RealtimeModule,
+    EmployeesModule,
+    UploadModule,
+    FeatureFlagsModule,
+    SupportModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)
@@ -88,5 +97,6 @@ import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer.apply(IpBlockMiddleware).forRoutes('*');
   }
 }

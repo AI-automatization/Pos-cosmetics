@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreatePaymentIntentDto, SplitPaymentDto } from './dto/create-payment.dto';
-import { PaymentIntentStatus } from '@prisma/client';
+import { PaymentIntentStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PaymentsService {
@@ -134,5 +134,26 @@ export class PaymentsService {
     });
     if (!intent) throw new NotFoundException(`PaymentIntent ${intentId} not found`);
     return intent;
+  }
+
+  async listPayments(tenantId: string, query: { page?: number; limit?: number; status?: string }) {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.PaymentIntentWhereInput = { tenantId };
+    if (query.status) where.status = query.status as PaymentIntentStatus;
+
+    const [items, total] = await Promise.all([
+      this.prisma.paymentIntent.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.paymentIntent.count({ where }),
+    ]);
+
+    return { items, total, page, limit, pages: Math.ceil(total / limit) };
   }
 }

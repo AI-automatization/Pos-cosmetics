@@ -2,12 +2,20 @@ import { apiClient } from './client';
 import type {
   Product,
   Category,
+  ProductUnitObject,
   ProductsQuery,
   PaginatedResponse,
   CreateProductDto,
   UpdateProductDto,
   CreateCategoryDto,
   UpdateCategoryDto,
+  ProductVariant,
+  CreateVariantDto,
+  UpdateVariantDto,
+  BundleItem,
+  AddBundleComponentDto,
+  ProductCertificate,
+  CreateCertificateDto,
 } from '@/types/catalog';
 
 export const catalogApi = {
@@ -51,6 +59,38 @@ export const catalogApi = {
     return apiClient.delete<void>(`/catalog/products/${id}`).then((r) => r.data);
   },
 
+  // --- Variants ---
+
+  getVariants(productId: string) {
+    return apiClient
+      .get<ProductVariant[]>(`/catalog/products/${productId}/variants`)
+      .then((r) => r.data);
+  },
+
+  createVariant(productId: string, dto: CreateVariantDto) {
+    return apiClient
+      .post<ProductVariant>(`/catalog/products/${productId}/variants`, dto)
+      .then((r) => r.data);
+  },
+
+  updateVariant(productId: string, variantId: string, dto: UpdateVariantDto) {
+    return apiClient
+      .patch<ProductVariant>(`/catalog/products/${productId}/variants/${variantId}`, dto)
+      .then((r) => r.data);
+  },
+
+  deleteVariant(productId: string, variantId: string) {
+    return apiClient
+      .delete<void>(`/catalog/products/${productId}/variants/${variantId}`)
+      .then((r) => r.data);
+  },
+
+  // --- Units ---
+
+  getUnits() {
+    return apiClient.get<ProductUnitObject[]>('/catalog/units').then((r) => r.data);
+  },
+
   // --- Categories ---
 
   getCategories() {
@@ -69,5 +109,45 @@ export const catalogApi = {
 
   deleteCategory(id: string) {
     return apiClient.delete<void>(`/catalog/categories/${id}`).then((r) => r.data);
+  },
+
+  // ─── Bundles ───
+
+  getBundleComponents(productId: string) {
+    return apiClient
+      .get<BundleItem[]>(`/catalog/products/${productId}/components`)
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  addBundleComponent(productId: string, dto: AddBundleComponentDto) {
+    return apiClient
+      .post<BundleItem>(`/catalog/products/${productId}/components`, dto)
+      .then((r) => r.data);
+  },
+
+  removeBundleComponent(productId: string, componentId: string) {
+    return apiClient
+      .delete<void>(`/catalog/products/${productId}/components/${componentId}`)
+      .then((r) => r.data);
+  },
+
+  // ─── Certificates ───
+
+  getCertificates(productId: string) {
+    return apiClient
+      .get<ProductCertificate[]>(`/catalog/products/${productId}/certificates`)
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  createCertificate(productId: string, dto: CreateCertificateDto) {
+    return apiClient
+      .post<ProductCertificate>(`/catalog/products/${productId}/certificates`, dto)
+      .then((r) => r.data);
+  },
+
+  deleteCertificate(productId: string, certId: string) {
+    return apiClient
+      .delete<void>(`/catalog/products/${productId}/certificates/${certId}`)
+      .then((r) => r.data);
   },
 };

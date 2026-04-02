@@ -21,15 +21,19 @@ import {
   CreateStockMovementDto,
   CreateWarehouseDto,
   StockFilterDto,
+  BatchStockInDto,
+  BatchStockOutDto,
 } from './dto/stock-movement.dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TransferService, CreateTransferDto } from './transfer.service';
 import { TransferStatus } from '@prisma/client';
+import { Roles } from '../common/decorators';
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
 @Controller('inventory')
 export class InventoryController {
   constructor(
@@ -46,6 +50,7 @@ export class InventoryController {
   }
 
   @Post('warehouses')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Create warehouse' })
   createWarehouse(
     @CurrentUser('tenantId') tenantId: string,
@@ -64,6 +69,26 @@ export class InventoryController {
     @Body() dto: CreateStockMovementDto,
   ) {
     return this.inventoryService.addStockMovement(tenantId, userId, dto);
+  }
+
+  @Post('stock-in')
+  @ApiOperation({ summary: 'Batch goods receipt — Process 5 (Nakladnoy)' })
+  batchStockIn(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() dto: BatchStockInDto,
+  ) {
+    return this.inventoryService.batchStockIn(tenantId, userId, dto);
+  }
+
+  @Post('stock-out')
+  @ApiOperation({ summary: 'Batch stock-out / write-off — Process 11' })
+  batchStockOut(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() dto: BatchStockOutDto,
+  ) {
+    return this.inventoryService.batchStockOut(tenantId, userId, dto);
   }
 
   @Get('movements')
@@ -93,6 +118,64 @@ export class InventoryController {
       productId,
       lowStock: lowStock === 'true',
     });
+  }
+
+
+  // ─── Mobile aliases (read-only) ───────────────────────────────
+
+  @Get('stock')
+  @ApiOperation({ summary: 'Mobile alias: GET /inventory/levels' })
+  @ApiQuery({ name: 'branchId', required: false })
+  getMobileStock(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branchId') _branchId?: string,
+  ) {
+    return this.inventoryService.getStockLevels(tenantId, {});
+  }
+
+  @Get('stock/low')
+  @ApiOperation({ summary: 'Mobile alias: GET /inventory/levels?lowStock=true' })
+  @ApiQuery({ name: 'branchId', required: false })
+  getMobileLowStock(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branchId') _branchId?: string,
+  ) {
+    return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
+  }
+
+  // mobile-owner calls /inventory/low-stock (not /inventory/stock/low)
+  @Get('low-stock')
+  @ApiOperation({ summary: 'Mobile-owner alias: GET /inventory/low-stock' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  getLowStock(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') _branchId?: string,
+  ) {
+    return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
+  }
+
+  // mobile-owner: GET /inventory/stock-value
+  @Get('stock-value')
+  @ApiOperation({ summary: 'Mobile-owner: total stock value + by branch' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  getStockValue(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') branchId?: string,
+  ) {
+    return this.inventoryService.getStockValue(tenantId, branchId);
+  }
+
+  // ─── T-222: OUT OF STOCK ─────────────────────────────────────
+
+  @Get('out-of-stock')
+  @ApiOperation({ summary: 'T-222: Omborda yo\'q tovarlar (quantity = 0)' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  getOutOfStock(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') branchId?: string,
+  ) {
+    return this.inventoryService.getOutOfStockItems(tenantId, branchId);
+
   }
 
   // ─── EXPIRY (T-031) ───────────────────────────────────────────

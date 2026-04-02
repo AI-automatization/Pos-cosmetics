@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "RAOS",
+    "entryPoint": "./index.js",
+    "slug": "raos-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "uz.raos.mobile"
+    },
+    "android": {
+      "package": "uz.raos.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#6366F1"
+      },
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-local-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#6366F1"
+        }
+      ],
+      "@config-plugins/detox"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "raos-mobile"
+      }
+    }
+  }
+}

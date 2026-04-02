@@ -20,11 +20,13 @@ import { SalesService } from './sales.service';
 import { OpenShiftDto, CloseShiftDto, CreateOrderDto, CreateReturnDto } from './dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators';
 import { UserRole } from '@prisma/client';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
 @Controller('sales')
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
@@ -62,6 +64,26 @@ export class SalesController {
     return this.salesService.getCurrentShift(tenantId, userId);
   }
 
+  @Get('shifts/active')
+  @ApiOperation({ summary: 'Get active (open) shifts — mobile alias' })
+  @ApiQuery({ name: 'branchId', required: false })
+  getActiveShifts(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.salesService.getActiveShifts(tenantId, branchId);
+  }
+
+  @Get('quick-stats')
+  @ApiOperation({ summary: 'Quick stats for today — mobile dashboard' })
+  @ApiQuery({ name: 'branchId', required: false })
+  getQuickStats(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.salesService.getQuickStats(tenantId, branchId);
+  }
+
   @Get('shifts')
   @ApiOperation({ summary: 'List all shifts (paginated)' })
   @ApiQuery({ name: 'page', required: false })
@@ -72,6 +94,32 @@ export class SalesController {
     @Query('limit') limit?: number,
   ) {
     return this.salesService.getShifts(tenantId, limit, page);
+  }
+
+  // ─── T-223: GET /shifts/summary ───────────────────────────────
+  @Get('shifts/summary')
+  @ApiOperation({ summary: 'T-223: Shift summary — total revenue, orders, shifts' })
+  @ApiQuery({ name: 'branch_id', required: false })
+  @ApiQuery({ name: 'from_date', required: false })
+  @ApiQuery({ name: 'to_date', required: false })
+  getShiftSummary(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branch_id') branchId?: string,
+    @Query('from_date') fromDate?: string,
+    @Query('to_date') toDate?: string,
+  ) {
+    return this.salesService.getShiftSummary(tenantId, { branchId, fromDate, toDate });
+  }
+
+  // ─── T-223: GET /shifts/:id ────────────────────────────────────
+  @Get('shifts/:id')
+  @ApiOperation({ summary: 'T-223: Shift details by ID with payment breakdown' })
+  @ApiParam({ name: 'id', type: String })
+  getShiftById(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.salesService.getShiftById(tenantId, id);
   }
 
   // ─── ORDERS ───────────────────────────────────────────────────
@@ -122,6 +170,17 @@ export class SalesController {
   }
 
   // ─── RETURNS ──────────────────────────────────────────────────
+
+  @Get('returns')
+  @ApiOperation({ summary: 'List returns' })
+  listReturns(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('status') status?: string,
+  ) {
+    return this.salesService.listReturns(tenantId, { page, limit, status });
+  }
 
   @Post('returns')
   @ApiOperation({ summary: 'Create return request' })

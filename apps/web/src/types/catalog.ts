@@ -1,6 +1,38 @@
 // Catalog domain types
 // TODO: Move to packages/types/ after backend implements schemas (T-011)
 
+export interface BundleItem {
+  id: string;
+  bundleId: string;
+  componentId: string;
+  component?: { id: string; name: string; sku?: string; sellPrice: number };
+  quantity: number;
+}
+
+export interface AddBundleComponentDto {
+  componentId: string;
+  quantity: number;
+}
+
+export interface ProductCertificate {
+  id: string;
+  productId: string;
+  certNumber: string;
+  issuingAuthority: string;
+  issuedAt: string;
+  expiresAt?: string | null;
+  fileUrl?: string | null;
+  createdAt: string;
+}
+
+export interface CreateCertificateDto {
+  certNumber: string;
+  issuingAuthority: string;
+  issuedAt: string;
+  expiresAt?: string;
+  fileUrl?: string;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -11,28 +43,48 @@ export interface Category {
   updatedAt: string;
 }
 
+/** Unit object returned by backend API */
+export interface ProductUnitObject {
+  id: string;
+  name: string;
+  shortName: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   barcode: string | null;
-  sku: string;
-  categoryId: string;
-  category: Pick<Category, 'id' | 'name'>;
+  extraBarcodes?: string[];
+  sku: string | null;
+  categoryId: string | null;
+  category: Pick<Category, 'id' | 'name'> | null;
+  unitId: string | null;
+  unit: ProductUnitObject | null;
   costPrice: number;
   sellPrice: number;
-  unit: ProductUnit;
-  minStock: number;
+  /** Actual backend field name */
+  minStockLevel: number;
+  /** Populated by backend via StockMovement aggregate */
   currentStock: number;
-  image: string | null;
+  /** Actual backend field name */
+  imageUrl: string | null;
   isActive: boolean;
+  isBundle: boolean;
+  bundleItems?: BundleItem[];
+  /** Nearest batch expiry date (populated by backend for expiryTracking products) */
+  expiryDate?: string | null;
   tenantId: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type ProductUnit = 'dona' | 'kg' | 'litr' | 'metr' | 'quti' | 'juft';
+/** String codes for unit labels in the UI form */
+export type ProductUnitCode = 'dona' | 'kg' | 'litr' | 'metr' | 'quti' | 'juft';
 
-export const PRODUCT_UNITS: { value: ProductUnit; label: string }[] = [
+/** @deprecated Use ProductUnitCode for form selects */
+export type ProductUnit = ProductUnitCode;
+
+export const PRODUCT_UNITS: { value: ProductUnitCode; label: string }[] = [
   { value: 'dona', label: 'Dona' },
   { value: 'kg', label: 'Kilogram' },
   { value: 'litr', label: 'Litr' },
@@ -61,19 +113,54 @@ export interface PaginatedResponse<T> {
   };
 }
 
+/** Matches backend CreateProductDto field names */
 export interface CreateProductDto {
   name: string;
   barcode?: string;
-  sku: string;
-  categoryId: string;
+  extraBarcodes?: string[];
+  sku?: string;
+  categoryId?: string;
+  unitId?: string;
   costPrice: number;
   sellPrice: number;
-  unit: ProductUnit;
-  minStock: number;
-  image?: string;
+  minStockLevel?: number;
+  isActive?: boolean;
+  imageUrl?: string;
+  description?: string;
+  expiryTracking?: boolean;
 }
 
-export type UpdateProductDto = Partial<CreateProductDto> & { isActive?: boolean };
+export type UpdateProductDto = Partial<CreateProductDto>;
+
+// --- Product Variants ---
+
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  tenantId: string;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  costPrice: number;
+  costCurrency: string;
+  sellPrice: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateVariantDto {
+  name: string;
+  sku?: string;
+  barcode?: string;
+  costPrice?: number;
+  sellPrice?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export type UpdateVariantDto = Partial<CreateVariantDto>;
 
 export interface CreateCategoryDto {
   name: string;

@@ -10,6 +10,7 @@ import { ShiftOpenModal } from './shift/ShiftOpenModal';
 import { ShiftCloseModal } from './shift/ShiftCloseModal';
 import { usePOSKeyboard } from '@/hooks/pos/usePOSKeyboard';
 import { usePOSStore } from '@/store/pos.store';
+import { shiftApi } from '@/api/shift.api';
 import type { Order } from '@/types/sales';
 
 export default function POSPage() {
@@ -19,8 +20,21 @@ export default function POSPage() {
   const [showCloseShift, setShowCloseShift] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const { setPaymentMethod, shiftId, items, clearCart } = usePOSStore();
+  const { setPaymentMethod, shiftId, items, clearCart, openShift } = usePOSStore();
   const [showRecovery, setShowRecovery] = useState(false);
+
+  // Hydrate shift state from server on mount (handles page refresh / new session)
+  useEffect(() => {
+    if (!shiftId) {
+      shiftApi.getActiveShift().then((shift) => {
+        if (shift) {
+          const s = shift as typeof shift & { user?: { firstName?: string; lastName?: string } };
+          const cashierName = [s.user?.firstName, s.user?.lastName].filter(Boolean).join(' ') || 'Kassir';
+          openShift(shift.id, cashierName, Number(shift.openingCash));
+        }
+      });
+    }
+  }, []); // intentional: run once on mount
 
   // T-066: Cart recovery — tok o'chib yonsa savdo yo'qolmaydi
   useEffect(() => {

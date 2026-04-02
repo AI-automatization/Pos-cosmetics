@@ -1,16 +1,4 @@
-# ─── Stage 1: deps ────────────────────────────────────────────
-FROM node:20-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@latest --activate
-WORKDIR /app
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY apps/web/package.json ./apps/web/
-COPY packages/types/package.json ./packages/types/
-COPY packages/ui/package.json ./packages/ui/
-
-RUN pnpm install --frozen-lockfile --filter web...
-
-# ─── Stage 2: builder ─────────────────────────────────────────
+# ─── Stage 1: builder ─────────────────────────────────────────
 FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
@@ -38,7 +26,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN pnpm --filter web build
 
-# ─── Stage 3: runner ──────────────────────────────────────────
+# ─── Stage 2: runner ──────────────────────────────────────────
 FROM node:20-alpine AS runner
 RUN apk add --no-cache dumb-init
 

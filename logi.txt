@@ -1,0 +1,1283 @@
+================================================================================
+RAOS BACKEND — SESSION LOG
+================================================================================
+
+[2026-03-06 | Polat | SESSION_START]
+
+---
+
+[2026-02-28 | Polat | SESSION_START]
+
+---
+
+[TASK_START | T-011 | Catalog Prisma Schema]
+Fayl: apps/api/prisma/schema.prisma
+Qo'shildi: categories, units, products, product_barcodes jadvallari
+Indexes: tenant_id, [tenant_id, barcode], [tenant_id, sku], [tenant_id, categoryId]
+[TASK_DONE | T-011]
+
+---
+
+[TASK_START | T-013 | Sales Prisma Schema]
+Fayl: apps/api/prisma/schema.prisma
+Qo'shildi: shifts, orders, order_items, returns, return_items jadvallari
+Eslatma: orders — immutable. Returns — alohida jadval.
+[TASK_DONE | T-013]
+
+---
+
+[TASK_START | T-021 | Inventory Prisma Schema]
+Fayl: apps/api/prisma/schema.prisma
+Qo'shildi: warehouses, stock_movements jadvallari
+Eslatma: stock_movements — immutable (createdAt only, no updatedAt)
+[TASK_DONE | T-021]
+
+---
+
+[TASK_START | T-015 | Payments Prisma Schema + Service]
+Fayl: apps/api/prisma/schema.prisma, apps/api/src/payments/
+Qo'shildi: payment_intents (CREATED→CONFIRMED→SETTLED→REVERSED)
+Provayderlar: CASH, TERMINAL, CLICK, PAYME, TRANSFER, DEBT
+[TASK_DONE | T-015]
+
+---
+
+[TASK_START | T-050 | Customer Module]
+Fayl: apps/api/src/customers/
+Yaratildi: CustomersService, CustomersController, CustomersModule
+Endpointlar: GET /customers, GET /customers/:id, GET /customers/:id/stats, POST, PATCH, DELETE
+[TASK_DONE | T-050]
+
+---
+
+[TASK_START | T-051 | Nasiya Module]
+Fayl: apps/api/src/nasiya/
+Yaratildi: NasiyaService, NasiyaController, NasiyaModule
+Endpointlar: POST /nasiya, GET /nasiya, GET /nasiya/overdue, GET /nasiya/:id, POST /nasiya/:id/pay
+[TASK_DONE | T-051]
+
+---
+
+[TASK_START | T-012 | Catalog Service + Controller]
+Fayl: apps/api/src/catalog/
+Yaratildi: CatalogService (products CRUD, categories tree, units, barcode scan)
+           CatalogController (10 ta endpoint)
+DTOlar: CreateCategoryDto, UpdateCategoryDto, CreateUnitDto, CreateProductDto, UpdateProductDto, ProductFilterDto
+[TASK_DONE | T-012]
+
+---
+
+[TASK_START | T-014 | Sales Service + Controller]
+Fayl: apps/api/src/sales/
+Yaratildi: SalesService (shift open/close, order create, returns), SalesController
+DTOlar: OpenShiftDto, CloseShiftDto, CreateOrderDto, CreateReturnDto
+Domain event: sale.created → inventory deduction
+[TASK_DONE | T-014]
+
+---
+
+[TASK_START | T-019 | Receipt Endpoint]
+Fayl: apps/api/src/sales/sales.service.ts
+Yaratildi: getReceipt() metodi → GET /sales/orders/:id/receipt
+Format: JSON (orderNumber, cashier, customer, items, totals, payments)
+[TASK_DONE | T-019]
+
+---
+
+[TASK_START | T-022 | Inventory Service + Controller]
+Fayl: apps/api/src/inventory/
+Yaratildi: InventoryService (warehouses, stock movements, stock levels aggregate)
+           InventoryController (8 ta endpoint)
+Raw SQL: Stock levels via PostgreSQL aggregate query (IN-type/OUT-type sign)
+[TASK_DONE | T-022]
+
+---
+
+[TASK_START | T-039 | Domain Events]
+Fayl: apps/api/src/events/sale-event.listener.ts
+Yaratildi: SaleEventListener
+Events: sale.created → deductStock(), return.approved → RETURN_IN movement
+Joylashtirish: InventoryModule providers ichida
+[TASK_DONE | T-039]
+
+---
+
+[TASK_START | ENV]
+.env fayli .env.example dan yaratildi
+[DONE]
+
+---
+
+[2026-02-28 | SESSION_CHECKPOINT]
+
+================================================================================
+BAJARILDI: T-011, T-013, T-021, T-015, T-050, T-051, T-012, T-014, T-019, T-022, T-039
+================================================================================
+
+KEYINGI QADAM — Migrate va compile:
+  1. docker compose up -d
+  2. pnpm install
+  3. cd apps/api && npx prisma migrate dev --name "core-modules"
+  4. pnpm dev:api
+
+KEYIN (T-024): Reports module
+  GET /reports/daily, /top-products, /summary
+
+KEYIN (T-026): Returns/Refund approval flow
+KEYIN (T-027): Audit Log
+================================================================================
+
+---
+
+[2026-02-28 | Polat | SESSION_2_START]
+Sessiya 2 boshlandi. Barcha oldingi kod tekshirildi:
+
+TEKSHIRUV NATIJASI:
+✅ schema.prisma — to'liq (tenants, users, branches, categories, units, products,
+   product_barcodes, warehouses, stock_movements, shifts, orders, order_items,
+   returns, return_items, payment_intents, customers, debt_records, debt_payments,
+   event_log + barcha enumlar)
+✅ app.module.ts — barcha modullar ro'yxatda (CustomersModule, NasiyaModule va boshqalar)
+✅ CatalogService — CRUD, barcode scan, pagination to'g'ri
+✅ SalesService — shift, order creation, returns, receipt to'g'ri
+✅ InventoryService — warehouses, movements, stock levels (raw SQL aggregate) to'g'ri
+✅ PaymentsService — intent lifecycle (CREATED→CONFIRMED→SETTLED→REVERSED) to'g'ri
+✅ SaleEventListener — sale.created→deductStock, return.approved→RETURN_IN to'g'ri
+✅ inventory.module.ts — SaleEventListener providers ichida (circular dep yo'q)
+✅ LedgerModule, TaxModule — placeholder (bo'sh, keyin to'ldiriladi)
+✅ CustomersModule, NasiyaModule — tayyor
+
+MUAMMO TOPILMADI.
+
+---
+
+[TASK_START | T-024 | Reports Module]
+Fayl: apps/api/src/reports/
+Endpointlar:
+  GET /reports/daily-revenue?from=&to=
+  GET /reports/top-products?from=&to=&limit=
+  GET /reports/sales-summary?from=&to=
+  GET /reports/profit?from=&to=
+  GET /reports/shift/:shiftId
+AMALLAR:
+  ✅ reports.service.ts yaratildi (raw SQL aggregates)
+  ✅ reports.controller.ts yaratildi (5 endpoint)
+  ✅ reports.module.ts yaratildi
+  ✅ app.module.ts ga ReportsModule qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-024]
+
+---
+
+[TASK_START | T-027 | Audit Log Module]
+Fayl: apps/api/src/audit/, apps/api/prisma/schema.prisma
+AMALLAR:
+  ✅ schema.prisma — audit_logs jadvali qo'shildi
+     (id, tenantId, userId, action, entityType, entityId, oldData, newData, ip, userAgent, createdAt)
+     Indexlar: tenantId, userId, action, entityType+entityId, createdAt
+  ✅ audit.service.ts yaratildi (log() + getLogs() metodlar)
+     MUHIM: log() xato chiqsa ham asosiy operatsiyani to'xtatmaydi (try/catch)
+  ✅ audit.controller.ts yaratildi (GET /audit-logs — faqat OWNER/ADMIN)
+  ✅ audit.module.ts yaratildi, AuditService export qilindi
+  ✅ app.module.ts ga AuditModule qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-027]
+
+---
+
+[TASK_START | T-032 | Expenses / Finance Module]
+Fayl: apps/api/src/finance/, apps/api/prisma/schema.prisma
+AMALLAR:
+  ✅ schema.prisma — expenses jadvali + ExpenseCategory enum qo'shildi
+     Kategoriyalar: RENT, SALARY, DELIVERY, UTILITIES, OTHER
+  ✅ finance.service.ts yaratildi
+     - createExpense()
+     - getExpenses() (filter: category, date range, pagination)
+     - getExpenseSummary() (raw SQL GROUP BY category)
+     - deleteExpense()
+  ✅ finance.controller.ts yaratildi (4 endpoint)
+     POST /expenses, GET /expenses, GET /expenses/summary, DELETE /expenses/:id
+  ✅ finance.module.ts yaratildi
+  ✅ app.module.ts ga FinanceModule qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-032]
+
+---
+
+[TASK_START | T-031 | Expiry Tracking]
+Fayl: apps/api/src/inventory/inventory.service.ts + inventory.controller.ts
+AMALLAR:
+  ✅ getExpiringProducts(tenantId, days) — raw SQL query
+     Mantiq: stock_movements dagi expiry_date NOW()..cutoff oralig'ida
+     GROUP BY product+warehouse+batch+expiry, qty>0 bo'lganlar
+     daysLeft = EXTRACT(DAY FROM expiry_date - NOW())
+  ✅ getExpiredProducts(tenantId) — muddati o'tganlar (expiry_date < NOW())
+  ✅ InventoryController ga 2 endpoint qo'shildi:
+     GET /inventory/expiring?days=30
+     GET /inventory/expired
+  ✅ ParseIntPipe, DefaultValuePipe import qilindi (unused import olib tashlandi)
+XATOLAR: ParseUUIDPipe va Param import ortiqcha edi — olib tashlandi
+[TASK_DONE | T-031]
+
+---
+
+[2026-02-28 | SESSION_2_CHECKPOINT]
+
+BAJARILDI: T-024, T-027, T-031, T-032
+SCHEMA ga qo'shildi: audit_logs, expenses jadvallari
+MODULLAR qo'shildi: ReportsModule, AuditModule, FinanceModule
+
+KEYINGI QADAM — Migrate:
+  npx prisma migrate dev --name "add-reports-audit-finance"
+
+QOLGAN TASKLAR (navbat bo'yicha):
+  T-035: Ledger (double-entry) — journal_entries + ledger_lines
+  T-036: Fiscal adapter (placeholder)
+  T-038: Shared types (packages/types/)
+  T-026: Returns/Refund — discount limit check (Cashier 5%, Manager 15%)
+================================================================================
+
+---
+
+[TASK_START | T-035 | Ledger Module — Double-Entry Journal]
+Fayl: apps/api/src/ledger/, apps/api/prisma/schema.prisma
+REJA:
+  - schema: journal_entries + ledger_lines (immutable — updated_at yo'q)
+  - LedgerService: recordEntry() + validation (sum debit == sum credit)
+  - Event listeners: sale.created, payment.settled, return.approved
+AMALLAR:
+  ✅ schema.prisma — qo'shildi:
+     - LedgerAccount enum: CASH, ACCOUNTS_RECEIVABLE, REVENUE, SALES_RETURN, COST_OF_GOODS_SOLD, EXPENSES
+     - LedgerLineType enum: DEBIT, CREDIT
+     - JournalRefType enum: SALE, PAYMENT, RETURN, ADJUSTMENT
+     - JournalEntry model (id, tenantId, referenceType, referenceId, description, createdAt — NO updatedAt)
+     - JournalLine model (id, journalEntryId, account, type, amount, createdAt — NO updatedAt)
+     - Index: tenantId, referenceType+referenceId
+  ✅ ledger.service.ts — to'liq yozildi:
+     - recordEntry() — double-entry validation: sum(debit)==sum(credit) ±0.001
+     - @OnEvent('sale.created') → debit AR / credit Revenue
+     - @OnEvent('payment.settled') → debit Cash / credit AR (DEBT method o'tkaziladi)
+     - @OnEvent('return.approved') → debit SalesReturn / credit AR
+     - getEntriesByRef(), getAccountBalance() metodlari
+     - Xato bo'lsa sale TO'XTATILMAYDI — faqat log
+  ✅ ledger.module.ts — yangilandi (comment: Controller YO'Q)
+XATOLAR: yo'q
+[TASK_DONE | T-035]
+
+---
+
+[TASK_START | T-036 | Fiscal Adapter Placeholder]
+Fayl: apps/api/src/tax/tax.service.ts
+AMALLAR:
+  ✅ tax.service.ts — to'liq yozildi:
+     - @OnEvent('sale.created') → fiscal_status = PENDING
+     - retryFiscal() — FAILED → PENDING (queue uchun tayyor)
+     - getFiscalStatus() — order fiscal holatini qaytaradi
+     - ⚠️ Sale HECH QACHON block qilinmaydi (try/catch ichida)
+  ✅ tax.module.ts — yangilandi (comment: Phase 2 da real OFD)
+XATOLAR: yo'q
+[TASK_DONE | T-036]
+
+---
+
+[TASK_START | T-038 | Shared Types (packages/types)]
+Fayl: packages/types/src/
+AMALLAR:
+  ✅ catalog.ts — Category, Unit, Product, ProductBarcode, filter va payload typelar
+  ✅ sales.ts — Shift, Order, OrderItem, Return, ReturnItem, request payload typelar, ReceiptResponse
+  ✅ inventory.ts — Warehouse, StockMovement, StockLevel, ExpiringProduct, request payloadlar
+  ✅ payments.ts — PaymentIntent, PaymentMethod, PaymentIntentStatus, request payloadlar
+  ✅ customers.ts — Customer, DebtRecord, DebtPayment, AgingReport, request payloadlar
+  ✅ reports.ts — DailyRevenue, TopProduct, SalesSummary, ProfitEstimate, ShiftReport
+  ✅ index.ts — barcha typelar re-export qilindi
+XATOLAR: yo'q
+[TASK_DONE | T-038]
+
+---
+
+[2026-02-28 | SESSION_3_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 3: T-035, T-036, T-038
+SCHEMA ga qo'shildi: journal_entries, journal_lines (+ 3 enum)
+MIGRATE KERAK: npx prisma migrate dev --name "add-ledger"
+
+QOLGAN TASKLAR:
+  T-026: Discount limit check (Cashier 5%, Manager 15%)
+  T-037: Docker + CI/CD staging
+  T-040+: Phase 2 (Telegram, Loyalty, Supplier)
+================================================================================
+
+---
+
+[TASK_START | T-037 | Docker + CI/CD Staging]
+Fayl: docker/, .github/workflows/, apps/api/src/health/
+REJA:
+  1. Health check endpoint kengaytirish (DB ping + version)
+  2. apps/api/Dockerfile — multi-stage production build
+  3. apps/web/Dockerfile — Next.js production build
+  4. docker-compose.staging.yml — postgres, redis, api, web, nginx
+  5. .env.staging — template (secrets yo'q)
+  6. .github/workflows/ci.yml — lint → typecheck → build → docker → deploy
+AMALLAR:
+  ✅ health.controller.ts — kengaytirildi:
+     - GET /health → DB ping (prisma.$queryRaw `SELECT 1`), latencyMs, version, environment
+     - GET /health/ping → oddiy pong (DB tekshiruvsiz, LB uchun)
+     - XATO: HealthController PrismaService inject qilmagan edi — tuzatildi
+  ✅ apps/api/Dockerfile — 3 stage (deps → builder → runner):
+     - Node 20 alpine, pnpm, dumb-init
+     - Prisma generate builder stage da
+     - Non-root user (nestjs uid 1001)
+     - HEALTHCHECK: wget /health/ping
+  ✅ apps/web/Dockerfile — 3 stage (deps → builder → runner):
+     - Next.js standalone output
+     - Non-root user (nextjs uid 1001)
+     - HEALTHCHECK: wget /api/health
+  ✅ apps/api/.dockerignore — node_modules, dist, .env, logs olib tashlandi
+  ✅ apps/web/.dockerignore — node_modules, .next, .env olib tashlandi
+  ✅ docker-compose.staging.yml — to'liq production setup:
+     - postgres (healthcheck bor)
+     - redis (--requirepass, --maxmemory 256mb)
+     - api (depends_on postgres+redis healthy)
+     - web (depends_on api healthy)
+     - nginx (reverse proxy, port 80/443)
+     - certbot (SSL auto-renew 12h loop)
+     - barcha servislar json-file logging (max-size limit)
+  ✅ docker/nginx/staging.conf — nginx konfiguratsiya:
+     - HTTP→HTTPS redirect
+     - api.domain → api:3000 proxy
+     - domain → web:3001 proxy
+     - Security headers (X-Frame-Options, HSTS, X-Content-Type-Options)
+     - Rate limit (60r/m, burst 20)
+     - Next.js static assets Cache-Control immutable
+  ✅ .env.staging — template (haqiqiy secrets yo'q, CHANGE_ME placeholder)
+  ✅ .github/workflows/ci.yml — 5 job:
+     - lint → ESLint
+     - typecheck → tsc --noEmit + prisma generate
+     - test → postgres service container + prisma migrate deploy + jest
+     - docker-build → GHCR push (main branchda)
+     - deploy-staging → SSH deploy, rolling restart, health check
+  ✅ .gitignore — .env.staging, .env.production, .env.*.secret qo'shildi
+XATOLAR:
+  - Web Dockerfile: Next.js standalone output uchun next.config.js da `output: 'standalone'` kerak!
+    ESLATMA: AbdulazizYormatov uchun task qo'shamiz
+[TASK_DONE | T-037]
+
+---
+
+---
+
+[TASK_START | T-026 | Discount Limit Check]
+Fayl: apps/api/src/sales/sales.service.ts, sales.controller.ts
+AMALLAR:
+  ✅ DISCOUNT_LIMIT const qo'shildi:
+     CASHIER=5%, MANAGER=15%, ADMIN=100%, OWNER=100%, VIEWER=0%
+  ✅ createOrder() — userRole parametr qo'shildi
+  ✅ Chegirma tekshiruvi:
+     - PERCENT discount — to'g'ridan tekshirish
+     - FIXED discount — subtotal ga nisbatan % hisoblanadi
+     - Limitdan oshsa → ForbiddenException (403)
+     - Xabar: "CASHIER role uchun maksimal chegirma 5% (so'ralgan: X%)"
+  ✅ SalesController: @CurrentUser('role') → createOrder ga uzatildi
+XATOLAR: yo'q
+[TASK_DONE | T-026]
+
+---
+
+[AMAL | POLAT_PROGRESS.txt yaratildi]
+Fayl: POLAT_PROGRESS.txt (loyiha root papkasida)
+Tarkib: Polat tomonidan bajarilgan barcha 27 task, 50+ endpoint,
+        23 jadval, 13 modul, Docker/CI/CD — to'liq hisobot
+
+---
+
+[2026-02-28 | SESSION_4_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 4: T-035, T-036, T-038, T-026
+JAMI BU SEANS (sessiya 2+3+4): T-024, T-027, T-031, T-032, T-035, T-036, T-038, T-026
+
+QOLGAN P1 TASKLAR:
+  T-037: Docker + CI/CD staging (Dockerfile, docker-compose.staging.yml, GitHub Actions)
+
+QOLGAN P2 TASKLAR (Phase 2):
+  T-040: Telegram bot (grammY)
+  T-041: Supplier UI
+  T-042: Supplier backend
+  T-043+: Loyalty, Bundles, Serial numbers, Multi-branch
+
+MIGRATE BUYRUG'I (barcha yangi jadvallar uchun):
+  cd apps/api
+  npx prisma migrate dev --name "add-audit-finance-ledger"
+
+SWAGGER TEKSHIRISH:
+  http://localhost:3003/api/v1/docs
+================================================================================
+
+---
+
+[TASK_START | T-040 | Telegram Bot — grammY]
+Fayl: apps/bot/src/
+REJA:
+  - Bot Prisma orqali to'g'ridan DB dan o'qiydi (bot va API bitta DB)
+  - bot/package.json: @prisma/client + node-cron qo'shiladi
+  - config.ts    — BOT_TOKEN, ADMIN_CHAT_ID, DATABASE_URL
+  - prisma.ts    — PrismaClient singleton
+  - bot.ts       — grammY bot asosi
+  - handlers/commands.ts — /start, /report, /lowstock, /expiring, /help
+  - services/report.service.ts  — bugungi savdo, top mahsulotlar
+  - services/alert.service.ts   — low stock, expiry, refund tekshirish
+  - cron/alerts.cron.ts         — node-cron: soatlik + kunlik tekshirish
+  - main.ts      — bot + cron ishga tushirish
+AMALLAR:
+  ✅ apps/bot/package.json — yangilandi:
+     - grammy (bor edi), @prisma/client, node-cron qo'shildi
+     - prisma:generate script qo'shildi (apps/api schema ishlatadi)
+  ✅ config.ts — barcha env o'zgaruvchilar:
+     BOT_TOKEN, BOT_ADMIN_CHAT_IDS, DATABASE_URL,
+     REFUND_ALERT_THRESHOLD, cron expressions, EXPIRY_DAYS_WARNING
+  ✅ prisma.ts — PrismaClient singleton (dev: warn+error, prod: error only)
+  ✅ services/report.service.ts:
+     - getTodaySummary(tenantId) — buyurtmalar, qaytarishlar, top 5 mahsulot, to'lovlar
+     - getAllTenantsSummary() — barcha aktiv tenantlar bugungi jami
+  ✅ services/alert.service.ts:
+     - getLowStockItems() — raw SQL: barcha tenantlarda kam qolgan mahsulotlar
+     - getExpiringItems(days) — muddati yaqin (batch level)
+     - getRecentSuspiciousRefunds() — so'nggi 1 soatda threshold dan katta qaytarishlar
+  ✅ services/formatter.ts — Telegram MarkdownV2 formatlash:
+     - formatDailyReport() — emoji, jadvalsiz lekin aniq ko'rinish
+     - formatLowStockAlert() — tenant bo'yicha guruhlash, 🔴🟡 icon
+     - formatExpiryAlert() — 🔴≤7kun, 🟠≤14kun, 🟡 boshqalar
+     - formatRefundAlert() — bitta refund xabari
+  ✅ handlers/commands.ts — /start, /help, /report, /lowstock, /expiring
+  ✅ cron/alerts.cron.ts — 4 ta cron:
+     - Low stock: har soat (configdan)
+     - Expiry: har kuni 08:00 (configdan)
+     - Suspicious refund: har 15 daqiqa
+     - Kunlik hisobot: har kuni 20:00
+     - Timezone: Asia/Tashkent
+  ✅ bot.ts — grammY Bot, setMyCommands, global error handler
+  ✅ main.ts — bootstrap: DB connect → bot → cron → polling
+     SIGINT/SIGTERM graceful shutdown
+  ✅ apps/bot/Dockerfile — 3-stage (deps→builder→runner), non-root user
+  ✅ .env.example — BOT_TOKEN, BOT_ADMIN_CHAT_IDS, threshold qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-040]
+
+---
+
+[2026-02-28 | SESSION_5_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 5: T-040 (Telegram Bot)
+JAMI LOYIHADA POLAT TOMONIDAN: T-001..T-010, T-011..T-015, T-019, T-021, T-022,
+  T-024, T-026, T-027, T-031, T-032, T-035, T-036, T-037, T-038, T-039,
+  T-040, T-050, T-051 — 27 ta task
+
+ISHGA TUSHIRISH:
+  cd apps/bot
+  BOT_TOKEN=... BOT_ADMIN_CHAT_IDS=... pnpm dev
+
+QOLGAN TASKLAR (Phase 2):
+  T-042: Supplier backend (CRUD)
+  T-043+: Loyalty, Bundles, Multi-branch
+================================================================================
+
+---
+
+[2026-02-28 | Polat | SESSION_6_START]
+
+---
+
+[TASK_START | T-042 | Supplier Module — Prisma schema + CRUD service + controller]
+Fayl: apps/api/prisma/schema.prisma, apps/api/src/catalog/
+REJA:
+  1. schema.prisma — suppliers, product_suppliers jadvallari
+  2. dto/create-supplier.dto.ts + update-supplier.dto.ts + link-product.dto.ts
+  3. dto/index.ts ga export qo'shish
+  4. catalog.service.ts — supplier metodlari qo'shish
+  5. catalog.controller.ts — supplier endpointlari qo'shish
+AMALLAR:
+  ✅ schema.prisma — Supplier + ProductSupplier modellari qo'shildi:
+     - suppliers jadvali: id, tenant_id, name, phone, company, address, is_active
+     - product_suppliers jadvali: product_id, supplier_id, supply_price, is_default
+     - @@unique([productId, supplierId]) — bir mahsulot bir yetkazuvchiga bir marta
+     - Tenant.suppliers[] + Product.productSuppliers[] relation qo'shildi
+  ✅ dto/create-supplier.dto.ts — CreateSupplierDto + UpdateSupplierDto
+  ✅ dto/link-product-supplier.dto.ts — LinkProductSupplierDto (productId, supplyPrice, isDefault)
+  ✅ dto/index.ts — yangi DTOlar export qo'shildi
+  ✅ catalog.service.ts — yangi metodlar:
+     - getSuppliers(tenantId, isActive?) — ro'yxat
+     - getSupplierById(tenantId, id) — detail + linked products
+     - createSupplier(tenantId, dto)
+     - updateSupplier(tenantId, id, dto)
+     - deactivateSupplier(tenantId, id) — isActive=false qilish
+     - linkProductToSupplier(tenantId, supplierId, dto) — upsert, isDefault boshqaruv
+     - unlinkProductFromSupplier(tenantId, supplierId, productId)
+  ✅ catalog.controller.ts — yangi endpointlar:
+     - GET  /catalog/suppliers?isActive=true — ro'yxat
+     - GET  /catalog/suppliers/:id — detail + mahsulotlar
+     - POST /catalog/suppliers — yaratish
+     - PATCH /catalog/suppliers/:id — yangilash
+     - DELETE /catalog/suppliers/:id — o'chirish (isActive=false)
+     - POST /catalog/suppliers/:id/products — mahsulot ulash
+     - DELETE /catalog/suppliers/:id/products/:productId — mahsulot ajratish
+XATOLAR: yo'q
+[TASK_DONE | T-042]
+
+---
+
+[2026-02-28 | SESSION_6_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 6: T-042 (Supplier Module)
+JAMI LOYIHADA POLAT TOMONIDAN: T-001..T-010, T-011..T-015, T-019, T-021, T-022,
+  T-024, T-026, T-027, T-031, T-032, T-035, T-036, T-037, T-038, T-039,
+  T-040, T-042, T-050, T-051 — 28 ta task
+
+YANGI ENDPOINTLAR (+7):
+  GET    /catalog/suppliers
+  GET    /catalog/suppliers/:id
+  POST   /catalog/suppliers
+  PATCH  /catalog/suppliers/:id
+  DELETE /catalog/suppliers/:id
+  POST   /catalog/suppliers/:id/products
+  DELETE /catalog/suppliers/:id/products/:productId
+
+MIGRATE BUYRUG'I (yangi jadvallar uchun):
+  cd apps/api
+  npx prisma migrate dev --name "add-suppliers"
+
+QOLGAN TASKLAR (Phase 2+):
+  T-043: Loyalty module — bonus points
+  T-045: Bundles/Sets module
+  T-047: Multi-branch support
+================================================================================
+
+---
+
+[TASK_START | T-043 | Loyalty Module — Bonus points system]
+Fayl: apps/api/prisma/schema.prisma, apps/api/src/loyalty/
+AMALLAR:
+  ✅ schema.prisma — LoyaltyConfig, LoyaltyAccount, LoyaltyTransaction + LoyaltyTxType enum:
+     - LoyaltyConfig: earnRate (1000 so'm = 1 ball), redeemRate (1 ball = 100 so'm), minRedeem
+     - LoyaltyAccount: customer bilan 1:1 unique, points balans
+     - LoyaltyTransaction: IMMUTABLE (no updatedAt), EARN/REDEEM/ADJUSTMENT/EXPIRE
+     - Customer.loyaltyAccount relation qo'shildi
+  ✅ sales.service.ts — sale.created eventiga customerId qo'shildi (loyalty auto-earn uchun)
+  ✅ sale-event.listener.ts — SaleCreatedPayload ga customerId? qo'shildi
+  ✅ loyalty/dto/loyalty.dto.ts — 4 DTO: UpdateLoyaltyConfigDto, EarnPointsDto, RedeemPointsDto, AdjustPointsDto
+  ✅ loyalty/loyalty.service.ts:
+     - getConfig / updateConfig (upsert)
+     - getAccount (50 ta oxirgi tranzaksiya bilan)
+     - earnPoints — floor(total / earnRate) ball berish
+     - redeemPoints — ball → so'm chegirma (minRedeem tekshiruvi)
+     - adjustPoints — admin qo'lda tuzatish
+     - @OnEvent('sale.created') — customerId bo'lsa avtomatik earn (bloklamasdan)
+  ✅ loyalty/loyalty.controller.ts — 6 endpoint:
+     GET/PATCH /loyalty/config, GET /loyalty/accounts/:id,
+     POST /loyalty/earn, /loyalty/redeem, /loyalty/adjust
+  ✅ loyalty/loyalty.module.ts — modul
+  ✅ app.module.ts — LoyaltyModule import qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-043]
+
+---
+
+[TASK_START | T-045 | Bundles/Sets module]
+AMALLAR:
+  ✅ schema.prisma — BundleItem model qo'shildi (bundleId, componentId, quantity)
+     - Product.isBundle Boolean field qo'shildi
+     - Product.bundleItems + componentOf relation (self-reference)
+     - @@unique([bundleId, componentId])
+  ✅ catalog/dto/bundle.dto.ts — AddBundleComponentDto
+  ✅ catalog/dto/index.ts — export qo'shildi
+  ✅ catalog.service.ts — 3 yangi metod:
+     - getBundleComponents(tenantId, bundleId) — komponentlar ro'yxati
+     - addBundleComponent — upsert, o'ziga-o'zi qo'shishga ConflictException
+       + isBundle=true auto set, 0 komponent qolsa → isBundle=false
+     - removeBundleComponent — component olib tashlash
+  ✅ catalog.controller.ts — 3 yangi endpoint:
+     GET/POST /catalog/products/:id/components
+     DELETE /catalog/products/:id/components/:componentId
+XATOLAR: yo'q
+[TASK_DONE | T-045]
+
+---
+
+[TASK_START | T-047 | Multi-branch support — Branch CRUD]
+AMALLAR:
+  ✅ Branch model schema da allaqachon bor (T-001/T-009 dan)
+  ✅ branches/branch.service.ts — 5 metod:
+     - getBranches(tenantId, isActive?) — _count include
+     - getBranchById — warehouses + _count include
+     - createBranch, updateBranch, deactivateBranch (isActive=false)
+     - getBranchStats — totalOrders, totalRevenue, activeShifts (3 parallel query)
+  ✅ branches/branch.controller.ts — 5 endpoint:
+     GET /branches?isActive=, GET /branches/:id, GET /branches/:id/stats,
+     POST /branches, PATCH /branches/:id, DELETE /branches/:id
+  ✅ branches/branch.module.ts — modul
+  ✅ app.module.ts — BranchModule import qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-047]
+
+---
+
+[2026-02-28 | SESSION_7_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 7: T-043 (Loyalty), T-045 (Bundles), T-047 (Branches)
+JAMI LOYIHADA POLAT TOMONIDAN: 31 ta task
+
+YANGI ENDPOINTLAR:
+  Loyalty (+6): GET/PATCH /loyalty/config, GET /loyalty/accounts/:id,
+                POST /loyalty/earn, /loyalty/redeem, /loyalty/adjust
+  Bundles (+3): GET/POST /catalog/products/:id/components,
+                DELETE /catalog/products/:id/components/:componentId
+  Branches (+6): GET/GET/:id/GET/:id/stats /branches, POST, PATCH, DELETE
+
+MIGRATE BUYRUG'I:
+  cd apps/api
+  npx prisma migrate dev --name "add-loyalty-bundles"
+
+QOLGAN TASKLAR (P1):
+  T-054: Nasiya reminders — SMS/Telegram orqali eslatma
+================================================================================
+
+---
+
+[2026-03-01 | Polat | SESSION_8_START]
+
+---
+
+[TASK_START | T-091 | Global Exception Filter — kengaytirish]
+Fayl: apps/api/src/common/filters/global-exception.filter.ts, main.ts
+AMALLAR:
+  ✅ Prisma error handling qo'shildi (P2002→409, P2025→404, P2003→400, P2024→503)
+  ✅ requestId (AsyncLocalStorage dan) response ga qo'shildi
+  ✅ path (request.url) response ga qo'shildi
+  ✅ Internal error details HECH QACHON client ga yuborilmaydi
+  ✅ RequestContextService inject qilindi (main.ts da)
+  ✅ ValidationError (class-validator string[]) to'g'ri parse qilinadi
+XATOLAR: yo'q
+[TASK_DONE | T-091]
+
+---
+
+[TASK_START | T-092 | Transaction Safety]
+Tekshiruv natijasi:
+  ✅ createOrder — allaqachon prisma.$transaction() ichida
+  ✅ createReturn — allaqachon prisma.$transaction() ichida
+  ✅ recordPayment (nasiya) — allaqachon prisma.$transaction() ichida
+  ✅ getShifts, getReminderLogs — parallel count queries transaction ichida
+XATOLAR: yo'q
+[TASK_DONE | T-092]
+
+---
+
+[TASK_START | T-054 | Nasiya Reminders]
+Tekshiruv natijasi:
+  ✅ NotificationsService — allaqachon tayyor (getDueSoonDebts, getOverdueDebts, runDebtReminders)
+  ✅ ReminderLog model — schema da mavjud
+  ✅ NotificationsController — 4 endpoint mavjud
+XATOLAR: yo'q
+[TASK_DONE | T-054]
+
+---
+
+[TASK_START | T-055 | Super Admin Auth]
+Fayl: apps/api/src/admin/, apps/api/src/identity/strategies/jwt.strategy.ts
+AMALLAR:
+  ✅ JwtStrategy — isAdmin flag bilan AdminUser ham validate qiladi
+  ✅ admin/dto/admin-login.dto.ts — AdminLoginDto, AdminCreateDto
+  ✅ admin/guards/super-admin.guard.ts — SuperAdminGuard
+  ✅ admin/admin-auth.service.ts — login(), createAdmin(), getAllTenants(), getTenantDetails(), toggleTenantActive()
+  ✅ admin/admin-auth.controller.ts — POST /admin/auth/login, GET /admin/tenants, PATCH /admin/tenants/:id/activate|deactivate
+  ✅ admin/admin.module.ts — AdminModule
+  ✅ app.module.ts — AdminModule qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-055]
+
+---
+
+[TASK_START | T-056 | Founder Dashboard API]
+Fayl: apps/api/src/admin/admin-metrics.service.ts
+AMALLAR:
+  ✅ admin-metrics.service.ts — getGlobalMetrics(), getTenantSales(), getTenantHealth()
+  ✅ admin-auth.controller.ts — GET /admin/metrics, GET /admin/tenants/:id/sales, GET /admin/tenants/:id/health
+XATOLAR: yo'q
+[TASK_DONE | T-056]
+
+---
+
+[TASK_START | T-067 | Failed Login Lockout]
+Fayl: apps/api/prisma/schema.prisma, apps/api/src/identity/identity.service.ts, users.controller.ts
+AMALLAR:
+  ✅ schema.prisma — login_attempts, user_locks jadvallari qo'shildi
+  ✅ identity.service.ts:
+     - checkLock() — userLock tekshirish, muddati o'tganda o'chirish
+     - recordAttempt() — har login so'ng yozish, 5 xato → 15 min lock
+     - login() — lockout tekshiruv bilan yangilandi
+     - unlockUser() — admin tomonidan unlock
+  ✅ users.controller.ts — POST /users/:id/unlock endpoint (OWNER, ADMIN)
+XATOLAR: yo'q
+[TASK_DONE | T-067]
+
+---
+
+[TASK_START | T-078 | NDS (QQS) 12% hisoblash]
+Fayl: apps/api/src/common/utils/currency.util.ts, apps/api/src/tax/tax.service.ts
+AMALLAR:
+  ✅ currency.util.ts — roundUZS(), roundingDiff(), extractVAT(), addVAT()
+  ✅ tax.service.ts — calculateOrderVAT(), getTaxReport() metodlari
+  ✅ tax.controller.ts — GET /tax/report, GET /tax/fiscal/:orderId, POST /tax/fiscal/:orderId/retry
+  ✅ tax.module.ts — TaxController qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-078]
+
+---
+
+[TASK_START | T-080 | UZS Yaxlitlash]
+Fayl: apps/api/src/common/utils/currency.util.ts
+AMALLAR:
+  ✅ roundUZS(amount, 100|1000) — utility funksiya
+  ✅ roundingDiff() — ledger uchun farq hisoblash
+XATOLAR: yo'q
+[TASK_DONE | T-080]
+
+---
+
+[2026-03-01 | SESSION_8_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 8: T-091, T-092, T-054, T-055, T-056, T-067, T-078, T-080
+JAMI LOYIHADA POLAT TOMONIDAN: 39 ta task
+
+YANGI ENDPOINTLAR (+9):
+  POST   /admin/auth/login
+  POST   /admin/auth/create
+  GET    /admin/tenants
+  GET    /admin/tenants/:id
+  PATCH  /admin/tenants/:id/activate
+  PATCH  /admin/tenants/:id/deactivate
+  GET    /admin/metrics
+  GET    /admin/tenants/:id/sales
+  GET    /admin/tenants/:id/health
+  POST   /users/:id/unlock
+  GET    /tax/report
+  GET    /tax/fiscal/:orderId
+  POST   /tax/fiscal/:orderId/retry
+
+MIGRATE BUYRUG'I (yangi jadvallar uchun):
+  cd apps/api
+  npx prisma migrate dev --name "add-lockout-security"
+
+QOLGAN MUHIM TASKLAR (P0-P1):
+  T-068: Admin PIN — Sensitive operatsiyalar
+  T-073: Redis caching layer
+  T-074: Database indexing (critical queries)
+  T-085: Health checks (kengaytirish)
+  T-088: Scheduled tasks (cron)
+================================================================================
+
+---
+
+[2026-03-01 | Polat | SESSION_9_CONTINUATION]
+
+---
+
+[TASK_START | T-068 | Admin PIN]
+Fayl: apps/api/prisma/schema.prisma, apps/api/src/identity/pin.service.ts, auth.controller.ts
+AMALLAR:
+  ✅ schema.prisma — pinHash + pinLockedUntil fields (User), PinAttempt model
+  ✅ identity/pin.service.ts — setPin(), verifyPin(), hasPinSet()
+     - 3 marta noto'g'ri PIN → 5 daqiqa lock
+     - PIN almashtirishda eski PIN kerak
+     - validatePinFormat() — 4-6 raqam tekshiruvi
+  ✅ identity/dto/pin.dto.ts — SetPinDto, VerifyPinDto (PIN_ACTIONS enum)
+  ✅ identity/dto/index.ts — PinDto export qo'shildi
+  ✅ identity/auth.controller.ts — POST /auth/pin/set, POST /auth/pin/verify, GET /auth/pin/status
+  ✅ identity/identity.module.ts — PinService qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-068]
+
+---
+
+[TASK_START | T-073 | Redis Caching Layer]
+Fayl: apps/api/src/common/cache/, apps/api/src/catalog/catalog.service.ts, inventory.service.ts
+AMALLAR:
+  ✅ apps/api/package.json — ioredis, @nestjs/schedule qo'shildi
+  ✅ common/cache/cache.service.ts — CacheService (ioredis wrapper):
+     - get/set/del/invalidatePattern metodlar
+     - ping() — health check uchun
+     - CACHE_TTL: PRODUCT_CATALOG=300s, STOCK_LEVELS=60s, EXCHANGE_RATE=86400s
+     - CacheService.key static helper (products, stockLevels, exchangeRate, report)
+     - Offline mode: Redis ulanmasa ham API ishlaydi (null return)
+  ✅ common/cache/cache.module.ts — AppCacheModule (@Global)
+  ✅ app.module.ts — AppCacheModule, ScheduleModule.forRoot() qo'shildi
+  ✅ catalog.service.ts — CacheService inject:
+     - getProductByBarcode() — cache hit (5min TTL)
+     - createProduct/updateProduct/deleteProduct — cache invalidate
+  ✅ inventory.service.ts — CacheService inject:
+     - getStockLevels() — cache hit (1min TTL, lowStock=true skip)
+     - addStockMovement() — cache invalidate
+XATOLAR: yo'q
+[TASK_DONE | T-073]
+
+---
+
+[TASK_START | T-074 | Database Indexing]
+Fayl: apps/api/prisma/schema.prisma
+AMALLAR:
+  ✅ stock_movements — [tenantId, productId, warehouseId] + [tenantId, type, createdAt]
+  ✅ orders — [tenantId, userId] + [tenantId, status, createdAt]
+  ✅ products — [tenantId, isActive] + [tenantId, isActive, name]
+  Mavjud (allaqachon bor): [tenantId, barcode], [tenantId, sku], [tenantId, createdAt]
+XATOLAR: yo'q
+[TASK_DONE | T-074]
+
+---
+
+[TASK_START | T-085 | Health Checks]
+Fayl: apps/api/src/health/health.controller.ts, main.ts
+AMALLAR:
+  ✅ GET /health/live — liveness probe (process alive, hech narsa tekshirmaydi)
+  ✅ GET /health/ping — simple ping (LB uchun)
+  ✅ GET /health/ready — readiness probe (DB + Redis, 503 fail bo'lsa)
+  ✅ GET /health — general (DB latency + Redis status + uptime)
+  ✅ main.ts — app.enableShutdownHooks() graceful shutdown
+  ✅ CacheService inject qilindi health controller ga
+XATOLAR: yo'q
+[TASK_DONE | T-085]
+
+---
+
+[TASK_START | T-088 | Scheduled Tasks (Cron)]
+Fayl: apps/api/src/common/cron/
+AMALLAR:
+  ✅ common/cron/cron.service.ts — 5 ta @Cron task (Asia/Tashkent timezone):
+     - Soatlik (00:*): Stock cache invalidation
+     - 06:00 kunlik: Expiring products check (30 kun)
+     - 08:00 kunlik: Nasiya DUE_SOON reminders
+     - 00:05 kunlik: OVERDUE debt status update
+     - Dushanba 07:00 haftalik: Dead stock report (90 kun)
+  ✅ common/cron/cron.module.ts — CronModule
+  ✅ app.module.ts — CronModule qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-088]
+
+---
+
+[2026-03-01 | SESSION_9_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 9: T-068, T-073, T-074, T-085, T-088
+JAMI LOYIHADA POLAT TOMONIDAN: 44 ta task
+
+YANGI ENDPOINTLAR (+3):
+  POST   /auth/pin/set
+  POST   /auth/pin/verify
+  GET    /auth/pin/status
+
+YANGI PAKLAR (o'rnatish kerak):
+  cd apps/api && pnpm add ioredis @nestjs/schedule
+
+MIGRATE BUYRUG'I:
+  cd apps/api
+  npx prisma migrate dev --name "add-pin-lockout"
+
+QOLGAN MUHIM TASKLAR (P1):
+  T-072: Input sanitization (XSS/injection himoya)
+  T-077: Response compression + per-tenant rate limiting
+  T-082: Valyuta support — USD/UZS dual currency
+  T-083: Z-report — Kunlik fiskal yakuniy hisobot
+  T-084: Automated database backups (DevOps)
+================================================================================
+
+---
+
+[2026-03-01 | Polat | SESSION_10_CONTINUATION]
+
+---
+
+[TASK_START | T-072 | Input Sanitization]
+Fayl: apps/api/src/common/pipes/
+AMALLAR:
+  ✅ sanitize-string.pipe.ts — Global HTML strip pipe (SanitizeStringPipe)
+     - Barcha string inputlardan <...> teglarni olib tashlaydi
+     - Object/Array ichidagi stringlarni ham sanitize qiladi
+     - main.ts ga global pipe sifatida qo'shildi (ValidationPipe dan OLDIN)
+  ✅ validators.ts — Custom class-validator decorators:
+     - @IsValidBarcode() — EAN-13, EAN-8, UPC-A (checksum), Code128
+     - @IsUzPhone() — +998XXXXXXXXX format
+     - @IsValidPrice() — musbat son, max 2 kasr, max 1B UZS
+     - isAllowedImageMimetype() — MIME type whitelist utility
+  ✅ CreateProductDto.barcode — @IsValidBarcode() qo'shildi
+  ✅ Customer DTO phone — @IsUzPhone() qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-072]
+
+---
+
+[TASK_START | T-077 | Compression + Rate Limiting]
+Fayl: apps/api/src/common/guards/, main.ts, app.module.ts
+AMALLAR:
+  ✅ compression paketi package.json ga qo'shildi (v1.7.5)
+  ✅ main.ts — app.use(compression()) qo'shildi
+  ✅ TenantThrottlerGuard — per-tenant rate limit (APP_GUARD sifatida)
+     - Autentifikatsiya qilingan: tenant_id bo'yicha limit (100/min)
+     - Anon: IP bo'yicha limit
+  ✅ ThrottlerModule: 60→100 req/min yangilandi
+  ✅ /auth/login — @Throttle(10/min) — brute-force himoya
+  ✅ /reports/* — @Throttle(20/min) — resurs tejash
+  ✅ /health/* — @SkipThrottle() — monitoring/LB uchun
+XATOLAR: yo'q
+[TASK_DONE | T-077]
+
+---
+
+[TASK_START | T-082 | USD/UZS Dual Currency]
+Fayl: apps/api/src/common/currency/
+AMALLAR:
+  ✅ ExchangeRate jadval schema ga qo'shildi (date, usd_uzs, source)
+  ✅ Product.costCurrency field qo'shildi (UZS default)
+  ✅ ExchangeRateService:
+     - getLatestRate() — cache→DB→CBU kaskad
+     - syncFromCbu() — https://cbu.uz/oz/arkhiv-kursov-valyut/json/
+     - convertUsdToUzs() — USD narxni UZS ga aylantirish
+     - getRateHistory() — kurs tarixi
+  ✅ ExchangeRateController — GET /exchange-rate/latest, /history, POST /sync
+  ✅ ExchangeRateModule @Global — barcha modullarga avtomatik
+  ✅ CronService — 09:00 kunlik CBU kurs yangilash qo'shildi
+XATOLAR: yo'q
+[TASK_DONE | T-082]
+
+---
+
+[TASK_START | T-083 | Z-Report]
+Fayl: apps/api/src/reports/
+AMALLAR:
+  ✅ ZReport jadval schema ga qo'shildi (IMMUTABLE, sequence number)
+     - tenantId+date UNIQUE constraint (bir kunda bitta Z-report)
+     - tenantId+sequenceNumber UNIQUE constraint
+     - Payment method breakdown: cash/terminal/click/payme/transfer/debt
+  ✅ ReportsService.createZReport() — immutable Z-report yaratish
+     - Duplicate check (ConflictException 409)
+     - Orders/returns/payments/fiscal/shifts aggregate
+     - Auto sequence number
+  ✅ ReportsService.getZReports() — Z-report tarixi
+  ✅ POST /reports/z-report — OWNER/ADMIN/MANAGER
+  ✅ GET /reports/z-reports — tarixi
+XATOLAR: yo'q
+[TASK_DONE | T-083]
+
+---
+
+[2026-03-01 | SESSION_10_CHECKPOINT]
+================================================================================
+BAJARILDI SESSION 10: T-072, T-077, T-082, T-083
+JAMI LOYIHADA POLAT TOMONIDAN: 48 ta task
+
+YANGI ENDPOINTLAR (+5):
+  GET  /exchange-rate/latest
+  GET  /exchange-rate/history
+  POST /exchange-rate/sync
+  POST /reports/z-report
+  GET  /reports/z-reports
+
+YANGI PAKLAR (o'rnatish kerak):
+  cd apps/api && pnpm add compression
+  cd apps/api && pnpm add -D @types/compression
+
+MIGRATE BUYRUG'I (barcha yangi jadvallar):
+  cd apps/api
+  npx prisma migrate dev --name "add-exchange-rates-zreports-costcurrency"
+
+QOLGAN MUHIM TASKLAR (P1):
+  T-084: Automated database backups (pg_dump → MinIO, GPG encrypted)
+  T-079: INN va STIR validatsiya (Tenant jadvaliga)
+  T-075: Stock snapshot materialization (hourly)
+  T-089: Sales analytics — Trend, top products, margin
+  T-093: Circuit breaker (opossum)
+================================================================================
+
+[2026-03-01 | Polat | SESSION_12_START]
+
+[TASK_DONE | T-095 | Product Variants]
+  - schema.prisma: ProductVariant model qo'shildi
+  - catalog/dto/variant.dto.ts: CreateVariantDto, UpdateVariantDto
+  - catalog.service.ts: getVariants, createVariant, updateVariant, deleteVariant
+  - catalog.controller.ts: GET/POST/PATCH/DELETE /catalog/products/:id/variants
+
+[TASK_DONE | T-089 | Sales Analytics]
+  - ai.service.ts: getSalesTrend, getTopProducts, getDeadStock, getMarginAnalysis, getAbcAnalysis, getCashierPerformance, getHourlyHeatmap
+  - ai.controller.ts: GET /analytics/sales-trend, /top-products, /dead-stock, /margin, /abc, /cashier-performance, /hourly-heatmap
+  - ai.module.ts: AiController qo'shildi
+
+[TASK_DONE | T-098 | Price Management]
+  - schema.prisma: ProductPrice model (PriceType enum RETAIL/WHOLESALE/VIP), minQty tiered, validFrom/To scheduled
+  - catalog/dto/price.dto.ts: CreateProductPriceDto, UpdateProductPriceDto
+  - catalog.service.ts: getProductPrices, createProductPrice, updateProductPrice, deleteProductPrice, resolvePrice
+  - catalog.controller.ts: GET/POST/PATCH/DELETE /catalog/products/:id/prices + GET /prices/resolve
+
+[TASK_DONE | T-093 | Circuit Breaker]
+  - common/circuit-breaker/circuit-breaker.service.ts: CircuitBreakerService (@Global)
+    CLOSED/OPEN/HALF_OPEN, 3 failures → 30s OPEN, execute(name, fn, fallback), getStats(), reset()
+  - common/circuit-breaker/circuit-breaker.module.ts: @Global() module
+  - app.module.ts: CircuitBreakerModule qo'shildi
+  - exchange-rate.service.ts: CBU API circuit-breaker + fallback to cached rate
+  - tax.service.ts: fiscal API circuit-breaker + non-blocking fallback
+
+[SESSION_12_SUMMARY]
+  BAJARILDI: T-095, T-089, T-098, T-093 (4 task)
+  KEYINGI: T-103 (Push notifications), T-104 (Telegram bot), T-108 (Subscriptions)
+  MIGRATE KERAK: npx prisma migrate dev --name "add-variants-prices-snapshots-inn"
+================================================================================
+
+[2026-03-01 | Polat | SESSION_13_CONTINUED]
+
+[TASK_DONE | T-108 | Subscription Plans — COMPLETED]
+  - billing/billing.controller.ts: BillingController (GET /billing/plans, /plans/:slug, /subscription, /limits, /usage; POST /upgrade, /trial; DELETE /cancel)
+  - billing/billing.module.ts: BillingModule (imports PrismaModule, exports BillingService)
+  - app.module.ts: BillingModule qo'shildi
+
+[TASK_DONE | T-087 | CSV/Excel Export]
+  - reports/export.service.ts: ExportService — native CSV builder (BOM+UTF-8, no deps), optional XLSX via exceljs dynamic require
+    Eksport turlari: exportSales, exportOrderItems, exportProducts, exportInventory, exportCustomers, exportDebts
+  - reports/reports.controller.ts: 6 ta eksport endpoint (GET /reports/export/sales|order-items|products|inventory|customers|debts?format=csv|xlsx)
+  - reports/reports.module.ts: ExportService providers ga qo'shildi
+
+[TASK_DONE | T-086 | Prometheus + Grafana Monitoring]
+  - docker/monitoring/prometheus/prometheus.yml: API+postgres+redis+node-exporter scrape targets (15s interval)
+  - docker/monitoring/prometheus/alerts.yml: HighErrorRate (>5%), HighLatency (p95>2s), ApiDown, PostgresHighConnections, PostgresDown, RedisDown, RedisHighMemory
+  - docker/monitoring/grafana/provisioning/datasources/prometheus.yml: Prometheus datasource auto-provisioning
+  - docker/monitoring/grafana/provisioning/dashboards/dashboards.yml: Dashboard folder provisioning
+  - docker/monitoring/grafana/dashboards/raos-api.json: 7 panel dashboard (req/s, error rate, p95 latency, status codes, slow endpoints, DB pool, Redis memory)
+  - docker/monitoring/docker-compose.monitoring.yml: prometheus+grafana+postgres-exporter+redis-exporter+node-exporter
+  - apps/api/src/metrics/metrics.service.ts: MetricsService — prom-client optional (dynamic require), fallback built-in process stats + HTTP counters (recordRequest method)
+  - apps/api/src/metrics/metrics.controller.ts: GET /api/v1/metrics (Public, @SkipThrottle)
+  - apps/api/src/metrics/metrics.module.ts: @Global() MetricsModule
+  - app.module.ts: MetricsModule qo'shildi
+  - docker/nginx/staging.conf: /api/v1/metrics faqat Docker internal network (172.0.0.0/8)
+
+[SESSION_13_SUMMARY]
+  BAJARILDI: T-108 (complete), T-087, T-086 (3 task)
+  MIGRATE KERAK: npx prisma migrate dev --name "add-subscription-notifications-prices-variants"
+  OPSIONAL: pnpm add exceljs (xlsx export uchun)
+  KEYINGI TASKLAR (NAVBAT):
+    1. T-069 - Session management
+    2. T-070 - Employee activity monitor
+    3. T-071 - API Key auth (POS sync)
+================================================================================
+[2026-03-01 17:31:22 | Polat | SESSION_14_START]
+NAVBAT: T-069, T-070, T-071, T-103, T-104
+[2026-03-01 17:31:30 | Polat | SESSION_14_START]
+NAVBAT: T-069, T-070, T-071, T-103, T-104
+
+================================================================================
+[2026-03-01 20:26 | Polat | SESSION_15_START]
+NAVBAT: T-076, T-081, T-094, T-114
+[2026-03-01 20:26 | Polat | TASK_DONE | T-076] BullMQ Worker — tsconfig fix, worker+API TS 0 errors
+[2026-03-01 20:26 | Polat | TASK_DONE | T-081] REGOS fiscal — FiscalAdapterService, fiscal.worker.ts (Prisma), queue integration
+[2026-03-01 20:26 | Polat | TASK_DONE | T-094] Dead Letter Queue — QueueService DLQ methods, admin endpoints
+[2026-03-01 20:26 | Polat | TASK_DONE | T-114] Inter-branch transfer — StockTransfer schema, TransferService, 6 endpoints
+JAMI: 67 ta task bajarildi. Worker+API TypeScript 0 xato.
+
+================================================================================
+[2026-03-02 | Polat | SESSION_START | SESSION 16]
+================================================================================
+
+[SESSION_START] Backend to'liq test va bugfix sessiyasi
+- Docker: postgres:5433, redis:6380, minio:9000 — barcha servislar healthy
+- API: http://localhost:3003/api/v1 (port 3003)
+- Test tenant: kosmetika01 | owner@kosmetika.uz / Test1234!
+
+[BUGFIX_START] Raw SQL Bugs — barcha xatolar topildi va tuzatildi
+
+[BUG_FIXED | BUG-001] inventory.service.ts — ::uuid cast xatosi
+- Muammo: $queryRaw da ${tenantId}::uuid, ${warehouseId}::uuid, ${productId}::uuid
+- Sabab: Prisma schema da @db.Uuid yo'q → DB TEXT type, ::uuid cast mos kelmadi
+- Yechim: Barcha ::uuid castlarni olib tashlash
+- Fayl: apps/api/src/inventory/inventory.service.ts
+
+[BUG_FIXED | BUG-002] ai.service.ts — noto'g'ri ustun nomlari
+- Muammo: oi.total_price, o.total_amount (ustunlar mavjud emas)
+- Yechim: oi.total, o.total ga o'zgartirish
+- Fayl: apps/api/src/ai/ai.service.ts
+
+[BUG_FIXED | BUG-003] ai.service.ts — OrderStatus enum muammosi
+- Muammo: 'CANCELLED' enum da yo'q, raw SQL da enum::text cast kerak
+- Yechim: NOT IN ('CANCELLED','VOIDED') → o.status::text = 'COMPLETED'
+- Fayl: apps/api/src/ai/ai.service.ts, reports.service.ts, cron.service.ts
+
+[BUG_FIXED | BUG-004] ai.service.ts — qty_sold/cost_total alias camelCase muammosi
+- Muammo: SQL alias qty_sold lekin TypeScript r.qtySold kutadi → null qaytaradi
+- Yechim: AS qty_sold → AS "qtySold", AS cost_total → AS "costTotal"
+- Fayl: apps/api/src/ai/ai.service.ts
+
+[BUG_FIXED | BUG-005] ai.service.ts — DATE_TRUNC param muammosi
+- Muammo: ${trunc} 2 marta param → PostgreSQL GROUP BY taqqoslay olmaydi
+- Yechim: Prisma.raw("'day'") bilan to'g'ridan inject
+- Fayl: apps/api/src/ai/ai.service.ts
+
+[BUG_FIXED | BUG-006] ai.service.ts — cashier-performance noto'g'ri ustunlar
+- Muammo: o.cashier_id, r.created_by, s.cashier_id — ustunlar mavjud emas
+- Yechim: o.user_id, r.user_id, s.user_id ga o'zgartirish
+- Fayl: apps/api/src/ai/ai.service.ts
+
+[BUG_FIXED | BUG-007] users jadvalida is_active → "isActive" (camelCase)
+- Muammo: u.is_active ustun nomi xato (DB da "isActive" camelCase)
+- Yechim: u.is_active → u."isActive"
+- Fayl: apps/api/src/ai/ai.service.ts, apps/api/src/reports/reports.service.ts
+
+[BUG_FIXED | BUG-008] export.service.ts — StockMovementType enum xatosi
+- Muammo: ADJUSTMENT_IN, RETURN_OUT, ADJUSTMENT_OUT, TESTER enum da yo'q
+- Yechim: Faqat mavjud: IN, OUT, ADJUSTMENT, TRANSFER_IN, TRANSFER_OUT, RETURN_IN
+- Fayl: apps/api/src/reports/export.service.ts
+
+[BUG_FIXED | BUG-009] transfer.service.ts — requestedById: undefined
+- Muammo: @CurrentUser('sub') userId — JWT 'sub' emas 'userId' qaytaradi
+- Yechim: @CurrentUser('userId') userId
+- Fayl: apps/api/src/inventory/inventory.controller.ts
+
+=== TEST NATIJALARI (To'liq) ===
+
+SECURITY TESTLAR (8/8 PASS):
+✅ SEC-1: Auth bypass → 401
+✅ SEC-2: Fake JWT → 401
+✅ SEC-3: SQL injection → 404 (sanitized)
+✅ SEC-4: XSS → HTML stripped
+✅ SEC-5: Rate limit 100/min → triggered
+✅ SEC-6: Tenant isolation → JWT tenantId ishlatiladi
+✅ SEC-7: Brute force lockout → 5 urinish → 15min lock
+✅ SEC-8: Reports rate limit 20/min → triggered
+
+SALES PIPELINE (TO'LIQ):
+✅ Category create (/catalog/categories)
+✅ Unit create (/catalog/units)
+✅ Product create (/catalog/products)
+✅ Barcode scan (/catalog/barcode/:code)
+✅ Warehouse create (/inventory/warehouses)
+✅ Stock movement IN (/inventory/movements)
+✅ Stock levels (/inventory/stock-levels)
+✅ Shift open (/sales/shifts/open)
+✅ Order create (/sales/orders)
+✅ Receipt get (/sales/orders/:id/receipt)
+✅ Shift close (/sales/shifts/close)
+
+ANALYTICS (7/7 PASS):
+✅ GET /analytics/sales-trend
+✅ GET /analytics/top-products
+✅ GET /analytics/dead-stock
+✅ GET /analytics/margin
+✅ GET /analytics/abc
+✅ GET /analytics/cashier-performance
+✅ GET /analytics/hourly-heatmap
+
+REPORTS (9/9 PASS):
+✅ GET /reports/daily-revenue
+✅ GET /reports/top-products
+✅ GET /reports/sales-summary
+✅ GET /reports/profit
+✅ GET /reports/shift/:id
+✅ GET /reports/employee-activity
+✅ POST /reports/z-report
+✅ GET /reports/z-reports
+✅ GET /reports/export/sales (CSV)
+✅ GET /reports/export/products (CSV)
+✅ GET /reports/export/inventory (CSV)
+✅ GET /reports/export/customers (CSV)
+✅ GET /reports/export/debts (CSV)
+
+BIZNES MODULLAR:
+✅ Customers CRUD + Stats
+✅ Nasiya (debt) create + pay + summary
+✅ Loyalty points earn + redeem config
+✅ Payments intent create + confirm (SETTLED)
+✅ Finance expenses
+✅ Branches create
+✅ Notifications list
+✅ Sync status
+✅ Metrics (Prometheus format)
+✅ Stock transfers (inter-branch)
+✅ Billing plans endpoint
+
+[2026-03-02 | Polat | SESSION_END | SESSION 16]
+Jami: 9 ta bug topildi va tuzatildi. Barcha asosiy modullar sinovdan o'tdi.
+
+[2026-03-06 | Polat | SESSION_18_START]
+---
+
+[TASK_START | CI-FIX | Railway deployment CI failures]
+Muammo: 3 ta CI xato — lint (40 error), typecheck (bot), test (jest)
+[TASK_DONE | CI-FIX]
+Commit: 28ead40
+[TASK_DONE | CI-FIX-2 | web lint + bot typecheck] commit af1e0dd
+
+[2026-03-07 | Polat | SESSION_19_START]
+---
+[TASK_START | PROD_TEST | Production API to'liq test]
+Production: api-production-c5b6.up.railway.app — barcha endpointlar test qilindi
+Route xatolari topildi va hujjatlashtirildi (POST /catalog/products/barcode/:code, /inventory/levels, /expenses, /audit-logs, /exchange-rate/latest)
+[TASK_DONE | PROD_TEST]
+
+[TASK_START | ADMIN_BOOTSTRAP | Admin birinchi user yaratish]
+POST /api/v1/admin/auth/bootstrap — X-Bootstrap-Secret header bilan
+[TASK_DONE | ADMIN_BOOTSTRAP]
+
+[TASK_START | T-096 | Tester tracking]
+GET /inventory/testers — TESTER type qo'shildi, totalCost hisoblash
+[TASK_DONE | T-096]
+
+[TASK_START | T-097 | Product certificates]
+GET/POST/DELETE /catalog/products/:id/certificates
+GET /catalog/certificates/expiring?days=30
+[TASK_DONE | T-097]
+
+[TASK_START | T-099 | Promotions engine]
+PromotionsModule — CRUD + POST /promotions/apply
+PERCENT/FIXED/BUY_X_GET_Y/BUNDLE strategiyalari
+[TASK_DONE | T-099]
+
+[TASK_START | T-106 | SMS Eskiz.uz]
+SmsService: sendSms, sendDebtReminder, sendOtp
+[TASK_DONE | T-106]
+
+[TASK_START | T-107 | Payme + Click providers]
+PaymeProvider (JSON-RPC webhook), ClickProvider (prepare/complete)
+Webhook endpoints: POST /payments/webhooks/payme|click/prepare|click/complete
+[TASK_DONE | T-107]
+
+Commit: a1b4c75
+[2026-03-07 | Polat | SESSION_19_END]
+[2026-03-08 | Polat | SESSION_20] Backend full tayyor tekshiruv — T-069/070/071/105/113 allaqachon implemented ekani tasdiqlandi. Tasks.md dan tozalandi, Done.md ga arxivlandi. BARCHA P0/P1/P2 BACKEND TASKLAR BAJARILDI!
+
+================================================================================
+[2026-03-09 | Polat | SESSION_21_START]
+================================================================================
+
+[TASK_START | MANAGER_RBAC_TEST | Management account RBAC to'liq test]
+Manager user: manager@kosmetika.uz / Test1234! (Sardor Toshmatov, MANAGER role)
+
+RUXSAT BERILGAN (13/13):
+✅ GET /users
+✅ GET /catalog/products
+✅ GET /catalog/categories
+✅ GET /inventory/levels
+✅ GET /inventory/warehouses
+✅ GET /reports/daily-revenue
+✅ GET /reports/top-products
+✅ GET /reports/sales-summary
+✅ GET /customers
+✅ GET /nasiya
+✅ GET /branches
+✅ GET /analytics/sales-trend
+✅ GET /expenses
+
+TAQIQLANGAN — 403 (5/5):
+✅ POST /users — 403
+✅ DELETE /users/:id — 403
+✅ GET /audit-logs — 403
+✅ POST /exchange-rate/sync — 403
+✅ DELETE /expenses/:id — 403
+
+YAKUNIY: 18/18 PASS — MANAGER RBAC TO'LIQ ISHLAYDI
+[TASK_DONE | MANAGER_RBAC_TEST]
+
+[2026-03-13 17:10 | Polat | SESSION_START | Session 21]
+[TASK_START | notification.worker.ts — Telegram+Email implement]
+[TASK_DONE  | notification.worker.ts — TELEGRAM/EMAIL sending implemented, nodemailer added to worker]
+[TASK_DONE  | scripts/test-notification-worker.ts created]

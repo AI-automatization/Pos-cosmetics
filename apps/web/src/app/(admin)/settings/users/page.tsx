@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { UserPlus, Shield, CheckCircle, XCircle, X } from 'lucide-react';
 import { useUsers, useCreateUser, useUpdateUser } from '@/hooks/settings/useUsers';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ErrorState } from '@/components/common/ErrorState';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
@@ -119,7 +120,7 @@ function UserModal({ user, onClose }: { user?: User; onClose: () => void }) {
 export default function UsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | undefined>();
-  const { data: users, isLoading } = useUsers();
+  const { data: users, isLoading, isError, refetch } = useUsers();
   const { mutate: updateUser } = useUpdateUser();
 
   if (isLoading) return (
@@ -131,6 +132,12 @@ export default function UsersPage() {
         </div>
       </div>
       <LoadingSkeleton variant="table" rows={5} />
+    </div>
+  );
+
+  if (isError) return (
+    <div className="p-6">
+      <ErrorState compact onRetry={refetch} />
     </div>
   );
 

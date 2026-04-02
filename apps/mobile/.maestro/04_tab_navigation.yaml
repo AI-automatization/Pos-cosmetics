@@ -1,0 +1,48 @@
+appId: host.exp.exponent
+name: "Tab navigatsiya - barcha tablar"
+# TALAB: Backend api :3000 da ishlayotgan bo'lishi kerak
+# va test credentials: admin@raos.uz / password123
+---
+- launchApp
+- tapOn: "RAOS"
+- waitForAnimationToEnd
+
+# Login qilish (backend talab etiladi)
+- tapOn: "email@misol.com"
+- inputText: "admin@raos.uz"
+- tapOn: "Parol kiriting"
+- inputText: "password123"
+- tapOn: "Kirish"
+- waitForAnimationToEnd
+
+# --- Dashboard Tab ---
+- assertVisible: "Bosh sahifa"
+
+# Sotuvlar tabiga o'tish
+- tapOn: "Sotuvlar"
+- assertVisible: "Sotuvlar"
+
+# Nasiya tabiga o'tish
+- tapOn: "Nasiya"
+- assertVisible: "Nasiya"
+
+# Omborxona tabiga o'tish
+- tapOn: "Omborxona"
+- assertVisible: "Omborxona"
+- assertVisible: "Kam qolgan"
+- assertVisible: "Barkod skanerlash"
+
+# Ogohlantirishlar tabiga o'tish
+- tapOn: "Ogohlantirishlar"
+- assertVisible: "Ogohlantirishlar"
+
+# Sozlamalar tabiga o'tish
+- tapOn: "Sozlamalar"
+- assertVisible: "Sozlamalar"
+- assertVisible: "Profil"
+- assertVisible: "Filial tanlash"
+- assertVisible: "Bildirishnomalar"
+
+# Bosh sahifaga qaytish
+- tapOn: "Bosh sahifa"
+- assertVisible: "Bosh sahifa"

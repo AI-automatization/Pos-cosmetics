@@ -3,9 +3,13 @@ import {
   IsEnum,
   IsObject,
   IsArray,
+  IsInt,
+  Min,
   ValidateNested,
   IsOptional,
   IsDateString,
+  ArrayMaxSize,
+  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -31,6 +35,8 @@ export class SyncEventDto {
   payload!: Record<string, unknown>;
 
   @ApiProperty({ description: 'POS tomonidan berilgan tartib raqami' })
+  @IsInt()
+  @Min(0)
   sequenceNumber!: number;
 
   @ApiProperty({ description: 'POS qurilma ID' })
@@ -44,8 +50,10 @@ export class SyncEventDto {
 }
 
 export class InboundSyncDto {
-  @ApiProperty({ type: [SyncEventDto] })
+  @ApiProperty({ type: [SyncEventDto], maxItems: 100, minItems: 1 })
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
   @ValidateNested({ each: true })
   @Type(() => SyncEventDto)
   events!: SyncEventDto[];

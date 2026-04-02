@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:/Users/USER/Desktop/Pos-cosmetics/logi.txt:*)",
+      "Bash(./node_modules/.bin/prisma:*)",
+      "Bash(DATABASE_URL=\"postgresql://raos:raos_secret@localhost:5433/raos_dev\" npx:*)",
+      "Bash(winget:*)",
+      "Bash(DATABASE_URL=\"postgresql://raos:raos_secret@localhost:5433/raos_dev\" npx prisma:*)",
+      "Bash(__NEW_LINE_13f22bbe87385663__ echo:*)",
+      "Bash(__NEW_LINE_c384d6a613a26667__ echo:*)",
+      "Bash(__NEW_LINE_61f6e95e039b6284__ echo:*)",
+      "Bash(__NEW_LINE_cd81fa465e74a2e9__ echo:*)",
+      "Bash(__NEW_LINE_257b6ebe1dcacce4__ echo:*)",
+      "Bash(__NEW_LINE_81bbd8d75b23be81__ echo:*)",
+      "mcp__playwright__browser_navigate",
+      "Bash(rm \"C:\\\\Users\\\\asus\\\\Desktop\\\\Pos-cosmetics\\\\apps\\\\web\\\\src\\\\app\\\\\\(auth\\)\\\\403\\\\page.tsx\" 2>/dev/null; rmdir \"C:\\\\Users\\\\asus\\\\Desktop\\\\Pos-cosmetics\\\\apps\\\\web\\\\src\\\\app\\\\\\(auth\\)\\\\403\" 2>/dev/null; echo \"done\")",
+      "Bash(ls -d /c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\\\\\(admin\\\\\\)/*/ | wc -l && ls -d /c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\\\\\(admin\\\\\\)/*/ | tail -15)",
+      "Bash(find \"/c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\(admin\\)\" -maxdepth 1 -type d | sort)",
+      "Bash(ls /c/Users/asus/Desktop/Pos-cosmetics/apps/web/src/app/\\\\\\(pos\\\\\\)/ 2>/dev/null)",
+      "Bash(git add:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "playwright",
+    "context7"
+  ]
+}

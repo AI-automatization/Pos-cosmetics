@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Filter, Printer } from 'lucide-react';
+import { Plus, Filter, Printer, Package } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { SearchInput } from '@/components/common/SearchInput';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { ErrorState } from '@/components/common/ErrorState';
+import { EmptyState } from '@/components/common/EmptyState';
 import { ProductsTable } from './ProductsTable';
 import { ProductForm } from './ProductForm';
 import { LabelPrintModal } from './LabelPrintModal';
@@ -17,6 +19,7 @@ import {
 } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import type { Product, CreateProductDto, UpdateProductDto } from '@/types/catalog';
+import type { ProductFormData } from './ProductForm';
 
 export default function ProductsPage() {
   const [search, setSearch] = useState('');
@@ -28,7 +31,7 @@ export default function ProductsPage() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [printProducts, setPrintProducts] = useState<Product[]>([]);
 
-  const { data, isLoading, isError } = useProducts({
+  const { data, isLoading, isError, refetch } = useProducts({
     page,
     limit: 20,
     search: search || undefined,
@@ -50,14 +53,27 @@ export default function ProductsPage() {
     setFormOpen(true);
   };
 
-  const handleFormSubmit = (formData: CreateProductDto | UpdateProductDto) => {
+  const handleFormSubmit = (formData: ProductFormData) => {
+    // Map form data to backend DTO field names
+    const dto: CreateProductDto = {
+      name: formData.name,
+      barcode: formData.barcode || undefined,
+      extraBarcodes: formData.extraBarcodes
+        ?.map((b) => b.value)
+        .filter((v) => v.trim().length > 0),
+      sku: formData.sku,
+      categoryId: formData.categoryId,
+      costPrice: formData.costPrice,
+      sellPrice: formData.sellPrice,
+      minStockLevel: formData.minStockLevel,
+    };
     if (editingProduct) {
       updateProduct.mutate(
-        { id: editingProduct.id, dto: formData as UpdateProductDto },
+        { id: editingProduct.id, dto: dto as UpdateProductDto },
         { onSuccess: () => setFormOpen(false) },
       );
     } else {
-      createProduct.mutate(formData as CreateProductDto, {
+      createProduct.mutate(dto, {
         onSuccess: () => setFormOpen(false),
       });
     }
@@ -134,13 +150,13 @@ export default function ProductsPage() {
       {/* Content */}
       {isLoading && <LoadingSkeleton variant="table" rows={8} />}
 
-      {isError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Ma'lumotlarni yuklashda xatolik yuz berdi. Qayta urinib ko'ring.
-        </div>
+      {isError && <ErrorState compact onRetry={refetch} />}
+
+      {data && data.items.length === 0 && (
+        <EmptyState icon={Package} title="Mahsulotlar mavjud emas" description="Birinchi mahsulotni qo'shing" />
       )}
 
-      {data && (
+      {data && data.items.length > 0 && (
         <>
           <ProductsTable
             products={data.items}
@@ -187,7 +203,7 @@ export default function ProductsPage() {
           product={editingProduct}
           categories={categories}
           isPending={isPendingForm}
-          onSubmit={handleFormSubmit}
+          onSubmit={(data) => handleFormSubmit(data)}
           onClose={() => setFormOpen(false)}
         />
       )}

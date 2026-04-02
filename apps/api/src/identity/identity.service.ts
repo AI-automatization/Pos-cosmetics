@@ -36,6 +36,7 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   OWNER: 5,
   ADMIN: 4,
   MANAGER: 3,
+  WAREHOUSE: 2.5,
   CASHIER: 2,
   VIEWER: 1,
 };
@@ -184,17 +185,20 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // T-145: email YOKI login (username) bilan kirish
+    const loginEmail = dto.email ?? dto.login ?? '';
+
     const user = await this.prisma.user.findUnique({
       where: {
         tenantId_email: {
           tenantId: tenant.id,
-          email: dto.email,
+          email: loginEmail,
         },
       },
     });
 
     if (!user || !user.isActive) {
-      await this.recordAttempt(null, dto.email, ip, false);
+      await this.recordAttempt(null, loginEmail, ip, false);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -207,18 +211,24 @@ export class IdentityService {
     );
 
     if (!isPasswordValid) {
-      await this.recordAttempt(user.id, dto.email, ip, false);
+      await this.recordAttempt(user.id, loginEmail, ip, false);
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // Muvaffaqiyatli kirish → attempt log
-    await this.recordAttempt(user.id, dto.email, ip, true);
+    await this.recordAttempt(user.id, loginEmail, ip, true);
+
+    // T-145: JWT da hasPosAccess va hasAdminAccess
+    const hasPosAccess = ['CASHIER', 'MANAGER', 'OWNER'].includes(user.role);
+    const hasAdminAccess = ['OWNER', 'ADMIN', 'MANAGER'].includes(user.role);
 
     const tokens = await this.generateTokens({
       sub: user.id,
       tenantId: tenant.id,
       role: user.role,
       branchId: null,
+      hasPosAccess,
+      hasAdminAccess,
     });
 
     await this.saveRefreshToken(user.id, tokens.refreshToken);
@@ -234,6 +244,21 @@ export class IdentityService {
 
     this.logger.log(`User logged in: ${user.email} (tenant: ${tenant.slug})`);
 
+    return tokens;
+  }
+
+  /** T-225: Biometric verify dan keyin userId bo'yicha token yaratish */
+  async loginById(userId: string): Promise<AuthTokens> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { id: true, tenantId: true, role: true, isActive: true },
+    });
+    if (!user.isActive) throw new UnauthorizedException('User inactive');
+    const tokens = await this.generateTokens({
+      sub: user.id, tenantId: user.tenantId, role: user.role,
+      branchId: null,
+    } as Parameters<typeof this.generateTokens>[0]);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
     return tokens;
   }
 
@@ -298,8 +323,9 @@ export class IdentityService {
     // JWT dan userId/tenantId olish uchun tenantni qayta topamiz
     const tenant = await this.prisma.tenant.findUnique({ where: { slug: dto.slug } });
     if (tenant) {
+      const loginEmail = dto.email ?? dto.login ?? '';
       const user = await this.prisma.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email: dto.email } },
+        where: { tenantId_email: { tenantId: tenant.id, email: loginEmail } },
         select: { id: true, tenantId: true },
       });
       if (user) {
@@ -651,6 +677,14 @@ export class IdentityService {
 
     this.logger.log(`Tenant info updated: ${tenantId}`);
     return tenant;
+  }
+
+  async getBranches(tenantId: string) {
+    return this.prisma.branch.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, address: true, isActive: true },
+    });
   }
 
   private enforceRoleHierarchy(

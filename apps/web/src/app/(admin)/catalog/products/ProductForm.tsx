@@ -1,25 +1,32 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { PRODUCT_UNITS } from '@/types/catalog';
+import { useState } from 'react';
 import type { Category, Product } from '@/types/catalog';
+import { VariantsSection } from './VariantsSection';
+import { BundleSection } from './BundleSection';
+import { CertificatesSection } from './CertificatesSection';
+import { Field, inputCls } from './FormField';
+import { MarginBadge } from './MarginBadge';
+import { ImageUpload } from './ImageUpload';
+import { BarcodeFields } from './BarcodeFields';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
   barcode: z.string().optional(),
+  extraBarcodes: z.array(z.object({ value: z.string() })).optional(),
   sku: z.string().min(1, 'SKU kiritilishi shart').max(100),
   categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
+  description: z.string().max(2000).optional(),
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
-  unit: z.enum(['dona', 'kg', 'litr', 'metr', 'quti', 'juft']),
-  minStock: z.coerce.number().min(0),
+  minStockLevel: z.coerce.number().min(0),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+export type ProductFormData = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product | null;
@@ -29,56 +36,34 @@ interface ProductFormProps {
   onClose: () => void;
 }
 
-interface FieldProps {
-  label: string;
-  error?: string;
-  required?: boolean;
-  className?: string;
-  children: React.ReactNode;
+function buildDefaultValues(product?: Product | null): ProductFormData {
+  if (!product) return { costPrice: 0, sellPrice: 0, minStockLevel: 0, extraBarcodes: [], description: '', name: '', sku: '', categoryId: '' };
+  const p = product as unknown as Record<string, unknown>;
+  return {
+    name: product.name ?? '',
+    barcode: product.barcode ?? '',
+    extraBarcodes: (product.extraBarcodes ?? []).map((v) => ({ value: v })),
+    sku: product.sku ?? '',
+    categoryId: product.categoryId ?? '',
+    description: (p.description as string) ?? '',
+    costPrice: Number(product.costPrice),
+    sellPrice: Number(product.sellPrice),
+    minStockLevel: Number(product.minStockLevel ?? 0),
+  };
 }
 
-function Field({ label, error, required, className, children }: FieldProps) {
-  return (
-    <div className={cn(className)}>
-      <label className="mb-1 block text-sm font-medium text-gray-700">
-        {label}
-        {required && <span className="ml-0.5 text-red-500">*</span>}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
-  );
-}
-
-const inputCls =
-  'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
-
-export function ProductForm({
-  product,
-  categories,
-  isPending,
-  onSubmit,
-  onClose,
-}: ProductFormProps) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
-    defaultValues: product
-      ? {
-          name: product.name,
-          barcode: product.barcode ?? '',
-          sku: product.sku,
-          categoryId: product.categoryId,
-          costPrice: product.costPrice,
-          sellPrice: product.sellPrice,
-          unit: product.unit,
-          minStock: product.minStock,
-        }
-      : { unit: 'dona', costPrice: 0, sellPrice: 0, minStock: 0 },
+export function ProductForm({ product, categories, isPending, onSubmit, onClose }: ProductFormProps) {
+  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
+    defaultValues: buildDefaultValues(product),
   });
+
+  const { fields, append, remove } = useFieldArray({ control, name: 'extraBarcodes' });
+  const costPrice = watch('costPrice') ?? 0;
+  const sellPrice = watch('sellPrice') ?? 0;
+  const [imageUrl, setImageUrl] = useState<string>(
+    ((product as unknown as Record<string, unknown>)?.imageUrl as string) ?? '',
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -98,7 +83,7 @@ export function ProductForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="max-h-[80vh] overflow-y-auto p-6">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Nomi" error={errors.name?.message} required className="col-span-2">
               <input
@@ -112,9 +97,16 @@ export function ProductForm({
               <input {...register('sku')} placeholder="NIV-001" className={inputCls} />
             </Field>
 
-            <Field label="Barcode" error={errors.barcode?.message}>
+            <Field label="Asosiy barcode" error={errors.barcode?.message}>
               <input {...register('barcode')} placeholder="8901234567890" className={inputCls} />
             </Field>
+
+            <BarcodeFields
+              register={register}
+              fields={fields}
+              append={append}
+              remove={remove}
+            />
 
             <Field
               label="Kategoriya"
@@ -131,6 +123,17 @@ export function ProductForm({
                 ))}
               </select>
             </Field>
+
+            <Field label="Tavsif" error={errors.description?.message} className="col-span-2">
+              <textarea
+                {...register('description')}
+                rows={3}
+                placeholder="Mahsulot haqida qisqacha ma'lumot..."
+                className={`${inputCls} resize-none`}
+              />
+            </Field>
+
+            <ImageUpload value={imageUrl} onChange={setImageUrl} />
 
             <Field label="Kelish narxi (so'm)" error={errors.costPrice?.message} required>
               <input
@@ -152,24 +155,28 @@ export function ProductForm({
               />
             </Field>
 
-            <Field label="O'lchov birligi" error={errors.unit?.message} required>
-              <select {...register('unit')} className={inputCls}>
-                {PRODUCT_UNITS.map((u) => (
-                  <option key={u.value} value={u.value}>
-                    {u.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <MarginBadge costPrice={Number(costPrice)} sellPrice={Number(sellPrice)} />
 
-            <Field label="Minimal zaxira" error={errors.minStock?.message} required>
+            <Field label="Minimal zaxira" error={errors.minStockLevel?.message} className="col-span-2">
               <input
-                {...register('minStock')}
+                {...register('minStockLevel')}
                 type="number"
                 min={0}
                 className={inputCls}
               />
             </Field>
+
+            {product ? (
+              <>
+                <VariantsSection productId={product.id} />
+                <BundleSection productId={product.id} />
+                <CertificatesSection productId={product.id} />
+              </>
+            ) : (
+              <p className="col-span-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400">
+                Variantlar, bundle va sertifikatlar mahsulot saqlangandan keyin qo&apos;shiladi
+              </p>
+            )}
           </div>
 
           <div className="mt-6 flex justify-end gap-3">

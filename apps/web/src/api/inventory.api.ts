@@ -5,6 +5,9 @@ import type {
   StockInDto,
   StockOutDto,
   StockQuery,
+  StockTransfer,
+  CreateTransferDto,
+  TransferStatus,
 } from '@/types/inventory';
 
 export const inventoryApi = {
@@ -28,19 +31,85 @@ export const inventoryApi = {
 
   getMovements(productId?: string) {
     return apiClient
-      .get<StockMovement[]>('/inventory/movements', {
+      .get<{ items: StockMovement[]; total: number } | StockMovement[]>('/inventory/movements', {
         params: productId ? { productId } : {},
       })
-      .then((r) => r.data);
+      .then((r) => {
+        const data = r.data;
+        if (Array.isArray(data)) return data;
+        if (data && Array.isArray((data as { items: StockMovement[] }).items)) return (data as { items: StockMovement[] }).items;
+        return [];
+      });
   },
 
-  // B-010 note: backend uses POST /inventory/movements with type='IN' per item + warehouseId
-  // Frontend DTO (StockInDto) has multi-item batch format — needs backend batch endpoint
-  stockIn(dto: StockInDto) {
-    return apiClient.post<void>('/inventory/stock-in', dto).then((r) => r.data);
+  // Backend: POST /inventory/movements (single movement per request, requires warehouseId)
+  // We fetch the default warehouse first, then send one request per item
+  async stockIn(dto: StockInDto) {
+    const warehouses = await apiClient
+      .get<{ id: string }[]>('/inventory/warehouses')
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+    const warehouseId = warehouses[0]?.id;
+    if (!warehouseId) throw new Error('No warehouse found. Please create a warehouse first.');
+    for (const item of dto.items) {
+      await apiClient.post('/inventory/movements', {
+        warehouseId,
+        productId: item.productId,
+        type: 'IN',
+        quantity: item.quantity,
+        costPrice: item.costPrice,
+        batchNumber: item.batchNumber,
+        expiryDate: item.expiryDate,
+        note: [dto.supplier, dto.notes].filter(Boolean).join(' | ') || undefined,
+      });
+    }
   },
 
-  stockOut(dto: StockOutDto) {
-    return apiClient.post<void>('/inventory/stock-out', dto).then((r) => r.data);
+  async stockOut(dto: StockOutDto) {
+    const warehouses = await apiClient
+      .get<{ id: string }[]>('/inventory/warehouses')
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+    const warehouseId = warehouses[0]?.id;
+    if (!warehouseId) throw new Error('No warehouse found. Please create a warehouse first.');
+    for (const item of dto.items) {
+      await apiClient.post('/inventory/movements', {
+        warehouseId,
+        productId: item.productId,
+        type: 'OUT',
+        quantity: item.quantity,
+        note: dto.notes ?? dto.reason,
+      });
+    }
+  },
+
+  // ─── Transfers ───
+
+  listTransfers(params?: { status?: TransferStatus; branchId?: string; page?: number; limit?: number }) {
+    return apiClient
+      .get<{ items: StockTransfer[]; total: number }>('/inventory/transfers', { params })
+      .then((r) => {
+        const d = r.data;
+        if (Array.isArray(d)) return { items: d as StockTransfer[], total: (d as StockTransfer[]).length };
+        return { items: d?.items ?? [], total: d?.total ?? 0 };
+      });
+  },
+
+  createTransfer(dto: CreateTransferDto) {
+    return apiClient.post<StockTransfer>('/inventory/transfers', dto).then((r) => r.data);
+  },
+
+  approveTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/approve`).then((r) => r.data);
+  },
+
+  shipTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/ship`).then((r) => r.data);
+  },
+
+  receiveTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/receive`).then((r) => r.data);
+  },
+
+  cancelTransfer(id: string) {
+    return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/cancel`).then((r) => r.data);
   },
 };

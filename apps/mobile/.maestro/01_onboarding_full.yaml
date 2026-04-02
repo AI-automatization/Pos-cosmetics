@@ -1,0 +1,40 @@
+appId: host.exp.exponent
+name: "Onboarding - To'liq 3 ta slide"
+---
+- launchApp:
+    clearState: true
+
+# --- Slide 1 ---
+- assertVisible: "RAOS ga xush kelibsiz!"
+- assertVisible:
+    text: "O'zbekistondagi retail va investor bizneslari uchun zamonaviy boshqaruv tizimi"
+- assertVisible: "O'tkazib yuborish"
+- assertVisible: "Keyingisi"
+
+# Slide 2 ga o'tish
+- tapOn:
+    id: "onboarding-next-btn"
+
+# --- Slide 2 ---
+- assertVisible: "Sotuvlar va Nasiya"
+- assertVisible: "Barcha sotuvlarni kuzating, qarzkorlarni boshqaring va to'lovlarni qabul qiling"
+- assertVisible: "Keyingisi"
+
+# Slide 3 ga o'tish
+- tapOn:
+    id: "onboarding-next-btn"
+
+# --- Slide 3 ---
+- assertVisible: "Omborxona va Alertlar"
+- assertVisible: "Tovar qoldig'ini nazorat qiling va muhim hodisalar haqida darhol xabar oling"
+# Skip ko'rinmasligi kerak oxirgi slide da
+- assertNotVisible: "O'tkazib yuborish"
+- assertVisible: "Boshlash"
+
+# "Boshlash" bosganda Login ga o'tish
+- tapOn:
+    id: "onboarding-next-btn"
+
+# Auth screen tekshir
+- assertVisible: "RAOS"
+- assertVisible: "Retail & Asset Operating System"

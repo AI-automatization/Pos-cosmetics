@@ -1,13 +1,15 @@
 # CLAUDE_MOBILE.md — RAOS Mobile Engineer Guide
-# React Native · Android + IOS · TypeScript · Expo
-# Claude CLI bu faylni Ibrat (Android) yoki Abdulaziz (IOS) tanlanganda o'qiydi
+# React Native · Android + iOS · TypeScript · Expo
+# Claude CLI bu faylni Abdulaziz tanlanganda o'qiydi
 
 ---
 
 ## 👋 ZONA
 
+Abdulaziz IKKALA mobile ilovani boshqaradi:
+
 ```
-apps/mobile/src/
+apps/mobile/src/              → Staff Mobile App (xodimlar uchun)
   screens/          → Ekranlar (navigation = 1 screen)
   components/       → Qayta ishlatiluvchi komponentlar
   hooks/            → Custom React Native hooks
@@ -19,26 +21,35 @@ apps/mobile/src/
   i18n/             → Tarjimalar (uz, ru, en)
   assets/           → Images, fonts, icons
   notifications/    → Push notification handlers
+
+apps/mobile-owner/src/        → Owner Mobile App (biznes egasi uchun)
+  screens/          → Dashboard, Analytics, Inventory, Debts, Shifts, Employees, Alerts, System
+  components/       → Charts (Line, Bar, Pie, Aging), Cards, Lists
+  hooks/            → 12+ custom hooks
+  api/              → analytics, inventory, debts, shifts, employees, alerts, system, branches, auth
+  navigation/       → Tab + Stack navigators
+  store/            → auth, branch, alerts, onboarding stores
+  notifications/    → Push notification setup + handlers
 ```
 
 **🚫 TEGINMA:**
-- `apps/api/` — Polat zonasi (Backend)
-- `apps/worker/` — Polat zonasi (Worker)
-- `apps/bot/` — Polat zonasi (Bot)
-- `apps/web/` — AbdulazizYormatov zonasi (Admin Panel)
-- `apps/pos/` — AbdulazizYormatov zonasi (POS Desktop)
-- `prisma/` — Polat zonasi (Database)
+- `apps/api/` — Ibrat zonasi (Backend)
+- `apps/worker/` — Ibrat zonasi (Worker)
+- `apps/bot/` — Ibrat zonasi (Bot)
+- `apps/web/` — Ibrat zonasi (Admin Panel)
+- `apps/pos/` — Ibrat zonasi (POS Desktop)
+- `prisma/` — Ibrat zonasi (Database)
 
 ---
 
 ## 📱 PLATFORMA
 
 ```
-✅ Android (Ibrat — React Native)
-✅ iOS (Abdulaziz — React Native)
+✅ Android + iOS (Abdulaziz — ikkala platforma)
+✅ 2 ta ilovani boshqarish: apps/mobile (staff) + apps/mobile-owner (owner)
 ✅ Expo (agar mumkin bo'lsa)
 ✅ Push notifications (FCM)
-✅ Biometric auth (fingerprint)
+✅ Biometric auth (fingerprint + Face ID)
 ```
 
 ---
@@ -282,7 +293,8 @@ api.interceptors.response.use(
 ## 🔔 PUSH NOTIFICATIONS
 
 ```typescript
-// FCM (Firebase Cloud Messaging) — Android only:
+// FCM (Firebase Cloud Messaging) — Android + iOS:
+// Android: FCM direct | iOS: FCM → APNs bridge
 export function useNotifications() {
   useEffect(() => {
     // 1. Permission so'rash
@@ -453,11 +465,11 @@ describe('useDashboard', () => {
 ## 🚫 TAQIQLANGAN
 
 ```
-❌ apps/api/ papkasiga TEGINMA (Polat zonasi)
-❌ apps/web/ papkasiga TEGINMA (AbdulazizYormatov zonasi)
-❌ apps/pos/ papkasiga TEGINMA (AbdulazizYormatov zonasi)
-❌ prisma/ papkasiga TEGINMA (Polat zonasi)
-❌ Financial mutations (sale, payment, refund, ledger)
+❌ apps/api/ papkasiga TEGINMA (Ibrat zonasi)
+❌ apps/web/ papkasiga TEGINMA (Ibrat zonasi)
+❌ apps/pos/ papkasiga TEGINMA (Ibrat zonasi)
+❌ prisma/ papkasiga TEGINMA (Ibrat zonasi)
+❌ Financial mutations (sale, payment, refund, ledger) — owner app READ-ONLY
 ❌ any type
 ❌ console.log production da
 ❌ Inline styles → StyleSheet.create
@@ -466,8 +478,64 @@ describe('useDashboard', () => {
 ❌ Hardcoded text → i18n
 ❌ Token plaintext saqlash → SecureStore/EncryptedStorage
 ✅ iOS va Android — ikkala platforma uchun yozish
+✅ apps/mobile VA apps/mobile-owner — ikkala ilovani boshqarish
 ```
 
 ---
 
-*CLAUDE_MOBILE.md | RAOS | v1.0*
+## 🍎 iOS SETUP (ABDULAZIZ UCHUN)
+
+```bash
+# Birinchi marta / yangi muhit:
+cd apps/mobile
+npx pod-install          # CocoaPods dependency install (Pods/ papka yaratiladi)
+
+# Simulator ishlatish:
+pnpm --filter mobile run ios
+# Yoki aniq device:
+pnpm --filter mobile run ios --device "iPhone 15"
+
+# Qurilish muammo bo'lsa:
+cd ios && pod deintegrate && pod install   # Pods ni tozalab qayta install
+```
+
+### Talablar
+```
+✓ Xcode 15+ (App Store dan)
+✓ CocoaPods: sudo gem install cocoapods  (yoki brew install cocoapods)
+✓ Node.js, pnpm, Ruby (sistem)
+✓ iOS Simulator (Xcode dan keladi)
+✓ Apple Developer Account — TestFlight/App Store uchun (Abdulaziz koordinatsiyasi)
+```
+
+### iOS-specific ehtiyot qoidalar
+```
+⚠️ ios/Pods/ — git ignore (commitlama, .gitignore da)
+⚠️ ios/.xcode.env.local — git ignore (shaxsiy muhit)
+⚠️ Provisioning profile va sertifikatlar — Abdulaziz boshqaradi
+⚠️ SecureStore iOS da Keychain orqali ishlaydi — Android Keystore dan farqli
+⚠️ Face ID → LocalAuthentication.authenticateAsync (biometric prompt iOS da farqli)
+⚠️ FCM iOS da APNs bridge kerak — GoogleService-Info.plist kerak
+```
+
+---
+
+## 📱 MOBILE-OWNER APP QISQACHA
+
+> Owner App = READ-ONLY monitoring dashboard. Financial mutations TAQIQLANGAN!
+
+**Mavjud ekranlar (124 fayl):**
+- Dashboard (revenue cards, sales trend, branch comparison, top products, low stock)
+- Analytics (revenue, orders, products, branches)
+- Inventory (table, low stock, expiring)
+- Debts/Nasiya (summary, aging report, customer debts)
+- Shifts (table, details, payment breakdown chart)
+- Employees (performance table, suspicious activity)
+- Alerts (table, filters by priority)
+- System Health (service status, sync status, error logs)
+
+**Backend bog'liqligi:** T-201..T-225 (Ibrat bajarishi kerak) — hozir demo data bilan ishlaydi.
+
+---
+
+*CLAUDE_MOBILE.md | RAOS | v2.1 | 2026-03-24 — iOS setup bo'limi qo'shildi, FCM iOS qo'llab-quvvatlashi aniqlashtirildi*

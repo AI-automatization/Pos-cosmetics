@@ -11,17 +11,19 @@ export type ShiftStatus = 'OPEN' | 'CLOSED';
 
 export interface Shift {
   id: string;
-  cashierName: string;
-  openingCash: number;
-  closingCash: number | null;
+  // Backend response: cashierName not returned (linked via userId)
+  // shiftsApi.list() enriches this field from user data → optional here
+  cashierName?: string | null;
+  openingCash: number | string;  // backend returns as string
+  closingCash: number | string | null;
   notes: string | null;
   status: ShiftStatus;
   openedAt: string;
   closedAt: string | null;
-  salesCount: number;
-  revenue: number;
-  cashRevenue: number;
-  cardRevenue: number;
+  salesCount?: number;
+  revenue?: number;
+  cashRevenue?: number;
+  cardRevenue?: number;
 }
 
 export interface ShiftTotals {
@@ -32,7 +34,7 @@ export interface ShiftTotals {
 
 // API DTOs
 export interface OpenShiftDto {
-  cashierName: string;
+  // Backend only accepts openingCash — cashierName is rejected (HTTP 400)
   openingCash: number;
 }
 

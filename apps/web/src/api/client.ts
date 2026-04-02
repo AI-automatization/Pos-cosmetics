@@ -24,12 +24,15 @@ apiClient.interceptors.response.use(
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
       try {
-        const { data } = await apiClient.post('/auth/refresh');
+        const refreshToken = localStorage.getItem('refresh_token');
+        const { data } = await apiClient.post('/auth/refresh', { refreshToken });
         localStorage.setItem('access_token', data.accessToken);
-        err.config.headers.Authorization = `Bearer ${data.access_token}`;
+        if (data.refreshToken) localStorage.setItem('refresh_token', data.refreshToken);
+        err.config.headers.Authorization = `Bearer ${data.accessToken}`;
         return apiClient(err.config);
       } catch {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }

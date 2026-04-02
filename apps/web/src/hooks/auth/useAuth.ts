@@ -7,14 +7,19 @@ import { authApi, type LoginPayload } from '@/api/auth.api';
 import { extractErrorMessage } from '@/lib/utils';
 
 const SESSION_COOKIE = 'session_active';
+const ROLE_COOKIE = 'user_role';
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
-function setSessionCookie() {
-  const maxAge = 7 * 24 * 60 * 60; // 7 days
-  document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${maxAge}; SameSite=Lax`;
+function setSessionCookie(role?: string) {
+  document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  if (role) {
+    document.cookie = `${ROLE_COOKIE}=${role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  }
 }
 
 function clearSessionCookie() {
   document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
+  document.cookie = `${ROLE_COOKIE}=; path=/; max-age=0`;
 }
 
 export function useCurrentUser() {
@@ -38,12 +43,29 @@ export function useLogin() {
     mutationFn: async (payload: LoginPayload) => {
       const tokens = await authApi.login(payload);
       localStorage.setItem('access_token', tokens.accessToken);
+      localStorage.setItem('refresh_token', tokens.refreshToken);
       setSessionCookie();
       return tokens;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      router.push('/dashboard');
+      try {
+        const user = await authApi.me();
+        queryClient.setQueryData(['auth', 'me'], user);
+        setSessionCookie(user.role); // set role cookie for middleware routing
+
+        if (user.role === 'WAREHOUSE') {
+          router.push('/warehouse');
+        } else if (user.role === 'CASHIER') {
+          router.push('/pos');
+        } else if (user.role === 'MANAGER') {
+          router.push('/manager-dashboard');
+        } else {
+          router.push('/dashboard');
+        }
+      } catch {
+        // /auth/me failed after login — still deliver user somewhere usable
+        router.push('/dashboard');
+      }
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
@@ -61,6 +83,7 @@ export function useLogout() {
         await authApi.logout();
       } finally {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         clearSessionCookie();
         queryClient.clear();
       }
@@ -71,6 +94,7 @@ export function useLogout() {
     onError: () => {
       // Even on error, clear local state and redirect
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       clearSessionCookie();
       router.push('/login');
     },

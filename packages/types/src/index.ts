@@ -7,3 +7,4 @@ export * from './inventory';
 export * from './payments';
 export * from './customers';
 export * from './reports';
+export * from './settings';

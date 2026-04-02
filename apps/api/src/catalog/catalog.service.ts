@@ -154,8 +154,40 @@ export class CatalogService {
       }),
     ]);
 
+    // Add currentStock by aggregating StockMovements for returned products
+    let stockMap = new Map<string, number>();
+    if (items.length > 0) {
+      const productIds = items.map((i) => i.id);
+      const stockRaw = await this.prisma.$queryRaw<
+        { productId: string; stock: string }[]
+      >(
+        Prisma.sql`
+          SELECT product_id AS "productId",
+            COALESCE(SUM(
+              CASE
+                WHEN type IN ('IN','RETURN_IN','TRANSFER_IN') THEN quantity
+                WHEN type = 'ADJUSTMENT' THEN quantity
+                ELSE -quantity
+              END
+            ), 0) AS stock
+          FROM stock_movements
+          WHERE tenant_id = ${tenantId}
+            AND product_id IN (${Prisma.join(productIds)})
+          GROUP BY product_id
+        `,
+      );
+      stockMap = new Map(
+        stockRaw.map((s) => [s.productId, Number(s.stock)]),
+      );
+    }
+
+    const itemsWithStock = items.map((item) => ({
+      ...item,
+      currentStock: stockMap.get(item.id) ?? 0,
+    }));
+
     return {
-      items,
+      items: itemsWithStock,
       total,
       page,
       limit,
