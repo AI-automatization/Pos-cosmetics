@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Param, Body,
-  Query, UseGuards,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';

@@ -1,7 +1,6 @@
 import { Injectable, Logger, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FiscalAdapterService } from '../tax/fiscal-adapter.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ZReportService {
