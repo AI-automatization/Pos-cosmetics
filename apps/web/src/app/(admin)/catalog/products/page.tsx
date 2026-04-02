@@ -68,6 +68,7 @@ export default function ProductsPage() {
       costPrice: formData.costPrice,
       sellPrice: formData.sellPrice,
       minStockLevel: formData.minStockLevel,
+      expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
     };
     if (editingProduct) {
       updateProduct.mutate(

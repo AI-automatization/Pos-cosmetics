@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, Save, Package, X } from 'lucide-react';
 import { useCreateInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
-import { useProducts, useCreateProduct, useUnits } from '@/hooks/catalog/useProducts';
+import { useProducts, useCreateProduct } from '@/hooks/catalog/useProducts';
 import { useSuppliers, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
 import { useCategories } from '@/hooks/catalog/useCategories';
+import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
+import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
 import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
 
 interface ItemRow extends InvoiceItem {
@@ -18,12 +20,6 @@ interface ItemRow extends InvoiceItem {
 let _keyCounter = 0;
 const nextKey = () => ++_keyCounter;
 
-const generateSku = (name: string) => {
-  const letters = name.split(/\s+/).map((w) => w[0]?.toUpperCase() ?? '').join('');
-  const digits = String(Math.floor(Math.random() * 900) + 100);
-  return letters + digits;
-};
-
 export default function StockInPage() {
   const router = useRouter();
   const { mutate: createInvoice, isPending } = useCreateInvoice();
@@ -31,7 +27,6 @@ export default function StockInPage() {
   const { data: suppliers } = useSuppliers();
   const { mutate: createSupplier, isPending: isCreatingSupplier } = useCreateSupplier();
   const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
-  const { data: units } = useUnits();
   const { data: categories } = useCategories();
   const products = productsData?.items ?? productsData ?? [];
 
@@ -43,7 +38,6 @@ export default function StockInPage() {
   const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
 
   const [productModal, setProductModal] = useState<{ rowKey: number } | null>(null);
-  const [productForm, setProductForm] = useState({ name: '', sku: '', unitId: '', categoryId: '', costPrice: 0, expiryDate: '' });
   const [items, setItems] = useState<ItemRow[]>([
     { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
   ]);
@@ -59,17 +53,18 @@ export default function StockInPage() {
 
   const totalCost = items.reduce((s, r) => s + r.quantity * r.purchasePrice, 0);
 
-  const handleCreateProduct = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateProduct = (formData: ProductFormData) => {
     createProduct(
       {
-        name: productForm.name,
-        sku: productForm.sku || undefined,
-        unitId: productForm.unitId || undefined,
-        categoryId: productForm.categoryId || undefined,
-        costPrice: productForm.costPrice,
-        sellPrice: productForm.costPrice,
-        expiryTracking: true,
+        name: formData.name,
+        sku: formData.sku || undefined,
+        categoryId: formData.categoryId || undefined,
+        costPrice: formData.costPrice,
+        sellPrice: formData.sellPrice,
+        minStockLevel: formData.minStockLevel,
+        barcode: formData.barcode || undefined,
+        extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+        expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
       },
       {
         onSuccess: (newProduct) => {
@@ -78,12 +73,10 @@ export default function StockInPage() {
               productId: newProduct.id,
               productName: newProduct.name,
               productSearch: '',
-              purchasePrice: productForm.costPrice,
-              expiryDate: productForm.expiryDate || undefined,
+              purchasePrice: formData.costPrice,
             });
           }
           setProductModal(null);
-          setProductForm({ name: '', sku: '', unitId: '', categoryId: '', costPrice: 0, expiryDate: '' });
         },
       },
     );
@@ -229,11 +222,7 @@ export default function StockInPage() {
                         {row.productSearch && filtered.length === 0 && (
                           <button
                             type="button"
-                            onClick={() => {
-                              const name = row.productSearch!;
-                              setProductForm({ name, sku: generateSku(name), unitId: '', categoryId: '', costPrice: 0, expiryDate: '' });
-                              setProductModal({ rowKey: row._key });
-                            }}
+                            onClick={() => setProductModal({ rowKey: row._key })}
                             className="w-full text-left text-xs text-amber-700 hover:text-amber-800 px-2 py-1 bg-amber-50 rounded border border-amber-200 mb-1 truncate"
                           >
                             + &quot;{row.productSearch}&quot; mahsulotini yaratish
@@ -346,104 +335,15 @@ export default function StockInPage() {
           </button>
         </div>
       </form>
-      {/* Product create modal */}
+      {/* Product create modal — same as admin catalog */}
       {productModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold text-gray-900">Yangi mahsulot</h3>
-              <button type="button" onClick={() => setProductModal(null)}>
-                <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateProduct} className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Mahsulot nomi *</label>
-                <input
-                  type="text"
-                  required
-                  value={productForm.name}
-                  onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">SKU *</label>
-                <input
-                  type="text"
-                  required
-                  value={productForm.sku}
-                  onChange={(e) => setProductForm((f) => ({ ...f, sku: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Birlik *</label>
-                <select
-                  required
-                  value={productForm.unitId}
-                  onChange={(e) => setProductForm((f) => ({ ...f, unitId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  <option value="">— Tanlang —</option>
-                  {(units ?? []).map((u) => (
-                    <option key={u.id} value={u.id}>{u.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Kategoriya</label>
-                <select
-                  value={productForm.categoryId}
-                  onChange={(e) => setProductForm((f) => ({ ...f, categoryId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  <option value="">— Tanlang —</option>
-                  {(categories ?? []).map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Sotib olish narxi * (UZS)</label>
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  value={productForm.costPrice}
-                  onChange={(e) => setProductForm((f) => ({ ...f, costPrice: Number(e.target.value) }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Muddat *</label>
-                <input
-                  type="date"
-                  required
-                  value={productForm.expiryDate}
-                  onChange={(e) => setProductForm((f) => ({ ...f, expiryDate: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setProductModal(null)}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Bekor
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreatingProduct}
-                  className="px-3 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700 disabled:opacity-50"
-                >
-                  {isCreatingProduct ? 'Saqlanmoqda...' : 'Saqlash'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ProductForm
+          product={null}
+          categories={categories ?? []}
+          isPending={isCreatingProduct}
+          onSubmit={handleCreateProduct}
+          onClose={() => setProductModal(null)}
+        />
       )}
 
       {/* Supplier create modal */}

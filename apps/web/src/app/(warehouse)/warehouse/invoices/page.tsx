@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { FileText, Plus, Search, ChevronRight, X } from 'lucide-react';
 import { useWarehouseInvoices } from '@/hooks/warehouse/useWarehouseInvoices';
-import { formatPrice, formatDate } from '@/lib/utils';
+import { formatPrice, formatDateTime } from '@/lib/utils';
 
 export default function WarehouseInvoicesPage() {
   const [page, setPage] = useState(1);
@@ -123,7 +123,7 @@ export default function WarehouseInvoicesPage() {
                       {inv.invoiceNumber ?? `#${inv.id.slice(0, 8)}`}
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                      {formatDate(inv.createdAt)}
+                      {formatDateTime(inv.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {inv.items.length} ta tovar

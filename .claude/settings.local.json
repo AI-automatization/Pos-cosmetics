@@ -23,7 +23,9 @@
       "Bash(for f:*)",
       "Bash(do echo:*)",
       "Read(//c/Users/asus/Desktop/Pos-cosmetics/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "Read(//c/Users/asus/.railway/**)",
+      "Read(//c/Users/asus/AppData/Local/railway/**)"
     ]
   },
   "enableAllProjectMcpServers": true,

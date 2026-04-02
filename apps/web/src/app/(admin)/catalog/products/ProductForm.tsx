@@ -24,6 +24,8 @@ const productSchema = z.object({
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   minStockLevel: z.coerce.number().min(0),
+  expiryTracking: z.boolean().optional(),
+  expiryDate: z.string().optional(),
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
@@ -37,7 +39,7 @@ interface ProductFormProps {
 }
 
 function buildDefaultValues(product?: Product | null): ProductFormData {
-  if (!product) return { costPrice: 0, sellPrice: 0, minStockLevel: 0, extraBarcodes: [], description: '', name: '', sku: '', categoryId: '' };
+  if (!product) return { costPrice: 0, sellPrice: 0, minStockLevel: 0, extraBarcodes: [], description: '', name: '', sku: '', categoryId: '', expiryTracking: false, expiryDate: '' };
   const p = product as unknown as Record<string, unknown>;
   return {
     name: product.name ?? '',
@@ -49,6 +51,8 @@ function buildDefaultValues(product?: Product | null): ProductFormData {
     costPrice: Number(product.costPrice),
     sellPrice: Number(product.sellPrice),
     minStockLevel: Number(product.minStockLevel ?? 0),
+    expiryTracking: (p.expiryTracking as boolean) ?? false,
+    expiryDate: (p.expiryDate as string) ?? '',
   };
 }
 
@@ -162,6 +166,14 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose 
                 {...register('minStockLevel')}
                 type="number"
                 min={0}
+                className={inputCls}
+              />
+            </Field>
+
+            <Field label="Срок годности (yaroqlilik muddati)" error={errors.expiryDate?.message} className="col-span-2">
+              <input
+                {...register('expiryDate')}
+                type="date"
                 className={inputCls}
               />
             </Field>
