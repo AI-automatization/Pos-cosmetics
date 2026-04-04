@@ -1,6 +1,6 @@
 'use client';
 
-import { Minus, Plus, Trash2, Tag, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, Tag, ShoppingCart, Package } from 'lucide-react';
 import { useState } from 'react';
 import { usePOSStore } from '@/store/pos.store';
 import { formatPrice, cn } from '@/lib/utils';
@@ -18,7 +18,15 @@ function CartItemRow({ item }: { item: CartItem }) {
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-gray-900">{item.name}</p>
-          <p className="text-xs text-gray-400">{item.sku}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs text-gray-400">{item.sku}</p>
+            {item.isBundle && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                <Package className="h-2.5 w-2.5" />
+                Bundle
+              </span>
+            )}
+          </div>
         </div>
         <button
           type="button"
@@ -105,7 +113,9 @@ function CartItemRow({ item }: { item: CartItem }) {
 }
 
 export function CartPanel() {
-  const { items, clearCart } = usePOSStore();
+  const store = usePOSStore();
+  const { items } = store.carts[store.activeCartId];
+  const { clearCart } = store;
 
   if (items.length === 0) {
     return (

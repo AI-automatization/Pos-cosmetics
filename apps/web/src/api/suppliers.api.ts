@@ -4,7 +4,7 @@ import type { Supplier, CreateSupplierDto, UpdateSupplierDto } from '@/types/sup
 export const suppliersApi = {
   list() {
     return apiClient
-      .get<Supplier[]>('/catalog/suppliers')
+      .get<Supplier[]>('/catalog/suppliers?isActive=true')
       .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
 

@@ -16,13 +16,13 @@ import {
 import { cn } from '@/lib/utils';
 
 const NAV = [
-  { label: 'Dashboard', href: '/manager-dashboard', icon: LayoutDashboard, exact: true },
-  { label: 'Katalog', href: '/manager/catalog', icon: Package },
-  { label: 'Inventar', href: '/manager/inventory', icon: Boxes },
-  { label: 'Savdo', href: '/manager/sales', icon: ShoppingCart },
-  { label: 'Nasiya', href: '/manager/debts', icon: CreditCard },
-  { label: 'Xaridorlar', href: '/manager/customers', icon: Users },
-  { label: 'Hisobotlar', href: '/manager/reports', icon: BarChart2 },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, exact: true },
+  { label: 'Katalog', href: '/catalog/products', icon: Package },
+  { label: 'Inventar', href: '/inventory', icon: Boxes },
+  { label: 'Savdo', href: '/sales/orders', icon: ShoppingCart },
+  { label: 'Nasiya', href: '/nasiya', icon: CreditCard },
+  { label: 'Xaridorlar', href: '/customers', icon: Users },
+  { label: 'Hisobotlar', href: '/reports', icon: BarChart2 },
 ];
 
 export function ManagerSidebar() {

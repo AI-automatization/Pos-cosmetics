@@ -20,11 +20,11 @@
     "docker:down": "docker compose down"
   },
   "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "prettier": "^3.5.3",
     "turbo": "^2.4.4",
     "typescript": "^5.7.3",
-    "prettier": "^3.5.3",
-    "eslint": "^9.21.0",
-    "@eslint/js": "^9.21.0",
     "typescript-eslint": "^8.24.1"
   },
   "packageManager": "pnpm@10.30.3",
@@ -45,5 +45,8 @@
       "msgpackr-extract",
       "@scarf/scarf"
     ]
+  },
+  "dependencies": {
+    "playwright": "^1.58.2"
   }
 }

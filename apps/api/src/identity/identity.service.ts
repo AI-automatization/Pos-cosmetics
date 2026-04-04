@@ -23,7 +23,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateUserDto,
   LoginDto,
-  RefreshTokenDto,
   RegisterTenantDto,
   UpdateTenantInfoDto,
   UpdateUserDto,
@@ -268,7 +267,7 @@ export class IdentityService {
     this.logger.log(`User unlocked by admin: target=${targetUserId}, admin=${adminUserId}`);
   }
 
-  async refreshTokens(dto: RefreshTokenDto): Promise<AuthTokens> {
+  async refreshTokens(dto: { userId: string; refreshToken: string }): Promise<AuthTokens> {
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userId },
       select: {

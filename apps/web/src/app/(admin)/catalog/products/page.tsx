@@ -18,6 +18,7 @@ import {
   useDeleteProduct,
 } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
+import { useCanEdit } from '@/hooks/auth/useAuth';
 import type { Product, CreateProductDto, UpdateProductDto } from '@/types/catalog';
 import type { ProductFormData } from './ProductForm';
 
@@ -39,6 +40,7 @@ export default function ProductsPage() {
   });
 
   const { data: categories = [] } = useCategories();
+  const canEdit = useCanEdit();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -66,6 +68,7 @@ export default function ProductsPage() {
       costPrice: formData.costPrice,
       sellPrice: formData.sellPrice,
       minStockLevel: formData.minStockLevel,
+      expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
     };
     if (editingProduct) {
       updateProduct.mutate(
@@ -104,14 +107,16 @@ export default function ProductsPage() {
               Yorliqlar
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Mahsulot qo&apos;shish
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" />
+              Mahsulot qo&apos;shish
+            </button>
+          )}
         </>
       }
     >
@@ -160,8 +165,8 @@ export default function ProductsPage() {
         <>
           <ProductsTable
             products={data.items}
-            onEdit={handleOpenEdit}
-            onDelete={(p) => setDeletingProduct(p)}
+            onEdit={canEdit ? handleOpenEdit : undefined}
+            onDelete={canEdit ? (p) => setDeletingProduct(p) : undefined}
             onPrint={(p) => setPrintProducts([p])}
           />
 

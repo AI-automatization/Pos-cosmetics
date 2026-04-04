@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { openCashDrawer, isCashDrawerEnabled } from '@/lib/cashDrawer';
 import { toast } from 'sonner';
+import { useLogout } from '@/hooks/auth/useAuth';
 
 function useShiftClock(openedAt: Date | string | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
@@ -36,6 +37,7 @@ interface ShiftBarProps {
 
 export function ShiftBar({ onCloseShift }: ShiftBarProps) {
   const { cashierName, shiftOpenedAt, salesCount, shiftId } = usePOSStore();
+  const { mutate: logout, isPending: loggingOut } = useLogout();
   // Zustand persist deserializes Date → string; convert back to Date
   const shiftOpenedAtDate = shiftOpenedAt
     ? shiftOpenedAt instanceof Date
@@ -118,6 +120,18 @@ export function ShiftBar({ onCloseShift }: ShiftBarProps) {
             Smenani yopish
           </button>
         )}
+
+        <div className="h-4 w-px bg-gray-700" />
+
+        <button
+          type="button"
+          onClick={() => logout()}
+          disabled={loggingOut}
+          className="flex items-center gap-1.5 rounded-lg border border-red-700 bg-red-900/20 px-3 py-1 text-xs font-medium text-red-400 transition hover:border-red-500 hover:bg-red-900/40 hover:text-red-300 disabled:opacity-50"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          {loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}
+        </button>
       </div>
     </div>
   );

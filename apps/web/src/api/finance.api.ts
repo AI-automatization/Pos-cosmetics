@@ -1,20 +1,20 @@
 import { apiClient } from './client';
 import type { Expense, CreateExpenseDto, ProfitReport } from '@/types/finance';
 
-// B-018 fix: backend @Controller('expenses') → /expenses, not /finance/expenses
-// Profit: backend /reports/profit, not /finance/profit
+// Backend @Controller('finance') with nested routes: /finance/expenses, /finance/pnl etc.
+// Profit: backend /reports/profit
 export const financeApi = {
   listExpenses(params?: { category?: string; from?: string; to?: string }) {
-    return apiClient.get('/expenses', { params }).then((r) => {
+    return apiClient.get('/finance/expenses', { params }).then((r) => {
       const d = r.data;
       return (Array.isArray(d) ? d : (d?.items ?? [])) as Expense[];
     });
   },
   createExpense(dto: CreateExpenseDto) {
-    return apiClient.post<Expense>('/expenses', dto).then((r) => r.data);
+    return apiClient.post<Expense>('/finance/expenses', dto).then((r) => r.data);
   },
   deleteExpense(id: string) {
-    return apiClient.delete<void>(`/expenses/${id}`).then((r) => r.data);
+    return apiClient.delete<void>(`/finance/expenses/${id}`).then((r) => r.data);
   },
   getProfitReport(params: { from: string; to: string }) {
     return apiClient.get('/reports/profit', { params }).then((r) => {

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotifyService } from '../notifications/notify.service';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -165,52 +165,66 @@ export class EmployeesService {
       : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
     const to = opts.toDate ? new Date(opts.toDate) : new Date();
 
-    const users = await this.prisma.user.findMany({
-      where: { tenantId, isActive: true },
-      select: { id: true, firstName: true, lastName: true, role: true },
-    });
+    // Bitta JOIN query — N+1 ni bartaraf etadi (getEmployeeActivity pattern)
+    const rows = await this.prisma.$queryRaw<{
+      employeeId: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      totalOrders: number;
+      totalRevenue: number;
+      totalDiscountOrders: number;
+      totalRefunds: number;
+    }[]>`
+      SELECT
+        u.id                                                                         AS "employeeId",
+        u.first_name                                                                 AS "firstName",
+        u.last_name                                                                  AS "lastName",
+        u.role::text                                                                 AS "role",
+        COUNT(DISTINCT CASE WHEN o.status::text = 'COMPLETED' THEN o.id END)::int   AS "totalOrders",
+        COALESCE(SUM(CASE WHEN o.status::text = 'COMPLETED' THEN o.total END), 0)::float
+                                                                                     AS "totalRevenue",
+        COUNT(DISTINCT CASE WHEN o.status::text = 'COMPLETED'
+                             AND o.discount_amount > 0 THEN o.id END)::int          AS "totalDiscountOrders",
+        COUNT(DISTINCT r.id)::int                                                    AS "totalRefunds"
+      FROM users u
+      LEFT JOIN orders o
+        ON o.user_id   = u.id
+       AND o.tenant_id = ${tenantId}
+       AND o.created_at >= ${from}
+       AND o.created_at <  ${to}
+      LEFT JOIN returns r
+        ON r.user_id   = u.id
+       AND r.tenant_id = ${tenantId}
+       AND r.created_at >= ${from}
+       AND r.created_at <  ${to}
+      WHERE u.tenant_id  = ${tenantId}
+        AND u."isActive" = true
+        ${opts.branchId ? Prisma.sql`AND u.branch_id = ${opts.branchId}` : Prisma.empty}
+      GROUP BY u.id, u.first_name, u.last_name, u.role
+      ORDER BY "totalOrders" DESC
+    `;
 
-    const results = await Promise.all(
-      users.map(async (user) => {
-        const orders = await this.prisma.order.findMany({
-          where: {
-            tenantId,
-            userId: user.id,
-            status: 'COMPLETED',
-            createdAt: { gte: from, lte: to },
-          },
-          select: { total: true, discountAmount: true, id: true },
-        });
-
-        const returns = await this.prisma.return.findMany({
-          where: { tenantId, userId: user.id, createdAt: { gte: from, lte: to } },
-          select: { id: true },
-        });
-
-        const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
-        const totalOrders = orders.length;
-        const totalDiscounts = orders.filter((o) => Number(o.discountAmount) > 0).length;
-
-        return {
-          employeeId: user.id,
-          employeeName: `${user.firstName} ${user.lastName}`,
-          role: user.role.toLowerCase(),
-          branchName: null,
-          totalOrders,
-          totalRevenue,
-          avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
-          totalRefunds: returns.length,
-          refundRate: totalOrders > 0 ? parseFloat((returns.length / totalOrders * 100).toFixed(1)) : 0,
-          totalVoids: 0,
-          totalDiscounts,
-          discountRate: totalOrders > 0 ? parseFloat((totalDiscounts / totalOrders * 100).toFixed(1)) : 0,
-          suspiciousActivityCount: 0,
-          alerts: [],
-        };
-      }),
-    );
-
-    return results;
+    return rows.map((row) => ({
+      employeeId: row.employeeId,
+      employeeName: `${row.firstName} ${row.lastName}`,
+      role: row.role.toLowerCase(),
+      branchName: null,
+      totalOrders: row.totalOrders,
+      totalRevenue: row.totalRevenue,
+      avgOrderValue: row.totalOrders > 0 ? Math.round(row.totalRevenue / row.totalOrders) : 0,
+      totalRefunds: row.totalRefunds,
+      refundRate: row.totalOrders > 0
+        ? parseFloat((row.totalRefunds / row.totalOrders * 100).toFixed(1))
+        : 0,
+      totalVoids: 0,
+      totalDiscounts: row.totalDiscountOrders,
+      discountRate: row.totalOrders > 0
+        ? parseFloat((row.totalDiscountOrders / row.totalOrders * 100).toFixed(1))
+        : 0,
+      suspiciousActivityCount: 0,
+      alerts: [],
+    }));
   }
 
   // ─── EMPLOYEE PERFORMANCE ─────────────────────────────────────
@@ -270,40 +284,41 @@ export class EmployeesService {
       ? new Date(opts.fromDate)
       : (() => { const d = new Date(); d.setDate(d.getDate() - 7); return d; })();
     const to = opts.toDate ? new Date(opts.toDate) : new Date();
+    const dayCount = Math.round((to.getTime() - from.getTime()) / 86400000);
 
-    // Find users with excessive returns (>3 in period)
+    // Bitta groupBy query — N+1 ni bartaraf etadi
+    const returnGroups = await this.prisma.return.groupBy({
+      by: ['userId'],
+      where: { tenantId, createdAt: { gte: from, lte: to } },
+      _count: { id: true },
+    });
+
+    const suspicious = returnGroups.filter((r) => r._count.id >= 3);
+    if (suspicious.length === 0) return [];
+
+    const userIds = suspicious.map((r) => r.userId).filter((id): id is string => id !== null);
     const users = await this.prisma.user.findMany({
-      where: { tenantId, isActive: true },
+      where: { id: { in: userIds }, tenantId },
       select: { id: true, firstName: true, lastName: true },
     });
 
-    const alerts: {
-      id: string;
-      employeeId: string;
-      employeeName: string;
-      type: string;
-      description: string;
-      occurredAt: Date;
-      severity: string;
-    }[] = [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
 
-    for (const user of users) {
-      const returns = await this.prisma.return.count({
-        where: { tenantId, userId: user.id, createdAt: { gte: from, lte: to } },
-      });
-
-      if (returns >= 3) {
-        alerts.push({
-          id: `${user.id}-rapid-refunds`,
-          employeeId: user.id,
+    const alerts = suspicious
+      .filter((r) => r.userId !== null && userMap.has(r.userId as string))
+      .map((r) => {
+        const user = userMap.get(r.userId as string)!;
+        const count = r._count.id;
+        return {
+          id: `${r.userId}-rapid-refunds`,
+          employeeId: r.userId as string,
           employeeName: `${user.firstName} ${user.lastName}`,
           type: 'RAPID_REFUNDS',
-          description: `${returns} ta qaytarish ${Math.round((to.getTime() - from.getTime()) / 86400000)} kun ichida`,
+          description: `${count} ta qaytarish ${dayCount} kun ichida`,
           occurredAt: to,
-          severity: returns >= 5 ? 'high' : 'medium',
-        });
-      }
-    }
+          severity: count >= 5 ? 'high' : 'medium',
+        };
+      });
 
     if (opts.severity) {
       return alerts.filter((a) => a.severity === opts.severity);

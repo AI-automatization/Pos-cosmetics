@@ -13,19 +13,38 @@ export class CustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(tenantId: string, search?: string) {
-    return this.prisma.customer.findMany({
-      where: {
-        tenantId,
-        isActive: true,
-        ...(search && {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { phone: { contains: search } },
-          ],
-        }),
-      },
-      orderBy: { name: 'asc' },
-    });
+    const [customers, debtAggregates] = await Promise.all([
+      this.prisma.customer.findMany({
+        where: {
+          tenantId,
+          isActive: true,
+          ...(search && {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search } },
+            ],
+          }),
+        },
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.debtRecord.groupBy({
+        by: ['customerId'],
+        where: {
+          tenantId,
+          status: { in: ['ACTIVE', 'PARTIAL', 'OVERDUE'] },
+        },
+        _sum: { remaining: true },
+      }),
+    ]);
+
+    const debtMap = new Map(
+      debtAggregates.map((d) => [d.customerId, Number(d._sum.remaining ?? 0)]),
+    );
+
+    return customers.map((c) => ({
+      ...c,
+      debtBalance: debtMap.get(c.id) ?? 0,
+    }));
   }
 
   async findById(tenantId: string, id: string) {

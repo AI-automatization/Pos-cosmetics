@@ -51,6 +51,7 @@ export function useLogin() {
       try {
         const user = await authApi.me();
         queryClient.setQueryData(['auth', 'me'], user);
+        localStorage.setItem('user_id', user.id);
         setSessionCookie(user.role); // set role cookie for middleware routing
 
         if (user.role === 'WAREHOUSE') {
@@ -58,7 +59,7 @@ export function useLogin() {
         } else if (user.role === 'CASHIER') {
           router.push('/pos');
         } else if (user.role === 'MANAGER') {
-          router.push('/manager-dashboard');
+          router.push('/dashboard');
         } else {
           router.push('/dashboard');
         }
@@ -73,6 +74,12 @@ export function useLogin() {
   });
 }
 
+/** Returns true if current user can create/edit/delete (VIEWER cannot) */
+export function useCanEdit(): boolean {
+  const { data: user } = useCurrentUser();
+  return user?.role !== 'VIEWER';
+}
+
 export function useLogout() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -84,6 +91,7 @@ export function useLogout() {
       } finally {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_id');
         clearSessionCookie();
         queryClient.clear();
       }
@@ -95,6 +103,7 @@ export function useLogout() {
       // Even on error, clear local state and redirect
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_id');
       clearSessionCookie();
       router.push('/login');
     },

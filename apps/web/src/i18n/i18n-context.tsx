@@ -1,16 +1,9 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { type Locale, DEFAULT_LOCALE, translate, formatDate, formatLocalPrice } from './index';
 
 const LS_KEY = 'raos_locale';
-
-function loadLocale(): Locale {
-  if (typeof window === 'undefined') return DEFAULT_LOCALE;
-  const stored = localStorage.getItem(LS_KEY);
-  if (stored === 'uz' || stored === 'ru' || stored === 'en') return stored;
-  return DEFAULT_LOCALE;
-}
 
 interface I18nContextValue {
   locale: Locale;
@@ -29,7 +22,17 @@ const I18nContext = createContext<I18nContextValue>({
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(loadLocale);
+  // Always start with DEFAULT_LOCALE on server to avoid SSR/client hydration mismatch (#418)
+  // Sync from localStorage on client only after mount
+  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(LS_KEY);
+    if (stored === 'uz' || stored === 'ru' || stored === 'en') {
+      setLocaleState(stored);
+      document.documentElement.lang = stored;
+    }
+  }, []);
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);

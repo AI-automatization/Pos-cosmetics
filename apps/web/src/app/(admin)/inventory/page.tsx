@@ -60,7 +60,7 @@ export default function InventoryPage() {
   const { data: movements, isLoading: movLoading } = useMovementsWithUsers();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="h-full flex flex-col gap-6 overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -145,6 +145,7 @@ export default function InventoryPage() {
             <ErrorState compact onRetry={refetch} />
           ) : (
             <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50">
                   <tr>
@@ -159,8 +160,11 @@ export default function InventoryPage() {
                 <tbody className="divide-y divide-gray-100">
                   {!stock || stock.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-10 text-center text-gray-400">
-                        {search ? "Qidiruv bo'yicha natija topilmadi" : "Mahsulotlar yo'q"}
+                      <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                        <div className="flex flex-col items-center gap-2">
+                          <PackageOpen className="h-10 w-10 opacity-40" />
+                          <p className="text-sm">{search ? "Qidiruv bo'yicha natija topilmadi" : "Mahsulotlar yo'q"}</p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -197,6 +201,7 @@ export default function InventoryPage() {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </>
@@ -214,6 +219,7 @@ export default function InventoryPage() {
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50">
                   <tr>
@@ -279,6 +285,7 @@ export default function InventoryPage() {
                   })}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </>

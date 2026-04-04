@@ -164,7 +164,7 @@ export default function NasiyaPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="h-full flex flex-col gap-6 overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -268,6 +268,7 @@ export default function NasiyaPage() {
         <LoadingSkeleton variant="table" rows={6} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
@@ -284,9 +285,18 @@ export default function NasiyaPage() {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                    {search || tab !== 'all'
-                      ? 'Qidiruv bo\'yicha natija topilmadi'
-                      : 'Faol qarzlar yo\'q'}
+                    <div className="flex flex-col items-center gap-2">
+                      {search || tab !== 'all' ? (
+                        <Search className="h-10 w-10 opacity-40" />
+                      ) : (
+                        <CheckCircle className="h-10 w-10 opacity-40" />
+                      )}
+                      <p className="text-sm">
+                        {search || tab !== 'all'
+                          ? 'Qidiruv bo\'yicha natija topilmadi'
+                          : 'Faol qarzlar yo\'q'}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -312,7 +322,11 @@ export default function NasiyaPage() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-gray-900">
-                        {debt.orderNumber ?? `#${debt.orderId.slice(0, 8)}`}
+                        {debt.orderNumber
+                          ? `#${debt.orderNumber}`
+                          : debt.orderId
+                          ? `#${debt.orderId.slice(0, 8)}`
+                          : '—'}
                       </p>
                       <p className="text-xs text-gray-400">
                         {new Date(debt.createdAt).toLocaleDateString('uz-UZ')}
@@ -344,6 +358,7 @@ export default function NasiyaPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

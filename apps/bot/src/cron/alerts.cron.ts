@@ -5,6 +5,7 @@ import * as cron from 'node-cron';
 import { Bot } from 'grammy';
 import { config } from '../config';
 import prisma from '../prisma';
+import { logger } from '../logger';
 import { BotSettings, DEFAULT_SETTINGS } from '../services/auth.service';
 import { getLowStockItems, getExpiringItems, getRecentSuspiciousRefunds, getOverdueDebtSummary } from '../services/alert.service';
 import { formatLowStockAlert, formatExpiryAlert, formatRefundAlert, formatDebtSummaryAlert } from '../services/formatter';
@@ -49,7 +50,7 @@ async function sendToUser(bot: Bot, chatId: string, message: string): Promise<vo
   try {
     await bot.api.sendMessage(chatId, message, { parse_mode: 'MarkdownV2' });
   } catch (err) {
-    console.error(`[Cron] Failed to send to chatId=${chatId}:`, (err as Error).message);
+    logger.error('[Cron] Failed to send message', { chatId, error: (err as Error).message });
   }
 }
 
@@ -59,48 +60,48 @@ export function startCronJobs(bot: Bot): void {
 
   // ─── 1. Low stock — har soat ────────────────────────────────
   cron.schedule(config.lowStockCheckCron, async () => {
-    console.log('[Cron] Low stock check started');
+    logger.log('[Cron] Low stock check started');
     try {
       const owners = await getTenantOwners();
 
       for (const owner of owners) {
-        if (!owner.settings.lowStock) continue; // User o'chirgan
+        if (!owner.settings.lowStock) continue;
 
         const items = await getLowStockItems(owner.tenantId);
         if (items.length === 0) continue;
 
         await sendToUser(bot, owner.chatId, formatLowStockAlert(items));
-        console.log(`[Cron] Low stock → tenant=${owner.tenantId} items=${items.length}`);
+        logger.log('[Cron] Low stock alert sent', { tenantId: owner.tenantId, items: items.length });
       }
     } catch (err) {
-      console.error('[Cron] Low stock failed:', (err as Error).message);
+      logger.error('[Cron] Low stock failed', { error: (err as Error).message });
     }
   }, { timezone: 'Asia/Tashkent' });
 
   // ─── 2. Expiry — har kuni 08:00 ─────────────────────────────
   cron.schedule(config.expiryCheckCron, async () => {
-    console.log('[Cron] Expiry check started');
+    logger.log('[Cron] Expiry check started');
     try {
       const owners = await getTenantOwners();
 
       for (const owner of owners) {
-        if (!owner.settings.expiry) continue; // User o'chirgan
+        if (!owner.settings.expiry) continue;
 
         const days = owner.settings.expiryDays;
         const items = await getExpiringItems(days, owner.tenantId);
         if (items.length === 0) continue;
 
         await sendToUser(bot, owner.chatId, formatExpiryAlert(items));
-        console.log(`[Cron] Expiry → tenant=${owner.tenantId} items=${items.length} days=${days}`);
+        logger.log('[Cron] Expiry alert sent', { tenantId: owner.tenantId, items: items.length, days });
       }
     } catch (err) {
-      console.error('[Cron] Expiry failed:', (err as Error).message);
+      logger.error('[Cron] Expiry failed', { error: (err as Error).message });
     }
   }, { timezone: 'Asia/Tashkent' });
 
   // ─── 3. Overdue debts — har kuni 09:00 ─────────────────────
   cron.schedule(config.debtCheckCron, async () => {
-    console.log('[Cron] Debt check started');
+    logger.log('[Cron] Debt check started');
     try {
       const owners = await getTenantOwners();
 
@@ -109,10 +110,10 @@ export function startCronJobs(bot: Bot): void {
         if (rows.length === 0) continue;
 
         await sendToUser(bot, owner.chatId, formatDebtSummaryAlert(rows));
-        console.log(`[Cron] Debt alert → tenant=${owner.tenantId} count=${rows.length}`);
+        logger.log('[Cron] Debt alert sent', { tenantId: owner.tenantId, count: rows.length });
       }
     } catch (err) {
-      console.error('[Cron] Debt check failed:', (err as Error).message);
+      logger.error('[Cron] Debt check failed', { error: (err as Error).message });
     }
   }, { timezone: 'Asia/Tashkent' });
 
@@ -129,38 +130,39 @@ export function startCronJobs(bot: Bot): void {
           await sendToUser(bot, owner.chatId, formatRefundAlert(refund));
         }
         if (refunds.length > 0) {
-          console.log(`[Cron] Refund alert → tenant=${owner.tenantId} count=${refunds.length}`);
+          logger.log('[Cron] Refund alert sent', { tenantId: owner.tenantId, count: refunds.length });
         }
       }
     } catch (err) {
-      console.error('[Cron] Refund check failed:', (err as Error).message);
+      logger.error('[Cron] Refund check failed', { error: (err as Error).message });
     }
   }, { timezone: 'Asia/Tashkent' });
 
   // ─── 5. Kunlik savdo hisoboti — har kuni 20:00 ──────────────
   cron.schedule('0 20 * * *', async () => {
-    console.log('[Cron] Daily report started');
+    logger.log('[Cron] Daily report started');
     try {
       const owners = await getTenantOwners();
       const { getTodaySummary } = await import('../services/report.service');
       const { formatDailyReport } = await import('../services/formatter');
 
       for (const owner of owners) {
-        if (!owner.settings.dailyReport) continue; // User o'chirgan
+        if (!owner.settings.dailyReport) continue;
 
         const detail = await getTodaySummary(owner.tenantId);
         await sendToUser(bot, owner.chatId, formatDailyReport(detail));
-        console.log(`[Cron] Daily report → tenant=${owner.tenantId}`);
+        logger.log('[Cron] Daily report sent', { tenantId: owner.tenantId });
       }
     } catch (err) {
-      console.error('[Cron] Daily report failed:', (err as Error).message);
+      logger.error('[Cron] Daily report failed', { error: (err as Error).message });
     }
   }, { timezone: 'Asia/Tashkent' });
 
-  console.log('[Bot] Cron jobs registered:');
-  console.log(`  Low stock:  ${config.lowStockCheckCron} (per-tenant)`);
-  console.log(`  Expiry:     ${config.expiryCheckCron} (per-tenant)`);
-  console.log(`  Debts:      ${config.debtCheckCron} (per-tenant)`);
-  console.log('  Refunds:    */15 * * * * (per-tenant)');
-  console.log('  Daily:      0 20 * * * (per-tenant)');
+  logger.log('[Bot] Cron jobs registered', {
+    lowStock: config.lowStockCheckCron,
+    expiry:   config.expiryCheckCron,
+    debts:    config.debtCheckCron,
+    refunds:  '*/15 * * * *',
+    daily:    '0 20 * * *',
+  });
 }

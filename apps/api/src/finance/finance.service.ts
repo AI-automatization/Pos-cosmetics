@@ -1,55 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ExpenseCategory } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, IsNumber, Min } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CreateExpenseDto, ExpenseFilterDto } from './dto/expense.dto';
 
-export class CreateExpenseDto {
-  @ApiProperty({ enum: ExpenseCategory })
-  @IsEnum(ExpenseCategory)
-  category!: ExpenseCategory;
+export { CreateExpenseDto, ExpenseFilterDto };
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiProperty({ example: 500000 })
-  @IsNumber()
-  @Min(0)
-  amount!: number;
-
-  @ApiProperty({ example: '2026-02-28' })
-  @IsString()
-  date!: string;
-}
-
-export class ExpenseFilterDto {
-  @ApiPropertyOptional({ enum: ExpenseCategory })
-  @IsOptional()
-  @IsEnum(ExpenseCategory)
-  category?: ExpenseCategory;
-
-  @ApiPropertyOptional({ example: '2026-02-01' })
-  @IsOptional()
-  @IsString()
-  from?: string;
-
-  @ApiPropertyOptional({ example: '2026-02-28' })
-  @IsOptional()
-  @IsString()
-  to?: string;
-
-  @ApiPropertyOptional({ example: 1 })
-  @IsOptional()
-  @IsNumber()
-  page?: number;
-
-  @ApiPropertyOptional({ example: 20 })
-  @IsOptional()
-  @IsNumber()
-  limit?: number;
-}
+type LedgerRow = { account: string; type: string; total: number };
 
 @Injectable()
 export class FinanceService {
@@ -145,8 +100,6 @@ export class FinanceService {
   // ─── T-315: PROFIT & LOSS ────────────────────────────────────────────────
 
   async getPnl(tenantId: string, from: Date, to: Date) {
-    type LedgerRow = { account: string; type: string; total: number };
-
     const rows = await this.prisma.$queryRaw<LedgerRow[]>`
       SELECT
         jl.account,
@@ -201,8 +154,6 @@ export class FinanceService {
   // ─── T-315: BALANCE SHEET ────────────────────────────────────────────────
 
   async getBalanceSheet(tenantId: string, asOf: Date) {
-    type LedgerRow = { account: string; type: string; total: number };
-
     const rows = await this.prisma.$queryRaw<LedgerRow[]>`
       SELECT
         jl.account,

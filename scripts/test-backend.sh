@@ -3,7 +3,7 @@
 # Usage: bash scripts/test-backend.sh
 # Requires: API running on localhost:3003, test-login.json present
 
-BASE="http://localhost:3003/api/v1"
+BASE="${BASE:-http://localhost:3003/api/v1}"
 PASS=0
 FAIL=0
 
@@ -368,7 +368,7 @@ echo "=== MISC ==="
 check "GET /branches"              "$(req "$BASE/branches")"                                 "200"
 check "GET /audit-logs"            "$(req "$BASE/audit-logs")"                               "200"
 check "GET /notifications"         "$(req "$BASE/notifications")"                            "200"
-check "GET /expenses"              "$(req "$BASE/expenses")"                                 "200"
+check "GET /finance/expenses"      "$(req "$BASE/finance/expenses")"                         "200"
 check "GET /tax/report"            "$(req "$BASE/tax/report?from=2026-01-01&to=2026-03-31")" "200"
 check "GET /exchange-rate/latest"  "$(req "$BASE/exchange-rate/latest")"                     "200"
 check "GET /exchange-rate/history" "$(req "$BASE/exchange-rate/history")"                    "200"

@@ -80,6 +80,7 @@ export class SupportService {
 
     const message = await this.prisma.ticketMessage.create({
       data: {
+        tenantId,
         ticketId,
         senderType: isAdmin ? TicketSenderType.SUPPORT : TicketSenderType.USER,
         senderId: userId,

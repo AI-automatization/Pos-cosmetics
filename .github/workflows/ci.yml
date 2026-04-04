@@ -170,6 +170,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ─── JOB 5: Deploy API to Railway ───────────────────────────
+
   deploy-railway:
     name: Deploy API to Railway
     runs-on: ubuntu-latest
@@ -184,4 +185,7 @@ jobs:
       - name: Deploy API service
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }} --detach
+        run: |
+          # Root railway.toml points to web Dockerfile — override with API config
+          cp apps/api/railway.toml railway.toml
+          railway up --service ${{ secrets.RAILWAY_SERVICE_ID }} --detach

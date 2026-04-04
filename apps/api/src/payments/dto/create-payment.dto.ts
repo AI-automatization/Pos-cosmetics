@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaymentMethod } from '@prisma/client';
 
@@ -31,5 +31,8 @@ export class CreatePaymentIntentDto {
 
 export class SplitPaymentDto {
   @ApiProperty({ type: [CreatePaymentIntentDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePaymentIntentDto)
   payments!: CreatePaymentIntentDto[];
 }

@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   Patch,
-  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -13,43 +12,39 @@ import {
 import {
   ApiBearerAuth,
   ApiOperation,
-  ApiQuery,
   ApiTags,
   ApiBody,
 } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../../identity/guards/roles.guard';
 import { Roles } from '../decorators';
 import { FeatureFlagsService } from './feature-flags.service';
 import { CurrentUser } from '../decorators/current-user.decorator';
 
 @ApiTags('Feature Flags')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Roles('OWNER', 'ADMIN')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.OWNER, UserRole.ADMIN)
 @Controller('admin/feature-flags')
 export class FeatureFlagsController {
   constructor(private readonly flagsService: FeatureFlagsService) {}
 
   @Get()
   @ApiOperation({ summary: 'T-313: List feature flags for current tenant' })
-  @ApiQuery({ name: 'tenantId', required: false, description: 'Override tenant (super admin)' })
-  listFlags(
-    @CurrentUser('tenantId') tenantId: string,
-    @Query('tenantId') overrideTenantId?: string,
-  ) {
-    return this.flagsService.listFlags(overrideTenantId ?? tenantId);
+  listFlags(@CurrentUser('tenantId') tenantId: string) {
+    return this.flagsService.listFlags(tenantId);
   }
 
   @Patch(':key')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'T-313: Enable/disable a feature flag for a tenant' })
+  @ApiOperation({ summary: 'T-313: Enable/disable a feature flag for current tenant' })
   @ApiBody({
     schema: {
       type: 'object',
       required: ['enabled'],
       properties: {
         enabled: { type: 'boolean' },
-        global: { type: 'boolean', description: 'If true, applies to all tenants (OWNER only)' },
         description: { type: 'string' },
       },
     },
@@ -57,21 +52,18 @@ export class FeatureFlagsController {
   setFlag(
     @Param('key') key: string,
     @CurrentUser('tenantId') tenantId: string,
-    @Body() dto: { enabled: boolean; global?: boolean; description?: string },
+    @Body() dto: { enabled: boolean; description?: string },
   ) {
-    const targetTenantId = dto.global ? '' : tenantId;
-    return this.flagsService.setFlag(key, dto.enabled, targetTenantId, dto.description);
+    return this.flagsService.setFlag(key, dto.enabled, tenantId, dto.description);
   }
 
   @Delete(':key')
-  @ApiOperation({ summary: 'T-313: Delete a feature flag (reverts to default)' })
+  @ApiOperation({ summary: 'T-313: Delete a feature flag for current tenant (reverts to default)' })
   async deleteFlag(
     @Param('key') key: string,
     @CurrentUser('tenantId') tenantId: string,
-    @Query('global') global?: string,
   ) {
-    const targetTenantId = global === 'true' ? '' : tenantId;
-    await this.flagsService.deleteFlag(key, targetTenantId);
+    await this.flagsService.deleteFlag(key, tenantId);
     return { success: true };
   }
 }

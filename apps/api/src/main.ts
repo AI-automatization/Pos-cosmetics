@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { AppLoggerService } from './common/logger/logger.service';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
@@ -21,6 +22,7 @@ async function bootstrap() {
 
   // Security
   app.use(helmet());
+  app.use(cookieParser());
   // T-077: Response compression (gzip/brotli)
   app.use(compression());
   // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)

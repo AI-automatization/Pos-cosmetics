@@ -242,7 +242,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Transferni tasdiqlash (ADMIN/OWNER)' })
   approveTransfer(
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('userId') userId: string,
     @Param('id') transferId: string,
   ) {
     return this.transferService.approveTransfer(tenantId, transferId, userId);
@@ -252,7 +252,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Transferni jo\'natish (tovar chiqdi)' })
   shipTransfer(
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('userId') userId: string,
     @Param('id') transferId: string,
   ) {
     return this.transferService.shipTransfer(tenantId, transferId, userId);
@@ -262,7 +262,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Transferni qabul qilish (tovar keldi)' })
   receiveTransfer(
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('userId') userId: string,
     @Param('id') transferId: string,
   ) {
     return this.transferService.receiveTransfer(tenantId, transferId, userId);

@@ -1,10 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentTenant } from '../common/decorators';
 import { IdentityService } from './identity.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Identity')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('identity')
 export class IdentityInfoController {
   constructor(private readonly identityService: IdentityService) {}

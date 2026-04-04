@@ -1,6 +1,6 @@
 [build]
-# Root Directory = "/" (repo root) bo'lganda ham ishlaydi
-# Railway UI da: Root Directory = "/" qoldiring, Dockerfile Path = "apps/api/Dockerfile"
+# dockerfilePath is relative to the git repo root (build context = repo root).
+# Works for both: railway up (from apps/api/) and GitHub-connected deploy (Root Directory = /).
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]

@@ -1,3 +1,4 @@
+/* global module */
 /** @type {import('jest').Config} */
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],

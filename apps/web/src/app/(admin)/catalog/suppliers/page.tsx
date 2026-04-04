@@ -16,6 +16,7 @@ import {
   useUpdateSupplier,
   useDeleteSupplier,
 } from '@/hooks/catalog/useSuppliers';
+import { useCanEdit } from '@/hooks/auth/useAuth';
 import type { Supplier, CreateSupplierDto, UpdateSupplierDto } from '@/types/supplier';
 
 const supplierSchema = z.object({
@@ -142,6 +143,7 @@ export default function SuppliersPage() {
 
   const { data: suppliers = [], isLoading, isError, refetch } = useSuppliers();
   const deleteSupplier = useDeleteSupplier();
+  const canEdit = useCanEdit();
 
   const handleOpenCreate = () => {
     setEditing(null);
@@ -163,14 +165,16 @@ export default function SuppliersPage() {
       title="Yetkazib beruvchilar"
       subtitle={`Jami: ${suppliers.length} ta`}
       actions={
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          Qo&apos;shish
-        </button>
+        canEdit ? (
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Qo&apos;shish
+          </button>
+        ) : undefined
       }
     >
       {isLoading && <LoadingSkeleton variant="table" rows={5} />}
@@ -190,7 +194,7 @@ export default function SuppliersPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Kompaniya</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Telefon</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Manzil</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Amallar</th>
+                    {canEdit && <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Amallar</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -214,24 +218,26 @@ export default function SuppliersPage() {
                         ) : '—'}
                       </td>
                       <td className="px-4 py-3 text-gray-500">{s.address ?? '—'}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEdit(s)}
-                            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleting(s)}
-                            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
+                      {canEdit && (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(s)}
+                              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleting(s)}
+                              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
