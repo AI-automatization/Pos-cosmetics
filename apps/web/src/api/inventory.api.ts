@@ -112,4 +112,8 @@ export const inventoryApi = {
   cancelTransfer(id: string) {
     return apiClient.patch<StockTransfer>(`/inventory/transfers/${id}/cancel`).then((r) => r.data);
   },
+
+  sendRestockRequest(dto: { productId: string; productName: string; currentStock: number }) {
+    return apiClient.post<{ success: boolean; notifiedCount: number }>('/inventory/restock-request', dto).then((r) => r.data);
+  },
 };

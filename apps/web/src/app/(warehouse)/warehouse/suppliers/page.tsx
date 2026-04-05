@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Truck, Search, Phone, Building2, MapPin, CheckCircle2, XCircle } from 'lucide-react';
+import { Truck, Search, Phone, Building2, MapPin, CheckCircle2, XCircle, Plus } from 'lucide-react';
 import { useSuppliers } from '@/hooks/catalog/useSuppliers';
+import { SupplierModal } from '@/components/catalog/SupplierModal';
 import { cn } from '@/lib/utils';
 
 export default function WarehouseSuppliersPage() {
   const [search, setSearch] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+  const [showModal, setShowModal] = useState(false);
 
   const { data: suppliers = [], isLoading } = useSuppliers();
 
@@ -36,12 +38,22 @@ export default function WarehouseSuppliersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Yetkazib beruvchilar</h1>
           <p className="text-sm text-gray-500 mt-0.5">Barcha yetkazib beruvchilar ro'yxati</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-          <Truck className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-600">Jami:</span>
-          <span className="font-semibold text-gray-900">{suppliers.length}</span>
-          <span className="text-gray-400 mx-1">|</span>
-          <span className="text-green-600 font-semibold">{activeCount} faol</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+            <Truck className="h-4 w-4 text-gray-400" />
+            <span className="text-gray-600">Jami:</span>
+            <span className="font-semibold text-gray-900">{suppliers.length}</span>
+            <span className="text-gray-400 mx-1">|</span>
+            <span className="text-green-600 font-semibold">{activeCount} faol</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
+          >
+            <Plus className="h-4 w-4" />
+            Qo&apos;shish
+          </button>
         </div>
       </div>
 
@@ -90,9 +102,13 @@ export default function WarehouseSuppliersPage() {
               : "Yetkazib beruvchilar hali qo'shilmagan"}
           </p>
           {!search && filterActive === 'all' && (
-            <p className="text-xs text-gray-400 mt-1">
-              Yetkazib beruvchilarni Katalog → Yetkazib beruvchilar sahifasida qo'shing
-            </p>
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="mt-1 text-xs text-amber-600 hover:underline"
+            >
+              + Birinchi yetkazib beruvchini qo&apos;shing
+            </button>
           )}
         </div>
       ) : (
@@ -161,6 +177,8 @@ export default function WarehouseSuppliersPage() {
           ))}
         </div>
       )}
+
+      {showModal && <SupplierModal onClose={() => setShowModal(false)} />}
     </div>
   );
 }

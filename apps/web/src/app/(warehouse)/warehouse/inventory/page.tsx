@@ -1,41 +1,78 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Search, AlertTriangle, TrendingDown } from 'lucide-react';
-import { useStockLevels } from '@/hooks/warehouse/useWarehouseInvoices';
+import { Package, Search, AlertTriangle, TrendingDown, Plus } from 'lucide-react';
+import { useProducts, useCreateProduct } from '@/hooks/catalog/useProducts';
+import { useCategories } from '@/hooks/catalog/useCategories';
+import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
+import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
 import { cn } from '@/lib/utils';
 
 export default function WarehouseInventoryPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
+  const [showProductModal, setShowProductModal] = useState(false);
 
-  const { data: items = [], isLoading } = useStockLevels();
+  const { data: productsData, isLoading } = useProducts({ limit: 500, isActive: true });
+  const products = Array.isArray(productsData) ? productsData : (productsData?.items ?? []);
+  const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
+  const { data: categories } = useCategories();
 
-  const filtered = items.filter((item) => {
+  const handleCreateProduct = (formData: ProductFormData) => {
+    createProduct(
+      {
+        name: formData.name,
+        sku: formData.sku || undefined,
+        categoryId: formData.categoryId || undefined,
+        costPrice: formData.costPrice,
+        sellPrice: formData.sellPrice,
+        minStockLevel: formData.minStockLevel,
+        barcode: formData.barcode || undefined,
+        extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+        expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
+      },
+      { onSuccess: () => setShowProductModal(false) },
+    );
+  };
+
+  const filtered = products.filter((p) => {
+    const stock = Math.max(0, p.currentStock ?? 0);
     const matchSearch =
       !search ||
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      (item.sku ?? '').toLowerCase().includes(search.toLowerCase());
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.sku ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (p.barcode ?? '').includes(search);
 
     const matchFilter =
       filter === 'all' ||
-      (filter === 'low' && item.totalQty > 0 && item.minStockLevel != null && item.totalQty <= item.minStockLevel) ||
-      (filter === 'out' && item.totalQty <= 0);
+      (filter === 'low' && stock > 0 && p.minStockLevel > 0 && stock <= p.minStockLevel) ||
+      (filter === 'out' && stock <= 0);
 
     return matchSearch && matchFilter;
   });
 
-  const outCount = items.filter((i) => i.totalQty <= 0).length;
-  const lowCount = items.filter(
-    (i) => i.totalQty > 0 && i.minStockLevel != null && i.totalQty <= i.minStockLevel,
-  ).length;
+  const outCount = products.filter((p) => (p.currentStock ?? 0) <= 0).length;
+  const lowCount = products.filter((p) => {
+    const s = p.currentStock ?? 0;
+    return s > 0 && p.minStockLevel > 0 && s <= p.minStockLevel;
+  }).length;
 
   return (
     <div className="p-6 space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Inventar (Sklad)</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Hozirgi zaxira holati</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Inventar (Sklad)</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Hozirgi zaxira holati</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowProductModal(true)}
+          className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
+        >
+          <Plus className="h-4 w-4" />
+          Mahsulot qo&apos;shish
+        </button>
       </div>
 
       {/* Summary badges */}
@@ -43,7 +80,7 @@ export default function WarehouseInventoryPage() {
         <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
           <Package className="h-4 w-4 text-gray-400" />
           <span className="text-gray-600">Jami:</span>
-          <span className="font-semibold text-gray-900">{items.length}</span>
+          <span className="font-semibold text-gray-900">{products.length}</span>
         </div>
         {lowCount > 0 && (
           <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm">
@@ -110,25 +147,23 @@ export default function WarehouseInventoryPage() {
               <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500">
                 <th className="px-4 py-3 text-left font-medium">Mahsulot</th>
                 <th className="px-4 py-3 text-left font-medium">SKU</th>
-                <th className="px-4 py-3 text-left font-medium">Ombor</th>
+                <th className="px-4 py-3 text-left font-medium">Kategoriya</th>
                 <th className="px-4 py-3 text-right font-medium">Min. zaxira</th>
                 <th className="px-4 py-3 text-right font-medium">Hozirgi miqdor</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((item, idx) => {
-                const isOut = item.totalQty <= 0;
-                const isLow =
-                  !isOut &&
-                  item.minStockLevel != null &&
-                  item.totalQty <= item.minStockLevel;
+              {filtered.map((p) => {
+                const stock = Math.max(0, p.currentStock ?? 0);
+                const isOut = stock <= 0;
+                const isLow = !isOut && p.minStockLevel > 0 && stock <= p.minStockLevel;
                 return (
-                  <tr key={`${item.productId}-${idx}`} className="hover:bg-gray-50">
-                    <td className="px-4 py-2.5 font-medium text-gray-900">{item.name}</td>
-                    <td className="px-4 py-2.5 text-gray-400">{item.sku ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-gray-500">{item.warehouseName}</td>
+                  <tr key={p.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2.5 font-medium text-gray-900">{p.name}</td>
+                    <td className="px-4 py-2.5 text-gray-400">{p.sku ?? '—'}</td>
+                    <td className="px-4 py-2.5 text-gray-500">{p.category?.name ?? '—'}</td>
                     <td className="px-4 py-2.5 text-right text-gray-400">
-                      {item.minStockLevel ?? '—'}
+                      {p.minStockLevel > 0 ? p.minStockLevel : '—'}
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <span
@@ -146,7 +181,7 @@ export default function WarehouseInventoryPage() {
                             <AlertTriangle className="h-3 w-3" /> Tugagan
                           </>
                         ) : (
-                          `${item.totalQty} dona`
+                          `${stock} ${p.unit?.shortName ?? 'dona'}`
                         )}
                       </span>
                     </td>
@@ -157,6 +192,16 @@ export default function WarehouseInventoryPage() {
           </table>
         )}
       </div>
+
+      {showProductModal && (
+        <ProductForm
+          product={null}
+          categories={categories ?? []}
+          isPending={isCreatingProduct}
+          onSubmit={handleCreateProduct}
+          onClose={() => setShowProductModal(false)}
+        />
+      )}
     </div>
   );
 }

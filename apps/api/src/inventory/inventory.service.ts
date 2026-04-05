@@ -15,6 +15,8 @@ import {
 import { StockLevelService } from './stock-level.service';
 import { ExpiryTrackingService } from './expiry-tracking.service';
 import { StockValueService } from './stock-value.service';
+import { PushService } from '../notifications/push.service';
+import { RestockRequestDto } from './dto/restock-request.dto';
 
 @Injectable()
 export class InventoryService {
@@ -26,6 +28,7 @@ export class InventoryService {
     private readonly stockLevel: StockLevelService,
     private readonly expiryTracking: ExpiryTrackingService,
     private readonly stockValue: StockValueService,
+    private readonly push: PushService,
   ) {}
 
   // ─── Warehouses ──────────────────────────────────────────────────────────────
@@ -204,5 +207,49 @@ export class InventoryService {
       return created.id;
     }
     return first.id;
+  }
+
+  // ─── Restock Request ─────────────────────────────────────────────────────────
+
+  async sendRestockRequest(tenantId: string, requesterId: string, dto: RestockRequestDto) {
+    const [warehouseUsers, requester] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { tenantId, role: { in: ['WAREHOUSE', 'MANAGER'] }, isActive: true },
+        select: { id: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: requesterId },
+        select: { firstName: true, lastName: true },
+      }),
+    ]);
+
+    const requesterName = requester
+      ? `${requester.firstName} ${requester.lastName}`.trim()
+      : "Noma'lum";
+    const stockLabel = dto.currentStock === 0 ? 'Tugadi!' : `${dto.currentStock} ta qoldi`;
+    const title = '🚨 Kassirdan zapros';
+    const body = `${dto.productName}: ${stockLabel}. Kassir: ${requesterName}`;
+
+    let notifiedCount = 0;
+    for (const user of warehouseUsers) {
+      await this.push.sendToUser(tenantId, user.id, {
+        type: 'LOW_STOCK',
+        title,
+        body,
+        data: {
+          productId: dto.productId,
+          productName: dto.productName,
+          currentStock: String(dto.currentStock),
+          requesterName,
+        },
+      });
+      notifiedCount++;
+    }
+
+    this.logger.log(
+      `Restock zapros: product=${dto.productId}, stock=${dto.currentStock}, notified=${notifiedCount}`,
+      { tenantId },
+    );
+    return { success: true, notifiedCount };
   }
 }

@@ -88,6 +88,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
     container_name: raos-web
     restart: unless-stopped
     ports:
@@ -96,7 +98,6 @@ services:
       - NODE_ENV=production
       - HOSTNAME=0.0.0.0
       - PORT=3001
-      - NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
     depends_on:
       postgres:
         condition: service_healthy

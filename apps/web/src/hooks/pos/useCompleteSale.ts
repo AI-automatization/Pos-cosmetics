@@ -3,6 +3,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { salesApi } from '@/api/sales.api';
+import { inventoryApi } from '@/api/inventory.api';
 import { extractErrorMessage } from '@/lib/utils';
 import { usePOSStore } from '@/store/pos.store';
 import type { Order } from '@/types/sales';
@@ -46,6 +47,13 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
       });
     },
     onSuccess: (order) => {
+      // Snapshot items BEFORE clearing — currentStock saqlangan
+      const soldItems = items.map((i) => ({
+        productId: i.productId,
+        name: i.name,
+        remainingStock: (i.currentStock ?? 0) - i.quantity,
+      }));
+
       const { total } = totals();
       const cash =
         paymentMethod === 'cash'
@@ -71,6 +79,34 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
       } else {
         toast.success(`Sotuv #${order.orderNumber ?? order.id?.slice(0, 8) ?? '—'} yakunlandi!`);
       }
+
+      // Low-stock check — success toast dan keyin ko'rinsin
+      setTimeout(() => {
+        soldItems.forEach(({ productId, name, remainingStock }) => {
+          if (remainingStock <= 0) {
+            // Avtomatik zapros
+            inventoryApi.sendRestockRequest({ productId, productName: name, currentStock: 0 });
+            toast.error(`${name}: Tugadi! Omborchiga xabar yuborildi.`, { duration: 8000 });
+          } else if (remainingStock <= 5) {
+            // Manual zapros (button)
+            toast.warning(`${name}: ${remainingStock} ta qoldi`, {
+              duration: 15000,
+              action: {
+                label: 'Omborchiga yuborish',
+                onClick: () =>
+                  inventoryApi.sendRestockRequest({
+                    productId,
+                    productName: name,
+                    currentStock: remainingStock,
+                  }),
+              },
+            });
+          } else if (remainingStock <= 10) {
+            // Faqat warning
+            toast.warning(`${name}: ${remainingStock} ta qoldi`, { duration: 5000 });
+          }
+        });
+      }, 150);
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));

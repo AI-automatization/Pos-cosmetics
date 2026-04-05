@@ -9,8 +9,10 @@ import { WriteOffController } from './write-off.controller';
 import { StockLevelService } from './stock-level.service';
 import { ExpiryTrackingService } from './expiry-tracking.service';
 import { StockValueService } from './stock-value.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [InventoryController, WarehouseInvoiceController, WriteOffController],
   providers: [
     InventoryService,

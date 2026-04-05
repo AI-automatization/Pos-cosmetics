@@ -1,7 +1,9 @@
 'use client';
 
-import { Package, TrendingDown, AlertTriangle, ArrowUpDown, RefreshCw } from 'lucide-react';
+import { Package, TrendingDown, AlertTriangle, ArrowUpDown, RefreshCw, Bell, CheckCheck } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWarehouseDashboard, useWarehouseAlerts } from '@/hooks/warehouse/useWarehouseInvoices';
+import { notificationsApi } from '@/api/notifications.api';
 import { cn } from '@/lib/utils';
 
 function StatCard({
@@ -40,6 +42,23 @@ const TYPE_LABELS: Record<string, { label: string; color: string }> = {
 export default function WarehouseDashboardPage() {
   const { data, isLoading, refetch } = useWarehouseDashboard();
   const { data: alerts } = useWarehouseAlerts();
+  const queryClient = useQueryClient();
+
+  const { data: restockRequests = [] } = useQuery({
+    queryKey: ['restock-requests'],
+    queryFn: () => notificationsApi.getRestockRequests(),
+    refetchInterval: 30000,
+  });
+
+  const { mutate: markRead } = useMutation({
+    mutationFn: (id: string) => notificationsApi.markRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['restock-requests'] }),
+  });
+
+  const { mutate: markAllRead, isPending: markingAll } = useMutation({
+    mutationFn: () => notificationsApi.markAllRead(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['restock-requests'] }),
+  });
 
   if (isLoading) {
     return (
@@ -137,6 +156,52 @@ export default function WarehouseDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Kassirdan zaproslar */}
+      {restockRequests.length > 0 && (
+        <div className="bg-white rounded-xl border border-blue-200 overflow-hidden">
+          <div className="px-4 py-3 border-b border-blue-100 bg-blue-50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-blue-600" />
+              <h2 className="text-sm font-semibold text-blue-900">
+                Kassirdan zaproslar
+                <span className="ml-2 rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
+                  {restockRequests.length}
+                </span>
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => markAllRead()}
+              disabled={markingAll}
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              Barchasini o&apos;qildi
+            </button>
+          </div>
+          <ul className="divide-y divide-blue-50">
+            {restockRequests.map((req) => (
+              <li key={req.id} className="px-4 py-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{req.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{req.body}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {new Date(req.createdAt).toLocaleString('uz-UZ')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => markRead(req.id)}
+                  className="shrink-0 rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-500 hover:bg-gray-50"
+                >
+                  O&apos;qildi
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Expiring products */}
       {(data?.expiryItems.length ?? 0) > 0 && (

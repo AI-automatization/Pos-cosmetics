@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-03-23 (Jamoa qayta tashkil etildi)
+# Yangilangan: 2026-04-03
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -36,10 +36,9 @@
 
 ---
 
+_(hozircha yo'q)_
 
-
-
-
+---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
@@ -47,37 +46,13 @@
 
 ---
 
+_(hozircha yo'q)_
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA)
 # ══════════════════════════════════════════════════════════════
-
----
-
 
 ---
 
@@ -120,13 +95,6 @@
   - Создание аккаунта (имя, роль, email → invite flow T-329)
   - Деактивировать/активировать аккаунт
   - Статистика сотрудника: продажи за месяц, количество смен
-
----
-
----
-
----
-
 
 ---
 
@@ -182,14 +150,13 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **14** | **4** | **2** | **3** | **6** |
+| **9** | **0** | **0** | **3** | **6** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 1 | 0 | 0 | 5 | **6** |
-| [SECURITY] | 3 | 2 | 0 | 0 | **5** |
+| [BACKEND] | 0 | 0 | 0 | 5 | **5** |
 | [FRONTEND] | 0 | 0 | 0 | 0 | **0** |
 | [MOBILE] | 0 | 0 | 3 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
@@ -198,12 +165,11 @@
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 4 | 2 | 0 | 0 | **6** |
-| **AbdulazizYormatov** (Team Lead, Frontend) | 0 | 0 | 0 | 0 | **0** |
+| **Ibrat** (Full-Stack) | 0 | 0 | 0 | 0 | **0** |
 | **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
-> Yangilangan: 2026-03-30 — Security audit: T-346 (P0 biometric), T-347 (P1 refresh token), T-348 (P1 metrics), T-349 (P2 password/DTO). + Schema: T-339. Backend: T-340..T-344. PR: T-345.
+> Yangilangan: 2026-04-03 — T-337..T-340, T-306..T-310, T-314 bajarildi → Done.md ga ko'chirildi
 
 ---
 
@@ -231,21 +197,22 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
   employees/    — CRUD, performance, fired status
   audit/        — Logs
   reports/      — Daily, top products, Z-report, export CSV/Excel
-  finance/      — Expenses CRUD
-  admin/        — Super admin, metrics, DLQ
+  finance/      — Expenses CRUD + P&L + Balance Sheet + Cash Flow
+  admin/        — Super admin, metrics, DLQ, IP block, feature flags
   health/       — Live, ready, ping, system health
   realtime/     — WebSocket gateway (Socket.io)
-  sync/         — Basic sync controller (needs expansion -> T-302)
+  sync/         — Outbox pattern + conflict resolution (T-302)
   realestate/   — Module shell (empty controller -> T-140)
   loyalty/      — LoyaltyConfig, Account, Transaction
-  metrics/      — Prometheus endpoint
+  metrics/      — Prometheus endpoint (MetricsSecretGuard)
   events/       — Domain events, EventEmitter2
   common/       — Cache, cron, guards, pipes, filters, circuit breaker, currency
+  support/      — Tickets, messages, status (T-305)
 
   apps/worker/  — 6 queue workers (fiscal, notification, report, snapshot, export, sync)
-  apps/bot/     — Telegram bot (grammY) — commands, cron alerts
+  apps/bot/     — Telegram bot (grammY) — commands, cron alerts (5 cron)
 ```
 
 ---
 
-*docs/Tasks.md | RAOS Kosmetika POS | v3.0 | 2026-03-23 (jamoa qayta tashkil etildi)*
+*docs/Tasks.md | RAOS Kosmetika POS | v3.0 | 2026-04-03 (tozalandi)*

@@ -90,6 +90,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         sellPrice: Number(product.sellPrice),
         unit: (product.unit?.shortName ?? product.unit?.name ?? 'dona') as import('@/types/catalog').ProductUnit,
         isBundle: product.isBundle,
+        currentStock: Math.max(0, product.currentStock ?? 0),
       });
     },
     [addItem],
