@@ -25,6 +25,7 @@ export class CustomersService {
             ],
           }),
         },
+        include: { branch: { select: { id: true, name: true } } },
         orderBy: { name: 'asc' },
       }),
       this.prisma.debtRecord.groupBy({
@@ -57,7 +58,7 @@ export class CustomersService {
 
   async create(tenantId: string, dto: CreateCustomerDto) {
     const customer = await this.prisma.customer.create({
-      data: { tenantId, name: dto.name, phone: dto.phone, notes: dto.notes },
+      data: { tenantId, name: dto.name, phone: dto.phone, notes: dto.notes, branchId: dto.branchId ?? null },
     });
     this.logger.log(`Customer created: ${customer.id}`, { tenantId });
     return customer;
@@ -72,6 +73,7 @@ export class CustomersService {
         ...(dto.phone !== undefined && { phone: dto.phone }),
         ...(dto.notes !== undefined && { notes: dto.notes }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.branchId !== undefined && { branchId: dto.branchId || null }),
       },
     });
   }

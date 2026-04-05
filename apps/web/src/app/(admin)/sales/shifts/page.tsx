@@ -7,7 +7,16 @@ import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useShifts } from '@/hooks/sales/useShifts';
-import { formatPrice, formatDate, cn } from '@/lib/utils';
+import { formatPrice, formatDateTime, cn } from '@/lib/utils';
+
+function formatDuration(openedAt: string, closedAt?: string | null): string {
+  const end = closedAt ? new Date(closedAt) : new Date();
+  const totalMin = Math.floor((end.getTime() - new Date(openedAt).getTime()) / 60000);
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  if (hours === 0) return `${mins}d`;
+  return `${hours}s ${mins}d`;
+}
 import type { ShiftStatus } from '@/types/shift';
 
 const STATUS_CONFIG: Record<ShiftStatus, { label: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
@@ -86,6 +95,7 @@ export default function ShiftsPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Kassir</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Ochildi</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Yopildi</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Davomiylik</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Holat</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Sotuvlar</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Naqd</th>
@@ -97,10 +107,11 @@ export default function ShiftsPage() {
                   {shifts.map((s) => (
                     <tr key={s.id} className="transition hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-900">{s.cashierName}</td>
-                      <td className="px-4 py-3 text-gray-500">{formatDate(s.openedAt)}</td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {s.closedAt ? formatDate(s.closedAt) : '—'}
+                      <td className="px-4 py-3 text-gray-600 text-xs">{formatDateTime(s.openedAt)}</td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">
+                        {s.closedAt ? formatDateTime(s.closedAt) : <span className="text-green-600 font-medium">Ochiq</span>}
                       </td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{formatDuration(s.openedAt, s.closedAt)}</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={s.status} />
                       </td>

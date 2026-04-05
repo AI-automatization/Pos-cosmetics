@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Search, AlertTriangle, TrendingDown, Plus, Pencil } from 'lucide-react';
+import { Package, Search, AlertTriangle, TrendingDown, Plus, Pencil, Printer } from 'lucide-react';
 import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
+import { LabelPrintModal } from '@/app/(admin)/catalog/products/LabelPrintModal';
 import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
 import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ export default function WarehouseInventoryPage() {
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
   const [showProductModal, setShowProductModal] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [printProducts, setPrintProducts] = useState<Product[]>([]);
 
   const { data: productsData, isLoading } = useProducts({ limit: 500, isActive: true });
   const products = Array.isArray(productsData) ? productsData : (productsData?.items ?? []);
@@ -89,14 +91,25 @@ export default function WarehouseInventoryPage() {
           <h1 className="text-2xl font-bold text-gray-900">Inventar (Sklad)</h1>
           <p className="text-sm text-gray-500 mt-0.5">Hozirgi zaxira holati</p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowProductModal(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
-        >
-          <Plus className="h-4 w-4" />
-          Mahsulot qo&apos;shish
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPrintProducts(filtered)}
+            disabled={filtered.length === 0}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition disabled:opacity-40"
+          >
+            <Printer className="h-4 w-4" />
+            Yorliq chop
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowProductModal(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
+          >
+            <Plus className="h-4 w-4" />
+            Mahsulot qo&apos;shish
+          </button>
+        </div>
       </div>
 
       {/* Summary badges */}
@@ -245,6 +258,13 @@ export default function WarehouseInventoryPage() {
           isPending={isUpdatingProduct}
           onSubmit={handleUpdateProduct}
           onClose={() => setEditProduct(null)}
+        />
+      )}
+
+      {printProducts.length > 0 && (
+        <LabelPrintModal
+          products={printProducts}
+          onClose={() => setPrintProducts([])}
         />
       )}
     </div>

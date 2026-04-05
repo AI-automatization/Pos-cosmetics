@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 import { IsUzPhone } from '../../common/pipes';
 
 export class CreateCustomerDto {
@@ -17,6 +17,11 @@ export class CreateCustomerDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({ description: 'Branch ID' })
+  @IsOptional()
+  @IsUUID()
+  branchId?: string;
 }
 
 export class UpdateCustomerDto {
@@ -40,4 +45,9 @@ export class UpdateCustomerDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  branchId?: string;
 }

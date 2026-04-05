@@ -50,6 +50,7 @@ model Tenant {
   telegramLinkTokens  TelegramLinkToken[]
   settings            TenantSettings?
   priceChanges        PriceChange[]
+  tasks               Task[]
 
   @@map("tenants")
 }
@@ -103,6 +104,7 @@ model Branch {
 
   tenant            Tenant          @relation(fields: [tenantId], references: [id])
   users             User[]
+  customers         Customer[]
   shifts            Shift[]
   orders            Order[]
   warehouses        Warehouse[]
@@ -600,10 +602,12 @@ model Customer {
   notes          String?
   isActive       Boolean  @default(true) @map("is_active")
   telegramChatId String?  @map("telegram_chat_id")
+  branchId       String?  @map("branch_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   tenant              Tenant              @relation(fields: [tenantId], references: [id])
+  branch              Branch?             @relation(fields: [branchId], references: [id])
   orders              Order[]
   debtRecords         DebtRecord[]
   loyaltyAccount      LoyaltyAccount?
@@ -1505,4 +1509,33 @@ model TicketMessage {
   @@index([tenantId, ticketId])
   @@index([ticketId])
   @@map("ticket_messages")
+}
+
+// ============================================
+// TASKS MODULE
+// ============================================
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  tenantId    String     @map("tenant_id")
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  assigneeId  String?    @map("assignee_id")
+  dueDate     DateTime?  @map("due_date")
+  createdById String     @map("created_by_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  tenant      Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("tasks")
 }

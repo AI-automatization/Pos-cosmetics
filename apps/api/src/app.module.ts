@@ -33,6 +33,7 @@ import { MetricsModule } from './metrics/metrics.module';
 import { SyncModule } from './sync/sync.module';
 import { SupportModule } from './support/support.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { TasksModule } from './tasks/tasks.module';
 import { QueueModule } from './common/queue/queue.module';
 import { AppCacheModule } from './common/cache/cache.module';
 import { CronModule } from './common/cron/cron.module';
@@ -88,6 +89,7 @@ import { UploadModule } from './upload/upload.module';
     UploadModule,
     FeatureFlagsModule,
     SupportModule,
+    TasksModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)

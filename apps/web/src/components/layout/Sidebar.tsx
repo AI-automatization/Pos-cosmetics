@@ -21,10 +21,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  LogOut,
+  ClipboardList,
 } from 'lucide-react';
 import { useState, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { useCurrentUser } from '@/hooks/auth/useAuth';
+import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
 import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Types ─── */
@@ -152,6 +154,12 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Hisobot yaratish', tKey: 'nav.reportBuilder', href: '/reports/builder' },
         ],
       },
+    ],
+  },
+  {
+    title: 'Boshqaruv',
+    items: [
+      { label: 'Topshiriqlar', tKey: 'nav.tasks', href: '/tasks', icon: ClipboardList, roles: ['OWNER', 'ADMIN', 'MANAGER'] },
     ],
   },
   {
@@ -343,6 +351,7 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const { data: user, isLoading } = useCurrentUser();
+  const { mutate: logout, isPending: loggingOut } = useLogout();
   const sections = getNavSections(user?.role);
 
   return (
@@ -392,6 +401,23 @@ function SidebarContent({
           ))}
         </nav>
       )}
+
+      {/* Logout (visible always) */}
+      <div className="border-t border-gray-200 p-2">
+        <button
+          type="button"
+          onClick={() => logout()}
+          disabled={loggingOut}
+          title="Chiqish"
+          className={cn(
+            'flex w-full items-center rounded-lg px-3 py-2 text-sm text-red-500 transition hover:bg-red-50 disabled:opacity-50',
+            collapsed ? 'justify-center' : 'gap-2',
+          )}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>{loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}</span>}
+        </button>
+      </div>
 
       {/* Collapse toggle (desktop only) */}
       <div className="hidden border-t border-gray-200 p-2 md:block">

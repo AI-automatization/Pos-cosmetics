@@ -137,6 +137,7 @@ export default function CustomersPage() {
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Xaridor</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Telefon</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600">Filial</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-600">Jami qarz</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-600">Limit</th>
                 <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
@@ -147,7 +148,7 @@ export default function CustomersPage() {
             <tbody className="divide-y divide-gray-100">
               {!customers || customers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
                     <UserCircle className="mx-auto mb-2 h-8 w-8 text-gray-300" />
                     {search ? 'Qidiruv bo\'yicha natija topilmadi' : 'Xaridorlar yo\'q'}
                   </td>
@@ -179,6 +180,9 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-gray-600">
                       +{customer.phone}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-500">
+                      {customer.branch?.name ?? '—'}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
