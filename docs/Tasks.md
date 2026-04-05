@@ -46,7 +46,7 @@ _(hozircha yo'q)_
 
 ---
 
-## T-335 | P1 | [FRONTEND] | Warehouse Low-Stock sahifasi yangi mahsulotlarni ko'rsatmaydi
+## ~~T-335~~ | ✅ DONE | Warehouse Low-Stock sahifasi yangi mahsulotlarni ko'rsatmaydi
 
 - **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
@@ -56,7 +56,7 @@ _(hozircha yo'q)_
 
 ---
 
-## T-336 | P1 | [FRONTEND] | Warehouse Suppliers — Edit/Delete funksiyasi yo'q
+## ~~T-336~~ | ✅ DONE | Warehouse Suppliers — Edit/Delete funksiyasi yo'q
 
 - **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
@@ -66,7 +66,7 @@ _(hozircha yo'q)_
 
 ---
 
-## T-337 | P1 | [FRONTEND] | Warehouse Inventory — Mahsulot tahrirlash yo'q
+## ~~T-337~~ | ✅ DONE | Warehouse Inventory — Mahsulot tahrirlash yo'q
 
 - **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
@@ -82,7 +82,7 @@ _(hozircha yo'q)_
 
 ---
 
-## T-338 | P2 | [FRONTEND] | Warehouse Nakladnoy — Detail sahifasi yo'q
+## ~~T-338~~ | ✅ DONE | Warehouse Nakladnoy — Detail sahifasi yo'q
 
 - **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
@@ -216,7 +216,7 @@ _(hozircha yo'q)_
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **16** | **0** | **3** | **7** | **6** |
+| **12** | **0** | **0** | **6** | **6** |
 
 ### Kategoriya bo'yicha
 
