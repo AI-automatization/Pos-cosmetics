@@ -1,17 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Truck, Search, Phone, Building2, MapPin, CheckCircle2, XCircle, Plus } from 'lucide-react';
-import { useSuppliers } from '@/hooks/catalog/useSuppliers';
+import { Truck, Search, Phone, Building2, MapPin, CheckCircle2, XCircle, Plus, Pencil, Trash2 } from 'lucide-react';
+import { useSuppliers, useDeleteSupplier } from '@/hooks/catalog/useSuppliers';
 import { SupplierModal } from '@/components/catalog/SupplierModal';
+import type { Supplier } from '@/types/supplier';
 import { cn } from '@/lib/utils';
 
 export default function WarehouseSuppliersPage() {
   const [search, setSearch] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
   const [showModal, setShowModal] = useState(false);
+  const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
 
   const { data: suppliers = [], isLoading } = useSuppliers();
+  const { mutate: deleteSupplier } = useDeleteSupplier();
 
   const filtered = suppliers.filter((s) => {
     const matchSearch =
@@ -125,7 +128,7 @@ export default function WarehouseSuppliersPage() {
             >
               {/* Sarlavha */}
               <div className="flex items-start justify-between gap-2">
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-semibold text-gray-900 leading-tight">{supplier.name}</h3>
                   {supplier.company && (
                     <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
@@ -134,11 +137,33 @@ export default function WarehouseSuppliersPage() {
                     </div>
                   )}
                 </div>
-                {supplier.isActive ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-gray-300 shrink-0 mt-0.5" />
-                )}
+                <div className="flex items-center gap-1 shrink-0">
+                  {supplier.isActive ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-gray-300 mt-0.5" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setEditSupplier(supplier)}
+                    className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
+                    title="Tahrirlash"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`"${supplier.name}"ni o'chirishni tasdiqlaysizmi?`)) {
+                        deleteSupplier(supplier.id);
+                      }
+                    }}
+                    className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 transition"
+                    title="O'chirish"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* Kontakt */}
@@ -179,6 +204,9 @@ export default function WarehouseSuppliersPage() {
       )}
 
       {showModal && <SupplierModal onClose={() => setShowModal(false)} />}
+      {editSupplier && (
+        <SupplierModal supplier={editSupplier} onClose={() => setEditSupplier(null)} />
+      )}
     </div>
   );
 }

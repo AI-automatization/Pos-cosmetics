@@ -1,21 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Search, AlertTriangle, TrendingDown, Plus } from 'lucide-react';
-import { useProducts, useCreateProduct } from '@/hooks/catalog/useProducts';
+import { Package, Search, AlertTriangle, TrendingDown, Plus, Pencil } from 'lucide-react';
+import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
 import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
+import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
 
 export default function WarehouseInventoryPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
   const [showProductModal, setShowProductModal] = useState(false);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
 
   const { data: productsData, isLoading } = useProducts({ limit: 500, isActive: true });
   const products = Array.isArray(productsData) ? productsData : (productsData?.items ?? []);
   const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
+  const { mutate: updateProduct, isPending: isUpdatingProduct } = useUpdateProduct();
   const { data: categories } = useCategories();
 
   const handleCreateProduct = (formData: ProductFormData) => {
@@ -32,6 +35,27 @@ export default function WarehouseInventoryPage() {
         expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
       },
       { onSuccess: () => setShowProductModal(false) },
+    );
+  };
+
+  const handleUpdateProduct = (formData: ProductFormData) => {
+    if (!editProduct) return;
+    updateProduct(
+      {
+        id: editProduct.id,
+        dto: {
+          name: formData.name,
+          sku: formData.sku || undefined,
+          categoryId: formData.categoryId || undefined,
+          costPrice: formData.costPrice,
+          sellPrice: formData.sellPrice,
+          minStockLevel: formData.minStockLevel,
+          barcode: formData.barcode || undefined,
+          extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+          expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
+        },
+      },
+      { onSuccess: () => setEditProduct(null) },
     );
   };
 
@@ -150,6 +174,7 @@ export default function WarehouseInventoryPage() {
                 <th className="px-4 py-3 text-left font-medium">Kategoriya</th>
                 <th className="px-4 py-3 text-right font-medium">Min. zaxira</th>
                 <th className="px-4 py-3 text-right font-medium">Hozirgi miqdor</th>
+                <th className="px-4 py-3 text-right font-medium"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -158,7 +183,7 @@ export default function WarehouseInventoryPage() {
                 const isOut = stock <= 0;
                 const isLow = !isOut && p.minStockLevel > 0 && stock <= p.minStockLevel;
                 return (
-                  <tr key={p.id} className="hover:bg-gray-50">
+                  <tr key={p.id} className="hover:bg-gray-50 group">
                     <td className="px-4 py-2.5 font-medium text-gray-900">{p.name}</td>
                     <td className="px-4 py-2.5 text-gray-400">{p.sku ?? '—'}</td>
                     <td className="px-4 py-2.5 text-gray-500">{p.category?.name ?? '—'}</td>
@@ -185,6 +210,16 @@ export default function WarehouseInventoryPage() {
                         )}
                       </span>
                     </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setEditProduct(p)}
+                        className="opacity-0 group-hover:opacity-100 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
+                        title="Tahrirlash"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -200,6 +235,16 @@ export default function WarehouseInventoryPage() {
           isPending={isCreatingProduct}
           onSubmit={handleCreateProduct}
           onClose={() => setShowProductModal(false)}
+        />
+      )}
+
+      {editProduct && (
+        <ProductForm
+          product={editProduct}
+          categories={categories ?? []}
+          isPending={isUpdatingProduct}
+          onSubmit={handleUpdateProduct}
+          onClose={() => setEditProduct(null)}
         />
       )}
     </div>

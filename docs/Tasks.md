@@ -46,13 +46,79 @@ _(hozircha yo'q)_
 
 ---
 
-_(hozircha yo'q)_
+## T-335 | P1 | [FRONTEND] | Warehouse Low-Stock sahifasi yangi mahsulotlarni ko'rsatmaydi
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/low-stock/page.tsx`
+- **Muammo:** `useStockLevels()` movement-based API ishlatadi — stock harakati bo'lmagan (yangi qo'shilgan) mahsulotlar ko'rinmaydi.
+- **Kutilgan:** `useProducts()` ga o'tish, client-side `currentStock <= minStockLevel` filter qo'llash.
+
+---
+
+## T-336 | P1 | [FRONTEND] | Warehouse Suppliers — Edit/Delete funksiyasi yo'q
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/suppliers/page.tsx`
+- **Muammo:** Faqat "+ Qo'shish" bor. Mavjud supplierni tahrirlash yoki o'chirish mumkin emas.
+- **Kutilgan:** Har supplier kartaga edit (qalam) tugmasi + `SupplierModal supplier={item}` va delete (trash) tugmasi.
+
+---
+
+## T-337 | P1 | [FRONTEND] | Warehouse Inventory — Mahsulot tahrirlash yo'q
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/inventory/page.tsx`
+- **Muammo:** Faqat yangi mahsulot qo'shish bor. Mavjud mahsulotning narxini, minStockLevel ni o'zgartirish mumkin emas.
+- **Kutilgan:** Har qatordagi mahsulotga edit tugmasi + `ProductForm product={p} categories={...}` modal.
 
 ---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA)
 # ══════════════════════════════════════════════════════════════
+
+---
+
+## T-338 | P2 | [FRONTEND] | Warehouse Nakladnoy — Detail sahifasi yo'q
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/invoices/[id]/page.tsx` (yangi)
+- **Muammo:** Nakladnoylar ro'yxatidan bitta nakladnoyni ochib tafsilotlarini (mahsulotlar, narxlar, supplier) ko'rish mumkin emas.
+- **Kutilgan:** `GET /warehouse/invoices/:id` endpointidan ma'lumot olib ko'rsatish.
+
+---
+
+## T-339 | P2 | [BACKEND] | Demo Seed — Low-stock mahsulot qo'shish (POS toast test uchun)
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/prisma/seed.ts`
+- **Muammo:** Demo datada barcha mahsulotlar 130-230 dona. Low-stock toast ni ko'rsatish uchun 120+ dona sotish kerak — bu real test emas.
+- **Kutilgan:** Seed ga 1 mahsulot: `currentStock=7, minStockLevel=10` — POS da sotib toast ko'rsatish mumkin bo'lsin.
+
+---
+
+## T-340 | P2 | [FRONTEND] | Warehouse Dashboard — Yangi zapros kelganda signal
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx`
+- **Muammo:** Yangi kassir zaprosi 30 soniyada ko'rinadi, lekin hech qanday signal yo'q (sound/badge).
+- **Kutilgan:** Yangi zapros soni oshganda browser Notification API yoki audio beep.
+
+---
+
+## T-341 | P2 | [FRONTEND] | POS — Chek print / PDF yuklab olish
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(pos)/pos/ReceiptPreview.tsx`
+- **Muammo:** ReceiptPreview ko'rsatadi, lekin print qilish yoki PDF yuklab olish yo'q.
+- **Kutilgan:** "Chop etish" tugmasi (window.print yoki PDF blob).
 
 ---
 
@@ -150,7 +216,7 @@ _(hozircha yo'q)_
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **9** | **0** | **0** | **3** | **6** |
+| **16** | **0** | **3** | **7** | **6** |
 
 ### Kategoriya bo'yicha
 
