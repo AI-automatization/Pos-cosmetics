@@ -118,7 +118,11 @@ export default function WarehouseInvoicesPage() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filtered.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={inv.id}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => window.location.href = `/warehouse/invoices/${inv.id}`}
+                  >
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {inv.invoiceNumber ?? `#${inv.id.slice(0, 8)}`}
                     </td>

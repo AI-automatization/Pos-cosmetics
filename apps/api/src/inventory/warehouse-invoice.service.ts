@@ -141,9 +141,10 @@ export class WarehouseInvoiceService {
       include: {
         items: {
           include: {
-            invoice: false,
+            product: { select: { name: true, sku: true, unit: { select: { shortName: true } } } },
           },
         },
+        supplier: { select: { id: true, name: true, phone: true, company: true } },
       },
     });
     if (!invoice) throw new NotFoundException('Nakladnoy topilmadi');
