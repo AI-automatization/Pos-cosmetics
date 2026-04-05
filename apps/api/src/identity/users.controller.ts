@@ -34,16 +34,19 @@ export class UsersController {
   @ApiOperation({ summary: 'List tenant users (paginated)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'branchId', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Paginated users list' })
   async findAll(
     @CurrentTenant() tenantId: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('branchId') branchId?: string,
   ) {
     return this.identityService.findAllUsers(
       tenantId,
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 20,
+      branchId,
     );
   }
 

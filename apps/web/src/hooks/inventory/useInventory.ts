@@ -106,7 +106,7 @@ export function useMovementsWithUsers(productId?: string) {
       const userMap = new Map(
         users.map((u) => [
           u.id,
-          [u.firstName, u.lastName].filter(Boolean).join(' ') || u.name || u.email || u.id,
+          [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || u.id,
         ]),
       );
       return movements

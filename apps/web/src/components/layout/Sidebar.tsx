@@ -56,7 +56,7 @@ interface NavSection {
 const ALL: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
 const NO_CASHIER: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'];
 const STAFF: Role[] = ['ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
-const ADMIN_ONLY: Role[] = ['ADMIN'];
+const ADMIN_ONLY: Role[] = ['OWNER', 'ADMIN'];
 
 const NAV_SECTIONS: NavSection[] = [
   {
@@ -163,6 +163,7 @@ const NAV_SECTIONS: NavSection[] = [
         roles: ADMIN_ONLY,
         children: [
           { label: 'Foydalanuvchilar', tKey: 'nav.users', href: '/settings/users' },
+          { label: 'Filiallar', tKey: 'nav.branches', href: '/settings/branches' },
           { label: 'Printer', tKey: 'nav.printer', href: '/settings/printer' },
           { label: 'Audit log', tKey: 'nav.auditLog', href: '/settings/audit-log' },
           { label: 'Hisob va tarif', tKey: 'nav.billing', href: '/settings/billing' },

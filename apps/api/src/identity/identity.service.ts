@@ -412,6 +412,7 @@ export class IdentityService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         role: dto.role,
+        branchId: dto.branchId ?? null,
       },
       select: {
         id: true,
@@ -422,6 +423,8 @@ export class IdentityService {
         role: true,
         isActive: true,
         createdAt: true,
+        branchId: true,
+        branch: { select: { id: true, name: true } },
       },
     });
 
@@ -463,6 +466,8 @@ export class IdentityService {
     if (dto.firstName !== undefined) data.firstName = dto.firstName;
     if (dto.lastName !== undefined) data.lastName = dto.lastName;
     if (dto.role !== undefined) data.role = dto.role;
+    if (dto.branchId !== undefined) data.branchId = dto.branchId || null;
+    if (dto.isActive !== undefined) data.isActive = dto.isActive;
     if (dto.password) {
       data.passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     }
@@ -480,6 +485,8 @@ export class IdentityService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        branchId: true,
+        branch: { select: { id: true, name: true } },
       },
     });
 
@@ -537,12 +544,14 @@ export class IdentityService {
     tenantId: string,
     page = 1,
     limit = 20,
+    branchId?: string,
   ) {
     const skip = (page - 1) * limit;
+    const where = { tenantId, ...(branchId ? { branchId } : {}) };
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
-        where: { tenantId },
+        where,
         select: {
           id: true,
           email: true,
@@ -551,12 +560,14 @@ export class IdentityService {
           role: true,
           isActive: true,
           createdAt: true,
+          branchId: true,
+          branch: { select: { id: true, name: true } },
         },
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.user.count({ where: { tenantId } }),
+      this.prisma.user.count({ where }),
     ]);
 
     return {
@@ -583,6 +594,8 @@ export class IdentityService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        branchId: true,
+        branch: { select: { id: true, name: true } },
       },
     });
 

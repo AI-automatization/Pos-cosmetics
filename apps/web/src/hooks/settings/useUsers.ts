@@ -7,10 +7,10 @@ import type { CreateUserDto, UpdateUserDto } from '@/types/user';
 
 export const USERS_KEY = 'users';
 
-export function useUsers() {
+export function useUsers(branchId?: string) {
   return useQuery({
-    queryKey: [USERS_KEY],
-    queryFn: () => usersApi.listUsers(),
+    queryKey: [USERS_KEY, branchId],
+    queryFn: () => usersApi.listUsers(branchId),
     staleTime: 60_000,
   });
 }

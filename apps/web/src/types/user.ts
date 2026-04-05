@@ -1,11 +1,9 @@
 // User & Roles domain types
 
-export type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'CASHIER' | 'VIEWER';
+export type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'WAREHOUSE' | 'CASHIER' | 'VIEWER';
 
 export interface User {
   id: string;
-  // B-014 fix: backend returns firstName+lastName, name is a legacy alias
-  name?: string;
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -15,16 +13,25 @@ export interface User {
   lastLogin?: string | null;
   createdAt?: string;
   tenantId?: string;
+  branchId?: string | null;
+  branch?: { id: string; name: string } | null;
 }
 
 export interface CreateUserDto {
-  name: string;
-  phone: string;
+  email: string;
+  firstName: string;
+  lastName: string;
   password: string;
   role: UserRole;
+  branchId?: string;
 }
 
-export type UpdateUserDto = Partial<Omit<CreateUserDto, 'password'>> & {
+export type UpdateUserDto = {
+  firstName?: string;
+  lastName?: string;
+  password?: string;
+  role?: UserRole;
+  branchId?: string;
   isActive?: boolean;
 };
 
@@ -32,8 +39,9 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   OWNER: 'Egasi',
   ADMIN: 'Admin',
   MANAGER: 'Menejer',
+  WAREHOUSE: 'Omborchi',
   CASHIER: 'Kassir',
   VIEWER: "Ko'ruvchi",
 };
 
-export const ROLE_ORDER: UserRole[] = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'];
+export const ROLE_ORDER: UserRole[] = ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER', 'VIEWER'];
