@@ -138,17 +138,34 @@ export class WarehouseInvoiceService {
   async getInvoice(tenantId: string, invoiceId: string) {
     const invoice = await this.prisma.warehouseInvoice.findFirst({
       where: { id: invoiceId, tenantId },
-      include: {
-        items: {
-          include: {
-            product: { select: { name: true, sku: true, unit: { select: { shortName: true } } } },
-          },
-        },
-        supplier: { select: { id: true, name: true, phone: true, company: true } },
-      },
+      include: { items: true },
     });
     if (!invoice) throw new NotFoundException('Nakladnoy topilmadi');
-    return invoice;
+
+    const productIds = invoice.items.map((i) => i.productId);
+    const [products, supplier] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { id: { in: productIds } },
+        select: { id: true, name: true, sku: true, unit: { select: { shortName: true } } },
+      }),
+      invoice.supplierId
+        ? this.prisma.supplier.findFirst({
+            where: { id: invoice.supplierId },
+            select: { id: true, name: true, phone: true, company: true },
+          })
+        : null,
+    ]);
+
+    const productMap = Object.fromEntries(products.map((p) => [p.id, p]));
+
+    return {
+      ...invoice,
+      supplier,
+      items: invoice.items.map((item) => ({
+        ...item,
+        product: productMap[item.productId] ?? null,
+      })),
+    };
   }
 
   // ─── POST /inventory/write-off ────────────────────────────────────────────
