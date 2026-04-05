@@ -4,17 +4,23 @@ import { useState } from 'react';
 import { Truck, Search, Phone, Building2, MapPin, CheckCircle2, XCircle, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useSuppliers, useDeleteSupplier } from '@/hooks/catalog/useSuppliers';
 import { SupplierModal } from '@/components/catalog/SupplierModal';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useCurrentUser } from '@/hooks/auth/useAuth';
 import type { Supplier } from '@/types/supplier';
 import { cn } from '@/lib/utils';
 
 export default function WarehouseSuppliersPage() {
+  const { data: currentUser } = useCurrentUser();
+  // Yuklanguncha ko'rsatish; barcha rollar uchun ruxsat
+  const canEdit = !currentUser?.role || ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE'].includes(currentUser.role);
   const [search, setSearch] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
   const [showModal, setShowModal] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
 
   const { data: suppliers = [], isLoading } = useSuppliers();
-  const { mutate: deleteSupplier } = useDeleteSupplier();
+  const { mutate: deleteSupplier, isPending: isDeleting } = useDeleteSupplier();
 
   const filtered = suppliers.filter((s) => {
     const matchSearch =
@@ -49,14 +55,16 @@ export default function WarehouseSuppliersPage() {
             <span className="text-gray-400 mx-1">|</span>
             <span className="text-green-600 font-semibold">{activeCount} faol</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
-          >
-            <Plus className="h-4 w-4" />
-            Qo&apos;shish
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
+            >
+              <Plus className="h-4 w-4" />
+              Qo&apos;shish
+            </button>
+          )}
         </div>
       </div>
 
@@ -143,26 +151,26 @@ export default function WarehouseSuppliersPage() {
                   ) : (
                     <XCircle className="h-4 w-4 text-gray-300 mt-0.5" />
                   )}
-                  <button
-                    type="button"
-                    onClick={() => setEditSupplier(supplier)}
-                    className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
-                    title="Tahrirlash"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm(`"${supplier.name}"ni o'chirishni tasdiqlaysizmi?`)) {
-                        deleteSupplier(supplier.id);
-                      }
-                    }}
-                    className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 transition"
-                    title="O'chirish"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  {canEdit && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setEditSupplier(supplier)}
+                        className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
+                        title="Tahrirlash"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(supplier)}
+                        className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 transition"
+                        title="O'chirish"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -207,6 +215,21 @@ export default function WarehouseSuppliersPage() {
       {editSupplier && (
         <SupplierModal supplier={editSupplier} onClose={() => setEditSupplier(null)} />
       )}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Yetkazib beruvchini o'chirish"
+        message={`"${deleteTarget?.name}" ni o'chirmoqchimisiz? Bu amal qaytarib bo'lmaydi.`}
+        confirmLabel="O'chirish"
+        cancelLabel="Bekor qilish"
+        variant="danger"
+        isPending={isDeleting}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteSupplier(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) });
+          }
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

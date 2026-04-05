@@ -7,22 +7,30 @@ import {
 
 /**
  * Restricts WAREHOUSE role to GET (read-only) requests only,
- * with explicit whitelist for specific POST endpoints.
+ * with explicit whitelist for allowed write operations.
  *
  * WAREHOUSE allowed writes:
- *   POST /catalog/suppliers  — create supplier during stock-in
- *   POST /catalog/products   — create product during stock-in
- *
- * WAREHOUSE blocked:
- *   PATCH, DELETE on any catalog/inventory endpoint
+ *   POST   /catalog/suppliers        — create supplier
+ *   PATCH  /catalog/suppliers/:id    — edit supplier
+ *   DELETE /catalog/suppliers/:id    — delete supplier
+ *   POST   /catalog/products         — create product during stock-in
+ *   PATCH  /catalog/products/:id     — edit product
+ *   POST   /warehouse/invoices       — create invoice (stock-in)
  */
 
-/** Exact path suffixes WAREHOUSE may POST to */
-const WAREHOUSE_POST_WHITELIST = [
-  '/catalog/suppliers',
-  '/catalog/products',
-  '/warehouse/invoices',
-] as const;
+interface WriteRule {
+  method: string;
+  pathIncludes: string;
+}
+
+const WAREHOUSE_WRITE_WHITELIST: WriteRule[] = [
+  { method: 'POST',   pathIncludes: '/catalog/suppliers' },
+  { method: 'PATCH',  pathIncludes: '/catalog/suppliers' },
+  { method: 'DELETE', pathIncludes: '/catalog/suppliers' },
+  { method: 'POST',   pathIncludes: '/catalog/products' },
+  { method: 'PATCH',  pathIncludes: '/catalog/products' },
+  { method: 'POST',   pathIncludes: '/warehouse/invoices' },
+];
 
 @Injectable()
 export class WarehouseReadOnlyGuard implements CanActivate {
@@ -33,15 +41,14 @@ export class WarehouseReadOnlyGuard implements CanActivate {
     const user = request.user;
 
     if (user?.role === 'WAREHOUSE' && request.method !== 'GET') {
-      // Use both path and url to handle global prefix stripping
       const requestPath: string = (request.url ?? request.path ?? '').split('?')[0];
-      const isAllowedPost =
-        request.method === 'POST' &&
-        WAREHOUSE_POST_WHITELIST.some((suffix) => requestPath.includes(suffix));
+      const isAllowed = WAREHOUSE_WRITE_WHITELIST.some(
+        (rule) => rule.method === request.method && requestPath.includes(rule.pathIncludes),
+      );
 
-      if (!isAllowedPost) {
+      if (!isAllowed) {
         throw new ForbiddenException(
-          'WAREHOUSE role has read-only access. Write operations require MANAGER or above.',
+          'WAREHOUSE role has restricted write access.',
         );
       }
     }

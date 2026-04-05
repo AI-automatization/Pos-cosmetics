@@ -43,7 +43,7 @@ export function useLogin() {
     mutationFn: async (payload: LoginPayload) => {
       const tokens = await authApi.login(payload);
       localStorage.setItem('access_token', tokens.accessToken);
-      localStorage.setItem('refresh_token', tokens.refreshToken);
+      // refreshToken httpOnly cookie da saqlanadi (T-347) — localStorage ga kerak emas
       setSessionCookie();
       return tokens;
     },

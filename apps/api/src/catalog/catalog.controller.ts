@@ -208,7 +208,7 @@ export class CatalogController {
   }
 
   @Patch('suppliers/:id')
-  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'Update supplier' })
   @ApiParam({ name: 'id', type: String })
   updateSupplier(
@@ -220,7 +220,7 @@ export class CatalogController {
   }
 
   @Delete('suppliers/:id')
-  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'Deactivate supplier (set isActive=false)' })
   @ApiParam({ name: 'id', type: String })
   deactivateSupplier(
