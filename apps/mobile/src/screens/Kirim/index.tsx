@@ -18,6 +18,9 @@ import type { Receipt } from '../../api/inventory.api';
 import { useKirimData } from './useKirimData';
 import { formatUZS, formatCompact } from '../../utils/currency';
 import ShiftGuard from '../../components/common/ShiftGuard';
+import { useAuthStore } from '../../store/auth.store';
+
+const KIRIM_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE'];
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -217,8 +220,29 @@ export default function KirimScreen() {
   const [newSheetVisible, setNewSheet]  = useState(false);
   const listRef                         = useRef<FlatList<Receipt>>(null);
 
+  const { user } = useAuthStore();
+  const hasAccess = KIRIM_ROLES.includes(user?.role ?? '');
+
   const { list, create } = useKirimData();
   const allReceipts = list.data?.items ?? [];
+
+  // 403: CASHIER va boshqa rollar uchun ruxsat yo'q xabari
+  if (!hasAccess) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Kirim</Text>
+        </View>
+        <View style={styles.centerFill}>
+          <MaterialCommunityIcons name="lock-outline" size={48} color={C.muted} />
+          <Text style={styles.errorText}>Bu bo'lim uchun ruxsat yo'q</Text>
+          <Text style={[styles.errorText, { fontSize: 12, marginTop: -8 }]}>
+            Kerakli rol: Warehouse, Manager, Admin
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -250,17 +274,26 @@ export default function KirimScreen() {
   }
 
   if (list.isError) {
+    const is403 = (list.error as any)?.response?.status === 403;
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Kirim</Text>
         </View>
         <View style={styles.centerFill}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={48} color={C.muted} />
-          <Text style={styles.errorText}>Ma'lumot yuklanmadi</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => list.refetch()} activeOpacity={0.75}>
-            <Text style={styles.retryBtnText}>Qayta urinish</Text>
-          </TouchableOpacity>
+          <MaterialCommunityIcons
+            name={is403 ? 'lock-outline' : 'alert-circle-outline'}
+            size={48}
+            color={C.muted}
+          />
+          <Text style={styles.errorText}>
+            {is403 ? 'Bu bo\'lim uchun ruxsat yo\'q' : 'Ma\'lumot yuklanmadi'}
+          </Text>
+          {!is403 && (
+            <TouchableOpacity style={styles.retryBtn} onPress={() => list.refetch()} activeOpacity={0.75}>
+              <Text style={styles.retryBtnText}>Qayta urinish</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     );

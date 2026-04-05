@@ -31,19 +31,24 @@ api.interceptors.response.use(
         const refreshToken = await SecureStore.getItemAsync('refresh_token');
         if (!refreshToken) throw new Error('no_refresh');
 
+        // userId ham kerak — backend { userId, refreshToken } kutadi
+        const userStr = await SecureStore.getItemAsync('user');
+        const userId = userStr ? (JSON.parse(userStr) as { id: string }).id : null;
+        if (!userId) throw new Error('no_user');
+
         const { data } = await axios.post(`${CONFIG.API_URL}/auth/refresh`, {
-          token: refreshToken,
+          userId,
+          refreshToken,
         });
         await SecureStore.setItemAsync('access_token', data.accessToken);
+        await SecureStore.setItemAsync('refresh_token', data.refreshToken);
         if (config.headers) {
           config.headers.Authorization = `Bearer ${data.accessToken}`;
         }
         return api(config);
       } catch {
-        // Dev modeda avtomatik logout qilmaymiz — demo data ishlashi uchun
-        if (!__DEV__) {
-          await useAuthStore.getState().clearAuth();
-        }
+        // Token yangilab bo'lmadi — logout qilish
+        await useAuthStore.getState().clearAuth();
       }
     }
 

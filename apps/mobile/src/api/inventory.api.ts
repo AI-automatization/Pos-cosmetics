@@ -113,21 +113,23 @@ export const inventoryApi = {
     from?: string;
     to?: string;
   }): Promise<ReceiptListResponse> => {
-    const { data } = await api.get<{ items?: unknown[]; data?: unknown[]; total: number; page: number; limit: number }>(
+    const { data } = await api.get<{ invoices?: unknown[]; items?: unknown[]; data?: unknown[]; total: number; page: number; limit: number }>(
       '/warehouse/invoices',
       { params },
     );
-    const items: Receipt[] = ((data.items ?? data.data) ?? []).map((r: any) => ({
+    // Backend returns { invoices, total, page, limit } — check all possible keys
+    const rawItems: unknown[] = data.invoices ?? data.items ?? data.data ?? [];
+    const items: Receipt[] = rawItems.map((r: any) => ({
       id: r.id,
       receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
-      date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
+      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('uz-UZ') : '—',
       supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      totalCost: r.totalCost,
+      totalCost: r.totalCost ?? 0,
       status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
       notes: r.notes ?? r.note,
     }));
-    return { items, total: data.total, page: data.page, limit: data.limit };
+    return { items, total: data.total ?? 0, page: data.page ?? 1, limit: data.limit ?? 20 };
   },
 
   getReceiptById: async (id: string): Promise<Receipt> => {
