@@ -32,11 +32,13 @@ export class CustomersController {
   @Get()
   @ApiOperation({ summary: 'List all customers' })
   @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'branchId', required: false })
   findAll(
     @CurrentUser('tenantId') tenantId: string,
     @Query('search') search?: string,
+    @Query('branchId') branchId?: string,
   ) {
-    return this.customersService.findAll(tenantId, search);
+    return this.customersService.findAll(tenantId, search, branchId);
   }
 
   @Get(':id')

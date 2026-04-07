@@ -160,6 +160,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Boshqaruv',
     items: [
       { label: 'Topshiriqlar', tKey: 'nav.tasks', href: '/tasks', icon: ClipboardList, roles: ['OWNER', 'ADMIN', 'MANAGER'] },
+      { label: 'Filiallar', tKey: 'nav.branches', href: '/settings/branches', icon: Building2, roles: ['OWNER', 'ADMIN'] },
     ],
   },
   {
@@ -194,10 +195,10 @@ function getNavSections(role: string | undefined): NavSection[] {
 const COLLAPSE_KEY = 'raos-sidebar-collapsed';
 
 function useCollapsed() {
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(COLLAPSE_KEY) === '1';
-  });
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
+  }, []);
   const toggle = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;

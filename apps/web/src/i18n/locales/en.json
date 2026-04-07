@@ -70,7 +70,9 @@
     "reportBuilder": "Report Builder",
     "promotions": "Promotions",
     "exchangeRates": "Exchange Rates",
-    "movements": "Movements"
+    "movements": "Movements",
+    "tasks": "Tasks",
+    "branches": "Branches"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -70,7 +70,9 @@
     "reportBuilder": "Конструктор отчётов",
     "promotions": "Акции",
     "exchangeRates": "Курсы валют",
-    "movements": "Движения"
+    "movements": "Движения",
+    "tasks": "Задачи",
+    "branches": "Филиалы"
   },
   "dashboard": {
     "title": "Главная",

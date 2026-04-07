@@ -6,10 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Building2, Plus, Pencil, Trash2, X, CheckCircle, XCircle,
-  UserPlus, Users, ChevronDown, ChevronUp,
+  UserPlus, Users, ChevronDown, ChevronUp, AlertTriangle, UserCircle,
 } from 'lucide-react';
 import { useBranches, useCreateBranch, useUpdateBranch, useDeactivateBranch } from '@/hooks/settings/useBranches';
 import { useUsers } from '@/hooks/settings/useUsers';
+import { useCustomersList } from '@/hooks/customers/useDebts';
 import { UserModal } from '@/components/settings/UserModal';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { cn } from '@/lib/utils';
@@ -22,35 +23,20 @@ const branchSchema = z.object({
 });
 type BranchForm = z.infer<typeof branchSchema>;
 
-function BranchModal({
-  branch,
-  onClose,
-}: {
-  branch: Branch | null;
-  onClose: () => void;
-}) {
+/* ─── Branch create/edit modal ─── */
+function BranchModal({ branch, onClose }: { branch: Branch | null; onClose: () => void }) {
   const { mutate: create, isPending: creating } = useCreateBranch();
   const { mutate: update, isPending: updating } = useUpdateBranch();
   const isPending = creating || updating;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<BranchForm>({
+  const { register, handleSubmit, formState: { errors } } = useForm<BranchForm>({
     resolver: zodResolver(branchSchema),
-    defaultValues: {
-      name: branch?.name ?? '',
-      address: branch?.address ?? '',
-    },
+    defaultValues: { name: branch?.name ?? '', address: branch?.address ?? '' },
   });
 
   const onSubmit = (data: BranchForm) => {
     if (branch) {
-      update(
-        { id: branch.id, dto: data },
-        { onSuccess: onClose },
-      );
+      update({ id: branch.id, dto: data }, { onSuccess: onClose });
     } else {
       create(data, { onSuccess: onClose });
     }
@@ -63,14 +49,10 @@ function BranchModal({
           <h2 className="text-lg font-semibold text-gray-900">
             {branch ? 'Filialni tahrirlash' : 'Yangi filial'}
           </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
-          >
+          <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
             <X className="h-5 w-5" />
           </button>
         </div>
-
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -84,11 +66,8 @@ function BranchModal({
                 errors.name ? 'border-red-400' : 'border-gray-300 focus:border-blue-500',
               )}
             />
-            {errors.name && (
-              <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
           </div>
-
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Manzil</label>
             <input
@@ -97,7 +76,6 @@ function BranchModal({
               className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
-
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
@@ -120,21 +98,76 @@ function BranchModal({
   );
 }
 
-function BranchEmployees({ branch }: { branch: Branch }) {
+/* ─── Delete confirmation modal ─── */
+function DeleteConfirmModal({
+  branchName,
+  onConfirm,
+  onClose,
+  isPending,
+}: {
+  branchName: string;
+  onConfirm: () => void;
+  onClose: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Filialni o'chirish</h3>
+            <p className="text-sm text-gray-500">Bu amalni qaytarib bo'lmaydi</p>
+          </div>
+        </div>
+        <p className="mb-5 text-sm text-gray-700">
+          <span className="font-semibold">"{branchName}"</span> filialni o'chirmoqchimisiz?
+          Filialdagi xodimlar va mijozlar bog'liqligini yo'qotadi.
+        </p>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Bekor qilish
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className="flex-1 rounded-xl bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {isPending ? "O'chirilmoqda..." : "O'chirish"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Branch employees + customers ─── */
+function BranchDetails({ branch }: { branch: Branch }) {
   const [expanded, setExpanded] = useState(false);
   const [addEmployee, setAddEmployee] = useState(false);
-  const { data: users = [], isLoading } = useUsers(expanded ? branch.id : undefined);
+  const { data: users = [], isLoading: usersLoading } = useUsers(expanded ? branch.id : undefined);
+  const { data: customers = [], isLoading: customersLoading } = useCustomersList(
+    undefined,
+    expanded ? branch.id : undefined,
+  );
 
   return (
     <div className="border-t border-gray-100">
-      <div className="flex items-center justify-between px-5 py-2.5 bg-gray-50/60">
+      <div className="flex items-center justify-between bg-gray-50/60 px-5 py-2.5">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
           className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
         >
           <Users className="h-4 w-4 text-gray-400" />
-          <span className="font-medium">Xodimlar</span>
+          <span className="font-medium">Xodimlar va mijozlar</span>
           {expanded ? (
             <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
           ) : (
@@ -152,53 +185,97 @@ function BranchEmployees({ branch }: { branch: Branch }) {
       </div>
 
       {expanded && (
-        <div className="px-5 pb-3 pt-2">
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-8 animate-pulse rounded bg-gray-100" />
-              ))}
-            </div>
-          ) : users.length === 0 ? (
-            <p className="py-3 text-center text-sm text-gray-400">
-              Bu filialda xodim yo&apos;q.{' '}
-              <button
-                type="button"
-                onClick={() => setAddEmployee(true)}
-                className="text-blue-600 hover:underline"
-              >
-                Birinchi xodimni qo&apos;shing
-              </button>
+        <div className="px-5 pb-4 pt-3 space-y-4">
+          {/* Employees */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              Xodimlar ({users.length})
             </p>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {users.map((u) => (
-                <div key={u.id} className="flex items-center justify-between py-2">
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">
-                      {`${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email}
+            {usersLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => <div key={i} className="h-8 animate-pulse rounded bg-gray-100" />)}
+              </div>
+            ) : users.length === 0 ? (
+              <p className="py-2 text-sm text-gray-400">
+                Bu filialda xodim yo&apos;q.{' '}
+                <button
+                  type="button"
+                  onClick={() => setAddEmployee(true)}
+                  className="text-blue-600 hover:underline"
+                >
+                  Qo&apos;shish
+                </button>
+              </p>
+            ) : (
+              <div className="divide-y divide-gray-100 rounded-xl border border-gray-100">
+                {users.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between px-3 py-2">
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">
+                        {`${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email}
+                      </span>
+                      <span className="ml-2 text-xs text-gray-400">{u.email}</span>
+                    </div>
+                    <span className={cn(
+                      'rounded-full px-2 py-0.5 text-xs font-medium',
+                      u.role === 'WAREHOUSE' ? 'bg-amber-100 text-amber-700' :
+                      u.role === 'CASHIER' ? 'bg-green-100 text-green-700' :
+                      u.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-600',
+                    )}>
+                      {ROLE_LABELS[u.role]}
                     </span>
-                    <span className="ml-2 text-xs text-gray-400">{u.email}</span>
                   </div>
-                  <span className={cn(
-                    'rounded-full px-2 py-0.5 text-xs font-medium',
-                    u.role === 'WAREHOUSE' ? 'bg-amber-100 text-amber-700' :
-                    u.role === 'CASHIER' ? 'bg-green-100 text-green-700' :
-                    u.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-600',
-                  )}>
-                    {ROLE_LABELS[u.role]}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Customers */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              Mijozlar ({customers.length})
+            </p>
+            {customersLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => <div key={i} className="h-8 animate-pulse rounded bg-gray-100" />)}
+              </div>
+            ) : customers.length === 0 ? (
+              <p className="py-2 text-sm text-gray-400">Bu filialda mijoz yo&apos;q</p>
+            ) : (
+              <div className="divide-y divide-gray-100 rounded-xl border border-gray-100">
+                {customers.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100">
+                        <span className="text-xs font-semibold text-gray-600">
+                          {c.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{c.name}</p>
+                        {c.phone && (
+                          <p className="text-xs text-gray-400">+{c.phone}</p>
+                        )}
+                      </div>
+                    </div>
+                    {c.debtBalance > 0 && (
+                      <span className="text-xs font-medium text-orange-600">
+                        {c.debtBalance.toLocaleString()} so&apos;m
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {addEmployee && (
         <UserModal
           initialBranchId={branch.id}
+          lockBranchId
           onClose={() => setAddEmployee(false)}
         />
       )}
@@ -206,13 +283,15 @@ function BranchEmployees({ branch }: { branch: Branch }) {
   );
 }
 
+/* ─── Main page ─── */
 export default function BranchesPage() {
   const { data: branches, isLoading } = useBranches();
-  const { mutate: deactivate } = useDeactivateBranch();
+  const { mutate: deactivate, isPending: deactivating } = useDeactivateBranch();
   const [modal, setModal] = useState<{ open: boolean; branch: Branch | null }>({
     open: false,
     branch: null,
   });
+  const [deleteTarget, setDeleteTarget] = useState<Branch | null>(null);
 
   if (isLoading) return <LoadingSkeleton />;
 
@@ -242,21 +321,20 @@ export default function BranchesPage() {
         <div className="flex flex-col gap-4">
           {branches.map((b) => (
             <div key={b.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-              {/* Branch header row */}
               <div className="flex items-center px-5 py-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex flex-1 min-w-0 items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                    <Building2 className="h-4.5 w-4.5 text-blue-600" />
+                    <Building2 className="h-5 w-5 text-blue-600" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-900">{b.name}</p>
                     {b.address && (
-                      <p className="text-xs text-gray-500 truncate">{b.address}</p>
+                      <p className="truncate text-xs text-gray-500">{b.address}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex shrink-0 items-center gap-3">
                   {b.isActive ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
                       <CheckCircle className="h-3 w-3" /> Aktiv
@@ -274,11 +352,7 @@ export default function BranchesPage() {
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm(`"${b.name}" filialni o'chirmoqchimisiz?`)) {
-                        deactivate(b.id);
-                      }
-                    }}
+                    onClick={() => setDeleteTarget(b)}
                     className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
                     title="O'chirish"
                   >
@@ -287,8 +361,7 @@ export default function BranchesPage() {
                 </div>
               </div>
 
-              {/* Employees section */}
-              <BranchEmployees branch={b} />
+              <BranchDetails branch={b} />
             </div>
           ))}
         </div>
@@ -298,6 +371,17 @@ export default function BranchesPage() {
         <BranchModal
           branch={modal.branch}
           onClose={() => setModal({ open: false, branch: null })}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteConfirmModal
+          branchName={deleteTarget.name}
+          isPending={deactivating}
+          onConfirm={() => {
+            deactivate(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) });
+          }}
+          onClose={() => setDeleteTarget(null)}
         />
       )}
     </div>

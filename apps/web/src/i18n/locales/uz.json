@@ -70,7 +70,9 @@
     "reportBuilder": "Hisobot yaratish",
     "promotions": "Aksiyalar",
     "exchangeRates": "Valyuta kurslari",
-    "movements": "Harakatlar"
+    "movements": "Harakatlar",
+    "tasks": "Topshiriqlar",
+    "branches": "Filiallar"
   },
   "dashboard": {
     "title": "Bosh sahifa",

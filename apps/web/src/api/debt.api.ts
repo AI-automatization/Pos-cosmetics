@@ -138,23 +138,25 @@ export const debtApi = {
       return raw.map(normalizeDebt);
     }),
 
-  listCustomers: (params?: { search?: string }): Promise<CustomerWithDebt[]> =>
+  listCustomers: (params?: { search?: string; branchId?: string }): Promise<CustomerWithDebt[]> =>
     apiClient.get('/customers', { params }).then((r) => {
       const d = r.data;
-      const raw: { id: string; name: string; phone: string; debtBalance?: number; debtLimit?: number; isBlocked?: boolean }[] =
-        Array.isArray(d) ? d : (d?.items ?? []);
+      const raw: Record<string, unknown>[] =
+        Array.isArray(d) ? d : (Array.isArray(d?.items) ? d.items : []);
       return raw.map((c) => ({
-        id: c.id,
-        name: c.name,
-        phone: c.phone ?? '',
-        debtBalance: c.debtBalance ?? 0,
-        debtLimit: c.debtLimit ?? 0,
-        isBlocked: c.isBlocked ?? false,
-        hasOverdue: false,
-        overdueAmount: 0,
-        totalPurchases: 0,
-        lastVisitAt: null,
-        activeDebtsCount: 0,
+        id: String(c.id ?? ''),
+        name: String(c.name ?? ''),
+        phone: c.phone ? String(c.phone) : '',
+        debtBalance: Number(c.debtBalance ?? 0),
+        debtLimit: Number(c.debtLimit ?? 0),
+        isBlocked: Boolean(c.isBlocked ?? false),
+        hasOverdue: Boolean(c.hasOverdue ?? false),
+        overdueAmount: Number(c.overdueAmount ?? 0),
+        totalPurchases: Number(c.totalPurchases ?? 0),
+        lastVisitAt: c.lastVisitAt ? String(c.lastVisitAt) : null,
+        activeDebtsCount: Number(c.activeDebtsCount ?? 0),
+        branch: c.branch as { id: string; name: string } | null | undefined,
+        branchId: c.branchId ? String(c.branchId) : null,
       }));
     }),
 };

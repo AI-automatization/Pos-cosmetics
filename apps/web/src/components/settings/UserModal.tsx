@@ -23,10 +23,11 @@ type UserForm = z.infer<typeof userSchema>;
 interface UserModalProps {
   user?: User;
   initialBranchId?: string;
+  lockBranchId?: boolean;
   onClose: () => void;
 }
 
-export function UserModal({ user, initialBranchId, onClose }: UserModalProps) {
+export function UserModal({ user, initialBranchId, lockBranchId, onClose }: UserModalProps) {
   const { mutate: createUser, isPending: creating } = useCreateUser();
   const { mutate: updateUser, isPending: updating } = useUpdateUser();
   const { data: branches = [] } = useBranches();
@@ -160,20 +161,29 @@ export function UserModal({ user, initialBranchId, onClose }: UserModalProps) {
             </select>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Filial <span className="text-gray-400 font-normal">(ixtiyoriy)</span>
-            </label>
-            <select
-              {...register('branchId')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
-            >
-              <option value="">— Filial tanlang —</option>
-              {branches.filter((b) => b.isActive).map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
-          </div>
+          {lockBranchId && initialBranchId ? (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Filial</label>
+              <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                {branches.find((b) => b.id === initialBranchId)?.name ?? initialBranchId}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Filial <span className="text-gray-400 font-normal">(ixtiyoriy)</span>
+              </label>
+              <select
+                {...register('branchId')}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
+              >
+                <option value="">— Filial tanlang —</option>
+                {branches.filter((b) => b.isActive).map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex gap-2 pt-2">
             <button

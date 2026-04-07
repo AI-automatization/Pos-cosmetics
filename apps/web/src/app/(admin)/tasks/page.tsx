@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/tasks/useTasks';
 import { useUsers } from '@/hooks/settings/useUsers';
+import { useBranches } from '@/hooks/settings/useBranches';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { cn } from '@/lib/utils';
 import type { Task, TaskStatus } from '@/api/tasks.api';
@@ -104,9 +105,11 @@ function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string })
 export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<TaskStatus | 'ALL'>('ALL');
+  const [branchFilter, setBranchFilter] = useState('');
 
   const { data, isLoading } = useTasks();
   const { data: users = [] } = useUsers();
+  const { data: branches = [] } = useBranches();
   const { mutate: createTask, isPending } = useCreateTask();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<TaskForm>({
@@ -114,7 +117,16 @@ export default function TasksPage() {
   });
 
   const tasks = data?.items ?? [];
-  const filtered = filter === 'ALL' ? tasks : tasks.filter((t) => t.status === filter);
+
+  const branchUserIds = branchFilter
+    ? new Set(users.filter((u) => u.branchId === branchFilter).map((u) => u.id))
+    : null;
+
+  const filtered = tasks.filter((t) => {
+    if (filter !== 'ALL' && t.status !== filter) return false;
+    if (branchUserIds && t.assigneeId && !branchUserIds.has(t.assigneeId)) return false;
+    return true;
+  });
 
   const userMap = new Map(users.map((u) => [u.id, `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email || u.id]));
 
@@ -130,11 +142,15 @@ export default function TasksPage() {
     );
   };
 
+  const baseTasks = branchUserIds
+    ? tasks.filter((t) => !t.assigneeId || branchUserIds.has(t.assigneeId))
+    : tasks;
+
   const counts = {
-    ALL: tasks.length,
-    PENDING: tasks.filter((t) => t.status === 'PENDING').length,
-    IN_PROGRESS: tasks.filter((t) => t.status === 'IN_PROGRESS').length,
-    DONE: tasks.filter((t) => t.status === 'DONE').length,
+    ALL: baseTasks.length,
+    PENDING: baseTasks.filter((t) => t.status === 'PENDING').length,
+    IN_PROGRESS: baseTasks.filter((t) => t.status === 'IN_PROGRESS').length,
+    DONE: baseTasks.filter((t) => t.status === 'DONE').length,
   };
 
   return (
@@ -220,6 +236,22 @@ export default function TasksPage() {
           </form>
         </div>
       )}
+
+      {/* Branch + Status filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        {branches.length > 0 && (
+          <select
+            value={branchFilter}
+            onChange={(e) => setBranchFilter(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 outline-none focus:border-blue-400"
+          >
+            <option value="">Barcha filiallar</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+        )}
+      </div>
 
       {/* Status filters */}
       <div className="flex gap-2 flex-wrap">

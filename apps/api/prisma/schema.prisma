@@ -595,16 +595,21 @@ model PaymentIntent {
 // ============================================
 
 model Customer {
-  id             String   @id @default(uuid())
-  tenantId       String   @map("tenant_id")
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
   name           String
   phone          String?
+  email          String?
+  birthDate      DateTime? @map("birth_date")
+  address        String?
+  gender         String?
+  debtLimit      Int       @default(0) @map("debt_limit")
   notes          String?
-  isActive       Boolean  @default(true) @map("is_active")
-  telegramChatId String?  @map("telegram_chat_id")
-  branchId       String?  @map("branch_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  telegramChatId String?   @map("telegram_chat_id")
+  branchId       String?   @map("branch_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   tenant              Tenant              @relation(fields: [tenantId], references: [id])
   branch              Branch?             @relation(fields: [branchId], references: [id])

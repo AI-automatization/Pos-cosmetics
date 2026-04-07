@@ -3,14 +3,31 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { debtApi } from '@/api/debt.api';
+import { customerApi } from '@/api/customer.api';
 import { extractErrorMessage } from '@/lib/utils';
 import type { PayDebtDto } from '@/types/debt';
+import type { CreateCustomerDto } from '@/types/customer';
+
+/** Yangi xaridor yaratish */
+export function useCreateCustomer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: CreateCustomerDto) => customerApi.create(dto),
+    onSuccess: () => {
+      toast.success('Xaridor muvaffaqiyatli qo\'shildi!');
+      void queryClient.invalidateQueries({ queryKey: ['customers'] });
+    },
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err));
+    },
+  });
+}
 
 /** Xaridorlar ro'yxati (qarz ma'lumotlari bilan) */
-export function useCustomersList(search?: string) {
+export function useCustomersList(search?: string, branchId?: string) {
   return useQuery({
-    queryKey: ['customers', 'list', search],
-    queryFn: () => debtApi.listCustomers({ search }),
+    queryKey: ['customers', 'list', search, branchId],
+    queryFn: () => debtApi.listCustomers({ search, branchId }),
     staleTime: 30_000,
   });
 }

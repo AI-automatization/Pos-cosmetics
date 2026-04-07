@@ -8,12 +8,15 @@ import {
   ShieldOff,
   TrendingUp,
   Search,
+  Plus,
+  X,
 } from 'lucide-react';
-import { useCustomersList } from '@/hooks/customers/useDebts';
-import { useNasiyaSummary } from '@/hooks/customers/useDebts';
+import { useCustomersList, useNasiyaSummary, useCreateCustomer } from '@/hooks/customers/useDebts';
+import { useBranches } from '@/hooks/settings/useBranches';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice, cn } from '@/lib/utils';
 import type { CustomerWithDebt } from '@/types/debt';
+import type { CustomerGender } from '@/types/customer';
 
 function StatusBadge({ customer }: { customer: CustomerWithDebt }) {
   if (customer.isBlocked) {
@@ -46,13 +49,256 @@ function StatusBadge({ customer }: { customer: CustomerWithDebt }) {
   );
 }
 
+interface CustomerForm {
+  name: string;
+  phone: string;
+  email: string;
+  birthDate: string;
+  address: string;
+  gender: CustomerGender | '';
+  debtLimit: string;
+  branchId: string;
+  notes: string;
+}
+
+function CreateCustomerModal({ onClose }: { onClose: () => void }) {
+  const { mutate: createCustomer, isPending } = useCreateCustomer();
+  const { data: branches = [] } = useBranches();
+
+  const [form, setForm] = useState<CustomerForm>({
+    name: '',
+    phone: '',
+    email: '',
+    birthDate: '',
+    address: '',
+    gender: '',
+    debtLimit: '',
+    branchId: '',
+    notes: '',
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof CustomerForm, string>>>({});
+
+  const set = (field: keyof CustomerForm) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const validate = () => {
+    const e: Partial<Record<keyof CustomerForm, string>> = {};
+    if (!form.name.trim()) e.name = 'Ism kiritilishi shart';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = 'Email noto\'g\'ri formatda';
+    if (form.debtLimit && isNaN(Number(form.debtLimit)))
+      e.debtLimit = 'Son kiritilishi shart';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const normalizePhone = (raw: string) => {
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return undefined;
+    return digits.startsWith('998') ? `+${digits}` : `+998${digits}`;
+  };
+
+  const handleSubmit = (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!validate()) return;
+    createCustomer(
+      {
+        name: form.name.trim(),
+        phone: normalizePhone(form.phone),
+        email: form.email.trim() || undefined,
+        birthDate: form.birthDate || undefined,
+        address: form.address.trim() || undefined,
+        gender: (form.gender as CustomerGender) || undefined,
+        debtLimit: form.debtLimit ? Number(form.debtLimit) : undefined,
+        notes: form.notes.trim() || undefined,
+        branchId: form.branchId || undefined,
+      },
+      { onSuccess: onClose },
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
+        <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
+          <h2 className="text-base font-semibold text-gray-900">Yangi xaridor</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
+          {/* Asosiy ma'lumotlar */}
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Asosiy</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-gray-700">
+                To'liq ism <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={set('name')}
+                placeholder="Aziz Karimov"
+                className={cn(
+                  'w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-blue-200',
+                  errors.name ? 'border-red-400' : 'border-gray-300 focus:border-blue-400',
+                )}
+              />
+              {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-700">Telefon</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={set('phone')}
+                placeholder="998901234567"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={set('email')}
+                placeholder="aziz@example.com"
+                className={cn(
+                  'w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-blue-200',
+                  errors.email ? 'border-red-400' : 'border-gray-300 focus:border-blue-400',
+                )}
+              />
+              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-700">Tug'ilgan sana</label>
+              <input
+                type="date"
+                value={form.birthDate}
+                onChange={set('birthDate')}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-400"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-700">Jins</label>
+              <select
+                value={form.gender}
+                onChange={set('gender')}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
+              >
+                <option value="">— Tanlang —</option>
+                <option value="MALE">Erkak</option>
+                <option value="FEMALE">Ayol</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Qo'shimcha */}
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Qo'shimcha</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-gray-700">Manzil</label>
+              <input
+                type="text"
+                value={form.address}
+                onChange={set('address')}
+                placeholder="Toshkent, Chilonzor tumani"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-700">
+                Nasiya limiti (so'm)
+              </label>
+              <input
+                type="number"
+                value={form.debtLimit}
+                onChange={set('debtLimit')}
+                placeholder="500000"
+                min={0}
+                className={cn(
+                  'w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-blue-200',
+                  errors.debtLimit ? 'border-red-400' : 'border-gray-300 focus:border-blue-400',
+                )}
+              />
+              {errors.debtLimit && (
+                <p className="mt-1 text-xs text-red-500">{errors.debtLimit}</p>
+              )}
+            </div>
+
+            {branches.length > 0 && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700">Filial</label>
+                <select
+                  value={form.branchId}
+                  onChange={set('branchId')}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
+                >
+                  <option value="">— Tanlang —</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className={branches.length > 0 ? 'col-span-2' : 'col-span-2'}>
+              <label className="mb-1 block text-xs font-medium text-gray-700">Izoh</label>
+              <textarea
+                value={form.notes}
+                onChange={set('notes')}
+                placeholder="Qo'shimcha ma'lumot (ixtiyoriy)"
+                rows={2}
+                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+            >
+              Bekor
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+            >
+              {isPending ? 'Saqlanmoqda...' : "Qo'shish"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function CustomersPage() {
   const [search, setSearch] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
   const { data: customers, isLoading } = useCustomersList(search || undefined);
   const { data: summary } = useNasiyaSummary();
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
+      {showCreate && <CreateCustomerModal onClose={() => setShowCreate(false)} />}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -61,13 +307,23 @@ export default function CustomersPage() {
             {customers ? `${customers.length} ta xaridor` : 'Yuklanmoqda...'}
           </p>
         </div>
-        <Link
-          href="/nasiya"
-          className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-orange-600"
-        >
-          <TrendingUp className="h-4 w-4" />
-          Nasiya boshqaruv
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Xaridor qo'shish
+          </button>
+          <Link
+            href="/nasiya"
+            className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-orange-600"
+          >
+            <TrendingUp className="h-4 w-4" />
+            Nasiya boshqaruv
+          </Link>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -82,16 +338,16 @@ export default function CustomersPage() {
               bg: 'bg-orange-50',
             },
             {
-              label: 'Muddati o\'tgan',
+              label: "Muddati o'tgan",
               value: formatPrice(summary.overdueDebt),
               sub: `${summary.overdueCustomers} ta xaridor`,
               color: 'text-red-600',
               bg: 'bg-red-50',
             },
             {
-              label: 'Bu oy yig\'ilgan',
+              label: "Bu oy yig'ilgan",
               value: formatPrice(summary.collectedThisMonth),
-              sub: 'Jami to\'lovlar',
+              sub: "Jami to'lovlar",
               color: 'text-green-600',
               bg: 'bg-green-50',
             },
@@ -150,7 +406,7 @@ export default function CustomersPage() {
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
                     <UserCircle className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    {search ? 'Qidiruv bo\'yicha natija topilmadi' : 'Xaridorlar yo\'q'}
+                    {search ? "Qidiruv bo'yicha natija topilmadi" : "Xaridorlar yo'q"}
                   </td>
                 </tr>
               ) : (
@@ -179,7 +435,7 @@ export default function CustomersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-gray-600">
-                      +{customer.phone}
+                      {customer.phone ? `+${customer.phone}` : '—'}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {customer.branch?.name ?? '—'}
@@ -195,9 +451,7 @@ export default function CustomersPage() {
                             : 'text-gray-500',
                         )}
                       >
-                        {customer.debtBalance > 0
-                          ? formatPrice(customer.debtBalance)
-                          : '—'}
+                        {customer.debtBalance > 0 ? formatPrice(customer.debtBalance) : '—'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right text-gray-500">
