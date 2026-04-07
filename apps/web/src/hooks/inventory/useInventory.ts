@@ -98,6 +98,7 @@ export function useMovements(productId?: string) {
 export function useMovementsWithUsers(productId?: string) {
   return useQuery({
     queryKey: ['inventory', 'movements-with-users', productId ?? null],
+    enabled: !!productId,
     queryFn: async (): Promise<(StockMovement & { userName: string })[]> => {
       const [movements, users] = await Promise.all([
         inventoryApi.getMovements(productId),
