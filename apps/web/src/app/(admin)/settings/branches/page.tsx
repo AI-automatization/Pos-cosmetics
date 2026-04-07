@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Building2, Plus, Pencil, Trash2, X, CheckCircle, XCircle,
-  UserPlus, Users, ChevronDown, ChevronUp, AlertTriangle, UserCircle,
+  UserPlus, Users, ChevronDown, ChevronUp, AlertTriangle,
 } from 'lucide-react';
 import { useBranches, useCreateBranch, useUpdateBranch, useDeactivateBranch } from '@/hooks/settings/useBranches';
 import { useUsers } from '@/hooks/settings/useUsers';

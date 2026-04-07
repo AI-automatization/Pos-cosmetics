@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Search, AlertTriangle, TrendingDown, Plus, Pencil, Printer } from 'lucide-react';
+import { Package, Search, AlertTriangle, TrendingDown, Pencil } from 'lucide-react';
 import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';

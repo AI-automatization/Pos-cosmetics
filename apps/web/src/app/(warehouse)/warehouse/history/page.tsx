@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { ArrowUpDown, Download, Search, X } from 'lucide-react';
 import { useWarehouseMovements } from '@/hooks/warehouse/useWarehouseInvoices';
-import { SearchableDropdown, type DropdownOption } from '@/components/ui/SearchableDropdown';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 
 const MOVEMENT_TYPES = ['IN', 'OUT', 'WRITE_OFF', 'TRANSFER_IN', 'TRANSFER_OUT', 'ADJUSTMENT'] as const;

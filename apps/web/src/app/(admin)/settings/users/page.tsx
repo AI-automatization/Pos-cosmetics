@@ -5,7 +5,7 @@ import { UserPlus, Shield, CheckCircle, XCircle, Building2 } from 'lucide-react'
 import { useUsers, useUpdateUser } from '@/hooks/settings/useUsers';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
-import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { UserModal } from '@/components/settings/UserModal';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
@@ -23,95 +23,6 @@ function RoleBadge({ role, isActive = true }: { role: UserRole; isActive?: boole
     <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', isActive ? colors[role] : 'bg-gray-100 text-gray-400')}>
       {ROLE_LABELS[role]}
     </span>
-  );
-}
-
-function UserModal({ user, onClose }: { user?: User; onClose: () => void }) {
-  const { mutate: createUser, isPending: creating } = useCreateUser();
-  const { mutate: updateUser, isPending: updating } = useUpdateUser();
-  const isPending = creating || updating;
-
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<UserForm>({
-    resolver: zodResolver(userSchema),
-    defaultValues: {
-      name: user?.name ?? '',
-      phone: user?.phone ?? '+998',
-      role: user?.role ?? 'CASHIER',
-      password: '',
-    },
-  });
-
-  const selectedRole = watch('role');
-
-  const onSubmit = (data: UserForm) => {
-    if (user) {
-      updateUser(
-        { id: user.id, dto: { name: data.name, phone: data.phone, role: data.role } },
-        { onSuccess: onClose },
-      );
-    } else {
-      if (!data.password) return;
-      createUser(
-        { name: data.name, phone: data.phone, role: data.role, password: data.password },
-        { onSuccess: onClose },
-      );
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
-      <div className="relative z-10 w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-          <h2 className="text-base font-semibold text-gray-900">
-            {user ? 'Foydalanuvchi tahrirlash' : "Yangi foydalanuvchi qo'shish"}
-          </h2>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-5">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Ism va familiya</label>
-            <input {...register('name')} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
-            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Telefon</label>
-            <input {...register('phone')} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
-            {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
-          </div>
-          {!user && (
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Parol</label>
-              <input type="password" {...register('password')} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
-              {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
-            </div>
-          )}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Rol</label>
-            <SearchableDropdown
-              options={ROLE_ORDER.filter((r) => r !== 'OWNER').map((role) => ({
-                value: role,
-                label: ROLE_LABELS[role],
-              }))}
-              value={selectedRole}
-              onChange={(val) => setValue('role', val as UserForm['role'], { shouldValidate: true })}
-              searchable={false}
-              clearable={false}
-            />
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-gray-300 py-2 text-sm text-gray-700 hover:bg-gray-50">
-              Bekor
-            </button>
-            <button type="submit" disabled={isPending} className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
-              {isPending ? 'Saqlanmoqda...' : user ? 'Saqlash' : "Qo'shish"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   );
 }
 

@@ -31,7 +31,8 @@ apiClient.interceptors.response.use(
         if (currentToken) {
           try {
             userId = JSON.parse(atob(currentToken.split('.')[1]))?.sub ?? null;
-          } catch {}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (_e) { /* ignore parse errors */ }
         }
         // refreshToken body da emas — httpOnly cookie withCredentials: true bilan yuboriladi (T-347)
         const { data } = await apiClient.post('/auth/refresh', { userId });
