@@ -2,9 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api';
 import { todayISO } from '../../utils/date';
 import { CONFIG } from '../../config';
+import { useShiftStore } from '../../store/shiftStore';
 
 export function useSalesData() {
   const today = todayISO();
+  const { shiftId, isShiftOpen } = useShiftStore();
 
   const orders = useQuery({
     queryKey: ['sales', 'orders', today],
@@ -12,5 +14,12 @@ export function useSalesData() {
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
   });
 
-  return { orders };
+  const shiftDetail = useQuery({
+    queryKey: ['shift-detail', shiftId],
+    queryFn: () => salesApi.getShiftById(shiftId!),
+    enabled: !!shiftId && isShiftOpen,
+    staleTime: 60_000,
+  });
+
+  return { orders, shiftDetail };
 }

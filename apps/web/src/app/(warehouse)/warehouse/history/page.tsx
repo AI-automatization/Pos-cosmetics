@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ArrowUpDown, Download, Search, X } from 'lucide-react';
 import { useWarehouseMovements } from '@/hooks/warehouse/useWarehouseInvoices';
+import { SearchableDropdown, type DropdownOption } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 
 const MOVEMENT_TYPES = ['IN', 'OUT', 'WRITE_OFF', 'TRANSFER_IN', 'TRANSFER_OUT', 'ADJUSTMENT'] as const;
@@ -118,16 +119,13 @@ export default function WarehouseHistoryPage() {
           </div>
 
           {/* Type filter */}
-          <select
+          <SearchableDropdown
+            options={MOVEMENT_TYPES.map((t) => ({ value: t, label: TYPE_META[t]?.label ?? t }))}
             value={filters.type}
-            onChange={(e) => { setFilters((f) => ({ ...f, type: e.target.value })); setPage(1); }}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">Barcha turlar</option>
-            {MOVEMENT_TYPES.map((t) => (
-              <option key={t} value={t}>{TYPE_META[t]?.label ?? t}</option>
-            ))}
-          </select>
+            onChange={(val) => { setFilters((f) => ({ ...f, type: val })); setPage(1); }}
+            placeholder="Barcha turlar"
+            searchable={false}
+          />
 
           {/* From date */}
           <input

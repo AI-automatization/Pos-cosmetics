@@ -21,6 +21,7 @@ export class WarehouseInvoiceService {
     if (dto.items.length === 0) throw new BadRequestException('items bo\'sh bo\'lishi mumkin emas');
 
     const warehouseId = await this.resolveWarehouseId(tenantId, dto.items[0]?.warehouseId);
+    const supplierId = await this.resolveSupplierId(tenantId, dto.supplierId, dto.supplierName);
 
     const totalCost = dto.items.reduce(
       (sum, item) => sum + item.quantity * item.purchasePrice,
@@ -35,8 +36,8 @@ export class WarehouseInvoiceService {
           data: {
             tenantId,
             branchId: dto.branchId ?? null,
-            supplierId: dto.supplierId ?? null,
-            invoiceNumber: dto.invoiceNumber ?? null,
+            supplierId: supplierId ?? null,
+            invoiceNumber: dto.invoiceNumber || `INV-${Date.now().toString(36).toUpperCase()}`,
             note: dto.note ?? null,
             totalCost,
             createdBy: userId,
@@ -166,6 +167,43 @@ export class WarehouseInvoiceService {
         product: productMap[item.productId] ?? null,
       })),
     };
+  }
+
+  // ─── APPROVE invoice ────────────────────────────────────────────────
+
+  async approveInvoice(tenantId: string, userId: string, invoiceId: string) {
+    const invoice = await this.prisma.warehouseInvoice.findFirst({
+      where: { id: invoiceId, tenantId },
+    });
+    if (!invoice) throw new NotFoundException('Nakladnoy topilmadi');
+    if (invoice.status === 'RECEIVED') throw new BadRequestException('Allaqachon qabul qilingan');
+    if (invoice.status === 'CANCELLED') throw new BadRequestException('Bekor qilingan nakladnoyni tasdiqlash mumkin emas');
+
+    const updated = await this.prisma.warehouseInvoice.update({
+      where: { id: invoiceId },
+      data: { status: 'RECEIVED', approvedBy: userId, approvedAt: new Date() },
+      include: { items: true },
+    });
+
+    this.logger.log("[Invoice] Approved " + invoiceId + " by " + userId, { tenantId });
+    return updated;
+  }
+
+  async rejectInvoice(tenantId: string, userId: string, invoiceId: string) {
+    const invoice = await this.prisma.warehouseInvoice.findFirst({
+      where: { id: invoiceId, tenantId },
+    });
+    if (!invoice) throw new NotFoundException('Nakladnoy topilmadi');
+    if (invoice.status === 'RECEIVED') throw new BadRequestException('Tasdiqlangan nakladnoyni bekor qilish mumkin emas');
+    if (invoice.status === 'CANCELLED') throw new BadRequestException('Allaqachon bekor qilingan');
+
+    const updated = await this.prisma.warehouseInvoice.update({
+      where: { id: invoiceId },
+      data: { status: 'CANCELLED', approvedBy: userId, approvedAt: new Date() },
+    });
+
+    this.logger.log("[Invoice] Rejected " + invoiceId + " by " + userId, { tenantId });
+    return updated;
   }
 
   // ─── POST /inventory/write-off ────────────────────────────────────────────
@@ -366,6 +404,21 @@ export class WarehouseInvoiceService {
     ]);
 
     return { movements, total, page, limit };
+  }
+
+  private async resolveSupplierId(tenantId: string, supplierId?: string, supplierName?: string): Promise<string | null> {
+    if (supplierId) return supplierId;
+    if (!supplierName?.trim()) return null;
+
+    const existing = await this.prisma.supplier.findFirst({
+      where: { tenantId, name: { equals: supplierName.trim(), mode: 'insensitive' } },
+    });
+    if (existing) return existing.id;
+
+    const created = await this.prisma.supplier.create({
+      data: { tenantId, name: supplierName.trim() },
+    });
+    return created.id;
   }
 
   private async resolveWarehouseId(tenantId: string, warehouseId?: string): Promise<string> {

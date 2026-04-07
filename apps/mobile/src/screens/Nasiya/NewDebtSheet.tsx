@@ -15,6 +15,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { nasiyaApi } from '../../api/nasiya.api';
+import { extractErrorMessage } from '../../utils/error';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -29,10 +30,17 @@ const C = {
   label:     '#374151',
 };
 
+interface ProductItem {
+  product: { id: string; name: string; sellPrice: number };
+  qty: number;
+}
+
 interface Props {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialAmount?: number;
+  initialProducts?: ProductItem[];
 }
 
 interface FormState {
@@ -51,9 +59,25 @@ const EMPTY_FORM: FormState = {
   notes:        '',
 };
 
-export default function NewDebtSheet({ visible, onClose, onSuccess }: Props) {
+export default function NewDebtSheet({
+  visible, onClose, onSuccess,
+  initialAmount, initialProducts,
+}: Props) {
   const [form, setForm]       = useState<FormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
+
+  // Unified effect: pre-fill on open, reset on close
+  React.useEffect(() => {
+    if (visible) {
+      if (initialAmount !== undefined && initialAmount > 0) {
+        setForm({ ...EMPTY_FORM, totalAmount: String(initialAmount) });
+      } else {
+        setForm(EMPTY_FORM);
+      }
+    } else {
+      setForm(EMPTY_FORM);
+    }
+  }, [visible, initialAmount, initialProducts]);
 
   const set = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -85,13 +109,13 @@ export default function NewDebtSheet({ visible, onClose, onSuccess }: Props) {
         dueDate:      form.dueDate.trim() || undefined,
         notes:        form.notes.trim() || undefined,
       });
-    } catch {
-      // Backend hali tayyor emas (T-134) — demo mode da muvaffaqiyatli deb hisoblanadi
+      setForm(EMPTY_FORM);
+      onSuccess();
+    } catch (err) {
+      Alert.alert('Xatolik', extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
-    setForm(EMPTY_FORM);
-    onSuccess();
   };
 
   return (
@@ -116,6 +140,23 @@ export default function NewDebtSheet({ visible, onClose, onSuccess }: Props) {
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
               >
+                {initialProducts && initialProducts.length > 0 && (
+                  <View style={styles.productsBox}>
+                    <Text style={styles.productsTitle}>Mahsulotlar</Text>
+                    {initialProducts.map((item) => (
+                      <View key={item.product.id} style={styles.productRow}>
+                        <Text style={styles.productName} numberOfLines={1}>
+                          {item.product.name}
+                        </Text>
+                        <Text style={styles.productDetail}>
+                          {item.qty} × {item.product.sellPrice.toLocaleString('ru-RU')} ={' '}
+                          {(item.qty * item.product.sellPrice).toLocaleString('ru-RU')} UZS
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
                 {/* Mijoz ismi */}
                 <Text style={styles.label}>Mijoz ismi *</Text>
                 <TextInput
@@ -294,5 +335,34 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: C.white,
+  },
+  productsBox: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 12,
+    marginBottom: 12,
+  },
+  productsTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  productRow: {
+    paddingVertical: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  productName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  productDetail: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 2,
   },
 });

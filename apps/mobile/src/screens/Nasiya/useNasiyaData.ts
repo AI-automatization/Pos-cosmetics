@@ -1,117 +1,28 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { nasiyaApi } from '../../api/nasiya.api';
 import type { DebtRecord, DebtListResponse } from '../../api/nasiya.api';
-import { daysAgoISO } from '../../utils/date';
-
-function makeDemoDebts(): DebtListResponse {
-  const records: DebtRecord[] = [
-    {
-      id: 'demo-1',
-      customerId: 'c1',
-      orderId: 'o1',
-      totalAmount: 350000,
-      paidAmount: 100000,
-      remaining: 250000,
-      status: 'OVERDUE',
-      dueDate: daysAgoISO(5),
-      notes: null,
-      createdAt: daysAgoISO(20),
-      customer: { id: 'c1', name: 'Aziza Karimova', phone: '+998901234567' },
-      payments: [],
-    },
-    {
-      id: 'demo-2',
-      customerId: 'c2',
-      orderId: 'o2',
-      totalAmount: 180000,
-      paidAmount: 0,
-      remaining: 180000,
-      status: 'ACTIVE',
-      dueDate: daysAgoISO(-7),
-      notes: null,
-      createdAt: daysAgoISO(3),
-      customer: { id: 'c2', name: 'Bobur Toshmatov', phone: '+998931112233' },
-      payments: [],
-    },
-    {
-      id: 'demo-3',
-      customerId: 'c3',
-      orderId: 'o3',
-      totalAmount: 500000,
-      paidAmount: 300000,
-      remaining: 200000,
-      status: 'PARTIAL',
-      dueDate: daysAgoISO(-14),
-      notes: null,
-      createdAt: daysAgoISO(10),
-      customer: { id: 'c3', name: 'Malika Yusupova', phone: '+998711234567' },
-      payments: [],
-    },
-    {
-      id: 'demo-4',
-      customerId: 'c4',
-      orderId: 'o4',
-      totalAmount: 120000,
-      paidAmount: 120000,
-      remaining: 0,
-      status: 'PAID',
-      dueDate: daysAgoISO(2),
-      notes: null,
-      createdAt: daysAgoISO(15),
-      customer: { id: 'c4', name: 'Jasur Rahimov', phone: '+998909876543' },
-      payments: [],
-    },
-  ];
-  return { items: records, total: records.length, page: 1, limit: 100 };
-}
 
 export type FilterTab = 'ALL' | 'OVERDUE' | 'PAID';
 
 export function useNasiyaData(activeTab: FilterTab) {
   const qc = useQueryClient();
 
-  const allDebts = useQuery({
+  const { data: allData, isLoading: allLoading, isFetching: allFetching } = useQuery<DebtListResponse>({
     queryKey: ['nasiya', 'all'],
-    queryFn: async () => {
-      try {
-        const res = await nasiyaApi.getList();
-        if (res.items.length > 0) return res;
-        return makeDemoDebts();
-      } catch {
-        return makeDemoDebts();
-      }
-    },
-    refetchInterval: 60_000,
+    queryFn: () => nasiyaApi.getList(),
+    staleTime: 30_000,
   });
 
-  const overdueDebts = useQuery({
+  const { data: overdueData, isLoading: overdueLoading, isFetching: overdueFetching } = useQuery<DebtRecord[]>({
     queryKey: ['nasiya', 'overdue'],
-    queryFn: async () => {
-      try {
-        const res = await nasiyaApi.getOverdue();
-        if (res.length > 0) return res;
-        return makeDemoDebts().items.filter((d) => d.status === 'OVERDUE');
-      } catch {
-        return makeDemoDebts().items.filter((d) => d.status === 'OVERDUE');
-      }
-    },
-    refetchInterval: 60_000,
+    queryFn: () => nasiyaApi.getOverdue(),
+    staleTime: 30_000,
   });
 
-  const paidDebts = useQuery({
+  const { data: paidData, isLoading: paidLoading, isFetching: paidFetching } = useQuery<DebtListResponse>({
     queryKey: ['nasiya', 'paid'],
-    queryFn: async () => {
-      try {
-        const res = await nasiyaApi.getList('PAID');
-        if (res.items.length > 0) return res;
-        const demo = makeDemoDebts();
-        return { ...demo, items: demo.items.filter((d) => d.status === 'PAID') };
-      } catch {
-        const demo = makeDemoDebts();
-        return { ...demo, items: demo.items.filter((d) => d.status === 'PAID') };
-      }
-    },
-    refetchInterval: 60_000,
+    queryFn: () => nasiyaApi.getList('PAID'),
+    staleTime: 30_000,
   });
 
   const refetchAll = () => {
@@ -119,53 +30,40 @@ export function useNasiyaData(activeTab: FilterTab) {
   };
 
   const isLoading =
-    activeTab === 'ALL'
-      ? allDebts.isLoading
-      : activeTab === 'OVERDUE'
-        ? overdueDebts.isLoading
-        : paidDebts.isLoading;
-
-  const error =
-    activeTab === 'ALL'
-      ? allDebts.error
-      : activeTab === 'OVERDUE'
-        ? overdueDebts.error
-        : paidDebts.error;
+    activeTab === 'ALL' ? allLoading :
+    activeTab === 'OVERDUE' ? overdueLoading :
+    paidLoading;
 
   const isFetching =
-    activeTab === 'ALL'
-      ? allDebts.isFetching
-      : activeTab === 'OVERDUE'
-        ? overdueDebts.isFetching
-        : paidDebts.isFetching;
+    activeTab === 'ALL' ? allFetching :
+    activeTab === 'OVERDUE' ? overdueFetching :
+    paidFetching;
 
-  // Summary — active + overdue from allDebts
-  const allItems = allDebts.data?.items ?? [];
+  const allItems = allData?.items ?? [];
+  const overdueItems = overdueData ?? [];
+
   const activeItems = allItems.filter(
     (d) => d.status === 'ACTIVE' || d.status === 'PARTIAL' || d.status === 'OVERDUE',
   );
   const totalDebt = activeItems.reduce((sum, d) => sum + Number(d.remaining), 0);
-  const overdueCount = overdueDebts.data?.length ?? 0;
-  const overdueAmount = (overdueDebts.data ?? []).reduce(
-    (sum, d) => sum + Number(d.remaining),
-    0,
-  );
+  const overdueCount = overdueItems.length;
+  const overdueAmount = overdueItems.reduce((sum, d) => sum + Number(d.remaining), 0);
+  const totalCount = allItems.length;
 
-  const currentItems =
-    activeTab === 'ALL'
-      ? (allDebts.data?.items ?? [])
-      : activeTab === 'OVERDUE'
-        ? (overdueDebts.data ?? [])
-        : (paidDebts.data?.items ?? []);
+  const currentItems: DebtRecord[] =
+    activeTab === 'ALL' ? allItems :
+    activeTab === 'OVERDUE' ? overdueItems :
+    (paidData?.items ?? []);
 
   return {
     currentItems,
     totalDebt,
+    totalCount,
     overdueCount,
     overdueAmount,
     isLoading,
     isFetching,
-    error,
+    error: null,
     refetchAll,
   };
 }

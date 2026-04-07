@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Linking, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { DebtRecord, DebtStatus } from '../../api/nasiya.api';
-import { nasiyaApi } from '../../api/nasiya.api';
 import { formatUZS } from '../../utils/currency';
-import { extractErrorMessage } from '../../utils/error';
+import ReminderActionSheet from './ReminderActionSheet';
 
 interface Props {
   debt: DebtRecord;
   onPay: (debt: DebtRecord) => void;
+  onPress?: (debt: DebtRecord) => void;
 }
 
 const STATUS_COLORS: Record<DebtStatus, { bg: string; text: string }> = {
@@ -51,9 +51,8 @@ function formatDueDate(dueDate: string | null, t: ReturnType<typeof useTranslati
   });
 }
 
-export default function DebtCard({ debt, onPay }: Props) {
+export default function DebtCard({ debt, onPay, onPress }: Props) {
   const { t } = useTranslation();
-  const [reminding, setReminding]             = useState(false);
   const [paymentsExpanded, setPayExpanded]    = useState(false);
   const [reminderModal, setReminderModal]     = useState(false);
   const colors = STATUS_COLORS[debt.status];
@@ -61,28 +60,12 @@ export default function DebtCard({ debt, onPay }: Props) {
   const days = overdueDays(debt.dueDate);
   const isOverdue = debt.status === 'OVERDUE' || (days > 0 && !isPaid);
 
-  const handlePhoneCall = () => {
-    if (debt.customer.phone) {
-      setReminderModal(false);
-      void Linking.openURL(`tel:${debt.customer.phone}`);
-    }
-  };
-
-  const handleTelegramReminder = async () => {
-    setReminding(true);
-    try {
-      await nasiyaApi.sendReminder(debt.id);
-      setReminderModal(false);
-      Alert.alert('✅', t('nasiya.reminderSent'));
-    } catch (err) {
-      Alert.alert('Xatolik', extractErrorMessage(err));
-    } finally {
-      setReminding(false);
-    }
-  };
-
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onPress?.(debt)}
+      activeOpacity={0.9}
+    >
       {/* Header row */}
       <View style={styles.header}>
         <View style={styles.customerInfo}>
@@ -206,64 +189,13 @@ export default function DebtCard({ debt, onPay }: Props) {
         )}
       </View>
 
-      {/* ── Reminder action modal ─────────────────────── */}
-      <Modal
+      <ReminderActionSheet
         visible={reminderModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setReminderModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalBackdrop}
-          activeOpacity={1}
-          onPress={() => setReminderModal(false)}
-        />
-        <View style={styles.actionSheet}>
-          <View style={styles.actionHandle} />
-          <Text style={styles.actionTitle}>{debt.customer.name}</Text>
-          <Text style={styles.actionSubtitle}>Eslatma yuborish usulini tanlang</Text>
-
-          {debt.customer.phone ? (
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={handlePhoneCall}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.actionBtnIcon}>📞</Text>
-              <View style={styles.actionBtnInfo}>
-                <Text style={styles.actionBtnTitle}>Telefon qilish</Text>
-                <Text style={styles.actionBtnSub}>{debt.customer.phone}</Text>
-              </View>
-            </TouchableOpacity>
-          ) : null}
-
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnTelegram]}
-            onPress={handleTelegramReminder}
-            activeOpacity={0.75}
-            disabled={reminding}
-          >
-            {reminding ? (
-              <ActivityIndicator size="small" color="#2563EB" style={styles.actionBtnIcon} />
-            ) : (
-              <Text style={styles.actionBtnIcon}>✈️</Text>
-            )}
-            <View style={styles.actionBtnInfo}>
-              <Text style={styles.actionBtnTitle}>Telegram eslatma</Text>
-              <Text style={styles.actionBtnSub}>Bot orqali avtomatik xabar</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionCancelBtn}
-            onPress={() => setReminderModal(false)}
-            activeOpacity={0.75}
-          >
-            <Text style={styles.actionCancelText}>Bekor qilish</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    </View>
+        onClose={() => setReminderModal(false)}
+        customer={debt.customer}
+        debtId={debt.id}
+      />
+    </TouchableOpacity>
   );
 }
 
@@ -443,82 +375,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
-  },
-
-  // ── Reminder action modal ──────────────────────────
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  actionSheet: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    paddingTop: 12,
-  },
-  actionHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E5E7EB',
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  actionSubtitle: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 16,
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-    marginBottom: 10,
-    gap: 12,
-  },
-  actionBtnTelegram: {
-    backgroundColor: '#EFF6FF',
-  },
-  actionBtnIcon: {
-    fontSize: 22,
-    width: 32,
-    textAlign: 'center',
-  },
-  actionBtnInfo: {
-    flex: 1,
-  },
-  actionBtnTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  actionBtnSub: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  actionCancelBtn: {
-    marginTop: 4,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  actionCancelText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#6B7280',
   },
 });

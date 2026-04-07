@@ -6,7 +6,6 @@ export interface InvoiceItem {
   purchasePrice: number;
   warehouseId?: string;
   batchNumber?: string;
-  expiryDate?: string;
 }
 
 export interface CreateInvoiceDto {

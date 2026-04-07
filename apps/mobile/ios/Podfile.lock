@@ -32,7 +32,7 @@ PODS:
     - Yoga
   - ExpoAsset (12.0.12):
     - ExpoModulesCore
-  - ExpoCamera (17.0.10):
+  - ExpoCamera (16.0.18):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -1829,9 +1829,9 @@ DEPENDENCIES:
   - "EXApplication (from `../../../node_modules/.pnpm/expo-application@7.0.8_expo@54.0.33/node_modules/expo-application/ios`)"
   - "EXConstants (from `../../../node_modules/.pnpm/expo-constants@18.0.13_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0_/node_modules/expo-constants/ios`)"
   - "EXNotifications (from `../../../node_modules/.pnpm/expo-notifications@0.32.16_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+r_e8813aa66a709ab411c13d8ccb1f917a/node_modules/expo-notifications/ios`)"
-  - "Expo (from `../../../node_modules/.pnpm/expo@54.0.33_@babel+core@7.29.0_@expo+metro-runtime@6.1.2_react-native@0.81.5_@babel+co_7ac90c6562476295b5009ad655ea6711/node_modules/expo`)"
+  - "Expo (from `../../../node_modules/.pnpm/expo@54.0.33_@babel+core@7.29.0_@expo+dom-webview@55.0.3_@expo+metro-runtime@6.1.2_reac_8fabd5a623f6cfcfd0e3ee06ebd9dd97/node_modules/expo`)"
   - "ExpoAsset (from `../../../node_modules/.pnpm/expo-asset@12.0.12_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-asset/ios`)"
-  - "ExpoCamera (from `../../../node_modules/.pnpm/expo-camera@17.0.10_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-camera/ios`)"
+  - "ExpoCamera (from `../../../node_modules/.pnpm/expo-camera@16.0.18_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-camera/ios`)"
   - "ExpoFileSystem (from `../../../node_modules/.pnpm/expo-file-system@19.0.21_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0_/node_modules/expo-file-system/ios`)"
   - "ExpoFont (from `../../../node_modules/.pnpm/expo-font@14.0.11_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-font/ios`)"
   - "ExpoKeepAwake (from `../../../node_modules/.pnpm/expo-keep-awake@15.0.8_expo@54.0.33_react@19.1.0/node_modules/expo-keep-awake/ios`)"
@@ -1921,11 +1921,11 @@ EXTERNAL SOURCES:
   EXNotifications:
     :path: "../../../node_modules/.pnpm/expo-notifications@0.32.16_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+r_e8813aa66a709ab411c13d8ccb1f917a/node_modules/expo-notifications/ios"
   Expo:
-    :path: "../../../node_modules/.pnpm/expo@54.0.33_@babel+core@7.29.0_@expo+metro-runtime@6.1.2_react-native@0.81.5_@babel+co_7ac90c6562476295b5009ad655ea6711/node_modules/expo"
+    :path: "../../../node_modules/.pnpm/expo@54.0.33_@babel+core@7.29.0_@expo+dom-webview@55.0.3_@expo+metro-runtime@6.1.2_reac_8fabd5a623f6cfcfd0e3ee06ebd9dd97/node_modules/expo"
   ExpoAsset:
     :path: "../../../node_modules/.pnpm/expo-asset@12.0.12_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-asset/ios"
   ExpoCamera:
-    :path: "../../../node_modules/.pnpm/expo-camera@17.0.10_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-camera/ios"
+    :path: "../../../node_modules/.pnpm/expo-camera@16.0.18_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-camera/ios"
   ExpoFileSystem:
     :path: "../../../node_modules/.pnpm/expo-file-system@19.0.21_expo@54.0.33_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0_/node_modules/expo-file-system/ios"
   ExpoFont:
@@ -2084,7 +2084,7 @@ SPEC CHECKSUMS:
   EXNotifications: 9eec98712cc814ceff916d876cb53859003b0597
   Expo: aadbcc8c6c14ff3105a9154f1683cb1424ff0d2a
   ExpoAsset: f867e55ceb428aab99e1e8c082b5aee7c159ea18
-  ExpoCamera: 6a326deb45ba840749652e4c15198317aa78497e
+  ExpoCamera: 0a3e78de7b1ca8c438ee6784fa6f22c5b1b36966
   ExpoFileSystem: 858a44267a3e6e9057e0888ad7c7cfbf55d52063
   ExpoFont: f543ce20a228dd702813668b1a07b46f51878d47
   ExpoKeepAwake: 55f75eca6499bb9e4231ebad6f3e9cb8f99c0296

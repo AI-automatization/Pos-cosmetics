@@ -15,6 +15,7 @@ interface Props {
   product: Product;
   cartQty: number;
   onPress: (product: Product) => void;
+  onDecrement?: (product: Product) => void;
 }
 
 function formatPrice(n: number): string {
@@ -29,7 +30,7 @@ function stockStatus(qty: number, min: number): StockStatus {
   return 'in_stock';
 }
 
-export default function ProductCard({ product, cartQty, onPress }: Props) {
+export default function ProductCard({ product, cartQty, onPress, onDecrement }: Props) {
   const status = stockStatus(product.stockQty, product.minStockLevel);
   const isOut = status === 'out_of_stock';
 
@@ -57,10 +58,25 @@ export default function ProductCard({ product, cartQty, onPress }: Props) {
           </View>
         )}
 
-        {/* Cart qty indicator */}
+        {/* Cart controls */}
         {cartQty > 0 && (
-          <View style={styles.cartBadge}>
-            <Text style={styles.cartBadgeText}>{cartQty}</Text>
+          <View style={styles.cartControls}>
+            <TouchableOpacity
+              style={styles.controlBtn}
+              onPress={() => onDecrement?.(product)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.controlBtnText}>−</Text>
+            </TouchableOpacity>
+            <Text style={styles.controlQty}>{cartQty}</Text>
+            <TouchableOpacity
+              style={[styles.controlBtn, styles.controlBtnAdd, isOut && styles.controlBtnAddDisabled]}
+              onPress={() => !isOut && onPress(product)}
+              disabled={isOut}
+              activeOpacity={isOut ? 1 : 0.7}
+            >
+              <Text style={[styles.controlBtnText, styles.controlBtnTextLight]}>+</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -134,21 +150,43 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
   },
-  cartBadge: {
+  cartControls: {
     position: 'absolute',
     bottom: 8,
-    right: 8,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#5B5BD6',
+    right: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  controlBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cartBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
+  controlBtnAdd: {
+    backgroundColor: '#5B5BD6',
+  },
+  controlBtnAddDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
+  controlBtnText: {
+    fontSize: 14,
     fontWeight: '700',
+    color: '#374151',
+    lineHeight: 16,
+  },
+  controlBtnTextLight: {
+    color: '#FFFFFF',
+  },
+  controlQty: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111827',
+    minWidth: 16,
+    textAlign: 'center',
   },
   info: {
     padding: 10,

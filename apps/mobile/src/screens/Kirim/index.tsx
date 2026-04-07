@@ -17,6 +17,7 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Receipt } from '../../api/inventory.api';
 import { useKirimData } from './useKirimData';
 import { formatUZS, formatCompact } from '../../utils/currency';
+import ShiftGuard from '../../components/common/ShiftGuard';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -266,6 +267,7 @@ export default function KirimScreen() {
   }
 
   return (
+    <ShiftGuard>
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
@@ -358,6 +360,7 @@ export default function KirimScreen() {
         createMutation={create}
       />
     </SafeAreaView>
+    </ShiftGuard>
   );
 }
 

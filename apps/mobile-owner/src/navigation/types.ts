@@ -16,6 +16,7 @@ export type TabParamList = {
   Inventory: undefined;
   Employees: undefined;
   Settings: undefined;
+  SystemHealth: undefined;
   Alerts: undefined; // hidden tab — accessible via bell icon in header
 };
 

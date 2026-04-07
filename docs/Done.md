@@ -306,7 +306,9 @@
 | T-128 | 2026-03-12 | Sales History (Tarix) Screen iOS — Figma 1:282 ga mos. Header (hamburger, sana, calendar), ShiftCard (yashil chiziq, cashier, Yopish tugma), StatsGrid (3 ustun: TUSHUM/SONI/O'RTACHA), SaleRow (NAQD/KARTA/NASIYA badge), FlatList. | `apps/mobile/src/screens/Sales/index.tsx` |
 | T-127 | 2026-03-12 | Payment Sheet iOS — Bottom sheet modal, 3 usul (NAQD/KARTA/NASIYA), Aralash to'lov toggle (Switch), qaytim hisoblash, split naqd+karta, Tasdiqlash tugma. | `apps/mobile/src/screens/Savdo/PaymentSheet.tsx` |
 | T-126 | 2026-03-12 | Savdo Screen iOS — Figma ga mos. Mahsulot grid (2 ustun), 4 holat (In Stock/Low Stock/Tugagan/Normal), kategoriya tabs (Hammasi/Yuz/Soch/Tana), qidirish + barcode scanner (CameraSection T-102 dan qayta ishlatildi), cart bar (jami + To'lov tugma). Mock data bilan ishlaydi. | `apps/mobile/src/screens/Savdo/index.tsx`, `ProductCard.tsx`, `ScannerModal.tsx` |
-| T-125 | 2026-03-12 | Login Screen iOS — Figma ga 1:1 mos. Logo box (purple R), RAOS subtitle, email/parol inputlar (ikonkalar bilan), eye toggle, "Parolni unutdingizmi?", Kirish→ tugma, YOKI divider, barmoq izi tugma, til tanlash (UZ/RU/EN). Auto-demo-auth `auth.store.ts` dan olib tashlandi — LoginScreen dagi "🧪 Demo kirish" tugmasi orqali kirish. | `apps/mobile/src/screens/Auth/LoginScreen.tsx`, `apps/mobile/src/store/auth.store.ts` |
+| T-125 | 2026-03-12 | Login Screen iOS — Figma ga 1:1 mos. Logo box (purple R), RAOS subtitle, email/parol inputlar (ikonkalar bilan), eye toggle, "Parolni unutdingizmi?", Kirish tugma, YOKI divider, barmoq izi tugma, til tanlash (UZ/RU/EN). Auto-demo-auth `auth.store.ts` dan olib tashlandi — LoginScreen dagi "Demo kirish" tugmasi orqali kirish. | `apps/mobile/src/screens/Auth/LoginScreen.tsx`, `apps/mobile/src/store/auth.store.ts` |
+
+---
 ## 2026-03-13 SESSIYA — BACKEND INFRA (T-126, T-129..T-133)
 
 | T-# | Kategoriya | Yechim | Fayl(lar) |
@@ -784,4 +786,71 @@
 
 - **Yechim:** `scripts/test-mobile-owner-endpoints.sh` skripti yaratildi — 25 endpoint avtomatik test qiladi. Barcha backend endpointlar mavjudligi tasdiqlandi (grep bilan). API ishga tushgach: `bash scripts/test-mobile-owner-endpoints.sh` yoki `BASE_URL=https://api-production-c5b6.up.railway.app bash scripts/test-mobile-owner-endpoints.sh`
 - **Fayl:** `scripts/test-mobile-owner-endpoints.sh`
+
+---
+
+## T-332 | P2 | [MOBILE] | Mobile: System Health ekrani
+- **Bajarildi:** 2026-03-27
+- **Mas'ul:** Abdulaziz
+- **Yechim:** SystemHealth screen (ServiceStatusCard, SyncStatusList, RecentErrorsList) + useSystemHealth hook + system.api.ts. TabNavigator ga "SISTEMA" tab qo'shildi. HEALTH_REFETCH_INTERVAL=30_000ms. Commit: a118d59
+- **Fayllar:** apps/mobile-owner/src/screens/SystemHealth/, apps/mobile-owner/src/navigation/TabNavigator.tsx, types.ts, constants.ts
+
+---
+
+## T-333 | P2 | [MOBILE] | Mobile: экран просмотра склада (read-only)
+- **Bajarildi:** 2026-03-27
+- **Mas'ul:** Abdulaziz
+- **Yechim:** WarehouseScreen yaratildi — search bar (nomi/barcode), 3 tab (Barchasi / 🔴 Kam qolgan / 🟡 Muddati yaqin), FlatList + pull-to-refresh, demo fallback. inventoryApi.getLowStock + getExpiring + getStock ishlatildi. TabNavigator da "OMBOR" tab WarehouseScreen ga almashtirildi.
+- **Fayllar:** apps/mobile-owner/src/screens/Warehouse/index.tsx, useWarehouseData.ts, WarehouseItemRow.tsx, WarehouseList.tsx, apps/mobile-owner/src/navigation/TabNavigator.tsx
+
+---
+
+## T-334 | P2 | [MOBILE] | Mobile: HR экран управления сотрудниками
+- **Bajarildi:** 2026-03-27
+- **Mas'ul:** Abdulaziz
+- **Yechim:** HRScreen yaratildi — xodimlar ro'yxati (rol/status/filial), statistika (jami/faol/nofaol), filter tablar, deaktivatsiya/aktivatsiya (Alert confirm), HRInviteSheet (ism+familiya+telefon+email+rol+filial → invite flow T-329). EmployeesNavigator da EmployeesScreen o'rniga HRScreen o'rnatildi.
+- **Fayllar:** apps/mobile-owner/src/screens/HR/index.tsx, HREmployeeRow.tsx, HRInviteSheet.tsx, useHRData.ts, apps/mobile-owner/src/navigation/EmployeesNavigator.tsx
+
+---
+
+## T-317 | P3 | [MOBILE] | Smena/index.tsx — 495 qator, 400 limitdan oshgan, SRP buzilgan
+
+- **Bajarildi:** 2026-03-28
+- **Mas'ul:** Abdulaziz
+- **Yechim:** StatBox, DetailRow, HistoryCard sub-komponentlari + C colors + ShiftRecord interface + fmt utility SmenaComponents.tsx ga ko'chirildi. `icon as any` cast o'rniga `ComponentProps<typeof MaterialCommunityIcons>['name']` turi ishlatildi. index.tsx 495 → 346 qatorga tushdi.
+- **Fayllar:** apps/mobile/src/screens/Smena/index.tsx, apps/mobile/src/screens/Smena/SmenaComponents.tsx
+
+---
+
+## T-316 | P3 | [MOBILE] | DebtCard.tsx — 529 qator, SRP buzilgan
+
+- **Bajarildi:** 2026-03-28
+- **Mas'ul:** Abdulaziz
+- **Yechim:** Reminder action modal (Modal JSX + 76 qator styles + handlePhoneCall + handleTelegramReminder) alohida ReminderActionSheet.tsx ga chiqarildi. DebtCard.tsx 529 → ~385 qatorga tushdi (400 limit ostida). Modal, ActivityIndicator, Alert, nasiyaApi, extractErrorMessage importlari DebtCard dan olib tashlandi.
+- **Fayllar:** apps/mobile/src/screens/Nasiya/DebtCard.tsx, ReminderActionSheet.tsx
+
+---
+
+## T-341 | 2026-03-28 | [MOBILE] | ShiftGuard — Smena ochilmagan ekranlarda overlay
+
+- **Mas'ul:** Abdulaziz
+- **Yechim:** `ShiftGuard` komponenti yaratildi — `useShiftStore().isShiftOpen` tekshiradi, smena yopilgan bo'lsa `StyleSheet.absoluteFill` overlay ko'rsatadi (lock icon + "Smena ochilmagan" + "Smena ochish →" tugmasi). Savdo, Nasiya, Kirim, Ombor ekranlariga qo'shildi. Smena, Tarix, Sozlamalar — ochiq qoldi. Commit: a5fb771
+- **Fayllar:** apps/mobile/src/components/common/ShiftGuard.tsx (yangi), screens/Savdo/index.tsx, Nasiya/index.tsx, Kirim/index.tsx, Ombor/index.tsx
+
+---
+
+## T-342 | 2026-03-28 | [MOBILE] | Backend integratsiya — Smena, Kirim, Ombor, Savdo
+
+- **Mas'ul:** Abdulaziz
+- **Yechim:** Barcha asosiy ekranlar backend API ga ulandi:
+  - `shiftStore.ts` — `openShift`/`closeShift` → real API; `syncWithApi()` app start uchun
+  - `sales.api.ts` — `openShiftApi`, `closeShiftApi`, `getShiftById`, `getShifts`, `createOrder` qo'shildi
+  - `inventory.api.ts` — `/inventory/receipts` → `/warehouse/invoices` tuzatildi, field mapping
+  - `catalog.api.ts` — `getProducts()`, `getCategories()` qo'shildi
+  - `SmenaScreen` — mock data o'chirildi, real API ga ulandi
+  - `SavdoScreen` — MOCK_PRODUCTS o'chirildi, `catalogApi.getProducts()` + `salesApi.createOrder()` ulandi
+  - Commit: 5f42746, 2166f66
+- **Fayllar:** store/shiftStore.ts, api/sales.api.ts, api/inventory.api.ts, api/catalog.api.ts, screens/Smena/index.tsx, screens/Savdo/index.tsx
+
+---
 

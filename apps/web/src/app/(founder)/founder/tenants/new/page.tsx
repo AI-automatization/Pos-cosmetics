@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { CheckCircle, ChevronRight, Store, User, ClipboardCheck, Copy, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
@@ -268,11 +269,16 @@ export default function NewTenantPage() {
             </InputField>
 
             <InputField label="Biznes turi" error={shopForm.formState.errors.businessType?.message}>
-              <select {...shopForm.register('businessType')} className={inputCls}>
-                {Object.entries(BUSINESS_TYPE_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
-              </select>
+              <SearchableDropdown
+                options={Object.entries(BUSINESS_TYPE_LABELS).map(([k, v]) => ({
+                  value: k,
+                  label: v,
+                }))}
+                value={shopForm.watch('businessType')}
+                onChange={(val) => shopForm.setValue('businessType', val as ShopForm['businessType'], { shouldValidate: true })}
+                searchable={false}
+                clearable={false}
+              />
             </InputField>
 
             <div className="flex gap-2 pt-2">

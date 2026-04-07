@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,188 +10,113 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-
-// ─── Colors ────────────────────────────────────────────
-const C = {
-  bg:       '#F5F5F7',
-  white:    '#FFFFFF',
-  text:     '#111827',
-  muted:    '#9CA3AF',
-  secondary:'#6B7280',
-  border:   '#F3F4F6',
-  primary:  '#5B5BD6',
-  green:    '#10B981',
-  red:      '#EF4444',
-  orange:   '#F59E0B',
-};
-
-// ─── Types ─────────────────────────────────────────────
-interface ShiftRecord {
-  id: string;
-  cashier: string;
-  openedAt: string;
-  closedAt: string | null;
-  openingCash: number;
-  closingCash: number | null;
-  totalRevenue: number;
-  totalOrders: number;
-  cashAmount: number;
-  cardAmount: number;
-  nasiyaAmount: number;
-  expenses: number;
-}
-
-// ─── Mock data ─────────────────────────────────────────
-const ACTIVE_SHIFT: ShiftRecord = {
-  id: 'shift-001',
-  cashier: 'Azamat Akhmedov',
-  openedAt: '08:30',
-  closedAt: null,
-  openingCash: 500_000,
-  closingCash: null,
-  totalRevenue: 4_200_000,
-  totalOrders: 48,
-  cashAmount: 2_100_000,
-  cardAmount: 1_750_000,
-  nasiyaAmount: 350_000,
-  expenses: 120_000,
-};
-
-const SHIFT_HISTORY: ShiftRecord[] = [
-  {
-    id: 'shift-000',
-    cashier: 'Azamat Akhmedov',
-    openedAt: '08:15',
-    closedAt: '18:00',
-    openingCash: 500_000,
-    closingCash: 2_350_000,
-    totalRevenue: 3_850_000,
-    totalOrders: 42,
-    cashAmount: 1_900_000,
-    cardAmount: 1_500_000,
-    nasiyaAmount: 450_000,
-    expenses: 80_000,
-  },
-  {
-    id: 'shift-prev1',
-    cashier: 'Malika Yusupova',
-    openedAt: '09:00',
-    closedAt: '19:30',
-    openingCash: 300_000,
-    closingCash: 1_900_000,
-    totalRevenue: 2_900_000,
-    totalOrders: 31,
-    cashAmount: 1_400_000,
-    cardAmount: 1_100_000,
-    nasiyaAmount: 400_000,
-    expenses: 50_000,
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { useShiftStore } from '../../store/shiftStore';
+import { useAuthStore } from '../../store/auth.store';
+import { salesApi } from '../../api/sales.api';
+import { C, ShiftRecord, fmt, StatBox, DetailRow, HistoryCard } from './SmenaComponents';
 
 // ─── Utils ─────────────────────────────────────────────
-function fmt(n: number) { return n.toLocaleString('ru-RU'); }
-
-function duration(_openedAt: string): string {
-  return '6 soat 12 daqiqa';
+function formatTime(date: Date | string | null | undefined): string {
+  if (!date) return '—';
+  return new Date(date).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── Stat box ──────────────────────────────────────────
-function StatBox({
-  label,
-  value,
-  icon,
-  iconBg,
-  iconColor,
-  sub,
-}: {
-  label: string;
-  value: string;
-  icon: string;
-  iconBg: string;
-  iconColor: string;
-  sub?: string;
-}) {
-  return (
-    <View style={styles.statBox}>
-      <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
-        <MaterialCommunityIcons name={icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']} size={20} color={iconColor} />
-      </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-      {sub ? <Text style={styles.statSub}>{sub}</Text> : null}
-    </View>
-  );
+function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString('uz-UZ', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 }
 
-// ─── Detail row ────────────────────────────────────────
-function DetailRow({
-  label,
-  value,
-  valueColor,
-  icon,
-}: {
-  label: string;
-  value: string;
-  valueColor?: string;
-  icon?: string;
-}) {
-  return (
-    <View style={styles.detailRow}>
-      {icon ? (
-        <MaterialCommunityIcons name={icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']} size={16} color={C.muted} style={{ marginRight: 8 }} />
-      ) : (
-        <View style={styles.detailDot} />
-      )}
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={[styles.detailValue, valueColor ? { color: valueColor } : {}]}>{value}</Text>
-    </View>
-  );
-}
-
-// ─── History card ──────────────────────────────────────
-function HistoryCard({ shift }: { shift: ShiftRecord }) {
-  const netRevenue = shift.totalRevenue - shift.expenses;
-  return (
-    <View style={styles.historyCard}>
-      <View style={styles.historyHeader}>
-        <View>
-          <Text style={styles.historyDate}>{shift.openedAt} — {shift.closedAt}</Text>
-          <Text style={styles.historyCashier}>{shift.cashier}</Text>
-        </View>
-        <View style={styles.historyBadge}>
-          <Text style={styles.historyBadgeText}>Yopilgan</Text>
-        </View>
-      </View>
-      <View style={styles.historyStats}>
-        <View style={styles.historyStat}>
-          <Text style={styles.historyStatValue}>{shift.totalOrders} ta</Text>
-          <Text style={styles.historyStatLabel}>Savdolar</Text>
-        </View>
-        <View style={styles.historyDivider} />
-        <View style={styles.historyStat}>
-          <Text style={styles.historyStatValue}>{fmt(shift.totalRevenue)}</Text>
-          <Text style={styles.historyStatLabel}>Tushum</Text>
-        </View>
-        <View style={styles.historyDivider} />
-        <View style={styles.historyStat}>
-          <Text style={[styles.historyStatValue, { color: C.green }]}>{fmt(netRevenue)}</Text>
-          <Text style={styles.historyStatLabel}>Sof daromad</Text>
-        </View>
-      </View>
-    </View>
-  );
+function duration(openedAt: Date | string): string {
+  const diffMs = Date.now() - new Date(openedAt).getTime();
+  const totalMins = Math.floor(diffMs / 60_000);
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  if (h === 0) return `${m} daqiqa`;
+  return `${h} soat ${m} daqiqa`;
 }
 
 // ─── Main Screen ───────────────────────────────────────
 export default function SmenaScreen() {
-  const [isActive, setIsActive]   = useState(true);
-  const [loading, setLoading]     = useState(false);
+  const { isShiftOpen, shiftId, openShift, closeShift, syncWithApi } = useShiftStore();
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(false);
 
-  const shift = isActive ? ACTIVE_SHIFT : null;
+  const cashierName = user ? `${user.firstName} ${user.lastName}` : 'Kassir';
+
+  // App ochilganda API bilan sinxronlashtirish
+  useEffect(() => {
+    void syncWithApi();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Joriy smena detallari
+  const { data: shiftDetail, refetch: refetchDetail } = useQuery({
+    queryKey: ['shift-detail', shiftId],
+    queryFn: () => salesApi.getShiftById(shiftId!),
+    enabled: !!shiftId && isShiftOpen,
+    staleTime: 30_000,
+  });
+
+  // Smena tarixi
+  const { data: shiftsData } = useQuery({
+    queryKey: ['shifts-history'],
+    queryFn: () => salesApi.getShifts(1, 6),
+    staleTime: 60_000,
+  });
+
+  // API ma'lumotlarini ShiftRecord ga map qilish
+  const shift: ShiftRecord | null =
+    isShiftOpen && shiftDetail
+      ? {
+          id: shiftDetail.id,
+          cashier:
+            shiftDetail.user
+              ? `${shiftDetail.user.firstName} ${shiftDetail.user.lastName}`
+              : cashierName,
+          openedAt: formatTime(shiftDetail.openedAt),
+          closedAt: shiftDetail.closedAt ? formatTime(shiftDetail.closedAt) : null,
+          openingCash: shiftDetail.openingCash,
+          closingCash: shiftDetail.closingCash ?? null,
+          totalRevenue: shiftDetail.totalRevenue ?? 0,
+          totalOrders: shiftDetail.totalOrders ?? 0,
+          cashAmount: shiftDetail.cashAmount ?? 0,
+          cardAmount: shiftDetail.cardAmount ?? 0,
+          nasiyaAmount: shiftDetail.nasiyaAmount ?? 0,
+          expenses: shiftDetail.expenses ?? 0,
+        }
+      : null;
+
+  // Yopilgan smenalar tarixi
+  const historyShifts: ShiftRecord[] = (shiftsData?.items ?? [])
+    .filter((s) => s.status === 'CLOSED')
+    .slice(0, 3)
+    .map((s) => ({
+      id: s.id,
+      cashier:
+        s.user
+          ? `${s.user.firstName} ${s.user.lastName}`
+          : cashierName,
+      openedAt: formatTime(s.openedAt),
+      closedAt: s.closedAt ? formatTime(s.closedAt) : null,
+      openingCash: s.openingCash,
+      closingCash: s.closingCash ?? null,
+      totalRevenue: s.totalRevenue ?? 0,
+      totalOrders: s.totalOrders ?? 0,
+      cashAmount: s.cashAmount ?? 0,
+      cardAmount: s.cardAmount ?? 0,
+      nasiyaAmount: s.nasiyaAmount ?? 0,
+      expenses: s.expenses ?? 0,
+    }));
+
   const netRevenue = shift ? shift.totalRevenue - shift.expenses : 0;
+  const todayStr = formatDate(new Date());
 
   const handleToggleShift = () => {
-    if (isActive) {
+    if (isShiftOpen) {
       Alert.alert(
         'Smenani yopish',
         'Joriy smenani yopmoqchimisiz?',
@@ -200,16 +125,30 @@ export default function SmenaScreen() {
           {
             text: 'Yopish',
             style: 'destructive',
-            onPress: () => {
+            onPress: async () => {
               setLoading(true);
-              setTimeout(() => { setLoading(false); setIsActive(false); }, 800);
+              try {
+                await closeShift(0);
+                void refetchDetail();
+              } catch {
+                Alert.alert('Xatolik', 'Smena yopishda xatolik yuz berdi');
+              } finally {
+                setLoading(false);
+              }
             },
           },
         ],
       );
     } else {
       setLoading(true);
-      setTimeout(() => { setLoading(false); setIsActive(true); }, 800);
+      openShift(0)
+        .then(() => {
+          setLoading(false);
+        })
+        .catch(() => {
+          setLoading(false);
+          Alert.alert('Xatolik', 'Smena ochishda xatolik yuz berdi');
+        });
     }
   };
 
@@ -219,19 +158,19 @@ export default function SmenaScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Smena</Text>
-          <Text style={styles.headerDate}>10 mart, 2026</Text>
+          <Text style={styles.headerDate}>{todayStr}</Text>
         </View>
-        <View style={[styles.statusPill, isActive ? styles.statusPillActive : styles.statusPillClosed]}>
-          <View style={[styles.statusDot, { backgroundColor: isActive ? C.green : C.muted }]} />
-          <Text style={[styles.statusText, { color: isActive ? C.green : C.muted }]}>
-            {isActive ? 'Faol' : 'Yopilgan'}
+        <View style={[styles.statusPill, isShiftOpen ? styles.statusPillActive : styles.statusPillClosed]}>
+          <View style={[styles.statusDot, { backgroundColor: isShiftOpen ? C.green : C.muted }]} />
+          <Text style={[styles.statusText, { color: isShiftOpen ? C.green : C.muted }]}>
+            {isShiftOpen ? 'Faol' : 'Yopilgan'}
           </Text>
         </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {isActive && shift ? (
+        {isShiftOpen && shiftDetail ? (
           <>
             {/* Active shift card */}
             <View style={styles.shiftCard}>
@@ -239,80 +178,92 @@ export default function SmenaScreen() {
                 <View style={styles.shiftLeft}>
                   <View style={styles.shiftDot} />
                   <View>
-                    <Text style={styles.shiftCashier}>{shift.cashier}</Text>
-                    <Text style={styles.shiftTime}>Boshlandi: {shift.openedAt}  •  {duration(shift.openedAt)}</Text>
+                    <Text style={styles.shiftCashier}>
+                      {shift?.cashier ?? cashierName}
+                    </Text>
+                    <Text style={styles.shiftTime}>
+                      Boshlandi: {formatTime(shiftDetail.openedAt)}  •  {duration(shiftDetail.openedAt)}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.shiftCashBox}>
                   <Text style={styles.shiftCashLabel}>Ochilish naqdi</Text>
-                  <Text style={styles.shiftCashValue}>{fmt(shift.openingCash)}</Text>
+                  <Text style={styles.shiftCashValue}>{fmt(shiftDetail.openingCash)}</Text>
                 </View>
               </View>
             </View>
 
             {/* Quick stats grid */}
-            <View style={styles.statsGrid}>
-              <StatBox
-                label="Tushum"
-                value={`${fmt(shift.totalRevenue)} UZS`}
-                icon="cash-register"
-                iconBg={C.primary + '18'}
-                iconColor={C.primary}
-                sub={`${shift.totalOrders} ta savdo`}
-              />
-              <StatBox
-                label="Naqd"
-                value={`${fmt(shift.cashAmount)} UZS`}
-                icon="cash-multiple"
-                iconBg="#D1FAE5"
-                iconColor={C.green}
-              />
-              <StatBox
-                label="Karta"
-                value={`${fmt(shift.cardAmount)} UZS`}
-                icon="credit-card-outline"
-                iconBg="#DBEAFE"
-                iconColor="#2563EB"
-              />
-              <StatBox
-                label="Nasiya"
-                value={`${fmt(shift.nasiyaAmount)} UZS`}
-                icon="receipt"
-                iconBg="#FEF3C7"
-                iconColor={C.orange}
-              />
-            </View>
+            {shift && (
+              <View style={styles.statsGrid}>
+                <StatBox
+                  label="Tushum"
+                  value={`${fmt(shift.totalRevenue)} UZS`}
+                  icon="cash-register"
+                  iconBg={C.primary + '18'}
+                  iconColor={C.primary}
+                  sub={`${shift.totalOrders} ta savdo`}
+                />
+                <StatBox
+                  label="Naqd"
+                  value={`${fmt(shift.cashAmount)} UZS`}
+                  icon="cash-multiple"
+                  iconBg="#D1FAE5"
+                  iconColor={C.green}
+                />
+                <StatBox
+                  label="Karta"
+                  value={`${fmt(shift.cardAmount)} UZS`}
+                  icon="credit-card-outline"
+                  iconBg="#DBEAFE"
+                  iconColor="#2563EB"
+                />
+                <StatBox
+                  label="Nasiya"
+                  value={`${fmt(shift.nasiyaAmount)} UZS`}
+                  icon="receipt"
+                  iconBg="#FEF3C7"
+                  iconColor={C.orange}
+                />
+              </View>
+            )}
 
             {/* Detailed report */}
-            <View style={styles.reportCard}>
-              <Text style={styles.reportTitle}>Batafsil hisobot</Text>
-
-              <DetailRow
-                label="Jami tushum"
-                value={`${fmt(shift.totalRevenue)} UZS`}
-                valueColor={C.primary}
-                icon="cash-register"
-              />
-              <View style={styles.reportDivider} />
-              <DetailRow
-                label="Nasiya (kredit)"
-                value={`${fmt(shift.nasiyaAmount)} UZS`}
-                valueColor={C.orange}
-                icon="receipt"
-              />
-              <DetailRow
-                label="Xarajatlar"
-                value={`− ${fmt(shift.expenses)} UZS`}
-                valueColor={C.red}
-                icon="minus-circle-outline"
-              />
-              <View style={styles.reportDivider} />
-              <View style={styles.netRow}>
-                <Text style={styles.netLabel}>Sof daromad</Text>
-                <Text style={styles.netValue}>{fmt(netRevenue)} UZS</Text>
+            {shift && (
+              <View style={styles.reportCard}>
+                <Text style={styles.reportTitle}>Batafsil hisobot</Text>
+                <DetailRow
+                  label="Jami tushum"
+                  value={`${fmt(shift.totalRevenue)} UZS`}
+                  valueColor={C.primary}
+                  icon="cash-register"
+                />
+                <View style={styles.reportDivider} />
+                <DetailRow
+                  label="Nasiya (kredit)"
+                  value={`${fmt(shift.nasiyaAmount)} UZS`}
+                  valueColor={C.orange}
+                  icon="receipt"
+                />
+                <DetailRow
+                  label="Xarajatlar"
+                  value={`− ${fmt(shift.expenses)} UZS`}
+                  valueColor={C.red}
+                  icon="minus-circle-outline"
+                />
+                <View style={styles.reportDivider} />
+                <View style={styles.netRow}>
+                  <Text style={styles.netLabel}>Sof daromad</Text>
+                  <Text style={styles.netValue}>{fmt(netRevenue)} UZS</Text>
+                </View>
               </View>
-            </View>
+            )}
           </>
+        ) : isShiftOpen ? (
+          /* Shift open but data loading */
+          <View style={styles.noShift}>
+            <ActivityIndicator size="large" color={C.primary} />
+          </View>
         ) : (
           /* No active shift */
           <View style={styles.noShift}>
@@ -325,10 +276,10 @@ export default function SmenaScreen() {
         )}
 
         {/* Shift history */}
-        {SHIFT_HISTORY.length > 0 && (
+        {historyShifts.length > 0 && (
           <View style={styles.historySection}>
             <Text style={styles.sectionTitle}>Oxirgi smenalar</Text>
-            {SHIFT_HISTORY.map((s) => (
+            {historyShifts.map((s) => (
               <HistoryCard key={s.id} shift={s} />
             ))}
           </View>
@@ -339,7 +290,7 @@ export default function SmenaScreen() {
       {/* Open / Close button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.toggleBtn, isActive ? styles.toggleBtnClose : styles.toggleBtnOpen]}
+          style={[styles.toggleBtn, isShiftOpen ? styles.toggleBtnClose : styles.toggleBtnOpen]}
           onPress={handleToggleShift}
           activeOpacity={0.85}
           disabled={loading}
@@ -349,12 +300,12 @@ export default function SmenaScreen() {
           ) : (
             <>
               <Ionicons
-                name={isActive ? 'lock-closed-outline' : 'play-circle-outline'}
+                name={isShiftOpen ? 'lock-closed-outline' : 'play-circle-outline'}
                 size={22}
                 color={C.white}
               />
               <Text style={styles.toggleBtnText}>
-                {isActive ? 'Smenani yopish' : 'Smena ochish'}
+                {isShiftOpen ? 'Smenani yopish' : 'Smena ochish'}
               </Text>
             </>
           )}
@@ -410,17 +361,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     flexDirection: 'row', flexWrap: 'wrap', gap: 10,
   },
-  statBox: {
-    width: '47.5%',
-    backgroundColor: C.white, borderRadius: 14,
-    padding: 14, gap: 6,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
-  },
-  statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  statValue: { fontSize: 15, fontWeight: '800', color: C.text },
-  statLabel: { fontSize: 11, fontWeight: '600', color: C.muted },
-  statSub: { fontSize: 11, color: C.secondary },
 
   // Detailed report
   reportCard: {
@@ -432,10 +372,6 @@ const styles = StyleSheet.create({
   },
   reportTitle: { fontSize: 16, fontWeight: '800', color: C.text, marginBottom: 2 },
   reportDivider: { height: 1, backgroundColor: C.border },
-  detailRow: { flexDirection: 'row', alignItems: 'center' },
-  detailDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.muted, marginRight: 10 },
-  detailLabel: { flex: 1, fontSize: 14, color: C.secondary },
-  detailValue: { fontSize: 14, fontWeight: '700', color: C.text },
   netRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   netLabel: { fontSize: 15, fontWeight: '700', color: C.text },
   netValue: { fontSize: 18, fontWeight: '800', color: C.green },
@@ -452,22 +388,6 @@ const styles = StyleSheet.create({
   // History
   historySection: { marginHorizontal: 16, gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: C.text },
-  historyCard: {
-    backgroundColor: C.white, borderRadius: 14, padding: 14,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
-    gap: 12,
-  },
-  historyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  historyDate: { fontSize: 14, fontWeight: '700', color: C.text },
-  historyCashier: { fontSize: 12, color: C.secondary, marginTop: 2 },
-  historyBadge: { backgroundColor: C.border, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  historyBadgeText: { fontSize: 11, fontWeight: '700', color: C.secondary },
-  historyStats: { flexDirection: 'row' },
-  historyStat: { flex: 1, alignItems: 'center', gap: 3 },
-  historyDivider: { width: 1, backgroundColor: C.border, marginVertical: 2 },
-  historyStatValue: { fontSize: 13, fontWeight: '700', color: C.text },
-  historyStatLabel: { fontSize: 11, color: C.muted },
 
   // Footer button
   footer: {

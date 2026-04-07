@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { PlusCircle, Trash2, TrendingUp, TrendingDown, X } from 'lucide-react';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useExpenses, useCreateExpense, useDeleteExpense, useProfitReport } from '@/hooks/finance/useFinance';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
@@ -23,10 +24,11 @@ type ExpenseForm = z.infer<typeof expenseSchema>;
 
 function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; todayDate: string }) {
   const { mutate: create, isPending } = useCreateExpense();
-  const { register, handleSubmit, formState: { errors } } = useForm<ExpenseForm>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ExpenseForm>({
     resolver: zodResolver(expenseSchema),
     defaultValues: { category: 'RENT', description: '', amount: 0, date: todayDate },
   });
+  const categoryValue = watch('category');
 
   const onSubmit = (data: ExpenseForm) => {
     create(data, { onSuccess: onClose });
@@ -45,14 +47,18 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-5">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Kategoriya</label>
-            <select
-              {...register('category')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
-            >
-              {(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => (
-                <option key={cat} value={cat}>{EXPENSE_CATEGORY_LABELS[cat]}</option>
-              ))}
-            </select>
+            <SearchableDropdown
+              options={(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => ({
+                value: cat,
+                label: EXPENSE_CATEGORY_LABELS[cat],
+              }))}
+              value={categoryValue}
+              onChange={(val) => setValue('category', val as ExpenseCategory)}
+              placeholder="Kategoriya tanlang"
+              searchable={false}
+              clearable={false}
+              required
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Tavsif</label>
@@ -210,16 +216,18 @@ export default function ExpensesPage() {
             <p className="text-sm font-semibold text-gray-900">
               Jami: <span className="text-red-600">{formatPrice(totalExpenses)}</span>
             </p>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value as ExpenseCategory | 'ALL')}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-blue-400"
-            >
-              <option value="ALL">Barcha kategoriyalar</option>
-              {(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => (
-                <option key={cat} value={cat}>{EXPENSE_CATEGORY_LABELS[cat]}</option>
-              ))}
-            </select>
+            <SearchableDropdown
+              options={(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => ({
+                value: cat,
+                label: EXPENSE_CATEGORY_LABELS[cat],
+              }))}
+              value={categoryFilter === 'ALL' ? '' : categoryFilter}
+              onChange={(val) => setCategoryFilter(val ? (val as ExpenseCategory) : 'ALL')}
+              placeholder="Barcha kategoriyalar"
+              searchable={false}
+              clearable
+              className="min-w-[180px]"
+            />
           </div>
 
           <table className="w-full text-sm">

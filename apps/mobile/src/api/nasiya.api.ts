@@ -1,4 +1,5 @@
 import api from './client';
+import { customersApi } from './customers.api';
 
 export type DebtStatus = 'ACTIVE' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
 
@@ -115,7 +116,25 @@ export const nasiyaApi = {
     totalAmount: number;
     dueDate?: string;
     notes?: string;
-  }): Promise<void> => {
-    await api.post('/nasiya', body);
+  }): Promise<DebtRecord> => {
+    // 1. Find or create customer
+    const existing = await customersApi.search(body.customerName);
+    const match = existing.find(
+      (c) =>
+        c.name.toLowerCase() === body.customerName.toLowerCase() &&
+        (!body.phone || c.phone === body.phone),
+    );
+    const customerId = match
+      ? match.id
+      : (await customersApi.create(body.customerName, body.phone)).id;
+
+    // 2. Create debt with customerId
+    const { data } = await api.post<DebtRecord>('/nasiya', {
+      customerId,
+      totalAmount: body.totalAmount,
+      ...(body.dueDate ? { dueDate: body.dueDate } : {}),
+      ...(body.notes ? { notes: body.notes } : {}),
+    });
+    return data;
   },
 };
