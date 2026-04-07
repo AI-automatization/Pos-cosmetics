@@ -33,32 +33,51 @@ export default function WarehouseInventoryPage() {
   return (
     <div className="p-6 space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Inventar (Sklad)</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Hozirgi zaxira holati</p>
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100">
+          <Package className="h-5 w-5 text-amber-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Inventar</h1>
+          <p className="text-sm text-gray-500">Hozirgi zaxira holati</p>
+        </div>
       </div>
 
-      {/* Summary badges */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-          <Package className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-600">Jami:</span>
-          <span className="font-semibold text-gray-900">{items.length}</span>
+      {/* Summary cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+              <Package className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{items.length}</p>
+              <p className="text-xs text-gray-500">Jami mahsulotlar</p>
+            </div>
+          </div>
         </div>
-        {lowCount > 0 && (
-          <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm">
-            <TrendingDown className="h-4 w-4 text-orange-500" />
-            <span className="text-orange-700">Kam:</span>
-            <span className="font-semibold text-orange-700">{lowCount}</span>
+        <div className={cn('rounded-xl border p-4 shadow-sm', lowCount > 0 ? 'border-orange-200 bg-orange-50/50' : 'border-gray-200 bg-white')}>
+          <div className="flex items-center gap-3">
+            <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', lowCount > 0 ? 'bg-orange-100' : 'bg-gray-50')}>
+              <TrendingDown className={cn('h-5 w-5', lowCount > 0 ? 'text-orange-500' : 'text-gray-400')} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{lowCount}</p>
+              <p className="text-xs text-gray-500">Kam qolgan</p>
+            </div>
           </div>
-        )}
-        {outCount > 0 && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-            <span className="text-red-700">Tugagan:</span>
-            <span className="font-semibold text-red-700">{outCount}</span>
+        </div>
+        <div className={cn('rounded-xl border p-4 shadow-sm', outCount > 0 ? 'border-red-200 bg-red-50/50' : 'border-gray-200 bg-white')}>
+          <div className="flex items-center gap-3">
+            <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', outCount > 0 ? 'bg-red-100' : 'bg-gray-50')}>
+              <AlertTriangle className={cn('h-5 w-5', outCount > 0 ? 'text-red-500' : 'text-gray-400')} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{outCount}</p>
+              <p className="text-xs text-gray-500">Tugagan</p>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Filters */}

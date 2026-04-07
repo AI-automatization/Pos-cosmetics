@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Printer, Check, RefreshCw, Wifi, Usb, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 
 // Printer settings stored in localStorage
 const LS_KEY = 'raos_printer_settings';
@@ -289,16 +290,13 @@ export default function PrinterSettingsPage() {
           {/* Printer model */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Printer modeli</label>
-            <select
+            <SearchableDropdown
+              options={COMMON_PRINTERS}
               value={settings.model}
-              onChange={(e) => update('model', e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
-            >
-              <option value="">— Tanlang —</option>
-              {COMMON_PRINTERS.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
+              onChange={(val) => update('model', val)}
+              placeholder="— Tanlang —"
+              searchable={false}
+            />
           </div>
 
           {/* Connection type */}

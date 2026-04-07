@@ -8,6 +8,7 @@ import { UserPlus, Shield, CheckCircle, XCircle, X } from 'lucide-react';
 import { useUsers, useCreateUser, useUpdateUser } from '@/hooks/settings/useUsers';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
@@ -40,7 +41,7 @@ function UserModal({ user, onClose }: { user?: User; onClose: () => void }) {
   const { mutate: updateUser, isPending: updating } = useUpdateUser();
   const isPending = creating || updating;
 
-  const { register, handleSubmit, formState: { errors } } = useForm<UserForm>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<UserForm>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       name: user?.name ?? '',
@@ -49,6 +50,8 @@ function UserModal({ user, onClose }: { user?: User; onClose: () => void }) {
       password: '',
     },
   });
+
+  const selectedRole = watch('role');
 
   const onSubmit = (data: UserForm) => {
     if (user) {
@@ -97,11 +100,16 @@ function UserModal({ user, onClose }: { user?: User; onClose: () => void }) {
           )}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Rol</label>
-            <select {...register('role')} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400">
-              {ROLE_ORDER.filter((r) => r !== 'OWNER').map((role) => (
-                <option key={role} value={role}>{ROLE_LABELS[role]}</option>
-              ))}
-            </select>
+            <SearchableDropdown
+              options={ROLE_ORDER.filter((r) => r !== 'OWNER').map((role) => ({
+                value: role,
+                label: ROLE_LABELS[role],
+              }))}
+              value={selectedRole}
+              onChange={(val) => setValue('role', val as UserForm['role'], { shouldValidate: true })}
+              searchable={false}
+              clearable={false}
+            />
           </div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-gray-300 py-2 text-sm text-gray-700 hover:bg-gray-50">

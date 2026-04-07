@@ -118,7 +118,11 @@ export default function WarehouseInvoicesPage() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filtered.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={inv.id}
+                    className="hover:bg-amber-50/50 transition-colors cursor-pointer"
+                    onClick={() => window.location.href = `/warehouse/invoices/${inv.id}`}
+                  >
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {inv.invoiceNumber ?? `#${inv.id.slice(0, 8)}`}
                     </td>
@@ -134,7 +138,7 @@ export default function WarehouseInvoicesPage() {
                     <td className="px-4 py-3 text-right font-semibold text-gray-900 tabular-nums">
                       {formatPrice(Number(inv.totalCost))}
                     </td>
-                    <td className="px-4 py-3 text-gray-400">
+                    <td className="px-4 py-3 text-amber-500">
                       <ChevronRight className="h-4 w-4" />
                     </td>
                   </tr>

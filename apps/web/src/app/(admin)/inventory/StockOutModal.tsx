@@ -5,6 +5,7 @@ import { Plus, Trash2, Save, X } from 'lucide-react';
 import { useStockOut } from '@/hooks/inventory/useInventory';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { cn } from '@/lib/utils';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import type { StockOutItem, StockOutReason } from '@/types/inventory';
 
 const REASONS: { value: StockOutReason; label: string }[] = [
@@ -108,17 +109,17 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
                 <label className="text-sm font-medium text-gray-700">
                   Sabab <span className="text-red-500">*</span>
                 </label>
-                <select
+                <SearchableDropdown
+                  options={REASONS.map((r) => ({
+                    value: r.value,
+                    label: r.label,
+                  }))}
                   value={reason}
-                  onChange={(e) => setReason(e.target.value as StockOutReason)}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500"
-                >
-                  {REASONS.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setReason(val as StockOutReason)}
+                  searchable={false}
+                  clearable={false}
+                  required
+                />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-700">Izoh</label>
@@ -152,19 +153,19 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
                     key={row._key}
                     className="grid grid-cols-[3fr_1fr_40px] items-center gap-3 px-5 py-3"
                   >
-                    <select
+                    <SearchableDropdown
+                      options={products.map((p) => ({
+                        value: p.id,
+                        label: p.name,
+                        sublabel: p.barcode || p.sku || undefined,
+                      }))}
                       value={row.productId}
-                      onChange={(e) => updateRow(row._key, { productId: e.target.value })}
+                      onChange={(val) => updateRow(row._key, { productId: val })}
+                      placeholder="Mahsulot tanlang..."
+                      searchPlaceholder="Nomi yoki barcode..."
+                      clearable={false}
                       required
-                      className="rounded-lg border border-gray-300 px-2 py-2 text-sm outline-none transition focus:border-blue-500"
-                    >
-                      <option value="">— Tanlang —</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} {p.barcode ? `(${p.barcode})` : ''}
-                        </option>
-                      ))}
-                    </select>
+                    />
 
                     <input
                       type="number"

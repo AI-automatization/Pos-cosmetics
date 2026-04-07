@@ -14,7 +14,6 @@ interface ItemRow {
   quantity: string;   // string — qulay kiritish uchun
   costPrice: string;  // string — qulay kiritish uchun
   batchNumber: string;
-  expiryDate: string;
 }
 
 let _keyCounter = 0;
@@ -26,7 +25,6 @@ function newRow(): ItemRow {
     quantity: '',
     costPrice: '',
     batchNumber: '',
-    expiryDate: '',
   };
 }
 
@@ -80,12 +78,11 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
       {
         supplier: supplier.trim(),
         notes: notes.trim() || undefined,
-        items: parsedRows.map(({ productId, qtyNum, priceNum, batchNumber, expiryDate }) => ({
+        items: parsedRows.map(({ productId, qtyNum, priceNum, batchNumber }) => ({
           productId,
           quantity: qtyNum,
           costPrice: priceNum,
           batchNumber: batchNumber || undefined,
-          expiryDate: expiryDate || undefined,
         })),
       },
       { onSuccess: onClose },
@@ -189,8 +186,8 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
                     />
                   </div>
 
-                  {/* Miqdor | Narx | Partiya | Muddati */}
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {/* Miqdor | Narx | Partiya */}
+                  <div className="grid grid-cols-3 gap-3">
                     <div className="flex flex-col gap-1">
                       <label className="text-xs font-medium text-gray-500">
                         Miqdor{row.productUnit ? ` (${row.productUnit})` : ''} <span className="text-red-500">*</span>
@@ -230,16 +227,6 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
                         value={row.batchNumber}
                         onChange={(e) => updateRow(row._key, { batchNumber: e.target.value })}
                         placeholder="Ixtiyoriy"
-                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500">Muddati</label>
-                      <input
-                        type="date"
-                        value={row.expiryDate}
-                        onChange={(e) => updateRow(row._key, { expiryDate: e.target.value })}
                         className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>

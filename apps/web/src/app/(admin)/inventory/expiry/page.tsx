@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AlertTriangle, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 
 interface ExpiryItem {
   id: string;
@@ -98,15 +99,18 @@ export default function ExpiryPage() {
           ))}
         </div>
         {tab === 'expiring' && (
-          <select
-            value={daysFilter}
-            onChange={(e) => setDaysFilter(Number(e.target.value))}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none"
-          >
-            <option value={30}>30 kun ichida</option>
-            <option value={60}>60 kun ichida</option>
-            <option value={90}>90 kun ichida</option>
-          </select>
+          <SearchableDropdown
+            options={[
+              { value: '30', label: '30 kun ichida' },
+              { value: '60', label: '60 kun ichida' },
+              { value: '90', label: '90 kun ichida' },
+            ]}
+            value={String(daysFilter)}
+            onChange={(val) => setDaysFilter(Number(val) || 90)}
+            searchable={false}
+            clearable={false}
+            className="min-w-[160px]"
+          />
         )}
       </div>
 

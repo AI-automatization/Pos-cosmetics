@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Search, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 
 type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'APPROVE';
 
@@ -136,15 +137,17 @@ export default function AuditLogPage() {
             className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-400"
           />
         </div>
-        <select
+        <SearchableDropdown
+          options={ACTIONS.map((a) => ({
+            value: a,
+            label: a === 'ALL' ? 'Barcha amallar' : a,
+          }))}
           value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value as AuditAction | 'ALL')}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
-        >
-          {ACTIONS.map((a) => (
-            <option key={a} value={a}>{a === 'ALL' ? 'Barcha amallar' : a}</option>
-          ))}
-        </select>
+          onChange={(val) => setActionFilter((val || 'ALL') as AuditAction | 'ALL')}
+          searchable={false}
+          clearable={false}
+          className="w-48"
+        />
       </div>
 
       {/* Table */}

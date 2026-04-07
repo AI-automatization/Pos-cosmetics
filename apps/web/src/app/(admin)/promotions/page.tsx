@@ -10,6 +10,7 @@ import {
   useTogglePromotion,
 } from '@/hooks/promotions/usePromotions';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 import { useCanEdit } from '@/hooks/auth/useAuth';
 import type { Promotion, PromotionType, CreatePromotionDto } from '@/types/promotion';
@@ -207,16 +208,18 @@ function PromotionModal({ initial, onClose }: ModalProps) {
           {/* Type */}
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Turi</label>
-            <select
+            <SearchableDropdown
+              options={(Object.keys(PROMO_TYPE_LABELS) as PromotionType[]).map((t) => ({
+                value: t,
+                label: PROMO_TYPE_LABELS[t],
+              }))}
               value={form.type}
-              onChange={(e) => handleTypeChange(e.target.value as PromotionType)}
+              onChange={(val) => handleTypeChange(val as PromotionType)}
+              placeholder="Turni tanlang"
+              searchable={false}
+              clearable={false}
               disabled={isEdit}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-            >
-              {(Object.keys(PROMO_TYPE_LABELS) as PromotionType[]).map((t) => (
-                <option key={t} value={t}>{PROMO_TYPE_LABELS[t]}</option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Dynamic rules */}

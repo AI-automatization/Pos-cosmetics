@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import type { Category } from '@/types/catalog';
 
 const categorySchema = z.object({
@@ -34,6 +35,8 @@ export function CategoryForm({
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -41,6 +44,8 @@ export function CategoryForm({
       ? { name: category.name, parentId: category.parentId ?? '' }
       : { name: '', parentId: '' },
   });
+
+  const parentIdValue = watch('parentId') ?? '';
 
   // exclude self from parent options
   const parentOptions = categories.filter((c) => c.id !== category?.id);
@@ -84,14 +89,17 @@ export function CategoryForm({
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Ota kategoriya
               </label>
-              <select {...register('parentId')} className={inputCls}>
-                <option value="">— Yuqori daraja —</option>
-                {parentOptions.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+              <SearchableDropdown
+                options={parentOptions.map((cat) => ({
+                  value: cat.id,
+                  label: cat.name,
+                }))}
+                value={parentIdValue}
+                onChange={(val) => setValue('parentId', val)}
+                placeholder="— Yuqori daraja —"
+                searchable={parentOptions.length >= 6}
+                clearable
+              />
             </div>
           </div>
 
