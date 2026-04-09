@@ -14,11 +14,14 @@ export const shiftsApi = {
       .get<PaginatedShifts>('/sales/shifts', { params })
       .then((r) => {
         const d = r.data as unknown as Record<string, unknown>;
-        const raw = Array.isArray(d) ? d : (d.items as Shift[]) ?? [];
+        type RawShift = Shift & { user?: { firstName?: string; lastName?: string } | null };
+        const raw = Array.isArray(d) ? d : (d.items as RawShift[]) ?? [];
         return {
-          items: raw.map((s: Shift & { id?: string }) => ({
+          items: raw.map((s: RawShift) => ({
             ...s,
-            cashierName: s.cashierName ?? '—',
+            cashierName: s.user
+              ? `${s.user.firstName ?? ''} ${s.user.lastName ?? ''}`.trim() || '—'
+              : (s.cashierName ?? '—'),
             salesCount: s.salesCount ?? 0,
             revenue: s.revenue ?? 0,
             cashRevenue: s.cashRevenue ?? 0,

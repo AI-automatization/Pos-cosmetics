@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { AppLoggerService } from './common/logger/logger.service';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
@@ -21,12 +22,13 @@ async function bootstrap() {
 
   // Security
   app.use(helmet());
+  app.use(cookieParser());
   // T-077: Response compression (gzip/brotli)
   app.use(compression());
   // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
   const corsOriginRaw = config.get<string>(
     'CORS_ORIGIN',
-    'http://localhost:3001,http://localhost:3000,https://web-production-5b0b7.up.railway.app',
+    'http://localhost:3001,http://localhost:3000,http://localhost:3003,http://localhost:3004,https://web-production-5b0b7.up.railway.app',
   );
   // '*' with credentials is rejected by browsers — reflect request origin instead
   const corsOrigin: string | string[] | boolean = corsOriginRaw === '*'

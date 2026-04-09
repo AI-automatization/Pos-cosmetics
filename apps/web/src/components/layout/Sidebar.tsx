@@ -21,10 +21,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  LogOut,
+  ClipboardList,
 } from 'lucide-react';
 import { useState, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { useCurrentUser } from '@/hooks/auth/useAuth';
+import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
 import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Types ─── */
@@ -55,15 +57,15 @@ interface NavSection {
 
 const ALL: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
 const NO_CASHIER: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'];
-const STAFF: Role[] = ['ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
-const ADMIN_ONLY: Role[] = ['ADMIN'];
+
+const ADMIN_ONLY: Role[] = ['OWNER', 'ADMIN'];
 
 const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Asosiy',
     items: [
       { label: 'Dashboard', tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ALL },
-      { label: 'POS Kassa', tKey: 'nav.pos', href: '/pos', icon: Monitor, roles: STAFF },
+      { label: 'POS Kassa', tKey: 'nav.pos', href: '/pos', icon: Monitor, roles: ['CASHIER'] },
     ],
   },
   {
@@ -102,6 +104,7 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { label: 'Buyurtmalar', tKey: 'nav.orders', href: '/sales/orders' },
           { label: 'Qaytarishlar', tKey: 'nav.returns', href: '/sales/returns' },
+          { label: 'Aksiyalar', tKey: 'nav.promotions', href: '/promotions' },
           { label: 'Smenalar', tKey: 'nav.shifts', href: '/sales/shifts' },
         ],
       },
@@ -133,6 +136,7 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { label: 'Foyda va zarar', tKey: 'nav.pnl', href: '/finance/pnl' },
           { label: 'Xarajatlar', tKey: 'nav.expenses', href: '/finance/expenses' },
+          { label: 'Valyuta kurslari', tKey: 'nav.exchangeRates', href: '/finance/exchange-rates' },
         ],
       },
       { label: 'Analitika', tKey: 'nav.analytics', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
@@ -153,6 +157,13 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    title: 'Boshqaruv',
+    items: [
+      { label: 'Topshiriqlar', tKey: 'nav.tasks', href: '/tasks', icon: ClipboardList, roles: ['OWNER', 'ADMIN', 'MANAGER'] },
+      { label: 'Filiallar', tKey: 'nav.branches', href: '/settings/branches', icon: Building2, roles: ['OWNER', 'ADMIN'] },
+    ],
+  },
+  {
     title: 'Sozlamalar',
     items: [
       {
@@ -161,6 +172,7 @@ const NAV_SECTIONS: NavSection[] = [
         roles: ADMIN_ONLY,
         children: [
           { label: 'Foydalanuvchilar', tKey: 'nav.users', href: '/settings/users' },
+          { label: 'Filiallar', tKey: 'nav.branches', href: '/settings/branches' },
           { label: 'Printer', tKey: 'nav.printer', href: '/settings/printer' },
           { label: 'Audit log', tKey: 'nav.auditLog', href: '/settings/audit-log' },
           { label: 'Hisob va tarif', tKey: 'nav.billing', href: '/settings/billing' },
@@ -183,10 +195,10 @@ function getNavSections(role: string | undefined): NavSection[] {
 const COLLAPSE_KEY = 'raos-sidebar-collapsed';
 
 function useCollapsed() {
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(COLLAPSE_KEY) === '1';
-  });
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
+  }, []);
   const toggle = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
@@ -340,6 +352,7 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const { data: user, isLoading } = useCurrentUser();
+  const { mutate: logout, isPending: loggingOut } = useLogout();
   const sections = getNavSections(user?.role);
 
   return (
@@ -389,6 +402,23 @@ function SidebarContent({
           ))}
         </nav>
       )}
+
+      {/* Logout (visible always) */}
+      <div className="border-t border-gray-200 p-2">
+        <button
+          type="button"
+          onClick={() => logout()}
+          disabled={loggingOut}
+          title="Chiqish"
+          className={cn(
+            'flex w-full items-center rounded-lg px-3 py-2 text-sm text-red-500 transition hover:bg-red-50 disabled:opacity-50',
+            collapsed ? 'justify-center' : 'gap-2',
+          )}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>{loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}</span>}
+        </button>
+      </div>
 
       {/* Collapse toggle (desktop only) */}
       <div className="hidden border-t border-gray-200 p-2 md:block">

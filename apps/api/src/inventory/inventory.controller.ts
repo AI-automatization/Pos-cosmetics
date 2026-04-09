@@ -24,6 +24,7 @@ import {
   BatchStockInDto,
   BatchStockOutDto,
 } from './dto/stock-movement.dto';
+import { RestockRequestDto } from './dto/restock-request.dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TransferService, CreateTransferDto } from './transfer.service';
@@ -167,6 +168,17 @@ export class InventoryController {
 
   // ─── T-222: OUT OF STOCK ─────────────────────────────────────
 
+  @Post('restock-request')
+  @Roles('CASHIER', 'MANAGER', 'ADMIN', 'OWNER')
+  @ApiOperation({ summary: 'Kassirdan omborchiga zapros yuborish' })
+  sendRestockRequest(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() dto: RestockRequestDto,
+  ) {
+    return this.inventoryService.sendRestockRequest(tenantId, userId, dto);
+  }
+
   @Get('out-of-stock')
   @ApiOperation({ summary: 'T-222: Omborda yo\'q tovarlar (quantity = 0)' })
   @ApiQuery({ name: 'branch_id', required: false })
@@ -242,7 +254,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Transferni tasdiqlash (ADMIN/OWNER)' })
   approveTransfer(
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('userId') userId: string,
     @Param('id') transferId: string,
   ) {
     return this.transferService.approveTransfer(tenantId, transferId, userId);
@@ -252,7 +264,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Transferni jo\'natish (tovar chiqdi)' })
   shipTransfer(
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('userId') userId: string,
     @Param('id') transferId: string,
   ) {
     return this.transferService.shipTransfer(tenantId, transferId, userId);
@@ -262,7 +274,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Transferni qabul qilish (tovar keldi)' })
   receiveTransfer(
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('userId') userId: string,
     @Param('id') transferId: string,
   ) {
     return this.transferService.receiveTransfer(tenantId, transferId, userId);

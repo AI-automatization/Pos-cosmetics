@@ -24,15 +24,25 @@ apiClient.interceptors.response.use(
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        const { data } = await apiClient.post('/auth/refresh', { refreshToken });
+        // userId ni JWT payload dan olish (localStorage['user_id'] hali set bo'lmagan bo'lishi mumkin)
+        // JWT payload public — signature verification shart emas, faqat sub kerak
+        const currentToken = localStorage.getItem('access_token');
+        let userId: string | null = null;
+        if (currentToken) {
+          try {
+            userId = JSON.parse(atob(currentToken.split('.')[1]))?.sub ?? null;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (_e) { /* ignore parse errors */ }
+        }
+        // refreshToken body da emas — httpOnly cookie withCredentials: true bilan yuboriladi (T-347)
+        const { data } = await apiClient.post('/auth/refresh', { userId });
         localStorage.setItem('access_token', data.accessToken);
-        if (data.refreshToken) localStorage.setItem('refresh_token', data.refreshToken);
         err.config.headers.Authorization = `Bearer ${data.accessToken}`;
         return apiClient(err.config);
       } catch {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_id');
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }

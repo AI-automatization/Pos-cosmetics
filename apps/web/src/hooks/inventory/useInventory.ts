@@ -98,6 +98,7 @@ export function useMovements(productId?: string) {
 export function useMovementsWithUsers(productId?: string) {
   return useQuery({
     queryKey: ['inventory', 'movements-with-users', productId ?? null],
+    enabled: !!productId,
     queryFn: async (): Promise<(StockMovement & { userName: string })[]> => {
       const [movements, users] = await Promise.all([
         inventoryApi.getMovements(productId),
@@ -106,7 +107,7 @@ export function useMovementsWithUsers(productId?: string) {
       const userMap = new Map(
         users.map((u) => [
           u.id,
-          [u.firstName, u.lastName].filter(Boolean).join(' ') || u.name || u.email || u.id,
+          [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || u.id,
         ]),
       );
       return movements

@@ -8,8 +8,10 @@ import {
   AlertOctagon,
   ChevronRight,
   Zap,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLogout } from '@/hooks/auth/useAuth';
 
 const NAV = [
   { label: 'Overview', href: '/founder/overview', icon: LayoutDashboard },
@@ -19,6 +21,7 @@ const NAV = [
 
 export function FounderSidebar() {
   const pathname = usePathname();
+  const { mutate: logout, isPending: loggingOut } = useLogout();
 
   return (
     <aside className="flex h-full w-56 shrink-0 flex-col border-r border-gray-200 bg-white">
@@ -58,14 +61,23 @@ export function FounderSidebar() {
         </div>
       </nav>
 
-      {/* Back to admin */}
-      <div className="border-t border-gray-200 p-3">
+      {/* Back to admin + Logout */}
+      <div className="flex flex-col gap-1 border-t border-gray-200 p-3">
         <Link
           href="/dashboard"
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-gray-400 transition hover:text-gray-600"
         >
           ← Admin panelga
         </Link>
+        <button
+          type="button"
+          onClick={() => logout()}
+          disabled={loggingOut}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>{loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}</span>
+        </button>
       </div>
     </aside>
   );

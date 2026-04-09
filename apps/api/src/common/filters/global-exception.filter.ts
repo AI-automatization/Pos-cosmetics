@@ -87,6 +87,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       path,
       status,
       code,
+      validationErrors: status === 400 ? message : undefined,
       error:
         exception instanceof Error
           ? { name: exception.name, message: exception.message, stack: exception.stack }

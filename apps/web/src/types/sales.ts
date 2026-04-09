@@ -12,6 +12,8 @@ export interface CartItem {
   quantity: number;
   lineDiscount: number; // % (0-100)
   unit: ProductUnit;
+  isBundle?: boolean;
+  currentStock?: number; // Savatga qo'shilgan paytdagi stock miqdori
 }
 
 export type DiscountType = 'percent' | 'fixed';

@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { GitCompare, ArrowUpDown } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 
@@ -138,16 +139,19 @@ export default function BranchReportsPage() {
           <h2 className="text-sm font-semibold text-gray-900">Filiallar jadvali</h2>
           <div className="flex items-center gap-2">
             <ArrowUpDown className="h-4 w-4 text-gray-400" />
-            <select
+            <SearchableDropdown
+              options={[
+                { value: 'revenue', label: 'Daromad' },
+                { value: 'orders', label: 'Buyurtmalar' },
+                { value: 'profit', label: 'Foyda' },
+                { value: 'avgCheck', label: "O'rt. chek" },
+              ]}
               value={sortKey}
-              onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none"
-            >
-              <option value="revenue">Daromad</option>
-              <option value="orders">Buyurtmalar</option>
-              <option value="profit">Foyda</option>
-              <option value="avgCheck">O'rt. chek</option>
-            </select>
+              onChange={(val) => setSortKey(val as SortKey)}
+              searchable={false}
+              clearable={false}
+              className="w-44"
+            />
           </div>
         </div>
         <table className="w-full text-sm">

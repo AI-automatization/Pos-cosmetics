@@ -254,7 +254,7 @@ export class CatalogService {
         data: {
           tenantId,
           name: dto.name,
-          sku: dto.sku,
+          sku: dto.sku || `PRD-${Date.now().toString(36).toUpperCase()}`,
           barcode: dto.barcode,
           categoryId: dto.categoryId,
           unitId: dto.unitId,
@@ -335,11 +335,11 @@ export class CatalogService {
 
   // ─── SUPPLIERS ────────────────────────────────────────────────
 
-  async getSuppliers(tenantId: string, isActive?: boolean) {
+  async getSuppliers(tenantId: string, isActive: boolean = true) {
     return this.prisma.supplier.findMany({
       where: {
         tenantId,
-        ...(isActive !== undefined && { isActive }),
+        isActive,
       },
       orderBy: { name: 'asc' },
     });

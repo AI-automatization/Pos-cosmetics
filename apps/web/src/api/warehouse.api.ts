@@ -6,7 +6,6 @@ export interface InvoiceItem {
   purchasePrice: number;
   warehouseId?: string;
   batchNumber?: string;
-  expiryDate?: string;
 }
 
 export interface CreateInvoiceDto {
@@ -69,7 +68,7 @@ export const warehouseApi = {
     apiClient.get<{
       stats: { totalProducts: number; todayMovementsIn: number; todayMovementsOut: number; lowStockCount: number; expiryCount: number };
       lowStockItems: { productId: string; name: string; totalQty: number }[];
-      expiryItems: { productId: string; expiryDate: string; batchNumber?: string }[];
+      expiryItems: { productId: string; expiryDate: string; batchNumber?: string; product?: { name: string } | null }[];
       recentMovements: { id: string; type: string; quantity: number; createdAt: string; product: { name: string } }[];
     }>('/warehouse/dashboard'),
 
@@ -77,7 +76,7 @@ export const warehouseApi = {
     apiClient.get<{ id: string; type: string; quantity: number; createdAt: string; product: { name: string } }[]>('/warehouse/movements/today'),
 
   getAlerts: () =>
-    apiClient.get<{ expired: number; soonExpiring: number; alerts: { type: string; productId: string; expiryDate: string }[] }>('/warehouse/alerts'),
+    apiClient.get<{ expired: number; soonExpiring: number; alerts: { type: string; productId: string; expiryDate: string; batchNumber?: string | null; product?: { name: string } | null }[] }>('/warehouse/alerts'),
 
   // Inventar (stock levels)
   getStockLevels: (params?: { warehouseId?: string; lowStock?: boolean; search?: string }) =>

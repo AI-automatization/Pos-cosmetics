@@ -3,14 +3,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { usersApi } from '@/api/users.api';
+import { extractErrorMessage } from '@/lib/utils';
 import type { CreateUserDto, UpdateUserDto } from '@/types/user';
 
 export const USERS_KEY = 'users';
 
-export function useUsers() {
+export function useUsers(branchId?: string) {
   return useQuery({
-    queryKey: [USERS_KEY],
-    queryFn: () => usersApi.listUsers(),
+    queryKey: [USERS_KEY, branchId],
+    queryFn: () => usersApi.listUsers(branchId),
     staleTime: 60_000,
   });
 }
@@ -23,7 +24,7 @@ export function useCreateUser() {
       qc.invalidateQueries({ queryKey: [USERS_KEY] });
       toast.success("Foydalanuvchi qo'shildi!");
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
   });
 }
 
@@ -35,6 +36,6 @@ export function useUpdateUser() {
       qc.invalidateQueries({ queryKey: [USERS_KEY] });
       toast.success("Foydalanuvchi yangilandi!");
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
   });
 }

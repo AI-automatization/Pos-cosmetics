@@ -67,7 +67,12 @@
     "analytics": "Аналитика",
     "pos": "Касса",
     "realEstate": "Недвижимость",
-    "reportBuilder": "Конструктор отчётов"
+    "reportBuilder": "Конструктор отчётов",
+    "promotions": "Акции",
+    "exchangeRates": "Курсы валют",
+    "movements": "Движения",
+    "tasks": "Задачи",
+    "branches": "Филиалы"
   },
   "dashboard": {
     "title": "Главная",

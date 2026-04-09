@@ -10,17 +10,17 @@ import 'dotenv/config';
 import prisma from './prisma';
 import { createBot } from './bot';
 import { startCronJobs } from './cron/alerts.cron';
+import { logger } from './logger';
 
 async function bootstrap() {
-  console.log('[RAOS Bot] Starting...');
-  console.log(`[RAOS Bot] Environment: ${process.env.NODE_ENV ?? 'development'}`);
+  logger.log('[RAOS Bot] Starting...', { env: process.env.NODE_ENV ?? 'development' });
 
   // DB ulanishini tekshir
   try {
     await prisma.$connect();
-    console.log('[RAOS Bot] Database connected ✓');
+    logger.log('[RAOS Bot] Database connected ✓');
   } catch (err) {
-    console.error('[RAOS Bot] Database connection failed:', (err as Error).message);
+    logger.error('[RAOS Bot] Database connection failed', { error: (err as Error).message });
     process.exit(1);
   }
 
@@ -32,30 +32,30 @@ async function bootstrap() {
 
   // Graceful shutdown
   process.once('SIGINT', async () => {
-    console.log('[RAOS Bot] Stopping...');
+    logger.log('[RAOS Bot] Stopping...');
     await prisma.$disconnect();
     bot.stop();
     process.exit(0);
   });
 
   process.once('SIGTERM', async () => {
-    console.log('[RAOS Bot] Stopping...');
+    logger.log('[RAOS Bot] Stopping...');
     await prisma.$disconnect();
     bot.stop();
     process.exit(0);
   });
 
   // Bot polling boshlash
-  console.log('[RAOS Bot] Starting polling...');
+  logger.log('[RAOS Bot] Starting polling...');
   bot.start({
     onStart: (info) => {
-      console.log(`[RAOS Bot] Running as @${info.username} ✓`);
-      console.log('[RAOS Bot] Ready to receive commands');
+      logger.log(`[RAOS Bot] Running as @${info.username} ✓`);
+      logger.log('[RAOS Bot] Ready to receive commands');
     },
   });
 }
 
 bootstrap().catch((err) => {
-  console.error('[RAOS Bot] Fatal error:', err);
+  logger.error('[RAOS Bot] Fatal error', { error: (err as Error).message });
   process.exit(1);
 });

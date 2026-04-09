@@ -59,7 +59,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3000
       - DATABASE_URL=postgresql://raos:raos_secret@postgres:5432/raos_dev
       - REDIS_HOST=redis
@@ -88,6 +88,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
     container_name: raos-web
     restart: unless-stopped
     ports:
@@ -96,9 +98,11 @@ services:
       - NODE_ENV=production
       - HOSTNAME=0.0.0.0
       - PORT=3001
-      - NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
+      - INTERNAL_API_URL=http://api:3000
     depends_on:
       postgres:
+        condition: service_healthy
+      api:
         condition: service_healthy
 
 volumes:

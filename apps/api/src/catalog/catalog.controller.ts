@@ -39,12 +39,14 @@ import {
   CreateCertificateDto,
 } from './dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
+import { Roles } from '../common/decorators';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { WarehouseReadOnlyGuard } from '../common/guards/warehouse-read-only.guard';
 
 @ApiTags('Catalog')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, WarehouseReadOnlyGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, WarehouseReadOnlyGuard)
 @Controller('catalog')
 export class CatalogController {
   constructor(
@@ -139,6 +141,7 @@ export class CatalogController {
   }
 
   @Post('products')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'Create product' })
   createProduct(
     @CurrentUser('tenantId') tenantId: string,
@@ -148,6 +151,7 @@ export class CatalogController {
   }
 
   @Patch('products/:id')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'Update product' })
   @ApiParam({ name: 'id', type: String })
   updateProduct(
@@ -159,6 +163,7 @@ export class CatalogController {
   }
 
   @Delete('products/:id')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Soft delete product' })
   @ApiParam({ name: 'id', type: String })
   deleteProduct(
@@ -193,6 +198,7 @@ export class CatalogController {
   }
 
   @Post('suppliers')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'Create supplier' })
   createSupplier(
     @CurrentUser('tenantId') tenantId: string,
@@ -202,6 +208,7 @@ export class CatalogController {
   }
 
   @Patch('suppliers/:id')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'Update supplier' })
   @ApiParam({ name: 'id', type: String })
   updateSupplier(
@@ -213,6 +220,7 @@ export class CatalogController {
   }
 
   @Delete('suppliers/:id')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'Deactivate supplier (set isActive=false)' })
   @ApiParam({ name: 'id', type: String })
   deactivateSupplier(

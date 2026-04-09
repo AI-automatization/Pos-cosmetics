@@ -67,7 +67,12 @@
     "analytics": "Analytics",
     "pos": "POS",
     "realEstate": "Real Estate",
-    "reportBuilder": "Report Builder"
+    "reportBuilder": "Report Builder",
+    "promotions": "Promotions",
+    "exchangeRates": "Exchange Rates",
+    "movements": "Movements",
+    "tasks": "Tasks",
+    "branches": "Branches"
   },
   "dashboard": {
     "title": "Dashboard",

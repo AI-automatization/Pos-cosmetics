@@ -90,6 +90,7 @@ export default function OrdersPage() {
             <EmptyState icon={ShoppingCart} title="Buyurtmalar mavjud emas" />
           ) : (
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
@@ -125,6 +126,7 @@ export default function OrdersPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
 

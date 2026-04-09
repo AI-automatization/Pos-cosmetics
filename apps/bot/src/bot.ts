@@ -2,6 +2,7 @@ import { Bot } from 'grammy';
 import { config } from './config';
 import { registerCommands } from './handlers/commands';
 import { registerSettingsHandler } from './handlers/settings.handler';
+import { logger } from './logger';
 
 export function createBot(): Bot {
   const bot = new Bot(config.botToken);
@@ -9,7 +10,7 @@ export function createBot(): Bot {
   // Global xato handler
   bot.catch((err) => {
     const ctx = err.ctx;
-    console.error(`[Bot] Error on update ${ctx.update.update_id}:`, err.error);
+    logger.error(`[Bot] Error on update ${ctx.update.update_id}`, { error: String(err.error) });
   });
 
   // Komandalar ro'yxatini Telegram ga yuborish
@@ -24,7 +25,7 @@ export function createBot(): Bot {
     { command: 'expiring', description: 'Muddati yaqin mahsulotlar' },
     { command: 'settings', description: 'Bildirishnoma sozlamalari' },
     { command: 'help',     description: 'Yordam' },
-  ]).catch((e) => console.error('[Bot] setMyCommands failed:', e.message));
+  ]).catch((e) => logger.error('[Bot] setMyCommands failed', { error: (e as Error).message }));
 
   // Komandalar
   registerCommands(bot);

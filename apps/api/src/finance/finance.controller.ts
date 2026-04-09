@@ -6,14 +6,19 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { FinanceService, CreateExpenseDto, ExpenseFilterDto } from './finance.service';
+import { FinanceService } from './finance.service';
+import { CreateExpenseDto, ExpenseFilterDto } from './dto/expense.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
 
 @ApiTags('Finance / Expenses')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('finance')
 export class FinanceController {
   constructor(private readonly financeService: FinanceService) {}

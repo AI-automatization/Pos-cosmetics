@@ -1,64 +1,136 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Search, AlertTriangle, TrendingDown } from 'lucide-react';
-import { useStockLevels } from '@/hooks/warehouse/useWarehouseInvoices';
+import { Package, Search, AlertTriangle, TrendingDown, Pencil } from 'lucide-react';
+import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
+import { useCategories } from '@/hooks/catalog/useCategories';
+import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
+import { LabelPrintModal } from '@/app/(admin)/catalog/products/LabelPrintModal';
+import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
+import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
 
 export default function WarehouseInventoryPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [printProducts, setPrintProducts] = useState<Product[]>([]);
 
-  const { data: items = [], isLoading } = useStockLevels();
+  const { data: productsData, isLoading } = useProducts({ limit: 500, isActive: true });
+  const products = Array.isArray(productsData) ? productsData : (productsData?.items ?? []);
+  const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
+  const { mutate: updateProduct, isPending: isUpdatingProduct } = useUpdateProduct();
+  const { data: categories } = useCategories();
 
-  const filtered = items.filter((item) => {
+  const handleCreateProduct = (formData: ProductFormData) => {
+    createProduct(
+      {
+        name: formData.name,
+        sku: formData.sku || undefined,
+        categoryId: formData.categoryId || undefined,
+        costPrice: formData.costPrice,
+        sellPrice: formData.sellPrice,
+        minStockLevel: formData.minStockLevel,
+        barcode: formData.barcode || undefined,
+        extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+        expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
+      },
+      { onSuccess: () => setShowProductModal(false) },
+    );
+  };
+
+  const handleUpdateProduct = (formData: ProductFormData) => {
+    if (!editProduct) return;
+    updateProduct(
+      {
+        id: editProduct.id,
+        dto: {
+          name: formData.name,
+          sku: formData.sku || undefined,
+          categoryId: formData.categoryId || undefined,
+          costPrice: formData.costPrice,
+          sellPrice: formData.sellPrice,
+          minStockLevel: formData.minStockLevel,
+          barcode: formData.barcode || undefined,
+          extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+          expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
+        },
+      },
+      { onSuccess: () => setEditProduct(null) },
+    );
+  };
+
+  const filtered = products.filter((p) => {
+    const stock = Math.max(0, p.currentStock ?? 0);
     const matchSearch =
       !search ||
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      (item.sku ?? '').toLowerCase().includes(search.toLowerCase());
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.sku ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (p.barcode ?? '').includes(search);
 
     const matchFilter =
       filter === 'all' ||
-      (filter === 'low' && item.totalQty > 0 && item.minStockLevel != null && item.totalQty <= item.minStockLevel) ||
-      (filter === 'out' && item.totalQty <= 0);
+      (filter === 'low' && stock > 0 && p.minStockLevel > 0 && stock <= p.minStockLevel) ||
+      (filter === 'out' && stock <= 0);
 
     return matchSearch && matchFilter;
   });
 
-  const outCount = items.filter((i) => i.totalQty <= 0).length;
-  const lowCount = items.filter(
-    (i) => i.totalQty > 0 && i.minStockLevel != null && i.totalQty <= i.minStockLevel,
-  ).length;
+  const outCount = products.filter((p) => (p.currentStock ?? 0) <= 0).length;
+  const lowCount = products.filter((p) => {
+    const s = p.currentStock ?? 0;
+    return s > 0 && p.minStockLevel > 0 && s <= p.minStockLevel;
+  }).length;
 
   return (
     <div className="p-6 space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Inventar (Sklad)</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Hozirgi zaxira holati</p>
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100">
+          <Package className="h-5 w-5 text-amber-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Inventar</h1>
+          <p className="text-sm text-gray-500">Hozirgi zaxira holati</p>
+        </div>
       </div>
 
-      {/* Summary badges */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-          <Package className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-600">Jami:</span>
-          <span className="font-semibold text-gray-900">{items.length}</span>
+      {/* Summary cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+              <Package className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+              <p className="text-xs text-gray-500">Jami mahsulotlar</p>
+            </div>
+          </div>
         </div>
-        {lowCount > 0 && (
-          <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm">
-            <TrendingDown className="h-4 w-4 text-orange-500" />
-            <span className="text-orange-700">Kam:</span>
-            <span className="font-semibold text-orange-700">{lowCount}</span>
+        <div className={cn('rounded-xl border p-4 shadow-sm', lowCount > 0 ? 'border-orange-200 bg-orange-50/50' : 'border-gray-200 bg-white')}>
+          <div className="flex items-center gap-3">
+            <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', lowCount > 0 ? 'bg-orange-100' : 'bg-gray-50')}>
+              <TrendingDown className={cn('h-5 w-5', lowCount > 0 ? 'text-orange-500' : 'text-gray-400')} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{lowCount}</p>
+              <p className="text-xs text-gray-500">Kam qolgan</p>
+            </div>
           </div>
-        )}
-        {outCount > 0 && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-            <span className="text-red-700">Tugagan:</span>
-            <span className="font-semibold text-red-700">{outCount}</span>
+        </div>
+        <div className={cn('rounded-xl border p-4 shadow-sm', outCount > 0 ? 'border-red-200 bg-red-50/50' : 'border-gray-200 bg-white')}>
+          <div className="flex items-center gap-3">
+            <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', outCount > 0 ? 'bg-red-100' : 'bg-gray-50')}>
+              <AlertTriangle className={cn('h-5 w-5', outCount > 0 ? 'text-red-500' : 'text-gray-400')} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{outCount}</p>
+              <p className="text-xs text-gray-500">Tugagan</p>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -110,25 +182,24 @@ export default function WarehouseInventoryPage() {
               <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500">
                 <th className="px-4 py-3 text-left font-medium">Mahsulot</th>
                 <th className="px-4 py-3 text-left font-medium">SKU</th>
-                <th className="px-4 py-3 text-left font-medium">Ombor</th>
+                <th className="px-4 py-3 text-left font-medium">Kategoriya</th>
                 <th className="px-4 py-3 text-right font-medium">Min. zaxira</th>
                 <th className="px-4 py-3 text-right font-medium">Hozirgi miqdor</th>
+                <th className="px-4 py-3 text-right font-medium"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((item, idx) => {
-                const isOut = item.totalQty <= 0;
-                const isLow =
-                  !isOut &&
-                  item.minStockLevel != null &&
-                  item.totalQty <= item.minStockLevel;
+              {filtered.map((p) => {
+                const stock = Math.max(0, p.currentStock ?? 0);
+                const isOut = stock <= 0;
+                const isLow = !isOut && p.minStockLevel > 0 && stock <= p.minStockLevel;
                 return (
-                  <tr key={`${item.productId}-${idx}`} className="hover:bg-gray-50">
-                    <td className="px-4 py-2.5 font-medium text-gray-900">{item.name}</td>
-                    <td className="px-4 py-2.5 text-gray-400">{item.sku ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-gray-500">{item.warehouseName}</td>
+                  <tr key={p.id} className="hover:bg-gray-50 group">
+                    <td className="px-4 py-2.5 font-medium text-gray-900">{p.name}</td>
+                    <td className="px-4 py-2.5 text-gray-400">{p.sku ?? '—'}</td>
+                    <td className="px-4 py-2.5 text-gray-500">{p.category?.name ?? '—'}</td>
                     <td className="px-4 py-2.5 text-right text-gray-400">
-                      {item.minStockLevel ?? '—'}
+                      {p.minStockLevel > 0 ? p.minStockLevel : '—'}
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <span
@@ -146,9 +217,19 @@ export default function WarehouseInventoryPage() {
                             <AlertTriangle className="h-3 w-3" /> Tugagan
                           </>
                         ) : (
-                          `${item.totalQty} dona`
+                          `${stock} ${p.unit?.shortName ?? 'dona'}`
                         )}
                       </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setEditProduct(p)}
+                        className="opacity-0 group-hover:opacity-100 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
+                        title="Tahrirlash"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -157,6 +238,33 @@ export default function WarehouseInventoryPage() {
           </table>
         )}
       </div>
+
+      {showProductModal && (
+        <ProductForm
+          product={null}
+          categories={categories ?? []}
+          isPending={isCreatingProduct}
+          onSubmit={handleCreateProduct}
+          onClose={() => setShowProductModal(false)}
+        />
+      )}
+
+      {editProduct && (
+        <ProductForm
+          product={editProduct}
+          categories={categories ?? []}
+          isPending={isUpdatingProduct}
+          onSubmit={handleUpdateProduct}
+          onClose={() => setEditProduct(null)}
+        />
+      )}
+
+      {printProducts.length > 0 && (
+        <LabelPrintModal
+          products={printProducts}
+          onClose={() => setPrintProducts([])}
+        />
+      )}
     </div>
   );
 }

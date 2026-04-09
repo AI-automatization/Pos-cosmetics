@@ -32,7 +32,9 @@ export function broadcastSaleComplete(orderNumber: string, total: number, change
 
 /** Watches the POS store and broadcasts cart state changes to the customer display */
 export function useCustomerDisplayBroadcast() {
-  const { items, totals } = usePOSStore();
+  const store = usePOSStore();
+  const { items } = store.carts[store.activeCartId] ?? { items: [] };
+  const { totals } = store;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

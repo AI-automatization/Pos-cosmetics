@@ -6,8 +6,8 @@ import type { Product } from '@/types/catalog';
 
 interface ProductsTableProps {
   products: Product[];
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
   onPrint?: (product: Product) => void;
 }
 
@@ -79,9 +79,11 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
                 Status
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Amallar
-              </th>
+              {(onEdit || onDelete) && (
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Amallar
+                </th>
+              )}
               {onPrint && (
                 <th className="px-2 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Chop
@@ -112,26 +114,32 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
                 <td className="px-4 py-3 text-center">
                   <StatusBadge isActive={product.isActive} />
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(product)}
-                      className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
-                      aria-label="Tahrirlash"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(product)}
-                      className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                      aria-label="O'chirish"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
+                {(onEdit || onDelete) && (
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      {onEdit && (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(product)}
+                          className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
+                          aria-label="Tahrirlash"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(product)}
+                          className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                          aria-label="O'chirish"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
                 {onPrint && (
                   <td className="px-2 py-3">
                     <button

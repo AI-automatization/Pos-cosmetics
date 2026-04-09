@@ -63,4 +63,6 @@ export interface CustomerWithDebt {
   totalPurchases: number;
   lastVisitAt: string | null;
   activeDebtsCount: number;
+  branchId?: string | null;
+  branch?: { id: string; name: string } | null;
 }

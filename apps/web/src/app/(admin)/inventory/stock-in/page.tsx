@@ -1,5 +1,14 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { StockInModal } from '../StockInModal';
 
 export default function StockInPage() {
-  redirect('/inventory');
+  const router = useRouter();
+  return (
+    <StockInModal
+      isOpen={true}
+      onClose={() => router.push('/inventory')}
+    />
+  );
 }

@@ -50,6 +50,7 @@ model Tenant {
   telegramLinkTokens  TelegramLinkToken[]
   settings            TenantSettings?
   priceChanges        PriceChange[]
+  tasks               Task[]
 
   @@map("tenants")
 }
@@ -70,10 +71,12 @@ model User {
   pinLockedUntil  DateTime? @map("pin_locked_until")
   telegramChatId  String?   @map("telegram_chat_id")
   botSettings     Json?     @map("bot_settings")
+  branchId        String?   @map("branch_id")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
   tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  branch         Branch?         @relation(fields: [branchId], references: [id])
   shifts         Shift[]
   orders         Order[]
   returns               Return[]
@@ -100,6 +103,8 @@ model Branch {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   tenant            Tenant          @relation(fields: [tenantId], references: [id])
+  users             User[]
+  customers         Customer[]
   shifts            Shift[]
   orders            Order[]
   warehouses        Warehouse[]
@@ -590,17 +595,24 @@ model PaymentIntent {
 // ============================================
 
 model Customer {
-  id             String   @id @default(uuid())
-  tenantId       String   @map("tenant_id")
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
   name           String
   phone          String?
+  email          String?
+  birthDate      DateTime? @map("birth_date")
+  address        String?
+  gender         String?
+  debtLimit      Int       @default(0) @map("debt_limit")
   notes          String?
-  isActive       Boolean  @default(true) @map("is_active")
-  telegramChatId String?  @map("telegram_chat_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  telegramChatId String?   @map("telegram_chat_id")
+  branchId       String?   @map("branch_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   tenant              Tenant              @relation(fields: [tenantId], references: [id])
+  branch              Branch?             @relation(fields: [branchId], references: [id])
   orders              Order[]
   debtRecords         DebtRecord[]
   loyaltyAccount      LoyaltyAccount?
@@ -1426,6 +1438,7 @@ model WarehouseInvoice {
 
 model WarehouseInvoiceItem {
   id            String           @id @default(uuid())
+  tenantId      String           @map("tenant_id")
   invoiceId     String           @map("invoice_id")
   productId     String           @map("product_id")
   quantity      Int
@@ -1435,8 +1448,10 @@ model WarehouseInvoiceItem {
   batchNumber   String?          @map("batch_number")
   expiryDate    DateTime?        @map("expiry_date")
 
-  invoice       WarehouseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice       WarehouseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
 
+  @@index([tenantId])
+  @@index([tenantId, invoiceId])
   @@index([invoiceId])
   @@index([productId])
   @@map("warehouse_invoice_items")
@@ -1486,6 +1501,7 @@ model SupportTicket {
 
 model TicketMessage {
   id         String           @id @default(uuid())
+  tenantId   String           @map("tenant_id")
   ticketId   String           @map("ticket_id")
   senderType TicketSenderType @map("sender_type")
   senderId   String?          @map("sender_id")
@@ -1494,6 +1510,37 @@ model TicketMessage {
 
   ticket     SupportTicket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
+  @@index([tenantId, ticketId])
   @@index([ticketId])
   @@map("ticket_messages")
+}
+
+// ============================================
+// TASKS MODULE
+// ============================================
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  tenantId    String     @map("tenant_id")
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  assigneeId  String?    @map("assignee_id")
+  dueDate     DateTime?  @map("due_date")
+  createdById String     @map("created_by_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  tenant      Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("tasks")
 }

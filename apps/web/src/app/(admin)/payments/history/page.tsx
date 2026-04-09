@@ -120,7 +120,7 @@ export default function PaymentsHistoryPage() {
                       <td className="px-4 py-3 font-mono font-medium text-gray-900">
                         #{o.orderNumber}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{o.customer?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-600">{o.customerName ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="flex items-center gap-1.5 text-gray-700">
                           <Icon className="h-4 w-4 text-gray-400" />

@@ -71,6 +71,7 @@ export class RequestLoggerInterceptor implements NestInterceptor {
             url: request.url,
             durationMs,
             ip: reqCtx?.ip ?? request.ip,
+            body: request.method !== 'GET' ? redactBody(request.body) : undefined,
             error: error instanceof Error ? { name: error.name, message: error.message } : String(error),
           });
         },

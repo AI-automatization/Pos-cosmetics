@@ -45,8 +45,12 @@ export class PaymentsService {
   }
 
   async createSplitPayment(tenantId: string, dto: SplitPaymentDto) {
+    const validPayments = dto.payments.filter((p) => Number(p.amount) > 0);
+    if (validPayments.length === 0) {
+      this.logger.warn('[Split] All payments have amount <= 0', { tenantId, orderId: dto.payments[0]?.orderId });
+    }
     return Promise.all(
-      dto.payments.map((p) => this.createPaymentIntent(tenantId, p)),
+      validPayments.map((p) => this.createPaymentIntent(tenantId, p)),
     );
   }
 
@@ -150,6 +154,14 @@ export class PaymentsService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
+        include: {
+          order: {
+            select: {
+              orderNumber: true,
+              customer: { select: { id: true, name: true, phone: true } },
+            },
+          },
+        },
       }),
       this.prisma.paymentIntent.count({ where }),
     ]);

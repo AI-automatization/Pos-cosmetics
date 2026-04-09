@@ -1,23 +1,37 @@
 // Customer & Nasiya (Qarz) domain types
-// Used by T-052 (Nasiya UI) and T-053 (Nasiya management)
-// Backend: T-050 (CustomerModule), T-051 (NasiyaModule)
+
+export type CustomerGender = 'MALE' | 'FEMALE';
 
 export interface Customer {
   id: string;
   name: string;
-  phone: string;
-  debtBalance: number;   // Joriy qarz (so'm)
-  debtLimit: number;     // Maksimal ruxsat etilgan qarz
-  isBlocked: boolean;    // Yangi nasiyadan bloklangan
-  hasOverdue: boolean;   // Muddati o'tgan qarzi bor
-  overdueAmount: number; // Muddati o'tgan qarz summasi
+  phone?: string | null;
+  email?: string | null;
+  birthDate?: string | null;
+  address?: string | null;
+  gender?: CustomerGender | null;
+  debtLimit: number;
+  debtBalance: number;
+  isBlocked: boolean;
+  hasOverdue: boolean;
+  overdueAmount: number;
   totalPurchases: number;
   lastVisitAt: string | null;
+  notes?: string | null;
+  branchId?: string | null;
+  branch?: { id: string; name: string } | null;
 }
 
 export interface CreateCustomerDto {
   name: string;
-  phone: string;
+  phone?: string;
+  email?: string;
+  birthDate?: string;
+  address?: string;
+  gender?: CustomerGender;
+  debtLimit?: number;
+  notes?: string;
+  branchId?: string;
 }
 
 export interface CustomerSearchResult {

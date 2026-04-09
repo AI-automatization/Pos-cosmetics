@@ -22,6 +22,40 @@
 |---|---------|--------|-------|------|--------|
 | — | — | — | — | — | _(hali yo'q)_ |
 
+---
+
+## 2026-03-29 TUZATILGAN (B-038..B-042 — Schema + Frontend + Invoice)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-038 | 2026-03-29 | P1 | 2026-03-29 | `schema.prisma`, `20260329000000_fix_schema_B038` | `warehouse_invoice_items` va `ticket_messages` jadvallari `tenant_id NOT NULL` ustun va `@@index` siz yaratilgan — multi-tenant isolation buzilgan. `onDelete: Cascade → Restrict` ham tuzatildi. Migration Railway production ga deploy qilindi. |
+| B-040 | 2026-03-29 | P1 | 2026-03-29 | `orders.api.ts`, `shifts.api.ts` | **cashierName "--"** — API faqat `user: {firstName, lastName}` qaytaradi, lekin frontend `cashierName` fieldiga map qilmagan. `ordersApi.list()` va `shiftsApi.list()` da `user.firstName + user.lastName → cashierName` mapping qo'shildi. |
+| B-041 | 2026-03-29 | P0 | 2026-03-29 | `warehouse-invoice.service.ts` | **POST /warehouse/invoices → 500 PRISMA_P2011** — `createInvoice()` da items create operatsiyasida `tenantId` kiritilmagan. `Null constraint violation on tenant_id` xatosi. `tenantId` items map ga qo'shildi. |
+| B-042 | 2026-03-29 | P1 | 2026-03-29 | `support.service.ts` | **TypeScript error** — B-038 migrationdan keyin `TicketMessage` `tenantId NOT NULL` talab qildi, lekin `addMessage()` da `tenantId` kiritilmagan edi. Tuzatildi. |
+| B-043 | 2026-03-29 | P2 | 2026-03-29 | `payments.service.ts`, `payments/history/page.tsx` | **Xaridor ustuni "--"** — `listPayments` `order.customer` ni include qilmagan; page `o.customer?.name` o'rniga `o.customerName` ishlatishi kerak edi. Include + mapping qo'shildi. |
+| B-044 | 2026-03-29 | P2 | 2026-03-29 | `customers.service.ts` | **"Jami qarz" har doim 0** — `findAll` plain customer qaytargan, `debtBalance` aggregation yo'q. `debtRecord.groupBy` qo'shildi. |
+| B-045 | 2026-03-29 | P2 | 2026-03-29 | `ProductSearch.tsx` | **POS stock salbiy (masalan -99786)** — `currentStock` salbiy bo'lganda UI ni buzadi. `Math.max(0, stock)` qo'shildi. |
+| B-046 | 2026-03-29 | P1 | 2026-03-29 | `sales.api.ts` | **POST /payments/split → 400** — nol miqdorli to'lovlar (masalan split da card=0) backend validatsiyasini o'tkazmasdi. `p.amount > 0` filter qo'shildi. |
+
+---
+
+## 2026-03-29 TUZATILGAN (Playwright Audit — MANAGER Role 403)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-039 | 2026-03-29 | P1 | 2026-03-29 | `reports.controller.ts`, `exchange-rate.controller.ts` | MANAGER роли /reports/profit и /exchange-rate/history эндпоинтлари 403 қайтарарди — @Roles га MANAGER қўшилди |
+
+## 2026-03-28 TUZATILGAN (Backend Audit — Barcha Controllerlar)
+
+| # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |
+|---|---------|--------|-----------|------|-----------------|
+| B-032 | 2026-03-28 | P1 | 2026-03-28 | `inventory.controller.ts` | **`@CurrentUser('sub')` → `undefined`** — `approveTransfer`, `shipTransfer`, `receiveTransfer` metodlarida `@CurrentUser('sub')` ishlatilgan. JWT strategy `validate()` `userId` qaytaradi, `sub` emas — shuning uchun `userId` parametri doim `undefined` bo'lgan. **Yechim:** `@CurrentUser('sub')` → `@CurrentUser('userId')` (3 joyda). |
+| B-033 | 2026-03-28 | P0 | 2026-03-28 | `support.controller.ts` + migration | **`GET /support/tickets` → 500 PRISMA_P2021** — `support_tickets` jadval production DB da mavjud emas (migration yaratilmagan). T-305 da schema qo'shilgan lekin `prisma migrate deploy` qilinmagan. **Yechim:** `20260328000000_add_support_tickets/migration.sql` yaratildi — `support_tickets` + `ticket_messages` jadvallari, enum'lar, foreign key va index'lar. `prisma migrate deploy` run qilish kerak. |
+| B-034 | 2026-03-28 | P2 | 2026-03-28 | `identity-info.controller.ts` | **`@UseGuards` yo'q** — `GET /identity/branches` global APP_GUARD (agar mavjud bo'lsa) orqali himoyalangan, lekin explicit `@UseGuards(JwtAuthGuard)` yo'q edi — defense-in-depth uchun zaif. **Yechim:** `@UseGuards(JwtAuthGuard)` qo'shildi. |
+| B-035 | 2026-03-28 | P2 | 2026-03-28 | `audit.controller.ts` | **`@UseGuards` yo'q, faqat `@Roles` bor** — `@Roles('OWNER', 'ADMIN')` decorator qo'yilgan lekin `@UseGuards(JwtAuthGuard, RolesGuard)` yo'q — `RolesGuard` ishlamagan. **Yechim:** `@UseGuards(JwtAuthGuard, RolesGuard)` qo'shildi. |
+| B-036 | 2026-03-28 | P2 | 2026-03-28 | `reports.controller.ts` | **`@UseGuards` yo'q** — Endpoint darajasida `@Roles` decoratorlari bor, lekin controller darajasida `@UseGuards(JwtAuthGuard, RolesGuard)` yo'q edi. **Yechim:** `@UseGuards(JwtAuthGuard, RolesGuard)` qo'shildi. |
+| B-037 | 2026-03-28 | P2 | 2026-03-28 | `exchange-rate.controller.ts` | **`@UseGuards` yo'q, faqat `@Roles` bor** — `@Roles('OWNER', 'ADMIN')` decorator endpoint darajasida bor, lekin `@UseGuards(JwtAuthGuard, RolesGuard)` yo'q — RolesGuard ishlamagan, `/exchange-rate/sync` (POST) himoyasiz bo'lgan. **Yechim:** `@UseGuards(JwtAuthGuard, RolesGuard)` controller darajasida qo'shildi. |
+
 ## 2026-03-05 TUZATILGAN (5-sessiya — Live API tour)
 
 | # | Topilib | Daraja | Tuzatildi | Fayl | Muammo va yechim |

@@ -28,4 +28,14 @@ export const notificationsApi = {
   markAllRead() {
     return apiClient.patch<void>('/notifications/read-all').then((r) => r.data);
   },
+  getRestockRequests() {
+    return apiClient
+      .get<Notification[] | { items: Notification[] }>('/notifications', {
+        params: { unreadOnly: 'true', limit: 50 },
+      })
+      .then((r) => {
+        const items = Array.isArray(r.data) ? r.data : (r.data as { items: Notification[] }).items ?? [];
+        return items.filter((n) => n.type === 'LOW_STOCK');
+      });
+  },
 };

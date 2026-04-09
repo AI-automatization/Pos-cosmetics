@@ -1,8 +1,8 @@
 'use client';
 
-import { Bell, LogOut, ChevronDown, User, Menu, Globe } from 'lucide-react';
+import { Bell, ChevronDown, User, Menu, Globe } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
+import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { useUnreadCount, useMarkAllRead } from '@/hooks/notifications/useNotifications';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { useTranslation } from '@/i18n/i18n-context';
@@ -38,7 +38,6 @@ function NotificationBell() {
 
 function UserMenu() {
   const { data: user } = useCurrentUser();
-  const { mutate: logout, isPending } = useLogout();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -80,7 +79,7 @@ function UserMenu() {
       {open && (
         <div className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-gray-200 bg-white shadow-lg">
           {user && (
-            <div className="border-b border-gray-100 px-4 py-3">
+            <div className="px-4 py-3">
               <p className="text-sm font-medium text-gray-900">{displayName}</p>
               <p className="text-xs text-gray-400 truncate">{user.email}</p>
               {user.tenant && (
@@ -88,18 +87,6 @@ function UserMenu() {
               )}
             </div>
           )}
-
-          <div className="p-1">
-            <button
-              type="button"
-              onClick={() => { setOpen(false); logout(); }}
-              disabled={isPending}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-            >
-              <LogOut className="h-4 w-4" />
-              {isPending ? 'Chiqilmoqda...' : 'Chiqish'}
-            </button>
-          </div>
         </div>
       )}
     </div>

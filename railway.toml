@@ -1,14 +1,14 @@
-# Root railway.toml — used by the web service (Root Directory = /)
-# Other services (api, worker, bot) have their own Root Directory set in Railway UI
-# and use their own railway.toml files.
+# Root railway.toml — used by the api service (Root Directory = /)
+# Web service has Root Directory = "apps/web" and uses apps/web/railway.toml
+# Worker/bot have their own Root Directory set in Railway UI
 
 [build]
-# Build from repo root so Docker can access packages/types, packages/ui
-dockerfilePath = "apps/web/Dockerfile"
+# Build from repo root so Docker can access packages/types, packages/utils
+dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-startCommand = "node apps/web/server.js"
-healthcheckPath = "/"
+startCommand = "sh start.sh"
+healthcheckPath = "/api/v1/health/live"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

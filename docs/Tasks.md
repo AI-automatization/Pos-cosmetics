@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-03-23 (Jamoa qayta tashkil etildi)
+# Yangilangan: 2026-04-03
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -2237,25 +2237,7 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-337 | P0 | [SECURITY] | Auth guard yo'q — Warehouse va Finance controllerlar ochiq
-
-- **Sana:** 2026-03-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/warehouse-invoice.controller.ts`, `apps/api/src/finance/finance.controller.ts`
-- **Muammo:** `WarehouseInvoiceController`, `WriteOffController`, `FinanceController` da `@UseGuards(JwtAuthGuard)` qo'yilmagan. Agar global guard bo'lmasa — barcha endpointlar autentifikatsiyasiz ochiq.
-- **Kutilgan:** Har controller da `@UseGuards(JwtAuthGuard)` yoki `@UseGuards(JwtAuthGuard, RolesGuard)` qo'shilishi SHART.
-- **Topildi:** Code review (backend-reviewer agent, 2026-03-26)
-
----
-
-## T-338 | P0 | [SECURITY] | Tenant isolation buzilgan — Support listAllTickets
-
-- **Sana:** 2026-03-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/support/support.service.ts:94`
-- **Muammo:** `listAllTickets` metodida `tenantId` filter yo'q — BARCHA tenantlar tiketlarini qaytaradi. `@Roles(UserRole.OWNER)` tenant owner ni tekshiradi, lekin boshqa tenantlardan himoya qilmaydi.
-- **Kutilgan:** `where` ga `tenantId` filter qo'shish yoki `SUPER_ADMIN` role ajratish.
-- **Topildi:** Code review (backend-reviewer agent, 2026-03-26)
+_(hozircha yo'q)_
 
 ---
 
@@ -2311,94 +2293,35 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-339 | P1 | [BACKEND] | console.log bot cron da — Logger ishlatish kerak
+## ~~T-335~~ | ✅ DONE | Warehouse Low-Stock sahifasi yangi mahsulotlarni ko'rsatmaydi
 
-- **Sana:** 2026-03-26
+- **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
-- **Fayl:** `apps/bot/src/cron/alerts.cron.ts:132,141,143,145`
-- **Muammo:** Yangi debt cron da `console.log`/`console.error` ishlatilgan. RAOS standartiga ko'ra faqat structured logger ruxsat.
-- **Kutilgan:** `console.log` → Logger wrapper ga almashtirish.
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/low-stock/page.tsx`
+- **Muammo:** `useStockLevels()` movement-based API ishlatadi — stock harakati bo'lmagan (yangi qo'shilgan) mahsulotlar ko'rinmaydi.
+- **Kutilgan:** `useProducts()` ga o'tish, client-side `currentStock <= minStockLevel` filter qo'llash.
 
 ---
 
-## T-340 | P1 | [BACKEND] | warehouse-invoice.service.ts — 450 qator, SRP buzilgan
+## ~~T-336~~ | ✅ DONE | Warehouse Suppliers — Edit/Delete funksiyasi yo'q
 
-- **Sana:** 2026-03-26
+- **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/warehouse-invoice.service.ts`
-- **Muammo:** 4 ta DTO class + dashboard + invoice CRUD + write-off + movements + alerts bitta faylda (450+ qator). SRP va 400 qator limit buzilgan.
-- **Kutilgan:** DTO larni `dto/warehouse-invoice.dto.ts` ga ajratish. Dashboard/alerts alohida service. Har fayl < 400 qator.
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/suppliers/page.tsx`
+- **Muammo:** Faqat "+ Qo'shish" bor. Mavjud supplierni tahrirlash yoki o'chirish mumkin emas.
+- **Kutilgan:** Har supplier kartaga edit (qalam) tugmasi + `SupplierModal supplier={item}` va delete (trash) tugmasi.
 
 ---
 
+## ~~T-337~~ | ✅ DONE | Warehouse Inventory — Mahsulot tahrirlash yo'q
 
-
-
-## T-306 | P1 | [FRONTEND] | Promotions UI — Backend bor, UI yo'q
-
-- **Sana:** 2026-03-23
+- **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/promotions/page.tsx` (yangi)
-- **Muammo:** Promotions engine backend da tayyor (T-099): PERCENT/FIXED/BUY_X_GET_Y/BUNDLE. Lekin admin panelda aksiyalar boshqarish UI yo'q.
-- **Kutilgan:**
-  - Aksiyalar ro'yxati (DataTable: nomi, turi, holati, muddati)
-  - Aksiya yaratish/tahrirlash formi (type tanlash, rules JSON, valid_from/to)
-  - Active/inactive toggle
-  - Sidebar ga "Aksiyalar" link
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/inventory/page.tsx`
+- **Muammo:** Faqat yangi mahsulot qo'shish bor. Mavjud mahsulotning narxini, minStockLevel ni o'zgartirish mumkin emas.
+- **Kutilgan:** Har qatordagi mahsulotga edit tugmasi + `ProductForm product={p} categories={...}` modal.
 
 ---
-
-## T-307 | P1 | [FRONTEND] | Bundles UI — Backend bor, UI to'liq emas
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/catalog/products/`
-- **Muammo:** BundleSection komponent yaratilgan (T-245), lekin to'plam narxi avtomatik hisoblanishi, POS da to'plam tanlash va maxsus chegirma qo'llash UI kerak.
-- **Kutilgan:**
-  - POS da bundle mahsulot tanlaganda komponentlar ko'rsatish
-  - Bundle narx = komponentlar narxi - chegirma (avtomatik hisob)
-
----
-
-## T-308 | P1 | [FRONTEND] | Real-time updates UI — WebSocket/SSE integratsiya
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/hooks/realtime/`
-- **Muammo:** Backend da `realtime.gateway.ts` (Socket.io) mavjud. Lekin frontend da WebSocket ulanish va real-time data yangilanishi yo'q.
-- **Kutilgan:**
-  - useRealtimeEvents hook (Socket.io client)
-  - Dashboard: yangi savdo real-time ko'rsatish
-  - Notifications: real-time push
-  - Shift status: real-time yangilanish
-
----
-
-## T-309 | P1 | [FRONTEND] | ExchangeRate UI — valyuta kursi ko'rsatish
-
-- **Sana:** 2026-03-23
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/finance/` yoki dashboard
-- **Muammo:** Backend da CBU exchange rate service bor (T-082/T-105). Lekin admin panelda valyuta kursi ko'rsatilmaydi.
-- **Kutilgan:**
-  - Dashboard yoki header da bugungi USD/UZS kursi
-  - Kurs tarixi grafik (line chart)
-  - Product import narxi USD -> UZS avtomatik konvert ko'rsatish
-
----
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA)
@@ -2406,39 +2329,45 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
+## ~~T-338~~ | ✅ DONE | Warehouse Nakladnoy — Detail sahifasi yo'q
 
----
-
----
-
----
-
----
-
-## T-310 | P2 | [FRONTEND] | POS tablet layout — iPad/Android tablet uchun adaptiv
-
-- **Sana:** 2026-03-23
+- **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(pos)/pos/`
-- **Muammo:** POS sahifasi faqat desktop uchun mo'ljallangan (3-column layout). Tablet da foydalanish qiyin.
-- **Kutilgan:**
-  - iPad (1024x768) va Android tablet (800x1280) uchun responsive layout
-  - Touch-friendly UI elementlari (kattaroq tugmalar, swipe gesturelar)
-  - Portrait/landscape mode qo'llab-quvvatlash
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/invoices/[id]/page.tsx` (yangi)
+- **Muammo:** Nakladnoylar ro'yxatidan bitta nakladnoyni ochib tafsilotlarini (mahsulotlar, narxlar, supplier) ko'rish mumkin emas.
+- **Kutilgan:** `GET /warehouse/invoices/:id` endpointidan ma'lumot olib ko'rsatish.
 
 ---
 
-## T-314 | P2 | [FRONTEND] | Subscription upgrade/downgrade UI — owner uchun
+## T-339 | P2 | [BACKEND] | Demo Seed — Low-stock mahsulot qo'shish (POS toast test uchun)
 
-- **Sana:** 2026-03-23
+- **Sana:** 2026-04-05
 - **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/settings/subscription/page.tsx` (yangi)
-- **Muammo:** Billing backend tayyor (T-108). Lekin owner admin panelda o'z obunasini ko'rish, upgrade/downgrade qilish UI yo'q.
-- **Kutilgan:**
-  - Hozirgi plan ko'rsatish (limits, usage bar charts)
-  - Planlar taqqoslash jadvali (Free/Basic/Pro/Enterprise)
-  - Upgrade/downgrade tugmasi -> Payme/Click to'lov
-  - Billing tarixi
+- **Fayl:** `apps/api/prisma/seed.ts`
+- **Muammo:** Demo datada barcha mahsulotlar 130-230 dona. Low-stock toast ni ko'rsatish uchun 120+ dona sotish kerak — bu real test emas.
+- **Kutilgan:** Seed ga 1 mahsulot: `currentStock=7, minStockLevel=10` — POS da sotib toast ko'rsatish mumkin bo'lsin.
+
+---
+
+## T-340 | P2 | [FRONTEND] | Warehouse Dashboard — Yangi zapros kelganda signal
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx`
+- **Muammo:** Yangi kassir zaprosi 30 soniyada ko'rinadi, lekin hech qanday signal yo'q (sound/badge).
+- **Kutilgan:** Yangi zapros soni oshganda browser Notification API yoki audio beep.
+
+---
+
+## T-341 | P2 | [FRONTEND] | POS — Chek print / PDF yuklab olish
+
+- **Sana:** 2026-04-05
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(pos)/pos/ReceiptPreview.tsx`
+- **Muammo:** ReceiptPreview ko'rsatadi, lekin print qilish yoki PDF yuklab olish yo'q.
+- **Kutilgan:** "Chop etish" tugmasi (window.print yoki PDF blob).
+
+---
 
 ---
 
@@ -2495,14 +2424,14 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **35** | **1** | **12** | **10** | **6** |
+| **12** | **0** | **0** | **6** | **6** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 1 | 11 | 2 | 5 | **19** |
-| [FRONTEND] | 0 | 6 | 4 | 0 | **10** |
+| [BACKEND] | 0 | 0 | 0 | 5 | **5** |
+| [FRONTEND] | 0 | 0 | 0 | 0 | **0** |
 | [MOBILE] | 0 | 0 | 3 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
@@ -2510,12 +2439,11 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 1 | 13 | 3 | 0 | **17** |
-| **AbdulazizYormatov** (Team Lead, Frontend) | 0 | 4 | 2 | 0 | **6** |
+| **Ibrat** (Full-Stack) | 0 | 0 | 0 | 0 | **0** |
 | **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
-> Yangilangan: 2026-03-23 — Miro доска tahlilidan 16 ta yangi vazifa qo'shildi (T-321…T-336)
+> Yangilangan: 2026-04-03 — T-337..T-340, T-306..T-310, T-314 bajarildi → Done.md ga ko'chirildi
 
 ---
 
@@ -2543,21 +2471,22 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
   employees/    — CRUD, performance, fired status
   audit/        — Logs
   reports/      — Daily, top products, Z-report, export CSV/Excel
-  finance/      — Expenses CRUD
-  admin/        — Super admin, metrics, DLQ
+  finance/      — Expenses CRUD + P&L + Balance Sheet + Cash Flow
+  admin/        — Super admin, metrics, DLQ, IP block, feature flags
   health/       — Live, ready, ping, system health
   realtime/     — WebSocket gateway (Socket.io)
-  sync/         — Basic sync controller (needs expansion -> T-302)
+  sync/         — Outbox pattern + conflict resolution (T-302)
   realestate/   — Module shell (empty controller -> T-140)
   loyalty/      — LoyaltyConfig, Account, Transaction
-  metrics/      — Prometheus endpoint
+  metrics/      — Prometheus endpoint (MetricsSecretGuard)
   events/       — Domain events, EventEmitter2
   common/       — Cache, cron, guards, pipes, filters, circuit breaker, currency
+  support/      — Tickets, messages, status (T-305)
 
   apps/worker/  — 6 queue workers (fiscal, notification, report, snapshot, export, sync)
-  apps/bot/     — Telegram bot (grammY) — commands, cron alerts
+  apps/bot/     — Telegram bot (grammY) — commands, cron alerts (5 cron)
 ```
 
 ---
 
-*docs/Tasks.md | RAOS Kosmetika POS | v3.0 | 2026-03-23 (jamoa qayta tashkil etildi)*
+*docs/Tasks.md | RAOS Kosmetika POS | v3.0 | 2026-04-03 (tozalandi)*

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, Filter, Printer, Package } from 'lucide-react';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { SearchInput } from '@/components/common/SearchInput';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
@@ -18,6 +19,7 @@ import {
   useDeleteProduct,
 } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
+import { useCanEdit } from '@/hooks/auth/useAuth';
 import type { Product, CreateProductDto, UpdateProductDto } from '@/types/catalog';
 import type { ProductFormData } from './ProductForm';
 
@@ -39,6 +41,7 @@ export default function ProductsPage() {
   });
 
   const { data: categories = [] } = useCategories();
+  const canEdit = useCanEdit();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -66,6 +69,7 @@ export default function ProductsPage() {
       costPrice: formData.costPrice,
       sellPrice: formData.sellPrice,
       minStockLevel: formData.minStockLevel,
+      expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
     };
     if (editingProduct) {
       updateProduct.mutate(
@@ -104,14 +108,16 @@ export default function ProductsPage() {
               Yorliqlar
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Mahsulot qo&apos;shish
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" />
+              Mahsulot qo&apos;shish
+            </button>
+          )}
         </>
       }
     >
@@ -129,21 +135,21 @@ export default function ProductsPage() {
 
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-400" />
-          <select
+          <SearchableDropdown
+            options={categories.map((cat) => ({
+              value: cat.id,
+              label: cat.name,
+            }))}
             value={categoryFilter}
-            onChange={(e) => {
-              setCategoryFilter(e.target.value);
+            onChange={(val) => {
+              setCategoryFilter(val);
               setPage(1);
             }}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-          >
-            <option value="">Barcha kategoriyalar</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            placeholder="Barcha kategoriyalar"
+            searchable={categories.length >= 6}
+            clearable
+            className="min-w-[200px]"
+          />
         </div>
       </div>
 
@@ -160,8 +166,8 @@ export default function ProductsPage() {
         <>
           <ProductsTable
             products={data.items}
-            onEdit={handleOpenEdit}
-            onDelete={(p) => setDeletingProduct(p)}
+            onEdit={canEdit ? handleOpenEdit : undefined}
+            onDelete={canEdit ? (p) => setDeletingProduct(p) : undefined}
             onPrint={(p) => setPrintProducts([p])}
           />
 
