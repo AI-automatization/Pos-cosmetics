@@ -253,14 +253,14 @@ function NavLink({
       href={item.href}
       title={collapsed ? label : undefined}
       className={cn(
-        'flex items-center rounded-lg px-3 py-2 text-sm font-medium transition',
+        'flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
         collapsed ? 'justify-center' : 'gap-3',
         active
-          ? 'bg-blue-50 text-blue-700'
-          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+          ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
       )}
     >
-      <item.icon className="h-5 w-5 shrink-0" />
+      <item.icon className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-blue-600' : 'text-gray-400')} />
       {!collapsed && label}
     </Link>
   );
@@ -284,13 +284,13 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
         href={firstHref}
         title={label}
         className={cn(
-          'flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition',
+          'flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
           isActive
-            ? 'bg-blue-50 text-blue-700'
-            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+            ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         )}
       >
-        <item.icon className="h-5 w-5 shrink-0" />
+        <item.icon className={cn('h-4.5 w-4.5 shrink-0', isActive ? 'text-blue-600' : 'text-gray-400')} />
       </Link>
     );
   }
@@ -301,13 +301,13 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
+          'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
           isActive
-            ? 'bg-blue-50 text-blue-700'
-            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+            ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         )}
       >
-        <item.icon className="h-5 w-5 shrink-0" />
+        <item.icon className={cn('h-4.5 w-4.5 shrink-0', isActive ? 'text-blue-600' : 'text-gray-400')} />
         <span className="flex-1 text-left">{label}</span>
         <ChevronDown
           className={cn('h-4 w-4 transition-transform', open && 'rotate-180')}
@@ -315,7 +315,7 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
       </button>
 
       {open && (
-        <div className="ml-8 mt-1 flex flex-col gap-0.5">
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5 border-l border-gray-100 pl-3">
           {item.children?.map((child) => {
             const active = pathname.startsWith(child.href);
             const childLabel = child.tKey ? t(child.tKey) : child.label;
@@ -324,10 +324,10 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
                 key={child.href}
                 href={child.href}
                 className={cn(
-                  'rounded-md px-3 py-1.5 text-sm transition',
+                  'rounded-md px-2.5 py-1.5 text-sm transition-colors duration-100',
                   active
-                    ? 'font-medium text-blue-700'
-                    : 'text-gray-600 hover:text-gray-900',
+                    ? 'font-semibold text-blue-700'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800',
                 )}
               >
                 {childLabel}
@@ -359,16 +359,16 @@ function SidebarContent({
     <>
       {/* Logo */}
       <div className={cn(
-        'flex h-16 items-center border-b border-gray-200',
+        'flex h-14 items-center border-b border-gray-100',
         collapsed ? 'justify-center px-2' : 'gap-3 px-4',
       )}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-sm">
           <Store className="h-4 w-4 text-white" />
         </div>
         {!collapsed && (
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-gray-900">RAOS</p>
-            <p className="text-xs text-gray-500">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-gray-900 tracking-tight">RAOS</p>
+            <p className="text-[11px] text-gray-400 font-medium">
               {user?.role === 'OWNER' ? 'Owner Panel' : 'Admin Panel'}
             </p>
           </div>
@@ -403,15 +403,29 @@ function SidebarContent({
         </nav>
       )}
 
-      {/* Logout (visible always) */}
-      <div className="border-t border-gray-200 p-2">
+      {/* User profile + Logout */}
+      <div className="border-t border-gray-100 p-2 space-y-1">
+        {/* User card */}
+        {!collapsed && user && (
+          <div className="flex items-center gap-2.5 rounded-lg px-3 py-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
+              {(user.firstName ?? user.email ?? 'U').slice(0, 1).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-gray-800">
+                {user.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : user.email}
+              </p>
+              <p className="text-[10px] font-medium text-gray-400">{user.role}</p>
+            </div>
+          </div>
+        )}
         <button
           type="button"
           onClick={() => logout()}
           disabled={loggingOut}
           title="Chiqish"
           className={cn(
-            'flex w-full items-center rounded-lg px-3 py-2 text-sm text-red-500 transition hover:bg-red-50 disabled:opacity-50',
+            'flex w-full items-center rounded-lg px-3 py-2 text-sm text-gray-500 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50',
             collapsed ? 'justify-center' : 'gap-2',
           )}
         >
@@ -475,7 +489,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          'hidden h-full shrink-0 flex-col border-r border-gray-200 bg-white transition-[width] duration-200 md:flex',
+          'hidden h-full shrink-0 flex-col border-r border-gray-100 bg-white shadow-[1px_0_0_0_#f3f4f6] transition-[width] duration-200 md:flex',
           collapsed ? 'w-16' : 'w-64',
         )}
       >

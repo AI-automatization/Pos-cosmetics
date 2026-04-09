@@ -12,6 +12,7 @@ import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/t
 import { useUsers } from '@/hooks/settings/useUsers';
 import { useBranches } from '@/hooks/settings/useBranches';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 import type { Task, TaskStatus } from '@/api/tasks.api';
 
@@ -112,9 +113,10 @@ export default function TasksPage() {
   const { data: branches = [] } = useBranches();
   const { mutate: createTask, isPending } = useCreateTask();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<TaskForm>({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<TaskForm>({
     resolver: zodResolver(taskSchema),
   });
+  const assigneeId = watch('assigneeId') ?? '';
 
   const tasks = data?.items ?? [];
 
@@ -196,17 +198,17 @@ export default function TasksPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-600">Xodimga tayinlash</label>
-                <select
-                  {...register('assigneeId')}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
-                >
-                  <option value="">— Tanlang —</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {`${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email}
-                    </option>
-                  ))}
-                </select>
+                <SearchableDropdown
+                  options={users.map((u) => ({
+                    value: u.id,
+                    label: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email || u.id,
+                  }))}
+                  value={assigneeId}
+                  onChange={(val) => setValue('assigneeId', val || undefined)}
+                  placeholder="— Tanlang —"
+                  searchable={users.length > 4}
+                  clearable
+                />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-600">Muddat</label>
@@ -240,16 +242,18 @@ export default function TasksPage() {
       {/* Branch + Status filters */}
       <div className="flex flex-wrap items-center gap-3">
         {branches.length > 0 && (
-          <select
+          <SearchableDropdown
+            options={[
+              { value: '', label: 'Barcha filiallar' },
+              ...branches.map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={branchFilter}
-            onChange={(e) => setBranchFilter(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 outline-none focus:border-blue-400"
-          >
-            <option value="">Barcha filiallar</option>
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setBranchFilter(val)}
+            placeholder="Barcha filiallar"
+            searchable={branches.length > 4}
+            clearable={false}
+            className="w-48"
+          />
         )}
       </div>
 

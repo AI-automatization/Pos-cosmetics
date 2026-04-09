@@ -14,6 +14,7 @@ import {
 import { useCustomersList, useNasiyaSummary, useCreateCustomer } from '@/hooks/customers/useDebts';
 import { useBranches } from '@/hooks/settings/useBranches';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { formatPrice, cn } from '@/lib/utils';
 import type { CustomerWithDebt } from '@/types/debt';
 import type { CustomerGender } from '@/types/customer';
@@ -192,15 +193,17 @@ function CreateCustomerModal({ onClose }: { onClose: () => void }) {
 
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-700">Jins</label>
-              <select
+              <SearchableDropdown
+                options={[
+                  { value: 'MALE', label: 'Erkak' },
+                  { value: 'FEMALE', label: 'Ayol' },
+                ]}
                 value={form.gender}
-                onChange={set('gender')}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
-              >
-                <option value="">— Tanlang —</option>
-                <option value="MALE">Erkak</option>
-                <option value="FEMALE">Ayol</option>
-              </select>
+                onChange={(val) => setForm((prev) => ({ ...prev, gender: val as CustomerGender | '' }))}
+                placeholder="— Tanlang —"
+                searchable={false}
+                clearable
+              />
             </div>
           </div>
 
@@ -242,16 +245,14 @@ function CreateCustomerModal({ onClose }: { onClose: () => void }) {
             {branches.length > 0 && (
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-700">Filial</label>
-                <select
+                <SearchableDropdown
+                  options={branches.map((b) => ({ value: b.id, label: b.name }))}
                   value={form.branchId}
-                  onChange={set('branchId')}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
-                >
-                  <option value="">— Tanlang —</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm((prev) => ({ ...prev, branchId: val }))}
+                  placeholder="— Filial tanlang —"
+                  searchable={branches.length > 4}
+                  clearable
+                />
               </div>
             )}
 

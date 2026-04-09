@@ -70,22 +70,22 @@ export interface HeatmapCell {
 }
 
 export const analyticsApi = {
-  getSalesTrend(params: { period?: string; from?: string; to?: string }) {
+  getSalesTrend(params: { period?: string; from?: string; to?: string; branchId?: string }) {
     return apiClient
       .get<SalesTrendPoint[]>('/analytics/sales-trend', { params })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
-  getTopProducts(params: { from?: string; to?: string; limit?: number; sortBy?: string }) {
+  getTopProducts(params: { from?: string; to?: string; limit?: number; sortBy?: string; branchId?: string }) {
     return apiClient
       .get<TopProduct[]>('/analytics/top-products', { params })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
-  getDeadStock(params: { days?: number } = {}) {
+  getDeadStock(params: { days?: number; branchId?: string } = {}) {
     return apiClient
       .get<DeadStockItem[]>('/analytics/dead-stock', { params })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
-  getMargin(params: { from?: string; to?: string; categoryId?: string } = {}) {
+  getMargin(params: { from?: string; to?: string; categoryId?: string; branchId?: string } = {}) {
     return apiClient
       .get<MarginItem[]>('/analytics/margin', { params })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
@@ -125,12 +125,12 @@ export const analyticsApi = {
         return raw as AbcGroup[];
       });
   },
-  getCashierPerformance(params: { from?: string; to?: string } = {}) {
+  getCashierPerformance(params: { from?: string; to?: string; branchId?: string } = {}) {
     return apiClient
       .get<CashierPerf[]>('/analytics/cashier-performance', { params })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
-  getHourlyHeatmap(params: { from?: string; to?: string } = {}) {
+  getHourlyHeatmap(params: { from?: string; to?: string; branchId?: string } = {}) {
     return apiClient
       .get<HeatmapCell[]>('/analytics/hourly-heatmap', { params })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
