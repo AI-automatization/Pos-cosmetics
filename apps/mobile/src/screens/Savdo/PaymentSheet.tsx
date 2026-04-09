@@ -5,51 +5,44 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  TextInput,
-  Switch,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import type { Product } from './ProductCard';
+import { Ionicons } from '@expo/vector-icons';
 
-// ─── Types ────────────────────────────────────────────
-export type PaymentMethod = 'NAQD' | 'KARTA' | 'NASIYA';
+import { type PaymentMethod, type CartItem } from './PaymentSheetTypes';
+import PaymentSummaryCard from './PaymentSummaryCard';
+import PaymentMethodPicker from './PaymentMethodPicker';
+import PaymentInputBlock from './PaymentInputBlock';
 
-export interface CartItem {
-  product: Product;
-  qty: number;
-}
+// ─── Backward-compat re-exports ────────────────────────
+export type { PaymentMethod, CartItem } from './PaymentSheetTypes';
 
+// ─── Props ─────────────────────────────────────────────
 interface Props {
-  visible: boolean;
-  cart: CartItem[];
-  total: number;
-  onClose: () => void;
-  onConfirm: (method: PaymentMethod, received: number) => void;
-  onRemoveItem?: (productId: string) => void;
+  readonly visible: boolean;
+  readonly cart: CartItem[];
+  readonly total: number;
+  readonly onClose: () => void;
+  readonly onConfirm: (method: PaymentMethod, received: number) => void;
+  readonly onRemoveItem?: (productId: string) => void;
 }
 
-// ─── Utils ────────────────────────────────────────────
-function fmt(n: number) {
-  return n.toLocaleString('ru-RU') + ' UZS';
-}
+// ─── Component ─────────────────────────────────────────
+export default function PaymentSheet({
+  visible,
+  cart,
+  total,
+  onClose,
+  onConfirm,
+  onRemoveItem,
+}: Props) {
+  const [method, setMethod]       = useState<PaymentMethod>('NAQD');
+  const [split, setSplit]         = useState(false);
+  const [received, setReceived]   = useState('');
+  const [splitCard, setSplitCard] = useState('');
 
-const METHODS: { key: PaymentMethod; label: string; icon: string; color: string }[] = [
-  { key: 'NAQD',   label: 'Naqd',   icon: 'cash-multiple',    color: '#10B981' },
-  { key: 'KARTA',  label: 'Karta',  icon: 'credit-card',      color: '#3B82F6' },
-  { key: 'NASIYA', label: 'Nasiya', icon: 'receipt',          color: '#F59E0B' },
-];
-
-// ─── Component ────────────────────────────────────────
-export default function PaymentSheet({ visible, cart, total, onClose, onConfirm, onRemoveItem }: Props) {
-  const [method, setMethod]         = useState<PaymentMethod>('NAQD');
-  const [split, setSplit]           = useState(false);
-  const [received, setReceived]     = useState('');
-  const [splitCard, setSplitCard]   = useState('');
-
-  // Reset har ochilganda
   useEffect(() => {
     if (visible) {
       setMethod('NAQD');
@@ -59,10 +52,9 @@ export default function PaymentSheet({ visible, cart, total, onClose, onConfirm,
     }
   }, [visible, total]);
 
-  const receivedNum  = parseFloat(received.replace(/\s/g, '')) || 0;
-  const splitCardNum = parseFloat(splitCard.replace(/\s/g, '')) || 0;
-  const change       = method === 'NAQD' && !split ? receivedNum - total : 0;
-  const canConfirm   = method !== 'NAQD' || receivedNum >= total;
+  const receivedNum = parseFloat(received.replace(/\s/g, '')) || 0;
+  const change      = method === 'NAQD' && !split ? receivedNum - total : 0;
+  const canConfirm  = method !== 'NAQD' || receivedNum >= total;
 
   const handleConfirm = () => {
     if (!canConfirm) return;
@@ -76,15 +68,17 @@ export default function PaymentSheet({ visible, cart, total, onClose, onConfirm,
       animationType="slide"
       onRequestClose={onClose}
     >
-      {/* Backdrop */}
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+      <TouchableOpacity
+        style={styles.backdrop}
+        activeOpacity={1}
+        onPress={onClose}
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.sheetWrapper}
       >
         <View style={styles.sheet}>
-          {/* Handle */}
           <View style={styles.handle} />
 
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -97,154 +91,31 @@ export default function PaymentSheet({ visible, cart, total, onClose, onConfirm,
             </View>
 
             {/* Order summary */}
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryRow}>
-                <View>
-                  <Text style={styles.summaryLabel}>Buyurtma xulosasi</Text>
-                  <Text style={styles.summaryItems}>
-                    {cart.reduce((s, i) => s + i.qty, 0)} ta mahsulot
-                  </Text>
-                </View>
-                <View style={styles.summaryRight}>
-                  <Text style={styles.summaryLabel}>Umumiy summa</Text>
-                  <Text style={styles.summaryTotal}>{fmt(total)}</Text>
-                </View>
-              </View>
+            <PaymentSummaryCard
+              cart={cart}
+              total={total}
+              onRemoveItem={onRemoveItem}
+            />
 
-              {cart.length > 0 && (
-                <ScrollView
-                  style={styles.itemList}
-                  showsVerticalScrollIndicator={false}
-                  nestedScrollEnabled
-                >
-                  {cart.map((item) => (
-                    <View key={item.product.id} style={styles.itemRow}>
-                      <Text style={styles.itemName} numberOfLines={1}>
-                        {item.product.name}
-                      </Text>
-                      <Text style={styles.itemQty}>×{item.qty}</Text>
-                      <Text style={styles.itemPrice}>
-                        {fmt(item.product.sellPrice * item.qty)}
-                      </Text>
-                      {onRemoveItem != null && (
-                        <TouchableOpacity
-                          style={styles.itemRemoveBtn}
-                          onPress={() => onRemoveItem(item.product.id)}
-                          activeOpacity={0.7}
-                        >
-                          <Ionicons name="close" size={14} color="#EF4444" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  ))}
-                </ScrollView>
-              )}
-            </View>
+            {/* Payment method picker */}
+            <PaymentMethodPicker method={method} onSelect={setMethod} />
 
-            {/* Payment method */}
-            <Text style={styles.sectionLabel}>TO'LOV USULINI TANLANG</Text>
-            <View style={styles.methodRow}>
-              {METHODS.map((m) => {
-                const active = method === m.key;
-                return (
-                  <TouchableOpacity
-                    key={m.key}
-                    style={[styles.methodCard, active && { borderColor: m.color, backgroundColor: m.color + '12' }]}
-                    onPress={() => setMethod(m.key)}
-                    activeOpacity={0.75}
-                  >
-                    <View style={[styles.methodIcon, { backgroundColor: m.color + '20' }]}>
-                      <MaterialCommunityIcons name={m.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']} size={22} color={m.color} />
-                    </View>
-                    <Text style={[styles.methodLabel, active && { color: m.color }]}>{m.label}</Text>
-                    {active && (
-                      <View style={[styles.methodCheck, { backgroundColor: m.color }]}>
-                        <Ionicons name="checkmark" size={10} color="#FFF" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Split payment toggle */}
-            <View style={styles.splitRow}>
-              <View style={styles.splitLeft}>
-                <MaterialCommunityIcons name="shuffle-variant" size={18} color="#6B7280" />
-                <Text style={styles.splitLabel}>Aralash to'lov</Text>
-              </View>
-              <Switch
-                value={split}
-                onValueChange={setSplit}
-                trackColor={{ false: '#E5E7EB', true: '#5B5BD6' }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-
-            {/* Naqd input */}
-            {method === 'NAQD' && !split && (
-              <View style={styles.inputBlock}>
-                <Text style={styles.inputLabel}>Qabul qilindi</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.inputField}
-                    value={received}
-                    onChangeText={setReceived}
-                    keyboardType="numeric"
-                    textAlign="right"
-                  />
-                  <Text style={styles.inputSuffix}>UZS</Text>
-                </View>
-                <View style={styles.changeRow}>
-                  <Text style={styles.changeLabel}>Qaytim:</Text>
-                  <Text style={[styles.changeAmount, change < 0 && styles.changeNeg]}>
-                    {fmt(Math.abs(change))}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Split: naqd + karta */}
-            {split && (
-              <View style={styles.inputBlock}>
-                <Text style={styles.inputLabel}>Naqd</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.inputField}
-                    value={received}
-                    onChangeText={setReceived}
-                    keyboardType="numeric"
-                    textAlign="right"
-                  />
-                  <Text style={styles.inputSuffix}>UZS</Text>
-                </View>
-                <Text style={[styles.inputLabel, { marginTop: 12 }]}>Karta</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.inputField}
-                    value={splitCard}
-                    onChangeText={setSplitCard}
-                    keyboardType="numeric"
-                    textAlign="right"
-                    placeholder={fmt(total - receivedNum)}
-                    placeholderTextColor="#9CA3AF"
-                  />
-                  <Text style={styles.inputSuffix}>UZS</Text>
-                </View>
-                <View style={styles.changeRow}>
-                  <Text style={styles.changeLabel}>Jami:</Text>
-                  <Text style={[
-                    styles.changeAmount,
-                    receivedNum + splitCardNum < total && styles.changeNeg,
-                  ]}>
-                    {fmt(receivedNum + splitCardNum)}
-                  </Text>
-                </View>
-              </View>
-            )}
+            {/* Split toggle + cash/card inputs */}
+            <PaymentInputBlock
+              split={split}
+              method={method}
+              received={received}
+              splitCard={splitCard}
+              total={total}
+              change={change}
+              receivedNum={receivedNum}
+              onReceivedChange={setReceived}
+              onSplitCardChange={setSplitCard}
+              onSplitToggle={setSplit}
+            />
           </ScrollView>
 
-          {/* Confirm button */}
+          {/* Confirm */}
           <TouchableOpacity
             style={[styles.confirmBtn, !canConfirm && styles.confirmBtnDisabled]}
             onPress={handleConfirm}
@@ -259,7 +130,7 @@ export default function PaymentSheet({ visible, cart, total, onClose, onConfirm,
   );
 }
 
-// ─── Styles ───────────────────────────────────────────
+// ─── Styles ────────────────────────────────────────────
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
@@ -279,8 +150,6 @@ const styles = StyleSheet.create({
     paddingBottom: 34,
     maxHeight: '90%',
   },
-
-  // Handle
   handle: {
     width: 40,
     height: 5,
@@ -290,8 +159,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
   },
-
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -311,162 +178,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  // Summary
-  summaryCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  summaryItems: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  summaryRight: {
-    alignItems: 'flex-end',
-  },
-  summaryTotal: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#5B5BD6',
-  },
-
-  // Methods
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#9CA3AF',
-    letterSpacing: 1.2,
-    marginBottom: 12,
-  },
-  methodRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  methodCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    gap: 6,
-    position: 'relative',
-  },
-  methodIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  methodLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#374151',
-  },
-  methodCheck: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  // Split toggle
-  splitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    marginBottom: 8,
-  },
-  splitLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  splitLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
-
-  // Input
-  inputBlock: {
-    marginBottom: 8,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 6,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  inputField: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  inputSuffix: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    marginLeft: 8,
-  },
-  changeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingHorizontal: 4,
-  },
-  changeLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  changeAmount: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#5B5BD6',
-  },
-  changeNeg: {
-    color: '#EF4444',
-  },
-
-  // Confirm button
   confirmBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -489,47 +200,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
-  },
-
-  // Cart items list
-  itemList: {
-    marginTop: 12,
-    maxHeight: 140,
-  },
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    gap: 8,
-  },
-  itemName: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#374151',
-  },
-  itemQty: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    fontWeight: '500',
-    minWidth: 24,
-    textAlign: 'center',
-  },
-  itemPrice: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#111827',
-    minWidth: 80,
-    textAlign: 'right',
-  },
-  itemRemoveBtn: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

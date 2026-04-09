@@ -53,13 +53,23 @@ export default function LoginScreen({ navigation }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // SecureStore dan oldingi slugni yuklash
+  React.useEffect(() => {
+    SecureStore.getItemAsync('tenant_slug').then((s) => {
+      if (s) setSlug(s);
+    });
+  }, []);
+
   const handleLogin = async () => {
-    if (!slug.trim() || !email.trim() || !password.trim()) return;
+    if (!slug.trim() || !email.trim() || !password.trim()) {
+      Alert.alert('Xatolik', 'Barcha maydonlarni to\'ldiring');
+      return;
+    }
     setLoading(true);
     try {
-      await SecureStore.setItemAsync('tenant_slug', slug.trim());
       const res = await authApi.login({ slug: slug.trim(), email: email.trim(), password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
+      await SecureStore.setItemAsync('tenant_slug', slug.trim());
       const me = await authApi.me();
       await setUser(me, res.accessToken, res.refreshToken ?? '');
     } catch (err) {
@@ -93,7 +103,7 @@ export default function LoginScreen({ navigation }: Props) {
           {/* ── Form ── */}
           <View style={styles.form}>
 
-            {/* Slug */}
+            {/* Tenant Slug */}
             <Text style={styles.label}>Tashkilot kodi</Text>
             <View style={styles.inputWrapper}>
               <Feather name="briefcase" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
@@ -221,25 +231,29 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
           </View>
 
-          {/* DEV only */}
+          {/* DEV only — haqiqiy API bilan demo login */}
           {__DEV__ && (
             <TouchableOpacity
               style={styles.demoButton}
-              onPress={() =>
-                setUser(
-                  {
-                    id: 'demo',
-                    email: 'demo@raos.uz',
-                    firstName: 'Demo',
-                    lastName: 'User',
-                    role: 'OWNER',
-                    tenantId: 'demo-tenant',
-                    tenant: { id: 'demo-tenant', name: "Demo Do'kon", slug: 'demo' },
-                  },
-                  'demo-access-token',
-                  'demo-refresh-token',
-                )
-              }
+              disabled={loading}
+              onPress={async () => {
+                setLoading(true);
+                try {
+                  const demoSlug = 'kosmetika-demo';
+                  const demoEmail = 'cashier@raos.uz';
+                  const demoPass = 'Demo1234!';
+                  const res = await authApi.login({ slug: demoSlug, email: demoEmail, password: demoPass });
+                  await SecureStore.setItemAsync('access_token', res.accessToken);
+                  await SecureStore.setItemAsync('tenant_slug', demoSlug);
+                  const me = await authApi.me();
+                  await setUser(me, res.accessToken, res.refreshToken);
+                } catch (err) {
+                  const msg = extractErrorMessage(err);
+                  Alert.alert('Demo kirish xatosi', msg);
+                } finally {
+                  setLoading(false);
+                }
+              }}
             >
               <Text style={styles.demoText}>🧪 Demo kirish</Text>
             </TouchableOpacity>
