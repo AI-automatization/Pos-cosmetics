@@ -113,18 +113,18 @@ export const inventoryApi = {
     from?: string;
     to?: string;
   }): Promise<ReceiptListResponse> => {
-    const { data } = await api.get<{ items?: unknown[]; data?: unknown[]; total: number; page: number; limit: number }>(
+    const { data } = await api.get<{ invoices?: unknown[]; items?: unknown[]; data?: unknown[]; total: number; page: number; limit: number }>(
       '/warehouse/invoices',
       { params },
     );
-    const items: Receipt[] = ((data.items ?? data.data) ?? []).map((r: any) => ({
+    const items: Receipt[] = ((data.invoices ?? data.items ?? data.data) ?? []).map((r: any) => ({
       id: r.id,
       receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
       date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
       supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
       totalCost: r.totalCost,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
       notes: r.notes ?? r.note,
     }));
     return { items, total: data.total, page: data.page, limit: data.limit };
@@ -140,7 +140,7 @@ export const inventoryApi = {
       supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
       totalCost: r.totalCost,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
       notes: r.notes ?? r.note,
       items: r.items?.map((item: any) => ({
         productId: item.productId,
@@ -156,6 +156,7 @@ export const inventoryApi = {
 
   createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {
     const payload = {
+      supplierName: body.supplierName,
       invoiceNumber: body.invoiceNumber,
       note: body.notes,
       items: body.items.map(item => ({
@@ -163,7 +164,7 @@ export const inventoryApi = {
         quantity: item.quantity,
         purchasePrice: item.costPrice,
         batchNumber: item.batchNumber,
-        expiryDate: item.expiryDate,
+        expiryDate: item.expiryDate || undefined,
       })),
     };
     const { data } = await api.post<any>('/warehouse/invoices', payload);
@@ -174,7 +175,15 @@ export const inventoryApi = {
       date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
       totalCost: r.totalCost,
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
     };
+  },
+
+  approveReceipt: async (id: string): Promise<void> => {
+    await api.patch(`/warehouse/invoices/${id}/approve`);
+  },
+
+  rejectReceipt: async (id: string): Promise<void> => {
+    await api.patch(`/warehouse/invoices/${id}/reject`);
   },
 };

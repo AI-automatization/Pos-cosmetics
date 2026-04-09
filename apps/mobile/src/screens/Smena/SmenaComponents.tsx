@@ -36,7 +36,7 @@ export interface ShiftRecord {
 }
 
 // ─── Utils ─────────────────────────────────────────────
-export function fmt(n: number) { return n.toLocaleString('ru-RU'); }
+export function fmt(n: number | null | undefined) { return (n ?? 0).toLocaleString('ru-RU'); }
 
 // ─── Stat box ──────────────────────────────────────────
 export function StatBox({

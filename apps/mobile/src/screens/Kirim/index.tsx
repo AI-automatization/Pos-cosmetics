@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -123,15 +124,24 @@ function DetailSheet({
   visible,
   receipt,
   onClose,
+  onApprove,
+  onReject,
+  approving,
+  rejecting,
 }: {
   visible: boolean;
   receipt: Receipt | null;
   onClose: () => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+  approving: boolean;
+  rejecting: boolean;
 }) {
   if (!receipt) return null;
   const cfg = STATUS_CFG[receipt.status];
   const items = receipt.items ?? [];
   const totalQty = items.reduce((s, i) => s + i.qty, 0);
+  const isPending = receipt.status === 'PENDING';
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -202,6 +212,42 @@ function DetailSheet({
               {formatUZS(receipt.totalCost)}
             </Text>
           </View>
+
+          {/* Approve / Reject buttons */}
+          {isPending && (
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.rejectBtn}
+                onPress={() => onReject(receipt.id)}
+                disabled={rejecting || approving}
+                activeOpacity={0.8}
+              >
+                {rejecting ? (
+                  <ActivityIndicator size="small" color={C.red} />
+                ) : (
+                  <>
+                    <Ionicons name="close-circle-outline" size={18} color={C.red} />
+                    <Text style={styles.rejectBtnText}>Rad etish</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.approveBtn}
+                onPress={() => onApprove(receipt.id)}
+                disabled={approving || rejecting}
+                activeOpacity={0.8}
+              >
+                {approving ? (
+                  <ActivityIndicator size="small" color={C.white} />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle-outline" size={18} color={C.white} />
+                    <Text style={styles.approveBtnText}>Qabul qilish</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -217,7 +263,8 @@ export default function KirimScreen() {
   const [newSheetVisible, setNewSheet]  = useState(false);
   const listRef                         = useRef<FlatList<Receipt>>(null);
 
-  const { list, create } = useKirimData();
+  const [selectedId, setSelectedId]       = useState<string | null>(null);
+  const { list, detail, create, approve, reject } = useKirimData(selectedId);
   const allReceipts = list.data?.items ?? [];
 
   const filtered = useMemo(() => {
@@ -231,7 +278,43 @@ export default function KirimScreen() {
     });
   }, [search, activeTab, allReceipts]);
 
+  const handleApprove = (id: string) => {
+    Alert.alert('Tasdiqlash', 'Ushbu kirimni qabul qilmoqchimisiz?', [
+      { text: 'Bekor qilish', style: 'cancel' },
+      {
+        text: 'Qabul qilish',
+        onPress: () =>
+          approve.mutate(id, {
+            onSuccess: () => {
+              Alert.alert('Muvaffaqiyat', 'Kirim qabul qilindi');
+              setDetail(false);
+            },
+            onError: (err) => Alert.alert('Xatolik', err.message),
+          }),
+      },
+    ]);
+  };
+
+  const handleReject = (id: string) => {
+    Alert.alert('Rad etish', 'Ushbu kirimni rad etmoqchimisiz?', [
+      { text: 'Bekor qilish', style: 'cancel' },
+      {
+        text: 'Rad etish',
+        style: 'destructive',
+        onPress: () =>
+          reject.mutate(id, {
+            onSuccess: () => {
+              Alert.alert('Rad etildi', 'Kirim bekor qilindi');
+              setDetail(false);
+            },
+            onError: (err) => Alert.alert('Xatolik', err.message),
+          }),
+      },
+    ]);
+  };
+
   const openDetail = (receipt: Receipt) => {
+    setSelectedId(receipt.id);
     setSelected(receipt);
     setDetail(true);
   };
@@ -349,8 +432,12 @@ export default function KirimScreen() {
 
       <DetailSheet
         visible={detailVisible}
-        receipt={selected}
-        onClose={() => setDetail(false)}
+        receipt={detail.data ?? selected}
+        onClose={() => { setDetail(false); setSelectedId(null); }}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        approving={approve.isPending}
+        rejecting={reject.isPending}
       />
 
       <NewReceiptSheet
@@ -511,4 +598,20 @@ const styles = StyleSheet.create({
   sheetFooterLabel: { fontSize: 14, color: C.secondary },
   sheetFooterValue:          { fontSize: 15, fontWeight: '700', color: C.text },
   sheetFooterValueHighlight: { fontSize: 18, color: C.primary },
+
+  // Approve / Reject
+  actionRow: {
+    flexDirection: 'row', gap: 10, marginTop: 14,
+  },
+  rejectBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, height: 48, borderRadius: 12,
+    borderWidth: 1.5, borderColor: C.red, backgroundColor: C.white,
+  },
+  rejectBtnText: { fontSize: 14, fontWeight: '700', color: C.red },
+  approveBtn: {
+    flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, height: 48, borderRadius: 12, backgroundColor: C.green,
+  },
+  approveBtnText: { fontSize: 14, fontWeight: '700', color: C.white },
 });

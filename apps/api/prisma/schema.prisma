@@ -1412,6 +1412,9 @@ model WarehouseInvoice {
   invoiceNumber String?  @map("invoice_number")
   note          String?
   totalCost     Decimal  @default(0) @map("total_cost") @db.Decimal(15, 2)
+  status        String   @default("PENDING") @map("status")
+  approvedBy    String?  @map("approved_by")
+  approvedAt    DateTime? @map("approved_at")
   createdBy     String   @map("created_by")
   createdAt     DateTime @default(now()) @map("created_at")
   // ⚠️ IMMUTABLE after creation — no updatedAt

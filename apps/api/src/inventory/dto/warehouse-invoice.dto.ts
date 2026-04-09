@@ -31,10 +31,10 @@ export class InvoiceItemDto {
   @IsString()
   batchNumber?: string;
 
-  @ApiProperty({ example: '2027-01-01', description: 'Muddati (YYYY-MM-DD) — majburiy' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: '2027-01-01', description: 'Muddati (YYYY-MM-DD)' })
+  @IsOptional()
   @IsDateString()
-  expiryDate!: string;
+  expiryDate?: string;
 }
 
 export class CreateInvoiceDto {
@@ -42,6 +42,11 @@ export class CreateInvoiceDto {
   @IsOptional()
   @IsString()
   supplierId?: string;
+
+  @ApiPropertyOptional({ description: 'Yetkazib beruvchi nomi (supplierId bo\'lmasa)' })
+  @IsOptional()
+  @IsString()
+  supplierName?: string;
 
   @ApiPropertyOptional({ example: 'INV-2026-001' })
   @IsOptional()

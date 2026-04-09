@@ -47,21 +47,21 @@ export default function LoginScreen({ navigation }: Props) {
   const { isAvailable: biometricAvailable } = useBiometricAuth();
   const setUser = useAuthStore((s) => s.setUser);
 
+  const [slug, setSlug] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) return;
+    if (!slug.trim() || !email.trim() || !password.trim()) return;
     setLoading(true);
     try {
-      // slug — tenant kodi, keyinchalik QR yoki settings orqali konfiguratsiya qilinadi
-      const slug = await SecureStore.getItemAsync('tenant_slug') ?? '';
-      const res = await authApi.login({ slug, email: email.trim(), password });
+      await SecureStore.setItemAsync('tenant_slug', slug.trim());
+      const res = await authApi.login({ slug: slug.trim(), email: email.trim(), password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
       const me = await authApi.me();
-      await setUser(me, res.accessToken, res.refreshToken);
+      await setUser(me, res.accessToken, res.refreshToken ?? '');
     } catch (err) {
       const msg = extractErrorMessage(err);
       Alert.alert('Xatolik', msg);
@@ -93,8 +93,24 @@ export default function LoginScreen({ navigation }: Props) {
           {/* ── Form ── */}
           <View style={styles.form}>
 
+            {/* Slug */}
+            <Text style={styles.label}>Tashkilot kodi</Text>
+            <View style={styles.inputWrapper}>
+              <Feather name="briefcase" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={slug}
+                onChangeText={setSlug}
+                placeholder="kosmetika-demo"
+                placeholderTextColor={COLORS.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+              />
+            </View>
+
             {/* Email */}
-            <Text style={styles.label}>Elektron pochta</Text>
+            <Text style={[styles.label, { marginTop: 16 }]}>Elektron pochta</Text>
             <View style={styles.inputWrapper}>
               <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput

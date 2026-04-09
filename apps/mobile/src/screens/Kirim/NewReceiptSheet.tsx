@@ -99,9 +99,10 @@ export default function NewReceiptSheet({ visible, onClose, onSuccess, createMut
       setScanResult({ productId: product.id, productName: product.name, costPrice: String(product.costPrice) });
       setScanLine({ productId: product.id, productName: product.name, quantity: '1', costPrice: String(product.costPrice), expiryDate: '' });
     } catch {
-      // Demo fallback: product not in catalog yet (404) or network error.
-      setScanResult({ productId: barcode, productName: barcode, costPrice: '0' });
-      setScanLine({ productId: barcode, productName: barcode, quantity: '1', costPrice: '0', expiryDate: '' });
+      // Product not found — let user fill manually with barcode as hint
+      Alert.alert('Topilmadi', `Barcode: ${barcode} katalogda topilmadi. Qo'lda to'ldiring.`);
+      setScanResult({ productId: '', productName: `Barcode: ${barcode}`, costPrice: '0' });
+      setScanLine({ productId: '', productName: `Barcode: ${barcode}`, quantity: '1', costPrice: '0', expiryDate: '' });
     } finally {
       setScanLoading(false);
       setCameraOpen(false);
@@ -113,6 +114,7 @@ export default function NewReceiptSheet({ visible, onClose, onSuccess, createMut
   const handleAddScannedItem = () => {
     const qty  = parseFloat(scanLine.quantity);
     const cost = parseFloat(scanLine.costPrice);
+    if (!scanLine.productId)           { Alert.alert('Xatolik', 'Katalogdan mahsulot tanlang'); return; }
     if (!scanLine.productName.trim()) { Alert.alert('Xatolik', "Mahsulot nomi bo'sh bo'lishi mumkin emas"); return; }
     if (!qty || qty <= 0)             { Alert.alert('Xatolik', "Miqdor 0 dan katta bo'lishi kerak"); return; }
     if (isNaN(cost) || cost < 0)      { Alert.alert('Xatolik', "Narx noto'g'ri"); return; }
