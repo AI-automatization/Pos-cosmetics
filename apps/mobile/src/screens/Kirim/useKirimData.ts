@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inventoryApi } from '../../api';
-import type { ReceiptListResponse, CreateReceiptBody } from '../../api/inventory.api';
+import type { ReceiptListResponse, CreateReceiptBody, CreateTransferBody } from '../../api/inventory.api';
 
 export function useKirimData() {
   const qc = useQueryClient();
@@ -22,5 +22,16 @@ export function useKirimData() {
     },
   });
 
-  return { list, create };
+  const transfer = useMutation<
+    Awaited<ReturnType<typeof inventoryApi.createTransfer>>,
+    Error,
+    CreateTransferBody
+  >({
+    mutationFn: inventoryApi.createTransfer,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['kirim'] });
+    },
+  });
+
+  return { list, create, transfer };
 }

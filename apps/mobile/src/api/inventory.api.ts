@@ -76,6 +76,27 @@ export interface CreateReceiptResponse {
   status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
 }
 
+export interface TransferItem {
+  productId: string;
+  quantity: number;
+  warehouseId?: string;
+}
+
+export interface CreateTransferBody {
+  fromBranchId: string;
+  toBranchId: string;
+  items: TransferItem[];
+  notes?: string;
+}
+
+export interface CreateTransferResponse {
+  id: string;
+  status: string;
+  fromBranchId: string;
+  toBranchId: string;
+  createdAt: string;
+}
+
 export type StockItem = LowStockItem;
 
 export const inventoryApi = {
@@ -154,6 +175,11 @@ export const inventoryApi = {
         expiryDate: item.expiryDate,
       })),
     };
+  },
+
+  createTransfer: async (body: CreateTransferBody): Promise<CreateTransferResponse> => {
+    const { data } = await api.post<CreateTransferResponse>('/inventory/transfers', body);
+    return data;
   },
 
   createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {
