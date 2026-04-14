@@ -254,4 +254,36 @@
 - **Fayl:** `apps/mobile/src/screens/Kirim/NewReceiptSheet.tsx`, `components/types.ts`
 - **Yechim:** `components/types.ts` C colors yangilandi: `#5B5BD6→#2563EB`, `bg #F5F5F7→#F9FAFB`, `border #F3F4F6→#E5E7EB`, `red #EF4444→#DC2626`, `green #10B981→#16A34A` (kaskad: SupplierForm, AddedItemsList, ScannedItemMiniForm, ManualItemMiniForm, AddItemButtons); `NewReceiptSheet.tsx`: submit button "Qabul qilish"→"Kirim yaratish"; sheet borderRadius 24→20, padding 24→20; handle 40→36px, 5→4px; titleRow font 20→18px; sectionTitle: uppercase + letterSpacing; cancelBtn/submitBtn borderRadius 10→12; C local token override qo'shildi
 
+### UI-051 | KIRIM — KirimDetailSheet ✅ (2026-04-14)
+- **Fayl:** `apps/mobile/src/screens/Kirim/KirimDetailSheet.tsx`
+- **Yechim:** Full redesign: header — blue `#EFF6FF` icon circle + receiptNumber 17px bold + supplierName; info section — 3-ustunli gray box (Sana / Holat badge / Jami `#2563EB`); notes box — `#FFFBEB/#FDE68A` border; items list — numbered circle (`#EFF6FF`), name+cost/unit, qty+total; footer summary — Jami miqdor + Jami narx; action buttons faqat PENDING da: "Bekor qilish" (`#FEF2F2/#FECACA` outlined, red text) + "Qabul qilish" (`#16A34A` bg, white text) full-flex row; `onAccept/onCancel/isAccepting/isCancelling` props; `inventory.api.ts` ga `acceptReceipt/cancelReceipt` (PATCH …/receive, …/cancel); `useKirimData` ga `accept/cancel` mutations; `index.tsx` ga `handleAccept/handleCancel` + Alert confirm dialogs
+
+---
+
+## PHASE 8 — NASIYA SCREENS
+
+### UI-052 | NASIYA — NasiyaListScreen ✅ (2026-04-14)
+- **Fayl:** `apps/mobile/src/screens/Nasiya/index.tsx`, `useNasiyaData.ts`
+- **Yechim:** C tokens: `primary #5B5BD6→#2563EB`, `bg #F5F5F7→#F9FAFB`, `border #F3F4F6→#E5E7EB`, `red #EF4444→#DC2626`; `Feather`+`MaterialCommunityIcons`→`Ionicons`; search placeholder `"Mijoz qidirish..."→"Xaridor ismi..."`; `searchIcon` style chiqarildi; TABS 3→4: `ACTIVE "Faol"` qo'shildi; SummaryCard bg `#5B5BD6→#2563EB`, overdueBadge `rgba(220,38,38,0.2)`; header icon `#EFF6FF` bg + blue icon; tabActive `#2563EB`; FAB `56x56` `#2563EB` shadow; `separator` style; empty state `people-outline`; `useNasiyaData.ts` da `FilterTab` ga `'ACTIVE'` qo'shildi + `activeOnlyItems` filter (`ACTIVE|PARTIAL`)
+
+### UI-053 | NASIYA — DebtCard ✅ (2026-04-14)
+- **Fayl:** `apps/mobile/src/screens/Nasiya/DebtCard.tsx`
+- **Yechim:** `useTranslation` olib tashlandi → `STATUS_LABEL` hardcode map; `formatDueDate()` `t` parametrsiz; `STATUS_COLORS`: `PARTIAL #FFF7ED/#EA580C→#FFFBEB/#D97706`; `PROGRESS_COLOR`: `ACTIVE #3B82F6→#2563EB`, `PARTIAL #F59E0B→#D97706`, `OVERDUE #EF4444→#DC2626`; `ageBucket()` funksiyasi: 5 rang darajasi (Joriy/1-30/31-60/61-90/90+ kun); `📞` emoji→`Ionicons call-outline #2563EB`; card `borderWidth:1 borderColor:#E5E7EB`; amounts `borderRadius:10 padding:12 fontSize:14`; "To'lash" btn `#6366F1→#2563EB, borderRadius:20` (pill); "Eslatma" btn `borderColor #EA580C→#D97706, borderRadius:20`; footer: `footerLeft+ageBadge` layout (PAID/CANCELLED da badge yashiriladi); `ReminderActionSheet` saqlanib qoldi
+
+### UI-054 | NASIYA — PayModal + QuickFillButtons ✅ (2026-04-14)
+- **Fayllar:** `apps/mobile/src/screens/Nasiya/PayModal.tsx`, `QuickFillButtons.tsx`
+- **Yechim:** `useTranslation` olib tashlandi; `DebtSummary` → `debtInfoBox` (`#FFFBEB/#FDE68A` border, warning icon, "Qolgan qarz" label + amount); `PayMethod = 'CASH'|'CARD'|'TRANSFER'` type + `method` state + `PAY_METHODS` constant; payment radio 3 btn (Naqd/Karta/O'tkazma) — active=`#2563EB` bg white text, inactive=white bg gray; input `borderColor #6366F1→#2563EB`, `fontSize 18→22`, `textAlign center`, `borderRadius 12`; confirmBtn `#6366F1→#2563EB` + shadow; `handleConfirm` → `nasiyaApi.pay(id, amount, method)`; `useEffect` da `setMethod('CASH')` reset; `QuickFillButtons`: `RATIOS [0.25,0.5,1]→[0.5,1]`, colors `#6366F1→#2563EB`, `borderWidth:1 borderColor:#DBEAFE`
+
+---
+
+## PHASE 9 — SETTINGS & MANAGEMENT SCREENS
+
+### UI-055 | MORE — MoreMenuScreen ✅ (2026-04-14)
+- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx` (YANGI), `navigation/TabNavigator.tsx`
+- **Yechim:** YANGI screen yaratildi — `MenuRow` sub-component, `getInitials()`, `ROLE_LEVEL` map; Profile card: 48x48 `#2563EB` avatar circle + initials 18px bold + role badge (OWNER=purple/ADMIN=red/MANAGER=blue/CASHIER=green/VIEWER=gray) + tenant name chip; 4 menu guruh: INVENTAR (Kirim→KirimScreen, Ombor→OmborScreen), BIZNES (Moliya/Nasiya — `badge:"Tez orada"`), BOSHQARUV (faqat MANAGER+ `ROLE_LEVEL>=3`; Users/Filiallar/Audit — `badge:"Tez orada"`), SOZLAMALAR (Sozlamalar→SettingsScreen); `handlePress`: screen=null → Alert "Tez orada"; menuIconWrap 36x36 `#F3F4F6` borderRadius 10; Logout: `#FEF2F2/#FECACA` border card, `#FEE2E2` icon bg, destructive Alert + `clearAuth()`; `TabNavigator.tsx`: `MoreMenuPlaceholder` olib tashlandi → `MoreMenuScreen` import va ulandi
+
+### UI-056 | USERS — UsersScreen ✅ (2026-04-14)
+- **Fayllar:** `Settings/UserCard.tsx` (YANGI), `Settings/UsersScreen.tsx` (YANGI), `api/users.api.ts` (YANGI)
+- **Yechim:** `UserRole`, `AppUser`, `ROLE_CONFIG` `UserCard.tsx` da export qilindi; `UserCard`: 44x44 role-color avatar (initials), nameRow + statusDot (green/gray) + statusText, phone, metaRow (role badge + lastLogin), `⋮` menu → Alert (Tahrirlash/Bloklash/Faollashtirish); `usersApi`: `getAll/create/update/toggleActive` + `UserApiResponse` typed mapper; `UsersScreen`: `useQuery(['users'])` + `createMutation` + `toggleMutation`; `StatChip` (Jami/Faol/Nofaol, flex 3-column); SearchBar `search-outline`+`close-circle`; `FlatList` + `ItemSeparatorComponent`; `UserFormSheet` Modal: 4 field (ism/familiya/telefon/parol), `FormField` helper, rol picker `Alert.alert`, save btn `#2563EB` shadow; header Plus btn `#2563EB 36x36 borderRadius:10`
+
 _RAOS UI Done | Phase 0: 2026-04-14 | Phase 1–3: 2026-04-14_

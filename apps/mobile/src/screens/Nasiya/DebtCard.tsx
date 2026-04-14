@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import type { DebtRecord, DebtStatus } from '../../api/nasiya.api';
 import { formatUZS } from '../../utils/currency';
 import ReminderActionSheet from './ReminderActionSheet';
@@ -13,29 +13,30 @@ interface Props {
 
 const STATUS_COLORS: Record<DebtStatus, { bg: string; text: string }> = {
   ACTIVE:    { bg: '#EFF6FF', text: '#2563EB' },
-  PARTIAL:   { bg: '#FFF7ED', text: '#EA580C' },
+  PARTIAL:   { bg: '#FFFBEB', text: '#D97706' },
   PAID:      { bg: '#F0FDF4', text: '#16A34A' },
   OVERDUE:   { bg: '#FEF2F2', text: '#DC2626' },
   CANCELLED: { bg: '#F3F4F6', text: '#6B7280' },
 };
 
 const PROGRESS_COLOR: Record<DebtStatus, string> = {
-  ACTIVE:    '#3B82F6',
-  PARTIAL:   '#F59E0B',
+  ACTIVE:    '#2563EB',
+  PARTIAL:   '#D97706',
   PAID:      '#16A34A',
-  OVERDUE:   '#EF4444',
+  OVERDUE:   '#DC2626',
   CANCELLED: '#9CA3AF',
 };
 
-function statusLabel(status: DebtStatus, t: ReturnType<typeof useTranslation>['t']): string {
-  const map: Record<DebtStatus, string> = {
-    ACTIVE:    t('nasiya.statusActive'),
-    PARTIAL:   t('nasiya.statusPartial'),
-    PAID:      t('nasiya.statusPaid'),
-    OVERDUE:   t('nasiya.statusOverdue'),
-    CANCELLED: t('nasiya.statusCancelled'),
-  };
-  return map[status];
+const STATUS_LABEL: Record<DebtStatus, string> = {
+  ACTIVE:    'Faol',
+  PARTIAL:   'Qisman',
+  PAID:      "To'langan",
+  OVERDUE:   "Muddati o'tgan",
+  CANCELLED: 'Bekor qilindi',
+};
+
+function statusLabel(status: DebtStatus): string {
+  return STATUS_LABEL[status];
 }
 
 function overdueDays(dueDate: string | null): number {
@@ -44,21 +45,42 @@ function overdueDays(dueDate: string | null): number {
   return diff > 0 ? Math.floor(diff / 86_400_000) : 0;
 }
 
-function formatDueDate(dueDate: string | null, t: ReturnType<typeof useTranslation>['t']): string {
-  if (!dueDate) return t('nasiya.noDueDate');
+function formatDueDate(dueDate: string | null): string {
+  if (!dueDate) return 'Muddat belgilanmagan';
   return new Date(dueDate).toLocaleDateString('uz-UZ', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
 }
 
+interface AgeBucket {
+  label: string;
+  bg: string;
+  text: string;
+}
+
+function ageBucket(dueDate: string | null): AgeBucket {
+  if (!dueDate) return { label: 'Joriy', bg: '#F0FDF4', text: '#16A34A' };
+  const days = Math.floor((Date.now() - new Date(dueDate).getTime()) / 86_400_000);
+  if (days <= 0) return { label: 'Joriy', bg: '#F0FDF4', text: '#16A34A' };
+  if (days <= 30) return { label: `${days} kun`, bg: '#FFFBEB', text: '#D97706' };
+  if (days <= 60) return { label: `${days} kun`, bg: '#FEF3C7', text: '#B45309' };
+  if (days <= 90) return { label: `${days} kun`, bg: '#FFEDD5', text: '#EA580C' };
+  return { label: `${days} kun`, bg: '#FEF2F2', text: '#DC2626' };
+}
+
 export default function DebtCard({ debt, onPay, onPress }: Props) {
-  const { t } = useTranslation();
-  const [paymentsExpanded, setPayExpanded]    = useState(false);
-  const [reminderModal, setReminderModal]     = useState(false);
-  const colors = STATUS_COLORS[debt.status];
-  const isPaid = debt.status === 'PAID' || debt.status === 'CANCELLED';
-  const days = overdueDays(debt.dueDate);
+  const [paymentsExpanded, setPayExpanded] = useState(false);
+  const [reminderModal, setReminderModal]  = useState(false);
+
+  const colors   = STATUS_COLORS[debt.status];
+  const isPaid   = debt.status === 'PAID' || debt.status === 'CANCELLED';
+  const days     = overdueDays(debt.dueDate);
   const isOverdue = debt.status === 'OVERDUE' || (days > 0 && !isPaid);
+
+  const total = Number(debt.totalAmount);
+  const pct   = total > 0 ? Math.min(100, (Number(debt.paidAmount) / total) * 100) : 0;
+  const barColor = PROGRESS_COLOR[debt.status];
+  const bucket   = ageBucket(debt.dueDate);
 
   return (
     <TouchableOpacity
@@ -77,31 +99,34 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
               onPress={() => void Linking.openURL(`tel:${debt.customer.phone}`)}
               activeOpacity={0.7}
             >
-              <Text style={styles.phone}>📞 {debt.customer.phone}</Text>
+              <View style={styles.phoneRow}>
+                <Ionicons name="call-outline" size={12} color="#2563EB" />
+                <Text style={styles.phone}>{debt.customer.phone}</Text>
+              </View>
             </TouchableOpacity>
           ) : null}
         </View>
         <View style={[styles.badge, { backgroundColor: colors.bg }]}>
           <Text style={[styles.badgeText, { color: colors.text }]}>
-            {statusLabel(debt.status, t)}
+            {statusLabel(debt.status)}
           </Text>
         </View>
       </View>
 
-      {/* Amounts */}
+      {/* Amounts — 3-ustunli grid */}
       <View style={styles.amounts}>
         <View style={styles.amountItem}>
-          <Text style={styles.amountLabel}>{t('nasiya.total')}</Text>
+          <Text style={styles.amountLabel}>Jami</Text>
           <Text style={styles.amountValue}>{formatUZS(Number(debt.totalAmount))}</Text>
         </View>
         <View style={styles.amountItem}>
-          <Text style={styles.amountLabel}>{t('nasiya.paid')}</Text>
+          <Text style={styles.amountLabel}>To'langan</Text>
           <Text style={[styles.amountValue, { color: '#16A34A' }]}>
             {formatUZS(Number(debt.paidAmount))}
           </Text>
         </View>
         <View style={styles.amountItem}>
-          <Text style={styles.amountLabel}>{t('nasiya.remaining')}</Text>
+          <Text style={styles.amountLabel}>Qoldiq</Text>
           <Text style={[styles.amountValue, { color: '#DC2626', fontWeight: '700' }]}>
             {formatUZS(Number(debt.remaining))}
           </Text>
@@ -109,26 +134,19 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
       </View>
 
       {/* Progress bar */}
-      {(() => {
-        const total = Number(debt.totalAmount);
-        const pct = total > 0 ? Math.min(100, (Number(debt.paidAmount) / total) * 100) : 0;
-        const barColor = PROGRESS_COLOR[debt.status];
-        return (
-          <View style={styles.progressWrap}>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${pct}%` as `${number}%`, backgroundColor: barColor },
-                ]}
-              />
-            </View>
-            <Text style={[styles.progressPct, { color: barColor }]}>
-              {Math.round(pct)}% to'langan
-            </Text>
-          </View>
-        );
-      })()}
+      <View style={styles.progressWrap}>
+        <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${pct}%` as `${number}%`, backgroundColor: barColor },
+            ]}
+          />
+        </View>
+        <Text style={[styles.progressPct, { color: barColor }]}>
+          {Math.round(pct)}% to'langan
+        </Text>
+      </View>
 
       {/* Payment history toggle */}
       {debt.payments.length > 0 && (
@@ -162,12 +180,20 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
         </View>
       )}
 
-      {/* Due date row */}
+      {/* Footer — due date + age badge + buttons */}
       <View style={styles.footer}>
-        <Text style={[styles.dueDate, isOverdue && styles.dueDateOverdue]}>
-          {t('nasiya.dueDate')}: {formatDueDate(debt.dueDate, t)}
-          {isOverdue && days > 0 ? `  •  ${days} ${t('nasiya.overdueDay')}` : ''}
-        </Text>
+        <View style={styles.footerLeft}>
+          <Text style={[styles.dueDate, isOverdue && styles.dueDateOverdue]}>
+            To'lov muddati: {formatDueDate(debt.dueDate)}
+          </Text>
+          {debt.status !== 'PAID' && debt.status !== 'CANCELLED' && (
+            <View style={[styles.ageBadge, { backgroundColor: bucket.bg }]}>
+              <Text style={[styles.ageBadgeText, { color: bucket.text }]}>
+                {bucket.label}
+              </Text>
+            </View>
+          )}
+        </View>
 
         {!isPaid && (
           <View style={styles.btnRow}>
@@ -176,14 +202,14 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
               onPress={() => setReminderModal(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.reminderBtnText}>📩 {t('nasiya.reminderButton')}</Text>
+              <Text style={styles.reminderBtnText}>Eslatma</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.payBtn}
               onPress={() => onPay(debt)}
               activeOpacity={0.8}
             >
-              <Text style={styles.payBtnText}>{t('nasiya.payButton')}</Text>
+              <Text style={styles.payBtnText}>To'lash</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -202,13 +228,15 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
     elevation: 2,
   },
   header: {
@@ -226,10 +254,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
   },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
   phone: {
     fontSize: 13,
     color: '#2563EB',
-    marginTop: 2,
     textDecorationLine: 'underline',
   },
   badge: {
@@ -243,10 +276,9 @@ const styles = StyleSheet.create({
   },
   amounts: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 12,
   },
   amountItem: {
@@ -256,11 +288,11 @@ const styles = StyleSheet.create({
   amountLabel: {
     fontSize: 11,
     color: '#9CA3AF',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   amountValue: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#374151',
   },
   progressWrap: {
@@ -334,46 +366,59 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    marginTop: 4,
+  },
+  footerLeft: {
+    flex: 1,
+    marginRight: 8,
+    gap: 6,
   },
   dueDate: {
     fontSize: 12,
     color: '#6B7280',
-    flex: 1,
   },
   dueDateOverdue: {
     color: '#DC2626',
     fontWeight: '600',
   },
+  ageBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  ageBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
   btnRow: {
     flexDirection: 'row',
     gap: 8,
-    marginLeft: 8,
   },
   reminderBtn: {
     borderWidth: 1,
-    borderColor: '#EA580C',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    minWidth: 36,
+    borderColor: '#D97706',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     alignItems: 'center',
     justifyContent: 'center',
   },
   reminderBtnText: {
-    color: '#EA580C',
-    fontSize: 12,
+    color: '#D97706',
+    fontSize: 13,
     fontWeight: '700',
   },
   payBtn: {
-    backgroundColor: '#6366F1',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: '#2563EB',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
   },
   payBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
 });

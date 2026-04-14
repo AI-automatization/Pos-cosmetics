@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inventoryApi } from '../../api';
-import type { ReceiptListResponse, CreateReceiptBody, CreateTransferBody } from '../../api/inventory.api';
+import type { ReceiptListResponse, CreateReceiptBody, CreateTransferBody, Receipt } from '../../api/inventory.api';
 
 export function useKirimData() {
   const qc = useQueryClient();
@@ -33,5 +33,19 @@ export function useKirimData() {
     },
   });
 
-  return { list, create, transfer };
+  const accept = useMutation<Receipt, Error, string>({
+    mutationFn: inventoryApi.acceptReceipt,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['kirim'] });
+    },
+  });
+
+  const cancel = useMutation<Receipt, Error, string>({
+    mutationFn: inventoryApi.cancelReceipt,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['kirim'] });
+    },
+  });
+
+  return { list, create, transfer, accept, cancel };
 }

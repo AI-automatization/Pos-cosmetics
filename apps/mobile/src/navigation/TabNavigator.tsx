@@ -15,6 +15,7 @@ import NasiyaScreen from '../screens/Nasiya';
 import KirimScreen from '../screens/Kirim';
 import OmborScreen from '../screens/Ombor';
 import SettingsScreen from '../screens/Settings';
+import MoreMenuScreen from '../screens/MoreMenu';
 
 // ─── Colors ───────────────────────────────────────────────
 const PRIMARY = '#2563EB';
@@ -109,7 +110,7 @@ const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 function MoreNavigator(): React.JSX.Element {
   return (
     <MoreStack.Navigator screenOptions={{ headerShown: false }}>
-      <MoreStack.Screen name="MoreMenu" component={MoreMenuPlaceholder} />
+      <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} />
       <MoreStack.Screen name="KirimScreen" component={KirimScreen} />
       <MoreStack.Screen name="OmborScreen" component={OmborScreen} />
       <MoreStack.Screen name="SettingsScreen" component={SettingsScreen} />

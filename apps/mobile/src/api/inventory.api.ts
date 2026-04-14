@@ -182,6 +182,34 @@ export const inventoryApi = {
     return data;
   },
 
+  acceptReceipt: async (id: string): Promise<Receipt> => {
+    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/receive`);
+    const r = data;
+    return {
+      id: r.id,
+      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
+      date: new Date(r.createdAt ?? Date.now()).toLocaleDateString('uz-UZ'),
+      supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
+      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
+      totalCost: r.totalCost ?? 0,
+      status: 'RECEIVED',
+    };
+  },
+
+  cancelReceipt: async (id: string): Promise<Receipt> => {
+    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/cancel`);
+    const r = data;
+    return {
+      id: r.id,
+      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
+      date: new Date(r.createdAt ?? Date.now()).toLocaleDateString('uz-UZ'),
+      supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
+      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
+      totalCost: r.totalCost ?? 0,
+      status: 'CANCELLED',
+    };
+  },
+
   createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {
     const payload = {
       invoiceNumber: body.invoiceNumber,

@@ -38,7 +38,7 @@ export default function KirimScreen() {
   const { user }  = useAuthStore();
   const hasAccess = KIRIM_ROLES.includes(user?.role as typeof KIRIM_ROLES[number]);
 
-  const { list, create, transfer } = useKirimData();
+  const { list, create, transfer, accept, cancel } = useKirimData();
   const allReceipts      = list.data?.items ?? [];
 
   const filtered = useMemo(() => {
@@ -111,6 +111,43 @@ export default function KirimScreen() {
     setDetail(true);
   };
 
+  const handleAccept = (id: string) => {
+    Alert.alert(
+      'Qabul qilish',
+      "Kirimni qabul qilishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.",
+      [
+        { text: 'Bekor', style: 'cancel' },
+        {
+          text: 'Qabul qilish',
+          onPress: () => {
+            accept.mutate(id, {
+              onSuccess: () => setDetail(false),
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  const handleCancel = (id: string) => {
+    Alert.alert(
+      'Bekor qilish',
+      "Kirimni bekor qilishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.",
+      [
+        { text: "Yo'q", style: 'cancel' },
+        {
+          text: 'Bekor qilish',
+          style: 'destructive',
+          onPress: () => {
+            cancel.mutate(id, {
+              onSuccess: () => setDetail(false),
+            });
+          },
+        },
+      ],
+    );
+  };
+
   const handleAddPress = () => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -179,6 +216,10 @@ export default function KirimScreen() {
           visible={detailVisible}
           receipt={selected}
           onClose={() => setDetail(false)}
+          onAccept={handleAccept}
+          onCancel={handleCancel}
+          isAccepting={accept.isPending}
+          isCancelling={cancel.isPending}
         />
         <NewReceiptSheet
           visible={newSheetVisible}

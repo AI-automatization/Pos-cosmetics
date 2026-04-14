@@ -91,65 +91,25 @@ Spacing: 4, 8, 12, 16, 20, 24, 32px
 
 
 
-### UI-051 | KIRIM — KirimDetailSheet
-- **Fayl:** `apps/mobile/src/screens/Kirim/KirimDetailSheet.tsx`
-- **Status:** ♻️ Redesign
-- **O'zgarishlar:** Info section + items list + "Qabul qilish" (green) + "Bekor qilish" (red) buttons
+### ~~UI-051~~ ✅ KirimDetailSheet — `ui-done.md` ga ko'chirildi
 
 ---
 
 ## PHASE 8 — NASIYA SCREENS
 
-### UI-052 | NASIYA — NasiyaListScreen
-- **Fayl:** `apps/mobile/src/screens/Nasiya/index.tsx` ← (mavjud bo'lmasa yangi)
-- **Status:** ♻️ Redesign
-- **Stitch screen:** `4a16bb38ca3f47a1942f008acb99def8` — "Qarz to'lash"
-- **O'zgarishlar:**
-  - Header: "Nasiya"
-  - Search: "Xaridor ismi..."
-  - Debt cards: customer name + phone + due date + qolgan qarz + debt age badge
-  - QuickPaySheet bilan "To'lash" button
+### ~~UI-052~~ ✅ NasiyaListScreen — `ui-done.md` ga ko'chirildi
 
-### UI-053 | NASIYA — DebtCard
-- **Fayl:** `apps/mobile/src/screens/Nasiya/DebtCard.tsx`
-- **Status:** ♻️ Redesign
-- **O'zgarishlar:** White card, debt age color-coded badge, "To'lash" button (blue pill)
+### ~~UI-053~~ ✅ DebtCard — `ui-done.md` ga ko'chirildi
 
-### UI-054 | NASIYA — PayModal (QuickPay)
-- **Fayl:** `apps/mobile/src/screens/Nasiya/PayModal.tsx`
-- **Status:** ♻️ Redesign
-- **O'zgarishlar:**
-  - Orange info box: "Qolgan qarz: X so'm"
-  - Amount input + "50%" / "To'liq" quick buttons
-  - Payment method radio: Naqd / Karta / O'tkazma
+### ~~UI-054~~ ✅ PayModal — `ui-done.md` ga ko'chirildi
 
 ---
 
 ## PHASE 9 — SETTINGS & MANAGEMENT SCREENS
 
-### UI-055 | MORE — MoreMenuScreen
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx` ← **YANGI FAYL**
-- **Status:** 🆕 Yangi screen (TabNavigator Tab 5)
-- **Stitch screen:** `3d5166ad43bf47758dbc54e82b13fe5a` — "Ko'proq (Menu)"
-- **Tuzilish:**
-  - Header: "Ko'proq"
-  - User profile card: avatar (48x48 blue circle, initials) + name + role badge + branch
-  - Menu groups: Inventar / Biznes / Boshqaruv (MANAGER+ only) / Sozlamalar
-  - Each item: icon in gray-100 circle (36x36) + title + subtitle + ChevronRight
-  - "Chiqish" item: red text, LogOut icon
+### ~~UI-055~~ ✅ MoreMenuScreen — `ui-done.md` ga ko'chirildi
 
-### UI-056 | USERS — UsersScreen ← 🆕 YANGI SCREEN
-- **Fayl:** `apps/mobile/src/screens/Settings/UsersScreen.tsx` ← **YANGI FAYL**
-- **Status:** 🆕 Yangi screen
-- **Stitch screen:** `7db7db294bd94e9e8b193a915bc3ae82` — "Foydalanuvchilar"
-- **Tuzilish:**
-  - Header: "Foydalanuvchilar" + Plus icon
-  - Stats: Jami / Faol / Nofaol
-  - Search: "Ism yoki telefon..."
-  - User cards: avatar (role-color bg, initials) + name + phone + role badge + status dot + "So'nggi kirish"
-  - Role badges: EGASI(purple) / ADMIN(red) / MENEDZHER(blue) / KASSIR(green) / KO'RUVCHI(gray)
-  - Swipe: Faollashtirish/Bloklash + Tahrirlash
-  - UserFormSheet: ism, telefon, parol, rol
+### ~~UI-056~~ ✅ UsersScreen — `ui-done.md` ga ko'chirildi
 
 ### UI-057 | BRANCHES — BranchesScreen ← 🆕 YANGI SCREEN
 - **Fayl:** `apps/mobile/src/screens/Settings/BranchesScreen.tsx` ← **YANGI FAYL**
@@ -273,18 +233,18 @@ Barcha foundation (UI-000 → UI-010) tugagandan keyin parallel ishlatish:
 
 | Phase | Tasklar | Status |
 |-------|---------|--------|
-| Phase 0 — Foundation | UI-000 → UI-010 (11 ta) | ⏳ Pending |
-| Phase 1 — Auth | UI-011 → UI-013 (3 ta) | ⏳ Pending |
-| Phase 2 — Dashboard | UI-014 → UI-019 (6 ta) | ⏳ Pending |
-| Phase 3 — Savdo/POS | UI-020 → UI-028 (9 ta) | ⏳ Pending |
-| Phase 4 — Sales | UI-029 → UI-032 (4 ta) | ⏳ Pending |
-| Phase 5 — Katalog | UI-033 → UI-036 (4 ta) | ⏳ Pending |
-| Phase 6 — Moliya | UI-037 → UI-045 (9 ta) | ⏳ Pending |
-| Phase 7 — Ombor/Kirim | UI-046 → UI-054 (9 ta) | ⏳ Pending |
-| Phase 8 — Nasiya | UI-052 → UI-054 (3 ta) | ⏳ Pending |
-| Phase 9 — Settings | UI-055 → UI-059 (5 ta) | ⏳ Pending |
-| Phase 10 — Qolgan | UI-060 → UI-064 (5 ta) | ⏳ Pending |
-| **JAMI** | **66 ta task** | **0/66** |
+| Phase 0 — Foundation | UI-000 → UI-010 (11 ta) | ✅ Done |
+| Phase 1 — Auth | UI-011 → UI-013 (3 ta) | ✅ Done |
+| Phase 2 — Dashboard | UI-014 → UI-019 (6 ta) | ✅ Done |
+| Phase 3 — Savdo/POS | UI-020 → UI-028 (9 ta) | ✅ Done |
+| Phase 4 — Sales | UI-029 → UI-032 (4 ta) | ✅ Done |
+| Phase 5 — Katalog | UI-033 → UI-036 (4 ta) | ✅ Done |
+| Phase 6 — Moliya | UI-037 → UI-045 (9 ta) | ✅ Done |
+| Phase 7 — Ombor/Kirim | UI-046 → UI-051 (6 ta) | ✅ Done |
+| Phase 8 — Nasiya | UI-052 → UI-054 (3 ta) | ✅ Done |
+| Phase 9 — Settings | UI-055 + UI-056 → UI-059 (5 ta) | 🔄 2/5 Done |
+| Phase 10 — Qolgan | UI-060 → UI-066 (7 ta) | ⏳ Pending |
+| **JAMI** | **55 ta task** | **44/55** |
 
 ---
 
