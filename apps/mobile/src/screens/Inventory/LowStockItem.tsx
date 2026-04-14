@@ -18,7 +18,7 @@ function LowStockItem({ item }: LowStockItemProps) {
         </Text>
         <Badge
           label={isCritical ? 'TUGADI' : 'KAM'}
-          variant={isCritical ? 'error' : 'warning'}
+          variant={isCritical ? 'danger' : 'warning'}
         />
       </View>
       <View style={styles.row}>

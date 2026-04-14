@@ -1,14 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
 import { authApi } from '../../api';
 import { useAuthStore } from '../../store/auth.store';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 import { extractErrorMessage } from '../../utils/error';
+
+const PRIMARY = '#2563EB';
+const PRIMARY_LIGHT = '#EFF6FF';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Biometric'>;
 
@@ -51,20 +61,43 @@ export default function BiometricScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.icon}>👆</Text>
-        <Text style={styles.title}>{t('auth.biometricPrompt')}</Text>
+        {/* Icon */}
+        <View style={styles.iconCircle}>
+          <Ionicons name="finger-print-outline" size={80} color={PRIMARY} />
+        </View>
 
-        {loading && <ActivityIndicator size="large" color="#6366F1" style={styles.spinner} />}
+        {/* Title */}
+        <Text style={styles.title}>{t('auth.biometricTitle')}</Text>
 
+        {/* Subtitle */}
+        <Text style={styles.subtitle} numberOfLines={2}>
+          {t('auth.biometricPrompt')}
+        </Text>
+
+        {/* Error */}
         {error && <Text style={styles.error}>{error}</Text>}
 
-        <TouchableOpacity style={styles.retryButton} onPress={attemptBiometric} disabled={loading}>
-          <Text style={styles.retryText}>Qayta urinish</Text>
+        {/* Primary button */}
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && styles.buttonDisabled]}
+          onPress={attemptBiometric}
+          disabled={loading}
+          activeOpacity={0.85}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>
+              {t('auth.biometricAction')}
+            </Text>
+          )}
         </TouchableOpacity>
 
+        {/* Fallback link */}
         <TouchableOpacity
           style={styles.fallbackButton}
           onPress={() => navigation.navigate('Login')}
+          activeOpacity={0.7}
         >
           <Text style={styles.fallbackText}>{t('auth.biometricFallback')}</Text>
         </TouchableOpacity>
@@ -76,55 +109,73 @@ export default function BiometricScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    paddingHorizontal: 32,
   },
-  icon: {
-    fontSize: 64,
-    marginBottom: 24,
+  iconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: PRIMARY_LIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#111827',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
   },
-  spinner: {
-    marginVertical: 16,
+  subtitle: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
   },
   error: {
     color: '#DC2626',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
-    marginBottom: 16,
+    marginTop: 16,
+    marginBottom: -8,
   },
-  retryButton: {
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 8,
-    minHeight: 48,
+  primaryButton: {
+    backgroundColor: PRIMARY,
+    width: '100%',
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginTop: 32,
+    shadowColor: PRIMARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  retryText: {
+  buttonDisabled: {
+    opacity: 0.65,
+  },
+  primaryButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: '700',
   },
   fallbackButton: {
-    paddingVertical: 12,
-    minHeight: 48,
-    justifyContent: 'center',
+    marginTop: 16,
+    paddingVertical: 8,
   },
   fallbackText: {
-    color: '#6366F1',
-    fontSize: 14,
+    color: PRIMARY,
+    fontSize: 15,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

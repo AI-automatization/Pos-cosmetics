@@ -2443,7 +2443,18 @@ _(hozircha yo'q)_
 | **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
-> Yangilangan: 2026-04-03 — T-337..T-340, T-306..T-310, T-314 bajarildi → Done.md ga ko'chirildi
+> Yangilangan: 2026-04-14 — T-345 qo'shildi (Badge/EmptyState type mismatch)
+
+---
+
+## T-345 | P1 | [MOBILE] | Badge `'error'` variant + EmptyState `message` prop — type mismatch
+
+- **Sana:** 2026-04-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/components/common/Badge.tsx`, `apps/mobile/src/components/common/EmptyState.tsx`
+- **Muammo:** `Badge` da `BadgeVariant` faqat `'danger'` ni qo'llab-quvvatlaydi, lekin quyidagi ekranlar `'error'` yuborayapti: `TrendCard.tsx`, `AlertDetail.tsx`, `Alerts/index.tsx`, `BranchDetail.tsx`, `LowStockItem.tsx`, `RealEstate/index.tsx`, `PropertyDetail.tsx`, `RentalPayments.tsx`. Shuningdek, `EmptyState` da `message` prop yo'q (faqat `title`), lekin `Inventory/index.tsx`, `LowStockList.tsx`, `AIInsights/index.tsx`, `Alerts/index.tsx`, `BranchDetail.tsx`, `RealEstate/index.tsx`, `RentalPayments.tsx`, `Scanner/CountSection.tsx` ekranlari `message` prop yuborayapti.
+- **Kutilgan:** `BadgeVariant` ga `'error'` qo'shilsin YOKI ekranlar `'danger'` ishlatsin. `EmptyState` da `message` prop qo'shilsin (yoki `title` aliasi) YOKI ekranlar `title` prop ishlatsin.
+- **Eslatma:** Bu xatoliklar tema o'zgarishlaridan kelib chiqmagan. Komponent va ekranlar orasidagi kontrakt farqidan kelib chiqadi.
 
 ---
 

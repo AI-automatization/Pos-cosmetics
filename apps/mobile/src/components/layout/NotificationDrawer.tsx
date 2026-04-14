@@ -43,7 +43,7 @@ const TYPE_COLOR: Record<Notification['type'], string> = {
   LARGE_SALE:         colors.success,
   RENTAL_PAYMENT_DUE: colors.primary,
   SUSPICIOUS_ACTIVITY:colors.danger,
-  AI_INSIGHT:         colors.secondary,
+  AI_INSIGHT:         colors.purple,
   SYSTEM_ALERT:       colors.textSecond,
 };
 
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   sheetTitle: {
-    ...typography.h3,
+    ...typography.sectionTitle,
     color: colors.textPrimary,
   },
   unreadCount: {

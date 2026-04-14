@@ -7,9 +7,9 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Product } from './ProductCard';
 
 const C = {
-  bg: '#F5F5F7', white: '#FFFFFF', text: '#111827',
-  muted: '#9CA3AF', border: '#F3F4F6', primary: '#5B5BD6',
-  orange: '#F59E0B', red: '#EF4444', handleBar: '#E5E7EB',
+  bg: '#F9FAFB', white: '#FFFFFF', text: '#111827',
+  muted: '#9CA3AF', border: '#E5E7EB', primary: '#2563EB',
+  orange: '#D97706', red: '#DC2626', handleBar: '#E5E7EB',
 };
 
 interface Props {
@@ -30,6 +30,16 @@ export default function LowStockSheet({ visible, onClose, lowStockProducts, outO
 
       <View style={styles.sheet}>
         <View style={styles.handle} />
+
+        {/* Yellow warning banner */}
+        {total > 0 && (
+          <View style={styles.warningBanner}>
+            <Ionicons name="warning-outline" size={16} color="#D97706" />
+            <Text style={styles.warningText}>
+              Diqqat: {total} ta mahsulot zaxirasi kam
+            </Text>
+          </View>
+        )}
 
         <View style={styles.header}>
           <View>
@@ -57,7 +67,7 @@ export default function LowStockSheet({ visible, onClose, lowStockProducts, outO
                   </View>
                   <Text style={styles.productName} numberOfLines={1}>{p.name}</Text>
                   <View style={[styles.stockBadge, styles.stockBadgeRed]}>
-                    <Text style={[styles.stockBadgeText, styles.stockBadgeTextRed]}>0 DONA</Text>
+                    <Text style={[styles.stockBadgeText, styles.stockBadgeTextRed]}>0 ta</Text>
                   </View>
                 </View>
               ))}
@@ -79,7 +89,7 @@ export default function LowStockSheet({ visible, onClose, lowStockProducts, outO
                   </View>
                   <Text style={styles.productName} numberOfLines={1}>{p.name}</Text>
                   <View style={[styles.stockBadge, styles.stockBadgeOrange]}>
-                    <Text style={[styles.stockBadgeText, styles.stockBadgeTextOrange]}>{p.stockQty} DONA</Text>
+                    <Text style={[styles.stockBadgeText, styles.stockBadgeTextOrange]}>{p.stockQty} ta</Text>
                   </View>
                 </View>
               ))}
@@ -107,7 +117,25 @@ const styles = StyleSheet.create({
   },
   handle: {
     width: 40, height: 5, borderRadius: 3,
-    backgroundColor: C.handleBar, alignSelf: 'center', marginTop: 12, marginBottom: 4,
+    backgroundColor: C.handleBar, alignSelf: 'center', marginTop: 12, marginBottom: 8,
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 4,
+  },
+  warningText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#D97706',
+    flex: 1,
   },
   header: {
     flexDirection: 'row', alignItems: 'flex-start',

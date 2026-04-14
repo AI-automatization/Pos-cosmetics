@@ -15,6 +15,8 @@ import { useShiftStore } from '../../store/shiftStore';
 import { useAuthStore } from '../../store/auth.store';
 import { salesApi } from '../../api/sales.api';
 import { C, ShiftRecord, fmt, StatBox, DetailRow, HistoryCard } from './SmenaComponents';
+import SmenaOpenSheet from './SmenaOpenSheet';
+import SmenaCloseSheet from './SmenaCloseSheet';
 
 // ─── Utils ─────────────────────────────────────────────
 function formatTime(date: Date | string | null | undefined): string {
@@ -43,7 +45,9 @@ function duration(openedAt: Date | string): string {
 export default function SmenaScreen() {
   const { isShiftOpen, shiftId, openShift, closeShift, syncWithApi } = useShiftStore();
   const { user } = useAuthStore();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [openSheetVisible, setOpenSheetVisible]   = useState(false);
+  const [closeSheetVisible, setCloseSheetVisible] = useState(false);
 
   const cashierName = user ? `${user.firstName} ${user.lastName}` : 'Kassir';
 
@@ -117,51 +121,46 @@ export default function SmenaScreen() {
 
   const handleToggleShift = () => {
     if (isShiftOpen) {
-      Alert.alert(
-        'Smenani yopish',
-        'Joriy smenani yopmoqchimisiz?',
-        [
-          { text: 'Bekor', style: 'cancel' },
-          {
-            text: 'Yopish',
-            style: 'destructive',
-            onPress: async () => {
-              setLoading(true);
-              try {
-                await closeShift(0);
-                void refetchDetail();
-              } catch {
-                Alert.alert('Xatolik', 'Smena yopishda xatolik yuz berdi');
-              } finally {
-                setLoading(false);
-              }
-            },
-          },
-        ],
-      );
+      setCloseSheetVisible(true);
     } else {
-      setLoading(true);
-      openShift(0)
-        .then(() => {
-          setLoading(false);
-        })
-        .catch((err: unknown) => {
-          setLoading(false);
-          // API xato xabarini ko'rsatish
-          let msg = 'Smena ochishda xatolik yuz berdi';
-          if (err && typeof err === 'object' && 'response' in err) {
-            const resp = (err as { response?: { data?: { message?: string }; status?: number } }).response;
-            const serverMsg = resp?.data?.message;
-            if (serverMsg) {
-              msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
-            } else if (resp?.status) {
-              msg = `Xatolik ${resp.status}: ${msg}`;
-            }
-          } else if (err instanceof Error) {
-            msg = err.message;
+      setOpenSheetVisible(true);
+    }
+  };
+
+  const handleOpenConfirm = (openingCash: number) => {
+    setLoading(true);
+    openShift(openingCash)
+      .then(() => {
+        setOpenSheetVisible(false);
+      })
+      .catch((err: unknown) => {
+        let msg = 'Smena ochishda xatolik yuz berdi';
+        if (err && typeof err === 'object' && 'response' in err) {
+          const resp = (err as { response?: { data?: { message?: string }; status?: number } }).response;
+          const serverMsg = resp?.data?.message;
+          if (serverMsg) {
+            msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
+          } else if (resp?.status) {
+            msg = `Xatolik ${resp.status}: ${msg}`;
           }
-          Alert.alert('Xatolik', msg);
-        });
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
+        Alert.alert('Xatolik', msg);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleCloseConfirm = async (actualCash: number) => {
+    setLoading(true);
+    try {
+      await closeShift(actualCash);
+      setCloseSheetVisible(false);
+      void refetchDetail();
+    } catch {
+      Alert.alert('Xatolik', 'Smena yopishda xatolik yuz berdi');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -300,6 +299,20 @@ export default function SmenaScreen() {
 
       </ScrollView>
 
+      <SmenaOpenSheet
+        visible={openSheetVisible}
+        loading={loading}
+        onClose={() => setOpenSheetVisible(false)}
+        onConfirm={handleOpenConfirm}
+      />
+      <SmenaCloseSheet
+        visible={closeSheetVisible}
+        loading={loading}
+        shift={shift}
+        onClose={() => setCloseSheetVisible(false)}
+        onConfirm={(cash) => { void handleCloseConfirm(cash); }}
+      />
+
       {/* Open / Close button */}
       <View style={styles.footer}>
         <TouchableOpacity
@@ -354,7 +367,7 @@ const styles = StyleSheet.create({
   // Active shift card
   shiftCard: {
     marginHorizontal: 16,
-    backgroundColor: C.white, borderRadius: 14,
+    backgroundColor: '#F0FDF4', borderRadius: 14,
     borderLeftWidth: 4, borderLeftColor: C.green,
     padding: 16,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },

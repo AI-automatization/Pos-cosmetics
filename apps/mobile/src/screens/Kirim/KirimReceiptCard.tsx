@@ -1,12 +1,13 @@
 // KirimReceiptCard.tsx — yagona kirim kartasi komponenti
-
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { Receipt } from '../../api/inventory.api';
 import { formatUZS } from '../../utils/currency';
 import { C } from './KirimColors';
 import { STATUS_CFG } from './KirimTypes';
+
+const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
 
 interface ReceiptCardProps {
   readonly receipt: Receipt;
@@ -16,77 +17,114 @@ interface ReceiptCardProps {
 export function ReceiptCard({ receipt, onPress }: ReceiptCardProps) {
   const cfg = STATUS_CFG[receipt.status];
 
+  const dateStr = receipt.date
+    ? new Date(receipt.date).toLocaleDateString('uz-UZ', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '—';
+
   return (
-    <TouchableOpacity style={styles.receiptCard} onPress={onPress} activeOpacity={0.75}>
-      <View style={styles.receiptHeader}>
-        <View style={styles.receiptLeft}>
-          <View style={styles.receiptIconWrap}>
-            <MaterialCommunityIcons name="package-variant" size={20} color={C.primary} />
-          </View>
-          <View>
-            <Text style={styles.receiptNumber}>{receipt.receiptNumber}</Text>
-            <Text style={styles.receiptSupplier}>{receipt.supplierName}</Text>
-          </View>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
-          <Text style={[styles.statusText, { color: cfg.text }]}>{cfg.label}</Text>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
+      {/* Top row: receipt ID + status badge */}
+      <View style={styles.topRow}>
+        <Text style={styles.receiptNumber}>{receipt.receiptNumber}</Text>
+        <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
+          <Text style={[styles.badgeText, { color: cfg.text }]}>{cfg.label}</Text>
         </View>
       </View>
 
-      <View style={styles.receiptFooter}>
-        <View style={styles.receiptMeta}>
-          <Ionicons name="calendar-outline" size={13} color={C.muted} />
-          <Text style={styles.receiptDate}>{receipt.date}</Text>
-          <Text style={styles.receiptDot}>·</Text>
-          <Text style={styles.receiptItems}>{receipt.itemsCount} ta mahsulot</Text>
+      {/* Supplier row */}
+      <View style={styles.supplierRow}>
+        <Ionicons name="business-outline" size={13} color={C.muted} />
+        <Text style={styles.supplierText} numberOfLines={1}>{receipt.supplierName}</Text>
+      </View>
+
+      {/* Bottom row: date + items + amount */}
+      <View style={styles.bottomRow}>
+        <View style={styles.metaRow}>
+          <Ionicons name="calendar-outline" size={12} color={C.muted} />
+          <Text style={styles.metaText}>{dateStr}</Text>
+          <Text style={styles.dot}>·</Text>
+          <Ionicons name="cube-outline" size={12} color={C.muted} />
+          <Text style={styles.metaText}>{receipt.itemsCount} ta mahsulot</Text>
         </View>
-        <Text style={styles.receiptAmount}>{formatUZS(receipt.totalCost)}</Text>
+        <Text style={styles.amount}>{formatUZS(receipt.totalCost)}</Text>
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  receiptCard: {
+  card: {
     backgroundColor: C.white,
     borderRadius: 14,
     padding: 14,
     marginHorizontal: 16,
-    gap: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: C.border,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowRadius: 4,
     elevation: 2,
   },
-  receiptHeader: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  receiptLeft: {
+  receiptNumber: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#2563EB',
+    fontFamily: MONO,
+    letterSpacing: 0.3,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  supplierRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
+  },
+  supplierText: {
+    fontSize: 13,
+    color: C.secondary,
     flex: 1,
-    marginRight: 8,
   },
-  receiptIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: C.primary + '15',
+  bottomRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
   },
-  receiptNumber:   { fontSize: 15, fontWeight: '700', color: C.text },
-  receiptSupplier: { fontSize: 12, color: C.secondary, marginTop: 2 },
-  statusBadge:     { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  statusText:      { fontSize: 11, fontWeight: '700' },
-  receiptFooter:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  receiptMeta:     { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  receiptDate:     { fontSize: 12, color: C.muted },
-  receiptDot:      { fontSize: 12, color: C.muted },
-  receiptItems:    { fontSize: 12, color: C.secondary },
-  receiptAmount:   { fontSize: 14, fontWeight: '700', color: C.text },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
+  metaText: {
+    fontSize: 12,
+    color: C.muted,
+  },
+  dot: {
+    fontSize: 12,
+    color: C.muted,
+  },
+  amount: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: C.text,
+  },
 });

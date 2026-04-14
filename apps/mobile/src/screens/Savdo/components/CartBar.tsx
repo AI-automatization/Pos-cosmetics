@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,8 +25,19 @@ export default function CartBar({
   orderLoading,
   onPress,
 }: CartBarProps) {
+  const slideAnim = useRef(new Animated.Value(100)).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 60,
+      friction: 10,
+    }).start();
+  }, [slideAnim]);
+
   return (
-    <View style={styles.cartBar}>
+    <Animated.View style={[styles.cartBar, { transform: [{ translateY: slideAnim }] }]}>
       <View style={styles.cartIconWrap}>
         <Ionicons name="cart-outline" size={24} color={C.primary} />
         <View style={styles.cartCount}>
@@ -48,7 +60,7 @@ export default function CartBar({
           {orderLoading ? (
             <ActivityIndicator size="small" color={C.white} />
           ) : (
-            <Text style={styles.payButtonText}>To'lov →</Text>
+            <Text style={styles.payButtonText}>To'lash →</Text>
           )}
         </TouchableOpacity>
       ) : (
@@ -60,28 +72,30 @@ export default function CartBar({
           <Text style={styles.payButtonText}>Smena oching</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   cartBar: {
-    position:          'absolute',
-    bottom:            0,
-    left:              0,
-    right:             0,
-    flexDirection:     'row',
-    alignItems:        'center',
-    backgroundColor:   C.white,
-    paddingHorizontal: 16,
-    paddingVertical:   12,
-    paddingBottom:     20,
-    shadowColor:       '#000',
-    shadowOffset:      { width: 0, height: -4 },
-    shadowOpacity:     0.08,
-    shadowRadius:      12,
-    elevation:         10,
-    gap:               12,
+    position:            'absolute',
+    bottom:              0,
+    left:                0,
+    right:               0,
+    flexDirection:       'row',
+    alignItems:          'center',
+    backgroundColor:     C.white,
+    paddingHorizontal:   16,
+    paddingVertical:     12,
+    paddingBottom:       20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor:         '#000',
+    shadowOffset:        { width: 0, height: -4 },
+    shadowOpacity:       0.08,
+    shadowRadius:        12,
+    elevation:           10,
+    gap:                 12,
   },
   cartIconWrap: {
     position: 'relative',

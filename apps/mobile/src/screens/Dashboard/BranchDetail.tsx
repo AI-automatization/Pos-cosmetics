@@ -20,8 +20,8 @@ import { QUERY_STALE_TIMES, REFETCH_INTERVALS } from '@/config/constants';
 type Props = NativeStackScreenProps<DashboardStackParamList, 'BranchDetail'>;
 
 function AlertRow({ item }: { item: Alert }): React.JSX.Element {
-  const priorityVariant: Record<string, 'error' | 'warning' | 'info'> = {
-    HIGH: 'error',
+  const priorityVariant: Record<string, 'danger' | 'warning' | 'info'> = {
+    HIGH: 'danger',
     MEDIUM: 'warning',
     LOW: 'info',
   };
@@ -153,7 +153,7 @@ export default function BranchDetailScreen({ route }: Props): React.JSX.Element 
           />
         </Card>
       ) : (
-        <EmptyState message={t('common.noData')} icon="📦" />
+        <EmptyState title={t('common.noData')} />
       )}
     </ScreenLayout>
   );

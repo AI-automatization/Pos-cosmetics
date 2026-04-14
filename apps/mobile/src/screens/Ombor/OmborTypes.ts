@@ -21,28 +21,28 @@ export function getStatus(item: LowStockItem): StockStatus {
 
 export const STATUS_CFG: Record<StockStatus, StatusConfig> = {
   MAVJUD: {
-    iconBg:     '#EEF2FF',
-    iconColor:  '#5B5BD6',
-    badgeBg:    '#D1FAE5',
-    badgeText:  '#10B981',
-    stockColor: '#10B981',
+    iconBg:     '#F0FDF4',
+    iconColor:  '#16A34A',
+    badgeBg:    '#F0FDF4',
+    badgeText:  '#16A34A',
+    stockColor: '#16A34A',
     label:      'MAVJUD',
   },
   KAM: {
-    iconBg:     '#FEF3C7',
-    iconColor:  '#F59E0B',
-    badgeBg:    '#FEF3C7',
-    badgeText:  '#F59E0B',
-    stockColor: '#F59E0B',
+    iconBg:     '#FFFBEB',
+    iconColor:  '#D97706',
+    badgeBg:    '#FFFBEB',
+    badgeText:  '#D97706',
+    stockColor: '#D97706',
     label:      'KAM',
   },
   TUGADI: {
-    iconBg:     '#FEE2E2',
-    iconColor:  '#EF4444',
-    badgeBg:    '#FEE2E2',
-    badgeText:  '#EF4444',
-    stockColor: '#EF4444',
-    label:      'TUGADI',
+    iconBg:     '#FEF2F2',
+    iconColor:  '#DC2626',
+    badgeBg:    '#FEF2F2',
+    badgeText:  '#DC2626',
+    stockColor: '#DC2626',
+    label:      'TUGAGAN',
   },
 };
 
@@ -55,7 +55,7 @@ export interface TabItem {
 }
 
 export const TABS: TabItem[] = [
-  { key: 'ALL',    label: 'Hammasi' },
-  { key: 'KAM',   label: 'Kam'     },
-  { key: 'TUGADI', label: 'Tugadi' },
+  { key: 'ALL',    label: 'Barchasi' },
+  { key: 'KAM',   label: 'KAM'      },
+  { key: 'TUGADI', label: 'TUGAGAN' },
 ];

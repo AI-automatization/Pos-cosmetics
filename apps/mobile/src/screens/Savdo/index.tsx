@@ -8,7 +8,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
 import ProductCard from './ProductCard';
 import ScannerModal from './ScannerModal';
@@ -17,7 +18,7 @@ import LowStockSheet from './LowStockSheet';
 import { useShiftStore } from '../../store/shiftStore';
 import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import { salesApi } from '../../api/sales.api';
-import { type TabParamList } from '../../navigation/types';
+import { type SavdoStackParamList } from '../../navigation/types';
 import ShiftGuard from '../../components/common/ShiftGuard';
 
 import { C, toProduct, type CartItem } from './components/utils';
@@ -28,7 +29,7 @@ import CartBar from './components/CartBar';
 
 // ─── Screen ────────────────────────────────────────────
 export default function SavdoScreen() {
-  const navigation = useNavigation<NavigationProp<TabParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<SavdoStackParamList>>();
   const { isShiftOpen, shiftId } = useShiftStore();
 
   const [search, setSearch]               = useState('');
@@ -138,7 +139,7 @@ export default function SavdoScreen() {
   // ─── Confirm order ────────────────────────────────────
   const handleConfirm = async (method: PaymentMethod, _received: number) => {
     if (method === 'NASIYA') {
-      navigation.navigate('Nasiya', { openNewDebt: true, amount: totalPrice, products: cart });
+      navigation.navigate('NasiyaScreen', { openNewDebt: true, amount: totalPrice, products: cart });
       setPaymentVisible(false);
       setCart([]);
       return;
@@ -172,7 +173,12 @@ export default function SavdoScreen() {
     <ShiftGuard>
       <SafeAreaView style={styles.safe} edges={['top']}>
 
-        <SavdoHeader alertCount={alertCount} onBellPress={() => setLowStockVisible(true)} />
+        <SavdoHeader
+          alertCount={alertCount}
+          isShiftOpen={isShiftOpen}
+          shiftId={shiftId}
+          onBellPress={() => setLowStockVisible(true)}
+        />
 
         <SavdoSearchBar
           search={search}
@@ -210,6 +216,7 @@ export default function SavdoScreen() {
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>Mahsulot topilmadi</Text>
+                <Text style={styles.emptySubText}>Qidiruvni o'zgartiring yoki kategoriyani tanlang</Text>
               </View>
             }
           />
@@ -258,6 +265,7 @@ const styles = StyleSheet.create({
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   flatList:    { flex: 1 },
   grid:        { paddingHorizontal: 11, paddingBottom: 100, flexGrow: 1 },
-  empty:       { paddingTop: 60, alignItems: 'center' },
-  emptyText:   { fontSize: 15, color: C.muted },
+  empty:        { paddingTop: 80, alignItems: 'center', gap: 8 },
+  emptyText:    { fontSize: 15, color: '#6B7280', fontWeight: '500' },
+  emptySubText: { fontSize: 13, color: '#9CA3AF' },
 });

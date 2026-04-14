@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { C } from './OmborColors';
 import { TABS, type FilterTab } from './OmborTypes';
 import type { LowStockItem } from '../../api/inventory.api';
@@ -36,7 +36,7 @@ export default function OmborListHeader({
       <OmborStatsRow items={allItems} />
 
       <View style={styles.searchBar}>
-        <Feather name="search" size={16} color={C.muted} />
+        <Ionicons name="search-outline" size={16} color={C.muted} />
         <TextInput
           style={styles.searchInput}
           placeholder="Mahsulot yoki ombor nomi..."
@@ -46,7 +46,7 @@ export default function OmborListHeader({
         />
         {search.length > 0 && (
           <TouchableOpacity onPress={() => onSearchChange('')} activeOpacity={0.75}>
-            <Feather name="x" size={16} color={C.muted} />
+            <Ionicons name="close-circle" size={16} color={C.muted} />
           </TouchableOpacity>
         )}
       </View>
@@ -80,19 +80,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: C.white,
-    borderRadius: 14,
+    borderRadius: 12,
     height: 46,
     paddingHorizontal: 14,
     marginHorizontal: 16,
     marginTop: 14,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: C.border,
     gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
   },
   searchInput: {
     flex: 1,
@@ -106,24 +101,25 @@ const styles = StyleSheet.create({
   },
   tab: {
     height: 34,
-    paddingHorizontal: 18,
-    borderRadius: 17,
-    backgroundColor: C.border,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    backgroundColor: C.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabActive: {
-    backgroundColor: C.white,
-    borderWidth: 1.5,
-    borderColor: C.primary,
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: C.secondary,
+    color: C.muted,
   },
   tabTextActive: {
-    color: C.primary,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   resultCount: {

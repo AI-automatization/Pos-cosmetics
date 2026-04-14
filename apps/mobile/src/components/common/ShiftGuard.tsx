@@ -31,7 +31,7 @@ export default function ShiftGuard({ children }: ShiftGuardProps) {
           <TouchableOpacity
             style={styles.button}
             activeOpacity={0.85}
-            onPress={() => navigation.navigate('Dashboard')}
+            onPress={() => navigation.navigate('BoshSahifa')}
           >
             <Text style={styles.buttonText}>Smena ochish →</Text>
           </TouchableOpacity>

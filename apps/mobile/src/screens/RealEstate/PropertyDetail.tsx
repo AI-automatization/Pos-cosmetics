@@ -20,10 +20,10 @@ type Props = {
   route: RouteProp<RealEstateStackParamList, 'PropertyDetail'>;
 };
 
-const STATUS_VARIANT: Record<PropertyStatus, 'success' | 'warning' | 'error'> = {
+const STATUS_VARIANT: Record<PropertyStatus, 'success' | 'warning' | 'danger'> = {
   RENTED: 'success',
   VACANT: 'warning',
-  MAINTENANCE: 'error',
+  MAINTENANCE: 'danger',
 };
 
 function InfoRow({ label, value }: { label: string; value: string }): React.JSX.Element {

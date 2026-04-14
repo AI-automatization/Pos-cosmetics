@@ -9,10 +9,19 @@ export type SalesStackParamList = {
 };
 
 export type TabParamList = {
-  Dashboard: undefined;
+  BoshSahifa: undefined;
   Savdo: undefined;
-  SavdoTarixi: undefined;
-  Nasiya:
+  Katalog: undefined;
+  Moliya: undefined;
+  Koproq: undefined;
+};
+
+// Stack param lists for nested navigators inside tabs
+export type SavdoStackParamList = {
+  SavdoMain: undefined;
+  SmenaScreen: undefined;
+  SalesHistory: undefined;
+  NasiyaScreen:
     | {
         openNewDebt?: boolean;
         amount?: number;
@@ -22,9 +31,13 @@ export type TabParamList = {
         }>;
       }
     | undefined;
-  Kirim: undefined;
-  Ombor: undefined;
-  Settings: undefined;
+};
+
+export type MoreStackParamList = {
+  MoreMenu: undefined;
+  KirimScreen: undefined;
+  OmborScreen: undefined;
+  SettingsScreen: undefined;
 };
 
 export type RootStackParamList = {

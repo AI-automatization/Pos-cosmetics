@@ -52,7 +52,7 @@ export default function LowStockScreen(): React.JSX.Element {
         data={data}
         keyExtractor={(item) => item.productId}
         renderItem={({ item }) => <LowStockRow item={item} />}
-        ListEmptyComponent={<EmptyState message={t('common.noData')} icon="✅" />}
+        ListEmptyComponent={<EmptyState title={t('common.noData')} />}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.list}
       />

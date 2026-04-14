@@ -122,7 +122,7 @@ export default function PaymentSheet({
             activeOpacity={0.85}
           >
             <Ionicons name="checkmark-circle-outline" size={20} color="#FFF" />
-            <Text style={styles.confirmText}>Tasdiqlash</Text>
+            <Text style={styles.confirmText}>Savdoni yakunlash</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
     paddingBottom: 34,
-    maxHeight: '90%',
+    maxHeight: '75%',
   },
   handle: {
     width: 40,
@@ -182,12 +182,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#5B5BD6',
+    backgroundColor: '#2563EB',
     borderRadius: 14,
     height: 54,
     gap: 8,
     marginTop: 16,
-    shadowColor: '#5B5BD6',
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -1,5 +1,4 @@
 // KirimListHeader.tsx — qidiruv, filter tablar va natijalar soni
-
 import React from 'react';
 import {
   View,
@@ -10,7 +9,7 @@ import {
   FlatList,
   StyleSheet,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import type { Receipt } from '../../api/inventory.api';
 import { C } from './KirimColors';
 import { TABS } from './KirimTypes';
@@ -46,7 +45,7 @@ export function KirimListHeader({
       <StatsChips receipts={allReceipts} />
 
       <View style={styles.searchRow}>
-        <Feather name="search" size={16} color={C.muted} style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={16} color={C.muted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Raqam yoki yetkazib beruvchi..."
@@ -56,7 +55,7 @@ export function KirimListHeader({
         />
         {search.length > 0 && (
           <TouchableOpacity onPress={() => onSearchChange('')}>
-            <Feather name="x" size={16} color={C.muted} />
+            <Ionicons name="close-circle" size={18} color={C.muted} />
           </TouchableOpacity>
         )}
       </View>
@@ -96,7 +95,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.white,
     borderRadius: 12,
     paddingHorizontal: 14,
-    height: 44,
+    height: 46,
     marginHorizontal: 16,
     borderWidth: 1,
     borderColor: C.border,
@@ -104,18 +103,18 @@ const styles = StyleSheet.create({
   searchIcon:  { marginRight: 8 },
   searchInput: { flex: 1, fontSize: 14, color: C.text },
   resultCount: { fontSize: 12, color: C.muted, paddingHorizontal: 16 },
-  tabsRow:       { paddingHorizontal: 16, gap: 8 },
+  tabsRow:     { paddingHorizontal: 16, gap: 8 },
   tab: {
-    height: 36,
-    paddingHorizontal: 18,
-    borderRadius: 18,
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 17,
     backgroundColor: C.white,
     borderWidth: 1,
     borderColor: C.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabActive:     { backgroundColor: C.primary, borderColor: C.primary },
-  tabText:       { fontSize: 14, fontWeight: '600', color: C.secondary },
+  tabActive:     { backgroundColor: '#2563EB', borderColor: '#2563EB' },
+  tabText:       { fontSize: 12, fontWeight: '700', color: C.secondary },
   tabTextActive: { color: C.white },
 });

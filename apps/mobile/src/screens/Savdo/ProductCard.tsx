@@ -47,7 +47,7 @@ export default function ProductCard({ product, cartQty, onPress, onDecrement }: 
         {/* Stock badge */}
         {!isOut && (
           <View style={[styles.badge, status === 'low_stock' ? styles.badgeLow : styles.badgeIn]}>
-            <Text style={styles.badgeText}>{product.stockQty} DONA</Text>
+            <Text style={styles.badgeText}>{product.stockQty} ta</Text>
           </View>
         )}
 
@@ -96,13 +96,15 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
     margin: 5,
   },
   cardDisabled: {
@@ -127,10 +129,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   badgeIn: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#16A34A',
   },
   badgeLow: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#D97706',
   },
   badgeText: {
     color: '#FFFFFF',
@@ -167,7 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   controlBtnAdd: {
-    backgroundColor: '#5B5BD6',
+    backgroundColor: '#2563EB',
   },
   controlBtnAddDisabled: {
     backgroundColor: '#9CA3AF',
@@ -193,15 +195,15 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   name: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#111827',
     lineHeight: 18,
   },
   price: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#5B5BD6',
+    color: '#2563EB',
   },
   priceOut: {
     color: '#9CA3AF',

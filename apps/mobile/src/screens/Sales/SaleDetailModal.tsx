@@ -7,10 +7,19 @@ import {
   Pressable,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { C } from './SalesColors';
-import { fmt, METHOD_STYLE } from './SalesTypes';
+import { fmt, METHOD_STYLE, type OrderStatus } from './SalesTypes';
 import type { Sale } from './SalesTypes';
+
+// ─── Status badge config ───────────────────────────────────────
+const STATUS_STYLE: Record<OrderStatus, { bg: string; text: string; label: string }> = {
+  COMPLETED: { bg: '#D1FAE5', text: '#16A34A', label: 'Bajarildi' },
+  RETURNED:  { bg: '#FEE2E2', text: '#DC2626', label: 'Qaytarildi' },
+  VOIDED:    { bg: '#F3F4F6', text: '#6B7280', label: 'Bekor qilindi' },
+};
 
 interface SaleDetailModalProps {
   readonly sale: Sale | null;
@@ -22,6 +31,10 @@ export default function SaleDetailModal({ sale, onClose }: SaleDetailModalProps)
 
   const payment = sale.payments[0]!;
   const m = METHOD_STYLE[payment.method];
+  const status = STATUS_STYLE[sale.status] ?? STATUS_STYLE.COMPLETED;
+  const isCompleted = sale.status === 'COMPLETED';
+
+  const subtotal = sale.products.reduce((s, p) => s + p.price * p.qty, 0);
 
   return (
     <Modal
@@ -30,60 +43,106 @@ export default function SaleDetailModal({ sale, onClose }: SaleDetailModalProps)
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalSheet} onPress={() => {}}>
-          <View style={styles.modalHandle} />
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable style={styles.sheet} onPress={() => {}}>
+          <View style={styles.handle} />
 
-          <View style={styles.modalHeader}>
+          {/* Header */}
+          <View style={styles.header}>
             <View>
-              <Text style={styles.modalOrderNum}>#{sale.num}</Text>
-              <Text style={styles.modalTime}>{sale.time}</Text>
+              <Text style={styles.orderId}>
+                #{String(sale.num).padStart(4, '0')}
+              </Text>
+              <Text style={styles.orderTime}>{sale.time}</Text>
             </View>
-            <View style={[styles.modalMethodBadge, { backgroundColor: m.bg }]}>
-              <Text style={styles.modalMethodIcon}>{m.icon}</Text>
-              <Text style={[styles.modalMethodText, { color: m.text }]}>{m.label}</Text>
-            </View>
-          </View>
-
-          <View style={styles.modalDivider} />
-
-          <Text style={styles.modalSectionTitle}>Mahsulotlar</Text>
-          <ScrollView style={styles.modalProductList} showsVerticalScrollIndicator={false}>
-            {sale.products.map((p, i) => (
-              <View key={i} style={styles.modalProductRow}>
-                <View style={styles.modalProductLeft}>
-                  <Text style={styles.modalProductName}>{p.name}</Text>
-                  <Text style={styles.modalProductQty}>{p.qty} dona</Text>
-                </View>
-                <Text style={styles.modalProductPrice}>{fmt(p.price * p.qty)} so'm</Text>
-              </View>
-            ))}
-          </ScrollView>
-
-          <View style={styles.modalDivider} />
-
-          <Text style={styles.modalSectionTitle}>To'lov</Text>
-          <View style={styles.modalPayRow}>
-            <View style={[styles.modalPayBadge, { backgroundColor: m.bg }]}>
-              <Text style={[styles.modalPayBadgeText, { color: m.text }]}>
-                {m.icon} {m.label}
+            <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+              <Text style={[styles.statusText, { color: status.text }]}>
+                {status.label}
               </Text>
             </View>
-            <Text style={[styles.modalPayAmount, { color: m.text }]}>
-              {fmt(payment.amount)} so'm
-            </Text>
           </View>
 
-          <View style={styles.modalDivider} />
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Info card */}
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <Ionicons name="time-outline" size={15} color={C.muted} />
+                <Text style={styles.infoLabel}>Vaqt</Text>
+                <Text style={styles.infoValue}>{sale.time}</Text>
+              </View>
+              <View style={styles.infoDivider} />
+              <View style={styles.infoRow}>
+                <Ionicons name="wallet-outline" size={15} color={C.muted} />
+                <Text style={styles.infoLabel}>To'lov usuli</Text>
+                <View style={[styles.methodPill, { backgroundColor: m.bg }]}>
+                  <Text style={[styles.methodPillText, { color: m.text }]}>
+                    {m.icon} {m.label}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
-          <View style={styles.modalTotalRow}>
-            <Text style={styles.modalTotalLabel}>Jami</Text>
-            <Text style={styles.modalTotalValue}>{fmt(sale.amount)} so'm</Text>
-          </View>
+            {/* Items */}
+            <Text style={styles.sectionTitle}>MAHSULOTLAR</Text>
+            <View style={styles.itemsList}>
+              {sale.products.map((p, i) => (
+                <View key={i} style={styles.itemRow}>
+                  <View style={styles.itemLeft}>
+                    <Text style={styles.itemName} numberOfLines={1}>{p.name}</Text>
+                    <Text style={styles.itemMeta}>
+                      {p.qty} × {fmt(p.price)} UZS
+                    </Text>
+                  </View>
+                  <Text style={styles.itemTotal}>
+                    {fmt(p.qty * p.price)} UZS
+                  </Text>
+                </View>
+              ))}
+            </View>
 
-          <TouchableOpacity style={styles.modalCloseBtn} onPress={onClose} activeOpacity={0.8}>
-            <Text style={styles.modalCloseBtnText}>Yopish</Text>
-          </TouchableOpacity>
+            {/* Summary */}
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Jami mahsulot</Text>
+                <Text style={styles.summaryValue}>{sale.items} ta</Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryTotalLabel}>Umumiy summa</Text>
+                <Text style={styles.summaryTotalValue}>{fmt(subtotal)} UZS</Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Actions */}
+          {isCompleted ? (
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={styles.btnReturn}
+                activeOpacity={0.8}
+                onPress={onClose}
+              >
+                <Ionicons name="return-up-back-outline" size={18} color="#DC2626" />
+                <Text style={styles.btnReturnText}>Qaytarish</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.btnPrint}
+                activeOpacity={0.8}
+                onPress={onClose}
+              >
+                <Ionicons name="print-outline" size={18} color="#FFFFFF" />
+                <Text style={styles.btnPrintText}>Chek chop etish</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.btnClose}
+              onPress={onClose}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.btnCloseText}>Yopish</Text>
+            </TouchableOpacity>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -91,21 +150,21 @@ export default function SaleDetailModal({ sale, onClose }: SaleDetailModalProps)
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
   },
-  modalSheet: {
+  sheet: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingBottom: 32,
     paddingTop: 12,
-    maxHeight: '80%',
+    maxHeight: '85%',
   },
-  modalHandle: {
+  handle: {
     width: 40,
     height: 4,
     backgroundColor: '#E5E7EB',
@@ -113,121 +172,193 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 16,
   },
-  modalHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  modalOrderNum: {
+  orderId: {
     fontSize: 20,
     fontWeight: '800',
-    color: C.text,
+    color: '#2563EB',
+    fontFamily: Platform.select({ ios: 'Courier New', android: 'monospace' }),
+    letterSpacing: 0.5,
   },
-  modalTime: {
+  orderTime: {
     fontSize: 13,
     color: C.secondary,
     marginTop: 2,
   },
-  modalMethodBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  statusBadge: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: 20,
   },
-  modalMethodIcon: {
-    fontSize: 16,
-  },
-  modalMethodText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  modalDivider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginVertical: 14,
-  },
-  modalSectionTitle: {
+  statusText: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  infoCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+  },
+  infoDivider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  infoLabel: {
+    flex: 1,
+    fontSize: 13,
     color: C.muted,
-    letterSpacing: 0.5,
-    marginBottom: 10,
-    textTransform: 'uppercase',
+    fontWeight: '500',
   },
-  modalProductList: {
-    maxHeight: 220,
+  infoValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.text,
   },
-  modalProductRow: {
+  methodPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  methodPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.muted,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  itemsList: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomColor: '#F3F4F6',
   },
-  modalProductLeft: {
+  itemLeft: {
     flex: 1,
-    gap: 2,
+    gap: 3,
+    marginRight: 8,
   },
-  modalProductName: {
+  itemName: {
     fontSize: 14,
     fontWeight: '600',
     color: C.text,
   },
-  modalProductQty: {
+  itemMeta: {
     fontSize: 12,
     color: C.muted,
   },
-  modalProductPrice: {
+  itemTotal: {
     fontSize: 14,
     fontWeight: '700',
-    color: C.primary,
+    color: '#2563EB',
   },
-  modalPayRow: {
+  summaryCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
-  modalPayBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  summaryDivider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
   },
-  modalPayBadgeText: {
-    fontSize: 13,
-    fontWeight: '700',
+  summaryLabel: {
+    fontSize: 14,
+    color: C.secondary,
+    fontWeight: '500',
   },
-  modalPayAmount: {
-    fontSize: 15,
-    fontWeight: '700',
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.text,
   },
-  modalTotalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTotalLabel: {
+  summaryTotalLabel: {
     fontSize: 16,
     fontWeight: '700',
     color: C.text,
   },
-  modalTotalValue: {
-    fontSize: 20,
+  summaryTotalValue: {
+    fontSize: 18,
     fontWeight: '800',
-    color: C.primary,
+    color: '#2563EB',
   },
-  modalCloseBtn: {
-    backgroundColor: C.primary,
-    borderRadius: 14,
-    paddingVertical: 14,
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  btnReturn: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#DC2626',
+    height: 50,
   },
-  modalCloseBtnText: {
+  btnReturnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
+  btnPrint: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: 14,
+    backgroundColor: '#2563EB',
+    height: 50,
+  },
+  btnPrintText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  btnClose: {
+    backgroundColor: '#2563EB',
+    borderRadius: 14,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  btnCloseText: {
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',

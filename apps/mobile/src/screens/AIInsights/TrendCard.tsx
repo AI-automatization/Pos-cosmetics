@@ -12,8 +12,8 @@ const INSIGHT_EMOJI: Record<string, string> = {
   FORECAST: '🔮',
 };
 
-const PRIORITY_VARIANT: Record<string, 'error' | 'warning' | 'info'> = {
-  HIGH: 'error',
+const PRIORITY_VARIANT: Record<string, 'danger' | 'warning' | 'info'> = {
+  HIGH: 'danger',
   MEDIUM: 'warning',
   LOW: 'info',
 };

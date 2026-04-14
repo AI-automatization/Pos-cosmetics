@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,18 +14,28 @@ import { useSalesData } from './useSalesData';
 import { useAuthStore } from '../../store/auth.store';
 import { useShiftStore } from '../../store/shiftStore';
 import { C } from './SalesColors';
-import { orderToSale } from './SalesTypes';
+import { orderToSale, type OrderStatus } from './SalesTypes';
 import type { Sale } from './SalesTypes';
 import SaleRow from './SaleRow';
 import SaleDetailModal from './SaleDetailModal';
 import SalesListHeader from './SalesListHeader';
 
+// ─── Filter config ─────────────────────────────────────────────
+type FilterKey = 'ALL' | OrderStatus;
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: 'ALL',       label: 'Barchasi' },
+  { key: 'COMPLETED', label: 'Bajarildi' },
+  { key: 'RETURNED',  label: 'Qaytarildi' },
+  { key: 'VOIDED',    label: 'Bekor qilindi' },
+];
+
 // ─── EmptyState ───────────────────────────────────────────────
 function EmptyState() {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyIcon}>🧾</Text>
-      <Text style={styles.emptyText}>Bugun sotuvlar yo'q</Text>
+      <Ionicons name="receipt-outline" size={40} color={C.muted} />
+      <Text style={styles.emptyText}>Sotuvlar yo'q</Text>
     </View>
   );
 }
@@ -32,6 +43,7 @@ function EmptyState() {
 // ─── SalesScreen ──────────────────────────────────────────────
 export default function SalesScreen() {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [filter, setFilter] = useState<FilterKey>('ALL');
   const { orders, shiftDetail } = useSalesData();
   const { user } = useAuthStore();
   const { isShiftOpen } = useShiftStore();
@@ -39,6 +51,11 @@ export default function SalesScreen() {
   const sales = useMemo(
     () => (orders.data?.data ?? []).map(orderToSale),
     [orders.data],
+  );
+
+  const filteredSales = useMemo(
+    () => filter === 'ALL' ? sales : sales.filter((s) => s.status === filter),
+    [sales, filter],
   );
 
   const totalRevenue = useMemo(
@@ -61,12 +78,6 @@ export default function SalesScreen() {
       })
     : '—';
 
-  const todayLabel = new Date().toLocaleDateString('uz-UZ', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-
   if (orders.isLoading) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -77,18 +88,37 @@ export default function SalesScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Ionicons name="menu-outline" size={22} color={C.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerDate}>{todayLabel}</Text>
+        <Text style={styles.headerTitle}>Buyurtmalar tarixi</Text>
         <TouchableOpacity style={styles.headerIcon}>
           <Ionicons name="calendar-outline" size={22} color={C.text} />
         </TouchableOpacity>
       </View>
 
+      {/* Filter pills */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+        contentContainerStyle={styles.filterRow}
+      >
+        {FILTERS.map((f) => (
+          <TouchableOpacity
+            key={f.key}
+            style={[styles.filterPill, filter === f.key && styles.filterPillActive]}
+            onPress={() => setFilter(f.key)}
+            activeOpacity={0.75}
+          >
+            <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
+              {f.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
       <FlatList
-        data={sales}
+        data={filteredSales}
         keyExtractor={(s) => s.id}
         renderItem={({ item }) => (
           <SaleRow sale={item} onPress={setSelectedSale} />
@@ -131,10 +161,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     backgroundColor: C.white,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: C.text,
   },
   headerIcon: {
     width: 36,
@@ -144,10 +179,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerDate: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: C.text,
+  filterScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+    backgroundColor: C.white,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  filterRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  filterPill: {
+    height: 32,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterPillActive: {
+    backgroundColor: '#2563EB',
+  },
+  filterText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  filterTextActive: {
+    color: '#FFFFFF',
   },
   content: {
     paddingBottom: 32,
@@ -160,10 +221,7 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: 48,
-  },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
+    gap: 12,
   },
   emptyText: {
     fontSize: 15,

@@ -52,7 +52,7 @@ export default function CountSection({
         renderItem={({ item }) => <CountEntryCard entry={item} />}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <EmptyState icon="📋" message={t('scanner.noCountItems')} />
+          <EmptyState title={t('scanner.noCountItems')} />
         }
       />
 

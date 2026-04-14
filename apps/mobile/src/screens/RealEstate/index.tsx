@@ -20,10 +20,10 @@ type Props = {
   navigation: NativeStackNavigationProp<RealEstateStackParamList, 'Properties'>;
 };
 
-const STATUS_VARIANT: Record<PropertyStatus, 'success' | 'warning' | 'error'> = {
+const STATUS_VARIANT: Record<PropertyStatus, 'success' | 'warning' | 'danger'> = {
   RENTED: 'success',
   VACANT: 'warning',
-  MAINTENANCE: 'error',
+  MAINTENANCE: 'danger',
 };
 
 function PropertyCard({
@@ -164,7 +164,7 @@ export default function PropertiesScreen({ navigation }: Props): React.JSX.Eleme
           />
         )}
         ListEmptyComponent={
-          <EmptyState message={t('realestate.noProperties')} icon="🏢" />
+          <EmptyState title={t('realestate.noProperties')} />
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.list}

@@ -70,7 +70,7 @@ export default function AIInsightsScreen(): React.JSX.Element {
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <TrendCard item={item} />}
-        ListEmptyComponent={<EmptyState message={t('insights.noInsights')} icon="🤖" />}
+        ListEmptyComponent={<EmptyState title={t('insights.noInsights')} />}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.list}
       />

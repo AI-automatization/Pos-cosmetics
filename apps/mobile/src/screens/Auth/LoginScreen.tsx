@@ -23,14 +23,15 @@ import { extractErrorMessage } from '../../utils/error';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 
 const COLORS = {
-  primary: '#5B5BD6',
-  primaryLight: 'rgba(91, 91, 214, 0.1)',
-  background: '#F5F5F7',
+  primary: '#2563EB',
+  primaryLight: 'rgba(37, 99, 235, 0.1)',
+  background: '#F9FAFB',
   white: '#FFFFFF',
   textPrimary: '#111827',
   textSecondary: '#6B7280',
   textMuted: '#9CA3AF',
   border: '#E5E7EB',
+  borderFocus: '#2563EB',
   label: '#374151',
 };
 
@@ -52,6 +53,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // SecureStore dan oldingi slugni yuklash
   React.useEffect(() => {
@@ -97,7 +99,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={styles.logoLetter}>R</Text>
             </View>
             <Text style={styles.logoText}>RAOS</Text>
-            <Text style={styles.subtitle}>Savdo tizimiga xush kelibsiz</Text>
+            <Text style={styles.subtitle}>Biznesingizni boshqaring</Text>
           </View>
 
           {/* ── Form ── */}
@@ -105,7 +107,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Tenant Slug */}
             <Text style={styles.label}>Tashkilot kodi</Text>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, focusedField === 'slug' && styles.inputWrapperFocused]}>
               <Feather name="briefcase" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -116,12 +118,14 @@ export default function LoginScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!loading}
+                onFocus={() => setFocusedField('slug')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
 
             {/* Email */}
-            <Text style={styles.label}>Elektron pochta</Text>
-            <View style={styles.inputWrapper}>
+            <Text style={[styles.label, styles.labelMarginTop]}>Elektron pochta</Text>
+            <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputWrapperFocused]}>
               <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -133,6 +137,8 @@ export default function LoginScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!loading}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
 
@@ -143,7 +149,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotText}>Parolni unutdingizmi?</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, focusedField === 'password' && styles.inputWrapperFocused]}>
               <Feather name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, styles.inputPasswordField]}
@@ -153,6 +159,8 @@ export default function LoginScreen({ navigation }: Props) {
                 placeholderTextColor={COLORS.textMuted}
                 secureTextEntry={!showPassword}
                 editable={!loading}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword((v) => !v)}
@@ -177,7 +185,7 @@ export default function LoginScreen({ navigation }: Props) {
               {loading ? (
                 <ActivityIndicator color={COLORS.white} />
               ) : (
-                <Text style={styles.loginButtonText}>Kirish →</Text>
+                <Text style={styles.loginButtonText}>Kirish</Text>
               )}
             </TouchableOpacity>
 
@@ -230,6 +238,8 @@ export default function LoginScreen({ navigation }: Props) {
               ))}
             </View>
           </View>
+
+          <Text style={styles.versionText}>v1.0.0</Text>
 
           {/* DEV only — haqiqiy API bilan demo login */}
           {__DEV__ && (
@@ -285,8 +295,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoBox: {
-    width: 72,
-    height: 72,
+    width: 80,
+    height: 80,
     borderRadius: 18,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
@@ -320,10 +330,13 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.label,
     marginBottom: 8,
+  },
+  labelMarginTop: {
+    marginTop: 16,
   },
   labelRow: {
     flexDirection: 'row',
@@ -341,11 +354,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 14,
     height: 52,
+  },
+  inputWrapperFocused: {
+    borderColor: COLORS.borderFocus,
+    shadowColor: COLORS.borderFocus,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   inputIcon: {
     marginRight: 10,
@@ -461,6 +482,15 @@ const styles = StyleSheet.create({
   langTextActive: {
     color: COLORS.primary,
     fontWeight: '700',
+  },
+
+  // ── Version ──
+  versionText: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 8,
+    marginBottom: 8,
   },
 
   // ── Dev Demo ──

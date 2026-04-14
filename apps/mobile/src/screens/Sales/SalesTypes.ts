@@ -1,5 +1,5 @@
 // ─── Sales screen types, METHOD_STYLE and helpers ─────────────
-import type { Order, OrderItem } from '@raos/types';
+import type { Order, OrderItem, OrderStatus } from '@raos/types';
 
 export type PayMethod = 'NAQD' | 'KARTA' | 'NASIYA' | 'ARALASH';
 
@@ -14,12 +14,15 @@ export interface SaleProduct {
   readonly price: number;
 }
 
+export type { OrderStatus };
+
 export interface Sale {
   readonly id: string;
   readonly num: number;
   readonly time: string;
   readonly items: number;
   readonly amount: number;
+  readonly status: OrderStatus;
   readonly payments: Payment[];
   readonly products: SaleProduct[];
 }
@@ -64,6 +67,7 @@ export function orderToSale(order: Order): Sale {
               }),
     items:    order.items.length,
     amount:   order.total,
+    status:   order.status,
     payments: parsePayment(order),
     products: order.items.map((item: OrderItem) => ({
       name:  item.productName,

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import type { DailyRevenue } from '@raos/types';
 import Card from '../../components/common/Card';
 import { formatCompact } from '../../utils/currency';
@@ -9,7 +8,7 @@ interface WeeklyTrendChartProps {
   readonly data: DailyRevenue[];
 }
 
-const BAR_MAX_HEIGHT = 72;
+const BAR_MAX_HEIGHT = 120;
 const DAY_LABELS = ['Yak', 'Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh'];
 
 function buildPlaceholderDays(): DailyRevenue[] {
@@ -22,15 +21,27 @@ function buildPlaceholderDays(): DailyRevenue[] {
   });
 }
 
-export default function WeeklyTrendChart({ data }: WeeklyTrendChartProps) {
-  const { t } = useTranslation();
+function getWeekRange(data: DailyRevenue[]): string {
+  if (data.length === 0) return '';
+  const first = new Date(data[0]!.date);
+  const last = new Date(data[data.length - 1]!.date);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (first.getMonth() === last.getMonth()) {
+    return `${first.getDate()}–${last.getDate()} ${months[last.getMonth()]}`;
+  }
+  return `${first.getDate()} ${months[first.getMonth()]} – ${last.getDate()} ${months[last.getMonth()]}`;
+}
 
+export default function WeeklyTrendChart({ data }: WeeklyTrendChartProps) {
   const chartData = data.length > 0 ? data : buildPlaceholderDays();
   const maxRevenue = Math.max(...chartData.map((d) => d.revenue), 1);
 
   return (
     <Card>
-      <Text style={styles.label}>{t('dashboard.weeklyTrend')}</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Haftalik trend</Text>
+        <Text style={styles.dateRange}>{getWeekRange(chartData)}</Text>
+      </View>
       <View style={styles.chart}>
         {chartData.map((item) => {
           const isEmpty = data.length === 0;
@@ -44,7 +55,7 @@ export default function WeeklyTrendChart({ data }: WeeklyTrendChartProps) {
           return (
             <View key={item.date} style={styles.barWrapper}>
               <Text style={styles.barValue}>
-                {item.revenue > 0 ? formatCompact(item.revenue) : ''}
+                {isToday && item.revenue > 0 ? formatCompact(item.revenue) : ''}
               </Text>
               <View style={styles.barTrack}>
                 <View
@@ -67,11 +78,20 @@ export default function WeeklyTrendChart({ data }: WeeklyTrendChartProps) {
 }
 
 const styles = StyleSheet.create({
-  label: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '500',
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  dateRange: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   chart: {
     flexDirection: 'row',
@@ -96,11 +116,11 @@ const styles = StyleSheet.create({
   },
   bar: {
     width: '100%',
-    backgroundColor: '#C7D2FE',
-    borderRadius: 4,
+    backgroundColor: '#DBEAFE',
+    borderRadius: 6,
   },
   barToday: {
-    backgroundColor: '#6366F1',
+    backgroundColor: '#2563EB',
   },
   barDay: {
     fontSize: 11,
@@ -108,7 +128,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   barDayToday: {
-    color: '#6366F1',
+    color: '#2563EB',
     fontWeight: '700',
   },
 });

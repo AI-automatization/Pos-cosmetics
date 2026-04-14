@@ -79,3 +79,6 @@ apps/mobile/js_errors.txt
 
 # Playwright MCP
 .playwright-mcp/
+
+# Telegram Bot secrets (use .env files only)
+*.bot.env

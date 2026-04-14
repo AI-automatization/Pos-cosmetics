@@ -28,8 +28,8 @@ const ALERT_ICONS: Record<string, string> = {
 };
 
 function AlertRow({ item, onPress }: { item: Alert; onPress: () => void }): React.JSX.Element {
-  const priorityVariant: Record<string, 'error' | 'warning' | 'info'> = {
-    HIGH: 'error',
+  const priorityVariant: Record<string, 'danger' | 'warning' | 'info'> = {
+    HIGH: 'danger',
     MEDIUM: 'warning',
     LOW: 'info',
   };
@@ -79,7 +79,7 @@ export default function AlertsListScreen(): React.JSX.Element {
             onPress={() => navigation.navigate('AlertDetail', { alertId: item.id })}
           />
         )}
-        ListEmptyComponent={<EmptyState message={t('alerts.noAlerts')} icon="✅" />}
+        ListEmptyComponent={<EmptyState title={t('alerts.noAlerts')} />}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.list}
       />

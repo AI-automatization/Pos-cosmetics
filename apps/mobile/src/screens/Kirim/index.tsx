@@ -13,7 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import type { Receipt } from '../../api/inventory.api';
 import { useKirimData } from './useKirimData';
 import ShiftGuard from '../../components/common/ShiftGuard';
@@ -56,10 +56,10 @@ export default function KirimScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Kirim</Text>
+          <Text style={styles.headerTitle}>Kirimlar</Text>
         </View>
         <View style={styles.centerFill}>
-          <MaterialCommunityIcons name="lock-outline" size={48} color={C.muted} />
+          <Ionicons name="lock-closed-outline" size={48} color={C.muted} />
           <Text style={styles.errorText}>Bu bo'lim uchun ruxsat yo'q</Text>
           <Text style={styles.errorTextSmall}>Kerakli rol: Warehouse, Manager, Admin</Text>
         </View>
@@ -71,7 +71,7 @@ export default function KirimScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Kirim</Text>
+          <Text style={styles.headerTitle}>Kirimlar</Text>
         </View>
         <View style={styles.centerFill}>
           <ActivityIndicator size="large" color={C.primary} />
@@ -85,11 +85,11 @@ export default function KirimScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Kirim</Text>
+          <Text style={styles.headerTitle}>Kirimlar</Text>
         </View>
         <View style={styles.centerFill}>
-          <MaterialCommunityIcons
-            name={is403 ? 'lock-outline' : 'alert-circle-outline'}
+          <Ionicons
+            name={is403 ? 'lock-closed-outline' : 'alert-circle-outline'}
             size={48}
             color={C.muted}
           />
@@ -136,7 +136,7 @@ export default function KirimScreen() {
     <ShiftGuard>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Kirim</Text>
+          <Text style={styles.headerTitle}>Kirimlar</Text>
           <TouchableOpacity
             style={styles.headerIcon}
             activeOpacity={0.7}
@@ -169,7 +169,7 @@ export default function KirimScreen() {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <MaterialCommunityIcons name="package-variant-closed" size={48} color={C.muted} />
+              <Ionicons name="archive-outline" size={48} color={C.muted} />
               <Text style={styles.emptyText}>Kirim topilmadi</Text>
             </View>
           }

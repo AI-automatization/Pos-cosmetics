@@ -43,7 +43,7 @@ export default function PaymentInputBlock({
         <Switch
           value={split}
           onValueChange={onSplitToggle}
-          trackColor={{ false: '#E5E7EB', true: '#5B5BD6' }}
+          trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
           thumbColor="#FFFFFF"
         />
       </View>
@@ -185,9 +185,9 @@ const styles = StyleSheet.create({
   changeAmount: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#5B5BD6',
+    color: '#16A34A',
   },
   changeNeg: {
-    color: '#EF4444',
+    color: '#DC2626',
   },
 });

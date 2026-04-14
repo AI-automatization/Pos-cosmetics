@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { METHODS, type PaymentMethod } from './PaymentSheetTypes';
 
 // ─── Props ─────────────────────────────────────────────
@@ -13,35 +13,25 @@ interface Props {
 export default function PaymentMethodPicker({ method, onSelect }: Props) {
   return (
     <>
-      <Text style={styles.sectionLabel}>TO'LOV USULINI TANLANG</Text>
+      <Text style={styles.sectionLabel}>TO'LOV USULI</Text>
       <View style={styles.methodRow}>
         {METHODS.map((m) => {
           const active = method === m.key;
           return (
             <TouchableOpacity
               key={m.key}
-              style={[
-                styles.methodCard,
-                active && { borderColor: m.color, backgroundColor: m.color + '12' },
-              ]}
+              style={[styles.methodBtn, active && styles.methodBtnActive]}
               onPress={() => onSelect(m.key)}
               activeOpacity={0.75}
             >
-              <View style={[styles.methodIcon, { backgroundColor: m.color + '20' }]}>
-                <MaterialCommunityIcons
-                  name={m.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
-                  size={22}
-                  color={m.color}
-                />
-              </View>
-              <Text style={[styles.methodLabel, active && { color: m.color }]}>
+              <MaterialCommunityIcons
+                name={m.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
+                size={20}
+                color={active ? '#FFFFFF' : '#2563EB'}
+              />
+              <Text style={[styles.methodLabel, active && styles.methodLabelActive]}>
                 {m.label}
               </Text>
-              {active && (
-                <View style={[styles.methodCheck, { backgroundColor: m.color }]}>
-                  <Ionicons name="checkmark" size={10} color="#FFF" />
-                </View>
-              )}
             </TouchableOpacity>
           );
         })}
@@ -57,43 +47,35 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#9CA3AF',
     letterSpacing: 1.2,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   methodRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     marginBottom: 16,
   },
-  methodCard: {
+  methodBtn: {
     flex: 1,
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    gap: 6,
-    position: 'relative',
-  },
-  methodIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#2563EB',
+    backgroundColor: '#FFFFFF',
+    gap: 4,
+  },
+  methodBtnActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   methodLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#374151',
+    color: '#2563EB',
   },
-  methodCheck: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  methodLabelActive: {
+    color: '#FFFFFF',
   },
 });

@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useOmborData } from './useOmborData';
 import OmborRequestSheet from './OmborRequestSheet';
 import ShiftGuard from '../../components/common/ShiftGuard';
@@ -61,7 +61,7 @@ export default function OmborScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <OmborHeader />
         <View style={styles.centerFill}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={48} color={C.muted} />
+          <Ionicons name="alert-circle-outline" size={48} color={C.muted} />
           <Text style={styles.errorText}>Ma'lumot yuklanmadi</Text>
           <TouchableOpacity
             style={styles.retryBtn}
@@ -106,7 +106,7 @@ export default function OmborScreen() {
             onPress={() => setRequestSheetVisible(true)}
             activeOpacity={0.85}
           >
-            <MaterialCommunityIcons name="clipboard-list-outline" size={20} color={C.white} />
+            <Ionicons name="clipboard-outline" size={20} color={C.white} />
             <Text style={styles.requestBtnText}>Katta omborga so'rov yuborish</Text>
           </TouchableOpacity>
         </View>

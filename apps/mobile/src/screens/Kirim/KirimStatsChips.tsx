@@ -1,9 +1,7 @@
-// KirimStatsChips.tsx — statistika chip'lari komponenti
-
+// KirimStatsChips.tsx — statistika row komponenti
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import type { Receipt } from '../../api/inventory.api';
-import { formatCompact } from '../../utils/currency';
 import { C } from './KirimColors';
 
 interface StatsChipsProps {
@@ -14,66 +12,57 @@ export const StatsChips = React.memo(function StatsChips({ receipts }: StatsChip
   const total    = receipts.length;
   const pending  = receipts.filter((r) => r.status === 'PENDING').length;
   const received = receipts.filter((r) => r.status === 'RECEIVED').length;
-  const totalAmt = receipts.reduce((s, r) => s + r.totalCost, 0);
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.chipsRow}
-    >
-      <View style={[styles.chip, styles.chipPrimary]}>
-        <Text style={[styles.chipValue, styles.chipValuePrimary]}>{total}</Text>
-        <Text style={[styles.chipLabel, styles.chipLabelPrimary]}>Jami</Text>
+    <View style={styles.statsRow}>
+      <View style={styles.statCard}>
+        <Text style={styles.statLabel}>JAMI</Text>
+        <Text style={[styles.statValue, { color: C.primary }]}>{total}</Text>
       </View>
-      <View style={[styles.chip, styles.chipOrange]}>
-        <Text style={[styles.chipValue, styles.chipValueOrange]}>{pending}</Text>
-        <Text style={[styles.chipLabel, styles.chipLabelOrange]}>Kutilmoqda</Text>
+      <View style={[styles.statCard, styles.statBorderOrange]}>
+        <Text style={styles.statLabel}>KUTILMOQDA</Text>
+        <Text style={[styles.statValue, { color: C.orange }]}>{pending}</Text>
       </View>
-      <View style={[styles.chip, styles.chipGreen]}>
-        <Text style={[styles.chipValue, styles.chipValueGreen]}>{received}</Text>
-        <Text style={[styles.chipLabel, styles.chipLabelGreen]}>Qabul qilingan</Text>
+      <View style={[styles.statCard, styles.statBorderGreen]}>
+        <Text style={styles.statLabel}>QABUL QILINDI</Text>
+        <Text style={[styles.statValue, { color: C.green }]}>{received}</Text>
       </View>
-      <View style={[styles.chip, styles.chipBlue]}>
-        <Text style={[styles.chipValue, styles.chipValueBlue]}>{formatCompact(totalAmt)}</Text>
-        <Text style={[styles.chipLabel, styles.chipLabelBlue]}>Jami summa</Text>
-      </View>
-    </ScrollView>
+    </View>
   );
 });
 
 const styles = StyleSheet.create({
-  chipsRow: {
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
     paddingHorizontal: 16,
-    gap: 10,
-    paddingVertical: 16,
+    paddingVertical: 14,
+    backgroundColor: C.white,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
   },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  statCard: {
+    flex: 1,
+    backgroundColor: C.white,
     borderRadius: 12,
-    alignItems: 'center',
-    minWidth: 80,
+    padding: 12,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  chipPrimary:  { backgroundColor: C.primary + '15' },
-  chipOrange:   { backgroundColor: '#FEF3C7' },
-  chipGreen:    { backgroundColor: '#D1FAE5' },
-  chipBlue:     { backgroundColor: '#EFF6FF' },
-  chipValue: {
-    fontSize: 16,
+  statBorderOrange: { borderLeftWidth: 3, borderLeftColor: C.orange },
+  statBorderGreen:  { borderLeftWidth: 3, borderLeftColor: C.green },
+  statLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    letterSpacing: 0.3,
+  },
+  statValue: {
+    fontSize: 22,
     fontWeight: '800',
   },
-  chipValuePrimary: { color: C.primary },
-  chipValueOrange:  { color: C.orange },
-  chipValueGreen:   { color: C.green },
-  chipValueBlue:    { color: C.blue },
-  chipLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  chipLabelPrimary: { color: C.primary },
-  chipLabelOrange:  { color: C.orange },
-  chipLabelGreen:   { color: C.green },
-  chipLabelBlue:    { color: C.blue },
 });

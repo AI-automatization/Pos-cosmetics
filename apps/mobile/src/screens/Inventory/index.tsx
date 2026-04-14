@@ -37,7 +37,7 @@ export default function InventoryScreen() {
         keyExtractor={(item) => `${item.productId}-${item.warehouseId}`}
         renderItem={({ item }) => <LowStockItem item={item} />}
         ListEmptyComponent={
-          <EmptyState icon="✅" message={t('inventory.noLowStock')} />
+          <EmptyState title={t('inventory.noLowStock')} />
         }
         contentContainerStyle={data.length === 0 ? styles.emptyContainer : undefined}
         showsVerticalScrollIndicator={false}

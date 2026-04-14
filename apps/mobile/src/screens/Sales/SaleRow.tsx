@@ -1,24 +1,15 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { C } from './SalesColors';
-import { fmt, METHOD_STYLE } from './SalesTypes';
-import type { Payment, Sale } from './SalesTypes';
+import { fmt, type OrderStatus } from './SalesTypes';
+import type { Sale } from './SalesTypes';
 
-// ─── PayBadge ─────────────────────────────────────────────────
-interface PayBadgeProps {
-  readonly payment: Payment;
-}
-
-export function PayBadge({ payment }: PayBadgeProps) {
-  const m = METHOD_STYLE[payment.method];
-  return (
-    <View style={[styles.methodBadge, { backgroundColor: m.bg }]}>
-      <Text style={[styles.methodText, { color: m.text }]}>
-        {m.icon} {m.label}
-      </Text>
-    </View>
-  );
-}
+// ─── Status badge config ───────────────────────────────────────
+const STATUS_STYLE: Record<OrderStatus, { bg: string; text: string; label: string }> = {
+  COMPLETED: { bg: '#D1FAE5', text: '#16A34A', label: 'Bajarildi' },
+  RETURNED:  { bg: '#FEE2E2', text: '#DC2626', label: 'Qaytarildi' },
+  VOIDED:    { bg: '#F3F4F6', text: '#6B7280', label: 'Bekor qilindi' },
+};
 
 // ─── SaleRow ──────────────────────────────────────────────────
 interface SaleRowProps {
@@ -27,6 +18,8 @@ interface SaleRowProps {
 }
 
 export default function SaleRow({ sale, onPress }: SaleRowProps) {
+  const status = STATUS_STYLE[sale.status] ?? STATUS_STYLE.COMPLETED;
+
   return (
     <TouchableOpacity
       style={styles.saleRow}
@@ -34,12 +27,14 @@ export default function SaleRow({ sale, onPress }: SaleRowProps) {
       onPress={() => onPress(sale)}
     >
       <View style={styles.saleLeft}>
-        <Text style={styles.saleNum}>#{sale.num}</Text>
+        <Text style={styles.saleId}>#{String(sale.num).padStart(4, '0')}</Text>
         <Text style={styles.saleMeta}>{sale.time}  ·  {sale.items} ta mahsulot</Text>
       </View>
       <View style={styles.saleRight}>
-        <Text style={styles.saleAmount}>{fmt(sale.amount)}</Text>
-        <PayBadge payment={sale.payments[0]!} />
+        <Text style={styles.saleAmount}>{fmt(sale.amount)} UZS</Text>
+        <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+          <Text style={[styles.statusText, { color: status.text }]}>{status.label}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -57,10 +52,12 @@ const styles = StyleSheet.create({
   saleLeft: {
     gap: 4,
   },
-  saleNum: {
+  saleId: {
     fontSize: 15,
     fontWeight: '700',
-    color: C.text,
+    color: '#2563EB',
+    fontFamily: Platform.select({ ios: 'Courier New', android: 'monospace' }),
+    letterSpacing: 0.5,
   },
   saleMeta: {
     fontSize: 12,
@@ -75,12 +72,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: C.text,
   },
-  methodBadge: {
+  statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 20,
   },
-  methodText: {
+  statusText: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.3,

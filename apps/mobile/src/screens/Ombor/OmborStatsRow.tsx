@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  statBorderGreen:  { borderLeftWidth: 3, borderLeftColor: '#10B981' },
-  statBorderOrange: { borderLeftWidth: 3, borderLeftColor: '#F59E0B' },
-  statBorderRed:    { borderLeftWidth: 3, borderLeftColor: '#EF4444' },
+  statBorderGreen:  { borderLeftWidth: 3, borderLeftColor: '#16A34A' },
+  statBorderOrange: { borderLeftWidth: 3, borderLeftColor: '#D97706' },
+  statBorderRed:    { borderLeftWidth: 3, borderLeftColor: '#DC2626' },
   statLabel: {
     fontSize: 10,
     fontWeight: '700',
