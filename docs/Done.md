@@ -839,6 +839,23 @@
 
 ---
 
+## T-349 | 2026-04-15 | [MOBILE] | ibrat/feat-inventory-ui — apps/mobile/ 20 fayl review
+
+- **Mas'ul:** AbdulazizYormatov (Team Lead review)
+- **Yechim:** 20 fayl review qilindi va qabul qilindi:
+  - TS fixes: `icon as any` → `ComponentProps` (4 ta fayl)
+  - API kengaytmalar: inventory, nasiya, sales, catalog
+  - Bugfix: `user.name` → `user.firstName/lastName` (auth.store ga mos)
+  - Navigation types: 6 yangi stack param list
+  - Infra: tsconfig `@/*` alias, `safeQueryFn`, `SupportedLanguage`
+- **Topilgan muammolar → yangi tasklar:**
+  - T-346: schema.prisma da modellar o'chirilgan (ProductCertificate, PriceChange)
+  - T-347: zonalar aralashgan — mobile/web/api bir PR da
+  - T-348: 3 ta stale branch tozalash kerak
+  - T-345: CI/CD 13+ kun broken (P0)
+
+---
+
 ## T-342 | 2026-03-28 | [MOBILE] | Backend integratsiya — Smena, Kirim, Ombor, Savdo
 
 - **Mas'ul:** Abdulaziz

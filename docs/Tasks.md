@@ -2369,6 +2369,68 @@ _(hozircha yo'q)_
 
 ---
 
+## T-345 | P0 | [DEVOPS] | CI/CD BROKEN — Lint fail, prod deploy 13+ kun ishlamayapti
+
+- **Sana:** 2026-04-15
+- **Mas'ul:** Ibrat
+- **Muammo:** 2 apreldan beri barcha CI/CD pipeline FAILURE. Prod deploy bo'lmayapti. 3 ta app lint fail:
+  1. `apps/mobile` — `@typescript-eslint/no-explicit-any` + `react-hooks/exhaustive-deps` rule not found
+  2. `apps/web` — `next lint` deprecated Next.js 16 da, ESLint config migration kerak
+  3. `apps/api` — `eslint src/` fail
+- **Kutilgan:**
+  - Mobile: qolgan `as any` ni fix + eslint config da `react-hooks` plugin tekshirish
+  - Web: `npx @next/codemod@canary next-lint-to-eslint-cli .` migratsiya
+  - API: lint xatoliklarni tuzatish
+  - Pipeline yashil bo'lishi — deploy ishlashi
+- **Risk:** 13+ kun prod yangilanmagan. Security fixlar deploy bo'lmagan!
+
+---
+
+## T-346 | P1 | [BACKEND] | feat-inventory-ui — schema.prisma dan o'chirilgan modellarni tiklash
+
+- **Sana:** 2026-04-15
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/prisma/schema.prisma` — `ibrat/feat-inventory-ui` branch
+- **Muammo:** PR da quyidagi modellar o'chirilgan:
+  1. `ProductCertificate` (T-097) — `products` + `tenants` relation, `certificates` table
+  2. `PriceChange` — `priceChanges` table, price history
+  3. `Tenant` da: `productCertificates`, `promotions`, `telegramLinkTokens`, `settings`, `priceChanges` relation lari o'chirilgan
+  4. `Customer.telegramChatId` field o'chirilgan
+- **Ishlatilishi (main da):**
+  - `ProductCertificate` → `catalog.service.ts` (5 ta Prisma call: CRUD + expiring certs)
+  - `PriceChange` → `price-history.service.ts` (3 ta call: history, create, listRecent)
+  - `TelegramLinkToken` → `notify.service.ts` (5 ta call: create, find, update)
+- **Kutilgan:**
+  - O'chirilgan modellar va relation larni tiklash
+  - Agar o'chirish kerak bo'lsa — alohida task ochib, migration plan bilan kelish
+- **Risk:** Merge bo'lsa → `PrismaClientValidationError` runtime crash. 3 ta service ishlamay qoladi.
+
+---
+
+## T-347 | P1 | [BACKEND] | feat-inventory-ui PR — apps/mobile/ ajratib alohida PR ochish
+
+- **Sana:** 2026-04-15
+- **Mas'ul:** Ibrat
+- **Muammo:** `ibrat/feat-inventory-ui` branchida `apps/web/` + `apps/api/` + `apps/mobile/` (20 fayl) aralashgan. `ibrat/feat-mobile-app` da ham `apps/mobile-owner/` (2 fayl). PR qoidasi: bir PR = bir zona.
+- **Kutilgan:**
+  - `apps/mobile/` o'zgarishlarini alohida branch ga ko'chirish
+  - `apps/mobile-owner/` ham alohida
+  - `feat-inventory-ui` da faqat `apps/web/` + `apps/api/` qolsin
+  - `feat-ui-overhaul-searchable-dropdown` stale branch — o'chirish
+- **Qoida:** Har yangi PR ochishdan oldin `git diff main --name-only` bilan zonalarni tekshirish
+
+---
+
+## T-348 | P1 | [BACKEND] | Ibrat — 3 ta stale branch tozalash
+
+- **Sana:** 2026-04-15
+- **Mas'ul:** Ibrat
+- **Fayl:** remote branches
+- **Muammo:** 3 ta remote branch ochiq:
+  1. `ibrat/feat-inventory-ui` — T-346, T-347 hal bo'lgach merge yoki close
+  2. `ibrat/feat-mobile-app` — `feat-inventory-ui` bilan deyarli bir xil, cleanup kerak
+  3. `ibrat/feat-ui-overhaul-searchable-dropdown` — allaqachon merge bo'lgan, o'chirish kerak
+
 ---
 
 # ══════════════════════════════════════════════════════════════
