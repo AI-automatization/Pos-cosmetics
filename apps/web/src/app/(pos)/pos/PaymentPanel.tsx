@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   ChevronRight,
   Star,
+  CheckCircle2,
 } from 'lucide-react';
 import { useLoyaltyAccount, useLoyaltyConfig, pointsToMoney } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
@@ -31,11 +32,27 @@ const QUICK_CASH = [5000, 10000, 20000, 50000, 100000];
 export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const store = usePOSStore();
   const cart = store.carts[store.activeCartId];
-  const { items, paymentMethod, cashAmount, cardAmount, orderDiscount, orderDiscountType, selectedCustomer, bonusPoints } = cart;
-  const { setPaymentMethod, setCashAmount, setCardAmount, setOrderDiscount, setSelectedCustomer, setBonusPoints, totals } = store;
+  const { items, paymentMethod, cashAmount, cardAmount, orderDiscount, orderDiscountType, selectedCustomer, bonusPoints, splitNasiyaAmount } = cart;
+  const { setPaymentMethod, setCashAmount, setCardAmount, setOrderDiscount, setSelectedCustomer, setBonusPoints, setSplitNasiyaAmount, totals } = store;
+
+  // Split mode: which payment types are active
+  const [splitEnabled, setSplitEnabled] = useState({
+    cash: true, card: true, nasiya: false, bonus: false,
+  });
+
+  // Reset split state when switching away from split
+  useEffect(() => {
+    if (paymentMethod !== 'split') {
+      setSplitEnabled({ cash: true, card: true, nasiya: false, bonus: false });
+      setSplitNasiyaAmount(0);
+      if (paymentMethod !== 'nasiya' && paymentMethod !== 'bonus') setBonusPoints(0);
+    }
+  }, [paymentMethod]);
 
   const { data: loyaltyAccount } = useLoyaltyAccount(
-    paymentMethod === 'bonus' ? selectedCustomer?.id : null,
+    (paymentMethod === 'bonus' || (paymentMethod === 'split' && splitEnabled.bonus))
+      ? selectedCustomer?.id
+      : null,
   );
   const { data: loyaltyConfig } = useLoyaltyConfig();
   const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
@@ -187,12 +204,10 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       </div>
 
-      {/* Cash input (cash or split) */}
-      {(paymentMethod === 'cash' || paymentMethod === 'split') && (
+      {/* Cash input — cash only mode */}
+      {paymentMethod === 'cash' && (
         <div className="shrink-0 border-b border-gray-100 p-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">
-            {paymentMethod === 'split' ? 'Naqd miqdori' : 'Mijoz berdi'}
-          </p>
+          <p className="mb-2 text-xs font-medium text-gray-500">Mijoz berdi</p>
           <input
             type="number"
             value={cashAmount || ''}
@@ -202,20 +217,13 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           />
           <div className="mt-2 flex flex-wrap gap-1">
             {QUICK_CASH.filter((v) => v >= total * 0.5).slice(0, 4).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setCashAmount(v)}
-                className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-              >
+              <button key={v} type="button" onClick={() => setCashAmount(v)}
+                className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
                 {(v / 1000).toFixed(0)}K
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => setCashAmount(total)}
-              className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
-            >
+            <button type="button" onClick={() => setCashAmount(total)}
+              className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100">
               Teng
             </button>
           </div>
@@ -230,19 +238,163 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       )}
 
-      {/* Card input for split */}
-      {paymentMethod === 'split' && (
-        <div className="shrink-0 border-b border-gray-100 p-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">Karta miqdori</p>
-          <input
-            type="number"
-            value={cardAmount || ''}
-            onChange={(e) => setCardAmount(parseFloat(e.target.value) || 0)}
-            placeholder={formatPrice(Math.max(0, total - cashAmount))}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-base font-bold text-gray-900 outline-none transition focus:border-blue-400"
-          />
-        </div>
-      )}
+      {/* ─── ARALASH (split) — 4-way payment ─── */}
+      {paymentMethod === 'split' && (() => {
+        const splitPaid = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * 100;
+        const remaining = total - splitPaid;
+        const needsCustomer = splitEnabled.nasiya || splitEnabled.bonus;
+        return (
+          <div className="shrink-0 overflow-y-auto border-b border-gray-100">
+            {/* Toggle chips */}
+            <div className="border-b border-gray-100 p-3">
+              <p className="mb-2 text-xs font-medium text-gray-500">To&apos;lov usullarini tanlang</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {([
+                  { key: 'cash' as const, label: 'Naqd', color: 'blue' },
+                  { key: 'card' as const, label: 'Karta', color: 'blue' },
+                  { key: 'bonus' as const, label: 'Bonus', color: 'violet' },
+                  { key: 'nasiya' as const, label: 'Nasiya', color: 'orange' },
+                ] as { key: keyof typeof splitEnabled; label: string; color: string }[]).map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => {
+                      const next = { ...splitEnabled, [t.key]: !splitEnabled[t.key] };
+                      setSplitEnabled(next);
+                      if (!next[t.key]) {
+                        if (t.key === 'cash') setCashAmount(0);
+                        if (t.key === 'card') setCardAmount(0);
+                        if (t.key === 'bonus') setBonusPoints(0);
+                        if (t.key === 'nasiya') setSplitNasiyaAmount(0);
+                      }
+                    }}
+                    className={cn(
+                      'flex flex-col items-center gap-0.5 rounded-xl border py-2 text-[11px] font-medium transition',
+                      splitEnabled[t.key]
+                        ? t.color === 'violet'
+                          ? 'border-violet-400 bg-violet-50 text-violet-700'
+                          : t.color === 'orange'
+                            ? 'border-orange-400 bg-orange-50 text-orange-700'
+                            : 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:bg-gray-50',
+                    )}
+                  >
+                    {splitEnabled[t.key]
+                      ? <CheckCircle2 className="h-3.5 w-3.5" />
+                      : <span className="h-3.5 w-3.5 rounded-full border-2 border-current" />}
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Customer selection (needed for nasiya or bonus) */}
+            {needsCustomer && (
+              <div className="border-b border-gray-100 p-3">
+                {selectedCustomer ? (
+                  <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <UserCircle className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{selectedCustomer.name}</p>
+                        <p className="text-xs text-gray-400">+{selectedCustomer.phone}</p>
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => setShowCustomerModal(true)}
+                      className="text-xs text-blue-600 hover:underline">O&apos;zgartirish</button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setShowCustomerModal(true)}
+                    className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-2.5 transition hover:border-blue-300 hover:bg-blue-50">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                      <UserCircle className="h-4 w-4" />
+                      Xaridorni tanlang (Nasiya/Bonus uchun)
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-gray-400" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Cash input */}
+            {splitEnabled.cash && (
+              <div className="border-b border-gray-100 p-3">
+                <p className="mb-1.5 text-xs font-medium text-gray-500">Naqd miqdori</p>
+                <input type="number" value={cashAmount || ''} onChange={(e) => setCashAmount(parseFloat(e.target.value) || 0)}
+                  placeholder={formatPrice(Math.max(0, remaining + cashAmount))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-blue-400" />
+                <div className="mt-1.5 flex gap-1">
+                  {QUICK_CASH.filter((v) => v >= total * 0.2).slice(0, 3).map((v) => (
+                    <button key={v} type="button" onClick={() => setCashAmount(v)}
+                      className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-blue-50 hover:text-blue-700">
+                      {(v / 1000).toFixed(0)}K
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Card input */}
+            {splitEnabled.card && (
+              <div className="border-b border-gray-100 p-3">
+                <p className="mb-1.5 text-xs font-medium text-gray-500">Karta miqdori</p>
+                <input type="number" value={cardAmount || ''} onChange={(e) => setCardAmount(parseFloat(e.target.value) || 0)}
+                  placeholder={formatPrice(Math.max(0, remaining + cardAmount))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-blue-400" />
+              </div>
+            )}
+
+            {/* Bonus input */}
+            {splitEnabled.bonus && selectedCustomer && (
+              <div className="border-b border-gray-100 p-3">
+                <p className="mb-1.5 text-xs font-medium text-gray-500">
+                  Bonuslar{loyaltyAccount ? ` (mavjud: ${loyaltyAccount.points} ball)` : ''}
+                </p>
+                <input type="number" value={bonusPoints || ''} min={0}
+                  max={loyaltyAccount?.points ?? 0}
+                  onChange={(e) => setBonusPoints(parseFloat(e.target.value) || 0)}
+                  placeholder={String(Math.ceil(Math.max(0, remaining + bonusPoints * 100) / 100))}
+                  className="w-full rounded-xl border border-violet-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-violet-400" />
+                {bonusPoints > 0 && (
+                  <p className="mt-1 text-right text-xs text-violet-600">
+                    = {formatPrice(bonusPoints * redeemRate)}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Nasiya input */}
+            {splitEnabled.nasiya && selectedCustomer && (
+              <div className="border-b border-gray-100 p-3">
+                <p className="mb-1.5 text-xs font-medium text-gray-500">Nasiya miqdori</p>
+                <input type="number" value={splitNasiyaAmount || ''} onChange={(e) => setSplitNasiyaAmount(parseFloat(e.target.value) || 0)}
+                  placeholder={formatPrice(Math.max(0, remaining + splitNasiyaAmount))}
+                  className="w-full rounded-xl border border-orange-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-orange-400" />
+                {selectedCustomer.hasOverdue && (
+                  <div className="mt-1 flex items-center gap-1 text-xs text-yellow-700">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>Muddati o&apos;tgan qarz: {formatPrice(selectedCustomer.overdueAmount)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Remaining balance indicator */}
+            <div className={cn(
+              'p-3 flex items-center justify-between text-sm font-semibold',
+              remaining === 0 ? 'text-green-700' : remaining > 0 ? 'text-red-600' : 'text-yellow-700',
+            )}>
+              {remaining === 0 ? (
+                <><CheckCircle2 className="h-4 w-4" /> To&apos;liq qoplandi</>
+              ) : remaining > 0 ? (
+                <><AlertTriangle className="h-4 w-4" /> {formatPrice(remaining)} yetishmaydi</>
+              ) : (
+                <span>Ortiqcha: {formatPrice(-remaining)}</span>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Nasiya — customer selection */}
       {paymentMethod === 'nasiya' && (
