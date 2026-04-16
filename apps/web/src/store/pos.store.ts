@@ -15,6 +15,7 @@ export interface CartState {
   cashAmount: number;
   cardAmount: number;
   bonusPoints: number;
+  splitNasiyaAmount: number;
   selectedCustomer: Customer | null;
 }
 
@@ -27,6 +28,7 @@ export const emptyCart = (id: string): CartState => ({
   cashAmount: 0,
   cardAmount: 0,
   bonusPoints: 0,
+  splitNasiyaAmount: 0,
   selectedCustomer: null,
 });
 
@@ -55,6 +57,7 @@ interface POSState {
   setCashAmount: (amount: number) => void;
   setCardAmount: (amount: number) => void;
   setBonusPoints: (points: number) => void;
+  setSplitNasiyaAmount: (amount: number) => void;
   setSelectedCustomer: (customer: Customer | null) => void;
 
   // Shift
@@ -177,6 +180,7 @@ export const usePOSStore = create<POSState>()(
       setCashAmount: (amount) => set((s) => patchActive(s, { cashAmount: Math.max(0, amount) })),
       setCardAmount: (amount) => set((s) => patchActive(s, { cardAmount: Math.max(0, amount) })),
       setBonusPoints: (points) => set((s) => patchActive(s, { bonusPoints: Math.max(0, points) })),
+      setSplitNasiyaAmount: (amount) => set((s) => patchActive(s, { splitNasiyaAmount: Math.max(0, amount) })),
       setSelectedCustomer: (customer) => set((s) => patchActive(s, { selectedCustomer: customer })),
 
       totals: () => {

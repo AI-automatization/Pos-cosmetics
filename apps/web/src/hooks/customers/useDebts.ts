@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { apiClient } from '@/api/client';
 import { debtApi } from '@/api/debt.api';
 import { customerApi } from '@/api/customer.api';
 import { extractErrorMessage } from '@/lib/utils';
@@ -54,6 +55,18 @@ export function useNasiyaSummary() {
     queryKey: ['debts', 'summary'],
     queryFn: () => debtApi.getSummary(),
     staleTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/** Bitta qarzning to'liq tafsiloti — to'lov tarixi va buyurtma itemlari bilan */
+export function useDebtDetail(debtId: string | null) {
+  return useQuery({
+    queryKey: ['debt-detail', debtId],
+    queryFn: () => apiClient.get(`/debts/${debtId}`).then((r) => r.data),
+    enabled: !!debtId,
+    staleTime: 30_000,
     retry: false,
     refetchOnWindowFocus: false,
   });
