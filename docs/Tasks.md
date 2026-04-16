@@ -1252,15 +1252,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-125 | P0 | [BACKEND] | Swagger/OpenAPI documentation — API docs setup
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/main.ts`, `apps/api/src/**/*.dto.ts`
-- **Muammo:** Swagger dokumentatsiya to'liq sozlanmagan. DTO larga `@ApiProperty()` kerak.
-- **Kutilgan:** `/api/docs` da to'liq interaktiv API dokumentatsiya, barcha endpointlar bilan
-
----
 
 ## T-126 | P0 | [BACKEND] | Test infrastructure — Jest setup + first tests
 
