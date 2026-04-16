@@ -1,32 +1,5 @@
 import api from './client';
 
-interface WarehouseInvoiceItem {
-  productId: string;
-  productName?: string;
-  product?: { name?: string };
-  quantity?: number;
-  qty?: number;
-  unit?: string;
-  purchasePrice?: number;
-  costPrice?: number;
-  batchNumber?: string;
-  expiryDate?: string;
-}
-
-interface WarehouseInvoice {
-  id: string;
-  invoiceNumber?: string;
-  createdAt: string;
-  supplier?: { name?: string };
-  supplierName?: string;
-  items?: WarehouseInvoiceItem[];
-  itemsCount?: number;
-  totalCost: number;
-  status: string;
-  notes?: string;
-  note?: string;
-}
-
 export interface LowStockItem {
   productId: string;
   productName: string;
@@ -103,6 +76,27 @@ export interface CreateReceiptResponse {
   status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
 }
 
+export interface TransferItem {
+  productId: string;
+  quantity: number;
+  warehouseId?: string;
+}
+
+export interface CreateTransferBody {
+  fromBranchId: string;
+  toBranchId: string;
+  items: TransferItem[];
+  notes?: string;
+}
+
+export interface CreateTransferResponse {
+  id: string;
+  status: string;
+  fromBranchId: string;
+  toBranchId: string;
+  createdAt: string;
+}
+
 export type StockItem = LowStockItem;
 
 export const inventoryApi = {
@@ -140,25 +134,27 @@ export const inventoryApi = {
     from?: string;
     to?: string;
   }): Promise<ReceiptListResponse> => {
-    const { data } = await api.get<{ items?: WarehouseInvoice[]; data?: WarehouseInvoice[]; total: number; page: number; limit: number }>(
+    const { data } = await api.get<{ invoices?: unknown[]; items?: unknown[]; data?: unknown[]; total: number; page: number; limit: number }>(
       '/warehouse/invoices',
       { params },
     );
-    const items: Receipt[] = ((data.items ?? data.data) ?? []).map((r) => ({
+    // Backend returns { invoices, total, page, limit } — check all possible keys
+    const rawItems: unknown[] = data.invoices ?? data.items ?? data.data ?? [];
+    const items: Receipt[] = rawItems.map((r: any) => ({
       id: r.id,
       receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
-      date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
+      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('uz-UZ') : '—',
       supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      totalCost: r.totalCost,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      totalCost: r.totalCost ?? 0,
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
       notes: r.notes ?? r.note,
     }));
-    return { items, total: data.total, page: data.page, limit: data.limit };
+    return { items, total: data.total ?? 0, page: data.page ?? 1, limit: data.limit ?? 20 };
   },
 
   getReceiptById: async (id: string): Promise<Receipt> => {
-    const { data } = await api.get<WarehouseInvoice>(`/warehouse/invoices/${id}`);
+    const { data } = await api.get<any>(`/warehouse/invoices/${id}`);
     const r = data;
     return {
       id: r.id,
@@ -167,9 +163,9 @@ export const inventoryApi = {
       supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
       totalCost: r.totalCost,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
       notes: r.notes ?? r.note,
-      items: r.items?.map((item) => ({
+      items: r.items?.map((item: any) => ({
         productId: item.productId,
         productName: item.productName ?? item.product?.name ?? '',
         qty: item.quantity ?? item.qty,
@@ -181,8 +177,14 @@ export const inventoryApi = {
     };
   },
 
+  createTransfer: async (body: CreateTransferBody): Promise<CreateTransferResponse> => {
+    const { data } = await api.post<CreateTransferResponse>('/inventory/transfers', body);
+    return data;
+  },
+
   createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {
     const payload = {
+      supplierName: body.supplierName,
       invoiceNumber: body.invoiceNumber,
       note: body.notes,
       items: body.items.map(item => ({
@@ -190,10 +192,10 @@ export const inventoryApi = {
         quantity: item.quantity,
         purchasePrice: item.costPrice,
         batchNumber: item.batchNumber,
-        expiryDate: item.expiryDate,
+        expiryDate: item.expiryDate || undefined,
       })),
     };
-    const { data } = await api.post<WarehouseInvoice>('/warehouse/invoices', payload);
+    const { data } = await api.post<any>('/warehouse/invoices', payload);
     const r = data;
     return {
       id: r.id,
@@ -201,7 +203,15 @@ export const inventoryApi = {
       date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
       totalCost: r.totalCost,
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
     };
+  },
+
+  approveReceipt: async (id: string): Promise<void> => {
+    await api.patch(`/warehouse/invoices/${id}/approve`);
+  },
+
+  rejectReceipt: async (id: string): Promise<void> => {
+    await api.patch(`/warehouse/invoices/${id}/reject`);
   },
 };

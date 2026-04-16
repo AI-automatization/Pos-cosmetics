@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, Camera, type BarcodeType } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -9,9 +9,34 @@ interface Props {
   onBarcodeScanned: (event: { data: string }) => void;
 }
 
+// Barcode types outside component — stable reference, no re-renders
+const BARCODE_TYPES: BarcodeType[] = ['ean13', 'ean8', 'upc_a', 'code128', 'code39'];
+
 export default function CameraSection({ isScanActive, onActivate, onBarcodeScanned }: Props) {
   const { t } = useTranslation();
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, setPermission] = useState<{ granted: boolean } | null>(null);
+
+  // Stable refs — iOS New Architecture: CameraView prop must not toggle
+  // undefined ↔ function. Use refs so callback reference never changes.
+  const isScanActiveRef = useRef(isScanActive);
+  isScanActiveRef.current = isScanActive;
+  const onBarcodeScannedRef = useRef(onBarcodeScanned);
+  onBarcodeScannedRef.current = onBarcodeScanned;
+
+  // Stable callback: created once, reads latest state via refs
+  const stableOnBarcodeScanned = useCallback((event: { data: string }) => {
+    if (!isScanActiveRef.current) return;
+    onBarcodeScannedRef.current(event);
+  }, []);
+
+  useEffect(() => {
+    Camera.getCameraPermissionsAsync().then(setPermission);
+  }, []);
+
+  const requestPermission = async () => {
+    const result = await Camera.requestCameraPermissionsAsync();
+    setPermission(result);
+  };
 
   if (!permission) {
     return <View style={styles.cameraContainer} />;
@@ -33,10 +58,8 @@ export default function CameraSection({ isScanActive, onActivate, onBarcodeScann
       <CameraView
         style={styles.camera}
         facing="back"
-        onBarcodeScanned={isScanActive ? onBarcodeScanned : undefined}
-        barcodeScannerSettings={{
-          barcodeTypes: ['ean13', 'ean8', 'upc_a', 'code128', 'code39'],
-        }}
+        onBarcodeScanned={stableOnBarcodeScanned}
+        barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES }}
       />
       <View style={styles.overlay}>
         <View style={styles.scanFrame} />

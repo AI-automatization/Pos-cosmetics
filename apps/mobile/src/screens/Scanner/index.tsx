@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCameraPermissions } from 'expo-camera';
+import { Camera } from 'expo-camera';
 import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -14,8 +14,17 @@ import { useScannerData } from './useScannerData';
 export default function ScannerScreen() {
   const { t } = useTranslation();
   const isFocused = useIsFocused();
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, setPermission] = useState<{ granted: boolean } | null>(null);
   const [isScanActive, setIsScanActive] = useState(false);
+
+  useEffect(() => {
+    Camera.getCameraPermissionsAsync().then(setPermission);
+  }, []);
+
+  const requestPermission = async () => {
+    const result = await Camera.requestCameraPermissionsAsync();
+    setPermission(result);
+  };
   const [countModalVisible, setCountModalVisible] = useState(false);
   const [pendingActualQty, setPendingActualQty] = useState('');
 
