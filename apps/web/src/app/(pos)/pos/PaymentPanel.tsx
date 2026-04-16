@@ -44,8 +44,9 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   useEffect(() => {
     if (paymentMethod !== 'split') {
       setSplitEnabled({ cash: true, card: true, nasiya: false, bonus: false });
-      setSplitNasiyaAmount(0);
-      if (paymentMethod !== 'nasiya' && paymentMethod !== 'bonus') setBonusPoints(0);
+      // Only update store when values are non-zero to avoid unnecessary re-renders
+      if (splitNasiyaAmount !== 0) setSplitNasiyaAmount(0);
+      if (paymentMethod !== 'nasiya' && paymentMethod !== 'bonus' && bonusPoints !== 0) setBonusPoints(0);
     }
   }, [paymentMethod]);
 
