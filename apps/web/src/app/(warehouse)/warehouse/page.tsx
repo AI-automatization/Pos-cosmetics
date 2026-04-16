@@ -1,10 +1,29 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Package, TrendingDown, AlertTriangle, ArrowUpDown, RefreshCw, Bell, CheckCheck } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWarehouseDashboard, useWarehouseAlerts } from '@/hooks/warehouse/useWarehouseInvoices';
 import { notificationsApi } from '@/api/notifications.api';
 import { cn } from '@/lib/utils';
+
+function playBeep() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.35);
+    osc.onended = () => ctx.close();
+  } catch {
+    // AudioContext not available (SSR / test env)
+  }
+}
 
 function StatCard({
   icon: Icon,
@@ -59,6 +78,15 @@ export default function WarehouseDashboardPage() {
     mutationFn: () => notificationsApi.markAllRead(),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['restock-requests'] }),
   });
+
+  // T-340: beep when new restock requests arrive (count increases)
+  const prevCountRef = useRef(restockRequests.length);
+  useEffect(() => {
+    if (restockRequests.length > prevCountRef.current) {
+      playBeep();
+    }
+    prevCountRef.current = restockRequests.length;
+  }, [restockRequests.length]);
 
   if (isLoading) {
     return (
