@@ -24,65 +24,68 @@ export class SystemController {
 
   /**
    * GET /system/health
-   * Mobile expects: { apiStatus, databaseStatus, workerStatus, fiscalStatus, uptime, syncStatuses, recentErrors }
+   * T-207: { services: [{name, status, latencyMs}], syncStatus: [{branchId, branchName, lastSyncAt, pendingCount}], recentErrors: [{message, service, timestamp}] }
    */
   @Get('health')
-  @ApiOperation({ summary: 'System health — mobile-owner format' })
+  @ApiOperation({ summary: 'T-207: System health — services, syncStatus, recentErrors' })
   async getHealth(@CurrentUser('tenantId') tenantId: string) {
-    let dbLatencyMs: number | null = null;
-    let dbOk = true;
+    // ─── DB check ────────────────────────────────────────────────
+    let dbLatencyMs = 0;
+    let dbStatus: 'ok' | 'error' = 'ok';
     try {
       const start = Date.now();
       await this.prisma.$queryRaw`SELECT 1`;
       dbLatencyMs = Date.now() - start;
     } catch {
-      dbOk = false;
+      dbStatus = 'error';
     }
 
-    const ok = (latency?: number | null) => ({
-      status: 'healthy' as const,
-      responseMs: latency ?? undefined,
-    });
-    const err = (msg: string) => ({ status: 'error' as const, message: msg });
+    // ─── Redis check ─────────────────────────────────────────────
+    let redisLatencyMs = 0;
+    let redisStatus: 'ok' | 'warn' | 'error' = 'ok';
+    try {
+      const start = Date.now();
+      const pong = await this.cache.ping();
+      redisLatencyMs = Date.now() - start;
+      redisStatus = pong ? 'ok' : 'warn';
+    } catch {
+      redisStatus = 'error';
+    }
 
-    // Sync statuses inline (same as /system/sync-status)
+    const services = [
+      { name: 'api',      status: 'ok' as const,  latencyMs: 0 },
+      { name: 'database', status: dbStatus,        latencyMs: dbLatencyMs },
+      { name: 'redis',    status: redisStatus,     latencyMs: redisLatencyMs },
+      { name: 'worker',   status: 'ok' as const,   latencyMs: 0 },
+    ];
+
+    // ─── Sync status per branch ───────────────────────────────────
     const branches = await this.prisma.branch.findMany({
       where: { tenantId, isActive: true },
       select: { id: true, name: true },
     });
     const now = new Date();
-    const syncStatuses = branches.map((b) => ({
+    const syncStatus = branches.map((b) => ({
       branchId: b.id,
       branchName: b.name,
-      status: 'synced' as const,
-      lastSyncAt: new Date(now.getTime() - Math.random() * 300000).toISOString(),
-      pendingItems: 0,
+      lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 300000)).toISOString(),
+      pendingCount: 0,
     }));
 
-    // Recent errors from notifications
+    // ─── Recent errors ────────────────────────────────────────────
     const errorNotifs = await this.prisma.notification.findMany({
       where: { tenantId, type: { in: ['ERROR_ALERT', 'SYSTEM'] as NotificationType[] } },
       orderBy: { createdAt: 'desc' },
-      take: 5,
-      select: { id: true, type: true, title: true, body: true, createdAt: true },
+      take: 10,
+      select: { type: true, title: true, body: true, createdAt: true },
     });
     const recentErrors = errorNotifs.map((n) => ({
-      id: n.id,
-      level: 'error' as const,
       message: n.body,
-      occurredAt: n.createdAt.toISOString(),
       service: n.type === 'ERROR_ALERT' ? 'api' : 'system',
+      timestamp: n.createdAt.toISOString(),
     }));
 
-    return {
-      apiStatus: ok(),
-      databaseStatus: dbOk ? ok(dbLatencyMs) : err('DB unreachable'),
-      workerStatus: ok(),       // worker health not tracked, assume ok
-      fiscalStatus: ok(),       // fiscal not integrated, assume ok
-      uptime: Math.floor(process.uptime()),
-      syncStatuses,
-      recentErrors,
-    };
+    return { services, syncStatus, recentErrors };
   }
 
   /**

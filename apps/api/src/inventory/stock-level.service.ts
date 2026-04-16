@@ -199,6 +199,170 @@ export class StockLevelService {
     }));
   }
 
+  // ─── T-202: LOW STOCK LIST ───────────────────────────────────
+  // GET /inventory/low-stock?branch_id=&limit=20
+  async getLowStockList(
+    tenantId: string,
+    branchId?: string,
+    limit = 20,
+  ): Promise<{ items: { productId: string; productName: string; quantity: number; unit: string; threshold: number; status: string }[] }> {
+    const branchFilter = branchId ? Prisma.sql`AND w.branch_id = ${branchId}` : Prisma.empty;
+    const limitVal = Math.min(Math.max(limit, 1), 100);
+
+    const rows = await this.prisma.$queryRaw<{
+      productId: string;
+      productName: string;
+      quantity: number;
+      unit: string | null;
+      threshold: number;
+    }[]>`
+      SELECT
+        p.id                                  AS "productId",
+        p.name                                AS "productName",
+        COALESCE(SUM(CASE
+          WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
+          WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity
+          ELSE -sm.quantity
+        END), 0)::float                       AS quantity,
+        u.short_name                          AS unit,
+        COALESCE(p.min_stock_level, 5)::float AS threshold
+      FROM products p
+      LEFT JOIN units u ON u.id = p.unit_id
+      LEFT JOIN stock_movements sm
+        ON sm.product_id = p.id
+        AND sm.tenant_id = p.tenant_id
+      LEFT JOIN warehouses w ON w.id = sm.warehouse_id
+      WHERE p.tenant_id  = ${tenantId}
+        AND p.deleted_at IS NULL
+        AND p.is_active  = true
+        ${branchFilter}
+      GROUP BY p.id, p.name, u.short_name, p.min_stock_level
+      HAVING COALESCE(SUM(CASE
+          WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
+          WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity
+          ELSE -sm.quantity
+        END), 0) <= COALESCE(p.min_stock_level, 5)
+      ORDER BY quantity ASC
+      LIMIT ${limitVal}
+    `;
+
+    const items = rows.map((r) => {
+      const qty = Number(r.quantity);
+      const status = qty <= 0 ? 'out_of_stock' : 'low';
+      return {
+        productId: r.productId,
+        productName: r.productName,
+        quantity: qty,
+        unit: r.unit ?? 'dona',
+        threshold: Number(r.threshold),
+        status,
+      };
+    });
+
+    return { items };
+  }
+
+  // ─── T-202: INVENTORY ITEMS (paginated) ───────────────────────
+  // GET /inventory/items?branchId=&status=&search=&page=&limit=
+  async getInventoryItems(
+    tenantId: string,
+    opts: {
+      branchId?: string;
+      status?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
+    const page = Math.max(opts.page ?? 1, 1);
+    const limit = Math.min(opts.limit ?? 20, 100);
+    const offset = (page - 1) * limit;
+
+    const branchFilter = opts.branchId
+      ? Prisma.sql`AND w.branch_id = ${opts.branchId}`
+      : Prisma.empty;
+
+    const searchFilter = opts.search
+      ? Prisma.sql`AND (p.name ILIKE ${'%' + opts.search + '%'} OR p.barcode ILIKE ${'%' + opts.search + '%'})`
+      : Prisma.empty;
+
+    type RawRow = {
+      productId: string; productName: string; barcode: string | null;
+      branchName: string | null; branchId: string | null;
+      quantity: number; unit: string | null;
+      costPrice: number; threshold: number;
+      expiryDate: Date | null;
+    };
+
+    const rows = await this.prisma.$queryRaw<RawRow[]>`
+      SELECT
+        p.id                                    AS "productId",
+        p.name                                  AS "productName",
+        p.barcode,
+        b.name                                  AS "branchName",
+        w.branch_id                             AS "branchId",
+        COALESCE(SUM(CASE
+          WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity
+          WHEN sm.type = 'ADJUSTMENT'           THEN sm.quantity
+          ELSE -sm.quantity
+        END), 0)::float                         AS quantity,
+        u.short_name                            AS unit,
+        p.cost_price::float                     AS "costPrice",
+        COALESCE(p.min_stock_level, 5)::float   AS threshold,
+        MAX(sm.expiry_date)                     AS "expiryDate"
+      FROM products p
+      LEFT JOIN units u         ON u.id = p.unit_id
+      LEFT JOIN stock_movements sm
+        ON sm.product_id = p.id AND sm.tenant_id = p.tenant_id
+      LEFT JOIN warehouses w    ON w.id = sm.warehouse_id
+      LEFT JOIN branches b      ON b.id = w.branch_id
+      WHERE p.tenant_id  = ${tenantId}
+        AND p.deleted_at IS NULL
+        AND p.is_active  = true
+        ${branchFilter}
+        ${searchFilter}
+      GROUP BY p.id, p.name, p.barcode, b.name, w.branch_id, u.short_name, p.cost_price, p.min_stock_level
+    `;
+
+    const now = new Date();
+    const soon = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const withStatus = rows.map((r) => {
+      const qty = Number(r.quantity);
+      const threshold = Number(r.threshold);
+      const expiry = r.expiryDate ? new Date(r.expiryDate) : null;
+
+      let status: string;
+      if (expiry && expiry < now) status = 'expired';
+      else if (expiry && expiry <= soon) status = 'expiring';
+      else if (qty <= 0) status = 'out_of_stock';
+      else if (qty <= threshold) status = 'low';
+      else status = 'normal';
+
+      return {
+        productId: r.productId,
+        productName: r.productName,
+        barcode: r.barcode ?? null,
+        branchName: r.branchName ?? null,
+        branchId: r.branchId ?? null,
+        quantity: qty,
+        unit: r.unit ?? 'dona',
+        stockValue: qty * Number(r.costPrice),
+        expiryDate: expiry,
+        status,
+      };
+    });
+
+    const filtered = opts.status
+      ? withStatus.filter((i) => i.status === opts.status)
+      : withStatus;
+
+    const total = filtered.length;
+    const items = filtered.slice(offset, offset + limit);
+
+    return { items, total, page, limit };
+  }
+
   // Proxy — StockFilterDto uchun
   getStockMovements(tenantId: string, filter: StockFilterDto) {
     const page = filter.page ?? 1;

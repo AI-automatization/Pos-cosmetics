@@ -97,6 +97,19 @@ export class EmployeesController {
     return this.svc.updateStatus(tenantId, id, dto.status);
   }
 
+  // PATCH /employees/:id/transfer
+  @Patch(':id/transfer')
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Xodimni boshqa filialgा ko\'chirish' })
+  @ApiParam({ name: 'id', type: String })
+  transferEmployee(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id') id: string,
+    @Body() body: { branchId: string },
+  ) {
+    return this.svc.transferEmployee(tenantId, id, body.branchId);
+  }
+
   // PATCH /employees/:id/pos-access
   @Patch(':id/pos-access')
   @ApiOperation({ summary: 'T-224: POS kirish ruxsatini o\'zgartirish' })
@@ -126,13 +139,16 @@ export class EmployeesController {
 
   // GET /employees/:id/suspicious-activity
   @Get(':id/suspicious-activity')
-  @ApiOperation({ summary: 'T-224: Bitta xodim shubhali harakatlari' })
+  @ApiOperation({ summary: 'T-204: Bitta xodim shubhali harakatlari — { activities: [...] }' })
   @ApiParam({ name: 'id', type: String })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default: 20, max: 100' })
   getEmployeeSuspiciousActivity(
     @CurrentUser('tenantId') tenantId: string,
     @Param('id') id: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.svc.getEmployeeSuspiciousActivity(tenantId, id);
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    return this.svc.getEmployeeSuspiciousActivity(tenantId, id, isNaN(limitNum) ? 20 : limitNum);
   }
 
   // DELETE /employees/:id

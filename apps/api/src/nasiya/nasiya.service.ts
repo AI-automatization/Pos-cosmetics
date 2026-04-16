@@ -184,48 +184,94 @@ export class NasiyaService {
     };
   }
 
-  // Mobile-owner: GET /debts/summary
-  async getSummary(tenantId: string) {
-    const now = new Date();
+  // Full debt detail with payment history and linked order items
+  async getDebtDetail(tenantId: string, debtId: string) {
+    const debt = await this.prisma.debtRecord.findFirst({
+      where: { id: debtId, tenantId },
+      include: {
+        customer: { select: { id: true, name: true, phone: true } },
+        payments: { orderBy: { createdAt: 'desc' } },
+      },
+    });
+    if (!debt) throw new NotFoundException('Nasiya topilmadi');
 
-    const [all, overdue] = await Promise.all([
-      this.prisma.debtRecord.aggregate({
-        where: {
-          tenantId,
-          status: { in: [DebtStatus.ACTIVE, DebtStatus.PARTIAL, DebtStatus.OVERDUE] },
+    // DebtRecord has orderId but no Prisma relation — fetch order separately
+    let order = null as Awaited<ReturnType<typeof this.prisma.order.findFirst>> | null;
+
+    if (debt.orderId) {
+      order = await this.prisma.order.findFirst({
+        where: { id: debt.orderId, tenantId },
+        select: {
+          id: true,
+          orderNumber: true,
+          total: true,
+          createdAt: true,
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              unitPrice: true,
+              productName: true,
+              product: { select: { name: true } },
+            },
+          },
         },
+      }) as Awaited<ReturnType<typeof this.prisma.order.findFirst>>;
+    }
+
+    this.logger.log(`Debt detail fetched: ${debtId}`, { tenantId });
+    return { ...debt, order };
+  }
+
+  // Mobile-owner: GET /debts/summary?branchId=
+  // T-206: { totalDebt, overdueDebt, overdueCount, aging: { current, days30, days60, days90plus } }
+  async getSummary(tenantId: string, branchId?: string) {
+    const now = new Date();
+    const branchFilter = branchId
+      ? { order: { branchId } } as Record<string, unknown>
+      : {};
+    const activeWhere = {
+      tenantId,
+      status: { in: [DebtStatus.ACTIVE, DebtStatus.PARTIAL, DebtStatus.OVERDUE] },
+      ...branchFilter,
+    };
+
+    const [all, overdue, activeDebts] = await Promise.all([
+      this.prisma.debtRecord.aggregate({
+        where: activeWhere,
         _sum: { remaining: true },
         _count: { id: true },
       }),
       this.prisma.debtRecord.aggregate({
-        where: {
-          tenantId,
-          status: { in: [DebtStatus.ACTIVE, DebtStatus.PARTIAL, DebtStatus.OVERDUE] },
-          dueDate: { lt: now },
-        },
+        where: { ...activeWhere, dueDate: { lt: now } },
         _sum: { remaining: true },
         _count: { id: true },
+      }),
+      this.prisma.debtRecord.findMany({
+        where: activeWhere,
+        select: { remaining: true, dueDate: true },
       }),
     ]);
 
-    const debtorCount = await this.prisma.debtRecord.groupBy({
-      by: ['customerId'],
-      where: {
-        tenantId,
-        status: { in: [DebtStatus.ACTIVE, DebtStatus.PARTIAL, DebtStatus.OVERDUE] },
-      },
-    }).then((rows) => rows.length);
-
-    const totalDebt = Number(all._sum.remaining ?? 0);
-    const count = all._count.id;
+    // Aging buckets
+    const aging = { current: 0, days30: 0, days60: 0, days90plus: 0 };
+    for (const d of activeDebts) {
+      const remaining = Number(d.remaining);
+      if (!d.dueDate || d.dueDate >= now) {
+        aging.current += remaining;
+      } else {
+        const daysOverdue = Math.floor((now.getTime() - d.dueDate.getTime()) / 86400000);
+        if (daysOverdue <= 30) aging.days30 += remaining;
+        else if (daysOverdue <= 60) aging.days60 += remaining;
+        else aging.days90plus += remaining;
+      }
+    }
 
     return {
-      totalDebt,
+      totalDebt: Number(all._sum.remaining ?? 0),
       overdueDebt: Number(overdue._sum.remaining ?? 0),
       overdueCount: overdue._count.id,
-      debtorCount,
-      avgDebt: debtorCount > 0 ? Math.round(totalDebt / debtorCount) : 0,
-      activeCount: count,
+      aging,
     };
   }
 
@@ -266,15 +312,25 @@ export class NasiyaService {
     return { buckets: result };
   }
 
-  // Mobile-owner: GET /debts/customers
-  async getDebtCustomers(tenantId: string, page = 1, limit = 20) {
+  // Mobile-owner: GET /debts/customers?branchId=&status=current|overdue&page=&limit=
+  // T-206: { customers: [{ customerId, customerName, phone, totalDebt, overdueAmount, lastPaymentDate, daysPastDue }] }
+  async getDebtCustomers(
+    tenantId: string,
+    page = 1,
+    limit = 20,
+    opts: { branchId?: string; status?: string } = {},
+  ) {
     const skip = (page - 1) * limit;
     const now = new Date();
+    const branchFilter = opts.branchId
+      ? { order: { branchId: opts.branchId } } as Record<string, unknown>
+      : {};
 
     const records = await this.prisma.debtRecord.findMany({
       where: {
         tenantId,
         status: { in: [DebtStatus.ACTIVE, DebtStatus.PARTIAL, DebtStatus.OVERDUE] },
+        ...branchFilter,
       },
       include: {
         customer: { select: { id: true, name: true, phone: true } },
@@ -283,14 +339,12 @@ export class NasiyaService {
     });
 
     // Group by customer
-    const customerMap = new Map<string, {
-      customerId: string;
-      customerName: string;
-      phone: string | null;
-      totalDebt: number;
-      overdueAmount: number;
-      debtCount: number;
-    }>();
+    type Entry = {
+      customerId: string; customerName: string; phone: string | null;
+      totalDebt: number; overdueAmount: number;
+      lastDueDate: Date | null; lastUpdatedAt: Date;
+    };
+    const customerMap = new Map<string, Entry>();
 
     for (const r of records) {
       const cId = r.customerId;
@@ -301,21 +355,49 @@ export class NasiyaService {
           phone: r.customer.phone,
           totalDebt: 0,
           overdueAmount: 0,
-          debtCount: 0,
+          lastDueDate: r.dueDate,
+          lastUpdatedAt: r.updatedAt,
         });
       }
       const entry = customerMap.get(cId)!;
       entry.totalDebt += Number(r.remaining);
-      entry.debtCount += 1;
       if (r.dueDate && r.dueDate < now) {
         entry.overdueAmount += Number(r.remaining);
+        // Track the earliest overdue due date for daysPastDue
+        if (!entry.lastDueDate || r.dueDate < entry.lastDueDate) {
+          entry.lastDueDate = r.dueDate;
+        }
+      }
+      if (r.updatedAt > entry.lastUpdatedAt) {
+        entry.lastUpdatedAt = r.updatedAt;
       }
     }
 
-    const allCustomers = Array.from(customerMap.values());
-    const total = allCustomers.length;
-    const items = allCustomers.slice(skip, skip + limit);
+    let allCustomers = Array.from(customerMap.values()).map((e) => {
+      const daysPastDue = e.lastDueDate && e.lastDueDate < now
+        ? Math.floor((now.getTime() - e.lastDueDate.getTime()) / 86400000)
+        : 0;
+      return {
+        customerId: e.customerId,
+        customerName: e.customerName,
+        phone: e.phone,
+        totalDebt: e.totalDebt,
+        overdueAmount: e.overdueAmount,
+        lastPaymentDate: e.lastUpdatedAt,
+        daysPastDue,
+      };
+    });
 
-    return { items, total, page, limit };
+    // status filter: 'current' = daysPastDue === 0, 'overdue' = daysPastDue > 0
+    if (opts.status === 'current') {
+      allCustomers = allCustomers.filter((c) => c.daysPastDue === 0);
+    } else if (opts.status === 'overdue') {
+      allCustomers = allCustomers.filter((c) => c.daysPastDue > 0);
+    }
+
+    const total = allCustomers.length;
+    const customers = allCustomers.slice(skip, skip + limit);
+
+    return { customers, total, page, limit };
   }
 }

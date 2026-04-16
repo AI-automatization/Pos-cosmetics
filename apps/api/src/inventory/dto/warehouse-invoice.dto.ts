@@ -1,7 +1,7 @@
 import { WriteOffReason } from '@prisma/client';
 import {
   IsString, IsOptional, IsArray, IsNumber, Min, IsInt, IsPositive,
-  ValidateNested, IsDateString, IsEnum, IsUUID, IsNotEmpty,
+  ValidateNested, IsDateString, IsEnum, IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -31,10 +31,10 @@ export class InvoiceItemDto {
   @IsString()
   batchNumber?: string;
 
-  @ApiProperty({ example: '2027-01-01', description: 'Muddati (YYYY-MM-DD) — majburiy' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: '2027-01-01', description: 'Muddati (YYYY-MM-DD) — ixtiyoriy' })
+  @IsOptional()
   @IsDateString()
-  expiryDate!: string;
+  expiryDate?: string;
 }
 
 export class CreateInvoiceDto {
@@ -43,7 +43,7 @@ export class CreateInvoiceDto {
   @IsString()
   supplierId?: string;
 
-  @ApiPropertyOptional({ description: 'Supplier name — creates new supplier if supplierId omitted' })
+  @ApiPropertyOptional({ example: 'Anvar Savdo', description: 'Supplier name — creates new supplier if supplierId omitted' })
   @IsOptional()
   @IsString()
   supplierName?: string;

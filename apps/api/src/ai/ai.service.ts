@@ -9,12 +9,13 @@ export class AiService {
   constructor(private readonly prisma: PrismaService) {}
 
   // ─── T-089: SALES TREND ───────────────────────────────────────
-  // GET /analytics/sales-trend?period=daily|weekly|monthly&from=&to=
+  // GET /analytics/sales-trend?period=daily|weekly|monthly&from=&to=&branch_id=
   async getSalesTrend(
     tenantId: string,
     period: 'daily' | 'weekly' | 'monthly',
     from: Date,
     to: Date,
+    branchId?: string,
   ) {
     const trunc =
       period === 'daily'
@@ -23,6 +24,7 @@ export class AiService {
           ? 'week'
           : 'month';
     const truncRaw = Prisma.raw(`'${trunc}'`);
+    const branchFilter = branchId ? Prisma.sql`AND o.branch_id = ${branchId}` : Prisma.empty;
 
     const rows = await this.prisma.$queryRaw<
       { period: Date; revenue: number; orders: number; avgBasket: number }[]
@@ -37,6 +39,7 @@ export class AiService {
         AND o.status::text = 'COMPLETED'
         AND o.created_at  >= ${from}
         AND o.created_at  <= ${to}
+        ${branchFilter}
       GROUP BY DATE_TRUNC(${truncRaw}, o.created_at)
       ORDER BY period ASC
     `;
@@ -51,15 +54,17 @@ export class AiService {
   }
 
   // ─── T-089: TOP PRODUCTS ──────────────────────────────────────
-  // GET /analytics/top-products?from=&to=&limit=10&sortBy=revenue|qty
+  // GET /analytics/top-products?from=&to=&limit=10&sortBy=revenue|qty&branch_id=
   async getTopProducts(
     tenantId: string,
     from: Date,
     to: Date,
     limit: number,
     sortBy: 'revenue' | 'qty',
+    branchId?: string,
   ) {
     const orderCol = sortBy === 'revenue' ? 'revenue' : '"qtySold"';
+    const branchFilter = branchId ? Prisma.sql`AND o.branch_id = ${branchId}` : Prisma.empty;
 
     const rows = await this.prisma.$queryRaw<
       {
@@ -85,6 +90,7 @@ export class AiService {
         AND o.status::text = 'COMPLETED'
         AND o.created_at >= ${from}
         AND o.created_at <= ${to}
+        ${branchFilter}
       GROUP BY oi.product_id, p.name
       ORDER BY ${Prisma.raw(orderCol)} DESC
       LIMIT ${limit}

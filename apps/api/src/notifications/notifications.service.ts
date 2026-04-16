@@ -294,4 +294,72 @@ export class NotificationsService {
     });
     return { count };
   }
+
+  // ─── T-203: OWNER ALERTS FEED ─────────────────────────────────
+  // Tenant-wide (not user-specific) — for mobile-owner dashboard
+
+  async getOwnerAlerts(
+    tenantId: string,
+    opts: {
+      type?: string;
+      isRead?: boolean;
+      branchId?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
+    const page = Math.max(opts.page ?? 1, 1);
+    const limit = Math.min(opts.limit ?? 20, 100);
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = { tenantId };
+    if (opts.type) where['type'] = opts.type;
+    if (opts.isRead !== undefined) where['isRead'] = opts.isRead;
+    if (opts.branchId) {
+      where['data'] = { path: ['branchId'], equals: opts.branchId };
+    }
+
+    const [total, rows, unreadCount] = await this.prisma.$transaction([
+      this.prisma.notification.count({ where }),
+      this.prisma.notification.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.notification.count({ where: { tenantId, isRead: false } }),
+    ]);
+
+    const items = rows.map((n) => {
+      const meta = (n.data ?? {}) as Record<string, unknown>;
+      return {
+        id: n.id,
+        type: n.type,
+        description: n.body,
+        branchId: (meta['branchId'] as string) ?? null,
+        branchName: (meta['branchName'] as string) ?? null,
+        isRead: n.isRead,
+        createdAt: n.createdAt,
+        metadata: meta,
+      };
+    });
+
+    return { items, total, page, limit, unreadCount };
+  }
+
+  async markOwnerAlertAsRead(tenantId: string, id: string) {
+    await this.prisma.notification.updateMany({
+      where: { id, tenantId },
+      data: { isRead: true },
+    });
+    return { success: true };
+  }
+
+  async markAllOwnerAlertsAsRead(tenantId: string) {
+    const { count } = await this.prisma.notification.updateMany({
+      where: { tenantId, isRead: false },
+      data: { isRead: true },
+    });
+    return { success: true, count };
+  }
 }
