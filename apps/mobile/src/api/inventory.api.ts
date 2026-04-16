@@ -1,5 +1,32 @@
 import api from './client';
 
+interface WarehouseInvoiceItem {
+  productId: string;
+  productName?: string;
+  product?: { name?: string };
+  quantity?: number;
+  qty?: number;
+  unit?: string;
+  purchasePrice?: number;
+  costPrice?: number;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+interface WarehouseInvoice {
+  id: string;
+  invoiceNumber?: string;
+  createdAt: string;
+  supplier?: { name?: string };
+  supplierName?: string;
+  items?: WarehouseInvoiceItem[];
+  itemsCount?: number;
+  totalCost: number;
+  status: string;
+  notes?: string;
+  note?: string;
+}
+
 export interface LowStockItem {
   productId: string;
   productName: string;
@@ -113,11 +140,11 @@ export const inventoryApi = {
     from?: string;
     to?: string;
   }): Promise<ReceiptListResponse> => {
-    const { data } = await api.get<{ items?: unknown[]; data?: unknown[]; total: number; page: number; limit: number }>(
+    const { data } = await api.get<{ items?: WarehouseInvoice[]; data?: WarehouseInvoice[]; total: number; page: number; limit: number }>(
       '/warehouse/invoices',
       { params },
     );
-    const items: Receipt[] = ((data.items ?? data.data) ?? []).map((r: any) => ({
+    const items: Receipt[] = ((data.items ?? data.data) ?? []).map((r) => ({
       id: r.id,
       receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
       date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
@@ -131,7 +158,7 @@ export const inventoryApi = {
   },
 
   getReceiptById: async (id: string): Promise<Receipt> => {
-    const { data } = await api.get<any>(`/warehouse/invoices/${id}`);
+    const { data } = await api.get<WarehouseInvoice>(`/warehouse/invoices/${id}`);
     const r = data;
     return {
       id: r.id,
@@ -142,7 +169,7 @@ export const inventoryApi = {
       totalCost: r.totalCost,
       status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
       notes: r.notes ?? r.note,
-      items: r.items?.map((item: any) => ({
+      items: r.items?.map((item) => ({
         productId: item.productId,
         productName: item.productName ?? item.product?.name ?? '',
         qty: item.quantity ?? item.qty,
@@ -166,7 +193,7 @@ export const inventoryApi = {
         expiryDate: item.expiryDate,
       })),
     };
-    const { data } = await api.post<any>('/warehouse/invoices', payload);
+    const { data } = await api.post<WarehouseInvoice>('/warehouse/invoices', payload);
     const r = data;
     return {
       id: r.id,
