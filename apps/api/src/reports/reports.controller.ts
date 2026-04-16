@@ -49,7 +49,7 @@ export class ReportsController {
   // ─── DAILY REVENUE ────────────────────────────────────────────
 
   @Get('daily-revenue')
-  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'Kunlik daromad (kuni boyicha)' })
   @ApiQuery({ name: 'from', example: '2026-02-01' })
   @ApiQuery({ name: 'to', example: '2026-02-28' })
@@ -68,7 +68,7 @@ export class ReportsController {
   // ─── TOP PRODUCTS ─────────────────────────────────────────────
 
   @Get('top-products')
-  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'Eng kop sotilgan mahsulotlar' })
   @ApiQuery({ name: 'from', required: false })
   @ApiQuery({ name: 'to', required: false })
@@ -89,7 +89,7 @@ export class ReportsController {
   // ─── SALES SUMMARY ────────────────────────────────────────────
 
   @Get('sales-summary')
-  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'Savdo xulosasi (jami, qaytarishlar, tolov turlari)' })
   @ApiQuery({ name: 'from', required: false })
   @ApiQuery({ name: 'to', required: false })
