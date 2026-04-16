@@ -51,6 +51,7 @@ export class AiController {
   @ApiQuery({ name: 'period', enum: ['daily', 'weekly', 'monthly'], required: false })
   @ApiQuery({ name: 'from', required: false, description: 'ISO date (default: 30 kun oldin)' })
   @ApiQuery({ name: 'to', required: false, description: 'ISO date (default: bugun)' })
+  @ApiQuery({ name: 'branch_id', required: false })
   getSalesTrend(
     @CurrentUser('tenantId') tenantId: string,
     @Query('period') period: string = 'daily',
@@ -59,6 +60,7 @@ export class AiController {
     @Query('to') to?: string,
     @Query('from_date') fromDate?: string,
     @Query('to_date') toDate?: string,
+    @Query('branch_id') branchId?: string,
   ) {
     // mobile sends granularity=day|week|month, map to daily|weekly|monthly
     const granMap: Record<string, string> = { day: 'daily', week: 'weekly', month: 'monthly' };
@@ -70,6 +72,7 @@ export class AiController {
       resolved as 'daily' | 'weekly' | 'monthly',
       this.parseDate(from ?? fromDate, this.defaultFrom(30)),
       this.parseDate(to ?? toDate, this.defaultTo()),
+      branchId,
     );
   }
 
@@ -80,12 +83,16 @@ export class AiController {
   @ApiQuery({ name: 'to', required: false })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default: 10' })
   @ApiQuery({ name: 'sortBy', enum: ['revenue', 'qty'], required: false })
+  @ApiQuery({ name: 'branch_id', required: false })
   getTopProducts(
     @CurrentUser('tenantId') tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('from_date') fromDate?: string,
+    @Query('to_date') toDate?: string,
     @Query('limit') limit?: string,
     @Query('sortBy') sortBy: string = 'revenue',
+    @Query('branch_id') branchId?: string,
   ) {
     const limitNum = limit ? parseInt(limit, 10) : 10;
     if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
@@ -96,10 +103,11 @@ export class AiController {
     }
     return this.aiService.getTopProducts(
       tenantId,
-      this.parseDate(from, this.defaultFrom(30)),
-      this.parseDate(to, this.defaultTo()),
+      this.parseDate(from ?? fromDate, this.defaultFrom(30)),
+      this.parseDate(to ?? toDate, this.defaultTo()),
       limitNum,
       sortBy as 'revenue' | 'qty',
+      branchId,
     );
   }
 

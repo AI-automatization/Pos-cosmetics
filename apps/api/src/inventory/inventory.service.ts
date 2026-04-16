@@ -188,6 +188,14 @@ export class InventoryService {
     return this.stockValue.getStockValue(tenantId, branchId);
   }
 
+  getLowStockList(tenantId: string, branchId?: string, limit?: number) {
+    return this.stockLevel.getLowStockList(tenantId, branchId, limit);
+  }
+
+  getInventoryItems(tenantId: string, opts: { branchId?: string; status?: string; search?: string; page?: number; limit?: number }) {
+    return this.stockLevel.getInventoryItems(tenantId, opts);
+  }
+
   // ─── Private helpers ─────────────────────────────────────────────────────────
 
   private async resolveWarehouseId(tenantId: string, warehouseId?: string): Promise<string> {

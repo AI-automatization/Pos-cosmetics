@@ -165,21 +165,83 @@ export class SalesService {
     };
   }
 
-  async getShifts(tenantId: string, limit = 20, page = 1) {
+  // ─── T-205: SHIFTS (paginated, filtered) ─────────────────────
+  async getShifts(
+    tenantId: string,
+    limit = 20,
+    page = 1,
+    opts: { branchId?: string; status?: string; userId?: string; role?: string } = {},
+  ) {
     const skip = (page - 1) * limit;
-    const [total, items] = await this.prisma.$transaction([
-      this.prisma.shift.count({ where: { tenantId } }),
+    const statusMap: Record<string, ShiftStatus> = {
+      open: ShiftStatus.OPEN,
+      closed: ShiftStatus.CLOSED,
+    };
+
+    const where = {
+      tenantId,
+      ...(opts.branchId && { branchId: opts.branchId }),
+      ...(opts.status && statusMap[opts.status] && { status: statusMap[opts.status] }),
+      // CASHIER/MANAGER see only their own shifts
+      ...(opts.role && !['OWNER', 'ADMIN'].includes(opts.role) && opts.userId
+        ? { userId: opts.userId }
+        : {}),
+    };
+
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.shift.count({ where }),
       this.prisma.shift.findMany({
-        where: { tenantId },
+        where,
         skip,
         take: limit,
         orderBy: { openedAt: 'desc' },
         include: {
           user: { select: { id: true, firstName: true, lastName: true } },
           branch: { select: { id: true, name: true } },
+          orders: {
+            where: { status: 'COMPLETED' },
+            select: {
+              total: true,
+              paymentIntents: { select: { method: true, amount: true } },
+            },
+          },
         },
       }),
     ]);
+
+    const items = rows.map((s) => {
+      const totalRevenue = s.orders.reduce((sum, o) => sum + Number(o.total), 0);
+      const totalOrders = s.orders.length;
+
+      const pmMap: Record<string, number> = {};
+      for (const o of s.orders) {
+        for (const pi of o.paymentIntents) {
+          const key = pi.method.toLowerCase();
+          pmMap[key] = (pmMap[key] ?? 0) + Number(pi.amount);
+        }
+      }
+      const paymentBreakdown = {
+        cash: pmMap['cash'] ?? 0,
+        card: pmMap['card'] ?? pmMap['terminal'] ?? 0,
+        click: pmMap['click'] ?? 0,
+        payme: pmMap['payme'] ?? 0,
+      };
+
+      return {
+        id: s.id,
+        branchId: s.branchId,
+        branchName: s.branch?.name ?? null,
+        cashierId: s.userId,
+        cashierName: `${s.user?.firstName ?? ''} ${s.user?.lastName ?? ''}`.trim(),
+        status: s.status.toLowerCase(),
+        openedAt: s.openedAt,
+        closedAt: s.closedAt,
+        totalRevenue,
+        totalOrders,
+        paymentBreakdown,
+      };
+    });
+
     return { items, total, page, limit };
   }
 
@@ -481,18 +543,19 @@ export class SalesService {
     const totalOrders = shift.orders.length;
     const totalRefunds = shift.orders.reduce((s, o) => s + o.returns.length, 0);
 
-    const paymentMap = new Map<string, number>();
+    const pmMap: Record<string, number> = {};
     for (const order of shift.orders) {
       for (const pi of order.paymentIntents) {
         const m = pi.method.toLowerCase();
-        paymentMap.set(m, (paymentMap.get(m) ?? 0) + Number(pi.amount));
+        pmMap[m] = (pmMap[m] ?? 0) + Number(pi.amount);
       }
     }
-    const paymentBreakdown = Array.from(paymentMap.entries()).map(([method, amount]) => ({
-      method,
-      amount,
-      percentage: totalRevenue > 0 ? parseFloat((amount / totalRevenue * 100).toFixed(1)) : 0,
-    }));
+    const paymentBreakdown = {
+      cash: pmMap['cash'] ?? 0,
+      card: pmMap['card'] ?? pmMap['terminal'] ?? 0,
+      click: pmMap['click'] ?? 0,
+      payme: pmMap['payme'] ?? 0,
+    };
 
     return {
       id: shift.id,
