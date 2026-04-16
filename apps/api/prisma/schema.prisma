@@ -1417,16 +1417,20 @@ model FeatureFlag {
 // ============================================
 
 model WarehouseInvoice {
-  id            String   @id @default(uuid())
-  tenantId      String   @map("tenant_id")
-  branchId      String?  @map("branch_id")
-  supplierId    String?  @map("supplier_id")
-  invoiceNumber String?  @map("invoice_number")
+  id            String                 @id @default(uuid())
+  tenantId      String                 @map("tenant_id")
+  branchId      String?                @map("branch_id")
+  supplierId    String?                @map("supplier_id")
+  invoiceNumber String?                @map("invoice_number")
   note          String?
-  totalCost     Decimal  @default(0) @map("total_cost") @db.Decimal(15, 2)
-  createdBy     String   @map("created_by")
-  createdAt     DateTime @default(now()) @map("created_at")
-  // ⚠️ IMMUTABLE after creation — no updatedAt
+  totalCost     Decimal                @default(0) @map("total_cost") @db.Decimal(15, 2)
+  createdBy     String                 @map("created_by")
+  createdAt     DateTime               @default(now()) @map("created_at")
+  status        WarehouseInvoiceStatus @default(PENDING)
+  approvedBy    String?                @map("approved_by")
+  approvedAt    DateTime?              @map("approved_at")
+  // ⚠️ Items/totalCost are IMMUTABLE after creation — only status transitions allowed
+  //    PENDING → RECEIVED (approve) or PENDING → CANCELLED (reject)
 
   items WarehouseInvoiceItem[]
 
@@ -1434,6 +1438,12 @@ model WarehouseInvoice {
   @@index([tenantId, createdAt])
   @@index([tenantId, supplierId])
   @@map("warehouse_invoices")
+}
+
+enum WarehouseInvoiceStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
 }
 
 model WarehouseInvoiceItem {
