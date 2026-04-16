@@ -33,7 +33,9 @@ const PASSWORD = 'Demo1234!';
 const BCRYPT_ROUNDS = 12;
 
 // ─── Products ────────────────────────────────────────────────────
-const PRODUCTS = [
+// initialQty: fixed stock quantity (used for low-stock demo items).
+// If omitted, randBetween(20, 80) is used.
+const PRODUCTS: Array<{ name: string; sku: string; cost: number; sell: number; minStock: number; initialQty?: number }> = [
   { name: "Chanel No.5 EDP 100ml",   sku: "CH-N5-100",   cost: 850000,  sell: 1200000, minStock: 5 },
   { name: "Dior Sauvage EDT 100ml",  sku: "DR-SAU-100",  cost: 780000,  sell: 1100000, minStock: 5 },
   { name: "L'Oreal Elvive Shampoo",  sku: "LOR-ELV-400", cost: 45000,   sell: 72000,   minStock: 20 },
@@ -44,6 +46,8 @@ const PRODUCTS = [
   { name: "NYX Eyeshadow Palette",   sku: "NYX-PAL-ULT", cost: 185000,  sell: 275000,  minStock: 8 },
   { name: "Maybelline Mascara",      sku: "MAY-MAS-BIG", cost: 55000,   sell: 82000,   minStock: 20 },
   { name: "KIKO Milano Lipstick",    sku: "KIK-LIP-315", cost: 95000,   sell: 148000,  minStock: 10 },
+  // T-339: Low-stock demo — currentStock(7) < minStockLevel(10) → POS toast trigger
+  { name: "La Roche-Posay SPF50+",   sku: "LRP-SPF-50",  cost: 185000,  sell: 278000,  minStock: 10, initialQty: 7 },
 ];
 
 // ─── Branches ────────────────────────────────────────────────────
@@ -235,9 +239,9 @@ async function main() {
             productId: p.id,
             userId: owner.id,
             type: StockMovementType.IN,
-            quantity: randBetween(20, 80),
+            quantity: p.initialQty ?? randBetween(20, 80),
             costPrice: p.cost,
-            note: 'Boshlang\'ich qoldiq (seed)',
+            note: p.initialQty ? 'Boshlang\'ich qoldiq — low-stock demo (seed)' : 'Boshlang\'ich qoldiq (seed)',
           },
         });
       }
