@@ -43,6 +43,11 @@ export class CreateInvoiceDto {
   @IsString()
   supplierId?: string;
 
+  @ApiPropertyOptional({ description: 'Supplier name — creates new supplier if supplierId omitted' })
+  @IsOptional()
+  @IsString()
+  supplierName?: string;
+
   @ApiPropertyOptional({ example: 'INV-2026-001' })
   @IsOptional()
   @IsString()
