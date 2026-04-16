@@ -325,6 +325,12 @@ logJobDone(queue, jobId, jobName, durationMs);
 logJobError(queue, jobId, jobName, err);
 ```
 
+## Reasoning Protocol
+- Before any docker/infra task: Check network persistence and pnpm store caching.
+- If a build fails: Don't just retry. Analyze Dockerfile layers to find where we can inject local cache to avoid registry dependency.
+- For Backend: Always check Prisma schema synchronization before suggesting a deploy.
+
+
 ### API Request Logger (Interceptor — avtomatik)
 
 ```
