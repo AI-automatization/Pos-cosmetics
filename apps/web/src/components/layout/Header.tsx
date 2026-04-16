@@ -1,8 +1,8 @@
 'use client';
 
-import { Bell, ChevronDown, User, Menu, Globe } from 'lucide-react';
+import { Bell, ChevronDown, User, Menu, Globe, LogOut } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { useCurrentUser } from '@/hooks/auth/useAuth';
+import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
 import { useUnreadCount, useMarkAllRead } from '@/hooks/notifications/useNotifications';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { useTranslation } from '@/i18n/i18n-context';
@@ -38,6 +38,7 @@ function NotificationBell() {
 
 function UserMenu() {
   const { data: user } = useCurrentUser();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -87,6 +88,17 @@ function UserMenu() {
               )}
             </div>
           )}
+          <div className="border-t border-gray-100 mt-1 pt-1 px-1 pb-1">
+            <button
+              type="button"
+              onClick={() => { logout(); }}
+              disabled={isLoggingOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <LogOut className="w-4 h-4" />
+              {isLoggingOut ? 'Chiqilmoqda...' : 'Chiqish'}
+            </button>
+          </div>
         </div>
       )}
     </div>

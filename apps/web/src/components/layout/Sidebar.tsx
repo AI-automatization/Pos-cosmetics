@@ -21,12 +21,11 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
-  LogOut,
   ClipboardList,
 } from 'lucide-react';
 import { useState, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
+import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Types ─── */
@@ -105,6 +104,7 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Buyurtmalar', tKey: 'nav.orders', href: '/sales/orders' },
           { label: 'Qaytarishlar', tKey: 'nav.returns', href: '/sales/returns' },
           { label: 'Aksiyalar', tKey: 'nav.promotions', href: '/promotions' },
+          { label: 'Chegirmalar', tKey: 'nav.chegirma', href: '/chegirma' },
           { label: 'Smenalar', tKey: 'nav.shifts', href: '/sales/shifts' },
         ],
       },
@@ -352,7 +352,6 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const { data: user, isLoading } = useCurrentUser();
-  const { mutate: logout, isPending: loggingOut } = useLogout();
   const sections = getNavSections(user?.role);
 
   return (
@@ -403,10 +402,9 @@ function SidebarContent({
         </nav>
       )}
 
-      {/* User profile + Logout */}
-      <div className="border-t border-gray-100 p-2 space-y-1">
-        {/* User card */}
-        {!collapsed && user && (
+      {/* User profile */}
+      {!collapsed && user && (
+        <div className="border-t border-gray-100 p-2">
           <div className="flex items-center gap-2.5 rounded-lg px-3 py-2">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
               {(user.firstName ?? user.email ?? 'U').slice(0, 1).toUpperCase()}
@@ -418,21 +416,8 @@ function SidebarContent({
               <p className="text-[10px] font-medium text-gray-400">{user.role}</p>
             </div>
           </div>
-        )}
-        <button
-          type="button"
-          onClick={() => logout()}
-          disabled={loggingOut}
-          title="Chiqish"
-          className={cn(
-            'flex w-full items-center rounded-lg px-3 py-2 text-sm text-gray-500 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50',
-            collapsed ? 'justify-center' : 'gap-2',
-          )}
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>{loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}</span>}
-        </button>
-      </div>
+        </div>
+      )}
 
       {/* Collapse toggle (desktop only) */}
       <div className="hidden border-t border-gray-200 p-2 md:block">

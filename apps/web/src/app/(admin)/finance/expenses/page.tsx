@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { PlusCircle, Trash2, TrendingUp, TrendingDown, X } from 'lucide-react';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useExpenses, useCreateExpense, useDeleteExpense, useProfitReport } from '@/hooks/finance/useFinance';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
@@ -210,64 +211,68 @@ export default function ExpensesPage() {
         )}
 
         {/* Expenses Table */}
-        <div className={cn('rounded-xl border border-gray-200 bg-white', pieData.length > 0 ? 'lg:col-span-2' : 'lg:col-span-3')}>
-          {/* Filter bar */}
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-            <p className="text-sm font-semibold text-gray-900">
-              Jami: <span className="text-red-600">{formatPrice(totalExpenses)}</span>
-            </p>
-            <SearchableDropdown
-              options={(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => ({
-                value: cat,
-                label: EXPENSE_CATEGORY_LABELS[cat],
-              }))}
-              value={categoryFilter === 'ALL' ? '' : categoryFilter}
-              onChange={(val) => setCategoryFilter(val ? (val as ExpenseCategory) : 'ALL')}
-              placeholder="Barcha kategoriyalar"
-              searchable={false}
-              clearable
-              className="min-w-[180px]"
-            />
-          </div>
-
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                {['Sana', 'Kategoriya', 'Tavsif', 'Summa', ''].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
+        <div className={cn(pieData.length > 0 ? 'lg:col-span-2' : 'lg:col-span-3')}>
+          <ScrollableTable
+            filters={
+              <>
+                <span className="text-sm font-semibold text-gray-900">
+                  Jami: <span className="text-red-600">{formatPrice(totalExpenses)}</span>
+                </span>
+                <SearchableDropdown
+                  options={(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => ({
+                    value: cat,
+                    label: EXPENSE_CATEGORY_LABELS[cat],
+                  }))}
+                  value={categoryFilter === 'ALL' ? '' : categoryFilter}
+                  onChange={(val) => setCategoryFilter(val ? (val as ExpenseCategory) : 'ALL')}
+                  placeholder="Barcha kategoriyalar"
+                  searchable={false}
+                  clearable
+                  className="min-w-[180px]"
+                />
+              </>
+            }
+            totalCount={(expenses ?? []).length}
+          >
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  {['Sana', 'Kategoriya', 'Tavsif', 'Summa', ''].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {(expenses ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-gray-400">Xarajat topilmadi</td>
+                  </tr>
+                ) : (expenses ?? []).map((exp) => (
+                  <tr key={exp.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-500">{exp.date}</td>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-2">
+                        <CategoryDot category={exp.category} />
+                        <span className="text-gray-700">{EXPENSE_CATEGORY_LABELS[exp.category]}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">{exp.description}</td>
+                    <td className="px-4 py-3 font-semibold text-gray-900">{formatPrice(exp.amount)}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => deleteExpense(exp.id)}
+                        className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                        title="O'chirish"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {(expenses ?? []).length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400">Xarajat topilmadi</td>
-                </tr>
-              ) : (expenses ?? []).map((exp) => (
-                <tr key={exp.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{exp.date}</td>
-                  <td className="px-4 py-3">
-                    <span className="flex items-center gap-2">
-                      <CategoryDot category={exp.category} />
-                      <span className="text-gray-700">{EXPENSE_CATEGORY_LABELS[exp.category]}</span>
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{exp.description}</td>
-                  <td className="px-4 py-3 font-semibold text-gray-900">{formatPrice(exp.amount)}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => deleteExpense(exp.id)}
-                      className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                      title="O'chirish"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </ScrollableTable>
         </div>
       </div>
 

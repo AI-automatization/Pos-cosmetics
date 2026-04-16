@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, type CSSProperties } from 'react';
 import { ChevronDown, X, Search, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +8,8 @@ export interface DropdownOption {
   value: string;
   label: string;
   sublabel?: string | null;
+  description?: string | null;
+  meta?: string | null;
 }
 
 interface SearchableDropdownProps {
@@ -44,7 +46,9 @@ export function SearchableDropdown({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [highlightIdx, setHighlightIdx] = useState(-1);
+  const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +60,9 @@ export function SearchableDropdown({
     return options.filter(
       (o) =>
         o.label.toLowerCase().includes(q) ||
-        (o.sublabel ?? '').toLowerCase().includes(q),
+        (o.sublabel ?? '').toLowerCase().includes(q) ||
+        (o.description ?? '').toLowerCase().includes(q) ||
+        (o.meta ?? '').toLowerCase().includes(q),
     );
   }, [options, search]);
 
@@ -88,11 +94,24 @@ export function SearchableDropdown({
 
   const handleOpen = useCallback(() => {
     if (disabled) return;
+    const willOpen = !open;
+    if (willOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const dropdownHeight = 280;
+      const openUpward = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+      setDropdownStyle(
+        openUpward
+          ? { position: 'fixed', bottom: window.innerHeight - rect.top + 6, left: rect.left, width: rect.width, zIndex: 9999 }
+          : { position: 'fixed', top: rect.bottom + 6, left: rect.left, width: rect.width, zIndex: 9999 },
+      );
+    }
     setOpen((v) => !v);
     setSearch('');
     setHighlightIdx(-1);
     setTimeout(() => searchRef.current?.focus(), 30);
-  }, [disabled]);
+  }, [disabled, open]);
 
   const handleSelect = useCallback(
     (val: string) => {
@@ -154,6 +173,7 @@ export function SearchableDropdown({
     <div ref={containerRef} className={cn('relative', className)} onKeyDown={handleKeyDown}>
       {/* Trigger */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={handleOpen}
         disabled={disabled}
@@ -193,8 +213,9 @@ export function SearchableDropdown({
       {/* Dropdown panel */}
       {open && (
         <div
+          style={dropdownStyle}
           className={cn(
-            'absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl',
+            'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl',
             'animate-in fade-in-0 zoom-in-95 duration-150',
           )}
         >
@@ -255,15 +276,22 @@ export function SearchableDropdown({
                       >
                         {opt.label}
                       </span>
-                      {opt.sublabel && (
+                      {(opt.sublabel || opt.description) && (
                         <span className="block truncate text-xs text-gray-400 mt-0.5">
-                          {opt.sublabel}
+                          {opt.description ?? opt.sublabel}
                         </span>
                       )}
                     </div>
-                    {isSelected && (
-                      <Check className="ml-2 h-4 w-4 shrink-0 text-blue-600" />
-                    )}
+                    <div className="ml-2 flex shrink-0 items-center gap-1.5">
+                      {opt.meta && (
+                        <span className="rounded bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-400">
+                          {opt.meta}
+                        </span>
+                      )}
+                      {isSelected && (
+                        <Check className="h-4 w-4 text-blue-600" />
+                      )}
+                    </div>
                   </button>
                 );
               })

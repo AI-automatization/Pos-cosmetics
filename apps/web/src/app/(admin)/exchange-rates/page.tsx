@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, TrendingUp, TrendingDown, Minus, DollarSign } from 'lucide-react';
 import { exchangeRateApi } from '@/api/exchangeRate.api';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { toast } from 'sonner';
 
@@ -109,8 +110,8 @@ export default function ExchangeRatesPage() {
       ) : null}
 
       {/* History */}
-      <div className="rounded-xl border border-gray-200 bg-white">
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+      <div>
+        <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-700">Kurs tarixi</h2>
           <div className="flex gap-1">
             {[7, 30, 90].map((d) => (
@@ -130,15 +131,10 @@ export default function ExchangeRatesPage() {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="p-5">
-            <LoadingSkeleton variant="table" rows={6} />
-          </div>
-        ) : !history || history.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-gray-400">
-            Kurs tarixi topilmadi
-          </p>
-        ) : (
+        <ScrollableTable
+          totalCount={history?.length}
+          isLoading={isLoading}
+        >
           <table className="w-full text-sm">
             <thead className="border-b border-gray-100 bg-gray-50">
               <tr>
@@ -149,27 +145,34 @@ export default function ExchangeRatesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {[...history].reverse().map((row, idx, arr) => {
-                const prev = arr[idx + 1];
-                const diff = prev ? row.usdUzs - prev.usdUzs : 0;
-                const color = diff > 0 ? 'text-red-500' : diff < 0 ? 'text-green-500' : 'text-gray-400';
-                return (
-                  <tr key={row.date} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 text-gray-700">{formatDate(row.date)}</td>
-                    <td className="px-5 py-3 text-right font-semibold tabular-nums text-gray-900">
-                      {formatRate(row.usdUzs)}
-                    </td>
-                    <td className={`px-5 py-3 text-right tabular-nums text-xs ${color}`}>
-                      {diff === 0 ? '—' : `${diff > 0 ? '+' : ''}${formatRate(diff)}`}
-                    </td>
-                    <td className="px-5 py-3 text-xs text-gray-400">{row.source}</td>
-                  </tr>
-                );
-              })}
+              {!history || history.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-10 text-center text-sm text-gray-400">Kurs tarixi topilmadi</td>
+                </tr>
+              ) : (
+                [...history].reverse().map((row, idx, arr) => {
+                  const prev = arr[idx + 1];
+                  const diff = prev ? row.usdUzs - prev.usdUzs : 0;
+                  const color = diff > 0 ? 'text-red-500' : diff < 0 ? 'text-green-500' : 'text-gray-400';
+                  return (
+                    <tr key={row.date} className="hover:bg-gray-50">
+                      <td className="px-5 py-3 text-gray-700">{formatDate(row.date)}</td>
+                      <td className="px-5 py-3 text-right font-semibold tabular-nums text-gray-900">
+                        {formatRate(row.usdUzs)}
+                      </td>
+                      <td className={`px-5 py-3 text-right tabular-nums text-xs ${color}`}>
+                        {diff === 0 ? '—' : `${diff > 0 ? '+' : ''}${formatRate(diff)}`}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-gray-400">{row.source}</td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
-        )}
+        </ScrollableTable>
       </div>
     </div>
   );
 }
+

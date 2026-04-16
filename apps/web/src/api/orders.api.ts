@@ -11,6 +11,7 @@ interface PaginatedOrders {
 type RawOrder = Order & {
   user?: { firstName?: string; lastName?: string } | null;
   customer?: { id: string; name: string; phone: string } | null;
+  payments?: Array<{ method: string }> | null;
 };
 
 export const ordersApi = {
@@ -36,6 +37,18 @@ export const ordersApi = {
   },
 
   getById(id: string) {
-    return apiClient.get<Order>(`/sales/orders/${id}`).then((r) => r.data);
+    return apiClient.get<Order>(`/sales/orders/${id}`).then((r) => {
+      const raw = (r.data as unknown as Record<string, unknown>)?.data
+        ? ((r.data as unknown as Record<string, unknown>).data as RawOrder)
+        : (r.data as unknown as RawOrder);
+      return {
+        ...raw,
+        cashierName: raw.user
+          ? `${raw.user.firstName ?? ''} ${raw.user.lastName ?? ''}`.trim() || null
+          : (raw.cashierName ?? null),
+        paymentMethod: raw.paymentMethod ?? (raw.payments?.[0]?.method as Order['paymentMethod']) ?? null,
+        customerName: raw.customer?.name ?? raw.customerName ?? null,
+      } as Order;
+    });
   },
 };

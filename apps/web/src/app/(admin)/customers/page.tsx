@@ -1,20 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   UserCircle,
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
   ShieldOff,
   TrendingUp,
-  Search,
   Plus,
   X,
 } from 'lucide-react';
 import { useCustomersList, useNasiyaSummary, useCreateCustomer } from '@/hooks/customers/useDebts';
 import { useBranches } from '@/hooks/settings/useBranches';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { formatPrice, cn } from '@/lib/utils';
 import type { CustomerWithDebt } from '@/types/debt';
 import type { CustomerGender } from '@/types/customer';
@@ -123,7 +124,7 @@ function CreateCustomerModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
-          <h2 className="text-base font-semibold text-gray-900">Yangi xaridor</h2>
+          <h2 className="text-base font-semibold text-gray-900">Yangi mijoz</h2>
           <button
             type="button"
             onClick={onClose}
@@ -293,8 +294,63 @@ function CreateCustomerModal({ onClose }: { onClose: () => void }) {
 export default function CustomersPage() {
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const { data: customers, isLoading } = useCustomersList(search || undefined);
   const { data: summary } = useNasiyaSummary();
+
+  function toggleSort(field: string) {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  }
+
+  const sortedCustomers = useMemo(() => {
+    if (!sortField || !customers) return customers ?? [];
+    return [...customers].sort((a, b) => {
+      const aVal = (a as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
+      const bVal = (b as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+      const cmp =
+        typeof aVal === 'string'
+          ? aVal.localeCompare(bVal as string)
+          : (aVal as number) > (bVal as number)
+          ? 1
+          : (aVal as number) < (bVal as number)
+          ? -1
+          : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [customers, sortField, sortDir]);
+
+  function SortHeader({ field, label }: { field: string; label: string }) {
+    const active = sortField === field;
+    return (
+      <button
+        type="button"
+        onClick={() => toggleSort(field)}
+        className="flex items-center gap-1 hover:text-gray-900 group"
+      >
+        {label}
+        <span
+          className={cn(
+            'transition-colors',
+            active ? 'text-blue-600' : 'text-gray-300 group-hover:text-gray-500',
+          )}
+        >
+          {active && sortDir === 'desc' ? (
+            <ChevronDown className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronUp className="w-3.5 h-3.5" />
+          )}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
@@ -303,9 +359,9 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Xaridorlar</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Mijozlar</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            {customers ? `${customers.length} ta xaridor` : 'Yuklanmoqda...'}
+            {customers ? `${customers.length} ta mijoz` : 'Yuklanmoqda...'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -315,7 +371,7 @@ export default function CustomersPage() {
             className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" />
-            Xaridor qo'shish
+            Mijoz qo'shish
           </button>
           <Link
             href="/nasiya"
@@ -334,14 +390,14 @@ export default function CustomersPage() {
             {
               label: 'Jami nasiya',
               value: formatPrice(summary.totalDebt),
-              sub: `${summary.totalCustomers} ta xaridor`,
+              sub: `${summary.totalCustomers} ta mijoz`,
               color: 'text-orange-600',
               bg: 'bg-orange-50',
             },
             {
               label: "Muddati o'tgan",
               value: formatPrice(summary.overdueDebt),
-              sub: `${summary.overdueCustomers} ta xaridor`,
+              sub: `${summary.overdueCustomers} ta mijoz`,
               color: 'text-red-600',
               bg: 'bg-red-50',
             },
@@ -353,9 +409,9 @@ export default function CustomersPage() {
               bg: 'bg-green-50',
             },
             {
-              label: 'Nasiya xaridorlar',
+              label: 'Nasiya mijozlar',
               value: summary.totalCustomers.toString(),
-              sub: `${summary.overdueCustomers} ta muddati o'tgan`,
+              sub: `${summary.overdueCustomers} ta muddati o'tgan mijoz`,
               color: 'text-blue-600',
               bg: 'bg-blue-50',
             },
@@ -372,115 +428,109 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Ism yoki telefon..."
-          className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
-        />
-      </div>
-
       {/* Table */}
-      {isLoading ? (
-        <LoadingSkeleton variant="table" rows={6} />
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
+      <ScrollableTable
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Ism yoki telefon..."
+        totalCount={customers?.length}
+        isLoading={isLoading}
+      >
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Mijoz</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Telefon</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Filial</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <SortHeader field="debtBalance" label="Jami qarz" />
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Limit</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Holat</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <SortHeader field="lastVisitAt" label="So'nggi tashrif" />
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Amal</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {sortedCustomers.length === 0 ? (
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Xaridor</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Telefon</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Filial</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Jami qarz</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Limit</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">So'nggi tashrif</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-600">Amal</th>
+                <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
+                  <UserCircle className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+                  {search ? "Qidiruv bo'yicha natija topilmadi" : "Mijozlar yo'q"}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {!customers || customers.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
-                    <UserCircle className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    {search ? "Qidiruv bo'yicha natija topilmadi" : "Xaridorlar yo'q"}
+            ) : (
+              sortedCustomers.map((customer) => (
+                <tr
+                  key={customer.id}
+                  className={cn(
+                    'transition hover:bg-gray-50',
+                    customer.isBlocked && 'bg-red-50/40',
+                    !customer.isBlocked && customer.hasOverdue && 'bg-yellow-50/30',
+                  )}
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
+                        <span className="text-xs font-semibold text-gray-600">
+                          {customer.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{customer.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {customer.totalPurchases} ta xarid · {customer.activeDebtsCount} ta qarz
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-600">
+                    {customer.phone ? `+${customer.phone}` : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-500">
+                    {customer.branch?.name ?? '—'}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span
+                      className={cn(
+                        'font-semibold',
+                        customer.debtBalance > customer.debtLimit
+                          ? 'text-red-600'
+                          : customer.debtBalance > 0
+                          ? 'text-orange-600'
+                          : 'text-gray-500',
+                      )}
+                    >
+                      {customer.debtBalance > 0 ? formatPrice(customer.debtBalance) : '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-500">
+                    {formatPrice(customer.debtLimit)}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <StatusBadge customer={customer} />
+                  </td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-500">
+                    {customer.lastVisitAt
+                      ? new Date(customer.lastVisitAt).toLocaleDateString('uz-UZ')
+                      : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <Link
+                      href={`/customers/${customer.id}`}
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      Ko'rish
+                    </Link>
                   </td>
                 </tr>
-              ) : (
-                customers.map((customer) => (
-                  <tr
-                    key={customer.id}
-                    className={cn(
-                      'transition hover:bg-gray-50',
-                      customer.isBlocked && 'bg-red-50/40',
-                      !customer.isBlocked && customer.hasOverdue && 'bg-yellow-50/30',
-                    )}
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
-                          <span className="text-xs font-semibold text-gray-600">
-                            {customer.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{customer.name}</p>
-                          <p className="text-xs text-gray-400">
-                            {customer.totalPurchases} ta xarid · {customer.activeDebtsCount} ta qarz
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-600">
-                      {customer.phone ? `+${customer.phone}` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-500">
-                      {customer.branch?.name ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className={cn(
-                          'font-semibold',
-                          customer.debtBalance > customer.debtLimit
-                            ? 'text-red-600'
-                            : customer.debtBalance > 0
-                            ? 'text-orange-600'
-                            : 'text-gray-500',
-                        )}
-                      >
-                        {customer.debtBalance > 0 ? formatPrice(customer.debtBalance) : '—'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-500">
-                      {formatPrice(customer.debtLimit)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <StatusBadge customer={customer} />
-                    </td>
-                    <td className="px-4 py-3 text-right text-xs text-gray-500">
-                      {customer.lastVisitAt
-                        ? new Date(customer.lastVisitAt).toLocaleDateString('uz-UZ')
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <Link
-                        href={`/customers/${customer.id}`}
-                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-                      >
-                        Ko'rish
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </ScrollableTable>
     </div>
   );
 }

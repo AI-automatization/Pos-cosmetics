@@ -11,9 +11,11 @@ import type {
 export const reportsApi = {
   // B-010 fix: backend has no /reports/dashboard — aggregate from multiple endpoints
   async getDashboard(): Promise<DashboardData> {
-    const today = new Date().toISOString().slice(0, 10);
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const toLocal = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const today = toLocal(new Date());
+    const yesterday = toLocal(new Date(Date.now() - 86400000));
+    const weekAgo = toLocal(new Date(Date.now() - 6 * 86400000));
 
     const fetchProfit = (from: string, to: string): Promise<ProfitSummary | null> =>
       apiClient

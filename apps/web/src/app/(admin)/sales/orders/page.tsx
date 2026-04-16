@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle, RotateCcw, XCircle, Receipt, ShoppingCart } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { CheckCircle, ChevronDown, ChevronUp, RotateCcw, XCircle, Receipt, ShoppingCart, Eye, X, Banknote, CreditCard, Clock } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
-import { useOrders } from '@/hooks/sales/useOrders';
+import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
+import { useOrders, useOrder } from '@/hooks/sales/useOrders';
 import { formatPrice, formatDate, cn } from '@/lib/utils';
 import type { OrderStatus, PaymentMethod } from '@/types/order';
 
@@ -41,10 +42,182 @@ const STATUS_FILTERS: Array<{ value: OrderStatus | 'ALL'; label: string }> = [
   { value: 'VOIDED', label: 'Bekor qilindi' },
 ];
 
+const PAYMENT_ICONS: Record<PaymentMethod, React.ComponentType<{ className?: string }>> = {
+  CASH: Banknote,
+  CARD: CreditCard,
+  NASIYA: Clock,
+};
+
+function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
+  const { data: order, isLoading } = useOrder(orderId);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="flex w-full max-w-2xl max-h-[85vh] flex-col rounded-xl bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {order ? `Buyurtma #${order.orderNumber}` : 'Buyurtma tafsilotlari'}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {isLoading ? (
+            <LoadingSkeleton variant="table" rows={4} />
+          ) : order ? (
+            <>
+              {/* Order meta info */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">Sana</p>
+                  <p className="text-sm font-semibold text-gray-900">{formatDate(order.createdAt)}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">Kassir</p>
+                  <p className="text-sm font-semibold text-gray-900">{order.cashierName ?? '—'}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">To&apos;lov usuli</p>
+                  {order.paymentMethod ? (
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900">
+                      {(() => {
+                        const Icon = PAYMENT_ICONS[order.paymentMethod];
+                        return <Icon className="h-3.5 w-3.5 text-blue-500" />;
+                      })()}
+                      {PAYMENT_LABELS[order.paymentMethod]}
+                    </span>
+                  ) : (
+                    <p className="text-sm font-semibold text-gray-900">—</p>
+                  )}
+                </div>
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">Holat</p>
+                  <StatusBadge status={order.status} />
+                </div>
+              </div>
+
+              {/* Customer row (if present) */}
+              {order.customerName && (
+                <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2.5">
+                  <span className="text-xs font-medium text-blue-500">Mijoz: </span>
+                  <span className="text-sm font-semibold text-blue-800">{order.customerName}</span>
+                </div>
+              )}
+
+              {/* Notes row (if present) */}
+              {order.notes && (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5">
+                  <span className="text-xs font-medium text-gray-500">Izoh: </span>
+                  <span className="text-sm text-gray-700">{order.notes}</span>
+                </div>
+              )}
+
+              {/* Order items table */}
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-gray-700">Mahsulotlar</h3>
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                          Mahsulot
+                        </th>
+                        <th className="px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                          Miqdor
+                        </th>
+                        <th className="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                          Narx
+                        </th>
+                        <th className="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                          Jami
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {order.items.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-3 py-4 text-center text-sm text-gray-400">
+                            Mahsulotlar mavjud emas
+                          </td>
+                        </tr>
+                      ) : (
+                        order.items.map((item) => (
+                          <tr key={item.id} className="hover:bg-gray-50">
+                            <td className="px-3 py-2.5">
+                              <p className="font-medium text-gray-900">{item.productName}</p>
+                              {item.sku && (
+                                <p className="text-xs text-gray-400">{item.sku}</p>
+                              )}
+                            </td>
+                            <td className="px-3 py-2.5 text-center text-gray-700">
+                              {item.quantity}
+                            </td>
+                            <td className="px-3 py-2.5 text-right text-gray-700">
+                              {formatPrice(item.unitPrice)}
+                            </td>
+                            <td className="px-3 py-2.5 text-right font-semibold text-gray-900">
+                              {formatPrice(item.total)}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Totals footer */}
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-1.5">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Jami (soliqlarsiz)</span>
+                  <span>{formatPrice(order.subtotal)}</span>
+                </div>
+                {order.discountAmount > 0 && (
+                  <div className="flex items-center justify-between text-sm text-green-600">
+                    <span>Chegirma</span>
+                    <span>- {formatPrice(order.discountAmount)}</span>
+                  </div>
+                )}
+                {order.taxAmount > 0 && (
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>Soliq</span>
+                    <span>{formatPrice(order.taxAmount)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between border-t border-gray-200 pt-2 text-base font-bold text-gray-900">
+                  <span>Umumiy</span>
+                  <span>{formatPrice(order.total)}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="py-8 text-center text-sm text-gray-400">Ma&apos;lumot topilmadi</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OrdersPage() {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
-  const LIMIT = 20;
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const LIMIT = pageSize;
 
   const { data, isLoading, isError, refetch } = useOrders({
     page,
@@ -54,9 +227,62 @@ export default function OrdersPage() {
 
   const orders = data?.items ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / LIMIT) || 1;
+
+  function toggleSort(field: string) {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  }
+
+  const sortedOrders = useMemo(() => {
+    if (!sortField) return orders;
+    return [...orders].sort((a, b) => {
+      const aVal = (a as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
+      const bVal = (b as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+      const cmp =
+        typeof aVal === 'string'
+          ? aVal.localeCompare(bVal as string)
+          : (aVal as number) > (bVal as number)
+          ? 1
+          : (aVal as number) < (bVal as number)
+          ? -1
+          : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [orders, sortField, sortDir]);
+
+  function SortHeader({ field, label }: { field: string; label: string }) {
+    const active = sortField === field;
+    return (
+      <button
+        type="button"
+        onClick={() => toggleSort(field)}
+        className="flex items-center gap-1 hover:text-gray-900 group"
+      >
+        {label}
+        <span
+          className={cn(
+            'transition-colors',
+            active ? 'text-blue-600' : 'text-gray-300 group-hover:text-gray-500',
+          )}
+        >
+          {active && sortDir === 'desc' ? (
+            <ChevronDown className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronUp className="w-3.5 h-3.5" />
+          )}
+        </span>
+      </button>
+    );
+  }
 
   return (
+    <>
     <PageLayout
       title="Buyurtmalar"
       subtitle={`Jami: ${total} ta buyurtma`}
@@ -80,89 +306,84 @@ export default function OrdersPage() {
         ))}
       </div>
 
-      {isLoading && <LoadingSkeleton variant="table" rows={8} />}
-
       {isError && <ErrorState compact onRetry={refetch} />}
 
-      {!isLoading && !isError && (
-        <>
-          {orders.length === 0 ? (
-            <EmptyState icon={ShoppingCart} title="Buyurtmalar mavjud emas" />
-          ) : (
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-              <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Receipt className="h-3.5 w-3.5" />
-                        Buyurtma №
-                      </span>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Sana</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Kassir</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">To&apos;lov</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Holat</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Summa</th>
+      {!isError && (
+        orders.length === 0 && !isLoading ? (
+          <EmptyState icon={ShoppingCart} title="Buyurtmalar mavjud emas" />
+        ) : (
+          <ScrollableTable
+            totalCount={total}
+            isLoading={isLoading}
+            pagination={{
+              page,
+              pageSize,
+              total,
+              onPageChange: setPage,
+              onPageSizeChange: (s) => { setPageSize(s); setPage(1); },
+            }}
+          >
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Receipt className="h-3.5 w-3.5" />
+                      Buyurtma №
+                    </span>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <SortHeader field="createdAt" label="Sana" />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Kassir</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">To&apos;lov</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Holat</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <SortHeader field="total" label="Summa" />
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Amal</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sortedOrders.map((o) => (
+                  <tr key={o.id} className="transition hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium text-gray-900">{o.orderNumber}</td>
+                    <td className="px-4 py-3 text-gray-500">{formatDate(o.createdAt)}</td>
+                    <td className="px-4 py-3 text-gray-700">{o.cashierName ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {o.paymentMethod ? PAYMENT_LABELS[o.paymentMethod] : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={o.status} />
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                      {formatPrice(o.total)}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOrderId(o.id)}
+                        title="Ko'rish"
+                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {orders.map((o) => (
-                    <tr key={o.id} className="transition hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{o.orderNumber}</td>
-                      <td className="px-4 py-3 text-gray-500">{formatDate(o.createdAt)}</td>
-                      <td className="px-4 py-3 text-gray-700">{o.cashierName ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {o.paymentMethod ? PAYMENT_LABELS[o.paymentMethod] : '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={o.status} />
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                        {formatPrice(o.total)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-gray-500">
-                {(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, total)} / {total}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Oldingi
-                </button>
-                <span className="flex items-center px-3 text-sm text-gray-500">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
-                >
-                  Keyingi
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+                ))}
+              </tbody>
+            </table>
+          </ScrollableTable>
+        )
       )}
     </PageLayout>
+
+    {selectedOrderId && (
+      <OrderDetailModal
+        orderId={selectedOrderId}
+        onClose={() => setSelectedOrderId(null)}
+      />
+    )}
+    </>
   );
 }

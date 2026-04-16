@@ -7,6 +7,7 @@ import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { CategoryForm } from './CategoryForm';
 import {
   useCategories,
@@ -103,13 +104,17 @@ export default function CategoriesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+  const [search, setSearch] = useState('');
 
   const { data: categories = [], isLoading, isError, refetch } = useCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
 
-  const tree = buildTree(categories);
+  const filtered = search
+    ? categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    : categories;
+  const tree = buildTree(filtered);
 
   const handleOpenCreate = () => {
     setEditingCategory(null);
@@ -173,10 +178,16 @@ export default function CategoriesPage() {
           {categories.length === 0 ? (
             <EmptyState icon={FolderX} title="Kategoriyalar mavjud emas" description="Birinchi kategoriyani qo'shing" />
           ) : (
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <ScrollableTable
+              searchValue={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Kategoriya qidirish..."
+              totalCount={filtered.length}
+              isLoading={isLoading}
+            >
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
+                <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
+                  <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       Kategoriya nomi
                     </th>
@@ -202,7 +213,7 @@ export default function CategoriesPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollableTable>
           )}
         </>
       )}

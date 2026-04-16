@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useLowStock } from '@/hooks/inventory/useInventory';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { ErrorState } from '@/components/common/ErrorState';
 import { cn } from '@/lib/utils';
 import type { StockStatus } from '@/types/inventory';
@@ -72,12 +72,10 @@ export default function LowStockPage() {
       )}
 
       {/* Table */}
-      {isLoading ? (
-        <LoadingSkeleton variant="table" rows={6} />
-      ) : isError ? (
+      {isError ? (
         <ErrorState compact onRetry={refetch} />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <ScrollableTable totalCount={items?.length} isLoading={isLoading}>
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
@@ -154,7 +152,7 @@ export default function LowStockPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </ScrollableTable>
       )}
     </div>
   );

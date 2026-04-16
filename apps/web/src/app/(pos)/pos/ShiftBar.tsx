@@ -12,12 +12,17 @@ import { useLogout } from '@/hooks/auth/useAuth';
 function useShiftClock(openedAt: Date | string | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
 
+  // Convert to a stable timestamp number to avoid infinite re-renders:
+  // new Date(string) creates a new object reference every render, making
+  // [openedAt] dep always "changed". Using a primitive number is stable.
+  const openedAtMs = openedAt
+    ? (openedAt instanceof Date ? openedAt : new Date(openedAt as string)).getTime()
+    : null;
+
   useEffect(() => {
-    if (!openedAt) return;
-    const openedDate = openedAt instanceof Date ? openedAt : new Date(openedAt);
-    if (isNaN(openedDate.getTime())) return;
+    if (openedAtMs === null || isNaN(openedAtMs)) return;
     const tick = () => {
-      const diff = Math.floor((Date.now() - openedDate.getTime()) / 1000);
+      const diff = Math.floor((Date.now() - openedAtMs) / 1000);
       const h = String(Math.floor(diff / 3600)).padStart(2, '0');
       const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
       const s = String(diff % 60).padStart(2, '0');
@@ -26,7 +31,7 @@ function useShiftClock(openedAt: Date | string | null) {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [openedAt]);
+  }, [openedAtMs]);
 
   return elapsed;
 }
@@ -38,13 +43,7 @@ interface ShiftBarProps {
 export function ShiftBar({ onCloseShift }: ShiftBarProps) {
   const { cashierName, shiftOpenedAt, salesCount, shiftId } = usePOSStore();
   const { mutate: logout, isPending: loggingOut } = useLogout();
-  // Zustand persist deserializes Date → string; convert back to Date
-  const shiftOpenedAtDate = shiftOpenedAt
-    ? shiftOpenedAt instanceof Date
-      ? shiftOpenedAt
-      : new Date(shiftOpenedAt as unknown as string)
-    : null;
-  const elapsed = useShiftClock(shiftOpenedAtDate);
+  const elapsed = useShiftClock(shiftOpenedAt);
 
   return (
     <div className="flex h-11 shrink-0 items-center justify-between bg-gray-900 px-4 text-sm text-gray-300">

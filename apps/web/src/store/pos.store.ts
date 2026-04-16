@@ -187,7 +187,7 @@ export const usePOSStore = create<POSState>()(
         const { carts, activeCartId } = get();
         const cart = carts[activeCartId];
         if (!cart) return { subtotal: 0, discountAmount: 0, total: 0, change: 0 };
-        const { items, orderDiscount, orderDiscountType, cashAmount, cardAmount, paymentMethod, bonusPoints } = cart;
+        const { items, orderDiscount, orderDiscountType, cashAmount, cardAmount, paymentMethod, bonusPoints, splitNasiyaAmount } = cart;
 
         const subtotal = items.reduce((sum, item) => {
           const lineTotal = item.sellPrice * item.quantity * (1 - item.lineDiscount / 100);
@@ -205,7 +205,7 @@ export const usePOSStore = create<POSState>()(
         if (paymentMethod === 'cash') paidAmount = cashAmount;
         else if (paymentMethod === 'card') paidAmount = total;
         else if (paymentMethod === 'bonus') paidAmount = bonusPoints * 100;
-        else paidAmount = cashAmount + cardAmount;
+        else paidAmount = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * 100;
 
         const change =
           paymentMethod === 'cash' || paymentMethod === 'split'
@@ -255,7 +255,7 @@ export const usePOSStore = create<POSState>()(
     }),
     {
       name: 'raos-pos-store',
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
           const old = persistedState as Record<string, unknown>;
@@ -271,11 +271,22 @@ export const usePOSStore = create<POSState>()(
                 cashAmount: 0,
                 cardAmount: 0,
                 bonusPoints: 0,
+                splitNasiyaAmount: 0,
                 selectedCustomer: null,
               },
             },
             activeCartId: 'cart-1',
           };
+        }
+        if (version < 3) {
+          // Add splitNasiyaAmount to existing carts
+          const s = persistedState as { carts?: Record<string, Record<string, unknown>> };
+          if (s.carts) {
+            Object.values(s.carts).forEach((cart) => {
+              if (cart.splitNasiyaAmount === undefined) cart.splitNasiyaAmount = 0;
+            });
+          }
+          return s;
         }
         return persistedState;
       },
