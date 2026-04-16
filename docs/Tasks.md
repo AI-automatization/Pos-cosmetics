@@ -1375,15 +1375,6 @@ _(hozircha yo'q)_
 
 ---
 
-## T-339 | P2 | [BACKEND] | Demo Seed — Low-stock mahsulot qo'shish (POS toast test uchun)
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/prisma/seed.ts`
-- **Muammo:** Demo datada barcha mahsulotlar 130-230 dona. Low-stock toast ni ko'rsatish uchun 120+ dona sotish kerak — bu real test emas.
-- **Kutilgan:** Seed ga 1 mahsulot: `currentStock=7, minStockLevel=10` — POS da sotib toast ko'rsatish mumkin bo'lsin.
-
----
 
 ## T-340 | P2 | [FRONTEND] | Warehouse Dashboard — Yangi zapros kelganda signal
 
