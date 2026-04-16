@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Param, Body, Query,
+  Controller, Get, Post, Patch, Param, Body, Query,
   DefaultValuePipe, ParseIntPipe, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
@@ -33,7 +33,7 @@ export class WarehouseInvoiceController {
   // ─── T-327: GET /warehouse/invoices ──────────────────────────────────────
 
   @Get('invoices')
-  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
   @ApiOperation({ summary: 'T-327: Nakladnoylar royxati' })
   @ApiQuery({ name: 'from', required: false, example: '2026-03-01' })
   @ApiQuery({ name: 'to', required: false, example: '2026-03-31' })
@@ -54,13 +54,37 @@ export class WarehouseInvoiceController {
   // ─── T-327: GET /warehouse/invoices/:id ──────────────────────────────────
 
   @Get('invoices/:id')
-  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
   @ApiOperation({ summary: 'T-327: Nakladnoy detali' })
   getInvoice(
     @CurrentUser('tenantId') tenantId: string,
     @Param('id') invoiceId: string,
   ) {
     return this.svc.getInvoice(tenantId, invoiceId);
+  }
+
+  // ─── APPROVE / REJECT invoice ────────────────────────────────────────────
+
+  @Patch('invoices/:id/approve')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'Nakladnoyni qabul qilish (PENDING → RECEIVED)' })
+  approveInvoice(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Param('id') invoiceId: string,
+  ) {
+    return this.svc.approveInvoice(tenantId, userId, invoiceId);
+  }
+
+  @Patch('invoices/:id/reject')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'Nakladnoyni rad etish (PENDING → CANCELLED)' })
+  rejectInvoice(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Param('id') invoiceId: string,
+  ) {
+    return this.svc.rejectInvoice(tenantId, userId, invoiceId);
   }
 
   // ─── T-319/T-320: DASHBOARD ───────────────────────────────────────────────
