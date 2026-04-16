@@ -1376,14 +1376,6 @@ _(hozircha yo'q)_
 ---
 
 
-## T-340 | P2 | [FRONTEND] | Warehouse Dashboard — Yangi zapros kelganda signal
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx`
-- **Muammo:** Yangi kassir zaprosi 30 soniyada ko'rinadi, lekin hech qanday signal yo'q (sound/badge).
-- **Kutilgan:** Yangi zapros soni oshganda browser Notification API yoki audio beep.
-
 ---
 
 ## T-345 | P0 | [DEVOPS] | CI/CD BROKEN — Lint fail, prod deploy 13+ kun ishlamayapti
