@@ -83,18 +83,6 @@ export function useAgingReport() {
   });
 }
 
-/** Bitta qarzning to'liq tafsiloti — to'lov tarixi va buyurtma itemlari bilan */
-export function useDebtDetail(debtId: string | null) {
-  return useQuery({
-    queryKey: ['debt-detail', debtId],
-    queryFn: () => apiClient.get(`/debts/${debtId}`).then((r) => r.data),
-    enabled: !!debtId,
-    staleTime: 30_000,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-}
-
 /** Qarz to'lash */
 export function usePayDebt() {
   const queryClient = useQueryClient();

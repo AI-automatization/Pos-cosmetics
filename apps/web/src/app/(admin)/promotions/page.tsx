@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Tag, Percent, Zap, Gift, X, Calendar, Package2 } from 'lucide-react';
 import {
   usePromotions,
@@ -486,61 +486,32 @@ export default function PromotionsPage() {
 
   const items: Promotion[] = isError ? DEMO_PROMOTIONS : (promotions ?? []);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const PAGE_SIZE = 9;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => setCurrentPage(1), [searchQuery]);
-
-  const filteredPromotions = useMemo(() => {
-    if (!searchQuery.trim()) return items;
-    const q = searchQuery.toLowerCase();
-    return items.filter(p =>
-      p.name?.toLowerCase().includes(q),
-    );
-  }, [items, searchQuery]);
-
-  const totalPages = Math.ceil(filteredPromotions.length / PAGE_SIZE);
-  const paginatedPromotions = filteredPromotions.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
   const handleDelete = (id: string) => {
     if (confirm("Aksiyani o'chirmoqchimisiz?")) deletePromo(id);
   };
 
   return (
-    <div className="flex flex-col gap-5 h-full overflow-y-auto p-6">
+    <div className="flex flex-col gap-5 overflow-y-auto p-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
             <Tag className="h-5 w-5 text-blue-600" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">Aksiyalar</h1>
-            <p className="text-sm text-gray-500">{filteredPromotions.length} ta aksiya</p>
+            <p className="text-sm text-gray-500">{items.length} ta aksiya</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Aksiya qidirish..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {canEdit && (
-            <button
-              onClick={() => setModal('create')}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
-            >
-              <Plus className="h-4 w-4" />
-              Yangi aksiya
-            </button>
-          )}
-        </div>
+        {canEdit && (
+          <button
+            onClick={() => setModal('create')}
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+          >
+            <Plus className="h-4 w-4" />
+            Yangi aksiya
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -559,68 +530,26 @@ export default function PromotionsPage() {
             </div>
           ))}
         </div>
-      ) : filteredPromotions.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyState
           icon={Tag}
-          title={searchQuery ? "Aksiya topilmadi" : "Hali aksiyalar yo'q"}
-          description={searchQuery ? "Boshqa kalit so'z bilan qidiring" : "Chegirma yoki aksiya yaratish uchun tugmani bosing"}
-          action={!searchQuery && canEdit ? { label: 'Aksiya yaratish', onClick: () => setModal('create') } : undefined}
+          title="Hali aksiyalar yo'q"
+          description="Chegirma yoki aksiya yaratish uchun tugmani bosing"
+          action={canEdit ? { label: 'Aksiya yaratish', onClick: () => setModal('create') } : undefined}
         />
       ) : (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {paginatedPromotions.map((p) => (
-              <PromotionCard
-                key={p.id}
-                promotion={p}
-                canEdit={canEdit}
-                onEdit={() => setModal(p)}
-                onDelete={() => handleDelete(p.id)}
-                onToggle={() => toggle({ id: p.id, isActive: !p.isActive })}
-              />
-            ))}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-gray-500">
-                {filteredPromotions.length} ta aksiyadan {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredPromotions.length)} ko&apos;rsatilmoqda
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition"
-                >
-                  &larr; Oldingi
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))
-                  .map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={cn(
-                        'px-3 py-1.5 text-sm border rounded-lg transition',
-                        currentPage === page
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-gray-200 hover:bg-gray-50',
-                      )}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition"
-                >
-                  Keyingi &rarr;
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((p) => (
+            <PromotionCard
+              key={p.id}
+              promotion={p}
+              canEdit={canEdit}
+              onEdit={() => setModal(p)}
+              onDelete={() => handleDelete(p.id)}
+              onToggle={() => toggle({ id: p.id, isActive: !p.isActive })}
+            />
+          ))}
+        </div>
       )}
 
       {/* Modal */}
