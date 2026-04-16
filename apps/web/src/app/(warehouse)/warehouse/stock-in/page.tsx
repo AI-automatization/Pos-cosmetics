@@ -41,7 +41,7 @@ export default function StockInPage() {
 
   const [productModal, setProductModal] = useState<{ rowKey: number } | null>(null);
   const [items, setItems] = useState<ItemRow[]>([
-    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
+    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: undefined },
   ]);
 
   const supplierOptions: DropdownOption[] = useMemo(
@@ -55,7 +55,7 @@ export default function StockInPage() {
   );
 
   const addRow = () =>
-    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 }]);
+    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: undefined }]);
 
   const removeRow = (key: number) =>
     setItems((prev) => prev.filter((r) => r._key !== key));
@@ -115,8 +115,9 @@ export default function StockInPage() {
       invoiceNumber: invoiceNumber || undefined,
       note: note || undefined,
       supplierId: supplierId || undefined,
-      items: valid.map(({ productId, quantity, purchasePrice, warehouseId, batchNumber }) => ({
+      items: valid.map(({ productId, quantity, purchasePrice, warehouseId, batchNumber, expiryDate }) => ({
         productId, quantity, purchasePrice, warehouseId, batchNumber,
+        expiryDate: expiryDate || undefined,
       })),
     };
 
@@ -247,6 +248,7 @@ export default function StockInPage() {
                   <th className="px-4 py-3 text-right w-24">Miqdor</th>
                   <th className="px-4 py-3 text-right w-32">Narx (UZS)</th>
                   <th className="px-4 py-3 text-left w-28">Partiya</th>
+                  <th className="px-4 py-3 text-left w-32">Muddat</th>
                   <th className="px-4 py-3 text-right w-32">Jami</th>
                   <th className="px-4 py-3 w-12" />
                 </tr>
@@ -304,6 +306,14 @@ export default function StockInPage() {
                         className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                       />
                     </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="date"
+                        value={row.expiryDate ?? ''}
+                        onChange={(e) => updateRow(row._key, { expiryDate: e.target.value || undefined })}
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <span className="font-semibold text-gray-900">
                         {(row.quantity * row.purchasePrice).toLocaleString('uz-UZ')}
@@ -324,7 +334,7 @@ export default function StockInPage() {
               </tbody>
               <tfoot className="border-t-2 border-gray-200 bg-gray-50/80">
                 <tr>
-                  <td colSpan={4} className="px-4 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <td colSpan={5} className="px-4 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">
                     Jami summa:
                   </td>
                   <td className="px-4 py-3 text-right">

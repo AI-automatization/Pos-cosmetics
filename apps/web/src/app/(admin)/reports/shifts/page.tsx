@@ -34,7 +34,7 @@ export default function ShiftReportsPage() {
   const { data, isLoading, isError } = useShiftReports(range);
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/reports" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">

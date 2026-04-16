@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen, User } from 'lucide-react';
 import { useStock, useMovementsWithUsers } from '@/hooks/inventory/useInventory';
-import { SearchInput } from '@/components/common/SearchInput';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { StockInModal } from './StockInModal';
@@ -131,80 +131,73 @@ export default function InventoryPage() {
 
       {/* Tab: Zaxira holati */}
       {tab === 'stock' && (
-        <>
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Mahsulot nomi, barcode yoki SKU..."
-            className="max-w-sm"
-          />
-
-          {isLoading ? (
-            <LoadingSkeleton variant="table" rows={8} />
-          ) : isError ? (
-            <ErrorState compact onRetry={refetch} />
-          ) : (
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-              <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50">
+        isError ? (
+          <ErrorState compact onRetry={refetch} />
+        ) : (
+          <ScrollableTable
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Mahsulot nomi, barcode yoki SKU..."
+            totalCount={stock?.length}
+            isLoading={isLoading}
+          >
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Mahsulot</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Barcode</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Kategoriya</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Zaxira</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Min</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Holat</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {!stock || stock.length === 0 ? (
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Barcode</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Kategoriya</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Zaxira</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Min</th>
-                    <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
+                    <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <PackageOpen className="h-10 w-10 opacity-40" />
+                        <p className="text-sm">{search ? "Qidiruv bo'yicha natija topilmadi" : "Mahsulotlar yo'q"}</p>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {!stock || stock.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
-                        <div className="flex flex-col items-center gap-2">
-                          <PackageOpen className="h-10 w-10 opacity-40" />
-                          <p className="text-sm">{search ? "Qidiruv bo'yicha natija topilmadi" : "Mahsulotlar yo'q"}</p>
+                ) : (
+                  stock.map((item) => (
+                    <tr
+                      key={item.productId}
+                      onClick={() => setSelectedProduct(item)}
+                      className={cn(
+                        'cursor-pointer transition hover:bg-blue-50/60',
+                        item.status === 'OUT' && 'bg-red-50/40',
+                        item.status === 'LOW' && 'bg-yellow-50/40',
+                      )}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900">{item.productName}</div>
+                        <div className="text-xs text-gray-400">
+                          {item.sku} · {item.unit}
                         </div>
                       </td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-500">
+                        {item.barcode ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{item.categoryName}</td>
+                      <td className="px-4 py-3 text-right">
+                        <StockQty value={item.currentStock} status={item.status} />
+                        <span className="ml-1 text-xs text-gray-400">{item.unit}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-500">{item.minStock}</td>
+                      <td className="px-4 py-3 text-center">
+                        <StatusBadge status={item.status} />
+                      </td>
                     </tr>
-                  ) : (
-                    stock.map((item) => (
-                      <tr
-                        key={item.productId}
-                        onClick={() => setSelectedProduct(item)}
-                        className={cn(
-                          'cursor-pointer transition hover:bg-blue-50/60',
-                          item.status === 'OUT' && 'bg-red-50/40',
-                          item.status === 'LOW' && 'bg-yellow-50/40',
-                        )}
-                      >
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900">{item.productName}</div>
-                          <div className="text-xs text-gray-400">
-                            {item.sku} · {item.unit}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-500">
-                          {item.barcode ?? '—'}
-                        </td>
-                        <td className="px-4 py-3 text-gray-600">{item.categoryName}</td>
-                        <td className="px-4 py-3 text-right">
-                          <StockQty value={item.currentStock} status={item.status} />
-                          <span className="ml-1 text-xs text-gray-400">{item.unit}</span>
-                        </td>
-                        <td className="px-4 py-3 text-right text-gray-500">{item.minStock}</td>
-                        <td className="px-4 py-3 text-center">
-                          <StatusBadge status={item.status} />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-              </div>
-            </div>
-          )}
-        </>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </ScrollableTable>
+        )
       )}
 
       {/* Tab: Harakatlar tarixi */}

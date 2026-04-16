@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { RotateCcw, CheckCircle, Clock, ChevronLeft, ChevronRight, X, Search } from 'lucide-react';
+import { RotateCcw, CheckCircle, Clock, X } from 'lucide-react';
 import { useOrdersForReturns, useCreateReturn } from '@/hooks/sales/useReturns';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { formatPrice, cn } from '@/lib/utils';
 import type { Order } from '@/types/order';
 import type { CreateReturnDto } from '@/types/returns';
@@ -153,20 +153,14 @@ type FilterTab = 'ALL' | 'COMPLETED' | 'RETURNED';
 export default function ReturnsPage() {
   const [tab, setTab] = useState<FilterTab>('ALL');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
   const [returnOrder, setReturnOrder] = useState<BackendOrder | null>(null);
 
-  const { data, isLoading } = useOrdersForReturns({ page, limit: 20 });
-
-  if (isLoading)
-    return (
-      <div className="flex flex-col gap-6 overflow-y-auto p-6">
-        <h1 className="text-xl font-semibold text-gray-900">Qaytarishlar</h1>
-        <LoadingSkeleton variant="table" rows={5} />
-      </div>
-    );
+  const { data, isLoading } = useOrdersForReturns({ page, limit: pageSize });
 
   const orders = (data?.items ?? []) as BackendOrder[];
+  const total = data?.total ?? 0;
   const filtered = orders
     .filter((o) => tab === 'ALL' || o.status === tab)
     .filter((o) => !search || String(o.orderNumber).includes(search));
@@ -186,37 +180,37 @@ export default function ReturnsPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => {
-                setTab(t.key);
-                setPage(1);
-              }}
-              className={cn(
-                'rounded-md px-3 py-1.5 text-sm font-medium transition',
-                tab === t.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700',
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
-          <Search className="h-4 w-4 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buyurtma №..."
-            className="text-sm outline-none w-32"
-          />
-        </div>
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 w-fit">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => { setTab(t.key); setPage(1); }}
+            className={cn(
+              'rounded-md px-3 py-1.5 text-sm font-medium transition',
+              tab === t.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <ScrollableTable
+        searchValue={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Buyurtma №..."
+        totalCount={total}
+        isLoading={isLoading}
+        pagination={total > pageSize ? {
+          page,
+          pageSize,
+          total,
+          onPageChange: setPage,
+          onPageSizeChange: (s) => { setPageSize(s); setPage(1); },
+        } : undefined}
+      >
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -286,32 +280,7 @@ export default function ReturnsPage() {
             )}
           </tbody>
         </table>
-      </div>
-
-      {(data?.total ?? 0) > 20 && (
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>Jami: {data?.total ?? 0} ta buyurtma</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="rounded-lg border border-gray-200 p-2 disabled:opacity-40 hover:bg-gray-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="flex items-center px-2">{page}</span>
-            <button
-              type="button"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={orders.length < 20}
-              className="rounded-lg border border-gray-200 p-2 disabled:opacity-40 hover:bg-gray-50"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      </ScrollableTable>
 
       {returnOrder && <ReturnModal order={returnOrder} onClose={() => setReturnOrder(null)} />}
     </div>

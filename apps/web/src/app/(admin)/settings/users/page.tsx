@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { UserPlus, Shield, CheckCircle, XCircle, Building2 } from 'lucide-react';
 import { useUsers, useUpdateUser } from '@/hooks/settings/useUsers';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { UserModal } from '@/components/settings/UserModal';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
@@ -29,8 +30,19 @@ function RoleBadge({ role, isActive = true }: { role: UserRole; isActive?: boole
 export default function UsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | undefined>();
+  const [search, setSearch] = useState('');
   const { data: users, isLoading, isError, refetch } = useUsers();
   const { mutate: updateUser } = useUpdateUser();
+
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
+    if (!search) return users;
+    const q = search.toLowerCase();
+    return users.filter((u) =>
+      `${u.firstName ?? ''} ${u.lastName ?? ''}`.toLowerCase().includes(q) ||
+      (u.email ?? '').toLowerCase().includes(q),
+    );
+  }, [users, search]);
 
   if (isLoading) return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
@@ -82,17 +94,23 @@ export default function UsersPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <ScrollableTable
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Ism yoki email bo'yicha qidirish..."
+        totalCount={filteredUsers.length}
+        isLoading={isLoading}
+      >
         <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
+          <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
+            <tr>
               {['Ism', 'Email', 'Rol', 'Filial', "So'nggi kirish", 'Status', 'Amal'].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {(users ?? []).map((user) => (
+            {filteredUsers.map((user) => (
               <tr key={user.id} className={cn('transition hover:bg-gray-50', !user.isActive && 'opacity-60')}>
                 <td className="px-4 py-3 font-medium text-gray-900">
                   {`${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || '—'}
@@ -148,7 +166,7 @@ export default function UsersPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollableTable>
 
       {showModal && (
         <UserModal

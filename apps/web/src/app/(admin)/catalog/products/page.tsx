@@ -1,14 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Filter, Printer, Package } from 'lucide-react';
+import { Plus, Printer } from 'lucide-react';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { SearchInput } from '@/components/common/SearchInput';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { ErrorState } from '@/components/common/ErrorState';
-import { EmptyState } from '@/components/common/EmptyState';
 import { ProductsTable } from './ProductsTable';
 import { ProductForm } from './ProductForm';
 import { LabelPrintModal } from './LabelPrintModal';
@@ -121,86 +119,41 @@ export default function ProductsPage() {
         </>
       }
     >
-      {/* Filters */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <SearchInput
-          value={search}
-          onChange={(v) => {
-            setSearch(v);
-            setPage(1);
-          }}
-          placeholder="Nom, SKU yoki barcode bo'yicha qidirish..."
-          className="sm:w-80"
-        />
-
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-400" />
-          <SearchableDropdown
-            options={categories.map((cat) => ({
-              value: cat.id,
-              label: cat.name,
-            }))}
-            value={categoryFilter}
-            onChange={(val) => {
-              setCategoryFilter(val);
-              setPage(1);
-            }}
-            placeholder="Barcha kategoriyalar"
-            searchable={categories.length >= 6}
-            clearable
-            className="min-w-[200px]"
-          />
-        </div>
-      </div>
-
-      {/* Content */}
-      {isLoading && <LoadingSkeleton variant="table" rows={8} />}
-
       {isError && <ErrorState compact onRetry={refetch} />}
 
-      {data && data.items.length === 0 && (
-        <EmptyState icon={Package} title="Mahsulotlar mavjud emas" description="Birinchi mahsulotni qo'shing" />
-      )}
-
-      {data && data.items.length > 0 && (
-        <>
+      {!isError && (
+        <ScrollableTable
+          searchValue={search}
+          onSearchChange={(v) => { setSearch(v); setPage(1); }}
+          searchPlaceholder="Nom, SKU yoki barcode bo'yicha qidirish..."
+          filters={
+            <SearchableDropdown
+              options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+              value={categoryFilter}
+              onChange={(val) => { setCategoryFilter(val); setPage(1); }}
+              placeholder="Barcha kategoriyalar"
+              searchable={categories.length >= 6}
+              clearable
+              className="min-w-[200px]"
+            />
+          }
+          totalCount={data?.meta.total}
+          isLoading={isLoading}
+          pagination={data && data.meta.totalPages > 1 ? {
+            page,
+            pageSize: 20,
+            total: data.meta.total,
+            onPageChange: setPage,
+            onPageSizeChange: () => {},
+          } : undefined}
+        >
           <ProductsTable
-            products={data.items}
+            products={data?.items ?? []}
             onEdit={canEdit ? handleOpenEdit : undefined}
             onDelete={canEdit ? (p) => setDeletingProduct(p) : undefined}
             onPrint={(p) => setPrintProducts([p])}
           />
-
-          {/* Pagination */}
-          {data.meta.totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-              <span>
-                {(page - 1) * 20 + 1}–{Math.min(page * 20, data.meta.total)} / {data.meta.total}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => p - 1)}
-                  disabled={page === 1}
-                  className="rounded-lg border border-gray-300 px-3 py-1.5 transition hover:bg-gray-50 disabled:opacity-40"
-                >
-                  ← Oldingi
-                </button>
-                <span className="px-2 font-medium">
-                  {page} / {data.meta.totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page === data.meta.totalPages}
-                  className="rounded-lg border border-gray-300 px-3 py-1.5 transition hover:bg-gray-50 disabled:opacity-40"
-                >
-                  Keyingi →
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+        </ScrollableTable>
       )}
 
       {/* Product Form Modal */}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AlertTriangle, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 
 interface ExpiryItem {
   id: string;
@@ -115,7 +116,7 @@ export default function ExpiryPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <ScrollableTable totalCount={items.length}>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -147,7 +148,7 @@ export default function ExpiryPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollableTable>
     </div>
   );
 }

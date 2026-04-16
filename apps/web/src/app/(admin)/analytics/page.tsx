@@ -6,7 +6,7 @@ import {
   Tooltip, ResponsiveContainer, Legend, Cell,
 } from 'recharts';
 import {
-  TrendingUp, Package, Users, AlertTriangle, Layers, Activity, X,
+  TrendingUp, Package, Users, AlertTriangle, Layers, Activity, X, Search,
 } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
@@ -34,7 +34,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'margin', label: 'Marja tahlili' },
   { key: 'abc', label: 'ABC tahlil' },
   { key: 'cashiers', label: 'Kassirlar' },
-  { key: 'heatmap', label: 'Soatlik intensivlik' },
+  { key: 'heatmap', label: 'Soatlik faoliyat' },
   { key: 'deadstock', label: 'Harakatsiz tovar' },
 ];
 
@@ -90,6 +90,9 @@ export default function AnalyticsPage() {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [days, setDays] = useState(30);
   const [branchId, setBranchId] = useState('');
+  const [productsSearch, setProductsSearch] = useState('');
+  const [cashiersSearch, setCashiersSearch] = useState('');
+  const [deadstockSearch, setDeadstockSearch] = useState('');
 
   const { data: branches = [] } = useBranches();
 
@@ -288,8 +291,20 @@ export default function AnalyticsPage() {
 
         {/* TOP PRODUCTS */}
         {tab === 'products' && (
-          <div>
-            <h2 className="mb-4 text-sm font-semibold text-gray-900">Top mahsulotlar</h2>
+          <div className="tab-scroll-content custom-scrollbar pr-1">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-gray-900">Top mahsulotlar</h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={productsSearch}
+                  onChange={(e) => setProductsSearch(e.target.value)}
+                  placeholder="Mahsulot qidirish..."
+                  className="rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 transition"
+                />
+              </div>
+            </div>
             {loadingProducts ? (
               <LoadingSkeleton variant="table" rows={6} />
             ) : topProducts.length === 0 ? (
@@ -316,7 +331,7 @@ export default function AnalyticsPage() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-gray-100">
+                <div className="mt-4 max-h-72 overflow-y-auto custom-scrollbar rounded-xl border border-gray-100">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 bg-gray-50">
                       <tr className="border-b border-gray-100">
@@ -328,14 +343,18 @@ export default function AnalyticsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {topProducts.map((p) => (
-                        <tr key={p.productId} className="transition hover:bg-gray-50">
-                          <td className="px-4 py-2.5 font-medium text-gray-900">{p.productName}</td>
-                          <td className="px-4 py-2.5 text-gray-500">{Number(p.qtySold).toFixed(1)} dona</td>
-                          <td className="px-4 py-2.5 font-semibold text-gray-900">{formatPrice(p.revenue)}</td>
-                          <td className="px-4 py-2.5 font-semibold text-emerald-600">{formatPrice(p.margin)}</td>
-                        </tr>
-                      ))}
+                      {topProducts
+                        .filter((p) =>
+                          !productsSearch || p.productName.toLowerCase().includes(productsSearch.toLowerCase())
+                        )
+                        .map((p) => (
+                          <tr key={p.productId} className="transition hover:bg-gray-50">
+                            <td className="px-4 py-2.5 font-medium text-gray-900">{p.productName}</td>
+                            <td className="px-4 py-2.5 text-gray-500">{Number(p.qtySold).toFixed(1)} dona</td>
+                            <td className="px-4 py-2.5 font-semibold text-gray-900">{formatPrice(p.revenue)}</td>
+                            <td className="px-4 py-2.5 font-semibold text-emerald-600">{formatPrice(p.margin)}</td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
@@ -475,8 +494,20 @@ export default function AnalyticsPage() {
 
         {/* CASHIERS */}
         {tab === 'cashiers' && (
-          <div>
-            <h2 className="mb-4 text-sm font-semibold text-gray-900">Kassirlar samaradorligi</h2>
+          <div className="tab-scroll-content custom-scrollbar pr-1">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-gray-900">Kassirlar samaradorligi</h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={cashiersSearch}
+                  onChange={(e) => setCashiersSearch(e.target.value)}
+                  placeholder="Kassir qidirish..."
+                  className="rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 transition"
+                />
+              </div>
+            </div>
             {loadingCashiers ? (
               <LoadingSkeleton variant="table" rows={4} />
             ) : cashiers.length === 0 ? (
@@ -502,28 +533,32 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
 
                 {/* Cashier cards with avatars */}
-                <div className="mt-4 max-h-72 overflow-y-auto space-y-2 pr-1">
-                  {cashiers.map((c) => (
-                    <div
-                      key={c.userId}
-                      className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 transition hover:bg-gray-50 hover:shadow-sm"
-                    >
-                      <CashierAvatar name={c.name} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-gray-900">{c.name}</p>
-                        <p className="text-xs text-gray-400">{c.ordersCount} buyurtma</p>
+                <div className="mt-4 space-y-2 pr-1">
+                  {cashiers
+                    .filter((c) =>
+                      !cashiersSearch || c.name.toLowerCase().includes(cashiersSearch.toLowerCase())
+                    )
+                    .map((c) => (
+                      <div
+                        key={c.userId}
+                        className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 transition hover:bg-gray-50 hover:shadow-sm"
+                      >
+                        <CashierAvatar name={c.name} />
+                        <div className="min-w-[160px] flex-1">
+                          <p className="text-sm font-bold text-gray-900">{c.name}</p>
+                          <p className="text-xs text-gray-400">{c.ordersCount} buyurtma</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-gray-900">{formatPrice(c.revenue)}</p>
+                          <p className="text-xs text-gray-400">O&apos;rt: {formatPrice(c.avgBasket)}</p>
+                        </div>
+                        {c.returnsCount > 0 && (
+                          <span className="ml-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
+                            -{c.returnsCount}
+                          </span>
+                        )}
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-gray-900">{formatPrice(c.revenue)}</p>
-                        <p className="text-xs text-gray-400">O&apos;rt: {formatPrice(c.avgBasket)}</p>
-                      </div>
-                      {c.returnsCount > 0 && (
-                        <span className="ml-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
-                          -{c.returnsCount}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </>
             )}
@@ -589,8 +624,20 @@ export default function AnalyticsPage() {
 
         {/* DEADSTOCK */}
         {tab === 'deadstock' && (
-          <div>
-            <h2 className="mb-4 text-sm font-semibold text-gray-900">Harakatsiz tovarlar (90+ kun sotilmagan)</h2>
+          <div className="tab-scroll-content custom-scrollbar pr-1">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-gray-900">Harakatsiz tovarlar (90+ kun sotilmagan)</h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={deadstockSearch}
+                  onChange={(e) => setDeadstockSearch(e.target.value)}
+                  placeholder="Tovar qidirish..."
+                  className="rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 transition"
+                />
+              </div>
+            </div>
             {loadingDead ? (
               <LoadingSkeleton variant="table" rows={5} />
             ) : deadStock.length === 0 ? (
@@ -609,7 +656,7 @@ export default function AnalyticsPage() {
                     <strong>{formatPrice(deadStock.reduce((s, d) => s + d.carryingCost, 0))}</strong>
                   </span>
                 </div>
-                <div className="max-h-80 overflow-y-auto rounded-xl border border-gray-100">
+                <div className="max-h-80 overflow-y-auto custom-scrollbar rounded-xl border border-gray-100">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 bg-gray-50">
                       <tr className="border-b border-gray-100">
@@ -621,31 +668,35 @@ export default function AnalyticsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {deadStock.map((d) => (
-                        <tr key={d.productId} className="transition hover:bg-gray-50">
-                          <td className="px-4 py-2.5 font-medium text-gray-900">{d.productName}</td>
-                          <td className="px-4 py-2.5 font-mono text-xs text-gray-400">{d.sku ?? '—'}</td>
-                          <td className="px-4 py-2.5 text-gray-600">{Number(d.totalStock).toFixed(1)}</td>
-                          <td className="px-4 py-2.5 text-xs text-gray-400">
-                            {d.lastSoldAt ? new Date(d.lastSoldAt).toLocaleDateString('uz-UZ') : 'Hech qachon'}
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span
-                              className={cn(
-                                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold',
-                                d.daysIdle >= 180
-                                  ? 'bg-red-50 text-red-600'
-                                  : d.daysIdle >= 90
-                                    ? 'bg-amber-50 text-amber-600'
-                                    : 'bg-gray-50 text-gray-600',
-                              )}
-                            >
-                              {d.daysIdle} kun
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5 text-gray-600">{formatPrice(d.carryingCost)}</td>
-                        </tr>
-                      ))}
+                      {deadStock
+                        .filter((d) =>
+                          !deadstockSearch || d.productName.toLowerCase().includes(deadstockSearch.toLowerCase())
+                        )
+                        .map((d) => (
+                          <tr key={d.productId} className="transition hover:bg-gray-50">
+                            <td className="px-4 py-2.5 font-medium text-gray-900">{d.productName}</td>
+                            <td className="px-4 py-2.5 font-mono text-xs text-gray-400">{d.sku ?? '—'}</td>
+                            <td className="px-4 py-2.5 text-gray-600">{Number(d.totalStock).toFixed(1)}</td>
+                            <td className="px-4 py-2.5 text-xs text-gray-400">
+                              {d.lastSoldAt ? new Date(d.lastSoldAt).toLocaleDateString('uz-UZ') : 'Hech qachon'}
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <span
+                                className={cn(
+                                  'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold',
+                                  d.daysIdle >= 180
+                                    ? 'bg-red-50 text-red-600'
+                                    : d.daysIdle >= 90
+                                      ? 'bg-amber-50 text-amber-600'
+                                      : 'bg-gray-50 text-gray-600',
+                                )}
+                              >
+                                {d.daysIdle} kun
+                              </span>
+                            </td>
+                            <td className="px-4 py-2.5 text-gray-600">{formatPrice(d.carryingCost)}</td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>

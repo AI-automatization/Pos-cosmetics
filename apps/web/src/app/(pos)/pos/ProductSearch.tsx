@@ -5,6 +5,7 @@ import { Search, Barcode, Plus, Package } from 'lucide-react';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';
 import { useBarcodeScanner } from '@/hooks/pos/useBarcodeScanner';
+import { usePromoMap } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
 import type { Product } from '@/types/catalog';
 import { BundleDetailModal } from './BundleDetailModal';
@@ -15,12 +16,23 @@ interface ProductSearchProps {
   searchRef: React.RefObject<HTMLInputElement | null>;
 }
 
-function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }) {
+function ProductCard({
+  product,
+  onAdd,
+  promoDiscount,
+}: {
+  product: Product;
+  onAdd: () => void;
+  promoDiscount?: number;
+}) {
   const stock = Math.max(0, product.currentStock ?? 0);
   const minStock = product.minStockLevel ?? 0;
   const isLowStock = stock > 0 && stock <= minStock;
   const isOutOfStock = stock === 0;
   const unitLabel = product.unit?.shortName ?? product.unit?.name ?? '';
+  const discountedPrice = promoDiscount
+    ? product.sellPrice * (1 - promoDiscount / 100)
+    : null;
 
   return (
     <button
@@ -28,12 +40,19 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
       onClick={onAdd}
       disabled={isOutOfStock}
       className={cn(
-        'group flex flex-col rounded-xl border bg-white p-3 text-left transition',
+        'group relative flex flex-col rounded-xl border bg-white p-3 text-left transition',
         isOutOfStock
           ? 'cursor-not-allowed border-gray-200 opacity-50'
-          : 'cursor-pointer border-gray-200 hover:border-blue-300 hover:shadow-md active:scale-95',
+          : promoDiscount
+            ? 'cursor-pointer border-red-200 hover:border-red-400 hover:shadow-md active:scale-95'
+            : 'cursor-pointer border-gray-200 hover:border-blue-300 hover:shadow-md active:scale-95',
       )}
     >
+      {promoDiscount && (
+        <span className="absolute right-1.5 top-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+          -{promoDiscount}%
+        </span>
+      )}
       <div className="mb-1 flex items-start justify-between gap-1">
         <div className="min-w-0">
           <p className="line-clamp-2 text-xs font-medium leading-snug text-gray-900">
@@ -48,19 +67,22 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
         </div>
         <Plus className="h-4 w-4 shrink-0 text-gray-300 transition group-hover:text-blue-500" />
       </div>
-      <p className="mt-auto text-sm font-bold text-blue-600">
-        {formatPrice(product.sellPrice)}
-      </p>
+      <div className="mt-auto">
+        {discountedPrice !== null ? (
+          <div>
+            <p className="text-xs text-gray-400 line-through">{formatPrice(product.sellPrice)}</p>
+            <p className="text-sm font-bold text-red-600">{formatPrice(discountedPrice)}</p>
+          </div>
+        ) : (
+          <p className="text-sm font-bold text-blue-600">{formatPrice(product.sellPrice)}</p>
+        )}
+      </div>
       <div className="mt-1 flex items-center justify-between">
         <span className="text-xs text-gray-400">{product.sku ?? '—'}</span>
         <span
           className={cn(
             'text-xs',
-            isOutOfStock
-              ? 'text-red-500'
-              : isLowStock
-                ? 'text-yellow-600'
-                : 'text-green-600',
+            isOutOfStock ? 'text-red-500' : isLowStock ? 'text-yellow-600' : 'text-green-600',
           )}
         >
           {stock} {unitLabel}
@@ -71,8 +93,12 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
 }
 
 export function ProductSearch({ search, onSearchChange, searchRef }: ProductSearchProps) {
-  const addItem = usePOSStore((s) => s.addItem);
+  const { addItem, setLineDiscount } = usePOSStore((s) => ({
+    addItem: s.addItem,
+    setLineDiscount: s.setLineDiscount,
+  }));
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
+  const promoMap = usePromoMap();
 
   const { data, isFetching } = useProducts({
     search: search || undefined,
@@ -92,8 +118,13 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         isBundle: product.isBundle,
         currentStock: Math.max(0, product.currentStock ?? 0),
       });
+      // Auto-apply promo discount if active
+      const promoPct = promoMap[product.id];
+      if (promoPct) {
+        setLineDiscount(product.id, promoPct);
+      }
     },
-    [addItem],
+    [addItem, setLineDiscount, promoMap],
   );
 
   const handleAdd = useCallback(
@@ -160,6 +191,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
                 key={product.id}
                 product={product}
                 onAdd={() => handleAdd(product)}
+                promoDiscount={promoMap[product.id]}
               />
             ))}
           </div>

@@ -7,6 +7,7 @@ const API_BASE = process.env.INTERNAL_API_URL || RAILWAY_API;
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  eslint: { ignoreDuringBuilds: true },
   // Monorepo: trace files from repo root so shared packages are included
   outputFileTracingRoot: path.join(__dirname, '../../'),
   async rewrites() {

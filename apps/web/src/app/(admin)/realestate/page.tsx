@@ -12,7 +12,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useProperties, useRealEstateStats, useRentalPayments } from '@/hooks/realestate/useRealestate';
-import { SearchInput } from '@/components/common/SearchInput';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -173,12 +173,15 @@ export default function RealEstatePage() {
       {tab === 'properties' && (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Mulk nomi, manzil yoki ijarachi..."
-              className="max-w-sm"
-            />
+            <div className="relative max-w-sm flex-1">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Mulk nomi, manzil yoki ijarachi..."
+                className="w-full rounded-lg border border-gray-200 py-2 pl-3 pr-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+              />
+            </div>
             <div className="flex gap-1">
               {(['ALL', 'RENTED', 'VACANT', 'MAINTENANCE'] as const).map((s) => (
                 <button
@@ -295,29 +298,28 @@ export default function RealEstatePage() {
             ))}
           </div>
 
-          {paysLoading ? (
-            <LoadingSkeleton variant="table" rows={6} />
-          ) : !payments || payments.length === 0 ? (
-            <EmptyState
-              icon={DollarSign}
-              title="To'lovlar topilmadi"
-              description="Hali ijara to'lovlari yo'q"
-            />
-          ) : (
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-              <table className="w-full text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50">
+          <ScrollableTable totalCount={payments?.length} isLoading={paysLoading}>
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Mulk</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Ijarachi</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Oy</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">Summa</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Muddat</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {!payments || payments.length === 0 ? (
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Mulk</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Ijarachi</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Oy</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Summa</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Muddat</th>
-                    <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
+                    <td colSpan={6} className="py-12 text-center">
+                      <DollarSign className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+                      <p className="text-sm text-gray-500">Hali ijara to&apos;lovlari yo&apos;q</p>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {payments.map((pay) => {
+                ) : (
+                  payments.map((pay) => {
                     const statusCfg = PAYMENT_STATUS_CONFIG[pay.status];
                     return (
                       <tr key={pay.id} className="transition hover:bg-gray-50">
@@ -335,11 +337,11 @@ export default function RealEstatePage() {
                         </td>
                       </tr>
                     );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  })
+                )}
+              </tbody>
+            </table>
+          </ScrollableTable>
         </>
       )}
     </div>

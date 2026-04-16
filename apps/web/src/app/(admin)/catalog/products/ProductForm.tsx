@@ -3,7 +3,7 @@
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, ScanLine } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import type { Category, Product } from '@/types/catalog';
 import { VariantsSection } from './VariantsSection';
@@ -14,6 +14,7 @@ import { MarginBadge } from './MarginBadge';
 import { ImageUpload } from './ImageUpload';
 import { BarcodeFields } from './BarcodeFields';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { BarcodeScanner } from '@/components/ui/BarcodeScanner';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
@@ -56,7 +57,7 @@ function buildDefaultValues(product?: Product | null): ProductFormData {
 }
 
 export function ProductForm({ product, categories, isPending, onSubmit, onClose }: ProductFormProps) {
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<ProductFormData>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
     defaultValues: buildDefaultValues(product),
   });
@@ -65,6 +66,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose 
   const costPrice = watch('costPrice') ?? 0;
   const sellPrice = watch('sellPrice') ?? 0;
   const [showSku, setShowSku] = useState(!!product?.sku);
+  const [showScanner, setShowScanner] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>(
     ((product as unknown as Record<string, unknown>)?.imageUrl as string) ?? '',
   );
@@ -136,7 +138,27 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose 
               )}
             </div>
 
-            {/* Extra barcodes only (main barcode removed) */}
+            {/* Main barcode + scanner */}
+            <div className="col-span-2">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Barcode</label>
+              <div className="flex gap-2">
+                <input
+                  {...register('barcode')}
+                  placeholder="8600012345678"
+                  className={`${inputCls} flex-1`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowScanner(true)}
+                  title="Kamera bilan skanerlash"
+                  className="flex items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50 hover:border-gray-400"
+                >
+                  <ScanLine className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Extra barcodes */}
             <BarcodeFields
               register={register}
               fields={fields}
@@ -242,6 +264,16 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose 
           </div>
         </form>
       </div>
+
+      {showScanner && (
+        <BarcodeScanner
+          onScan={(barcode) => {
+            setValue('barcode', barcode);
+            setShowScanner(false);
+          }}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </div>
   );
 }
