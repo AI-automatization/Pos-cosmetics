@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Search, Barcode, Plus, Package } from 'lucide-react';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';
+import { useShallow } from 'zustand/react/shallow';
 import { useBarcodeScanner } from '@/hooks/pos/useBarcodeScanner';
 import { usePromoMap } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
@@ -93,10 +94,10 @@ function ProductCard({
 }
 
 export function ProductSearch({ search, onSearchChange, searchRef }: ProductSearchProps) {
-  const { addItem, setLineDiscount } = usePOSStore((s) => ({
-    addItem: s.addItem,
-    setLineDiscount: s.setLineDiscount,
-  }));
+  // useShallow: prevents new object reference on every render → stops Zustand tearing-detection re-renders
+  const { addItem, setLineDiscount } = usePOSStore(
+    useShallow((s) => ({ addItem: s.addItem, setLineDiscount: s.setLineDiscount })),
+  );
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
   const promoMap = usePromoMap();
 

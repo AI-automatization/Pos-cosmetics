@@ -40,15 +40,19 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     cash: true, card: true, nasiya: false, bonus: false,
   });
 
-  // Reset split state when switching away from split
+  // Reset split state when switching away from split.
+  // Use functional updater to bail out when state already matches (avoids extra render on every mount).
   useEffect(() => {
     if (paymentMethod !== 'split') {
-      setSplitEnabled({ cash: true, card: true, nasiya: false, bonus: false });
-      // Only update store when values are non-zero to avoid unnecessary re-renders
+      setSplitEnabled((prev) =>
+        prev.cash && prev.card && !prev.nasiya && !prev.bonus
+          ? prev // already correct — React bails out, no re-render
+          : { cash: true, card: true, nasiya: false, bonus: false },
+      );
       if (splitNasiyaAmount !== 0) setSplitNasiyaAmount(0);
       if (paymentMethod !== 'nasiya' && paymentMethod !== 'bonus' && bonusPoints !== 0) setBonusPoints(0);
     }
-  }, [paymentMethod]);
+  }, [paymentMethod]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: loyaltyAccount } = useLoyaltyAccount(
     (paymentMethod === 'bonus' || (paymentMethod === 'split' && splitEnabled.bonus))

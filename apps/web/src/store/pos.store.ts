@@ -256,6 +256,9 @@ export const usePOSStore = create<POSState>()(
     {
       name: 'raos-pos-store',
       version: 3,
+      // skipHydration: server renders with default state (matching client initial render) → no #418.
+      // POSPage calls usePOSStore.persist.rehydrate() in useEffect to load from localStorage.
+      skipHydration: true,
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
           const old = persistedState as Record<string, unknown>;
