@@ -16,6 +16,15 @@ export function useSuppliers() {
   });
 }
 
+export function useSupplier(id: string | null) {
+  return useQuery({
+    queryKey: [SUPPLIERS_KEY, id],
+    queryFn: () => suppliersApi.getById(id!),
+    enabled: !!id,
+    staleTime: 30_000,
+  });
+}
+
 export function useCreateSupplier() {
   const qc = useQueryClient();
   return useMutation({

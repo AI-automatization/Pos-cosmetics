@@ -1252,15 +1252,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-## T-125 | P0 | [BACKEND] | Swagger/OpenAPI documentation — API docs setup
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/main.ts`, `apps/api/src/**/*.dto.ts`
-- **Muammo:** Swagger dokumentatsiya to'liq sozlanmagan. DTO larga `@ApiProperty()` kerak.
-- **Kutilgan:** `/api/docs` da to'liq interaktiv API dokumentatsiya, barcha endpointlar bilan
-
----
 
 ## T-126 | P0 | [BACKEND] | Test infrastructure — Jest setup + first tests
 
@@ -1384,23 +1375,6 @@ _(hozircha yo'q)_
 
 ---
 
-## T-339 | P2 | [BACKEND] | Demo Seed — Low-stock mahsulot qo'shish (POS toast test uchun)
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/prisma/seed.ts`
-- **Muammo:** Demo datada barcha mahsulotlar 130-230 dona. Low-stock toast ni ko'rsatish uchun 120+ dona sotish kerak — bu real test emas.
-- **Kutilgan:** Seed ga 1 mahsulot: `currentStock=7, minStockLevel=10` — POS da sotib toast ko'rsatish mumkin bo'lsin.
-
----
-
-## T-340 | P2 | [FRONTEND] | Warehouse Dashboard — Yangi zapros kelganda signal
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/page.tsx`
-- **Muammo:** Yangi kassir zaprosi 30 soniyada ko'rinadi, lekin hech qanday signal yo'q (sound/badge).
-- **Kutilgan:** Yangi zapros soni oshganda browser Notification API yoki audio beep.
 
 ---
 
