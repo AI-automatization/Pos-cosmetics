@@ -21,6 +21,7 @@ export interface WarehouseInvoice {
   id: string;
   tenantId: string;
   supplierId?: string;
+  supplier?: { id: string; name: string; phone?: string | null; company?: string | null } | null;
   invoiceNumber?: string;
   note?: string;
   totalCost: number;
@@ -29,6 +30,7 @@ export interface WarehouseInvoice {
   items: {
     id: string;
     productId: string;
+    product?: { id: string; name: string; sku: string | null; unit?: { shortName: string } | null } | null;
     quantity: number;
     purchasePrice: number;
     totalCost: number;

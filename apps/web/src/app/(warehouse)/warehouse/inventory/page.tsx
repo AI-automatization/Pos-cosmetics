@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Package, Search, AlertTriangle, TrendingDown, Pencil } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Package, Search, AlertTriangle, TrendingDown, Pencil, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
@@ -10,9 +10,23 @@ import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm
 import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
 
+const PAGE_SIZE = 20;
+type SortCol = 'name' | 'stock' | 'min';
+type SortDir = 'asc' | 'desc';
+
+function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol; sortDir: SortDir }) {
+  if (sortCol !== col) return <ChevronsUpDown className="inline ml-1 h-3 w-3 text-gray-300" />;
+  return sortDir === 'asc'
+    ? <ChevronUp className="inline ml-1 h-3 w-3 text-amber-500" />
+    : <ChevronDown className="inline ml-1 h-3 w-3 text-amber-500" />;
+}
+
 export default function WarehouseInventoryPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
+  const [page, setPage] = useState(1);
+  const [sortCol, setSortCol] = useState<SortCol>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showProductModal, setShowProductModal] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [printProducts, setPrintProducts] = useState<Product[]>([]);
@@ -61,6 +75,15 @@ export default function WarehouseInventoryPage() {
     );
   };
 
+  function handleSort(col: SortCol) {
+    if (sortCol === col) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortCol(col);
+      setSortDir('asc');
+    }
+  }
+
   const filtered = products.filter((p) => {
     const stock = Math.max(0, p.currentStock ?? 0);
     const matchSearch =
@@ -68,14 +91,25 @@ export default function WarehouseInventoryPage() {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.sku ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (p.barcode ?? '').includes(search);
-
     const matchFilter =
       filter === 'all' ||
       (filter === 'low' && stock > 0 && p.minStockLevel > 0 && stock <= p.minStockLevel) ||
       (filter === 'out' && stock <= 0);
-
     return matchSearch && matchFilter;
   });
+
+  const sorted = [...filtered].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    if (sortCol === 'name') return dir * a.name.localeCompare(b.name);
+    if (sortCol === 'stock') return dir * ((a.currentStock ?? 0) - (b.currentStock ?? 0));
+    if (sortCol === 'min') return dir * (a.minStockLevel - b.minStockLevel);
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => { setPage(1); }, [search, filter, sortCol]);
 
   const outCount = products.filter((p) => (p.currentStock ?? 0) <= 0).length;
   const lowCount = products.filter((p) => {
@@ -171,71 +205,113 @@ export default function WarehouseInventoryPage() {
               <div key={i} className="h-10 rounded-lg bg-gray-100 animate-pulse" />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-400">
             <Package className="mx-auto mb-2 h-8 w-8 text-gray-300" />
             Ma&apos;lumot topilmadi
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500">
-                <th className="px-4 py-3 text-left font-medium">Mahsulot</th>
-                <th className="px-4 py-3 text-left font-medium">SKU</th>
-                <th className="px-4 py-3 text-left font-medium">Kategoriya</th>
-                <th className="px-4 py-3 text-right font-medium">Min. zaxira</th>
-                <th className="px-4 py-3 text-right font-medium">Hozirgi miqdor</th>
-                <th className="px-4 py-3 text-right font-medium"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((p) => {
-                const stock = Math.max(0, p.currentStock ?? 0);
-                const isOut = stock <= 0;
-                const isLow = !isOut && p.minStockLevel > 0 && stock <= p.minStockLevel;
-                return (
-                  <tr key={p.id} className="hover:bg-gray-50 group">
-                    <td className="px-4 py-2.5 font-medium text-gray-900">{p.name}</td>
-                    <td className="px-4 py-2.5 text-gray-400">{p.sku ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-gray-500">{p.category?.name ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-right text-gray-400">
-                      {p.minStockLevel > 0 ? p.minStockLevel : '—'}
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <span
-                        className={cn(
-                          'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
-                          isOut
-                            ? 'bg-red-100 text-red-700'
-                            : isLow
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-green-100 text-green-700',
-                        )}
-                      >
-                        {isOut ? (
-                          <>
-                            <AlertTriangle className="h-3 w-3" /> Tugagan
-                          </>
-                        ) : (
-                          `${stock} ${p.unit?.shortName ?? 'dona'}`
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setEditProduct(p)}
-                        className="opacity-0 group-hover:opacity-100 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
-                        title="Tahrirlash"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500">
+                    <th
+                      className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700"
+                      onClick={() => handleSort('name')}
+                    >
+                      Mahsulot <SortIcon col="name" sortCol={sortCol} sortDir={sortDir} />
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium">SKU</th>
+                    <th className="px-4 py-3 text-left font-medium">Kategoriya</th>
+                    <th
+                      className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:text-gray-700"
+                      onClick={() => handleSort('min')}
+                    >
+                      Min. zaxira <SortIcon col="min" sortCol={sortCol} sortDir={sortDir} />
+                    </th>
+                    <th
+                      className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:text-gray-700"
+                      onClick={() => handleSort('stock')}
+                    >
+                      Hozirgi miqdor <SortIcon col="stock" sortCol={sortCol} sortDir={sortDir} />
+                    </th>
+                    <th className="px-4 py-3 text-right font-medium"></th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {paginated.map((p) => {
+                    const stock = Math.max(0, p.currentStock ?? 0);
+                    const isOut = stock <= 0;
+                    const isLow = !isOut && p.minStockLevel > 0 && stock <= p.minStockLevel;
+                    return (
+                      <tr key={p.id} className="hover:bg-gray-50 group">
+                        <td className="px-4 py-2.5 font-medium text-gray-900">{p.name}</td>
+                        <td className="px-4 py-2.5 text-gray-400">{p.sku ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-gray-500">{p.category?.name ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-right text-gray-400">
+                          {p.minStockLevel > 0 ? p.minStockLevel : '—'}
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
+                              isOut
+                                ? 'bg-red-100 text-red-700'
+                                : isLow
+                                ? 'bg-orange-100 text-orange-700'
+                                : 'bg-green-100 text-green-700',
+                            )}
+                          >
+                            {isOut ? (
+                              <><AlertTriangle className="h-3 w-3" /> Tugagan</>
+                            ) : (
+                              `${stock} ${p.unit?.shortName ?? 'dona'}`
+                            )}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setEditProduct(p)}
+                            className="opacity-0 group-hover:opacity-100 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
+                            title="Tahrirlash"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
+                <span>
+                  {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, sorted.length)} / {sorted.length} ta
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ‹
+                  </button>
+                  <span className="px-2">{page} / {totalPages}</span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

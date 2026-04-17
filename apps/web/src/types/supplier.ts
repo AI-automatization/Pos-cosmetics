@@ -18,3 +18,15 @@ export interface CreateSupplierDto {
 }
 
 export type UpdateSupplierDto = Partial<CreateSupplierDto> & { isActive?: boolean };
+
+export interface SupplierDetail extends Supplier {
+  productSuppliers?: {
+    product: {
+      id: string;
+      name: string;
+      sku: string | null;
+      sellPrice: number;
+      isActive: boolean;
+    };
+  }[];
+}

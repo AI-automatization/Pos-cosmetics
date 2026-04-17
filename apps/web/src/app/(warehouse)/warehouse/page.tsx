@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Package, TrendingDown, AlertTriangle, ArrowUpDown, RefreshCw, Bell, CheckCheck } from 'lucide-react';
+import { Package, TrendingDown, AlertTriangle, ArrowUpDown, RefreshCw, Bell, CheckCheck, FileText, PackagePlus, LayoutList, CalendarX, Truck, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWarehouseDashboard, useWarehouseAlerts } from '@/hooks/warehouse/useWarehouseInvoices';
 import { notificationsApi } from '@/api/notifications.api';
@@ -115,6 +116,30 @@ export default function WarehouseDashboardPage() {
           <RefreshCw className="h-4 w-4" />
           Yangilash
         </button>
+      </div>
+
+      {/* Quick Navigation */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[
+          { href: '/warehouse/invoices',  icon: FileText,    label: 'Nakladnoylar',        color: 'bg-blue-50 text-blue-600',   border: 'hover:border-blue-300' },
+          { href: '/warehouse/stock-in',  icon: PackagePlus, label: 'Kirim qilish',        color: 'bg-green-50 text-green-600', border: 'hover:border-green-300' },
+          { href: '/warehouse/inventory', icon: LayoutList,  label: 'Inventar',            color: 'bg-amber-50 text-amber-600', border: 'hover:border-amber-300' },
+          { href: '/warehouse/low-stock', icon: TrendingDown,label: 'Kam qolgan',          color: 'bg-red-50 text-red-600',     border: 'hover:border-red-300' },
+          { href: '/warehouse/expiry',    icon: CalendarX,   label: "Muddati o'tayotgan",  color: 'bg-orange-50 text-orange-600', border: 'hover:border-orange-300' },
+          { href: '/warehouse/suppliers', icon: Truck,       label: 'Yetkazib beruvchilar', color: 'bg-purple-50 text-purple-600', border: 'hover:border-purple-300' },
+        ].map(({ href, icon: Icon, label, color, border }) => (
+          <Link
+            key={href}
+            href={href}
+            className={cn('flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white p-4 text-center transition hover:shadow-sm', border)}
+          >
+            <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', color)}>
+              <Icon className="h-5 w-5" />
+            </div>
+            <span className="text-xs font-medium text-gray-700 leading-tight">{label}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
+          </Link>
+        ))}
       </div>
 
       {/* Stat cards */}

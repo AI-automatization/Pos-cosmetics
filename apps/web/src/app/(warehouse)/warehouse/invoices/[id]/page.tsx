@@ -83,7 +83,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             </div>
             <div>
               <p className="text-xs text-gray-500">Kontragent</p>
-              <p className="font-semibold text-gray-900">{invoice.supplierId || '—'}</p>
+              <p className="font-semibold text-gray-900">{invoice.supplier?.name || invoice.supplierId || '—'}</p>
+              {invoice.supplier?.company && (
+                <p className="text-xs text-gray-400">{invoice.supplier.company}</p>
+              )}
             </div>
           </div>
 
@@ -132,7 +135,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             {invoice.items.map((item, idx) => (
               <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-5 py-3 text-gray-400">{idx + 1}</td>
-                <td className="px-5 py-3 font-medium text-gray-900">{item.productId}</td>
+                <td className="px-5 py-3 font-medium text-gray-900">
+                  {item.product?.name ?? item.productId}
+                  {item.product?.sku && (
+                    <span className="ml-1.5 text-xs text-gray-400 font-normal">{item.product.sku}</span>
+                  )}
+                </td>
                 <td className="px-5 py-3 text-right text-gray-700">{item.quantity}</td>
                 <td className="px-5 py-3 text-right text-gray-700">{formatPrice(item.purchasePrice)}</td>
                 <td className="px-5 py-3 text-gray-500">{item.batchNumber || '—'}</td>
