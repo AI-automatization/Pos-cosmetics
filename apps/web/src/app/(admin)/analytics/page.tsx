@@ -40,13 +40,13 @@ const TABS: { key: Tab; label: string }[] = [
 
 /* ─── CashierAvatar ─── */
 
-function CashierAvatar({ name }: { name: string }) {
-  const initials = name
+function CashierAvatar({ name }: { name: string | null | undefined }) {
+  const initials = (name ?? '?')
     .split(' ')
-    .map((w) => w[0])
+    .map((w) => w[0] ?? '')
     .join('')
     .slice(0, 2)
-    .toUpperCase();
+    .toUpperCase() || '?';
 
   const AVATAR_COLORS = [
     'from-blue-500 to-blue-600',
@@ -56,7 +56,7 @@ function CashierAvatar({ name }: { name: string }) {
     'from-pink-500 to-pink-600',
     'from-cyan-500 to-cyan-600',
   ];
-  const color = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+  const color = AVATAR_COLORS[(name ?? '?').charCodeAt(0) % AVATAR_COLORS.length];
 
   return (
     <div
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
   });
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto p-6">
+    <div className="flex h-full flex-col gap-5 overflow-y-auto p-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -536,7 +536,7 @@ export default function AnalyticsPage() {
                 <div className="mt-4 space-y-2 pr-1">
                   {cashiers
                     .filter((c) =>
-                      !cashiersSearch || c.name.toLowerCase().includes(cashiersSearch.toLowerCase())
+                      !cashiersSearch || (c.name ?? '').toLowerCase().includes(cashiersSearch.toLowerCase())
                     )
                     .map((c) => (
                       <div
@@ -545,7 +545,7 @@ export default function AnalyticsPage() {
                       >
                         <CashierAvatar name={c.name} />
                         <div className="min-w-[160px] flex-1">
-                          <p className="text-sm font-bold text-gray-900">{c.name}</p>
+                          <p className="text-sm font-bold text-gray-900">{c.name ?? '—'}</p>
                           <p className="text-xs text-gray-400">{c.ordersCount} buyurtma</p>
                         </div>
                         <div className="text-right">
