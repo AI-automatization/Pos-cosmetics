@@ -17,6 +17,9 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Shared refresh promise — deduplication: 10 parallel 401 → only 1 refresh POST
+let refreshPromise: Promise<string> | null = null;
+
 // Response: 401 → refresh, 5xx → error report
 apiClient.interceptors.response.use(
   (res) => res,
@@ -24,8 +27,7 @@ apiClient.interceptors.response.use(
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
       try {
-        // userId ni JWT payload dan olish (localStorage['user_id'] hali set bo'lmagan bo'lishi mumkin)
-        // JWT payload public — signature verification shart emas, faqat sub kerak
+        // userId ni JWT payload dan olish — faqat sub kerak (signature verify shart emas)
         const currentToken = localStorage.getItem('access_token');
         let userId: string | null = null;
         if (currentToken) {
@@ -34,15 +36,22 @@ apiClient.interceptors.response.use(
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (_e) { /* ignore parse errors */ }
         }
-        // refreshToken body da emas — httpOnly cookie withCredentials: true bilan yuboriladi (T-347)
-        const { data } = await apiClient.post('/auth/refresh', { userId });
-        localStorage.setItem('access_token', data.accessToken);
-        err.config.headers.Authorization = `Bearer ${data.accessToken}`;
+        // refreshToken httpOnly cookie withCredentials: true bilan yuboriladi (T-347)
+        // Single shared promise prevents refresh storms when many requests get 401 simultaneously
+        if (!refreshPromise) {
+          refreshPromise = apiClient
+            .post<{ accessToken: string }>('/auth/refresh', { userId })
+            .then((r) => {
+              localStorage.setItem('access_token', r.data.accessToken);
+              return r.data.accessToken;
+            })
+            .finally(() => { refreshPromise = null; });
+        }
+        const newToken = await refreshPromise;
+        err.config.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(err.config);
       } catch {
         localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user_id');
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
