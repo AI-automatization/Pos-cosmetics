@@ -9,7 +9,6 @@ import {
   useDeletePromotion,
   useTogglePromotion,
 } from '@/hooks/promotions/usePromotions';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
