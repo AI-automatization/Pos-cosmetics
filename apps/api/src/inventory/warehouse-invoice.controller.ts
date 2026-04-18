@@ -33,7 +33,7 @@ export class WarehouseInvoiceController {
   // ─── T-327: GET /warehouse/invoices ──────────────────────────────────────
 
   @Get('invoices')
-  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'T-327: Nakladnoylar royxati' })
   @ApiQuery({ name: 'from', required: false, example: '2026-03-01' })
   @ApiQuery({ name: 'to', required: false, example: '2026-03-31' })
@@ -54,7 +54,7 @@ export class WarehouseInvoiceController {
   // ─── T-327: GET /warehouse/invoices/:id ──────────────────────────────────
 
   @Get('invoices/:id')
-  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'T-327: Nakladnoy detali' })
   getInvoice(
     @CurrentUser('tenantId') tenantId: string,
