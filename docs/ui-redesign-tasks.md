@@ -111,34 +111,11 @@ Spacing: 4, 8, 12, 16, 20, 24, 32px
 
 ### ~~UI-056~~ ✅ UsersScreen — `ui-done.md` ga ko'chirildi
 
-### UI-057 | BRANCHES — BranchesScreen ← 🆕 YANGI SCREEN
-- **Fayl:** `apps/mobile/src/screens/Settings/BranchesScreen.tsx` ← **YANGI FAYL**
-- **Status:** 🆕 Yangi screen
-- **Tuzilish:**
-  - Header: "Filiallar" + Plus icon
-  - Branch cards: Building icon (blue-50 circle) + name + address + status toggle
-  - Swipe: Tahrirlash + O'chirish
-  - BranchFormSheet: nomi, manzil
+### ~~UI-057~~ ✅ BranchesScreen — `ui-done.md` ga ko'chirildi
 
-### UI-058 | AUDIT — AuditLogScreen ← 🆕 YANGI SCREEN
-- **Fayl:** `apps/mobile/src/screens/Settings/AuditLogScreen.tsx` ← **YANGI FAYL**
-- **Status:** 🆕 Yangi screen
-- **Tuzilish:**
-  - Header: "Audit jurnali"
-  - Search + action filter dropdown
-  - Log items: action badge (CREATE=green/UPDATE=blue/DELETE=red/LOGIN=gray) + date + user + entity
-  - Expandable detail: old/new JSON preview (red-50 / green-50 bg)
+### ~~UI-058~~ ✅ AuditLogScreen — `ui-done.md` ga ko'chirildi
 
-### UI-059 | SETTINGS — SettingsScreen
-- **Fayl:** `apps/mobile/src/screens/Settings/index.tsx`
-- **Status:** ♻️ Redesign
-- **Tuzilish:**
-  - Profile card: avatar + name + role + branch + "Profilni tahrirlash"
-  - Sections: Hisob / Ilova / Xavfsizlik / Ma'lumot
-  - Each setting row: icon + title + subtitle + chevron / toggle
-  - Language toggle: O'zbek / Русский
-  - Theme: Yorug' / Qorong'u / Tizim
-  - Biometric toggle + auto-lock timer
+### ~~UI-059~~ ✅ SettingsScreen — `ui-done.md` ga ko'chirildi
 
 ---
 
@@ -242,9 +219,9 @@ Barcha foundation (UI-000 → UI-010) tugagandan keyin parallel ishlatish:
 | Phase 6 — Moliya | UI-037 → UI-045 (9 ta) | ✅ Done |
 | Phase 7 — Ombor/Kirim | UI-046 → UI-051 (6 ta) | ✅ Done |
 | Phase 8 — Nasiya | UI-052 → UI-054 (3 ta) | ✅ Done |
-| Phase 9 — Settings | UI-055 + UI-056 → UI-059 (5 ta) | 🔄 2/5 Done |
+| Phase 9 — Settings | UI-055 + UI-056 → UI-059 (5 ta) | ✅ Done |
 | Phase 10 — Qolgan | UI-060 → UI-066 (7 ta) | ⏳ Pending |
-| **JAMI** | **55 ta task** | **44/55** |
+| **JAMI** | **55 ta task** | **47/55** |
 
 ---
 

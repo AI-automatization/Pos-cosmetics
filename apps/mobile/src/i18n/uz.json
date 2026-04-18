@@ -124,13 +124,31 @@
   "settings": {
     "title": "Sozlamalar",
     "profile": "Profil",
+    "profileSubtitle": "Shaxsiy ma'lumotlarni tahrirlash",
+    "editProfile": "Tahrirlash",
     "notifications": "Bildirishnomalar",
+    "notificationsSubtitle": "Push va alert sozlamalari",
     "language": "Til",
     "branch": "Filial tanlash",
+    "branches": "Filiallar",
     "logout": "Chiqish",
+    "logoutConfirm": "Hisobdan chiqmoqchimisiz?",
     "version": "Versiya",
     "enableBiometric": "Barmoq izini yoqish",
-    "enablePush": "Push bildirishnomalar"
+    "enablePush": "Push bildirishnomalar",
+    "sectionAccount": "Hisob",
+    "sectionApp": "Ilova",
+    "sectionSecurity": "Xavfsizlik",
+    "sectionInfo": "Ma'lumot",
+    "theme": "Mavzu",
+    "printer": "Printer",
+    "printerSubtitle": "Chek printer sozlamalari",
+    "biometric": "Biometrik",
+    "biometricSubtitle": "Barmoq izi bilan kirish",
+    "autoLock": "Avtomatik qulflash",
+    "autoLockSubtitle": "Harakatsizlikdan keyin qulflash",
+    "privacy": "Maxfiylik siyosati",
+    "help": "Yordam"
   },
   "onboarding": {
     "slide1Title": "RAOS ga xush kelibsiz!",
@@ -182,6 +200,15 @@
     "filterDEADSTOCK": "Tiqilib qolgan",
     "filterMARGIN": "Marja",
     "filterFORECAST": "Bashorat"
+  },
+  "moreMenu": {
+    "title": "Ko'proq",
+    "kirim": "Kirim",
+    "kirimDesc": "Tovar qabul qilish va transferlar",
+    "ombor": "Ombor",
+    "omborDesc": "Mahsulot qoldiqlari va zaxira",
+    "settings": "Sozlamalar",
+    "settingsDesc": "Profil, til va dastur sozlamalari"
   },
   "errors": {
     "network": "Internet aloqasi yo'q",

@@ -38,6 +38,8 @@ export type MoreStackParamList = {
   KirimScreen: undefined;
   OmborScreen: undefined;
   SettingsScreen: undefined;
+  BranchesScreen: undefined;
+  AuditLogScreen: undefined;
 };
 
 export type RootStackParamList = {

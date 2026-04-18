@@ -99,15 +99,13 @@ const BOSHQARUV_GROUP: MenuGroup = {
       icon: 'business-outline',
       title: 'Filiallar',
       subtitle: 'Filiallar boshqaruvi',
-      screen: null,
-      badge: 'Tez orada',
+      screen: 'BranchesScreen',
     },
     {
       icon: 'document-text-outline',
       title: 'Audit jurnali',
       subtitle: 'Tizim hodisalari',
-      screen: null,
-      badge: 'Tez orada',
+      screen: 'AuditLogScreen',
     },
   ],
 };

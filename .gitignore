@@ -82,3 +82,4 @@ apps/mobile/js_errors.txt
 
 # Telegram Bot secrets (use .env files only)
 *.bot.env
+.env.tg

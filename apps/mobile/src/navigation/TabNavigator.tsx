@@ -16,6 +16,8 @@ import KirimScreen from '../screens/Kirim';
 import OmborScreen from '../screens/Ombor';
 import SettingsScreen from '../screens/Settings';
 import MoreMenuScreen from '../screens/MoreMenu';
+import BranchesScreen from '../screens/Settings/BranchesScreen';
+import AuditLogScreen from '../screens/Settings/AuditLogScreen';
 
 // ─── Colors ───────────────────────────────────────────────
 const PRIMARY = '#2563EB';
@@ -114,6 +116,8 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="KirimScreen" component={KirimScreen} />
       <MoreStack.Screen name="OmborScreen" component={OmborScreen} />
       <MoreStack.Screen name="SettingsScreen" component={SettingsScreen} />
+      <MoreStack.Screen name="BranchesScreen" component={BranchesScreen} />
+      <MoreStack.Screen name="AuditLogScreen" component={AuditLogScreen} />
     </MoreStack.Navigator>
   );
 }

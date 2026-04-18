@@ -183,6 +183,15 @@
     "filterMARGIN": "Margin",
     "filterFORECAST": "Forecast"
   },
+  "moreMenu": {
+    "title": "More",
+    "kirim": "Incoming",
+    "kirimDesc": "Receive goods and transfers",
+    "ombor": "Warehouse",
+    "omborDesc": "Product stock and inventory levels",
+    "settings": "Settings",
+    "settingsDesc": "Profile, language and app settings"
+  },
   "errors": {
     "network": "No internet connection",
     "server": "Server error",

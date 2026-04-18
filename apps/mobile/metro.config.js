@@ -29,12 +29,13 @@ const EXPO_MODULES_CORE_V3 = path.resolve(
   'node_modules/.pnpm/expo-modules-core@3.0.29_react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0__react@19.1.0/node_modules/expo-modules-core',
 );
 
-// Only deduplicate React — expo-modules-core resolves normally (native build uses v55)
+// Deduplicate React + expo-modules-core (native build uses v3 for rn@0.81.5)
 config.resolver.extraNodeModules = {
   'react':                 path.resolve(MOBILE_NODE_MODULES, 'react'),
   'react-native':          path.resolve(MOBILE_NODE_MODULES, 'react-native'),
   'react/jsx-runtime':     path.resolve(MOBILE_NODE_MODULES, 'react', 'jsx-runtime'),
   'react/jsx-dev-runtime': path.resolve(MOBILE_NODE_MODULES, 'react', 'jsx-dev-runtime'),
+  'expo-modules-core':     EXPO_MODULES_CORE_V3,
 };
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {

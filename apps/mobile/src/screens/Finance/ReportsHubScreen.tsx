@@ -60,7 +60,7 @@ export default function ReportsHubScreen({ onNavigate }: Props) {
   const REPORTS: ReportCardProps[] = [
     {
       title:       'Kunlik savdo',
-      description: 'Kunlar bo'yicha tushum va buyurtmalar',
+      description: "Kunlar bo'yicha tushum va buyurtmalar",
       iconName:    'bar-chart-outline',
       iconColor:   C.primary,
       iconBg:      '#EFF6FF',
@@ -68,7 +68,7 @@ export default function ReportsHubScreen({ onNavigate }: Props) {
     },
     {
       title:       'Top mahsulotlar',
-      description: 'Eng ko'p sotilgan mahsulotlar reytingi',
+      description: "Eng ko'p sotilgan mahsulotlar reytingi",
       iconName:    'trending-up-outline',
       iconColor:   C.green,
       iconBg:      '#F0FDF4',
@@ -76,7 +76,7 @@ export default function ReportsHubScreen({ onNavigate }: Props) {
     },
     {
       title:       'Smena hisobotlari',
-      description: 'Kassirlar va smenalar bo'yicha hisobot',
+      description: "Kassirlar va smenalar bo'yicha hisobot",
       iconName:    'time-outline',
       iconColor:   C.purple,
       iconBg:      '#F5F3FF',
@@ -84,7 +84,7 @@ export default function ReportsHubScreen({ onNavigate }: Props) {
     },
     {
       title:       'Nasiya qarzdorlik',
-      description: 'Muddati o'tgan va faol nasiyalar',
+      description: "Muddati o'tgan va faol nasiyalar",
       iconName:    'alert-circle-outline',
       iconColor:   C.orange,
       iconBg:      '#FFFBEB',
