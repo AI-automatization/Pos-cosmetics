@@ -30,11 +30,13 @@ export class RealestateController {
   getStats(@CurrentUser('tenantId') _tenantId: string) {
     return {
       totalProperties: 0,
-      activeContracts: 0,
-      vacantProperties: 0,
-      monthlyRevenue: 0,
-      occupancyRate: 0,
+      rented: 0,
+      vacant: 0,
+      maintenance: 0,
+      totalMonthlyRent: 0,
+      currency: 'UZS',
       overduePayments: 0,
+      averageRoi: 0,
     };
   }
 
