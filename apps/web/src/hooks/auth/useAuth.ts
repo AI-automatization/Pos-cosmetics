@@ -90,7 +90,6 @@ export function useLogout() {
         await authApi.logout();
       } finally {
         localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_id');
         clearSessionCookie();
         queryClient.clear();
@@ -102,7 +101,6 @@ export function useLogout() {
     onError: () => {
       // Even on error, clear local state and redirect
       localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
       localStorage.removeItem('user_id');
       clearSessionCookie();
       router.push('/login');

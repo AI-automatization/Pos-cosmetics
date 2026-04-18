@@ -20,22 +20,40 @@ apiClient.interceptors.request.use((config) => {
 // Shared refresh promise — deduplication: 10 parallel 401 → only 1 refresh POST
 let refreshPromise: Promise<string> | null = null;
 
+// Clears all auth state and redirects to login.
+// MUST clear session_active + user_role cookies — otherwise middleware redirects
+// back from /login → infinite reload loop.
+function clearAuthAndRedirect() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('access_token');
+  document.cookie = 'session_active=; path=/; max-age=0';
+  document.cookie = 'user_role=; path=/; max-age=0';
+  window.location.href = '/login';
+}
+
 // Response: 401 → refresh, 5xx → error report
 apiClient.interceptors.response.use(
   (res) => res,
   async (err) => {
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
+
+      // userId ni JWT payload dan olish — faqat sub kerak (signature verify shart emas)
+      const currentToken = localStorage.getItem('access_token');
+
+      // No token at all — skip refresh attempt, clear and redirect immediately
+      if (!currentToken) {
+        clearAuthAndRedirect();
+        return Promise.reject(err);
+      }
+
+      let userId: string | null = null;
       try {
-        // userId ni JWT payload dan olish — faqat sub kerak (signature verify shart emas)
-        const currentToken = localStorage.getItem('access_token');
-        let userId: string | null = null;
-        if (currentToken) {
-          try {
-            userId = JSON.parse(atob(currentToken.split('.')[1]))?.sub ?? null;
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (_e) { /* ignore parse errors */ }
-        }
+        userId = JSON.parse(atob(currentToken.split('.')[1]))?.sub ?? null;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_e) { /* ignore parse errors */ }
+
+      try {
         // refreshToken httpOnly cookie withCredentials: true bilan yuboriladi (T-347)
         // Single shared promise prevents refresh storms when many requests get 401 simultaneously
         if (!refreshPromise) {
@@ -51,10 +69,7 @@ apiClient.interceptors.response.use(
         err.config.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(err.config);
       } catch {
-        localStorage.removeItem('access_token');
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
+        clearAuthAndRedirect();
       }
     }
 
