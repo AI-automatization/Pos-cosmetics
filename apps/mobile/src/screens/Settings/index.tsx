@@ -39,9 +39,9 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const LANGUAGES = [
-  { code: 'uz', label: "O'zbek" },
-  { code: 'ru', label: 'Рус' },
-  { code: 'en', label: 'EN' },
+  { value: 'uz', label: "O'zbek" },
+  { value: 'ru', label: 'Рус' },
+  { value: 'en', label: 'EN' },
 ] as const;
 
 type ThemeOption = 'light' | 'dark' | 'system';
@@ -224,7 +224,7 @@ export default function SettingsScreen() {
     );
   };
 
-  const currentLangCode = i18n.language as (typeof LANGUAGES)[number]['code'];
+  const currentLangCode = i18n.language as (typeof LANGUAGES)[number]['value'];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -298,10 +298,10 @@ export default function SettingsScreen() {
             <View style={styles.menuLabelContainer}>
               <Text style={styles.menuLabel}>{t('settings.language')}</Text>
             </View>
-            <SegmentControl<(typeof LANGUAGES)[number]['code']>
+            <SegmentControl<(typeof LANGUAGES)[number]['value']>
               options={LANGUAGES}
               selected={currentLangCode}
-              onSelect={(code) => { void i18n.changeLanguage(code); }}
+              onSelect={(lang) => { void i18n.changeLanguage(lang); }}
             />
           </View>
 

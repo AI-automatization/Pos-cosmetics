@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { analyticsApi, salesApi, alertsApi, branchApi } from '@/api';
+import { analyticsApi, salesApi, alertsApi, branchesApi as branchApi } from '@/api';
 import { QUERY_STALE_TIMES, REFETCH_INTERVALS } from '@/config/constants';
 import { safeQueryFn } from '@/utils/error';
 import type { RevenueData, BranchRevenue, InsightItem } from '@/api/analytics.api';

@@ -80,7 +80,7 @@ export function DetailSheet({
           </View>
           <View style={styles.infoDivider} />
           <View style={styles.infoItem}>
-            <Ionicons name={cfg.icon as Parameters<typeof Ionicons>[0]['name']} size={14} color={cfg.text} />
+            <Ionicons name={cfg.icon as React.ComponentProps<typeof Ionicons>['name']} size={14} color={cfg.text} />
             <Text style={styles.infoLabel}>Holat</Text>
             <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
               <Text style={[styles.statusText, { color: cfg.text }]}>{cfg.label}</Text>

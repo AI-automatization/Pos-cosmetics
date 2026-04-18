@@ -57,15 +57,6 @@ function FinancePlaceholder(): React.JSX.Element {
   );
 }
 
-function MoreMenuPlaceholder(): React.JSX.Element {
-  return (
-    <View style={placeholderStyles.container}>
-      <Text style={placeholderStyles.emoji}>{'...'}</Text>
-      <Text style={placeholderStyles.title}>Ko'proq</Text>
-      <Text style={placeholderStyles.sub}>Tez orada ishga tushadi</Text>
-    </View>
-  );
-}
 
 const placeholderStyles = StyleSheet.create({
   container: {

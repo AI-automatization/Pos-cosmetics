@@ -45,10 +45,10 @@ const PERIODS: { key: PeriodKey; label: string; days: number }[] = [
 
 function getPeriodDates(days: number): { from: string; to: string } {
   const now = new Date();
-  const to = now.toISOString().split('T')[0];
+  const to = now.toISOString().split('T')[0]!;
   const from = new Date(now);
   from.setDate(now.getDate() - days);
-  return { from: from.toISOString().split('T')[0], to };
+  return { from: from.toISOString().split('T')[0]!, to };
 }
 
 // ─── Helpers ───────────────────────────────────────────
@@ -59,9 +59,6 @@ function fmtShort(n: number): string {
   return n.toString();
 }
 
-function fmt(n: number): string {
-  return n.toLocaleString('ru-RU') + ' UZS';
-}
 
 function initials(name: string): string {
   return name

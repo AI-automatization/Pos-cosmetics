@@ -335,7 +335,7 @@ export default function NasiyaAgingScreen({ onClose }: Props) {
   const overdueAmt   = overdueRecords.reduce((s, r) => s + r.remaining, 0);
   const thisMonth    = useMemo(() => {
     const now   = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]!;
     return allRecords
       .filter((r) => r.dueDate && r.dueDate >= start)
       .reduce((s, r) => s + r.remaining, 0);

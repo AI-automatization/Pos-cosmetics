@@ -38,7 +38,7 @@ const PERIODS: { key: PeriodKey; label: string }[] = [
 
 function getPeriodDates(key: PeriodKey): { from: string; to: string } {
   const now = new Date();
-  const to = now.toISOString().split('T')[0];
+  const to = now.toISOString().split('T')[0]!;
   const from = new Date(now);
   switch (key) {
     case 'today': from.setHours(0, 0, 0, 0); break;
@@ -47,7 +47,7 @@ function getPeriodDates(key: PeriodKey): { from: string; to: string } {
     case '90d':   from.setDate(now.getDate() - 89); break;
     case '1y':    from.setFullYear(now.getFullYear() - 1); break;
   }
-  return { from: from.toISOString().split('T')[0], to };
+  return { from: from.toISOString().split('T')[0]!, to };
 }
 
 // ─── Helpers ───────────────────────────────────────────

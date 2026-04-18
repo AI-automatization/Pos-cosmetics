@@ -63,7 +63,7 @@ function fmt(n: number): string {
 }
 
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split('T')[0]!;
 }
 
 // ─── ExpenseFormSheet ──────────────────────────────────

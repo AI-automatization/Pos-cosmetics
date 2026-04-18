@@ -38,7 +38,7 @@ const PERIODS: { key: PeriodKey; label: string }[] = [
 
 function getPeriodDates(key: PeriodKey): { from: string; to: string } {
   const now = new Date();
-  const to = now.toISOString().split('T')[0];
+  const to = now.toISOString().split('T')[0]!;
   const from = new Date(now);
 
   switch (key) {
@@ -49,7 +49,7 @@ function getPeriodDates(key: PeriodKey): { from: string; to: string } {
     case '1y':    from.setFullYear(now.getFullYear() - 1); break;
   }
 
-  return { from: from.toISOString().split('T')[0], to };
+  return { from: from.toISOString().split('T')[0]!, to };
 }
 
 // ─── Helpers ───────────────────────────────────────────
@@ -136,7 +136,6 @@ export default function FinanceScreen() {
   const returns      = summary?.returns.total ?? 0;
   // Tannarx & foyda estimated: no COGS API on this endpoint
   // Using grossRevenue as tushum proxy and netRevenue for display
-  const grossProfit  = tushum - (tushum * 0); // placeholder until PnL API
   const orderCount   = summary?.orders.count ?? 0;
 
   return (

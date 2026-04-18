@@ -18,7 +18,7 @@ import {
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { branchApi, type Branch } from '../../api/branches.api';
+import { branchesApi as branchApi, type Branch } from '../../api/branches.api';
 import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import type { CreateTransferBody, CreateTransferResponse } from '../../api/inventory.api';
 import { extractErrorMessage } from '../../utils/error';

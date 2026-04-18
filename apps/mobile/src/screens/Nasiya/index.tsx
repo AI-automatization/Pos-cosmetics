@@ -220,15 +220,6 @@ export default function NasiyaScreen() {
         />
       )}
 
-      {/* FAB — yangi nasiya */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setNewDebtVisible(true)}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="add" size={24} color={C.white} />
-      </TouchableOpacity>
-
       {/* Payment Modal */}
       <PayModal
         visible={payVisible}
@@ -334,18 +325,4 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15, color: C.muted },
 
-  // FAB
-  fab: {
-    position: 'absolute',
-    bottom: 24, right: 20,
-    width: 56, height: 56,
-    borderRadius: 28,
-    backgroundColor: '#2563EB',
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 8,
-  },
 });
