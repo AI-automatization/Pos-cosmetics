@@ -27,6 +27,7 @@ export const ordersApi = {
             cashierName: item.user
               ? `${item.user.firstName ?? ''} ${item.user.lastName ?? ''}`.trim() || null
               : (item.cashierName ?? null),
+            paymentMethod: item.paymentMethod ?? (item.payments?.[0]?.method as Order['paymentMethod']) ?? null,
             customerName: item.customer?.name ?? item.customerName ?? null,
           })) as Order[],
           total: (d.total as number) ?? 0,
