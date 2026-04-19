@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, Save, Package, X, Hash, FileText, StickyNote } from 'lucide-react';
 import { useCreateInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
 import { useProducts, useCreateProduct } from '@/hooks/catalog/useProducts';
-import { useSuppliers, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
+import { useSuppliers, useSupplier, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
 import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
@@ -36,13 +36,24 @@ export default function StockInPage() {
   const [note, setNote] = useState('');
   const [supplierId, setSupplierId] = useState('');
 
+  const [submitted, setSubmitted] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
 
   const [productModal, setProductModal] = useState<{ rowKey: number } | null>(null);
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+
   const [items, setItems] = useState<ItemRow[]>([
-    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: undefined },
+    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: todayStr() },
   ]);
+
+  const { data: supplierDetail } = useSupplier(supplierId || null);
+  // Reset banner when supplier changes
+  useEffect(() => { setBannerDismissed(false); }, [supplierId]);
+  const supplierProducts = supplierDetail?.productSuppliers?.filter((ps) => ps.product.isActive) ?? [];
+  const showBanner = !!supplierId && !bannerDismissed && supplierProducts.length > 0
+    && !supplierProducts.every((ps) => items.some((r) => r.productId === ps.product.id));
 
   const supplierOptions: DropdownOption[] = useMemo(
     () => (suppliers ?? []).map((s) => ({ value: s.id, label: s.name, sublabel: s.company || s.phone })),
@@ -55,7 +66,7 @@ export default function StockInPage() {
   );
 
   const addRow = () =>
-    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: undefined }]);
+    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: todayStr() }]);
 
   const removeRow = (key: number) =>
     setItems((prev) => prev.filter((r) => r._key !== key));
@@ -66,6 +77,7 @@ export default function StockInPage() {
   const totalCost = items.reduce((s, r) => s + r.quantity * r.purchasePrice, 0);
 
   const handleCreateProduct = (formData: ProductFormData) => {
+    const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
     createProduct(
       {
         name: formData.name,
@@ -74,8 +86,9 @@ export default function StockInPage() {
         costPrice: formData.costPrice,
         sellPrice: formData.sellPrice,
         minStockLevel: formData.minStockLevel,
-        barcode: formData.barcode || undefined,
-        extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+        barcode: allBarcodes[0] || undefined,
+        extraBarcodes: allBarcodes.slice(1),
+        supplierId: formData.supplierId || undefined,
       },
       {
         onSuccess: (newProduct) => {
@@ -108,6 +121,7 @@ export default function StockInPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
     const valid = items.filter((r) => r.productId && r.quantity > 0);
     if (valid.length === 0) return;
 
@@ -218,6 +232,50 @@ export default function StockInPage() {
               </div>
             </div>
           </div>
+
+          {/* Supplier products banner */}
+          {showBanner && (
+            <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-amber-800">
+                <Package className="h-4 w-4 shrink-0 text-amber-600" />
+                <span>
+                  Bu kontragentda <strong>{supplierProducts.length}</strong> ta mahsulot bor
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newRows = supplierProducts
+                      .filter((ps) => !items.some((r) => r.productId === ps.product.id))
+                      .map((ps) => ({
+                        _key: nextKey(),
+                        productId: ps.product.id,
+                        productName: ps.product.name,
+                        quantity: 1,
+                        purchasePrice: 0,
+                        expiryDate: todayStr(),
+                      }));
+                    setItems((prev) => {
+                      const filtered = prev.filter((r) => r.productId);
+                      return [...filtered, ...newRows];
+                    });
+                    setBannerDismissed(true);
+                  }}
+                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-700"
+                >
+                  Qo&apos;shish
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBannerDismissed(true)}
+                  className="rounded-lg p-1.5 text-amber-500 transition hover:bg-amber-100"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Items table — card */}
@@ -242,7 +300,7 @@ export default function StockInPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50/80">
+              <thead className="bg-gray-50/80 sticky top-0 z-10">
                 <tr className="text-xs text-gray-500 uppercase tracking-wider">
                   <th className="px-4 py-3 text-left min-w-[280px]">Tovar</th>
                   <th className="px-4 py-3 text-right w-24">Miqdor</th>
@@ -253,102 +311,119 @@ export default function StockInPage() {
                   <th className="px-4 py-3 w-12" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
-                {items.map((row) => (
-                  <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <SearchableDropdown
-                        options={productOptions}
-                        value={row.productId}
-                        onChange={(val) => {
-                          const p = allProducts.find((x) => x.id === val);
-                          updateRow(row._key, { productId: val, productName: p?.name });
-                        }}
-                        placeholder="Mahsulot tanlang..."
-                        searchPlaceholder="Nomi yoki barcode..."
-                        emptyMessage="Topilmadi"
-                        clearable={false}
-                      />
-                      {!row.productId && (
+            </table>
+            <div className="max-h-[480px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <colgroup>
+                  <col className="min-w-[280px]" />
+                  <col className="w-24" />
+                  <col className="w-32" />
+                  <col className="w-28" />
+                  <col className="w-32" />
+                  <col className="w-32" />
+                  <col className="w-12" />
+                </colgroup>
+                <tbody className="divide-y divide-gray-50">
+                  {items.map((row) => {
+                    const rowInvalid = submitted && !row.productId;
+                    const qtyInvalid = submitted && row.quantity <= 0;
+                    return (
+                    <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <SearchableDropdown
+                          options={productOptions}
+                          value={row.productId}
+                          onChange={(val) => {
+                            const p = allProducts.find((x) => x.id === val);
+                            updateRow(row._key, { productId: val, productName: p?.name });
+                          }}
+                          placeholder="Mahsulot tanlang..."
+                          searchPlaceholder="Nomi yoki barcode..."
+                          emptyMessage="Topilmadi"
+                          clearable={false}
+                          className={rowInvalid ? 'ring-2 ring-red-400 rounded-xl' : ''}
+                        />
+                        {rowInvalid && (
+                          <p className="mt-1 text-xs text-red-500">Mahsulot tanlanishi shart</p>
+                        )}
+                        {!row.productId && !rowInvalid && (
+                          <button
+                            type="button"
+                            onClick={() => setProductModal({ rowKey: row._key })}
+                            className="mt-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                          >
+                            + Yangi mahsulot yaratish
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="number"
+                          min={1}
+                          value={row.quantity}
+                          onChange={(e) => updateRow(row._key, { quantity: Number(e.target.value) })}
+                          className={cn(
+                            'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+                            qtyInvalid ? 'border-red-400' : 'border-gray-300',
+                          )}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="number"
+                          min={0}
+                          value={row.purchasePrice}
+                          onChange={(e) => updateRow(row._key, { purchasePrice: Number(e.target.value) })}
+                          className="w-full text-right rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="text"
+                          value={row.batchNumber ?? ''}
+                          onChange={(e) => updateRow(row._key, { batchNumber: e.target.value || undefined })}
+                          placeholder="—"
+                          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="date"
+                          value={row.expiryDate ?? ''}
+                          onChange={(e) => updateRow(row._key, { expiryDate: e.target.value || undefined })}
+                          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="font-semibold text-gray-900">
+                          {(row.quantity * row.purchasePrice).toLocaleString('uz-UZ')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
                         <button
                           type="button"
-                          onClick={() => setProductModal({ rowKey: row._key })}
-                          className="mt-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                          onClick={() => removeRow(row._key)}
+                          disabled={items.length === 1}
+                          className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                         >
-                          + Yangi mahsulot yaratish
+                          <Trash2 className="h-4 w-4" />
                         </button>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="number"
-                        min={1}
-                        value={row.quantity}
-                        onChange={(e) => updateRow(row._key, { quantity: Number(e.target.value) })}
-                        className="w-full text-right rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="number"
-                        min={0}
-                        value={row.purchasePrice}
-                        onChange={(e) => updateRow(row._key, { purchasePrice: Number(e.target.value) })}
-                        className="w-full text-right rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="text"
-                        value={row.batchNumber ?? ''}
-                        onChange={(e) => updateRow(row._key, { batchNumber: e.target.value || undefined })}
-                        placeholder="—"
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="date"
-                        value={row.expiryDate ?? ''}
-                        onChange={(e) => updateRow(row._key, { expiryDate: e.target.value || undefined })}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="font-semibold text-gray-900">
-                        {(row.quantity * row.purchasePrice).toLocaleString('uz-UZ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => removeRow(row._key)}
-                        disabled={items.length === 1}
-                        className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="border-t-2 border-gray-200 bg-gray-50/80">
-                <tr>
-                  <td colSpan={5} className="px-4 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                    Jami summa:
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-lg font-bold text-gray-900">
-                      {totalCost.toLocaleString('uz-UZ')}
-                    </span>
-                    <span className="ml-1 text-xs text-gray-500">UZS</span>
-                  </td>
-                  <td />
-                </tr>
-              </tfoot>
-            </table>
+                      </td>
+                    </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* Total row — outside scroll area */}
+            <div className="flex items-center justify-end gap-4 border-t-2 border-gray-200 bg-gray-50/80 px-4 py-3">
+              <span className="text-sm font-semibold uppercase tracking-wider text-gray-600">Jami summa:</span>
+              <span className="text-lg font-bold text-gray-900">{totalCost.toLocaleString('uz-UZ')}</span>
+              <span className="text-xs text-gray-500">UZS</span>
+            </div>
           </div>
         </div>
+
 
         {/* Submit bar */}
         <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -387,6 +462,7 @@ export default function StockInPage() {
           isPending={isCreatingProduct}
           onSubmit={handleCreateProduct}
           onClose={() => setProductModal(null)}
+          initialSupplierId={supplierId || undefined}
         />
       )}
 
