@@ -136,6 +136,7 @@
   },
   "alerts": {
     "title": "Уведомления",
+    "screenTitle": "Уведомления",
     "lowStock": "Товар заканчивается",
     "largeSale": "Крупная продажа",
     "rentalDue": "Срок оплаты аренды",
@@ -144,7 +145,11 @@
     "shiftOpened": "Смена открыта",
     "shiftClosed": "Смена закрыта",
     "system": "Системное сообщение",
-    "noAlerts": "Нет уведомлений"
+    "noAlerts": "Нет уведомлений",
+    "filterAll": "Все",
+    "filterUnread": "Непрочитанные",
+    "filterImportant": "Важные",
+    "markAllRead": "Отметить все прочитанными"
   },
   "settings": {
     "title": "Настройки",

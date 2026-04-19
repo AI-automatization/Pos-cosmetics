@@ -136,6 +136,7 @@
   },
   "alerts": {
     "title": "Alerts",
+    "screenTitle": "Notifications",
     "lowStock": "Low stock",
     "largeSale": "Large sale",
     "rentalDue": "Rental payment due",
@@ -144,7 +145,11 @@
     "shiftOpened": "Shift opened",
     "shiftClosed": "Shift closed",
     "system": "System alert",
-    "noAlerts": "No alerts"
+    "noAlerts": "No alerts",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "filterImportant": "Important",
+    "markAllRead": "Mark all read"
   },
   "settings": {
     "title": "Settings",

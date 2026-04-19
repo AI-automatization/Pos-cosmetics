@@ -136,6 +136,7 @@
   },
   "alerts": {
     "title": "Ogohlantirishlar",
+    "screenTitle": "Bildirishnomalar",
     "lowStock": "Tovar tugayapti",
     "largeSale": "Katta sotuv",
     "rentalDue": "Ijara to'lovi muddati",
@@ -144,7 +145,11 @@
     "shiftOpened": "Smena ochildi",
     "shiftClosed": "Smena yopildi",
     "system": "Tizim xabari",
-    "noAlerts": "Ogohlantirish yo'q"
+    "noAlerts": "Ogohlantirish yo'q",
+    "filterAll": "Barchasi",
+    "filterUnread": "O'qilmagan",
+    "filterImportant": "Muhim",
+    "markAllRead": "Hammasini o'qish"
   },
   "settings": {
     "title": "Sozlamalar",
