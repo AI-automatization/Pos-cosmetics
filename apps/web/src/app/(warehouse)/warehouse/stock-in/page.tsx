@@ -29,7 +29,7 @@ export default function StockInPage() {
   const { mutate: createSupplier, isPending: isCreatingSupplier } = useCreateSupplier();
   const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
   const { data: categories } = useCategories();
-  const allProducts = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])) as { id: string; name: string; barcode?: string | null; sku?: string | null }[];
+  const allProducts = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])) as { id: string; name: string; barcode?: string | null; sku?: string | null; costPrice?: number }[];
 
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [showInvoiceNumber, setShowInvoiceNumber] = useState(false);
@@ -42,15 +42,30 @@ export default function StockInPage() {
   const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
 
   const [productModal, setProductModal] = useState<{ rowKey: number } | null>(null);
-  const todayStr = () => new Date().toISOString().slice(0, 10);
 
   const [items, setItems] = useState<ItemRow[]>([
-    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: todayStr() },
+    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
   ]);
 
   const { data: supplierDetail } = useSupplier(supplierId || null);
   // Reset banner when supplier changes
   useEffect(() => { setBannerDismissed(false); }, [supplierId]);
+  // Auto-populate: when supplier's products loaded and table is empty (1 blank row) → auto-add
+  useEffect(() => {
+    if (!supplierDetail?.productSuppliers?.length) return;
+    const hasFilledRows = items.some((r) => r.productId);
+    if (hasFilledRows) return; // let banner handle it
+    const newRows = supplierDetail.productSuppliers
+      .filter((ps) => ps.product.isActive)
+      .map((ps) => {
+        const p = allProducts.find((x) => x.id === ps.product.id);
+        return { _key: nextKey(), productId: ps.product.id, productName: ps.product.name, quantity: 1, purchasePrice: p?.costPrice ?? 0 };
+      });
+    if (newRows.length > 0) {
+      setItems(newRows);
+      setBannerDismissed(true);
+    }
+  }, [supplierDetail]); // eslint-disable-line react-hooks/exhaustive-deps
   const supplierProducts = supplierDetail?.productSuppliers?.filter((ps) => ps.product.isActive) ?? [];
   const showBanner = !!supplierId && !bannerDismissed && supplierProducts.length > 0
     && !supplierProducts.every((ps) => items.some((r) => r.productId === ps.product.id));
@@ -66,7 +81,7 @@ export default function StockInPage() {
   );
 
   const addRow = () =>
-    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, expiryDate: todayStr() }]);
+    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 }]);
 
   const removeRow = (key: number) =>
     setItems((prev) => prev.filter((r) => r._key !== key));
@@ -122,7 +137,7 @@ export default function StockInPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    const valid = items.filter((r) => r.productId && r.quantity > 0);
+    const valid = items.filter((r) => r.productId && r.quantity > 0 && r.purchasePrice >= 0);
     if (valid.length === 0) return;
 
     const dto: CreateInvoiceDto = {
@@ -248,14 +263,16 @@ export default function StockInPage() {
                   onClick={() => {
                     const newRows = supplierProducts
                       .filter((ps) => !items.some((r) => r.productId === ps.product.id))
-                      .map((ps) => ({
-                        _key: nextKey(),
-                        productId: ps.product.id,
-                        productName: ps.product.name,
-                        quantity: 1,
-                        purchasePrice: 0,
-                        expiryDate: todayStr(),
-                      }));
+                      .map((ps) => {
+                        const p = allProducts.find((x) => x.id === ps.product.id);
+                        return {
+                          _key: nextKey(),
+                          productId: ps.product.id,
+                          productName: ps.product.name,
+                          quantity: 1,
+                          purchasePrice: p?.costPrice ?? 0,
+                        };
+                      });
                     setItems((prev) => {
                       const filtered = prev.filter((r) => r.productId);
                       return [...filtered, ...newRows];
@@ -304,9 +321,8 @@ export default function StockInPage() {
                 <tr className="text-xs text-gray-500 uppercase tracking-wider">
                   <th className="px-4 py-3 text-left min-w-[280px]">Tovar</th>
                   <th className="px-4 py-3 text-right w-24">Miqdor</th>
-                  <th className="px-4 py-3 text-right w-32">Narx (UZS)</th>
+                  <th className="px-4 py-3 text-right w-36">Narx (UZS)</th>
                   <th className="px-4 py-3 text-left w-28">Partiya</th>
-                  <th className="px-4 py-3 text-left w-32">Muddat</th>
                   <th className="px-4 py-3 text-right w-32">Jami</th>
                   <th className="px-4 py-3 w-12" />
                 </tr>
@@ -317,9 +333,8 @@ export default function StockInPage() {
                 <colgroup>
                   <col className="min-w-[280px]" />
                   <col className="w-24" />
-                  <col className="w-32" />
+                  <col className="w-36" />
                   <col className="w-28" />
-                  <col className="w-32" />
                   <col className="w-32" />
                   <col className="w-12" />
                 </colgroup>
@@ -327,6 +342,7 @@ export default function StockInPage() {
                   {items.map((row) => {
                     const rowInvalid = submitted && !row.productId;
                     const qtyInvalid = submitted && row.quantity <= 0;
+                    const priceInvalid = submitted && row.purchasePrice < 0;
                     return (
                     <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
@@ -335,7 +351,11 @@ export default function StockInPage() {
                           value={row.productId}
                           onChange={(val) => {
                             const p = allProducts.find((x) => x.id === val);
-                            updateRow(row._key, { productId: val, productName: p?.name });
+                            updateRow(row._key, {
+                              productId: val,
+                              productName: p?.name,
+                              ...(p?.costPrice != null && { purchasePrice: p.costPrice }),
+                            });
                           }}
                           placeholder="Mahsulot tanlang..."
                           searchPlaceholder="Nomi yoki barcode..."
@@ -374,8 +394,12 @@ export default function StockInPage() {
                           min={0}
                           value={row.purchasePrice}
                           onChange={(e) => updateRow(row._key, { purchasePrice: Number(e.target.value) })}
-                          className="w-full text-right rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                          className={cn(
+                            'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+                            priceInvalid ? 'border-red-400' : 'border-gray-300',
+                          )}
                         />
+                        {priceInvalid && <p className="mt-1 text-xs text-red-500">Narx manfiy bo&apos;lishi mumkin emas</p>}
                       </td>
                       <td className="px-4 py-3">
                         <input
@@ -383,14 +407,6 @@ export default function StockInPage() {
                           value={row.batchNumber ?? ''}
                           onChange={(e) => updateRow(row._key, { batchNumber: e.target.value || undefined })}
                           placeholder="—"
-                          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="date"
-                          value={row.expiryDate ?? ''}
-                          onChange={(e) => updateRow(row._key, { expiryDate: e.target.value || undefined })}
                           className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                         />
                       </td>
