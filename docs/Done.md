@@ -93,6 +93,8 @@
 | T-310 | 2026-03-27 | FRONTEND | POS tablet layout: TabBar komponent (Mahsulotlar/Savat+badge/To'lov); lg+ da 3-column, lg- da tab-based single panel; keyboard shortcuts bar lg+ da yashirildi; portrait/landscape uchun CSS | pos/page.tsx |
 | T-314 | 2026-03-27 | FRONTEND | Subscription UI: settings/billing/page.tsx allaqachon mavjud (plan card+status badge+expiry, UsageBar filial/mahsulot/user uchun, PlanCard grid upgrade tugmasi bilan); useBilling.ts hooks; billingApi allaqachon ishlaydi | settings/billing/page.tsx, hooks/settings/useBilling.ts, api/billing.api.ts |
 | B-039 | 2026-03-29 | SECURITY | reports.controller.ts, exchange-rate.controller.ts — GET /reports/profit va GET /exchange-rate/history da @Roles('OWNER','ADMIN') edi, MANAGER yo'q edi → 403. @Roles ga 'MANAGER' qo'shildi. Playwright audit (scripts/audit-all-roles.mjs) bilan aniqlandi | reports.controller.ts, exchange-rate.controller.ts |
+| T-343 | 2026-04-19 | BACKEND | Dashboard reports CASHIER access: `reports.controller.ts` da `/reports/sales-summary`, `/reports/daily-revenue`, `/reports/top-products` endpointlaridan CASHIER roli olib tashlandi — endi CASHIER ham o'z shift statistikasini ko'ra oladi. Commit: `bd38bec` | reports.controller.ts |
+| T-345 | 2026-04-19 | DEVOPS | CI/CD BROKEN tuzatildi: (1) `apps/mobile` — `as any` fixlar + `react-hooks/exhaustive-deps` eslint config; (2) `apps/web` — Next.js lint migration; (3) `apps/api` — lint xatoliklar bartaraf etildi. Pipeline yashil, prod deploy tiklandi. Commits: `6dfa6a1`, `c71a8f2` | .github/workflows/ci.yml, apps/*/eslint config |
 
 ---
 

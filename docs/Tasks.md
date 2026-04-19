@@ -1252,17 +1252,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 
 ---
 
-
-## T-126 | P0 | [BACKEND] | Test infrastructure — Jest setup + first tests
-
-- **Sana:** 2026-02-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/jest.config.ts`, `apps/api/src/**/*.spec.ts`
-- **Muammo:** Test infra hali to'liq sozlanmagan. Unit va integration testlar yo'q.
-- **Kutilgan:** Jest config tayyor, namuna testlar ishlaydi, CI da run bo'ladi. Coverage 50%+.
-
----
-
 ## T-350 | P0 | [BACKEND] | Real estate controller — routes bo'sh
 
 - **Sana:** 2026-03-09
@@ -1270,45 +1259,6 @@ _(yuqoridagi T-024 — T-037 P1 tasklar ham shu kategoriyada)_
 - **Fayl:** `apps/api/src/realestate/realestate.controller.ts`
 - **Muammo:** Controller `@Controller('real-estate')` deklaratsiya qilingan lekin HECH QANDAY route yo'q. Frontend UI tayyor (T-248), lekin backend 404 qaytaradi.
 - **Kutilgan:** `getProperties()`, `getStats()`, `getRentalPayments()`, `getAllPayments()` endpointlari qo'shilsin
-
----
-
-_(hozircha yo'q)_
-
----
-
-## T-351 | P0 | [BACKEND] | Customer API — `GET /customers?search=` va `POST /customers` tekshirish
-
-- **Sana:** 2026-03-28 (T-351: renamed from T-342 — ID conflict with Mobile Done)
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/customers/customers.controller.ts`
-- **Muammo:** Mobile Nasiya ekrani `GET /customers?search=<ism>` va `POST /customers { name, phone }` endpointlarini chaqiradi. Agar bu endpointlar noto'g'ri response qaytarsa yoki yo'q bo'lsa — Nasiya ekrani `customerId` ola olmaydi va har bir nasiya yaratishda xato beradi.
-- **Kutilgan:**
-  - `GET /customers?search=Ali` → `[{ id: "uuid", name: "Ali", phone: "+998..." }]` (array)
-  - `POST /customers { name: "Ali", phone: "+998..." }` → `{ id: "uuid", name: "Ali", phone: "+998..." }`
-  - Ikkala endpoint ham JWT bilan himoyalangan bo'lsin
-- **Topildi:** Mobile backend integratsiya sessiyasi (Abdulaziz, 2026-03-28)
-
----
-
-## T-343 | P0 | [BACKEND] | Dashboard report endpointlari ishlamayapti — demo data ko'rsatyapti
-
-- **Sana:** 2026-03-28
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/reports/reports.controller.ts`
-- **Muammo:** Mobile Dashboard (`useDashboardData.ts`) quyidagi 3 ta endpointni chaqiradi. Ular xato bersa `try/catch` ichida demo (soxta) raqamlar ko'rsatiladi. Hozir foydalanuvchi **real bo'lmagan statistika** ko'ryapti.
-- **Endpointlar:**
-  ```
-  GET /reports/sales-summary?from=2026-03-28&to=2026-03-28
-  GET /reports/daily-revenue?from=2026-03-22&to=2026-03-28
-  GET /reports/top-products?from=2026-03-28&to=2026-03-28&limit=5
-  ```
-- **Kutilgan response formatlar** (`@raos/types` dan):
-  - `SalesSummary`: `{ period, orders: { count, grossRevenue, subtotal, totalDiscount, totalTax }, returns, netRevenue, paymentBreakdown }`
-  - `DailyRevenue[]`: `{ date, revenue, orderCount }[]`
-  - `TopProduct[]`: `{ productId, productName, totalQty, totalRevenue }[]`
-- **Kutilgan:** Endpointlar to'g'ri ishlasa demo fallback avtomatik chiqib ketadi.
-- **Topildi:** Mobile backend integratsiya sessiyasi (Abdulaziz, 2026-03-28)
 
 ---
 
@@ -1324,74 +1274,8 @@ _(hozircha yo'q)_
 ---
 
 # ══════════════════════════════════════════════════════════════
-# OCHIQ VAZIFALAR — P1 (MUHIM)
+# OCHIQ VAZIFALAR — P1/P2 (MUHIM / O'RTA)
 # ══════════════════════════════════════════════════════════════
-
----
-
-## ~~T-335~~ | ✅ DONE | Warehouse Low-Stock sahifasi yangi mahsulotlarni ko'rsatmaydi
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/low-stock/page.tsx`
-- **Muammo:** `useStockLevels()` movement-based API ishlatadi — stock harakati bo'lmagan (yangi qo'shilgan) mahsulotlar ko'rinmaydi.
-- **Kutilgan:** `useProducts()` ga o'tish, client-side `currentStock <= minStockLevel` filter qo'llash.
-
----
-
-## ~~T-336~~ | ✅ DONE | Warehouse Suppliers — Edit/Delete funksiyasi yo'q
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/suppliers/page.tsx`
-- **Muammo:** Faqat "+ Qo'shish" bor. Mavjud supplierni tahrirlash yoki o'chirish mumkin emas.
-- **Kutilgan:** Har supplier kartaga edit (qalam) tugmasi + `SupplierModal supplier={item}` va delete (trash) tugmasi.
-
----
-
-## ~~T-337~~ | ✅ DONE | Warehouse Inventory — Mahsulot tahrirlash yo'q
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/inventory/page.tsx`
-- **Muammo:** Faqat yangi mahsulot qo'shish bor. Mavjud mahsulotning narxini, minStockLevel ni o'zgartirish mumkin emas.
-- **Kutilgan:** Har qatordagi mahsulotga edit tugmasi + `ProductForm product={p} categories={...}` modal.
-
----
-
-# ══════════════════════════════════════════════════════════════
-# OCHIQ VAZIFALAR — P2 (O'RTA)
-# ══════════════════════════════════════════════════════════════
-
----
-
-## ~~T-338~~ | ✅ DONE | Warehouse Nakladnoy — Detail sahifasi yo'q
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/invoices/[id]/page.tsx` (yangi)
-- **Muammo:** Nakladnoylar ro'yxatidan bitta nakladnoyni ochib tafsilotlarini (mahsulotlar, narxlar, supplier) ko'rish mumkin emas.
-- **Kutilgan:** `GET /warehouse/invoices/:id` endpointidan ma'lumot olib ko'rsatish.
-
----
-
-
----
-
-## T-345 | P0 | [DEVOPS] | CI/CD BROKEN — Lint fail, prod deploy 13+ kun ishlamayapti
-
-- **Sana:** 2026-04-15
-- **Mas'ul:** Ibrat
-- **Muammo:** 2 apreldan beri barcha CI/CD pipeline FAILURE. Prod deploy bo'lmayapti. 3 ta app lint fail:
-  1. `apps/mobile` — `@typescript-eslint/no-explicit-any` + `react-hooks/exhaustive-deps` rule not found
-  2. `apps/web` — `next lint` deprecated Next.js 16 da, ESLint config migration kerak
-  3. `apps/api` — `eslint src/` fail
-- **Kutilgan:**
-  - Mobile: qolgan `as any` ni fix + eslint config da `react-hooks` plugin tekshirish
-  - Web: `npx @next/codemod@canary next-lint-to-eslint-cli .` migratsiya
-  - API: lint xatoliklarni tuzatish
-  - Pipeline yashil bo'lishi — deploy ishlashi
-- **Risk:** 13+ kun prod yangilanmagan. Security fixlar deploy bo'lmagan!
 
 ---
 
