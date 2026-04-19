@@ -23,4 +23,10 @@ export const suppliersApi = {
   remove(id: string) {
     return apiClient.delete<void>(`/catalog/suppliers/${id}`).then((r) => r.data);
   },
+
+  linkProduct(supplierId: string, productId: string, supplyPrice = 0) {
+    return apiClient
+      .post(`/catalog/suppliers/${supplierId}/products`, { productId, supplyPrice, isDefault: true })
+      .then((r) => r.data);
+  },
 };

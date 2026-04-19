@@ -2,15 +2,16 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Save, Package, X, Hash, FileText, StickyNote } from 'lucide-react';
+import { Plus, Trash2, Save, Package, X, Hash, FileText, StickyNote, Pencil } from 'lucide-react';
 import { useCreateInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
-import { useProducts, useCreateProduct } from '@/hooks/catalog/useProducts';
+import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
 import { useSuppliers, useSupplier, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
 import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
 import { SearchableDropdown, type DropdownOption } from '@/components/ui/SearchableDropdown';
 import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
+import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
 
 interface ItemRow extends InvoiceItem {
@@ -28,6 +29,7 @@ export default function StockInPage() {
   const { data: suppliers } = useSuppliers();
   const { mutate: createSupplier, isPending: isCreatingSupplier } = useCreateSupplier();
   const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
+  const { mutate: updateProduct, isPending: isUpdatingProduct } = useUpdateProduct();
   const { data: categories } = useCategories();
   const allProducts = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])) as { id: string; name: string; barcode?: string | null; sku?: string | null; costPrice?: number }[];
 
@@ -40,8 +42,11 @@ export default function StockInPage() {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
+  const [supplierProductIds, setSupplierProductIds] = useState<string[]>([]);
+  const [supplierProductSearch, setSupplierProductSearch] = useState('');
 
   const [productModal, setProductModal] = useState<{ rowKey: number } | null>(null);
+  const [editProductModal, setEditProductModal] = useState<Product | null>(null);
 
   const [items, setItems] = useState<ItemRow[]>([
     { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
@@ -120,15 +125,51 @@ export default function StockInPage() {
     );
   };
 
+  const handleUpdateProduct = (formData: ProductFormData) => {
+    if (!editProductModal) return;
+    const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
+    updateProduct(
+      {
+        id: editProductModal.id,
+        dto: {
+          name: formData.name,
+          sku: formData.sku || undefined,
+          categoryId: formData.categoryId || undefined,
+          costPrice: formData.costPrice,
+          sellPrice: formData.sellPrice,
+          minStockLevel: formData.minStockLevel,
+          barcode: allBarcodes[0] || undefined,
+          extraBarcodes: allBarcodes.slice(1),
+        },
+      },
+      {
+        onSuccess: () => {
+          // Update the row's purchasePrice if this product is in the table
+          setItems((prev) => prev.map((r) =>
+            r.productId === editProductModal.id ? { ...r, purchasePrice: formData.costPrice } : r
+          ));
+          setEditProductModal(null);
+        },
+      },
+    );
+  };
+
   const handleCreateSupplier = (e: React.FormEvent) => {
     e.preventDefault();
     createSupplier(
       { name: supplierForm.name, phone: supplierForm.phone, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
       {
-        onSuccess: (newSupplier) => {
+        onSuccess: async (newSupplier) => {
+          // Link selected products to new supplier (fire-and-forget, best-effort)
+          if (supplierProductIds.length > 0) {
+            const { suppliersApi } = await import('@/api/suppliers.api');
+            await Promise.all(supplierProductIds.map((pid) => suppliersApi.linkProduct(newSupplier.id, pid).catch(() => {})));
+          }
           setSupplierId(newSupplier.id);
           setShowSupplierModal(false);
           setSupplierForm({ name: '', phone: '', company: '', address: '' });
+          setSupplierProductIds([]);
+          setSupplierProductSearch('');
         },
       },
     );
@@ -375,6 +416,18 @@ export default function StockInPage() {
                             + Yangi mahsulot yaratish
                           </button>
                         )}
+                        {row.productId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const p = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])).find((x: Product) => x.id === row.productId);
+                              if (p) setEditProductModal(p as Product);
+                            }}
+                            className="mt-1 flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 font-medium"
+                          >
+                            <Pencil className="h-3 w-3" /> Tahrirlash
+                          </button>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <input
@@ -482,10 +535,21 @@ export default function StockInPage() {
         />
       )}
 
+      {/* Product edit modal */}
+      {editProductModal && (
+        <ProductForm
+          product={editProductModal}
+          categories={categories ?? []}
+          isPending={isUpdatingProduct}
+          onSubmit={handleUpdateProduct}
+          onClose={() => setEditProductModal(null)}
+        />
+      )}
+
       {/* Supplier create modal */}
       {showSupplierModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md mx-4 rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-md mx-4 rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-gray-900">Yangi kontragent</h3>
               <button
@@ -538,6 +602,53 @@ export default function StockInPage() {
                   />
                 </div>
               </div>
+              {/* Products section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Mahsulotlar <span className="text-xs font-normal text-gray-400">(ixtiyoriy)</span>
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={supplierProductSearch}
+                    onChange={(e) => setSupplierProductSearch(e.target.value)}
+                    placeholder="Mahsulot qidirish..."
+                    className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                  />
+                </div>
+                {supplierProductSearch && (
+                  <div className="max-h-32 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+                    {allProducts
+                      .filter((p) => p.name.toLowerCase().includes(supplierProductSearch.toLowerCase()) && !supplierProductIds.includes(p.id))
+                      .slice(0, 8)
+                      .map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setSupplierProductIds((ids) => [...ids, p.id]); setSupplierProductSearch(''); }}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                        >
+                          <Plus className="h-3 w-3 text-blue-500 shrink-0" />
+                          {p.name}
+                        </button>
+                      ))}
+                  </div>
+                )}
+                {supplierProductIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {supplierProductIds.map((id) => {
+                      const p = allProducts.find((x) => x.id === id);
+                      return (
+                        <span key={id} className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
+                          {p?.name ?? id}
+                          <button type="button" onClick={() => setSupplierProductIds((ids) => ids.filter((i) => i !== id))}><X className="h-3 w-3" /></button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
