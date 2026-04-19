@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-03-23
+# Yangilangan: 2026-04-19
 
 ---
 
@@ -10,6 +10,91 @@
 2. Format: T-raqam | sana | tur | qisqa yechim | fayl nomi
 3. Bu fayl FAQAT arxiv — o'chirmaslik, o'zgartirmaslik
 ```
+
+---
+
+## T-056 | 2026-04-19 | [BACKEND+FRONTEND] | Founder Dashboard — real endpoints
+
+- **Yechim:**
+  - `ClientErrorLog` model schema.prisma ga qo'shildi + migration yaratildi
+  - `prisma generate` bajarildi
+  - `ClientLogController` — `POST /logs/client-error` endi DB ga ham yozadi
+  - `AdminMetricsService` — 3 ta yangi metod:
+    - `getRevenueSeries(days)` → `$queryRaw` GROUP BY DATE
+    - `getTopTenants()` → bugungi top 5, `order.groupBy + tenant.findMany`
+    - `getErrors(params)` → `clientErrorLog.findMany` + tenant name join
+  - `AdminAuthController` — 3 ta yangi route:
+    - `GET /admin/revenue-series?days=14`
+    - `GET /admin/top-tenants`
+    - `GET /admin/errors?type=&severity=&tenantId=&limit=`
+  - `founder.api.ts` — `Promise.reject('no-endpoint')` → real API calls
+- **Fayl:**
+  - `apps/api/prisma/schema.prisma` — `ClientErrorLog` model
+  - `apps/api/prisma/migrations/20260419120000_add_client_error_logs/`
+  - `apps/api/src/common/logger/client-log.controller.ts`
+  - `apps/api/src/admin/admin-metrics.service.ts`
+  - `apps/api/src/admin/admin-auth.controller.ts`
+  - `apps/web/src/api/founder.api.ts`
+- **Eslatma:** Migration DB yuklanganida `prisma migrate deploy` bilan qo'llaniladi.
+
+---
+
+## YOPILGAN ZOMBIE-TASKLAR (2026-04-19 audit)
+
+> Quyidagi tasklar Polat davrida yozilgan edi. 2026-04-19 audit natijasida kod ichida
+> to'liq implementatsiya topildi — Done.md ga ko'chirildi.
+
+| T-raqam | Tur | Yechim | Fayl |
+|---------|-----|--------|------|
+| T-011..T-015 | BACKEND | Catalog, Sales, Payments schema + service — Prisma migratsiyalar va modullar mavjud | schema.prisma, catalog/, sales/, payments/ |
+| T-019 | BACKEND | Receipt printing — `GET /orders/:id/receipt` ishlaydi, ESC/POS lib mavjud | sales.service.ts, lib/escpos.ts |
+| T-021..T-022 | BACKEND | Inventory schema + StockMovement service — `stock_movements` immutable, `stock-level.service.ts` | schema.prisma, inventory/ |
+| T-024 | BACKEND | Reports module — daily-revenue, top-products, profit, sales-summary endpointlar ishlaydi | reports.service.ts, revenue-reports.service.ts |
+| T-026 | BACKEND | Returns/Refund — `POST /orders/:id/return`, PIN verify, `return.created` event | sales.service.ts |
+| T-027 | BACKEND | Audit log — `AuditInterceptor` global, `GET /audit-logs` | audit.service.ts, audit.controller.ts |
+| T-031 | BACKEND | Expiry tracking — `GET /inventory/expiring?days=`, `ExpiryTrackingService` | expiry-tracking.service.ts |
+| T-032 | BACKEND | Expenses — `POST/GET /finance/expenses`, category filter | finance.service.ts, finance.controller.ts |
+| T-035 | BACKEND | Ledger double-entry — `LedgerService`, journal_entries immutable, reversal | ledger.service.ts |
+| T-036 | BACKEND | Fiscal adapter stub — `FiscalAdapterService`, `isReal` flag, queue retry | fiscal-adapter.service.ts |
+| T-037 | DEVOPS | Staging deploy — Dockerfile (API+Web), docker-compose.staging.yml, GitHub Actions CI | docker/, .github/workflows/ |
+| T-039 | BACKEND | Domain events — EventEmitter2, `sale.created`→inventory→ledger→fiscal zanjiri | event-bus.service.ts, event-log.service.ts |
+| T-050..T-051 | BACKEND | Customer + Nasiya module — CRUD, debt lifecycle, aging report, partial payment FIFO | customers.service.ts, debts/ |
+| T-055 | BACKEND | Super Admin auth — `admin_users`, `POST /admin/auth/login`, `SuperAdminGuard` | admin-auth.service.ts, super-admin.guard.ts |
+| T-067 | SECURITY | Login lockout — `MAX_FAILED_ATTEMPTS=5`, `LOCKOUT_MINUTES=15`, `userLock` table | identity.service.ts |
+| T-068 | SECURITY | Admin PIN — `pin.service.ts`, bcrypt hash, 3 noto'g'ri → 5 daqiqa lock, `POST /auth/verify-pin` | pin.service.ts, auth.controller.ts |
+| T-069 | SECURITY | Session management — httpOnly cookie, refresh token, `DELETE /auth/sessions/:id` | auth.controller.ts, identity.service.ts |
+| T-070 | BACKEND | Employee activity monitor — per-cashier metrics, suspicious patterns, `GET /reports/employee-activity` | employee-activity.service.ts |
+| T-071 | SECURITY | API Key auth — `ApiKey` Prisma model, scoped keys, revocable, rate limited | schema.prisma, identity/ |
+| T-072 | SECURITY | Input sanitization — `SanitizeStringPipe` global, HTML strip, barcode/phone validators | sanitize-string.pipe.ts, validators.ts |
+| T-073 | BACKEND | Redis caching — `CacheService` (ioredis), TTL strategy, barcode cache, stock cache | cache.service.ts, catalog.service.ts |
+| T-074 | BACKEND | DB indexing — composite indexes [tenantId,createdAt], [tenantId,barcode], partial indexes | schema.prisma |
+| T-075 | BACKEND | Stock snapshot — `StockSnapshot` model, `cron.service.ts` hourly materialization | stock-level.service.ts, cron.service.ts |
+| T-076 | BACKEND | BullMQ worker — 6 ta worker: fiscal, notification, data-export, report, stock-snapshot, sync-process | apps/worker/src/workers/ |
+| T-077 | BACKEND | Rate limiting — `TenantThrottlerGuard`, per-tenant limit, gzip compression | tenant-throttler.guard.ts, app.module.ts |
+| T-079 | BACKEND | INN/STIR validation — `@Matches(/^(\d{9}\|\d{14})$/)` DTO da, tenant jadvalida saqlanadi | register-tenant.dto.ts |
+| T-080 | BACKEND | UZS rounding — `roundUZS(amount, precision)` util funksiya | currency.util.ts |
+| T-082 | BACKEND | USD/UZS valyuta — `exchange_rates` jadval, CBU cron, product cost convert | exchange-rate.service.ts |
+| T-083 | BACKEND | Z-report — `createZReport()`, immutable, sequence number, `POST /reports/z-report` | z-report.service.ts |
+| T-084 | DEVOPS | DB backups — `backup.sh` (pg_dump→GPG→MinIO), cron 02:00 UTC, Telegram notify | scripts/backup.sh, docker/backup/ |
+| T-085 | DEVOPS | Health checks — `GET /health/live`, `/health/ready` (DB+Redis+MinIO), graceful shutdown | health.controller.ts |
+| T-086 | DEVOPS | Monitoring — Prometheus+Grafana+pg_exporter+redis_exporter docker-compose config | docker/monitoring/ |
+| T-087 | BACKEND | Data export — `data-export.worker.ts`, `GET /reports/export/download?type=` CSV | data-export.worker.ts, reports.controller.ts |
+| T-088 | BACKEND | Cron jobs — `cron.service.ts`: hourly snapshot, daily exchange rate, expiry, debt reminder | cron.service.ts |
+| T-089 | BACKEND | Analytics endpoints — 7 ta: sales-trend, top-products, dead-stock, margin, ABC, cashier-perf, heatmap | ai.service.ts, ai.controller.ts |
+| T-091..T-092 | BACKEND | Global exception filter + $transaction — `AllExceptionsFilter`, order/nasiya/stock 1 transaction | global-exception.filter.ts, sales.service.ts |
+| T-093 | BACKEND | Circuit breaker — `circuit-breaker.service.ts`, 3 fail→OPEN, fallback strategy | circuit-breaker.service.ts |
+| T-094 | BACKEND | Dead letter queue — `queue.service.ts` DLQ management, `GET /admin/dlq`, retry/dismiss | queue.service.ts, admin-auth.controller.ts |
+| T-095 | BACKEND | Product variants — `product_variants` table, har variant o'z barcode/narx/stock | schema.prisma, catalog.service.ts |
+| T-098 | BACKEND | Price management — `ProductPrice` model (RETAIL/WHOLESALE/tiered minQty), price history | schema.prisma |
+| T-099 | BACKEND | Promotions engine — `promotions` CRUD, PERCENT/FIXED/BUY_X_GET_Y types, auto-apply POS da | promotions.service.ts |
+| T-103 | BACKEND | Push notifications — `push.service.ts`, FCM integration, `notifications` table, GET/PATCH | push.service.ts, notifications.controller.ts |
+| T-104 | BACKEND | Telegram bot — grammY, /sales /stock /debt /shift /report commands, auto-alerts | commands.ts, handlers/ |
+| T-105 | BACKEND | CBU exchange rate — kunlik cron, `GET /exchange-rates/current`, fallback cached | exchange-rate.service.ts, cron.service.ts |
+| T-108 | BACKEND | Subscription plans — `tenant_subscriptions`, TRIAL/ACTIVE/PAST_DUE, usage limits, BillingGuard | billing.service.ts, billing.controller.ts |
+| T-113 | BACKEND | Branch management — `GET/POST/PATCH/DELETE /branches`, user-branch assignment | identity.service.ts |
+| T-114 | BACKEND | Inter-branch transfer — `stock_transfers` (REQUESTED→APPROVED→SHIPPED→RECEIVED), 4-step workflow | inventory.service.ts |
+| T-124 | BACKEND | Feature flags — `FeatureFlagsService` (Redis 1min cache), `@FeatureFlag()` decorator, tenant scope | feature-flags.service.ts, feature-flag.decorator.ts |
+| T-346 | BACKEND | schema.prisma deleted models — `ibrat/feat-inventory-ui` branch mavjud emas, main da barcha modellar bor | schema.prisma |
 
 ---
 
