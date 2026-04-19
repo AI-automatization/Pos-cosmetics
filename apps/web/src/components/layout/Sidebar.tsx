@@ -172,7 +172,6 @@ const NAV_SECTIONS: NavSection[] = [
         roles: ADMIN_ONLY,
         children: [
           { label: 'Foydalanuvchilar', tKey: 'nav.users', href: '/settings/users' },
-          { label: 'Filiallar', tKey: 'nav.branches', href: '/settings/branches' },
           { label: 'Printer', tKey: 'nav.printer', href: '/settings/printer' },
           { label: 'Audit log', tKey: 'nav.auditLog', href: '/settings/audit-log' },
           { label: 'Hisob va tarif', tKey: 'nav.billing', href: '/settings/billing' },
