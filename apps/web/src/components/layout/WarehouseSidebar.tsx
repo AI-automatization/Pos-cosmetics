@@ -34,7 +34,7 @@ export function WarehouseSidebar() {
   const { mutate: logout, isPending } = useLogout();
 
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-gray-200 bg-white">
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
       {/* Logo */}
       <div className="flex h-14 items-center gap-3 border-b border-gray-200 px-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-600">
