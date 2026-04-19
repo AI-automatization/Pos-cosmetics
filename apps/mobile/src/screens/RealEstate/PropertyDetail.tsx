@@ -6,34 +6,20 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RealEstateStackParamList } from '@/navigation/types';
 import ScreenLayout from '@/components/layout/ScreenLayout';
-import Card from '@/components/common/Card';
-import Badge from '@/components/common/Badge';
 import ErrorView from '@/components/common/ErrorView';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { SkeletonCard } from '@/components/common/SkeletonLoader';
 import { realEstateApi } from '@/api';
-import { formatCurrency, formatDateTime } from '@/utils/format';
+import { formatDateTime } from '@/utils/format';
 import { QUERY_STALE_TIMES } from '@/config/constants';
-import type { PropertyStatus } from '@/api/realestate.api';
+import type { RentalPayment } from '@/api/realestate.api';
+import PropertyHero from './PropertyHero';
+import { MonthlyChart, PaymentHistoryRow } from './MonthlyChart';
 
 type Props = {
   navigation: NativeStackNavigationProp<RealEstateStackParamList, 'PropertyDetail'>;
   route: RouteProp<RealEstateStackParamList, 'PropertyDetail'>;
 };
-
-const STATUS_VARIANT: Record<PropertyStatus, 'success' | 'warning' | 'danger'> = {
-  RENTED: 'success',
-  VACANT: 'warning',
-  MAINTENANCE: 'danger',
-};
-
-function InfoRow({ label, value }: { label: string; value: string }): React.JSX.Element {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
-  );
-}
 
 export default function PropertyDetailScreen({ navigation, route }: Props): React.JSX.Element {
   const { t } = useTranslation();
@@ -45,125 +31,143 @@ export default function PropertyDetailScreen({ navigation, route }: Props): Reac
     staleTime: QUERY_STALE_TIMES.REALESTATE,
   });
 
+  const { data: payments, isLoading: paymentsLoading } = useQuery({
+    queryKey: ['realestate', 'payments', propertyId],
+    queryFn: () => realEstateApi.getRentalPayments(propertyId),
+    staleTime: QUERY_STALE_TIMES.REALESTATE,
+  });
+
   if (isLoading) return <LoadingSpinner message={t('common.loading')} />;
   if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;
   if (!data) return <View />;
 
+  const visiblePayments: RentalPayment[] = (payments ?? []).slice(0, 10);
+  const hasMore = (payments?.length ?? 0) > 10;
+
   return (
     <ScreenLayout title={data.name} onRefresh={() => void refetch()}>
-      <Card>
-        <View style={styles.statusRow}>
-          <Text style={styles.propertyType}>{t(`realestate.type${data.type}`)}</Text>
-          <Badge
-            label={t(`realestate.status${data.status}`)}
-            variant={STATUS_VARIANT[data.status]}
-          />
-        </View>
-        <Text style={styles.address}>{data.address}</Text>
-      </Card>
-
-      <Card>
-        <Text style={styles.sectionTitle}>{t('realestate.financials')}</Text>
-        <InfoRow
-          label={t('realestate.monthlyRent')}
-          value={formatCurrency(data.rentAmount, data.currency)}
-        />
-        {data.roi !== undefined && (
-          <InfoRow label={t('realestate.roi')} value={`${data.roi.toFixed(1)}%`} />
-        )}
-        {data.area !== undefined && (
-          <InfoRow label={t('realestate.area')} value={`${data.area} m²`} />
-        )}
-      </Card>
+      <PropertyHero property={data} />
 
       {data.tenantName ? (
-        <Card>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('realestate.tenant')}</Text>
-          <InfoRow label={t('realestate.tenantName')} value={data.tenantName} />
-          {data.tenantPhone ? (
-            <InfoRow label={t('realestate.tenantPhone')} value={data.tenantPhone} />
-          ) : null}
-          {data.contractStart ? (
-            <InfoRow
-              label={t('realestate.contractStart')}
-              value={formatDateTime(data.contractStart)}
-            />
-          ) : null}
-          {data.contractEnd ? (
-            <InfoRow
-              label={t('realestate.contractEnd')}
-              value={formatDateTime(data.contractEnd)}
-            />
-          ) : null}
-        </Card>
+          <View style={styles.tenantCard}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('realestate.tenantName')}</Text>
+              <Text style={styles.infoValue}>{data.tenantName}</Text>
+            </View>
+            {data.tenantPhone ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{t('realestate.tenantPhone')}</Text>
+                <Text style={styles.infoValue}>{data.tenantPhone}</Text>
+              </View>
+            ) : null}
+            {data.contractStart ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{t('realestate.contractStart')}</Text>
+                <Text style={styles.infoValue}>{formatDateTime(data.contractStart)}</Text>
+              </View>
+            ) : null}
+            {data.contractEnd ? (
+              <View style={[styles.infoRow, styles.infoRowLast]}>
+                <Text style={styles.infoLabel}>{t('realestate.contractEnd')}</Text>
+                <Text style={styles.infoValue}>{formatDateTime(data.contractEnd)}</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
       ) : null}
 
-      <TouchableOpacity
-        style={styles.paymentsButton}
-        onPress={() =>
-          navigation.navigate('RentalPayments', {
-            propertyId: data.id,
-            propertyName: data.name,
-          })
-        }
-        accessibilityRole="button"
-      >
-        <Text style={styles.paymentsButtonText}>💳 {t('realestate.viewPayments')}</Text>
-      </TouchableOpacity>
+      <View style={styles.section}>
+        {paymentsLoading ? (
+          <SkeletonCard />
+        ) : (
+          <MonthlyChart payments={payments ?? []} />
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('realestate.paymentHistory')}</Text>
+        {visiblePayments.map((item) => (
+          <View key={item.id} style={styles.rowSpacing}>
+            <PaymentHistoryRow item={item} />
+          </View>
+        ))}
+      </View>
+
+      {hasMore ? (
+        <TouchableOpacity
+          style={styles.viewAllBtn}
+          onPress={() =>
+            navigation.navigate('RentalPayments', {
+              propertyId: data.id,
+              propertyName: data.name,
+            })
+          }
+          accessibilityRole="button"
+        >
+          <Text style={styles.viewAllText}>
+            {t('realestate.viewAllPayments', { count: payments?.length })}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  propertyType: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  address: {
-    fontSize: 14,
-    color: '#374151',
+  section: {
+    marginHorizontal: 16,
+    marginTop: 12,
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 12,
+    marginBottom: 10,
+  },
+  tenantCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 14,
+    paddingVertical: 4,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#F3F4F6',
+  },
+  infoRowLast: {
+    borderBottomWidth: 0,
   },
   infoLabel: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#6B7280',
   },
   infoValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#111827',
   },
-  paymentsButton: {
-    backgroundColor: '#1a56db',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 8,
-    minHeight: 48,
-    justifyContent: 'center',
+  rowSpacing: {
+    marginBottom: 8,
   },
-  paymentsButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '700',
+  viewAllBtn: {
+    margin: 16,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2563EB',
   },
 });
