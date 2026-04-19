@@ -31,6 +31,7 @@ export default function WriteOffPage() {
 
   const [reason, setReason] = useState<string>('DAMAGED');
   const [note, setNote] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const [items, setItems] = useState<ItemRow[]>([{ _key: nextKey(), productId: '', qty: 1 }]);
 
   const productOptions: DropdownOption[] = useMemo(
@@ -47,6 +48,7 @@ export default function WriteOffPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
     const valid = items.filter((r) => r.productId && r.qty > 0);
     if (valid.length === 0) return;
     writeOff(
@@ -128,49 +130,69 @@ export default function WriteOffPage() {
           </div>
 
           <table className="w-full text-sm">
-            <thead className="bg-gray-50/80">
+            <thead className="bg-gray-50/80 sticky top-0 z-10">
               <tr className="text-xs text-gray-500 uppercase tracking-wider">
                 <th className="px-4 py-3 text-left">Tovar</th>
                 <th className="px-4 py-3 text-right w-32">Miqdor</th>
                 <th className="px-4 py-3 w-12" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {items.map((row) => (
-                <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-4 py-3">
-                    <SearchableDropdown
-                      options={productOptions}
-                      value={row.productId}
-                      onChange={(val) => updateRow(row._key, { productId: val })}
-                      placeholder="Mahsulot tanlang..."
-                      searchPlaceholder="Nomi yoki barcode..."
-                      clearable={false}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <input
-                      type="number"
-                      min={1}
-                      value={row.qty}
-                      onChange={(e) => updateRow(row._key, { qty: Number(e.target.value) })}
-                      className="w-full text-right rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => removeRow(row._key)}
-                      disabled={items.length === 1}
-                      className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
           </table>
+          <div className="max-h-[480px] overflow-y-auto">
+            <table className="w-full text-sm">
+              <colgroup>
+                <col />
+                <col className="w-32" />
+                <col className="w-12" />
+              </colgroup>
+              <tbody className="divide-y divide-gray-50">
+                {items.map((row) => {
+                  const rowInvalid = submitted && !row.productId;
+                  const qtyInvalid = submitted && row.qty <= 0;
+                  return (
+                  <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-4 py-3">
+                      <SearchableDropdown
+                        options={productOptions}
+                        value={row.productId}
+                        onChange={(val) => updateRow(row._key, { productId: val })}
+                        placeholder="Mahsulot tanlang..."
+                        searchPlaceholder="Nomi yoki barcode..."
+                        clearable={false}
+                        className={rowInvalid ? 'ring-2 ring-red-400 rounded-xl' : ''}
+                      />
+                      {rowInvalid && (
+                        <p className="mt-1 text-xs text-red-500">Mahsulot tanlanishi shart</p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="number"
+                        min={1}
+                        value={row.qty}
+                        onChange={(e) => updateRow(row._key, { qty: Number(e.target.value) })}
+                        className={cn(
+                          'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+                          qtyInvalid ? 'border-red-400' : 'border-gray-300',
+                        )}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => removeRow(row._key)}
+                        disabled={items.length === 1}
+                        className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Submit bar */}
