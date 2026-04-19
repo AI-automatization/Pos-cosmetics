@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
-    backgroundColor: '#6366F1',
+    backgroundColor: '#2563EB',
   },
   confirmText: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
 });
