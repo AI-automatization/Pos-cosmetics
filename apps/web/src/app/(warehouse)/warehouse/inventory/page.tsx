@@ -38,6 +38,7 @@ export default function WarehouseInventoryPage() {
   const { data: categories } = useCategories();
 
   const handleCreateProduct = (formData: ProductFormData) => {
+    const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
     createProduct(
       {
         name: formData.name,
@@ -46,9 +47,10 @@ export default function WarehouseInventoryPage() {
         costPrice: formData.costPrice,
         sellPrice: formData.sellPrice,
         minStockLevel: formData.minStockLevel,
-        barcode: formData.barcode || undefined,
-        extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+        barcode: allBarcodes[0] || undefined,
+        extraBarcodes: allBarcodes.slice(1),
         expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
+        supplierId: formData.supplierId || undefined,
       },
       { onSuccess: () => setShowProductModal(false) },
     );
@@ -56,6 +58,7 @@ export default function WarehouseInventoryPage() {
 
   const handleUpdateProduct = (formData: ProductFormData) => {
     if (!editProduct) return;
+    const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
     updateProduct(
       {
         id: editProduct.id,
@@ -66,8 +69,8 @@ export default function WarehouseInventoryPage() {
           costPrice: formData.costPrice,
           sellPrice: formData.sellPrice,
           minStockLevel: formData.minStockLevel,
-          barcode: formData.barcode || undefined,
-          extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+          barcode: allBarcodes[0] || undefined,
+          extraBarcodes: allBarcodes.slice(1),
           expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
         },
       },

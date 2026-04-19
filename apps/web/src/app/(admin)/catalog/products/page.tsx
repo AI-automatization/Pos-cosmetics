@@ -56,18 +56,18 @@ export default function ProductsPage() {
 
   const handleFormSubmit = (formData: ProductFormData) => {
     // Map form data to backend DTO field names
+    const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
     const dto: CreateProductDto = {
       name: formData.name,
-      barcode: formData.barcode || undefined,
-      extraBarcodes: formData.extraBarcodes
-        ?.map((b) => b.value)
-        .filter((v) => v.trim().length > 0),
+      barcode: allBarcodes[0] || undefined,
+      extraBarcodes: allBarcodes.slice(1),
       sku: formData.sku,
       categoryId: formData.categoryId,
       costPrice: formData.costPrice,
       sellPrice: formData.sellPrice,
       minStockLevel: formData.minStockLevel,
       expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
+      supplierId: formData.supplierId || undefined,
     };
     if (editingProduct) {
       updateProduct.mutate(
