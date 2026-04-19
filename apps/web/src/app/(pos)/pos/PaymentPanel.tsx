@@ -245,7 +245,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
       {/* ─── ARALASH (split) — 4-way payment ─── */}
       {paymentMethod === 'split' && (() => {
-        const splitPaid = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * 100;
+        const splitPaid = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * redeemRate;
         const remaining = total - splitPaid;
         const needsCustomer = splitEnabled.nasiya || splitEnabled.bonus;
         return (

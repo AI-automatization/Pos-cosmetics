@@ -6,6 +6,8 @@ import { salesApi } from '@/api/sales.api';
 import { inventoryApi } from '@/api/inventory.api';
 import { extractErrorMessage } from '@/lib/utils';
 import { usePOSStore } from '@/store/pos.store';
+import { useLoyaltyConfig } from '@/hooks/customers/useLoyalty';
+import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import type { Order } from '@/types/sales';
 
 export function useCompleteSale(onSuccess: (order: Order) => void) {
@@ -13,6 +15,8 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
   const cart = store.carts[store.activeCartId];
   const { items, orderDiscount, orderDiscountType, paymentMethod, cashAmount, cardAmount, bonusPoints, splitNasiyaAmount, selectedCustomer } = cart;
   const { shiftId, totals, clearCart, recordSale } = store;
+  const { data: loyaltyConfig } = useLoyaltyConfig();
+  const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -32,7 +36,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
             cashAmount > 0 ? { method: 'CASH' as const, amount: cashAmount } : null,
             cardAmount > 0 ? { method: 'CARD' as const, amount: cardAmount } : null,
             splitNasiyaAmount > 0 ? { method: 'NASIYA' as const, amount: splitNasiyaAmount } : null,
-            bonusPoints > 0 ? { method: 'BONUS' as const, amount: bonusPoints * 100 } : null,
+            bonusPoints > 0 ? { method: 'BONUS' as const, amount: bonusPoints * redeemRate } : null,
           ] as (typeof payments[0] | null)[]
         ).filter((p): p is typeof payments[0] => p !== null);
       }
@@ -128,7 +132,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
     if (paymentMethod === 'card') return true;
     if (paymentMethod === 'nasiya') return selectedCustomer !== null && !selectedCustomer.isBlocked;
     // split: sum of all parts must cover total; if nasiya or bonus part present, customer required
-    const covered = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * 100;
+    const covered = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * redeemRate;
     const needsCustomer = splitNasiyaAmount > 0 || bonusPoints > 0;
     return covered >= total && (!needsCustomer || (selectedCustomer !== null && !selectedCustomer.isBlocked));
   })();
