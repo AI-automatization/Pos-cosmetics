@@ -3,7 +3,7 @@
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Plus, ScanLine } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import type { Category, Product } from '@/types/catalog';
 import { VariantsSection } from './VariantsSection';
@@ -14,14 +14,14 @@ import { MarginBadge } from './MarginBadge';
 import { ImageUpload } from './ImageUpload';
 import { BarcodeFields } from './BarcodeFields';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
-import { BarcodeScanner } from '@/components/ui/BarcodeScanner';
+import { useSuppliers } from '@/hooks/catalog/useSuppliers';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
-  barcode: z.string().optional(),
   extraBarcodes: z.array(z.object({ value: z.string() })).optional(),
   sku: z.string().max(100).optional(),
   categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
+  supplierId: z.string().optional(),
   description: z.string().max(2000).optional(),
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
@@ -38,17 +38,28 @@ interface ProductFormProps {
   isPending: boolean;
   onSubmit: (data: ProductFormData) => void;
   onClose: () => void;
+  initialSupplierId?: string;
 }
 
-function buildDefaultValues(product?: Product | null): ProductFormData {
-  if (!product) return { costPrice: 0, sellPrice: 0, minStockLevel: 0, extraBarcodes: [], description: '', name: '', sku: '', categoryId: '' };
+function buildDefaultValues(product?: Product | null, initialSupplierId?: string): ProductFormData {
+  if (!product) {
+    return {
+      costPrice: 0, sellPrice: 0, minStockLevel: 0,
+      extraBarcodes: [], description: '', name: '', sku: '', categoryId: '',
+      supplierId: initialSupplierId ?? '',
+    };
+  }
   const p = product as unknown as Record<string, unknown>;
+  // Existing barcode moves to first extraBarcode
+  const barcodes: { value: string }[] = [];
+  if (product.barcode) barcodes.push({ value: product.barcode });
+  (product.extraBarcodes ?? []).forEach((v) => barcodes.push({ value: v }));
   return {
     name: product.name ?? '',
-    barcode: product.barcode ?? '',
-    extraBarcodes: (product.extraBarcodes ?? []).map((v) => ({ value: v })),
+    extraBarcodes: barcodes,
     sku: product.sku ?? '',
     categoryId: product.categoryId ?? '',
+    supplierId: initialSupplierId ?? '',
     description: (p.description as string) ?? '',
     costPrice: Number(product.costPrice),
     sellPrice: Number(product.sellPrice),
@@ -56,24 +67,30 @@ function buildDefaultValues(product?: Product | null): ProductFormData {
   };
 }
 
-export function ProductForm({ product, categories, isPending, onSubmit, onClose }: ProductFormProps) {
+export function ProductForm({ product, categories, isPending, onSubmit, onClose, initialSupplierId }: ProductFormProps) {
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
-    defaultValues: buildDefaultValues(product),
+    defaultValues: buildDefaultValues(product, initialSupplierId),
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'extraBarcodes' });
   const costPrice = watch('costPrice') ?? 0;
   const sellPrice = watch('sellPrice') ?? 0;
   const [showSku, setShowSku] = useState(!!product?.sku);
-  const [showScanner, setShowScanner] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>(
     ((product as unknown as Record<string, unknown>)?.imageUrl as string) ?? '',
   );
 
+  const { data: suppliers } = useSuppliers();
+
   const categoryOptions = useMemo(
     () => categories.map((c) => ({ value: c.id, label: c.name })),
     [categories],
+  );
+
+  const supplierOptions = useMemo(
+    () => (suppliers ?? []).map((s) => ({ value: s.id, label: s.name, sublabel: s.company ?? s.phone ?? undefined })),
+    [suppliers],
   );
 
   return (
@@ -138,32 +155,13 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose 
               )}
             </div>
 
-            {/* Main barcode + scanner */}
-            <div className="col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Barcode</label>
-              <div className="flex gap-2">
-                <input
-                  {...register('barcode')}
-                  placeholder="8600012345678"
-                  className={`${inputCls} flex-1`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowScanner(true)}
-                  title="Kamera bilan skanerlash"
-                  className="flex items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50 hover:border-gray-400"
-                >
-                  <ScanLine className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Extra barcodes */}
+            {/* Barcodes — only array, no primary */}
             <BarcodeFields
               register={register}
               fields={fields}
               append={append}
               remove={remove}
+              setValue={(name, value) => setValue(name, value)}
             />
 
             {/* Category — SearchableDropdown */}
@@ -189,6 +187,28 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose 
                 )}
               />
             </Field>
+
+            {/* Supplier — optional */}
+            <div className="col-span-2">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Yetkazib beruvchi
+                <span className="ml-1 text-xs font-normal text-gray-400">(ixtiyoriy)</span>
+              </label>
+              <Controller
+                control={control}
+                name="supplierId"
+                render={({ field }) => (
+                  <SearchableDropdown
+                    options={supplierOptions}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    placeholder="Kontragent tanlang..."
+                    searchPlaceholder="Nomi yoki kompaniya..."
+                    clearable
+                  />
+                )}
+              />
+            </div>
 
             <Field label="Tavsif" error={errors.description?.message} className="col-span-2">
               <textarea
@@ -265,15 +285,6 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose 
         </form>
       </div>
 
-      {showScanner && (
-        <BarcodeScanner
-          onScan={(barcode) => {
-            setValue('barcode', barcode);
-            setShowScanner(false);
-          }}
-          onClose={() => setShowScanner(false)}
-        />
-      )}
     </div>
   );
 }
