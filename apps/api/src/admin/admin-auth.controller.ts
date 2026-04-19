@@ -161,6 +161,48 @@ export class AdminAuthController {
     return this.adminMetricsService.getTenantHealth(id);
   }
 
+  // ─── T-056: Revenue Series ─────────────────────────────────────
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('revenue-series')
+  @ApiOperation({ summary: 'T-056: Kunlik daromad grafigi (barcha tenantlar)' })
+  @ApiQuery({ name: 'days', required: false, type: Number, description: 'Necha kun (default 14)' })
+  getRevenueSeries(@Query('days') days?: string) {
+    return this.adminMetricsService.getRevenueSeries(days ? parseInt(days) : 14);
+  }
+
+  // ─── T-056: Top Tenants ────────────────────────────────────────
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('top-tenants')
+  @ApiOperation({ summary: 'T-056: Bugungi top 5 tenant — daromad bo\'yicha' })
+  getTopTenants() {
+    return this.adminMetricsService.getTopTenants();
+  }
+
+  // ─── T-056: Client Errors ──────────────────────────────────────
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('errors')
+  @ApiOperation({ summary: 'T-056: Klient xatolari ro\'yxati' })
+  @ApiQuery({ name: 'tenantId', required: false, type: String })
+  @ApiQuery({ name: 'type', required: false, type: String, description: 'CLIENT | API | SYNC' })
+  @ApiQuery({ name: 'severity', required: false, type: String, description: 'ERROR | WARN | CRITICAL | INFO' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max natijalar soni (default 50)' })
+  getErrors(
+    @Query('tenantId') tenantId?: string,
+    @Query('type') type?: string,
+    @Query('severity') severity?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminMetricsService.getErrors({
+      tenantId,
+      type,
+      severity,
+      limit: limit ? parseInt(limit) : undefined,
+    });
+  }
+
   // ─── T-058: Tenant Impersonation ───────────────────────────────
   @UseGuards(JwtAuthGuard, SuperAdminGuard)
   @ApiBearerAuth()

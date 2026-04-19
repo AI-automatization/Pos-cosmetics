@@ -40,9 +40,9 @@ export const founderApi = {
       } satisfies FounderStats;
     }),
 
-  /** No backend endpoint — hooks fall back to demo data */
-  getRevenueSeries: (_days = 14): Promise<RevenuePoint[]> =>
-    Promise.reject(new Error('no-endpoint')),
+  /** Backend: GET /admin/revenue-series?days=N */
+  getRevenueSeries: (days = 14): Promise<RevenuePoint[]> =>
+    apiClient.get<RevenuePoint[]>('/admin/revenue-series', { params: { days } }).then((r) => r.data),
 
   /** Backend: GET /admin/tenants */
   listTenants: (params?: { search?: string; status?: string }): Promise<TenantSummary[]> =>
@@ -84,15 +84,15 @@ export const founderApi = {
       } satisfies TenantSummary;
     }),
 
-  /** No backend endpoint — hooks fall back to demo data */
+  /** Backend: GET /admin/top-tenants */
   getTopTenants: (): Promise<TopTenantBar[]> =>
-    Promise.reject(new Error('no-endpoint')),
+    apiClient.get<TopTenantBar[]>('/admin/top-tenants').then((r) => r.data),
 
-  /** No backend endpoint — hooks fall back to demo data */
-  getErrors: (_params?: {
+  /** Backend: GET /admin/errors?type=&severity=&tenantId=&limit= */
+  getErrors: (params?: {
     tenantId?: string;
     type?: string;
     severity?: string;
   }): Promise<FounderError[]> =>
-    Promise.reject(new Error('no-endpoint')),
+    apiClient.get<FounderError[]>('/admin/errors', { params }).then((r) => r.data),
 };

@@ -1107,6 +1107,30 @@ model PinAttempt {
 }
 
 // ============================================
+// CLIENT ERROR LOG (T-056) — Frontend/Mobile/POS errors
+// ============================================
+
+model ClientErrorLog {
+  id         String   @id @default(uuid())
+  tenantId   String?  @map("tenant_id")
+  userId     String?  @map("user_id")
+  source     String   // web | mobile | pos | mobile-owner
+  type       String   @default("CLIENT") // CLIENT | API | SYNC
+  severity   String   @default("ERROR")  // ERROR | WARN | CRITICAL | INFO
+  message    String   @db.Text
+  stack      String?  @db.Text
+  url        String?  @db.VarChar(500)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  occurredAt DateTime @default(now()) @map("occurred_at")
+
+  @@index([tenantId])
+  @@index([tenantId, occurredAt])
+  @@index([severity])
+  @@index([occurredAt])
+  @@map("client_error_logs")
+}
+
+// ============================================
 // PRICE MANAGEMENT (T-098) — Wholesale/Retail + Tiered
 // ============================================
 
