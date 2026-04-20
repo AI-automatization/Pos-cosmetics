@@ -254,5 +254,11 @@
     "unknown": "Kutilmagan xato yuz berdi",
     "unauthorized": "Kirish huquqi yo'q",
     "sessionExpired": "Sessiya muddati tugagan, qayta kiring"
+  },
+  "payment": {
+    "successTitle": "To'lov muvaffaqiyatli!",
+    "autoClose": "{{seconds}} soniyadan keyin yopiladi",
+    "newSale": "Yangi savdo",
+    "printReceipt": "Chek chop etish"
   }
 }

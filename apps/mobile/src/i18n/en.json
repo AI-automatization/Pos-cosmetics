@@ -236,5 +236,11 @@
     "unknown": "An unexpected error occurred",
     "unauthorized": "Unauthorized",
     "sessionExpired": "Session expired, please login again"
+  },
+  "payment": {
+    "successTitle": "Payment successful!",
+    "autoClose": "Closes in {{seconds}} seconds",
+    "newSale": "New sale",
+    "printReceipt": "Print receipt"
   }
 }

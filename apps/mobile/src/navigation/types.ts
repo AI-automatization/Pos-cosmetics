@@ -1,3 +1,5 @@
+import type { CartItem, PaymentMethod } from '../screens/Savdo/PaymentSheetTypes';
+
 export type AuthStackParamList = {
   Login: undefined;
   Biometric: undefined;
@@ -21,6 +23,11 @@ export type SavdoStackParamList = {
   SavdoMain: undefined;
   SmenaScreen: undefined;
   SalesHistory: undefined;
+  PaymentSuccess: {
+    items: CartItem[];
+    paymentMethod: PaymentMethod;
+    orderNumber: string;
+  };
   NasiyaScreen:
     | {
         openNewDebt?: boolean;
