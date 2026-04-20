@@ -65,6 +65,59 @@
 
 ---
 
+## T-372 | P1 | [BACKEND] | Login — slug ixtiyoriy + avtomatik tenant aniqlash
+
+- **Sana:** 2026-04-20
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/identity/dto/login.dto.ts`, `apps/api/src/identity/identity.service.ts`
+- **Muammo:** `slug` hozir majburiy. Foydalanuvchi slug bilmasa kira olmaydi.
+- **Yechim:**
+  - `LoginDto.slug` → `@IsOptional()`
+  - `identity.service.ts login()`: slug berilsa → tenant slug bo'yicha qidiriladi (mavjud xatti-harakat); slug berilmasa → email bo'yicha barcha tenantlarda qidirish → 1 ta topilsa → avtomatik → 2+ topilsa → `SLUG_REQUIRED` xatosi qaytariladi
+- **Kutilgan:** Slug berilmagan holda ham kirish ishlaydi (yagona email bo'lsa)
+
+---
+
+## T-373 | P1 | [FRONTEND] | Login sahifasi — slug maydoni ixtiyoriy
+
+- **Sana:** 2026-04-20
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(auth)/login/page.tsx`
+- **Muammo:** Slug majburiy validatsiya bor, bo'sh qoldirib bo'lmaydi.
+- **Yechim:**
+  - Slug validatsiyasidan `required` olib tashlash
+  - Placeholder: `my-store (ixtiyoriy)`
+  - Hint matn: `Bir do'koningiz bo'lsa bo'sh qoldiring`
+- **Kutilgan:** Slug bo'sh qoldirilganda ham login ishlaydi
+
+---
+
+## T-374 | P1 | [BACKEND] | Bot login — tenant izolyatsiya xatosini tuzatish
+
+- **Sana:** 2026-04-20
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/bot/src/services/auth.service.ts`
+- **Muammo:** `verifyCredentialsAndSendOtp()` email bo'yicha barcha tenantlarda qidiradi — tenant filtri yo'q. Ko'p tenantli tizimda xato foydalanuvchi topilishi mumkin.
+- **Yechim:** T-372 dagi mantiq bilan bir xil: email bo'yicha qidirish → 1 ta → davom; 2+ → xato (bot da bu holat kam bo'lsa ham to'g'ri bo'lishi kerak)
+- **Kutilgan:** Har bir foydalanuvchi faqat o'z tenant ma'lumotlarini ko'radi
+
+---
+
+## T-375 | P1 | [BACKEND] | Bot OTP — xotirada emas, DB da saqlash
+
+- **Sana:** 2026-04-20
+- **Mas'ul:** Ibrat
+- **Fayl:** `prisma/schema.prisma`, `apps/bot/src/services/auth.service.ts`
+- **Muammo:** OTP `Map` (RAM) da saqlanadi. Bot qayta ishga tushsa — OTP yo'qoladi, foydalanuvchi login jarayonini qaytadan boshlashi kerak.
+- **Yechim:**
+  - Prisma sxemasiga `BotOtpToken` modeli qo'shish: `chatId`, `code`, `userId`, `tenantId`, `role`, `firstName`, `lastName`, `botSettings`, `expiresAt`, `attempts`, `usedAt`
+  - `npx prisma migrate dev`
+  - `auth.service.ts` da `otpStore` Map → Prisma CRUD bilan almashtirish
+  - Muddati o'tgan tokenlarni tozalash: DB query (`expiresAt < now`) yoki cron
+- **Kutilgan:** Bot qayta ishga tushsa ham aktiv OTP sessiyalar saqlanib qoladi
+
+---
+
 ## T-348 | P1 | [DEVOPS] | ibrat/feat-backend-updates — merge yoki close qaror
 
 - **Sana:** 2026-04-15 | **Yangilangan:** 2026-04-20
