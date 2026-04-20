@@ -296,6 +296,7 @@ export class SalesService {
           costPrice: Number(product.costPrice),
           discountAmount: discount,
           total: Math.max(0, total),
+          isTaxable: product.isTaxable,
         };
       });
 
@@ -311,6 +312,14 @@ export class SalesService {
 
       const total = Math.max(0, subtotal - discountAmount);
 
+      // T-078: QQS (НДС 12%) — tax-inclusive narxlardan soliq hisoblash
+      // Formula: taxAmount = taxableTotal * 0.12 / 1.12
+      const taxableTotal = orderItemsData.reduce(
+        (s, i) => s + (i.isTaxable ? Math.max(0, i.total) : 0),
+        0,
+      );
+      const taxAmount = Math.round((taxableTotal * 0.12) / 1.12);
+
       // Generate order number (per tenant)
       const last = await tx.order.findFirst({
         where: { tenantId },
@@ -318,6 +327,9 @@ export class SalesService {
         select: { orderNumber: true },
       });
       const orderNumber = (last?.orderNumber ?? 0) + 1;
+
+      // Strip isTaxable from items before DB insert (not a DB column)
+      const orderItemsInsert = orderItemsData.map(({ isTaxable: _t, ...rest }) => rest);
 
       const order = await tx.order.create({
         data: {
@@ -331,10 +343,10 @@ export class SalesService {
           subtotal,
           discountAmount,
           discountType: dto.discountType ?? 'FIXED',
-          taxAmount: 0,
+          taxAmount,
           total,
           notes: dto.notes,
-          items: { create: orderItemsData },
+          items: { create: orderItemsInsert },
         },
         include: {
           items: true,
