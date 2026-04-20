@@ -17,8 +17,8 @@ export class LoginDto {
   @IsNotEmpty()
   password!: string;
 
-  @ApiProperty({ example: 'my-store', description: 'Tenant slug' })
+  @ApiProperty({ example: 'my-store', description: 'Tenant slug (ixtiyoriy — bitta do\'kon bo\'lsa bo\'sh qoldiring)', required: false })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  slug!: string;
+  slug?: string;
 }

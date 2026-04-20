@@ -176,25 +176,49 @@ export class IdentityService {
   async login(dto: LoginDto): Promise<AuthTokens> {
     const ip = 'unknown'; // Controller dan uzatilsa kengaytirish mumkin
 
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { slug: dto.slug },
-    });
-
-    if (!tenant || !tenant.isActive) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
     // T-145: email YOKI login (username) bilan kirish
     const loginEmail = dto.email ?? dto.login ?? '';
 
-    const user = await this.prisma.user.findUnique({
-      where: {
-        tenantId_email: {
-          tenantId: tenant.id,
-          email: loginEmail,
-        },
-      },
-    });
+    // T-372: slug ixtiyoriy — berilsa slug bo'yicha, berilmasa avtomatik aniqlash
+    let tenant: { id: string; isActive: boolean; slug: string } | null = null;
+    let user: Awaited<ReturnType<typeof this.prisma.user.findUnique>> = null;
+
+    if (dto.slug) {
+      // Slug berilgan — oddiy yo'l
+      tenant = await this.prisma.tenant.findUnique({
+        where: { slug: dto.slug },
+        select: { id: true, isActive: true, slug: true },
+      });
+
+      if (!tenant || !tenant.isActive) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      user = await this.prisma.user.findUnique({
+        where: { tenantId_email: { tenantId: tenant.id, email: loginEmail } },
+      });
+    } else {
+      // Slug berilmagan — email bo'yicha avtomatik aniqlash
+      const candidates = await this.prisma.user.findMany({
+        where: { email: loginEmail, isActive: true },
+        include: { tenant: { select: { id: true, isActive: true, slug: true } } },
+      });
+
+      const active = candidates.filter((u) => u.tenant.isActive);
+
+      if (active.length === 0) {
+        await this.recordAttempt(null, loginEmail, ip, false);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      if (active.length > 1) {
+        // Bir nechta tenant — slug talab qilish
+        throw new UnauthorizedException('SLUG_REQUIRED');
+      }
+
+      user = active[0]!;
+      tenant = active[0]!.tenant;
+    }
 
     if (!user || !user.isActive) {
       await this.recordAttempt(null, loginEmail, ip, false);
