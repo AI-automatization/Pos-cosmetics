@@ -13,6 +13,34 @@
 
 ---
 
+## T-372 | 2026-04-20 | [BACKEND] | Login — slug ixtiyoriy + avtomatik tenant aniqlash
+
+- **Yechim:** `LoginDto.slug` → `@IsOptional()`. `identity.service.ts`: slug berilmasa email bo'yicha barcha tenantlarda qidirish. 1 ta topilsa — avtomatik. 2+ ta — `SLUG_REQUIRED` xatosi.
+- **Fayl:** `apps/api/src/identity/dto/login.dto.ts`, `apps/api/src/identity/identity.service.ts`
+
+---
+
+## T-373 | 2026-04-20 | [FRONTEND] | Login sahifasi — slug maydoni ixtiyoriy
+
+- **Yechim:** Slug validatsiyasidan `required` olib tashlandi. Label ga `(ixtiyoriy)` qo'shildi. Hint matn yangilandi.
+- **Fayl:** `apps/web/src/app/(auth)/login/page.tsx`
+
+---
+
+## T-374 | 2026-04-20 | [BACKEND] | Bot login — tenant izolyatsiya xatosi tuzatildi
+
+- **Yechim:** `verifyCredentialsAndSendOtp()` endi `findMany` ishlatadi. 1 foydalanuvchi → davom. 2+ → `multiple_tenants` qaytariladi → bot Admin Panel orqali bog'lashni tavsiya etadi.
+- **Fayl:** `apps/bot/src/services/auth.service.ts`
+
+---
+
+## T-375 | 2026-04-20 | [BACKEND] | Bot OTP — DB da saqlash (BotOtpToken)
+
+- **Yechim:** `BotOtpToken` modeli Prisma ga qo'shildi. `otpStore` Map → DB CRUD. Cleanup cron har 10 daqiqada. Bot qayta ishga tushsa OTP saqlanib qoladi.
+- **Fayl:** `apps/api/prisma/schema.prisma`, `apps/bot/src/services/auth.service.ts`, `apps/bot/src/cron/alerts.cron.ts`
+
+---
+
 ## T-040 | 2026-04-20 | [BACKEND] | Telegram bot — shift close alert
 
 - **Yechim:** `ShiftAlertListener` yaratildi — `shift.closed` eventini tinglaydi.
