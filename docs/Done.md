@@ -13,6 +13,88 @@
 
 ---
 
+## T-140 | 2026-04-20 | [BACKEND] | POST /warehouse/invoices — mobile costPrice alias
+
+- **Yechim:** `InvoiceItemDto.purchasePrice` → optional. `costPrice` alias qo'shildi (mobile yuboradi).
+  Service: `price = purchasePrice ?? costPrice ?? 0`. Response shaped for mobile:
+  `{ id, receiptNumber, date, totalCost, itemsCount, status }`.
+- **Fayl:** `inventory/dto/warehouse-invoice.dto.ts`, `inventory/warehouse-invoice.service.ts`
+
+---
+
+## T-139 | 2026-04-20 | [BACKEND] | getOrders paymentMethod field
+
+- **Yechim:** `getOrders` da `paymentIntents` include qilindi. Dominant metodni aniqlash:
+  DEBT→NASIYA, hammasi TERMINAL→KARTA, hammasi CASH→NAQD, aralash→ARALASH.
+  `itemsCount` ham qo'shildi. `getCurrentShift` da ham `CARD`→`TERMINAL` xato tuzatildi.
+- **Fayl:** `sales/sales.service.ts`
+
+---
+
+## T-138 | 2026-04-20 | [BACKEND] | getCurrentShift stats — cashierName + totalRevenue + breakdown
+
+- **Yechim:** `getCurrentShift()` endi shift buyurtmalarini aggregate qiladi.
+  `stats: { totalRevenue, ordersCount, avgOrderValue, naqdAmount, kartaAmount, nasiyaAmount }`.
+  `cashierName` user relatsiyasidan. `GET /shifts/current` ShiftsController da qo'shildi.
+- **Fayl:** `sales/sales.service.ts`, `sales/shifts.controller.ts`
+
+---
+
+## T-350 | 2026-04-20 | [BACKEND] | Real estate module — Property + RentalContract + RentalPayment
+
+- **Yechim:** Prisma modellari: `Property`, `RentalContract`, `RentalPayment` + 3 ta enum. Migration yaratildi.
+  `RealestateService`: `getProperties()` (aktiv kontraktdan ijarachi ma'lumotlari bilan),
+  `getStats()` (occupancy, totalMonthlyRent, averageRoi, overduePayments),
+  `getPayments()` (pagination + status/propertyId filter). Controller stub → real service.
+- **Fayl:** `prisma/schema.prisma`, `migrations/20260420110000_add_real_estate_module/`, `realestate/`
+
+---
+
+## T-078 | 2026-04-20 | [BACKEND] | QQS (НДС 12%) taxAmount hisoblash
+
+- **Yechim:** `Product.isTaxable Boolean @default(true)` qo'shildi. Migration `20260420100000_add_product_is_taxable`.
+  `createOrder` da: `taxAmount = taxableTotal * 0.12 / 1.12` (tax-inclusive formula).
+  Soliqqa tortilmaydigan mahsulotlar uchun 0. Barcha cheklar to'g'ri NDS ko'rsatadi.
+- **Fayl:** `prisma/schema.prisma`, `migrations/20260420100000_add_product_is_taxable/`, `sales/sales.service.ts`
+
+---
+
+## T-347 | 2026-04-20 | [IKKALASI] | feat-backend-updates zona buzilishi — resolved
+
+- **Yechim:** `git diff` tekshirildi — branchda `apps/mobile/` fayllari YO'Q. Zona buzilishi yo'q.
+- **Eslatma:** Branch `ibrat/feat-backend-updates` da 2 unmerged backend commit bor — T-348 davom ettirildi.
+
+---
+
+## T-344 | 2026-04-20 | [BACKEND] | supplierName optional — zombie task
+
+- **Yechim:** Kod allaqachon to'g'ri: `@IsOptional()` DTO da, `resolveSupplierId()` null ni handle qiladi. Bug yo'q.
+- **Fayl:** `apps/api/src/inventory/dto/warehouse-invoice.dto.ts`
+
+---
+
+## T-081 | 2026-04-20 | [BACKEND+DEVOPS] | REGOS fiscal worker — real API
+
+- **Yechim:** `fiscal.worker.ts` stub `sendFiscalReceipt()` o'chirildi.
+  Endi `REGOS_API_URL` + `REGOS_API_KEY` env bo'lsa → real REGOS API chaqiriladi.
+  Yo'q bo'lsa → stub ishlaydi (dev/test uchun). Order full data (items, cashier, branch, INN)
+  DB dan olinib payload to'ldiriladi. `.env.example` ga REGOS vars qo'shildi.
+- **Fayl:** `apps/worker/src/workers/fiscal.worker.ts`, `.env.example`
+- **Railway:** `REGOS_API_URL` va `REGOS_API_KEY` Variables tabiga qo'shish kerak
+
+---
+
+## T-054 | 2026-04-20 | [BACKEND] | Nasiya Telegram reminders — cron
+
+- **Yechim:** `CronModule` ga `NotificationsModule` import qilindi. `CronService` ga `NotifyService` inject qilindi.
+  `runDebtReminders()` endi real Telegram xabar yuboradi:
+  - DUE_SOON (3 kun ichida): kunlik (bugun yuborilgan bo'lsa o'tkazib yuboradi)
+  - OVERDUE: 1–3 kun — kunlik, 4+ kun — haftalik
+  - `ReminderLog.channel` = `TELEGRAM` yoki `LOG` (xabar bormasa)
+- **Fayl:** `apps/api/src/common/cron/cron.module.ts`, `cron.service.ts`
+
+---
+
 ## SESSIYA 2026-04-20 — Warehouse UX + PaymentPanel bonus fixes
 
 | T-raqam | Tur | Yechim | Fayl |
