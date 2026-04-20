@@ -16,10 +16,18 @@ export class InvoiceItemDto {
   @IsPositive()
   quantity!: number;
 
-  @ApiProperty({ example: 25000, description: 'Sotib olish narxi (UZS)' })
+  // T-140: purchasePrice OR costPrice (mobile alias) — at least one required
+  @ApiPropertyOptional({ example: 25000, description: 'Sotib olish narxi (UZS)' })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  purchasePrice!: number;
+  purchasePrice?: number;
+
+  @ApiPropertyOptional({ example: 25000, description: 'Mobile alias for purchasePrice' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  costPrice?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
