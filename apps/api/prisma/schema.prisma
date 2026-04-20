@@ -1376,6 +1376,30 @@ model TelegramLinkToken {
 }
 
 // ============================================
+// BOT OTP TOKENS (T-375)
+// ============================================
+
+model BotOtpToken {
+  id          String    @id @default(uuid())
+  chatId      String    @map("chat_id")
+  code        String
+  userId      String    @map("user_id")
+  tenantId    String    @map("tenant_id")
+  role        String
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  botSettings Json?     @map("bot_settings")
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([chatId])
+  @@index([tenantId])
+  @@map("bot_otp_tokens")
+}
+
+// ============================================
 // TENANT SETTINGS (T-132)
 // ============================================
 

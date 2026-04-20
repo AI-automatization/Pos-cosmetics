@@ -281,6 +281,16 @@ export function registerLoginHandlers(bot: Bot) {
             await ctx.reply('❌ Sizning rolingizda bot huquqi yo\'q\\.', { parse_mode: 'MarkdownV2' });
             break;
 
+          case 'multiple_tenants':
+            loginSessions.delete(chatId);
+            await ctx.reply(
+              '⚠️ Bu email bir nechta do\'konda ro\'yxatdan o\'tgan\\.\n\n' +
+              'Iltimos, administrator orqali hisobingizni bog\'lang:\n' +
+              'Admin Panel → Profil → *Telegram bog\'lash*',
+              { parse_mode: 'MarkdownV2' },
+            );
+            break;
+
           case 'email_error':
             loginSessions.delete(chatId);
             await ctx.reply(

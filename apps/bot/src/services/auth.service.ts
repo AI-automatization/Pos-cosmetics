@@ -1,5 +1,7 @@
 // T-125: Bot auth — chatId orqali foydalanuvchini aniqlash
 // T-131: BotSettings type
+// T-374: Tenant izolyatsiya xatosi tuzatildi — email kolliziya aniqlash
+// T-375: OTP DB da saqlanadi (BotOtpToken), RAM da emas
 
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
@@ -77,34 +79,19 @@ export async function getUserByChatId(chatId: string): Promise<BotUser | null> {
   };
 }
 
-// ─── OTP storage (in-memory, 5 daqiqa TTL) ───────────────────
-
-interface OtpEntry {
-  code: string;
-  userId: string;
-  tenantId: string;
-  role: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  botSettings: BotSettings;
-  expiresAt: Date;
-  attempts: number;
-}
-
-const otpStore = new Map<string, OtpEntry>();
+// ─── OTP generatsiya ──────────────────────────────────────────
 
 function generateOtp(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-// Muddati o'tgan OTP larni tozalash (har 10 daqiqada)
-setInterval(() => {
-  const now = new Date();
-  for (const [chatId, entry] of otpStore.entries()) {
-    if (entry.expiresAt < now) otpStore.delete(chatId);
-  }
-}, 10 * 60 * 1000);
+// ─── Eskirgan tokenlarni tozalash (cron dan chaqiriladi) ──────
+
+export async function cleanExpiredOtpTokens(): Promise<void> {
+  await prisma.botOtpToken.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+}
 
 // ─── Email transporter ────────────────────────────────────────
 
@@ -160,11 +147,13 @@ async function sendOtpEmail(toEmail: string, firstName: string, code: string): P
 }
 
 // ─── 1-qadam: Email + parol tekshirish, OTP yuborish ──────────
+// T-374: Tenant izolyatsiya — email bo'yicha noyob foydalanuvchi topish
 
 export type VerifyCredentialsResult =
   | 'not_found'
   | 'wrong_password'
   | 'no_role'
+  | 'multiple_tenants'  // T-374: bir nechta tenantda bir xil email
   | 'email_sent'
   | 'email_error';
 
@@ -173,7 +162,8 @@ export async function verifyCredentialsAndSendOtp(
   password: string,
   chatId: string,
 ): Promise<VerifyCredentialsResult> {
-  const user = await prisma.user.findFirst({
+  // T-374: barcha aktiv foydalanuvchilarni email bo'yicha topish
+  const users = await prisma.user.findMany({
     where: { email: email.toLowerCase().trim(), isActive: true },
     select: {
       id: true,
@@ -187,28 +177,39 @@ export async function verifyCredentialsAndSendOtp(
     },
   });
 
-  if (!user) return 'not_found';
+  if (users.length === 0) return 'not_found';
+
+  // T-374: bir nechta tenantda bir xil email — slug kerak (bot da mumkin emas)
+  if (users.length > 1) return 'multiple_tenants';
+
+  const user = users[0]!;
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return 'wrong_password';
 
   if (!isBotAllowed(user.role)) return 'no_role';
 
-  // OTP yaratish va emailga yuborish
+  // T-375: oldingi pending OTP ni o'chirish (yangi so'rov)
+  await prisma.botOtpToken.deleteMany({
+    where: { chatId, usedAt: null },
+  });
+
   const code = generateOtp();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 daqiqa
 
-  otpStore.set(chatId, {
-    code,
-    userId: user.id,
-    tenantId: user.tenantId,
-    role: user.role,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    botSettings: (user.botSettings as BotSettings | null) ?? DEFAULT_SETTINGS,
-    expiresAt,
-    attempts: 0,
+  // T-375: OTP ni DB ga saqlash (RAM emas)
+  await prisma.botOtpToken.create({
+    data: {
+      chatId,
+      code,
+      userId: user.id,
+      tenantId: user.tenantId,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      botSettings: (user.botSettings ?? DEFAULT_SETTINGS) as object,
+      expiresAt,
+    },
   });
 
   try {
@@ -216,12 +217,14 @@ export async function verifyCredentialsAndSendOtp(
     return 'email_sent';
   } catch (err) {
     logger.error('[Bot OTP email error]', { error: (err as Error).message });
-    otpStore.delete(chatId);
+    // Email yuborilmasa — DB dan ham o'chirish
+    await prisma.botOtpToken.deleteMany({ where: { chatId, usedAt: null } });
     return 'email_error';
   }
 }
 
 // ─── 2-qadam: OTP kodni tekshirish va chatId saqlash ──────────
+// T-375: DB dan o'qish
 
 export type VerifyOtpResult =
   | BotUser
@@ -233,29 +236,39 @@ export async function verifyOtpAndLogin(
   code: string,
   chatId: string,
 ): Promise<VerifyOtpResult> {
-  const entry = otpStore.get(chatId);
+  const entry = await prisma.botOtpToken.findFirst({
+    where: { chatId, usedAt: null },
+    orderBy: { createdAt: 'desc' },
+  });
 
   if (!entry) return 'expired';
+
   if (entry.expiresAt < new Date()) {
-    otpStore.delete(chatId);
+    await prisma.botOtpToken.delete({ where: { id: entry.id } });
     return 'expired';
   }
 
-  entry.attempts += 1;
-  if (entry.attempts > 5) {
-    otpStore.delete(chatId);
+  // Attempts oshirish
+  const updated = await prisma.botOtpToken.update({
+    where: { id: entry.id },
+    data: { attempts: { increment: 1 } },
+  });
+
+  if (updated.attempts > 5) {
+    await prisma.botOtpToken.delete({ where: { id: entry.id } });
     return 'too_many_attempts';
   }
 
   if (entry.code !== code.trim()) return 'invalid_code';
 
-  // Kod to'g'ri — chatId ni DBga saqlash
-  await prisma.user.update({
-    where: { id: entry.userId },
-    data: { telegramChatId: chatId },
-  });
-
-  otpStore.delete(chatId);
+  // Kod to'g'ri — chatId ni DBga saqlash va token ni o'chirish
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: entry.userId },
+      data: { telegramChatId: chatId },
+    }),
+    prisma.botOtpToken.delete({ where: { id: entry.id } }),
+  ]);
 
   return {
     id: entry.userId,
@@ -263,16 +276,18 @@ export async function verifyOtpAndLogin(
     role: entry.role,
     firstName: entry.firstName,
     lastName: entry.lastName,
-    email: entry.email,
-    settings: entry.botSettings,
+    email: '',  // login jarayonida email keshlanmagan — kerak emas
+    settings: (entry.botSettings as BotSettings | null) ?? DEFAULT_SETTINGS,
   };
 }
 
 // ─── OTP yuborilganmi tekshirish ──────────────────────────────
 
-export function hasOtpPending(chatId: string): boolean {
-  const entry = otpStore.get(chatId);
-  return !!entry && entry.expiresAt > new Date();
+export async function hasOtpPending(chatId: string): Promise<boolean> {
+  const entry = await prisma.botOtpToken.findFirst({
+    where: { chatId, usedAt: null, expiresAt: { gt: new Date() } },
+  });
+  return !!entry;
 }
 
 // ─── Logout — chatId ni DBdan o'chirish ───────────────────────
