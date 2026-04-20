@@ -13,6 +13,14 @@
 
 ---
 
+## T-220 | 2026-04-20 | [BACKEND] | Owner Panel — barcha endpointlar tasdiqlandi
+
+- **Yechim:** 12 ta endpoint curl orqali test qilindi. Hammasi 200 OK.
+  paymentBreakdown (cash/card/click/payme) ✅, aging buckets ✅, byBranch ✅
+- **Credentials:** `owner@raos.uz` / `Demo1234!` / slug: `kosmetika-demo`
+
+---
+
 ## T-348 | 2026-04-20 | [DEVOPS] | ibrat/feat-backend-updates ветка — tozalandi
 
 - **Yechim:** Commit `d7478ec` allaqachon PR #6 orqali main ga merge qilingan (`a27c2e8`). Ветка GitHub da o'chirilgan edi. `git remote prune origin` bilan eskirgan lokal ref tozalandi.

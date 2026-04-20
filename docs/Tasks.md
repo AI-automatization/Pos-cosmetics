@@ -36,29 +36,6 @@
 
 ---
 
-## T-220 | P0 | [BACKEND] | Owner Panel — barcha endpointlar Postman/Swagger test
-
-- **Sana:** 2026-03-12
-- **Mas'ul:** Ibrat
-- **Fayl:** Swagger: `http://localhost:3000/api/v1/docs`
-- **Vazifa:** `apps/mobile-owner` panel uchun kerakli barcha endpointlar ishlashini tasdiqlash:
-  ```
-  □ GET /analytics/revenue          → 4 ta metric
-  □ GET /analytics/sales-trend      → 30 kun grafik
-  □ GET /analytics/branch-comparison→ filiallar
-  □ GET /analytics/top-products     → top 5
-  □ GET /analytics/stock-value      → byBranch
-  □ GET /inventory/stock            → pagination, status filter
-  □ GET /shifts/:id                 → paymentBreakdown bilan
-  □ GET /debts/summary              → totalDebt, overdueDebt
-  □ GET /debts/aging-report         → 4 bucket
-  □ GET /employees/performance
-  □ GET /alerts
-  □ GET /system/health
-  ```
-
----
-
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
