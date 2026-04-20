@@ -961,3 +961,27 @@
 
 ---
 
+## 2026-04-20 SESSIYA — WAREHOUSE UX + POS FIX
+
+| T-# | Sana | Kategoriya | Yechim | Fayl(lar) |
+|-----|------|-----------|--------|-----------|
+| T-351 | 2026-04-20 | [FRONTEND] | Barcode redesign — asosiy barcode field o'chirildi, faqat `extraBarcodes` array. BarcodeFields.tsx har qatorda scanner tugmasi. page.tsx: `allBarcodes[0]` → `barcode` DTO ga | `ProductForm.tsx`, `BarcodeFields.tsx`, `catalog/products/page.tsx` |
+| T-352 | 2026-04-20 | [FRONTEND] | StockIn jadval scroll — `max-h-[520px] overflow-y-auto` + sticky thead | `warehouse/stock-in/page.tsx` |
+| T-353 | 2026-04-20 | [FRONTEND] | WriteOff jadval scroll — `max-h-[520px] overflow-y-auto` + sticky thead | `warehouse/write-off/page.tsx` |
+| T-355 | 2026-04-20 | [IKKALASI] | ProductForm supplier field — frontend `supplierId` Zod schema + SearchableDropdown. Backend: `CreateProductDto.supplierId` + `ProductSupplier.create()` in transaction | `ProductForm.tsx`, `create-product.dto.ts`, `catalog.service.ts`, `types/catalog.ts` |
+| T-356 | 2026-04-20 | [FRONTEND] | StockIn smart banner — kontragent tanlanganda "X ta mahsulot bor [Qo'shish]" banner; click → barcha supplier mahsulotlari qatorlarga qo'shiladi | `warehouse/stock-in/page.tsx` |
+| T-357 | 2026-04-20 | [FRONTEND] | StockIn muddat — muddat kolonkasi butunlay yashirildi (expiryDate=today UX yomon, chunki mahsulot kelgan kuni yaroqsiz bo'ladi) | `warehouse/stock-in/page.tsx` |
+| T-358 | 2026-04-20 | [FRONTEND] | WarehouseSidebar kengaytildi — `w-56` → `w-64` | `WarehouseSidebar.tsx` |
+| T-359 | 2026-04-20 | [FRONTEND] | Warehouse navbar — `WarehouseHeader.tsx` yangi komponent (foydalanuvchi ismi, roli, avatar, logout). `(warehouse)/layout.tsx` ga integratsiya | `WarehouseHeader.tsx`, `(warehouse)/layout.tsx` |
+| T-360 | 2026-04-20 | [FRONTEND] | Forma validatsiya — stock-in va write-off da `submitted` state, bo'sh qator qizil border, xato matni, Save button disabled | `stock-in/page.tsx`, `write-off/page.tsx` |
+| T-362 | 2026-04-20 | [FRONTEND] | Auto-populate — kontragent tanlanganda va jadval bo'sh bo'lsa, supplier mahsulotlari avtomatik qo'shiladi (costPrice bilan) | `warehouse/stock-in/page.tsx` |
+| T-363 | 2026-04-20 | [FRONTEND] | Narx auto-fill — mahsulot tanlanganda `costPrice` avtomatik `purchasePrice` ga o'tkaziladi | `warehouse/stock-in/page.tsx` |
+| T-364 | 2026-04-20 | [FRONTEND] | Muddat kolonkasi yashirildi — expiryDate=today mantiqsiz (chegirish sanasi emas, yaroqlilik sanasi). Backend ga yuborilmaydi | `warehouse/stock-in/page.tsx` |
+| T-365 | 2026-04-20 | [FRONTEND] | Narx validatsiya — manfiy narxda qizil border + "Narx manfiy bo'lmasligi kerak" xabar | `warehouse/stock-in/page.tsx` |
+| T-366 | 2026-04-20 | [FRONTEND] | Mahsulot tahrirlash — har qatorda qalam tugmasi, ProductForm modal bilan mavjud mahsulotni tahrirlash imkoni | `warehouse/stock-in/page.tsx` |
+| T-367 | 2026-04-20 | [FRONTEND] | Kontragent yaratish formasiga mahsulotlar bo'limi — mahsulot search + chip tanlash, saqlashdan keyin `suppliersApi.linkProduct()` orqali bog'lash | `warehouse/stock-in/page.tsx`, `api/suppliers.api.ts` |
+| T-368 | 2026-04-20 | [FRONTEND] | Aralash to'lov bonus bug — hardcoded `bonusPoints * 100` → `bonusPoints * redeemRate` (loyaltyConfig dan). `useLoyaltyConfig()` hook `useCompleteSale` va `PaymentPanel` ga qo'shildi | `useCompleteSale.ts`, `PaymentPanel.tsx` |
+| T-369 | 2026-04-20 | [FRONTEND] | Sidebar — Sozlamalar bo'limidan "Filiallar" o'chirildi (Boshqaruv bo'limida qoldi) | `Sidebar.tsx` |
+
+---
+
