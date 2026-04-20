@@ -65,20 +65,6 @@
 
 ---
 
-## T-348 | P1 | [DEVOPS] | ibrat/feat-backend-updates — merge yoki close qaror
-
-- **Sana:** 2026-04-15 | **Yangilangan:** 2026-04-20
-- **Mas'ul:** Ibrat
-- **Holat:** `ibrat/feat-frontend-updates` va `ibrat/chore-tasks-sync` — O'CHIRILDI ✅
-- **Qolgan:** `ibrat/feat-backend-updates` — 2 ta nesmerj commit:
-  - `feat(api): backend updates — inventory approve/reject, employees, nasiya, tasks, notifications`
-  - `fix(lint): remove unused LoadingSkeleton import in promotions/page.tsx`
-- **Qaror kerak:** Bu commitlar main da allaqachon boshqa commit orqali kiritilganmi?
-  Agar ha → `git push origin --delete ibrat/feat-backend-updates`
-  Agar yo'q → main ga merge qilish kerak
-
----
-
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════

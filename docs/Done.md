@@ -13,6 +13,12 @@
 
 ---
 
+## T-348 | 2026-04-20 | [DEVOPS] | ibrat/feat-backend-updates ветка — tozalandi
+
+- **Yechim:** Commit `d7478ec` allaqachon PR #6 orqali main ga merge qilingan (`a27c2e8`). Ветка GitHub da o'chirilgan edi. `git remote prune origin` bilan eskirgan lokal ref tozalandi.
+
+---
+
 ## T-372 | 2026-04-20 | [BACKEND] | Login — slug ixtiyoriy + avtomatik tenant aniqlash
 
 - **Yechim:** `LoginDto.slug` → `@IsOptional()`. `identity.service.ts`: slug berilmasa email bo'yicha barcha tenantlarda qidirish. 1 ta topilsa — avtomatik. 2+ ta — `SLUG_REQUIRED` xatosi.
