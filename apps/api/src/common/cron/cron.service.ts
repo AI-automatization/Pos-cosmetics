@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { ExchangeRateService } from '../currency/exchange-rate.service';
+import { NotifyService } from '../../notifications/notify.service';
 
 const VOID_THRESHOLD = 3; // 1 soatda 3+ void = shubhali
 
@@ -27,6 +28,7 @@ export class CronService {
     private readonly cache: CacheService,
     private readonly exchangeRate: ExchangeRateService,
     private readonly emitter: EventEmitter2,
+    private readonly notify: NotifyService,
   ) {}
 
   // ─── SOATLIK: Stock snapshot materialization (T-075) ────────────
@@ -92,20 +94,23 @@ export class CronService {
     }
   }
 
-  // ─── 08:00: Nasiya reminders ───────────────────────────────────
+  // ─── 08:00: Nasiya reminders (T-054) ──────────────────────────
+  // DUE_SOON  — muddat 3 kun ichida: kunlik eslatma
+  // OVERDUE   — 1–3 kun: har kun, 4+ kun: haftalik
   @Cron('0 8 * * *', { name: 'debt-reminders', timeZone: 'Asia/Tashkent' })
   async runDebtReminders() {
     try {
       const now = new Date();
-      const threshold = new Date();
-      threshold.setDate(threshold.getDate() + 3);
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      // DUE_SOON qarzlar (bugun eslatilmagan)
+      // ── DUE_SOON: muddat 0–3 kun ichida ──────────────────────────
+      const dueSoonThreshold = new Date(now);
+      dueSoonThreshold.setDate(dueSoonThreshold.getDate() + 3);
+
       const dueSoon = await this.prisma.debtRecord.findMany({
         where: {
           status: { in: ['ACTIVE', 'PARTIAL'] },
-          dueDate: { gte: now, lte: threshold },
+          dueDate: { gte: now, lte: dueSoonThreshold },
         },
         include: {
           customer: { select: { id: true, name: true } },
@@ -113,28 +118,95 @@ export class CronService {
         },
       });
 
-      let sent = 0;
+      let dueSoonSent = 0;
       for (const debt of dueSoon) {
         const alreadySent = await this.prisma.reminderLog.count({
           where: { debtId: debt.id, type: 'DUE_SOON', sentAt: { gte: todayStart } },
         });
-        if (alreadySent === 0) {
-          const message = `Hurmatli ${debt.customer.name}, "${debt.tenant.name}" do'konida ${Number(debt.remaining).toLocaleString()} so'm qarzingiz bor. Muddati: ${debt.dueDate?.toLocaleDateString('uz-UZ') ?? '?'}.`;
-          await this.prisma.reminderLog.create({
-            data: {
-              tenantId: debt.tenantId,
-              debtId: debt.id,
-              customerId: debt.customerId,
-              type: 'DUE_SOON',
-              channel: 'LOG',
-              message,
-            },
-          });
-          sent++;
-        }
+        if (alreadySent > 0) continue;
+
+        const message =
+          `Hurmatli ${debt.customer.name}, "${debt.tenant.name}" do'konida ` +
+          `${Number(debt.remaining).toLocaleString()} so'm qarzingiz bor. ` +
+          `Muddati: ${debt.dueDate?.toLocaleDateString('uz-UZ') ?? '?'}.`;
+
+        const channel = await this.notify.sendDebtReminderToCustomer({
+          customerId: debt.customerId,
+          amount: Number(debt.remaining),
+          dueDate: debt.dueDate?.toLocaleDateString('uz-UZ') ?? '?',
+        });
+
+        await this.prisma.reminderLog.create({
+          data: {
+            tenantId: debt.tenantId,
+            debtId: debt.id,
+            customerId: debt.customerId,
+            type: 'DUE_SOON',
+            channel: channel === 'telegram' ? 'TELEGRAM' : 'LOG',
+            message,
+          },
+        });
+        dueSoonSent++;
       }
 
-      this.logger.log(`[CRON] Debt reminders: ${sent} DUE_SOON sent`);
+      // ── OVERDUE: muddat o'tgan qarzlar ───────────────────────────
+      const overdueDebts = await this.prisma.debtRecord.findMany({
+        where: {
+          status: 'OVERDUE',
+          dueDate: { lt: now },
+        },
+        include: {
+          customer: { select: { id: true, name: true } },
+          tenant: { select: { id: true, name: true } },
+        },
+      });
+
+      let overdueSent = 0;
+      for (const debt of overdueDebts) {
+        const daysOverdue = Math.floor(
+          (now.getTime() - (debt.dueDate?.getTime() ?? now.getTime())) / 86400000,
+        );
+
+        // 1–3 kun: kunlik; 4+ kun: haftalik
+        const windowStart = new Date(now);
+        if (daysOverdue <= 3) {
+          windowStart.setTime(todayStart.getTime()); // bugun
+        } else {
+          windowStart.setDate(windowStart.getDate() - 7); // oxirgi 7 kun
+        }
+
+        const alreadySent = await this.prisma.reminderLog.count({
+          where: { debtId: debt.id, type: 'OVERDUE', sentAt: { gte: windowStart } },
+        });
+        if (alreadySent > 0) continue;
+
+        const message =
+          `Hurmatli ${debt.customer.name}, "${debt.tenant.name}" do'konida ` +
+          `${Number(debt.remaining).toLocaleString()} so'm muddati o'tgan qarzingiz bor. ` +
+          `Iltimos, imkon qadar to'lang.`;
+
+        const channel = await this.notify.sendDebtReminderToCustomer({
+          customerId: debt.customerId,
+          amount: Number(debt.remaining),
+          dueDate: debt.dueDate?.toLocaleDateString('uz-UZ') ?? '?',
+        });
+
+        await this.prisma.reminderLog.create({
+          data: {
+            tenantId: debt.tenantId,
+            debtId: debt.id,
+            customerId: debt.customerId,
+            type: 'OVERDUE',
+            channel: channel === 'telegram' ? 'TELEGRAM' : 'LOG',
+            message,
+          },
+        });
+        overdueSent++;
+      }
+
+      this.logger.log(
+        `[CRON] Debt reminders: ${dueSoonSent} DUE_SOON, ${overdueSent} OVERDUE sent`,
+      );
     } catch (err) {
       this.logger.error('[CRON] Debt reminders error', { error: (err as Error).message });
     }
