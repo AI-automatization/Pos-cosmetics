@@ -6,6 +6,7 @@ import { PushService } from './push.service';
 import { TelegramNotifyService } from './telegram-notify.service';
 import { EmailNotifyService } from './email-notify.service';
 import { NotifyService } from './notify.service';
+import { ShiftAlertListener } from './shift-alert.listener';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     TelegramNotifyService,
     EmailNotifyService,
     NotifyService,
+    ShiftAlertListener,
   ],
   controllers: [NotificationsController, AlertsController],
   exports: [
