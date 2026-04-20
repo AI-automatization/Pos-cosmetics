@@ -15,6 +15,7 @@ import { type PaymentMethod, type CartItem } from './PaymentSheetTypes';
 import PaymentSummaryCard from './PaymentSummaryCard';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import PaymentInputBlock from './PaymentInputBlock';
+import PaymentSuccessView from './PaymentSuccessView';
 
 // ─── Backward-compat re-exports ────────────────────────
 export type { PaymentMethod, CartItem } from './PaymentSheetTypes';
@@ -42,6 +43,7 @@ export default function PaymentSheet({
   const [split, setSplit]         = useState(false);
   const [received, setReceived]   = useState('');
   const [splitCard, setSplitCard] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -49,6 +51,7 @@ export default function PaymentSheet({
       setSplit(false);
       setReceived(String(total));
       setSplitCard('');
+      setConfirmed(false);
     }
   }, [visible, total]);
 
@@ -58,7 +61,13 @@ export default function PaymentSheet({
 
   const handleConfirm = () => {
     if (!canConfirm) return;
+    setConfirmed(true);
     onConfirm(method, receivedNum);
+  };
+
+  const handleDismiss = () => {
+    setConfirmed(false);
+    onClose();
   };
 
   return (
@@ -81,49 +90,59 @@ export default function PaymentSheet({
         <View style={styles.sheet}>
           <View style={styles.handle} />
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>To'lov</Text>
-              <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                <Ionicons name="close" size={18} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Order summary */}
-            <PaymentSummaryCard
-              cart={cart}
-              total={total}
-              onRemoveItem={onRemoveItem}
-            />
-
-            {/* Payment method picker */}
-            <PaymentMethodPicker method={method} onSelect={setMethod} />
-
-            {/* Split toggle + cash/card inputs */}
-            <PaymentInputBlock
-              split={split}
+          {confirmed ? (
+            <PaymentSuccessView
               method={method}
-              received={received}
-              splitCard={splitCard}
               total={total}
-              change={change}
-              receivedNum={receivedNum}
-              onReceivedChange={setReceived}
-              onSplitCardChange={setSplitCard}
-              onSplitToggle={setSplit}
+              onDismiss={handleDismiss}
             />
-          </ScrollView>
+          ) : (
+            <>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Header */}
+                <View style={styles.header}>
+                  <Text style={styles.headerTitle}>To'lov</Text>
+                  <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+                    <Ionicons name="close" size={18} color="#6B7280" />
+                  </TouchableOpacity>
+                </View>
 
-          {/* Confirm */}
-          <TouchableOpacity
-            style={[styles.confirmBtn, !canConfirm && styles.confirmBtnDisabled]}
-            onPress={handleConfirm}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="checkmark-circle-outline" size={20} color="#FFF" />
-            <Text style={styles.confirmText}>Savdoni yakunlash</Text>
-          </TouchableOpacity>
+                {/* Order summary */}
+                <PaymentSummaryCard
+                  cart={cart}
+                  total={total}
+                  onRemoveItem={onRemoveItem}
+                />
+
+                {/* Payment method picker */}
+                <PaymentMethodPicker method={method} onSelect={setMethod} />
+
+                {/* Split toggle + cash/card inputs */}
+                <PaymentInputBlock
+                  split={split}
+                  method={method}
+                  received={received}
+                  splitCard={splitCard}
+                  total={total}
+                  change={change}
+                  receivedNum={receivedNum}
+                  onReceivedChange={setReceived}
+                  onSplitCardChange={setSplitCard}
+                  onSplitToggle={setSplit}
+                />
+              </ScrollView>
+
+              {/* Confirm */}
+              <TouchableOpacity
+                style={[styles.confirmBtn, !canConfirm && styles.confirmBtnDisabled]}
+                onPress={handleConfirm}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="checkmark-circle-outline" size={20} color="#FFF" />
+                <Text style={styles.confirmText}>Savdoni yakunlash</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </KeyboardAvoidingView>
     </Modal>
