@@ -36,26 +36,6 @@
 
 ---
 
-## T-368 | P0 | [FRONTEND] | Kassa — Aralash to'lovda Bonus summa noto'g'ri hisoblanmoqda
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(pos)/pos/PaymentPanel.tsx:248`, `apps/web/src/hooks/pos/useCompleteSale.ts:35,131`
-- **Muammo:** Split (Aralash) to'lovda bonus qiymati `bonusPoints * 100` deb hardcoded. Lekin `redeemRate` (tenant konfiguratsiyasi) boshqa bo'lsa — xato:
-  ```typescript
-  // PaymentPanel.tsx:248
-  const splitPaid = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * 100; // ← noto'g'ri
-  // useCompleteSale.ts:131
-  const covered = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * 100;   // ← noto'g'ri
-  // useCompleteSale.ts:35
-  { method: 'BONUS', amount: bonusPoints * 100 }  // ← backendga noto'g'ri summa ketadi
-  ```
-  `redeemRate = 50` bo'lsa: 150 ball = 7500 so'm, lekin kod 15000 deb hisoblaydi.
-- **Natija:** Bonus to'lov noto'g'ri, qoldiq yanlish ko'rsatiladi, backendga noto'g'ri summa ketadi.
-- **Kutilgan:** `bonusPoints * redeemRate` ishlatilsin. `redeemRate` store yoki props orqali PaymentPanel va useCompleteSale ga uzatilsin.
-
----
-
 ## T-078 | P0 | [BACKEND] | НДС 12% hisoblanmayapti — taxAmount har doim 0
 
 - **Sana:** 2026-04-19
@@ -173,63 +153,6 @@
 
 ---
 
-## T-361 | P1 | [FRONTEND] | Warehouse stock-in — "Izoh" maydoni ixtiyoriy ekanligini tekshirish
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** Foydalanuvchi "Izoh" (note) maydoni bo'sh qolganda nakladnoy saqlanmayapti deb xabar bermoqda.
-  Backend `CreateInvoiceDto.note` — `@IsOptional()` bilan belgilangan. Frontend ham `required` yo'q.
-  **Tekshirish:** haqiqatda bug bormi yoki foydalanuvchi yanglishyaptimi aniqlash kerak.
-- **Kutilgan:** Nakladnoy "Izoh" bo'sh qolsa ham saqlanishi kerak.
-
----
-
-## T-362 | P1 | [FRONTEND] | Warehouse stock-in — kontragent tanlanganda mahsulotlar avto-to'ldirish
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** T-356 da banner qo'shilgan (click = add). Foydalanuvchi to'liq AVTO-to'ldirish xohlaydi.
-- **Logika:**
-  - Kontragent tanlanganda → `useSupplier(id)` → `productSuppliers[].product` yuklanadi
-  - Agar jadvalda faqat 1 ta bo'sh qator bo'lsa → darhol avto-qo'shish
-  - Agar jadvalda allaqachon mahsulotlar bo'lsa → "Kontragentning N ta mahsulotini qo'shish?" inline banner
-  - Narx: `purchasePrice = 0` (alohida T-363 bilan hal qilinadi)
-- **Eslatma:** T-356 banner logikasini O'CHIRISH va avto-to'ldirish bilan almashtirish
-
----
-
-## T-363 | P1 | [FRONTEND] | Warehouse stock-in — mahsulot tanlanganda Narx avto-to'ldirish
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** Mahsulot tanlanganda `purchasePrice` = 0 qoladi, foydalanuvchi qo'lda kiritishi kerak.
-- **Hal qilish:**
-  - `allProducts` array da `costPrice` field mavjud (backend da'vo qilgan, confirmed)
-  - Mahsulot tanlananda: `updateRow(row._key, { productId: val, productName: p?.name, purchasePrice: p?.costPrice ?? 0 })`
-  - **PARTIYA (batchNumber):** Avto-to'ldirmaslik — bu supplier-specific ma'lumot, foydalanuvchi o'zi biladi
-- **Kutilgan:** Mahsulot tanlanganda Narx maydoni avtomatik to'ldiriladi (productning costPrice)
-
----
-
-## T-364 | P1 | [FRONTEND] | Warehouse stock-in — "Muddat" ustunini yashirish
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** "Muddat" = срок годности (expiry date). Hozir default = TODAY → bu NOTO'G'RI:
-  bugun qabul qilingan tovar bugun tugashi mumkin emas.
-  Foydalanuvchi bu maydonni ko'rmaslikni xohlaydi.
-- **Hal qilish:**
-  - "Muddat" ustunini jadvaldan YO'Q QILISH
-  - `expiryDate` = `undefined` (null) — backend avtomatik boshqaradi
-  - `expiryTracking: true` bo'lgan mahsulotlar uchun alohida ustun keyinroq qo'shilishi mumkin
-- **Muhim:** `expiryDate: todayStr()` default ni ham olib tashlash — `expiryDate: undefined`
-
----
-
 ## T-054 | P1 | [BACKEND] | Nasiya reminders — Telegram/SMS eslatmalar
 
 - **Sana:** 2026-02-26
@@ -301,54 +224,6 @@
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
-
----
-
-## T-365 | P2 | [FRONTEND] | Warehouse stock-in — purchasePrice validatsiyasi
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** `purchasePrice` ≥ 0 tekshirilmayapti. Manfiy narx bilan saqlash mumkin.
-- **Hal qilish:** `submitted && row.purchasePrice < 0` → red border + error message "Narx manfiy bo'lishi mumkin emas"
-  0 narx qabul — foydalanuvchi intentional 0 kiritmayaptimi? warn emas, lekin < 0 = xato.
-
----
-
-## T-366 | P2 | [FRONTEND] | Warehouse stock-in — mavjud mahsulotni tahrirlash tugmasi
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** Qatorda mahsulot tanlanganda uni tahrirlash imkoni yo'q. Foydalanuvchi narxni
-  o'zgartirish uchun butun Admin panelga o'tishi kerak.
-- **Hal qilish:** Qatorda mahsulot tanlanganda — karandash (Pencil) icon chiqsin.
-  Bosganida ProductForm ochilsin (edit mode) — `product={allProducts.find(p=>p.id===row.productId)}`
-
----
-
-## T-367 | P2 | [FRONTEND] | Warehouse stock-in — kontragent yaratish formida mahsulotlar
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
-- **Muammo:** Yangi kontragent qo'shganda uning mahsulotlarini birdan bog'lash imkoni yo'q.
-  Alohida sectionga o'tib, qo'lda bog'lash kerak.
-- **Hal qilish:** Kontragent yaratish modal ichiga "Mahsulotlar" bo'limi qo'shish.
-  SearchableDropdown bilan bir nechta mahsulot tanlash → supplier create ga `productIds` yuborish.
-  Backend: `supplierId` qabul qilgandan keyin `productSupplier.createMany()`.
-
----
-
-## T-369 | P2 | [FRONTEND] | Admin sidebar — Sozlamalar ichidan "Filiallar"ni olib tashlash
-
-- **Sana:** 2026-04-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx:175`
-- **Muammo:** "Filiallar" ikki joyda ko'rinadi:
-  1. `Boshqaruv` → Filiallar ✅ (kerak)
-  2. `Sozlamalar` → Sozlamalar children → Filiallar ❌ (ortiqcha)
-- **Hal qilish:** Line 175 ni o'chirish — faqat `Boshqaruv` sectionda qoldirilsin.
 
 ---
 

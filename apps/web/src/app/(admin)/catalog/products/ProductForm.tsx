@@ -20,7 +20,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
   extraBarcodes: z.array(z.object({ value: z.string() })).optional(),
   sku: z.string().max(100).optional(),
-  categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
+  categoryId: z.string().optional(),
   supplierId: z.string().optional(),
   description: z.string().max(2000).optional(),
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
@@ -168,7 +168,6 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             <Field
               label="Kategoriya"
               error={errors.categoryId?.message}
-              required
               className="col-span-2"
             >
               <Controller

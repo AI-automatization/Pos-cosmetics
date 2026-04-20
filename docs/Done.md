@@ -13,6 +13,24 @@
 
 ---
 
+## SESSIYA 2026-04-20 — Warehouse UX + PaymentPanel bonus fixes
+
+| T-raqam | Tur | Yechim | Fayl |
+|---------|-----|--------|------|
+| T-361 | FRONTEND | "Izoh" maydoni allaqachon optional edi — bug yo'q | stock-in/page.tsx |
+| T-362 | FRONTEND | Kontragent tanlanganda `useEffect` → `setItems(newRows)` avto-to'ldirish | stock-in/page.tsx:59-73 |
+| T-363 | FRONTEND | Mahsulot tanlanganda `purchasePrice: p?.costPrice ?? 0` avto-to'ldirish | stock-in/page.tsx:393-399 |
+| T-364 | FRONTEND | "Muddat" (expiryDate) ustuni jadvaldan to'liq olib tashlandi | stock-in/page.tsx |
+| T-365 | FRONTEND | `submitted && row.purchasePrice < 0` → qizil chegarali validatsiya | stock-in/page.tsx |
+| T-366 | FRONTEND | Mahsulot tanlanganda Pencil (karandash) icon → ProductForm edit mode | stock-in/page.tsx:419-430 |
+| T-367 | FRONTEND | Kontragent yaratish modal ichida mahsulotlar SearchableDropdown + chips | stock-in/page.tsx:605-650 |
+| T-368 | FRONTEND | `useCompleteSale` + `splitPaid` — bonus va nasiya hisoblash tuzatildi | useCompleteSale.ts, PaymentPanel.tsx |
+| T-369 | FRONTEND | "Filiallar" Sozlamalar ichidan olib tashlandi — faqat Boshqaruv da qoldi | Sidebar.tsx:175 |
+| T-370 | FRONTEND | `categoryId: z.string().optional()` + `required` prop olib tashlandi — omborchi bug | ProductForm.tsx:23,171 |
+| T-371 | FRONTEND | PaymentPanel: 5 ta `/ 100` → `/ redeemRate` (tenant configurable rate) | PaymentPanel.tsx:361,519,527,533,536 |
+
+---
+
 ## T-056 | 2026-04-19 | [BACKEND+FRONTEND] | Founder Dashboard — real endpoints
 
 - **Yechim:**
