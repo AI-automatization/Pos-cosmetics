@@ -56,6 +56,15 @@ export class ShiftsController {
     });
   }
 
+  @Get('current')
+  @ApiOperation({ summary: 'T-138: Current open shift with stats (cashierName, totalRevenue, ordersCount, etc.)' })
+  getCurrentShift(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+  ) {
+    return this.salesService.getCurrentShift(tenantId, userId);
+  }
+
   @Get('summary')
   @ApiOperation({ summary: 'Shift summary — total revenue, orders, shifts' })
   @ApiQuery({ name: 'branch_id', required: false })

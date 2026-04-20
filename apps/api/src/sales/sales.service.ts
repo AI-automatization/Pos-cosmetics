@@ -98,9 +98,54 @@ export class SalesService {
   }
 
   async getCurrentShift(tenantId: string, userId: string) {
-    return this.prisma.shift.findFirst({
+    const shift = await this.prisma.shift.findFirst({
       where: { tenantId, userId, status: ShiftStatus.OPEN },
+      include: {
+        user: { select: { firstName: true, lastName: true } },
+        branch: { select: { id: true, name: true } },
+      },
     });
+
+    if (!shift) return null;
+
+    // T-138: Smena statistikasini hisoblash
+    const orders = await this.prisma.order.findMany({
+      where: { tenantId, shiftId: shift.id, status: 'COMPLETED' },
+      include: { payments: { select: { method: true, amount: true } } },
+    });
+
+    let totalRevenue = 0;
+    let naqdAmount = 0;
+    let kartaAmount = 0;
+    let nasiyaAmount = 0;
+
+    for (const order of orders) {
+      const total = Number(order.total);
+      totalRevenue += total;
+
+      for (const payment of order.payments) {
+        const amount = Number(payment.amount);
+        if (payment.method === 'CASH') naqdAmount += amount;
+        else if (payment.method === 'CARD') kartaAmount += amount;
+        else if (payment.method === 'DEBT') nasiyaAmount += amount;
+      }
+    }
+
+    const ordersCount = orders.length;
+    const avgOrderValue = ordersCount > 0 ? Math.round(totalRevenue / ordersCount) : 0;
+
+    return {
+      ...shift,
+      cashierName: `${shift.user.firstName} ${shift.user.lastName}`.trim(),
+      stats: {
+        totalRevenue: Math.round(totalRevenue),
+        ordersCount,
+        avgOrderValue,
+        naqdAmount: Math.round(naqdAmount),
+        kartaAmount: Math.round(kartaAmount),
+        nasiyaAmount: Math.round(nasiyaAmount),
+      },
+    };
   }
 
   // Mobile alias: GET /sales/shifts/active
