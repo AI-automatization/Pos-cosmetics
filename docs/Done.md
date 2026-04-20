@@ -13,6 +13,17 @@
 
 ---
 
+## T-040 | 2026-04-20 | [BACKEND] | Telegram bot — shift close alert
+
+- **Yechim:** `ShiftAlertListener` yaratildi — `shift.closed` eventini tinglaydi.
+  Smena yopilganda OWNER/ADMIN lar ga Telegram xabar yuboriladi:
+  kassir, filial, davomiylik, buyurtmalar soni, jami tushum, naqd/karta breakdown.
+- **Fayl:** `apps/api/src/notifications/shift-alert.listener.ts`,
+  `apps/api/src/notifications/telegram-notify.service.ts` (sendShiftSummary qo'shildi)
+- **Eslatma:** Low stock, expiry, refund, daily report alertlar bot da (apps/bot/) allaqachon mavjud edi.
+
+---
+
 ## T-140 | 2026-04-20 | [BACKEND] | POST /warehouse/invoices — mobile costPrice alias
 
 - **Yechim:** `InvoiceItemDto.purchasePrice` → optional. `costPrice` alias qo'shildi (mobile yuboradi).

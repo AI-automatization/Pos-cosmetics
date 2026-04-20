@@ -85,17 +85,6 @@
 
 ---
 
-## T-040 | P2 | [BACKEND] | Telegram bot — Low stock, shift close, refund alertlar
-
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/bot/`
-- **Vazifa:** Triggerlar: low stock alert, shift yopilish hisoboti, refund > threshold, expired stock
-  `/report` command — bugungi savdo summary
-- **Kutilgan:** Admin Telegram dan alertlar oladi
-
----
-
 ## T-096 | P2 | [BACKEND] | Tester/sample tracking — Ochilgan tester hisobi
 
 - **Sana:** 2026-02-26
