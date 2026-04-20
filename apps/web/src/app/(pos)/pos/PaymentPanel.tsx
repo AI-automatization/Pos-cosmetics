@@ -358,7 +358,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                 <input type="number" value={bonusPoints || ''} min={0}
                   max={loyaltyAccount?.points ?? 0}
                   onChange={(e) => setBonusPoints(parseFloat(e.target.value) || 0)}
-                  placeholder={String(Math.ceil(Math.max(0, remaining + bonusPoints * 100) / 100))}
+                  placeholder={String(Math.ceil(Math.max(0, remaining + bonusPoints * redeemRate) / redeemRate))}
                   className="w-full rounded-xl border border-violet-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-violet-400" />
                 {bonusPoints > 0 && (
                   <p className="mt-1 text-right text-xs text-violet-600">
@@ -516,7 +516,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                   </div>
                   <div>
                     <p className="mb-1 text-xs font-medium text-gray-600">
-                      Nechta ball sarflamoqchi? (kerak: {Math.ceil(total / 100)} ball)
+                      Nechta ball sarflamoqchi? (kerak: {Math.ceil(total / redeemRate)} ball)
                     </p>
                     <input
                       type="number"
@@ -524,16 +524,16 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                       min={0}
                       max={loyaltyAccount.points}
                       onChange={(e) => setBonusPoints(parseFloat(e.target.value) || 0)}
-                      placeholder={String(Math.ceil(total / 100))}
+                      placeholder={String(Math.ceil(total / redeemRate))}
                       className="w-full rounded-lg border border-violet-200 px-3 py-1.5 text-right text-sm font-bold text-gray-900 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20"
                     />
                     <div className="mt-1.5 flex gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setBonusPoints(Math.ceil(total / 100))}
+                        onClick={() => setBonusPoints(Math.ceil(total / redeemRate))}
                         className="flex-1 rounded-lg border border-violet-200 bg-violet-100 py-1 text-xs font-medium text-violet-700 transition hover:bg-violet-200"
                       >
-                        Kerakli: {Math.ceil(total / 100)} ball
+                        Kerakli: {Math.ceil(total / redeemRate)} ball
                       </button>
                       <button
                         type="button"
