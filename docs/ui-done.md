@@ -298,4 +298,39 @@
 - **Fayl:** `apps/mobile/src/screens/Settings/index.tsx`
 - **Yechim:** C tokens yangilandi: `primary #5B5BD6→#2563EB`, `bg #F5F5F7→#F9FAFB`, `border #F3F4F6→#E5E7EB`, `red #EF4444→#DC2626`; `MaterialCommunityIcons` olib tashlandi → faqat `Ionicons`; icon mapping: `account-circle-outline→person-circle-outline`, `domain→business-outline`, `bell-outline→notifications-outline`, `translate→language-outline`, `weather-night→moon-outline`, `printer-outline→print-outline`, `fingerprint→finger-print-outline`, `lock-outline→lock-closed-outline`, `information-outline→information-circle-outline`, `shield-check-outline→shield-checkmark-outline`, `logout→log-out-outline`; `useSettingsStore` ulandi (local useState o'chirildi) — `theme/biometricEnabled/autoLockMinutes` persisted; profile card bg `C.primary` (purple) → `#2563EB` (blue); pencil icon color `C.primary` → `C.white` (blue bg da); biometric Switch `trackColor.true` `#2563EB`; header `paddingHorizontal: 16→20`; `notifications-outline` bg `#FFF7ED` + `#D97706` color (orange, was EA580C)
 
-_RAOS UI Done | Phase 0: 2026-04-14 | Phase 1–3: 2026-04-14 | Phase 9: 2026-04-18_
+
+---
+
+## PHASE 10 — QOLGAN SCREENLAR ✅ (2026-04-19/20)
+
+### UI-060 | SCANNER — ScannerScreen ✅ (2026-04-19)
+- **Fayllar:** `apps/mobile/src/screens/Scanner/index.tsx`, `CameraSection.tsx`, `ProductResultCard.tsx`, `ManualBarcodeInput.tsx` (YANGI), `ScannerPermissionView.tsx` (YANGI)
+- **Yechim:** `CameraSection`: 60% screen height (`Dimensions * 0.6`), L-burchak scan frame (corner Views), `Animated.loop` pulse opacity efekti `useNativeDriver:true`; `ProductResultCard`: 80x80 image placeholder, 36px bold stock raqam, yashil "Sanash" tugmasi + outlined "Qayta skanerlash"; `ManualBarcodeInput`: TextInput + "Qidirish" tugmasi (qo'lda kiritish uchun); `ScannerPermissionView`: alohida ruxsat ekrani; barcha `#6366F1` → `#2563EB`; i18n +24 yangi kalit
+
+### UI-061 | AI — AIInsightsScreen ✅ (2026-04-19)
+- **Fayllar:** `apps/mobile/src/screens/AIInsights/index.tsx`, `TrendCard.tsx`
+- **Yechim:** `index.tsx`: `ScreenHeader` (sparkle icon `#F59E0B` + subtitle), `PeriodSelector` (Bugun/Hafta/Oy/3oy pills, period queryKey ga qo'shildi), `FilterChips` (Ionicons + category color + horizontal ScrollView), `SummaryRow` (jami + kritik pill); `TrendCard`: 40x40 colored icon circle, `TypeBadge` (TREND=yashil/DEADSTOCK=qizil/MARGIN=sariq/FORECAST=binafsha), 4px priority bar (chap tomon), 5-nuqtali sparkline (pure Views); i18n +8 yangi kalit
+
+### UI-062 | ALERTS — AlertsScreen ✅ (2026-04-19)
+- **Fayl:** `apps/mobile/src/screens/Alerts/index.tsx`
+- **Yechim:** `FilterPills`: Barchasi/O'qilmagan/Muhim (`useMemo` filtering); `AlertRow`: 44x44 Ionicons rangli doira (`ALERT_ICON_MAP` type-safe Record) + unread dot 8x8 + chevron; `React.memo`; "Hammasini o'qish": `Promise.all` + `useMutation` + `queryClient.invalidateQueries`; unread qator: 4px blue left border + `#EFF6FF` bg; i18n +5 yangi kalit
+
+### UI-063 | REALESTATE — RealEstateScreen ✅ (2026-04-20)
+- **Fayllar:** `apps/mobile/src/screens/RealEstate/index.tsx`, `SummaryGrid.tsx` (YANGI), `PropertyCard.tsx` (YANGI)
+- **Yechim:** `SummaryGrid`: 2×2 grid (Jami/Band/Bo'sh/Muddati o'tgan), 32x32 Ionicons circles, 24px bold colored values; `PropertyCard`: `aspectRatio:16/9` placeholder, absolute gradient overlay (plain View), status badge (top-right), tenant+rent info row; `index.tsx`: stats query asosiy komponentga ko'tarildi, Plus tugmasi `ListHeaderComponent` da
+
+### UI-064 | REALESTATE — RealEstateDetailScreen ✅ (2026-04-20)
+- **Fayllar:** `apps/mobile/src/screens/RealEstate/PropertyDetail.tsx`, `PropertyHero.tsx` (YANGI), `MonthlyChart.tsx` (YANGI)
+- **Yechim:** `PropertyHero`: 16:9 photo + gradient overlay + stats row (ijara/ROI/maydon/tur) + status badge; `MonthlyChart`: so'nggi 6 to'lov bar chart (pure Views, `amount/maxAmount*60` height), `PaymentHistoryRow` (status circle Ionicons + month/date/amount); `PropertyDetail`: payments query parallel, inline to'lov tarixi (max 10), "Barchasini ko'rish" tugmasi (>10 bo'lsa)
+
+### UI-065 | SAVDO — PaymentSuccessScreen ✅ (2026-04-20)
+- **Fayllar:** `apps/mobile/src/screens/Savdo/PaymentSuccessScreen.tsx` (YANGI), `SuccessAnimation.tsx` (YANGI), `OrderSummarySection.tsx` (YANGI), `apps/mobile/src/navigation/types.ts`
+- **Yechim:** `SuccessAnimation`: `Animated.sequence` (spring scale → fade opacity), `useNativeDriver:true`; `OrderSummarySection`: CartItem ro'yxat + subtotal/QQS/jami + payment method badge (MaterialCommunityIcons); `PaymentSuccessScreen`: 3s countdown auto-dismiss (`setInterval`+`setTimeout`), "Yangi savdo" + "Chek chop etish" tugmalari; navigation types ga `PaymentSuccess` route qo'shildi; i18n +4 yangi kalit
+
+### UI-066 | SAVDO — PaymentSheet success state ✅ (2026-04-20)
+- **Fayllar:** `apps/mobile/src/screens/Savdo/PaymentSheet.tsx`, `PaymentSuccessView.tsx` (YANGI)
+- **Yechim:** `PaymentSuccessView`: `SuccessAnimation` + method badge + 3s countdown (`AUTO_DISMISS_SECONDS=3`, `FALLBACK_METHOD` guard); `PaymentSheet`: `confirmed` state, `handleDismiss`, shartli render — tasdiqlanganda `PaymentSuccessView` ko'rsatiladi → avtomatik yopiladi
+
+---
+
+_RAOS UI Done | Phase 0: 2026-04-14 | Phase 1–3: 2026-04-14 | Phase 9: 2026-04-18 | Phase 10: 2026-04-19/20_
