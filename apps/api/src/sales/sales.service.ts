@@ -111,7 +111,7 @@ export class SalesService {
     // T-138: Smena statistikasini hisoblash
     const orders = await this.prisma.order.findMany({
       where: { tenantId, shiftId: shift.id, status: 'COMPLETED' },
-      include: { payments: { select: { method: true, amount: true } } },
+      include: { paymentIntents: { select: { method: true, amount: true } } },
     });
 
     let totalRevenue = 0;
@@ -123,10 +123,10 @@ export class SalesService {
       const total = Number(order.total);
       totalRevenue += total;
 
-      for (const payment of order.payments) {
+      for (const payment of order.paymentIntents) {
         const amount = Number(payment.amount);
         if (payment.method === 'CASH') naqdAmount += amount;
-        else if (payment.method === 'CARD') kartaAmount += amount;
+        else if (payment.method === 'TERMINAL') kartaAmount += amount;
         else if (payment.method === 'DEBT') nasiyaAmount += amount;
       }
     }
@@ -432,7 +432,7 @@ export class SalesService {
       ...(opts.shiftId && { shiftId: opts.shiftId }),
     };
 
-    const [total, items] = await this.prisma.$transaction([
+    const [total, orders] = await this.prisma.$transaction([
       this.prisma.order.count({ where }),
       this.prisma.order.findMany({
         where,
@@ -447,9 +447,26 @@ export class SalesService {
           },
           customer: { select: { id: true, name: true, phone: true } },
           user: { select: { id: true, firstName: true, lastName: true } },
+          paymentIntents: { select: { method: true, amount: true } },
         },
       }),
     ]);
+
+    // T-139: Extract dominant paymentMethod from payments array
+    const items = orders.map((order) => {
+      const methods = order.paymentIntents.map((p) => p.method);
+      let paymentMethod = 'NAQD';
+      if (methods.some((m) => m === 'DEBT')) paymentMethod = 'NASIYA';
+      else if (methods.length > 0 && methods.every((m) => m === 'TERMINAL')) paymentMethod = 'KARTA';
+      else if (methods.length > 1) paymentMethod = 'ARALASH';
+
+      return {
+        ...order,
+        itemsCount: order.items.length,
+        paymentMethod,
+      };
+    });
+
     return { items, total, page, limit };
   }
 
