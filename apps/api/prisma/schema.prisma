@@ -51,6 +51,9 @@ model Tenant {
   settings            TenantSettings?
   priceChanges        PriceChange[]
   tasks               Task[]
+  properties          Property[]
+  rentalContracts     RentalContract[]
+  rentalPayments      RentalPayment[]
 
   @@map("tenants")
 }
@@ -1578,4 +1581,94 @@ model Task {
   @@index([tenantId])
   @@index([tenantId, status])
   @@map("tasks")
+}
+
+// ============================================
+// REAL ESTATE MODULE (T-350)
+// ============================================
+
+enum PropertyType {
+  OFFICE
+  WAREHOUSE
+  RETAIL
+  APARTMENT
+}
+
+enum PropertyStatus {
+  RENTED
+  VACANT
+  MAINTENANCE
+}
+
+enum RentalPaymentStatus {
+  PAID
+  PENDING
+  OVERDUE
+}
+
+model Property {
+  id          String         @id @default(uuid())
+  tenantId    String         @map("tenant_id")
+  name        String
+  address     String
+  type        PropertyType   @default(OFFICE)
+  status      PropertyStatus @default(VACANT)
+  rentAmount  Decimal        @map("rent_amount") @db.Decimal(15, 2)
+  currency    String         @default("UZS")
+  area        Decimal?       @db.Decimal(10, 2)
+  roi         Decimal?       @db.Decimal(5, 2)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+  contracts RentalContract[]
+  payments  RentalPayment[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("properties")
+}
+
+model RentalContract {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  propertyId  String   @map("property_id")
+  lesseeName  String   @map("lessee_name")
+  lesseePhone String?  @map("lessee_phone")
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  raos_tenant Tenant   @relation(fields: [tenantId], references: [id])
+  property    Property @relation(fields: [propertyId], references: [id])
+
+  @@index([tenantId])
+  @@index([propertyId])
+  @@map("rental_contracts")
+}
+
+model RentalPayment {
+  id         String              @id @default(uuid())
+  tenantId   String              @map("tenant_id")
+  propertyId String              @map("property_id")
+  lesseeName String              @map("lessee_name")
+  amount     Decimal             @db.Decimal(15, 2)
+  currency   String              @default("UZS")
+  dueDate    DateTime            @map("due_date")
+  paidDate   DateTime?           @map("paid_date")
+  status     RentalPaymentStatus @default(PENDING)
+  month      String              // "2026-04"
+  note       String?
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+
+  raos_tenant Tenant   @relation(fields: [tenantId], references: [id])
+  property    Property @relation(fields: [propertyId], references: [id])
+
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([tenantId, status])
+  @@map("rental_payments")
 }
