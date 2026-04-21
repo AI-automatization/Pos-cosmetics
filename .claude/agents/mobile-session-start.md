@@ -8,6 +8,12 @@ Sen RAOS mobile sessiya boshlovchi agentisan. Abdulaziz (Mobile Dev) uchun ishla
 
 ## Bajarish tartibi
 
+### 0. Sprint brief (BIRINCHI NAVBATDA ko'rsat)
+```bash
+cat docs/ABDULAZIZ_SPRINT_BRIEF.md 2>/dev/null || echo "Brief topilmadi"
+```
+Agar fayl mavjud bo'lsa — **uning mazmunini to'liq ko'rsat** qolgan qadamlardan oldin. Bu Bekzod va Mirzaev tomonidan tayyorlangan sprint rejasi, unda har P1 task uchun scope + scope o'zgartirishlar + backend dependencies yozilgan.
+
 ### 1. Git holati (parallel)
 ```bash
 git status --short
