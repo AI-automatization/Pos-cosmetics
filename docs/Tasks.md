@@ -2291,51 +2291,9 @@ _(hozircha yo'q)_
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
 
----
-
-## ~~T-335~~ | ✅ DONE | Warehouse Low-Stock sahifasi yangi mahsulotlarni ko'rsatmaydi
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/low-stock/page.tsx`
-- **Muammo:** `useStockLevels()` movement-based API ishlatadi — stock harakati bo'lmagan (yangi qo'shilgan) mahsulotlar ko'rinmaydi.
-- **Kutilgan:** `useProducts()` ga o'tish, client-side `currentStock <= minStockLevel` filter qo'llash.
-
----
-
-## ~~T-336~~ | ✅ DONE | Warehouse Suppliers — Edit/Delete funksiyasi yo'q
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/suppliers/page.tsx`
-- **Muammo:** Faqat "+ Qo'shish" bor. Mavjud supplierni tahrirlash yoki o'chirish mumkin emas.
-- **Kutilgan:** Har supplier kartaga edit (qalam) tugmasi + `SupplierModal supplier={item}` va delete (trash) tugmasi.
-
----
-
-## ~~T-337~~ | ✅ DONE | Warehouse Inventory — Mahsulot tahrirlash yo'q
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/inventory/page.tsx`
-- **Muammo:** Faqat yangi mahsulot qo'shish bor. Mavjud mahsulotning narxini, minStockLevel ni o'zgartirish mumkin emas.
-- **Kutilgan:** Har qatordagi mahsulotga edit tugmasi + `ProductForm product={p} categories={...}` modal.
-
----
-
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA)
 # ══════════════════════════════════════════════════════════════
-
----
-
-## ~~T-338~~ | ✅ DONE | Warehouse Nakladnoy — Detail sahifasi yo'q
-
-- **Sana:** 2026-04-05
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(warehouse)/warehouse/invoices/[id]/page.tsx` (yangi)
-- **Muammo:** Nakladnoylar ro'yxatidan bitta nakladnoyni ochib tafsilotlarini (mahsulotlar, narxlar, supplier) ko'rish mumkin emas.
-- **Kutilgan:** `GET /warehouse/invoices/:id` endpointidan ma'lumot olib ko'rsatish.
 
 ---
 
@@ -2443,18 +2401,7 @@ _(hozircha yo'q)_
 | **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
-> Yangilangan: 2026-04-14 — T-345 qo'shildi (Badge/EmptyState type mismatch)
-
----
-
-## T-345 | P1 | [MOBILE] | Badge `'error'` variant + EmptyState `message` prop — type mismatch
-
-- **Sana:** 2026-04-14
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/components/common/Badge.tsx`, `apps/mobile/src/components/common/EmptyState.tsx`
-- **Muammo:** `Badge` da `BadgeVariant` faqat `'danger'` ni qo'llab-quvvatlaydi, lekin quyidagi ekranlar `'error'` yuborayapti: `TrendCard.tsx`, `AlertDetail.tsx`, `Alerts/index.tsx`, `BranchDetail.tsx`, `LowStockItem.tsx`, `RealEstate/index.tsx`, `PropertyDetail.tsx`, `RentalPayments.tsx`. Shuningdek, `EmptyState` da `message` prop yo'q (faqat `title`), lekin `Inventory/index.tsx`, `LowStockList.tsx`, `AIInsights/index.tsx`, `Alerts/index.tsx`, `BranchDetail.tsx`, `RealEstate/index.tsx`, `RentalPayments.tsx`, `Scanner/CountSection.tsx` ekranlari `message` prop yuborayapti.
-- **Kutilgan:** `BadgeVariant` ga `'error'` qo'shilsin YOKI ekranlar `'danger'` ishlatsin. `EmptyState` da `message` prop qo'shilsin (yoki `title` aliasi) YOKI ekranlar `title` prop ishlatsin.
-- **Eslatma:** Bu xatoliklar tema o'zgarishlaridan kelib chiqmagan. Komponent va ekranlar orasidagi kontrakt farqidan kelib chiqadi.
+> Yangilangan: 2026-04-21 — T-345 bajarildi
 
 ---
 

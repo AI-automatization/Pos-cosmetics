@@ -17,6 +17,7 @@
 
 | # | Sana | Tur | Muammo va yechim | Fayl |
 |---|------|-----|-----------------|------|
+| T-345 | 2026-04-21 | MOBILE | Badge `'error'` variant qo'shildi (`danger` bilan bir xil rang). EmptyState ga `message` prop qo'shildi (`title` aliasi, `title` optional qilindi). 8+ ekran avtomatik tuzaladi. | Badge.tsx, EmptyState.tsx |
 | B-038 | 2026-03-29 | SCHEMA | `warehouse_invoice_items` + `ticket_messages`: `tenant_id NOT NULL` + `@@index` qo'shildi; `onDelete: Restrict`. Railway migrate deploy. | schema.prisma, migration |
 | B-040 | 2026-03-29 | FRONTEND | cashierName "--": `user.firstName+lastName → cashierName` mapping | orders.api.ts, shifts.api.ts |
 | B-041 | 2026-03-29 | BACKEND | POST /warehouse/invoices 500: items da `tenantId` yo'q → qo'shildi | warehouse-invoice.service.ts |
@@ -359,6 +360,14 @@
 ---
 
 *docs/Done.md | RAOS*
+
+## T-345 | 2026-04-21 | [MOBILE] | Badge 'error' variant + EmptyState 'message' prop — type mismatch tuzatildi
+
+- **Yechim:** `Badge` komponentiga `'error'` variant qo'shildi (`danger` bilan bir xil rang, backward-compat). `EmptyState` ga `message` prop qo'shildi (`title` aliasi sifatida, `title` optional qilindi). 8+ ekran (TrendCard, AlertDetail, Alerts/index, BranchDetail, LowStockItem, RealEstate/index, PropertyDetail, RentalPayments) avtomatik tuzaladi.
+- **Fayllar:** `apps/mobile/src/components/common/Badge.tsx`, `apps/mobile/src/components/common/EmptyState.tsx`
+- **Commit:** `0a1c5fa`
+
+---
 
 ## T-062 | 2026-03-19 | [BACKEND] | Outbox pattern — Server-side sync endpoint
 
