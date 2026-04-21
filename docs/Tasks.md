@@ -42,6 +42,7 @@
 
 ---
 
+
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
@@ -78,6 +79,28 @@
 - **Vazifa:** Payme adapter (createTransaction, performTransaction, checkTransaction).
   Click adapter (prepare, complete). Webhook handler.
 - **Kutilgan:** Online to'lov usullari ishlaydi
+
+---
+
+## T-378 | P2 | [MOBILE] | mobile-owner: EmployeeRole type mismatch — lowercase → UPPERCASE
+
+- **Sana:** 2026-04-21
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile-owner/src/api/employees.api.ts`, `screens/HR/HRInviteSheet.tsx`, `screens/Employees/components/RoleSelector.tsx`
+- **Muammo:** `EmployeeRole = 'cashier' | 'manager' | 'admin'` — lowercase. Backend Prisma enum `CASHIER | MANAGER | ADMIN | WAREHOUSE` kutadi. Yaratish Prisma da fail bo'ladi.
+- **Vazifa:** `EmployeeRole` type ni UPPERCASE ga o'zgartirish + ROLES array labellarni yangilash
+- **Kutilgan:** `POST /employees` muvaffaqiyatli ishlaydi
+
+---
+
+## T-379 | P2 | [MOBILE] | mobile-owner: AddEmployeeScreen — backend qo'llamaydigan fieldlarni tozalash
+
+- **Sana:** 2026-04-21
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile-owner/src/screens/Employees/AddEmployeeScreen.tsx`, `employees.api.ts` `CreateEmployeeDto`
+- **Muammo:** `CreateEmployeeDto` da `login`, `dateOfBirth`, `passportId`, `address` bor — backend User modelida yo'q, faqat `{ firstName, lastName, email, password, role, phone }` saqlanadi.
+- **Vazifa:** `login` field olib tashlash (login = email). Qolgan extra fieldlarni `botSettings` da saqlash uchun backend endpoint kengaytirish yoki formdan olib tashlash.
+- **Kutilgan:** DTO backend bilan mos, form faqat real saqlanadigan fieldlarni so'raydi
 
 ---
 

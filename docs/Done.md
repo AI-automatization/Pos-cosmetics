@@ -13,6 +13,20 @@
 
 ---
 
+## T-377 | 2026-04-21 | [FRONTEND] | UserModal — credentials ko'rsatish + parol generatsiya
+
+- **Yechim:** `UserModal.tsx` ga qo'shildi: random password generator ("Tasodifiy parol" button), eye toggle, `onSuccess` da green credentials box (email + parol + copy buttons). Rol dropdown da sublabellar: CASHIER/MANAGER/WAREHOUSE/ADMIN/VIEWER tavsifi.
+- **Fayl:** `apps/web/src/components/settings/UserModal.tsx`
+
+---
+
+## T-376 | 2026-04-21 | [FRONTEND] | Web: /workers sahifasi + sidebar "Xaridorlar" → "Xodimlar"
+
+- **Yechim:** Yangi `apps/web/src/app/(admin)/workers/page.tsx` yaratildi: stats row, rol/filial/holat filterlari, workers jadval. `Sidebar.tsx` va `ManagerSidebar.tsx` da "Xaridorlar" → "Xodimlar" → `/workers`. Mavjud `useUsers()`, `UserModal`, `useBranches()` qayta ishlatildi.
+- **Fayl:** `apps/web/src/app/(admin)/workers/page.tsx`, `Sidebar.tsx`, `ManagerSidebar.tsx`
+
+---
+
 ## T-220 | 2026-04-20 | [BACKEND] | Owner Panel — barcha endpointlar tasdiqlandi
 
 - **Yechim:** 12 ta endpoint curl orqali test qilindi. Hammasi 200 OK.
