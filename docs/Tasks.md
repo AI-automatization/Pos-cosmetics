@@ -49,16 +49,6 @@
 
 ---
 
-## T-096 | P2 | [BACKEND] | Tester/sample tracking — Ochilgan tester hisobi
-
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/`
-- **Vazifa:** `stock_movement` type = TESTER. Tester cost expense sifatida.
-  `GET /inventory/testers` — qaysi productlardan tester ochilgan.
-- **Kutilgan:** Tester xarajati to'g'ri hisoblanadi
-
----
 
 ## T-097 | P2 | [BACKEND] | Product sertifikat — Kosmetika sifat hujjati
 
@@ -121,10 +111,6 @@
 ## T-116 | P3 | [BACKEND] | Customer loyalty — Points + tiers
 - **Sana:** 2026-02-26
 - **Vazifa:** Earn points (1 point/1000 UZS). Tiers: Bronze/Silver/Gold. Birthday bonus. Redeem as payment.
-
-## T-118 | P3 | [BACKEND] | 1C export — Buxgalteriya integratsiya
-- **Sana:** 2026-02-26
-- **Vazifa:** Savdo/xarid datalarini 1C-compatible XML formatda export.
 
 ## T-119 | P3 | [BACKEND] | Marketplace sync — Uzum/Sello
 - **Sana:** 2026-02-26

@@ -13,6 +13,19 @@
 
 ---
 
+## T-096 | 2026-04-21 | [BACKEND]+[FRONTEND] | Tester/sample tracking — ochilgan tester hisobi
+
+- **Yechim:** Backend: `OpenTesterDto`, `openTester()` → `StockMovement(TESTER)` + `Expense(TESTER)` bitta transaction da. `POST /inventory/testers` + `GET /inventory/testers`. Web: `TesterModal.tsx`, `getWarehouses()` API, `useOpenTester`/`useTesters` hooks, purple "Tester" button inventory sahifasida.
+- **Fayl:** `apps/api/src/inventory/`, `apps/web/src/app/(admin)/inventory/TesterModal.tsx`
+
+---
+
+## T-118 | 2026-04-21 | [BACKEND] | 1C export — BEKOR QILINDI (kerak emas)
+
+- **Yechim:** Kosmetika POS uchun 1C buxgalteriya integratsiyasi kerak emas deb qaror qilindi. Task o'chirildi.
+
+---
+
 ## T-377 | 2026-04-21 | [FRONTEND] | UserModal — credentials ko'rsatish + parol generatsiya
 
 - **Yechim:** `UserModal.tsx` ga qo'shildi: random password generator ("Tasodifiy parol" button), eye toggle, `onSuccess` da green credentials box (email + parol + copy buttons). Rol dropdown da sublabellar: CASHIER/MANAGER/WAREHOUSE/ADMIN/VIEWER tavsifi.

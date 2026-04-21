@@ -176,7 +176,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                 render={({ field }) => (
                   <SearchableDropdown
                     options={categoryOptions}
-                    value={field.value}
+                    value={field.value ?? ''}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     placeholder="Kategoriya tanlang..."
