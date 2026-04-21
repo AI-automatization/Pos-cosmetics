@@ -10,7 +10,10 @@ import {
 interface EmptyStateProps {
   /** Optional React element — icon from lucide-react-native or similar */
   icon?: React.ReactNode;
-  title: string;
+  /** Primary heading. Either `title` or `message` must be provided. */
+  title?: string;
+  /** Alias for `title` — provided for API consistency across screens. */
+  message?: string;
   description?: string;
   /** CTA button label */
   actionLabel?: string;
@@ -21,15 +24,17 @@ interface EmptyStateProps {
 export default function EmptyState({
   icon,
   title,
+  message,
   description,
   actionLabel,
   onAction,
   style,
 }: EmptyStateProps) {
+  const heading = message ?? title ?? '';
   return (
     <View style={[styles.container, style]}>
       {icon && <View style={styles.iconWrap}>{icon}</View>}
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title}>{heading}</Text>
       {description ? (
         <Text style={styles.description}>{description}</Text>
       ) : null}

@@ -5,6 +5,7 @@ export type BadgeVariant =
   | 'success'
   | 'warning'
   | 'danger'
+  | 'error'
   | 'info'
   | 'neutral'
   | 'orange'
@@ -22,6 +23,7 @@ const PALETTE: Record<BadgeVariant, { bg: string; text: string }> = {
   success: { bg: '#F0FDF4', text: '#16A34A' },
   warning: { bg: '#FFFBEB', text: '#D97706' },
   danger:  { bg: '#FEF2F2', text: '#DC2626' },
+  error:   { bg: '#FEF2F2', text: '#DC2626' },
   info:    { bg: '#EFF6FF', text: '#2563EB' },
   neutral: { bg: '#F3F4F6', text: '#6B7280' },
   orange:  { bg: '#FFF7ED', text: '#EA580C' },
