@@ -68,11 +68,27 @@ export class FeatureFlagsService {
     tenantId: string | null,
     description?: string,
   ): Promise<FeatureFlagDto> {
-    const flag = await this.prisma.featureFlag.upsert({
-      where: { key_tenantId: { key, tenantId } },
-      create: { key, enabled, tenantId, description },
-      update: { enabled, description, updatedAt: new Date() },
-    });
+    let flag;
+    if (tenantId !== null) {
+      flag = await this.prisma.featureFlag.upsert({
+        where: { key_tenantId: { key, tenantId } },
+        create: { key, enabled, tenantId, description },
+        update: { enabled, description, updatedAt: new Date() },
+      });
+    } else {
+      // PostgreSQL NULL != NULL — composite unique can't match null, use findFirst
+      const existing = await this.prisma.featureFlag.findFirst({
+        where: { key, tenantId: null },
+      });
+      flag = existing
+        ? await this.prisma.featureFlag.update({
+            where: { id: existing.id },
+            data: { enabled, description, updatedAt: new Date() },
+          })
+        : await this.prisma.featureFlag.create({
+            data: { key, enabled, tenantId: null, description },
+          });
+    }
 
     // Invalidate cache
     if (tenantId !== null) {
