@@ -180,6 +180,10 @@ export class InventoryService {
     return this.expiryTracking.getExpiredProducts(tenantId);
   }
 
+  openTester(tenantId: string, userId: string, dto: import('./dto/open-tester.dto').OpenTesterDto) {
+    return this.expiryTracking.openTester(tenantId, userId, dto);
+  }
+
   getTesterMovements(tenantId: string, from?: string, to?: string) {
     return this.expiryTracking.getTesterMovements(tenantId, from, to);
   }

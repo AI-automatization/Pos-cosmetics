@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen, User } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen, User, FlaskConical } from 'lucide-react';
 import { useStock, useMovementsWithUsers } from '@/hooks/inventory/useInventory';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { StockInModal } from './StockInModal';
 import { StockOutModal } from './StockOutModal';
+import { TesterModal } from './TesterModal';
 import { ProductStockDrawer } from './ProductStockDrawer';
 import { cn } from '@/lib/utils';
 import type { StockLevel, StockStatus } from '@/types/inventory';
@@ -54,6 +55,7 @@ export default function InventoryPage() {
   const [tab, setTab] = useState<'stock' | 'movements'>('stock');
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockOutOpen, setStockOutOpen] = useState(false);
+  const [testerOpen, setTesterOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<StockLevel | null>(null);
 
   const { data: stock, isLoading, isError, refetch } = useStock({ search: search || undefined });
@@ -77,6 +79,14 @@ export default function InventoryPage() {
             <AlertTriangle className="h-4 w-4" />
             Kam zaxira
           </a>
+          <button
+            type="button"
+            onClick={() => setTesterOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-purple-300 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 transition hover:bg-purple-100"
+          >
+            <FlaskConical className="h-4 w-4" />
+            Tester
+          </button>
           <button
             type="button"
             onClick={() => setStockOutOpen(true)}
@@ -287,6 +297,7 @@ export default function InventoryPage() {
       {/* Modals */}
       <StockInModal isOpen={stockInOpen} onClose={() => setStockInOpen(false)} />
       <StockOutModal isOpen={stockOutOpen} onClose={() => setStockOutOpen(false)} />
+      <TesterModal isOpen={testerOpen} onClose={() => setTesterOpen(false)} />
 
       {/* Product detail drawer — to'liq product ob'ekti uzatiladi */}
       <ProductStockDrawer

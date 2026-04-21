@@ -98,6 +98,30 @@ export function useStockOut() {
   });
 }
 
+export function useOpenTester() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: { productId: string; warehouseId: string; quantity: number; costPrice: number; note?: string }) =>
+      inventoryApi.openTester(dto),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['inventory'] });
+      qc.invalidateQueries({ queryKey: ['testers'] });
+      toast.success('Tester muvaffaqiyatli ochildi');
+    },
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err));
+    },
+  });
+}
+
+export function useTesters(params: { from?: string; to?: string } = {}) {
+  return useQuery({
+    queryKey: ['testers', params],
+    queryFn: () => inventoryApi.getTesters(params),
+    staleTime: 60_000,
+  });
+}
+
 export function useMovements(productId?: string) {
   return useQuery({
     queryKey: ['inventory', 'movements', productId ?? null],

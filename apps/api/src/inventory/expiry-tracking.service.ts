@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { OpenTesterDto } from './dto/open-tester.dto';
 
 @Injectable()
 export class ExpiryTrackingService {
+  private readonly logger = new Logger(ExpiryTrackingService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async getExpiringProducts(tenantId: string, days: number) {
@@ -94,6 +97,57 @@ export class ExpiryTrackingService {
       ) > 0
       ORDER BY sm.expiry_date ASC
     `;
+  }
+
+  // T-096: Tester ochish — StockMovement + Expense bir tranzaksiyada
+  async openTester(tenantId: string, userId: string, dto: OpenTesterDto) {
+    const product = await this.prisma.product.findFirst({
+      where: { id: dto.productId, tenantId, deletedAt: null },
+      select: { id: true, name: true },
+    });
+    if (!product) throw new NotFoundException(`Product ${dto.productId} not found`);
+
+    const warehouse = await this.prisma.warehouse.findFirst({
+      where: { id: dto.warehouseId, tenantId },
+      select: { id: true, name: true },
+    });
+    if (!warehouse) throw new NotFoundException(`Warehouse ${dto.warehouseId} not found`);
+
+    const totalCost = dto.costPrice * dto.quantity;
+
+    const [movement, expense] = await this.prisma.$transaction([
+      this.prisma.stockMovement.create({
+        data: {
+          tenantId,
+          productId: dto.productId,
+          warehouseId: dto.warehouseId,
+          userId,
+          type: 'TESTER',
+          quantity: dto.quantity,
+          costPrice: dto.costPrice,
+          note: dto.note ?? `Tester: ${product.name}`,
+        },
+      }),
+      this.prisma.expense.create({
+        data: {
+          tenantId,
+          userId,
+          category: 'TESTER',
+          description: `Tester: ${product.name} × ${dto.quantity} (${warehouse.name})`,
+          amount: totalCost,
+          date: new Date(),
+        },
+      }),
+    ]);
+
+    this.logger.log(`Tester opened: ${product.name} ×${dto.quantity}`, {
+      tenantId,
+      movementId: movement.id,
+      expenseId: expense.id,
+      totalCost,
+    });
+
+    return { movement, expense, totalCost };
   }
 
   // T-096: Tester/namuna harakatlari

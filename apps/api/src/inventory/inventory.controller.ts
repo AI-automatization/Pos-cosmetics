@@ -25,6 +25,7 @@ import {
   BatchStockOutDto,
 } from './dto/stock-movement.dto';
 import { RestockRequestDto } from './dto/restock-request.dto';
+import { OpenTesterDto } from './dto/open-tester.dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TransferService, CreateTransferDto } from './transfer.service';
@@ -240,6 +241,16 @@ export class InventoryController {
   }
 
   // ─── T-096: TESTER TRACKING ────────────────────────────────────────────────
+
+  @Post('testers')
+  @ApiOperation({ summary: 'T-096: Tester ochish — stock kamaytirish + xarajat yozish' })
+  openTester(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() dto: OpenTesterDto,
+  ) {
+    return this.inventoryService.openTester(tenantId, userId, dto);
+  }
 
   @Get('testers')
   @ApiOperation({ summary: 'T-096: Tester/namuna harakatlari ro\'yxati' })

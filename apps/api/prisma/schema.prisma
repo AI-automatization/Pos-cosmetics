@@ -994,6 +994,7 @@ enum ExpenseCategory {
   SALARY
   DELIVERY
   UTILITIES
+  TESTER
   OTHER
 }
 
