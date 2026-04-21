@@ -21,7 +21,7 @@ const NAV = [
   { label: 'Inventar', href: '/inventory', icon: Boxes },
   { label: 'Savdo', href: '/sales/orders', icon: ShoppingCart },
   { label: 'Nasiya', href: '/nasiya', icon: CreditCard },
-  { label: 'Xaridorlar', href: '/customers', icon: Users },
+  { label: 'Xodimlar', href: '/workers', icon: Users },
   { label: 'Hisobotlar', href: '/reports', icon: BarChart2 },
 ];
 

@@ -119,10 +119,10 @@ const NAV_SECTIONS: NavSection[] = [
         ],
       },
       {
-        label: 'Xaridorlar', tKey: 'nav.customers',
+        label: 'Xodimlar', tKey: 'nav.workers',
         icon: Users,
-        roles: NO_CASHIER,
-        children: [{ label: 'Barcha xaridorlar', tKey: 'nav.customers', href: '/customers' }],
+        href: '/workers',
+        roles: ADMIN_ONLY,
       },
     ],
   },
