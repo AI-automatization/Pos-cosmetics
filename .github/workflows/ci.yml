@@ -41,8 +41,14 @@ jobs:
       - name: TypeCheck Web
         run: pnpm --filter web exec tsc --noEmit
 
+      - name: Lint Super Admin
+        run: pnpm --filter super-admin lint
+
+      - name: TypeCheck Super Admin
+        run: pnpm --filter super-admin exec tsc --noEmit
+
   build-web:
-    name: "Build Web (Admin + Super Admin)"
+    name: "Build Web (Admin Panel)"
     needs: lint
     runs-on: ubuntu-latest
     steps:
@@ -63,6 +69,31 @@ jobs:
 
       - name: Build web app
         run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api-production-c5b6.up.railway.app' }}
+
+  build-super-admin:
+    name: "Build Super Admin"
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build super-admin app
+        run: pnpm --filter super-admin build
         env:
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api-production-c5b6.up.railway.app' }}
 
