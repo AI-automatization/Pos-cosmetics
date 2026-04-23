@@ -2,15 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Public paths — auth shart emas
-const PUBLIC_PATHS = ['/login', '/admin-login'];
+const PUBLIC_PATHS = ['/login'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Super Admin login — always public
-  if (pathname === '/admin-login') {
-    return NextResponse.next();
-  }
 
   // Public paths — o'tkazib yuborish
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
@@ -52,18 +47,6 @@ export function middleware(request: NextRequest) {
   const userRole = request.cookies.get('user_role')?.value;
   const isWarehousePath = pathname.startsWith('/warehouse');
   const isPosPath = pathname.startsWith('/pos');
-  const isFounderPath = pathname.startsWith('/founder');
-
-  // SUPER_ADMIN — разрешаем /founder/* без ограничений
-  if (userRole === 'SUPER_ADMIN' && isFounderPath) {
-    return NextResponse.next();
-  }
-
-  // /founder/* доступен только SUPER_ADMIN
-  if (isFounderPath && userRole !== 'SUPER_ADMIN') {
-    return NextResponse.redirect(new URL('/admin-login', request.url));
-  }
-
   if (userRole === 'WAREHOUSE' && !isWarehousePath) {
     return NextResponse.redirect(new URL('/warehouse', request.url));
   }
@@ -103,6 +86,6 @@ export const config = {
      * - favicon.ico
      * - api routes
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/|admin-login).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
   ],
 };
