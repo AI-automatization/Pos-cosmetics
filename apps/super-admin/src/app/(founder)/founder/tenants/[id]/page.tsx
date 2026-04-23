@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   LogIn,
@@ -16,7 +16,6 @@ import {
   Building2,
   AlertOctagon,
   FileText,
-  StickyNote,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -24,6 +23,7 @@ import { founderApi } from '@/api/founder.api';
 import { useFounderTenants, useFounderErrors, useFounderRevenue } from '@/hooks/founder/useFounder';
 import { cn, extractErrorMessage } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 import { OverviewTab } from './OverviewTab';
 import { SubscriptionTab } from './SubscriptionTab';
@@ -33,7 +33,7 @@ import { EditTenantModal } from './EditTenantModal';
 
 // ─── Tab definitions ─────────────────────────────────────────────────────────
 
-type TabId = 'overview' | 'subscription' | 'users' | 'branches' | 'errors' | 'audit' | 'notes';
+type TabId = 'overview' | 'subscription' | 'users' | 'branches' | 'errors' | 'audit';
 
 const TABS: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'overview', label: 'Обзор', icon: LayoutDashboard },
@@ -42,7 +42,6 @@ const TABS: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'branches', label: 'Филиалы', icon: Building2 },
   { id: 'errors', label: 'Ошибки', icon: AlertOctagon },
   { id: 'audit', label: 'Аудит', icon: FileText },
-  { id: 'notes', label: 'Заметки', icon: StickyNote },
 ];
 
 // ─── Severity badge (reused for errors tab) ─────────────────────────────────
@@ -69,6 +68,8 @@ export default function TenantDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [showToggle, setShowToggle] = useState(false);
 
   // Data
   const { data: tenants, isLoading } = useFounderTenants();
@@ -92,6 +93,7 @@ export default function TenantDetailPage() {
     mutationFn: () => founderApi.deleteTenant(id),
     onSuccess: () => {
       toast.success('Тенант удалён');
+      setShowDelete(false);
       router.push('/founder/tenants');
     },
     onError: (err) => toast.error(extractErrorMessage(err)),
@@ -99,13 +101,14 @@ export default function TenantDetailPage() {
 
   const impersonateMut = useMutation({
     mutationFn: () => founderApi.impersonateTenant(id),
-    onSuccess: (data: { accessToken?: string; redirectUrl?: string }) => {
+    onSuccess: (data: { accessToken?: string }) => {
       if (data.accessToken) {
-        localStorage.setItem('access_token', data.accessToken);
+        const webUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://web-production-5b0b7.up.railway.app';
+        window.open(`${webUrl}/dashboard?token=${data.accessToken}`, '_blank');
+        toast.success('Вход в тенант выполнен (новая вкладка)');
+      } else {
+        toast.error('Не удалось получить токен');
       }
-      const url = data.redirectUrl ?? `/${tenant?.slug}/dashboard`;
-      window.open(url, '_blank');
-      toast.success('Вход в тенант выполнен');
     },
     onError: (err) => toast.error(extractErrorMessage(err)),
   });
@@ -115,24 +118,11 @@ export default function TenantDetailPage() {
       founderApi.editTenant(id, { isActive: tenant?.status !== 'ACTIVE' }),
     onSuccess: () => {
       toast.success(tenant?.status === 'ACTIVE' ? 'Тенант деактивирован' : 'Тенант активирован');
+      setShowToggle(false);
       queryClient.invalidateQueries({ queryKey: ['founder', 'tenants'] });
     },
     onError: (err) => toast.error(extractErrorMessage(err)),
   });
-
-  // Action handlers
-  const handleDelete = () => {
-    if (window.confirm(`Удалить тенант "${tenant?.name}"? Это действие необратимо.`)) {
-      deleteMut.mutate();
-    }
-  };
-
-  const handleToggleStatus = () => {
-    const action = tenant?.status === 'ACTIVE' ? 'деактивировать' : 'активировать';
-    if (window.confirm(`${action[0].toUpperCase() + action.slice(1)} тенант "${tenant?.name}"?`)) {
-      toggleStatusMut.mutate();
-    }
-  };
 
   // Loading state
   if (isLoading) {
@@ -185,7 +175,7 @@ export default function TenantDetailPage() {
                     isActive ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600',
                   )}
                 >
-                  {isActive ? 'Active' : 'Inactive'}
+                  {isActive ? 'Активен' : 'Неактивен'}
                 </span>
               </div>
               <p className="mt-0.5 font-mono text-sm text-gray-400">{tenant.slug}</p>
@@ -213,7 +203,7 @@ export default function TenantDetailPage() {
             </button>
             <button
               type="button"
-              onClick={handleToggleStatus}
+              onClick={() => setShowToggle(true)}
               disabled={toggleStatusMut.isPending}
               className={cn(
                 'flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition disabled:opacity-50',
@@ -227,7 +217,7 @@ export default function TenantDetailPage() {
             </button>
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setShowDelete(true)}
               disabled={deleteMut.isPending}
               className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600 transition hover:bg-red-50 disabled:opacity-50"
             >
@@ -291,13 +281,9 @@ export default function TenantDetailPage() {
         {activeTab === 'audit' && (
           <AuditTab tenantId={id} />
         )}
-
-        {activeTab === 'notes' && (
-          <NotesSection />
-        )}
       </div>
 
-      {/* ─── Edit modal ───────────────────────────────────────────────── */}
+      {/* ─── Modals ───────────────────────────────────────────────────── */}
       <EditTenantModal
         isOpen={showEdit}
         onClose={() => setShowEdit(false)}
@@ -305,19 +291,93 @@ export default function TenantDetailPage() {
         isPending={editMut.isPending}
         tenant={tenant}
       />
+
+      <ConfirmDialog
+        isOpen={showDelete}
+        title="Удалить тенант"
+        message={`Вы уверены что хотите удалить "${tenant.name}"? Тенант будет деактивирован.`}
+        confirmLabel="Удалить"
+        cancelLabel="Отмена"
+        variant="danger"
+        isPending={deleteMut.isPending}
+        onConfirm={() => deleteMut.mutate()}
+        onCancel={() => setShowDelete(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={showToggle}
+        title={isActive ? 'Деактивировать тенант' : 'Активировать тенант'}
+        message={isActive
+          ? `Деактивировать "${tenant.name}"? Пользователи не смогут войти.`
+          : `Активировать "${tenant.name}"? Пользователи снова получат доступ.`}
+        confirmLabel={isActive ? 'Деактивировать' : 'Активировать'}
+        cancelLabel="Отмена"
+        variant="warning"
+        isPending={toggleStatusMut.isPending}
+        onConfirm={() => toggleStatusMut.mutate()}
+        onCancel={() => setShowToggle(false)}
+      />
     </div>
   );
 }
 
+// ─── Branches (connected to backend) ────────────────────────────────────────
+
 function BranchesSection({ tenantId }: { tenantId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-db', 'table-data', 'branches', tenantId],
+    queryFn: () => founderApi.db.getTableData('branches', { page: 1, limit: 50, tenantId }),
+    staleTime: 30_000,
+  });
+
+  const branches = data?.rows ?? [];
+
+  if (isLoading) return <LoadingSkeleton variant="table" rows={3} />;
+
+  if (branches.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-12">
+        <Building2 className="h-8 w-8 text-gray-300" />
+        <p className="text-sm text-gray-400">Филиалов нет</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-12">
-      <Building2 className="h-8 w-8 text-gray-300" />
-      <p className="text-sm text-gray-400">Филиалы — после подключения backend endpoint</p>
-      <p className="text-xs text-gray-300">GET /admin/tenants/{tenantId}/branches</p>
+    <div className="overflow-hidden rounded-xl border border-gray-200">
+      <table className="w-full text-sm">
+        <thead className="border-b border-gray-200 bg-gray-50">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Название</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Статус</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Создан</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {branches.map((b, i) => (
+            <tr key={String(b['id'] ?? i)} className="hover:bg-gray-50">
+              <td className="px-4 py-3 font-medium text-gray-900">
+                {String(b['name'] ?? '—')}
+              </td>
+              <td className="px-4 py-3">
+                {(b['is_active'] === true || b['isActive'] === true) ? (
+                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Активен</span>
+                ) : (
+                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">Неактивен</span>
+                )}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-400">
+                {b['created_at'] ? new Date(String(b['created_at'])).toLocaleDateString('ru') : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
+
+// ─── Errors ─────────────────────────────────────────────────────────────────
 
 function ErrorsSection({ errors }: { errors: Array<{
   id: string; severity: string; type: string; message: string; url?: string; occurredAt: string;
@@ -344,22 +404,6 @@ function ErrorsSection({ errors }: { errors: Array<{
           {err.url && <p className="mt-1 font-mono text-xs text-gray-400">{err.url}</p>}
         </div>
       ))}
-    </div>
-  );
-}
-
-function NotesSection() {
-  const [notes, setNotes] = useState('');
-  return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-gray-500">Внутренние заметки (только локально, сохранение пока недоступно)</p>
-      <textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        rows={8}
-        placeholder="Напишите заметки..."
-        className="w-full rounded-xl border border-gray-200 p-4 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-      />
     </div>
   );
 }

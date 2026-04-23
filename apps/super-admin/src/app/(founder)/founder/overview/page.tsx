@@ -193,7 +193,7 @@ export default function FounderOverviewPage() {
         {recentOrders?.rows && recentOrders.rows.length > 0 ? (
           <div className="flex flex-col gap-2">
             {recentOrders.rows.map((order, i) => {
-              const total = Number(order['total_amount'] ?? order['totalAmount'] ?? 0);
+              const total = Number(order['total'] ?? order['total_amount'] ?? order['totalAmount'] ?? 0);
               const status = String(order['status'] ?? 'COMPLETED');
               const createdAt = String(order['created_at'] ?? order['createdAt'] ?? '');
               const tenantId = String(order['tenant_id'] ?? order['tenantId'] ?? '').slice(0, 8);
