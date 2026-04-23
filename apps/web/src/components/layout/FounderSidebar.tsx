@@ -9,14 +9,45 @@ import {
   ChevronRight,
   Zap,
   LogOut,
+  CreditCard,
+  TrendingUp,
+  Database,
+  Server,
+  Shield,
+  Users,
+  Flag,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLogout } from '@/hooks/auth/useAuth';
 
-const NAV = [
-  { label: 'Overview', href: '/founder/overview', icon: LayoutDashboard },
-  { label: 'Tenantlar', href: '/founder/tenants', icon: Building2 },
-  { label: 'Error log', href: '/founder/errors', icon: AlertOctagon },
+const NAV_SECTIONS = [
+  {
+    title: null,
+    items: [
+      { label: 'Обзор', href: '/founder/overview', icon: LayoutDashboard },
+      { label: 'Тенанты', href: '/founder/tenants', icon: Building2 },
+      { label: 'Биллинг', href: '/founder/billing', icon: CreditCard },
+      { label: 'Аналитика', href: '/founder/analytics', icon: TrendingUp },
+    ],
+  },
+  {
+    title: 'Система',
+    items: [
+      { label: 'База данных', href: '/founder/database', icon: Database },
+      { label: 'Мониторинг', href: '/founder/system', icon: Server },
+      { label: 'Безопасность', href: '/founder/security', icon: Shield },
+      { label: 'Ошибки', href: '/founder/errors', icon: AlertOctagon },
+    ],
+  },
+  {
+    title: 'Управление',
+    items: [
+      { label: 'Админы', href: '/founder/admins', icon: Users },
+      { label: 'Feature Flags', href: '/founder/features', icon: Flag },
+      { label: 'Настройки', href: '/founder/settings', icon: Settings },
+    ],
+  },
 ];
 
 export function FounderSidebar() {
@@ -37,27 +68,36 @@ export function FounderSidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 p-3">
-        <div className="flex flex-col gap-0.5">
-          {NAV.map((item) => {
-            const active = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-                  active
-                    ? 'bg-violet-50 text-violet-700'
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-                )}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                <span className="flex-1">{item.label}</span>
-                {active && <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
-              </Link>
-            );
-          })}
+      <nav className="flex-1 overflow-y-auto p-3">
+        <div className="flex flex-col gap-4">
+          {NAV_SECTIONS.map((section, idx) => (
+            <div key={section.title ?? idx} className="flex flex-col gap-0.5">
+              {section.title && (
+                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                  {section.title}
+                </p>
+              )}
+              {section.items.map((item) => {
+                const active = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
+                      active
+                        ? 'bg-violet-50 text-violet-700'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1">{item.label}</span>
+                    {active && <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </nav>
 
@@ -67,7 +107,7 @@ export function FounderSidebar() {
           href="/dashboard"
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-gray-400 transition hover:text-gray-600"
         >
-          ← Admin panelga
+          ← В админ-панель
         </Link>
         <button
           type="button"
@@ -76,7 +116,7 @@ export function FounderSidebar() {
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
         >
           <LogOut className="h-4 w-4" />
-          <span>{loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}</span>
+          <span>{loggingOut ? 'Выход...' : 'Выйти'}</span>
         </button>
       </div>
     </aside>

@@ -53,3 +53,58 @@ export interface TopTenantBar {
   name: string;
   revenue: number;
 }
+
+// ─── Database Manager ────────────────────────────────────────────────────────
+
+export interface DbTableInfo {
+  name: string;
+  rowCount: number;
+  sizeBytes: number;
+  hasTenantId: boolean;
+}
+
+export interface DbColumnInfo {
+  name: string;
+  type: string;
+  nullable: boolean;
+  defaultValue: string | null;
+  isPrimaryKey: boolean;
+}
+
+export interface DbTableSchema {
+  columns: DbColumnInfo[];
+  indexes: string[];
+}
+
+export interface DbTableData {
+  rows: Record<string, unknown>[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface DbStats {
+  dbSizeMb: number;
+  activeConnections: number;
+  maxConnections: number;
+  uptime: string;
+  version: string;
+  tablesCount: number;
+}
+
+export interface DbMigration {
+  id: string;
+  name: string;
+  startedAt: string;
+  finishedAt: string | null;
+  stepsCount: number;
+}
+
+export interface DbQueryResult {
+  rows: Record<string, unknown>[];
+  columns: string[];
+  rowCount: number;
+  executionTimeMs: number;
+  type: 'SELECT' | 'DML' | 'DDL';
+  message?: string;
+}

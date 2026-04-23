@@ -20,15 +20,25 @@ apiClient.interceptors.request.use((config) => {
 // Shared refresh promise — deduplication: 10 parallel 401 → only 1 refresh POST
 let refreshPromise: Promise<string> | null = null;
 
+// Checks if current user is Super Admin (from localStorage or cookie)
+function isAdminSession(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('admin_role') === 'SUPER_ADMIN'
+    || document.cookie.includes('user_role=SUPER_ADMIN');
+}
+
 // Clears all auth state and redirects to login.
 // MUST clear session_active + user_role cookies — otherwise middleware redirects
 // back from /login → infinite reload loop.
 function clearAuthAndRedirect() {
   if (typeof window === 'undefined') return;
+  const isAdmin = isAdminSession();
   localStorage.removeItem('access_token');
+  localStorage.removeItem('admin_id');
+  localStorage.removeItem('admin_role');
   document.cookie = 'session_active=; path=/; max-age=0';
   document.cookie = 'user_role=; path=/; max-age=0';
-  window.location.href = '/login';
+  window.location.href = isAdmin ? '/admin-login' : '/login';
 }
 
 // Response: 401 → refresh, 5xx → error report
@@ -43,6 +53,12 @@ apiClient.interceptors.response.use(
 
       // No token at all — skip refresh attempt, clear and redirect immediately
       if (!currentToken) {
+        clearAuthAndRedirect();
+        return Promise.reject(err);
+      }
+
+      // Super Admin has no refresh token (24h access token only) — redirect to admin-login
+      if (isAdminSession()) {
         clearAuthAndRedirect();
         return Promise.reject(err);
       }

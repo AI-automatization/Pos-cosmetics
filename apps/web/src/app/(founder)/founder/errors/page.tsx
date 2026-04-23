@@ -39,10 +39,10 @@ function TypeBadge({ type }: { type: FounderError['type'] }) {
 
 function timeAgo(iso: string) {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (mins < 60) return `${mins}m oldin`;
+  if (mins < 60) return `${mins} мин назад`;
   const h = Math.floor(mins / 60);
-  if (h < 24) return `${h}h oldin`;
-  return `${Math.floor(h / 24)}k oldin`;
+  if (h < 24) return `${h} ч назад`;
+  return `${Math.floor(h / 24)} дн назад`;
 }
 
 export default function FounderErrorsPage() {
@@ -67,13 +67,13 @@ export default function FounderErrorsPage() {
   });
 
   const TYPES: { key: ErrType; label: string }[] = [
-    { key: 'ALL', label: 'Barchasi' },
+    { key: 'ALL', label: 'Все' },
     { key: 'API', label: 'API' },
     { key: 'CLIENT', label: 'Client' },
     { key: 'SYNC', label: 'Sync' },
   ];
   const SEVERITIES: { key: ErrSeverity; label: string }[] = [
-    { key: 'ALL', label: 'Barchasi' },
+    { key: 'ALL', label: 'Все' },
     { key: 'CRITICAL', label: 'Critical' },
     { key: 'ERROR', label: 'Error' },
     { key: 'WARN', label: 'Warn' },
@@ -88,7 +88,7 @@ export default function FounderErrorsPage() {
             Error Log
           </h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            Barcha tenantlardan markazlashgan xatolar
+            Централизованные ошибки всех тенантов
           </p>
         </div>
         {errors && (
@@ -146,7 +146,7 @@ export default function FounderErrorsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Xato matni, tenant, URL..."
+            placeholder="Текст ошибки, тенант, URL..."
             className="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
           />
         </div>
@@ -158,7 +158,7 @@ export default function FounderErrorsPage() {
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white px-6 py-12 text-center">
           <AlertOctagon className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-          <p className="text-sm text-gray-400">Xato topilmadi</p>
+          <p className="text-sm text-gray-400">Ошибок не найдено</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">

@@ -16,7 +16,7 @@ function TrafficLight({ tenant }: { tenant: TenantSummary }) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">
         <span className="h-2 w-2 rounded-full bg-red-500" />
-        Nofaol
+        Неактивный
       </span>
     );
   }
@@ -24,24 +24,24 @@ function TrafficLight({ tenant }: { tenant: TenantSummary }) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-700">
         <span className="h-2 w-2 rounded-full bg-yellow-500" />
-        Xato ({tenant.errorsLast24h})
+        Ошибки ({tenant.errorsLast24h})
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
       <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-      Faol
+      Активный
     </span>
   );
 }
 
 function formatActivity(iso: string) {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (mins < 60) return `${mins} daqiqa oldin`;
+  if (mins < 60) return `${mins} мин назад`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} soat oldin`;
-  return `${Math.floor(hours / 24)} kun oldin`;
+  if (hours < 24) return `${hours} ч назад`;
+  return `${Math.floor(hours / 24)} дн назад`;
 }
 
 export default function FounderTenantsPage() {
@@ -54,18 +54,18 @@ export default function FounderTenantsPage() {
   });
 
   const FILTERS: { key: StatusFilter; label: string }[] = [
-    { key: 'ALL', label: 'Barchasi' },
-    { key: 'ACTIVE', label: 'Faol' },
-    { key: 'INACTIVE', label: 'Nofaol' },
+    { key: 'ALL', label: 'Все' },
+    { key: 'ACTIVE', label: 'Активные' },
+    { key: 'INACTIVE', label: 'Неактивные' },
   ];
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Tenantlar</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Тенанты</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            {tenants ? `${tenants.length} ta tenant` : 'Yuklanmoqda...'}
+            {tenants ? `${tenants.length} тенантов` : 'Загрузка...'}
           </p>
         </div>
         <Link
@@ -73,7 +73,7 @@ export default function FounderTenantsPage() {
           className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
         >
           <PlusCircle className="h-4 w-4" />
-          Yangi do&apos;kon
+          Новый магазин
         </Link>
       </div>
 
@@ -103,7 +103,7 @@ export default function FounderTenantsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tenant nomi yoki slug..."
+            placeholder="Название или slug..."
             className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
           />
         </div>
@@ -117,20 +117,20 @@ export default function FounderTenantsPage() {
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Tenant</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-500">Holat</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-500">Savdo (bugun)</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-500">Daromad (bugun)</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-500">Xatolar (24h)</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">So&apos;nggi faollik</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-500">Amal</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Тенант</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-500">Статус</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500">Продажи (сегодня)</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500">Выручка (сегодня)</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500">Ошибки (24ч)</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Активность</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-500">Действие</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {!tenants || tenants.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                    Tenant topilmadi
+                    Тенанты не найдены
                   </td>
                 </tr>
               ) : (
@@ -173,7 +173,7 @@ export default function FounderTenantsPage() {
                         href={`/founder/tenants/${tenant.id}`}
                         className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:border-violet-400 hover:text-violet-600"
                       >
-                        Detail
+                        Детали
                       </Link>
                     </td>
                   </tr>
