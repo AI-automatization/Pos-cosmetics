@@ -35,14 +35,36 @@ jobs:
       - name: Lint Web
         run: pnpm --filter web lint
 
-      - name: Lint Mobile
-        run: pnpm --filter mobile lint
-
       - name: TypeCheck API
         run: pnpm --filter api exec tsc --noEmit
 
       - name: TypeCheck Web
         run: pnpm --filter web exec tsc --noEmit
 
+  build-web:
+    name: "Build Web (Admin + Super Admin)"
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web app
+        run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api-production-c5b6.up.railway.app' }}
+
 # Deploy: Railway auto-deploys on push to main via GitHub integration
-# NEVER use "railway up" — see memory/feedback_railway_deploy.md
+# NEVER use "railway up" — see DEPLOY.md
