@@ -36,12 +36,39 @@
 
 ---
 
+---
+
+---
+
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
 
 ---
 
+## T-384 | P1 | [FRONTEND] | Founder Panel — to'liq Ruscha tarjima
+
+- **Sana:** 2026-04-21
+- **Mas'ul:** Ibrat
+- **Fayl:** Barcha `apps/web/src/app/(founder)/` va `apps/web/src/components/layout/FounderSidebar.tsx`
+- **Muammo:** 3 til aralashgan — Sidebar: Ruscha, Kontentlar: O'zbekcha, Sarlavhalar: Inglizcha
+- **Vazifa:**
+  - FounderSidebar.tsx — allaqachon Ruscha (OK)
+  - Overview page — "Founder Overview" → "Обзор", "Jami tenantlar" → "Всего тенантов" va h.k.
+  - Tenants list — "Barchasi/Faol/Nofaol" → "Все/Активные/Неактивные" va h.k.
+  - Tenant detail — tablar "Obzor/Obuna/Foydalanuvchilar" → "Обзор/Подписка/Пользователи"
+  - Tenant new wizard — "Kompaniya/Vladelec/Tarif/Tasdiqlash" → "Компания/Владелец/Тариф/Подтверждение"
+  - Database Manager — "Jadvallar/Hajm/Ulanishlar" → "Таблицы/Размер/Соединения"
+  - Errors page — "Barchasi/Xato topilmadi" → "Все/Ошибок не найдено"
+  - Admin Login — "Parol/Kirish" → "Пароль/Войти"
+  - Sidebar bottomda: "Admin panelga" → "← В админ-панель", "Chiqish" → "Выйти"
+- **Kutilgan:** Butun Founder Panel 100% Ruscha
+
+---
+
+---
+
+---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
@@ -49,6 +76,27 @@
 
 ---
 
+## T-380 | P2 | [BACKEND+FRONTEND] | Super Admin — Billing & Monetizatsiya
+
+- **Sana:** 2026-04-21
+- **Mas'ul:** Ibrat
+- **Holat:** OCHIQ (billing API hali sotib olinmagan)
+- **Fayl:** `apps/api/src/admin/admin-billing.controller.ts` (yaratish kerak)
+- **Vazifa:**
+  - `GET /admin/billing/overview` — MRR, ARR, subscribers, conversion rate, plan distribution
+  - `GET /admin/billing/plans` — barcha planlar + subscriber count
+  - `POST /admin/billing/plans` — plan yaratish
+  - `PATCH /admin/billing/plans/:id` — plan tahrirlash
+  - `DELETE /admin/billing/plans/:id` — plan deaktivatsiya
+  - `GET /admin/billing/subscriptions` — barcha obunalar + filtrlar
+  - `GET /admin/billing/revenue-history` — MRR trend (6 oy)
+  - Frontend: `/founder/billing` — KPI kartalar, pie chart, plan CRUD, subscription table
+- **Eslatma:** Payme/Click integratsiya hali yo'q (T-107). Hozircha faqat manual subscription management.
+- **Kutilgan:** Admin planlarni boshqara oladi, MRR/ARR ko'ra oladi, obunalarni override qila oladi
+
+---
+
+---
 
 ## T-097 | P2 | [BACKEND] | Product sertifikat — Kosmetika sifat hujjati
 

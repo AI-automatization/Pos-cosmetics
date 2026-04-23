@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-04-19
+# Yangilangan: 2026-04-22
 
 ---
 
@@ -10,6 +10,62 @@
 2. Format: T-raqam | sana | tur | qisqa yechim | fayl nomi
 3. Bu fayl FAQAT arxiv — o'chirmaslik, o'zgartirmaslik
 ```
+
+---
+
+## T-381 | 2026-04-22 | [FRONTEND] | Super Admin — 7 qolgan sahifalar
+
+- **Yechim:** 7 ta yangi sahifa yaratildi, Playwright orqali har biri tekshirildi:
+  1. `/founder/system` — DB stats (size, connections, uptime, version), DLQ monitoring (counts per queue, failed jobs table with retry/dismiss)
+  2. `/founder/security` — IP block/unblock/check, login_attempts table (136 records), user_locks table with unlock action
+  3. `/founder/analytics` — KPI cards (tenants, orders, revenue), revenue bar chart (7/14/30/90d filter), top tenants table
+  4. `/founder/support` — Tickets list with status filters (Все/Открытые/В работе/Решённые/Закрытые), ticket cards with metadata
+  5. `/founder/admins` — Admin users table with roles/status, "Новый админ" modal (name/email/password), delete with confirm
+  6. `/founder/features` — Feature flags toggle cards (GLOBAL/per-tenant), enable/disable, create modal (name/description/tenantId)
+  7. `/founder/settings` — Subscription plans CRUD cards (name, slug, price, limits, trial), create/edit modal
+- **API:** `founder.api.ts` — добавлены методы: getDlqCounts, getDlqJobs, retryDlqJob, dismissDlqJob, blockIp, unblockIp, getIpStats, getTickets, createAdmin
+- **Fayl:** 7 ta `page.tsx` в `apps/web/src/app/(founder)/founder/{system,security,analytics,support,admins,features,settings}/`
+- **Tekshiruv:** Playwright — barcha 7 sahifa renderlanadi, headings/buttons/tables ko'rinadi, API data yuklanadi
+
+---
+
+## T-385 | 2026-04-22 | [FRONTEND] | Database Manager — Edit/Delete UI (inline + modal)
+
+- **Yechim:** `TableDataPanel.tsx` va `RowEditModal.tsx` — to'liq CRUD UI:
+  - Har qator: "Редактировать" (Pencil) va "Удалить" (Trash) tugmalari oxirgi "Действия" ustunda
+  - Edit klik → `RowEditModal` modal: barcha fieldlar formda, JSON uchun textarea, boolean uchun dropdown
+  - Inline edit: ячейкaga ikki marta klik → input paydo bo'ladi, Enter = saqlash, Escape = bekor
+  - "Добавить" tugma header da (+ icon) → create modal
+  - Delete → `ConfirmDialog` ("Удалить запись #ID?")
+  - Bulk delete: checkbox select → "Удалить N" tugmasi
+  - REDACTED fieldlar: Lock icon bilan ko'rsatiladi, inline edit TAQIQLANGAN, modal da "Защищённые поля" bloki
+  - Auto-fields (created_at, updated_at) edit qilib bo'lmaydi, PK ham
+- **Fayl:** `apps/web/src/app/(founder)/founder/database/TableDataPanel.tsx`, `RowEditModal.tsx`
+- **Tekshiruv:** Playwright — admin_users jadval: data loads (2 row), Добавить modal, Edit modal (prefilled), Delete confirm, inline edit input, REDACTED lock — barchasi ishlaydi
+
+---
+
+## T-386 | 2026-04-22 | [FRONTEND] | Database Manager — X/Y scroll + sticky header/column
+
+- **Yechim:** `TableDataPanel.tsx`: jadval konteyner `overflow-auto` + `w-max min-w-full`. Thead `sticky top-0 z-20`. Checkbox ustuni `sticky left-0 z-30`. Birinchi data ustuni (id) `sticky left-8 z-10`. Har qator uchun `rowBg` class — sticky cella fon berish (scroll da overlapping oldini olish).
+- **Fayl:** `apps/web/src/app/(founder)/founder/database/TableDataPanel.tsx`
+- **Tekshiruv:** Playwright — users jadval (20 qator, 15+ ustun) — X scroll, Y scroll, sticky header ishlaydi
+
+---
+
+## T-383 | 2026-04-21 | [FRONTEND] | 404 sahifa — Super Admin /founder/overview ga redirect
+
+- **Yechim:** `not-found.tsx` da `cookies()` orqali `user_role` o'qiladi. `SUPER_ADMIN` → `/founder/overview` + "Вернуться в панель" tugmasi. Oddiy user → `/dashboard` + "Bosh sahifaga qaytish". Oldin hammasi `/` ga ketardi.
+- **Fayl:** `apps/web/src/app/not-found.tsx`
+- **Tekshiruv:** Playwright — /founder/billing (404) → "Вернуться в панель" → /founder/overview OK
+
+---
+
+## T-382 | 2026-04-21 | [FRONTEND]+[BACKEND] | Super Admin Auth — JWT 24h + redirect fix
+
+- **Yechim:** Backend: Admin JWT expiry 15m → 24h (admin refresh token yo'q). Frontend `client.ts`: `isAdminSession()` helper — admin 401 da `/admin-login` ga redirect (oldin `/login` ga ketardi). Admin uchun `/auth/refresh` skip (bu oddiy user endpoint). `clearAuthAndRedirect()` da `admin_id`, `admin_role` localStorage ham tozalanadi.
+- **Fayl:** `apps/api/src/admin/admin-auth.service.ts`, `apps/web/src/api/client.ts`
+- **Tekshiruv:** Playwright — login → tenant detail → Obuna tab → 0 errors (oldin 6x 401)
 
 ---
 
