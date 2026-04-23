@@ -71,8 +71,9 @@ export class AdminAuthService {
       isAdmin: true,
     };
 
+    // Super Admin token — 24h (обычные пользователи 15m, но admin нет refresh token)
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: this.config.get<string>('JWT_ACCESS_EXPIRES') ?? '15m',
+      expiresIn: '24h',
     } as Parameters<typeof this.jwtService.signAsync>[1]);
 
     this.logger.log(`Admin login: ${admin.email} (${admin.role})`);
@@ -376,5 +377,317 @@ export class AdminAuthService {
         units: DEFAULT_UNITS.length,
       },
     };
+  }
+
+  // ─── ФАЗА 2: FULL TENANT CREATE ──────────────────────────────────────────
+
+  async createTenantFull(dto: {
+    tenantName: string;
+    slug: string;
+    phone?: string;
+    city?: string;
+    businessType?: string;
+    legalName?: string;
+    inn?: string;
+    stir?: string;
+    oked?: string;
+    legalAddress?: string;
+    ownerFirstName: string;
+    ownerLastName: string;
+    ownerEmail: string;
+    ownerPhone?: string;
+    ownerPassword?: string;
+    planSlug?: string;
+    trialDays?: number;
+    branchName?: string;
+  }) {
+    const existing = await this.prisma.tenant.findUnique({ where: { slug: dto.slug } });
+    if (existing) {
+      throw new ConflictException(`Slug "${dto.slug}" allaqachon band`);
+    }
+
+    const tempPassword = dto.ownerPassword || randomBytes(6).toString('hex');
+    const passwordHash = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
+
+    // Найдём план
+    const planSlug = dto.planSlug ?? 'free';
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { slug: planSlug } });
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Tenant
+      const tenant = await tx.tenant.create({
+        data: {
+          name: dto.tenantName,
+          slug: dto.slug,
+          inn: dto.inn,
+          stir: dto.stir,
+          oked: dto.oked,
+          legalName: dto.legalName,
+          legalAddress: dto.legalAddress,
+        },
+      });
+
+      // 2. Owner
+      const owner = await tx.user.create({
+        data: {
+          tenantId: tenant.id,
+          email: dto.ownerEmail,
+          passwordHash,
+          firstName: dto.ownerFirstName,
+          lastName: dto.ownerLastName,
+          role: 'OWNER',
+        },
+        select: { id: true, email: true, firstName: true, lastName: true, role: true },
+      });
+
+      // 3. Branch
+      const branch = await tx.branch.create({
+        data: {
+          tenantId: tenant.id,
+          name: dto.branchName ?? 'Asosiy filial',
+          isActive: true,
+        },
+      });
+
+      // 4. Categories
+      await tx.category.createMany({
+        data: DEFAULT_CATEGORIES.map((name, i) => ({
+          tenantId: tenant.id,
+          name,
+          sortOrder: i,
+        })),
+      });
+
+      // 5. Units
+      await tx.unit.createMany({
+        data: DEFAULT_UNITS.map((u) => ({
+          tenantId: tenant.id,
+          name: u.name,
+          shortName: u.shortName,
+        })),
+      });
+
+      // 6. Subscription
+      let subscription = null;
+      if (plan) {
+        const trialDays = dto.trialDays ?? plan.trialDays;
+        const trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + trialDays);
+
+        subscription = await tx.tenantSubscription.create({
+          data: {
+            tenantId: tenant.id,
+            planId: plan.id,
+            status: 'TRIAL',
+            trialEndsAt,
+            expiresAt: trialEndsAt,
+          },
+        });
+      }
+
+      // 7. Settings
+      await tx.tenantSettings.create({
+        data: {
+          tenantId: tenant.id,
+          currency: 'UZS',
+          language: 'uz',
+          timezone: 'Asia/Tashkent',
+        },
+      });
+
+      return { tenant, owner, branch, subscription };
+    });
+
+    this.logger.log(`Tenant FULL created: ${result.tenant.slug} | owner: ${result.owner.email}`);
+
+    return {
+      tenant: { id: result.tenant.id, name: result.tenant.name, slug: result.tenant.slug },
+      owner: {
+        id: result.owner.id,
+        email: result.owner.email,
+        firstName: result.owner.firstName,
+        lastName: result.owner.lastName,
+        tempPassword,
+      },
+      branch: { id: result.branch.id, name: result.branch.name },
+      subscription: result.subscription ? {
+        id: result.subscription.id,
+        status: result.subscription.status,
+        planSlug,
+        expiresAt: result.subscription.expiresAt,
+      } : null,
+    };
+  }
+
+  // ─── EDIT TENANT ──────────────────────────────────────────────────────────
+
+  async editTenant(tenantId: string, data: Record<string, unknown>) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) throw new NotFoundException('Tenant topilmadi');
+
+    const updated = await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: data as { name?: string; slug?: string; isActive?: boolean },
+    });
+
+    this.logger.log(`Tenant edited: ${updated.slug}`);
+    return updated;
+  }
+
+  // ─── DELETE (soft) ────────────────────────────────────────────────────────
+
+  async deleteTenant(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) throw new NotFoundException('Tenant topilmadi');
+
+    const updated = await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: { isActive: false },
+    });
+
+    this.logger.warn(`Tenant DELETED (soft): ${updated.slug}`);
+    return { deleted: true, id: tenantId, name: updated.name };
+  }
+
+  // ─── TENANT USERS ─────────────────────────────────────────────────────────
+
+  async getTenantUsers(tenantId: string) {
+    return this.prisma.user.findMany({
+      where: { tenantId },
+      select: {
+        id: true, email: true, firstName: true, lastName: true,
+        role: true, isActive: true, createdAt: true,
+        branch: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ─── ADD OWNER ────────────────────────────────────────────────────────────
+
+  async addOwnerToTenant(tenantId: string, dto: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    password?: string;
+  }) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) throw new NotFoundException('Tenant topilmadi');
+
+    const existingUser = await this.prisma.user.findFirst({
+      where: { tenantId, email: dto.email },
+    });
+    if (existingUser) throw new ConflictException(`${dto.email} allaqachon mavjud`);
+
+    const tempPassword = dto.password || randomBytes(6).toString('hex');
+    const passwordHash = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
+
+    const owner = await this.prisma.user.create({
+      data: {
+        tenantId,
+        email: dto.email,
+        passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        role: 'OWNER',
+      },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true },
+    });
+
+    this.logger.log(`Owner added to ${tenant.slug}: ${owner.email}`);
+
+    return { owner, tempPassword };
+  }
+
+  // ─── TENANT USAGE vs LIMITS ───────────────────────────────────────────────
+
+  async getTenantUsage(tenantId: string) {
+    const [branchCount, productCount, userCount, subscription] = await this.prisma.$transaction([
+      this.prisma.branch.count({ where: { tenantId, isActive: true } }),
+      this.prisma.product.count({ where: { tenantId } }),
+      this.prisma.user.count({ where: { tenantId, isActive: true } }),
+      this.prisma.tenantSubscription.findUnique({
+        where: { tenantId },
+        include: { plan: true },
+      }),
+    ]);
+
+    const plan = subscription?.plan;
+    return {
+      branches: { used: branchCount, max: plan?.maxBranches ?? -1 },
+      products: { used: productCount, max: plan?.maxProducts ?? -1 },
+      users: { used: userCount, max: plan?.maxUsers ?? -1 },
+      plan: plan ? { name: plan.name, slug: plan.slug } : null,
+      subscriptionStatus: subscription?.status ?? null,
+    };
+  }
+
+  // ─── TENANT SUBSCRIPTION ─────────────────────────────────────────────────
+
+  async getTenantSubscription(tenantId: string) {
+    const sub = await this.prisma.tenantSubscription.findUnique({
+      where: { tenantId },
+      include: { plan: true },
+    });
+    if (!sub) return null;
+    return {
+      id: sub.id,
+      status: sub.status,
+      plan: { id: sub.plan.id, name: sub.plan.name, slug: sub.plan.slug, priceMonthly: Number(sub.plan.priceMonthly) },
+      startedAt: sub.startedAt,
+      expiresAt: sub.expiresAt,
+      trialEndsAt: sub.trialEndsAt,
+    };
+  }
+
+  async overrideSubscription(tenantId: string, dto: {
+    planSlug?: string;
+    expiresAt?: string;
+    status?: string;
+  }) {
+    const sub = await this.prisma.tenantSubscription.findUnique({ where: { tenantId } });
+    if (!sub) throw new NotFoundException('Подписка не найдена');
+
+    const updateData: Record<string, unknown> = {};
+
+    if (dto.planSlug) {
+      const plan = await this.prisma.subscriptionPlan.findUnique({ where: { slug: dto.planSlug } });
+      if (!plan) throw new NotFoundException(`План "${dto.planSlug}" не найден`);
+      updateData.planId = plan.id;
+    }
+    if (dto.expiresAt) updateData.expiresAt = new Date(dto.expiresAt);
+    if (dto.status) updateData.status = dto.status;
+
+    const updated = await this.prisma.tenantSubscription.update({
+      where: { tenantId },
+      data: updateData,
+      include: { plan: true },
+    });
+
+    this.logger.log(`Subscription override: tenant=${tenantId}`, dto);
+    return updated;
+  }
+
+  // ─── TENANT AUDIT LOG ─────────────────────────────────────────────────────
+
+  async getTenantAuditLog(tenantId: string, opts: { page: number; limit: number }) {
+    const skip = (opts.page - 1) * opts.limit;
+
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.auditLog.count({ where: { tenantId } }),
+      this.prisma.auditLog.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: opts.limit,
+        select: {
+          id: true, userId: true, action: true, entityType: true, entityId: true,
+          oldData: true, newData: true, ip: true, createdAt: true,
+        },
+      }),
+    ]);
+
+    return { items, total, page: opts.page, limit: opts.limit };
   }
 }
