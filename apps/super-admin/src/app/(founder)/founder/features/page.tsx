@@ -294,7 +294,7 @@ function CreateFlagModal({ onClose }: { onClose: () => void }) {
   const createMut = useMutation({
     mutationFn: () =>
       founderApi.db.createRow('feature_flags', {
-        name,
+        key: name,
         description: description || null,
         enabled,
         tenant_id: tenantId || null,

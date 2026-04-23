@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Zap,
   LogOut,
-  CreditCard,
   TrendingUp,
   Database,
   Server,
@@ -26,7 +25,6 @@ const NAV_SECTIONS = [
     items: [
       { label: 'Обзор', href: '/founder/overview', icon: LayoutDashboard },
       { label: 'Тенанты', href: '/founder/tenants', icon: Building2 },
-      { label: 'Биллинг', href: '/founder/billing', icon: CreditCard },
       { label: 'Аналитика', href: '/founder/analytics', icon: TrendingUp },
     ],
   },
