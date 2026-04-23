@@ -1,5 +1,12 @@
-const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
+// pnpm fix: expo/metro-config → root @expo/metro-config@55 (wrong).
+// Force SDK 54 compatible version from pnpm store.
+const { getDefaultConfig } = require(
+  path.resolve(
+    __dirname,
+    '../../node_modules/.pnpm/@expo+metro-config@54.0.14_expo@54.0.33/node_modules/@expo/metro-config',
+  ),
+);
 
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '../..');
@@ -38,7 +45,21 @@ config.resolver.extraNodeModules = {
   'expo-modules-core':     EXPO_MODULES_CORE_V3,
 };
 
+// pnpm fix: force react-native@0.81.5 — real path in pnpm store
+const RN_0815_PATH = path.resolve(
+  monorepoRoot,
+  'node_modules/.pnpm/react-native@0.81.5_@babel+core@7.29.0_@types+react@19.1.17_react@19.1.0/node_modules/react-native',
+);
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  // Force react-native to always resolve to 0.81.5 (not root 0.83.2)
+  if (moduleName === 'react-native') {
+    return { filePath: path.resolve(RN_0815_PATH, 'index.js'), type: 'sourceFile' };
+  }
+  if (moduleName.startsWith('react-native/')) {
+    const subPath = moduleName.slice('react-native/'.length);
+    return { filePath: path.resolve(RN_0815_PATH, subPath), type: 'sourceFile' };
+  }
   // For @expo/vector-icons, resolve from the expo@54-compatible pnpm entry first
   if (moduleName === '@expo/vector-icons' || moduleName.startsWith('@expo/vector-icons/')) {
     return context.resolveRequest(
