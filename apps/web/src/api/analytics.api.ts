@@ -127,8 +127,14 @@ export const analyticsApi = {
   },
   getCashierPerformance(params: { from?: string; to?: string; branchId?: string } = {}) {
     return apiClient
-      .get<CashierPerf[]>('/analytics/cashier-performance', { params })
-      .then((r) => (Array.isArray(r.data) ? r.data : []));
+      .get<Array<CashierPerf & { firstName?: string; lastName?: string }>>('/analytics/cashier-performance', { params })
+      .then((r) => {
+        const raw = Array.isArray(r.data) ? r.data : [];
+        return raw.map((c) => ({
+          ...c,
+          name: c.name || `${c.firstName ?? ''} ${c.lastName ?? ''}`.trim() || null,
+        })) as CashierPerf[];
+      });
   },
   getHourlyHeatmap(params: { from?: string; to?: string; branchId?: string } = {}) {
     return apiClient
