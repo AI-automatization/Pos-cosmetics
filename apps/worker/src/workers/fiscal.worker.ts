@@ -135,8 +135,8 @@ export function createFiscalWorker(): Worker {
         fiscalQr = result.fiscalQr;
       }
 
-      await prisma.order.update({
-        where: { id: orderId },
+      await prisma.order.updateMany({
+        where: { id: orderId, tenantId },
         data: { fiscalStatus: 'SENT', fiscalId, fiscalQr },
       });
 
@@ -151,9 +151,12 @@ export function createFiscalWorker(): Worker {
   worker.on('failed', (job, err) => {
     logJobError(QUEUE_NAMES.FISCAL_RECEIPT, job?.id ?? 'unknown', job?.name ?? '', err);
 
-    if (job?.data?.orderId) {
-      prisma.order.update({
-        where: { id: job.data.orderId },
+    // T-388: Only mark as FAILED on final attempt (no more retries left)
+    const maxAttempts = job?.opts?.attempts ?? 3;
+    const currentAttempt = job?.attemptsMade ?? 0;
+    if (job?.data?.orderId && job?.data?.tenantId && currentAttempt >= maxAttempts) {
+      prisma.order.updateMany({
+        where: { id: job.data.orderId, tenantId: job.data.tenantId },
         data: { fiscalStatus: 'FAILED' },
       }).catch(() => {/* noop — main error already logged */});
     }

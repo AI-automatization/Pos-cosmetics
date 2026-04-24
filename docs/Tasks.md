@@ -36,13 +36,79 @@
 
 ---
 
+## T-387 | P0 | [SECURITY] | Super Admin hardening
+
+- **Sana:** 2026-04-24
+- **Mas'ul:** Ibrat
+- **Topgan:** AbdulazizYormatov (audit)
+- **Muammo:**
+  - SQL console — whitelist/audit yo'q
+  - JWT localStorage da (XSS xavf)
+  - DLQ endpoints JwtAuthGuard yo'q
+  - Login/bootstrap da rate-limit yo'q
+- **Kutilgan:** Deploy oldin barcha xavfsizlik yopilgan bo'lishi SHART
+
 ---
+
+## T-388 | P0 | [BACKEND] | Fiscal worker — cross-tenant update, retry yo'q
+
+- **Sana:** 2026-04-24
+- **Mas'ul:** Ibrat
+- **Topgan:** AbdulazizYormatov (audit)
+- **Fayl:** `apps/worker/` (fiscal processor)
+- **Muammo:**
+  - order.update da tenant_id filter yo'q → cross-tenant update
+  - fiscalStatus=FAILED har retry da o'rnatiladi
+  - Retry/backoff mexanizm yo'q
+  - Idempotency key (jobId) ishlatilmayapti
+- **Kutilgan:** Tenant isolation, retry logika, idempotency
+
+---
+
+## T-389 | P0 | [SECURITY] | Cookie namespace collision — super-admin vs web
+
+- **Sana:** 2026-04-24
+- **Mas'ul:** Ibrat
+- **Topgan:** AbdulazizYormatov (audit)
+- **Muammo:** session_active, user_role, access_token nomlari bir xil → *.raos.uz da session leak
+- **Kutilgan:** Cookie nomlari prefix bilan ajratilgan (sa_, web_)
 
 ---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
+
+---
+
+## T-390 | P1 | [BACKEND] | Migration 20260421120000 — SKU update bez backup
+
+- **Sana:** 2026-04-24
+- **Mas'ul:** Ibrat
+- **Topgan:** AbdulazizYormatov (audit)
+- **Muammo:** UPDATE products SET sku backup siz → POS scan buzilishi mumkin
+- **Kutilgan:** Migration da backup/rollback qo'shish
+
+---
+
+## T-391 | P1 | [SECURITY] | admin-database: SUPPORT role CSV download — tenant leak
+
+- **Sana:** 2026-04-24
+- **Mas'ul:** Ibrat
+- **Topgan:** AbdulazizYormatov (audit)
+- **Muammo:** SUPPORT role barcha tenants CSV yuklay oladi tenantId filtersiz
+- **Kutilgan:** tenantId filter MAJBURIY
+
+---
+
+## T-392 | P1 | [BACKEND] | shift-alert listener tenantId yo'q + sales.service 707 qator
+
+- **Sana:** 2026-04-24
+- **Mas'ul:** Ibrat
+- **Topgan:** AbdulazizYormatov (audit)
+- **Fayl:** `apps/api/src/sales/sales.service.ts`
+- **Muammo:** shift-alert listener tenantId yo'q; sales.service.ts 707 qator — SRP buzilgan
+- **Kutilgan:** tenantId qo'shish; 4 ta fayl ga bo'lish
 
 ---
 
