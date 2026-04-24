@@ -1,6 +1,6 @@
 export type OrderStatus = 'COMPLETED' | 'RETURNED' | 'VOIDED';
 export type FiscalStatus = 'NONE' | 'PENDING' | 'SENT' | 'FAILED';
-export type PaymentMethod = 'CASH' | 'CARD' | 'NASIYA';
+export type PaymentMethod = 'CASH' | 'CARD' | 'NASIYA' | 'NAQD' | 'KARTA' | 'ARALASH' | 'TERMINAL' | 'DEBT';
 
 export interface OrderItem {
   id: string;
@@ -31,6 +31,7 @@ export interface Order {
   notes?: string | null;
   tenantId: string;
   createdAt: string;
+  paymentIntents?: Array<{ method: string; amount: number | string }>;
 }
 
 export interface OrdersQuery {

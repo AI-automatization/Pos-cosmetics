@@ -17,10 +17,15 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; icon: React.ComponentT
   VOIDED: { label: 'Bekor qilindi', icon: XCircle, className: 'bg-red-100 text-red-700' },
 };
 
-const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+const PAYMENT_LABELS: Record<string, string> = {
   CASH: 'Naqd',
+  NAQD: 'Naqd',
   CARD: 'Karta',
+  KARTA: 'Karta',
+  TERMINAL: 'Karta',
   NASIYA: 'Nasiya',
+  DEBT: 'Nasiya',
+  ARALASH: 'Aralash',
 };
 
 function StatusBadge({ status }: { status: OrderStatus }) {
@@ -42,10 +47,15 @@ const STATUS_FILTERS: Array<{ value: OrderStatus | 'ALL'; label: string }> = [
   { value: 'VOIDED', label: 'Bekor qilindi' },
 ];
 
-const PAYMENT_ICONS: Record<PaymentMethod, React.ComponentType<{ className?: string }>> = {
+const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   CASH: Banknote,
+  NAQD: Banknote,
   CARD: CreditCard,
+  KARTA: CreditCard,
+  TERMINAL: CreditCard,
   NASIYA: Clock,
+  DEBT: Clock,
+  ARALASH: Banknote,
 };
 
 function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
@@ -92,10 +102,10 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
                   {order.paymentMethod ? (
                     <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900">
                       {(() => {
-                        const Icon = PAYMENT_ICONS[order.paymentMethod];
+                        const Icon = PAYMENT_ICONS[order.paymentMethod] ?? Banknote;
                         return <Icon className="h-3.5 w-3.5 text-blue-500" />;
                       })()}
-                      {PAYMENT_LABELS[order.paymentMethod]}
+                      {PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod}
                     </span>
                   ) : (
                     <p className="text-sm font-semibold text-gray-900">—</p>
@@ -176,6 +186,27 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
                   </table>
                 </div>
               </div>
+
+              {/* Payment intents detail */}
+              {order.paymentIntents && order.paymentIntents.length > 0 && (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-gray-700">To&apos;lovlar</h3>
+                  <div className="space-y-1.5">
+                    {order.paymentIntents.map((pi, idx) => {
+                      const Icon = PAYMENT_ICONS[pi.method] ?? Banknote;
+                      return (
+                        <div key={idx} className="flex items-center justify-between rounded-lg border border-gray-100 px-4 py-2.5">
+                          <span className="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <Icon className="h-4 w-4 text-blue-500" />
+                            {PAYMENT_LABELS[pi.method] ?? pi.method}
+                          </span>
+                          <span className="text-sm font-semibold text-gray-900">{formatPrice(Number(pi.amount))}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Totals footer */}
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-1.5">
@@ -351,7 +382,15 @@ export default function OrdersPage() {
                     <td className="px-4 py-3 text-gray-500">{formatDateTime(o.createdAt)}</td>
                     <td className="px-4 py-3 text-gray-700">{o.cashierName ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-500">
-                      {o.paymentMethod ? PAYMENT_LABELS[o.paymentMethod] : '—'}
+                      {o.paymentMethod ? (
+                        <span className="inline-flex items-center gap-1">
+                          {(() => {
+                            const Icon = PAYMENT_ICONS[o.paymentMethod] ?? Banknote;
+                            return <Icon className="h-3.5 w-3.5 text-blue-500" />;
+                          })()}
+                          {PAYMENT_LABELS[o.paymentMethod] ?? o.paymentMethod}
+                        </span>
+                      ) : '—'}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={o.status} />
