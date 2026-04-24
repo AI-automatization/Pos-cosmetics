@@ -140,7 +140,6 @@ const NAV_SECTIONS: NavSection[] = [
         ],
       },
       { label: 'Analitika', tKey: 'nav.analytics', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },
-      { label: "Ko'chmas mulk", tKey: 'nav.realEstate', href: '/realestate', icon: Building2, roles: ['OWNER', 'ADMIN'] },
       {
         label: 'Hisobotlar', tKey: 'nav.reports',
         icon: BarChart2,

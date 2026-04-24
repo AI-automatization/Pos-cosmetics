@@ -67,7 +67,7 @@ function ReturnModal({ order, onClose }: { order: BackendOrder; onClose: () => v
             <h2 className="font-semibold text-gray-900">Qaytarish — #{order.orderNumber}</h2>
             <p className="text-xs text-gray-500">
               {formatPrice(Number(order.total))} •{' '}
-              {new Date(order.createdAt).toLocaleDateString('uz-UZ')}
+              {new Date(order.createdAt).toLocaleString('uz-UZ')}
             </p>
           </div>
           <button type="button" onClick={onClose}>
@@ -246,7 +246,7 @@ export default function ReturnsPage() {
                       {formatPrice(Number(order.total))}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString('uz-UZ')}
+                      {new Date(order.createdAt).toLocaleString('uz-UZ')}
                     </td>
                     <td className="px-4 py-3">
                       {order.status === 'RETURNED' ? (

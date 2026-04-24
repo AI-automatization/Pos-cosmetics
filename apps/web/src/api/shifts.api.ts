@@ -17,15 +17,15 @@ export const shiftsApi = {
         type RawShift = Shift & { user?: { firstName?: string; lastName?: string } | null };
         const raw = Array.isArray(d) ? d : (d.items as RawShift[]) ?? [];
         return {
-          items: raw.map((s: RawShift) => ({
+          items: raw.map((s: RawShift & { totalRevenue?: number; totalOrders?: number; paymentBreakdown?: { cash?: number; card?: number } }) => ({
             ...s,
             cashierName: s.user
               ? `${s.user.firstName ?? ''} ${s.user.lastName ?? ''}`.trim() || '—'
               : (s.cashierName ?? '—'),
-            salesCount: s.salesCount ?? 0,
-            revenue: s.revenue ?? 0,
-            cashRevenue: s.cashRevenue ?? 0,
-            cardRevenue: s.cardRevenue ?? 0,
+            salesCount: s.totalOrders ?? s.salesCount ?? 0,
+            revenue: s.totalRevenue ?? s.revenue ?? 0,
+            cashRevenue: s.paymentBreakdown?.cash ?? s.cashRevenue ?? 0,
+            cardRevenue: s.paymentBreakdown?.card ?? s.cardRevenue ?? 0,
           })),
           total: (d.total as number) ?? raw.length,
           page: (d.page as number) ?? 1,

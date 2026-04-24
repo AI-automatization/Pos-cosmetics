@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   BarChart,
   Bar,
@@ -51,6 +51,8 @@ function getDefaultRange() {
 
 export default function DailyRevenuePage() {
   const [range, setRange] = useState(getDefaultRange);
+  const [tablePage, setTablePage] = useState(1);
+  const PAGE_SIZE = 15;
   const { data, isLoading, isError } = useDailyRevenue(range);
 
   const totalRevenue = data?.reduce((s, d) => s + d.revenue, 0) ?? 0;
@@ -181,43 +183,60 @@ export default function DailyRevenuePage() {
             )}
           </div>
 
-          {/* Table */}
-          {data && data.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-              <table className="w-full text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Sana</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Savdo</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Buyurtmalar</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Chegirma</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[...data].reverse().map((row) => (
-                    <tr key={row.date} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-700">
-                        {new Date(row.date).toLocaleDateString('uz-UZ', {
-                          weekday: 'short',
-                          day: 'numeric',
-                          month: 'long',
-                        })}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
-                        {formatPrice(row.revenue)}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-gray-600">
-                        {row.ordersCount}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-gray-500">
-                        {row.discountAmount > 0 ? `−${formatPrice(row.discountAmount)}` : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {/* Table with pagination */}
+          {data && data.length > 0 && (() => {
+            const reversed = [...data].reverse();
+            const totalPages = Math.ceil(reversed.length / PAGE_SIZE);
+            const paged = reversed.slice((tablePage - 1) * PAGE_SIZE, tablePage * PAGE_SIZE);
+            return (
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                <div className="max-h-[500px] overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-medium text-gray-600">Sana</th>
+                        <th className="px-4 py-3 text-right font-medium text-gray-600">Savdo</th>
+                        <th className="px-4 py-3 text-right font-medium text-gray-600">Buyurtmalar</th>
+                        <th className="px-4 py-3 text-right font-medium text-gray-600">Chegirma</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {paged.map((row) => (
+                        <tr key={row.date} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-gray-700">
+                            {new Date(row.date).toLocaleDateString('uz-UZ', {
+                              weekday: 'short',
+                              day: 'numeric',
+                              month: 'long',
+                            })}
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
+                            {formatPrice(row.revenue)}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-gray-600">
+                            {row.ordersCount}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-gray-500">
+                            {row.discountAmount > 0 ? `−${formatPrice(row.discountAmount)}` : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2">
+                    <p className="text-xs text-gray-500">Jami: {reversed.length} kun</p>
+                    <div className="flex items-center gap-1">
+                      <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
+                      <span className="px-2 text-xs text-gray-500">{tablePage} / {totalPages}</span>
+                      <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage === totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
