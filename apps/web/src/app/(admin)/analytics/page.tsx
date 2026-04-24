@@ -467,7 +467,7 @@ export default function AnalyticsPage() {
                       <YAxis tickFormatter={(v) => `${Number(v)}%`} tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                       <Tooltip
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
-                        formatter={(v: number, name: string) =>
+                        formatter={(v, name) =>
                           name === 'Marja %' ? `${Number(v).toFixed(1)}%` : formatPrice(Number(v))
                         }
                       />
@@ -548,7 +548,7 @@ export default function AnalyticsPage() {
                           </Pie>
                           <Tooltip
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
-                            formatter={(v: number) => formatPrice(v)}
+                            formatter={(v) => formatPrice(Number(v))}
                           />
                         </PieChart>
                       </ResponsiveContainer>
