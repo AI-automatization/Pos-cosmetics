@@ -103,8 +103,7 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { label: 'Buyurtmalar', tKey: 'nav.orders', href: '/sales/orders' },
           { label: 'Qaytarishlar', tKey: 'nav.returns', href: '/sales/returns' },
-          { label: 'Aksiyalar', tKey: 'nav.promotions', href: '/promotions' },
-          { label: 'Chegirmalar', tKey: 'nav.chegirma', href: '/chegirma' },
+          { label: 'Chegirmalar', tKey: 'nav.promotions', href: '/promotions' },
           { label: 'Smenalar', tKey: 'nav.shifts', href: '/sales/shifts' },
         ],
       },
@@ -146,7 +145,7 @@ const NAV_SECTIONS: NavSection[] = [
         roles: NO_CASHIER,
         children: [
           { label: 'Umumiy', tKey: 'nav.reports', href: '/reports' },
-          { label: 'Kunlik sotuv', tKey: 'nav.dailyRevenue', href: '/reports/daily-revenue' },
+          { label: 'Kunlik daromad', tKey: 'nav.dailyRevenue', href: '/reports/daily-revenue' },
           { label: 'Top mahsulotlar', tKey: 'nav.topProducts', href: '/reports/top-products' },
           { label: 'Smenalar', tKey: 'nav.shiftReports', href: '/reports/shifts' },
           { label: 'Filiallar', tKey: 'nav.branchComparison', href: '/reports/branches' },

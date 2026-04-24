@@ -70,8 +70,8 @@ export default function DailyRevenuePage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Kunlik savdo</h1>
-          <p className="text-sm text-gray-500">Sana oralig'i bo'yicha savdo dinamikasi</p>
+          <h1 className="text-xl font-semibold text-gray-900">Kunlik daromad</h1>
+          <p className="text-sm text-gray-500">Sana oralig'i bo'yicha daromad dinamikasi</p>
         </div>
       </div>
 
