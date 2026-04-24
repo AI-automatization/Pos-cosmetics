@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { useOrders, useOrder } from '@/hooks/sales/useOrders';
-import { formatPrice, formatDate, cn } from '@/lib/utils';
+import { formatPrice, formatDateTime, cn } from '@/lib/utils';
 import type { OrderStatus, PaymentMethod } from '@/types/order';
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
@@ -81,7 +81,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-lg bg-gray-50 p-3">
                   <p className="mb-0.5 text-xs font-medium text-gray-500">Sana</p>
-                  <p className="text-sm font-semibold text-gray-900">{formatDate(order.createdAt)}</p>
+                  <p className="text-sm font-semibold text-gray-900">{formatDateTime(order.createdAt)}</p>
                 </div>
                 <div className="rounded-lg bg-gray-50 p-3">
                   <p className="mb-0.5 text-xs font-medium text-gray-500">Kassir</p>
@@ -348,7 +348,7 @@ export default function OrdersPage() {
                 {sortedOrders.map((o) => (
                   <tr key={o.id} className="transition hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">{o.orderNumber}</td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(o.createdAt)}</td>
+                    <td className="px-4 py-3 text-gray-500">{formatDateTime(o.createdAt)}</td>
                     <td className="px-4 py-3 text-gray-700">{o.cashierName ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-500">
                       {o.paymentMethod ? PAYMENT_LABELS[o.paymentMethod] : '—'}

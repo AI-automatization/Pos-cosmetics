@@ -383,7 +383,7 @@ export default function PaymentsHistoryPage() {
           <table className="w-full text-sm">
             <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
               <tr>
-                {["Sana", "Buyurtma №", "Xaridor", "To'lov usuli", "Summa", "Holat", ""].map(
+                {["Sana", "Buyurtma №", "To'lov usuli", "Summa", "Holat", ""].map(
                   (h) => (
                     <th
                       key={h}
@@ -398,7 +398,7 @@ export default function PaymentsHistoryPage() {
             <tbody className="divide-y divide-gray-50">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-sm text-gray-400">
+                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-400">
                     <CreditCard className="mx-auto mb-2 h-8 w-8 text-gray-300" />
                     To&apos;lovlar topilmadi
                   </td>
@@ -418,7 +418,6 @@ export default function PaymentsHistoryPage() {
                       <td className="px-4 py-3 font-mono font-medium text-gray-900">
                         #{o.orderNumber}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{o.customerName ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="flex items-center gap-1.5 text-gray-700">
                           <Icon className="h-4 w-4 text-gray-400" />
