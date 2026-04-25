@@ -22,6 +22,14 @@ interface ItemRow extends InvoiceItem {
 let _keyCounter = 0;
 const nextKey = () => ++_keyCounter;
 
+let _batchCounter = 0;
+function nextBatchNumber(): string {
+  _batchCounter++;
+  const d = new Date();
+  const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  return `P-${date}-${String(_batchCounter).padStart(3, '0')}`;
+}
+
 export default function StockInPage() {
   const router = useRouter();
   const { mutate: createInvoice, isPending } = useCreateInvoice();
@@ -49,7 +57,7 @@ export default function StockInPage() {
   const [editProductModal, setEditProductModal] = useState<Product | null>(null);
 
   const [items, setItems] = useState<ItemRow[]>([
-    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
+    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, batchNumber: nextBatchNumber() },
   ]);
 
   const { data: supplierDetail } = useSupplier(supplierId || null);
@@ -64,7 +72,7 @@ export default function StockInPage() {
       .filter((ps) => ps.product.isActive)
       .map((ps) => {
         const p = allProducts.find((x) => x.id === ps.product.id);
-        return { _key: nextKey(), productId: ps.product.id, productName: ps.product.name, quantity: 1, purchasePrice: p?.costPrice ?? 0 };
+        return { _key: nextKey(), productId: ps.product.id, productName: ps.product.name, quantity: 1, purchasePrice: p?.costPrice ?? 0, batchNumber: nextBatchNumber() };
       });
     if (newRows.length > 0) {
       setItems(newRows);
@@ -86,7 +94,7 @@ export default function StockInPage() {
   );
 
   const addRow = () =>
-    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 }]);
+    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, batchNumber: nextBatchNumber() }]);
 
   const removeRow = (key: number) =>
     setItems((prev) => prev.filter((r) => r._key !== key));
@@ -312,6 +320,7 @@ export default function StockInPage() {
                           productName: ps.product.name,
                           quantity: 1,
                           purchasePrice: p?.costPrice ?? 0,
+                          batchNumber: nextBatchNumber(),
                         };
                       });
                     setItems((prev) => {

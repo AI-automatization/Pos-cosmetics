@@ -1,14 +1,14 @@
 import { WriteOffReason } from '@prisma/client';
 import {
   IsString, IsOptional, IsArray, IsNumber, Min, IsInt, IsPositive,
-  ValidateNested, IsDateString, IsEnum, IsUUID,
+  ValidateNested, IsDateString, IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class InvoiceItemDto {
   @ApiProperty()
-  @IsUUID()
+  @IsString()
   productId!: string;
 
   @ApiProperty({ example: 10 })
