@@ -108,7 +108,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Totals */}
       <div className="shrink-0 space-y-1 border-b border-gray-100 p-4">
         <div className="flex items-center justify-between text-sm text-gray-600">
@@ -208,6 +208,9 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           ))}
         </div>
       </div>
+
+      {/* Scrollable payment details area */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
 
       {/* Cash input — cash only mode */}
       {paymentMethod === 'cash' && (
@@ -555,8 +558,10 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       )}
 
+      </div>{/* end scrollable area */}
+
       {/* Complete button */}
-      <div className="mt-auto shrink-0 p-3">
+      <div className="shrink-0 border-t border-gray-100 p-3">
         <button
           type="button"
           onClick={() => completeSale()}
