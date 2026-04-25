@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Store, LogIn } from 'lucide-react';
+import { Store, LogIn, LogOut } from 'lucide-react';
 import { useOpenShift } from '@/hooks/pos/useShift';
+import { useLogout } from '@/hooks/auth/useAuth';
 import { formatPrice } from '@/lib/utils';
 
 const schema = z.object({
@@ -36,6 +37,7 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
   });
 
   const openShiftMutation = useOpenShift(onOpened);
+  const { mutate: logout, isPending: loggingOut } = useLogout();
   const openingCash = watch('openingCash');
 
   const handleQuick = (amount: number) => {
@@ -124,14 +126,25 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
           </div>
 
           {/* Submit */}
-          <button
-            type="submit"
-            disabled={openShiftMutation.isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 disabled:opacity-60"
-          >
-            <LogIn className="h-4 w-4" />
-            {openShiftMutation.isPending ? 'Ochilmoqda...' : 'Smenani ochish'}
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => logout()}
+              disabled={loggingOut}
+              className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 py-3.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-60"
+            >
+              <LogOut className="h-4 w-4" />
+              {loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}
+            </button>
+            <button
+              type="submit"
+              disabled={openShiftMutation.isPending}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 disabled:opacity-60"
+            >
+              <LogIn className="h-4 w-4" />
+              {openShiftMutation.isPending ? 'Ochilmoqda...' : 'Smenani ochish'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
