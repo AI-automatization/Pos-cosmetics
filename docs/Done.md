@@ -349,6 +349,8 @@
 | B-046 | 2026-03-29 | FRONTEND | split 400: nol miqdorli to'lovlar filter `p.amount > 0` | sales.api.ts |
 | B-047 | 2026-04-25 | MOBILE | `metro.config.js` Expo 54 hardcoded path lari Expo 55 ga yangilandi — `@expo+metro-config@54.0.14` → `@expo/metro-config` (package resolution), RN 0.81.5 force paths o'chirildi, `extraNodeModules` soddalashtirildi | apps/mobile/metro.config.js |
 | B-048 | 2026-04-25 | MOBILE | `@react-native-async-storage/async-storage@2.2.0` `package.json` da yo'q edi — `npx expo install` + `pod install` bajarildi, NativeModule null xatosi bartaraf etildi | apps/mobile/package.json, apps/mobile/ios/ |
+| B-049 | 2026-04-25 | MOBILE | T-350: Login slug bundle muammosi — `expo run:ios` rebuild, `main.ts` `0.0.0.0` bind, `.env.local` IP yangilandi (`172.20.10.3`→`10.29.141.253`), login muvaffaqiyatli | apps/mobile/.env.local, apps/api/src/main.ts |
+| B-050 | 2026-04-25 | MOBILE | T-351: DEV skip login tugmasi `{__DEV__ && (...)}` allaqachon to'g'ri o'ralgan — tasdiqlandi, o'zgartirish kerak emas | apps/mobile/src/screens/Auth/LoginScreen.tsx |
 | BUG-001 | 2026-03-02 | BACKEND | `::uuid` cast xatosi: Prisma $queryRaw da `${tenantId}::uuid` → DB TEXT type bilan mos kelmaydi. Barcha `::uuid` castlar olib tashlandi | inventory.service.ts |
 | BUG-002 | 2026-03-02 | BACKEND | Noto'g'ri ustun nomlari: `oi.total_price` → `oi.total`, `o.total_amount` → `o.total` | ai.service.ts |
 | BUG-003 | 2026-03-02 | BACKEND | OrderStatus enum: `CANCELLED` yo'q, raw SQL da `enum::text` cast kerak. `NOT IN ('CANCELLED','VOIDED')` → `::text = 'COMPLETED'` | ai.service.ts, reports.service.ts, cron.service.ts |

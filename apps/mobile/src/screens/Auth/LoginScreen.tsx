@@ -106,7 +106,7 @@ export default function LoginScreen({ navigation }: Props) {
           <View style={styles.form}>
 
             {/* Tenant Slug */}
-            <Text style={styles.label}>Tashkilot kodi</Text>
+            <Text style={styles.label}>Tashkilot kodi (slug)</Text>
             <View style={[styles.inputWrapper, focusedField === 'slug' && styles.inputWrapperFocused]}>
               <Feather name="briefcase" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput

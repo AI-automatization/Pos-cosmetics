@@ -84,7 +84,7 @@ async function bootstrap() {
 
   // Start — PORT injectится Railway/Docker, API_PORT для локальной разработки
   const port = config.get<number>('PORT') ?? config.get<number>('API_PORT', 3000);
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`RAOS API v1 running on http://localhost:${port}/${prefix}`, 'Bootstrap');
   logger.log(`Swagger docs: http://localhost:${port}/${prefix}/docs`, 'Bootstrap');
 }

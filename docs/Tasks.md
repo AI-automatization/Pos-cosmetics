@@ -132,17 +132,7 @@
 
 ---
 
-## T-350 | P1 | [MOBILE] | Login ekrani — "Tashkilot kodi" (slug) maydoni ko'rinmaydi, login ishlamaydi
 
-- **Sana:** 2026-04-25
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Auth/LoginScreen.tsx`
-- **Muammo:** Simulatorda o'rnatilgan app eski bundle ishlatyapti. Yangi `LoginScreen.tsx` kodida `Tashkilot kodi` (slug) maydoni bor, lekin eski bundle da yo'q. API `POST /auth/login` uchun `slug` majburiy — form yubormagani sababli `"Kutilmagan xato"` chiqmoqda, login qilib bo'lmaydi.
-- **Kutilgan:** Login formida `Tashkilot kodi` maydoni ko'rinadi, foydalanuvchi slug kiritib muvaffaqiyatli login qiladi.
-- **Yechim:** `expo run:ios` bilan to'liq rebuild va yangi bundle o'rnatish. Simulator da yangi build ishga tushirilishi kerak.
-- **Topildi:** Visual QA sessiyasi (Abdulaziz, 2026-04-25)
-
----
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
@@ -168,15 +158,6 @@
 - **Kutilgan:** Admin planlarni boshqara oladi, MRR/ARR ko'ra oladi, obunalarni override qila oladi
 
 ---
-
-## T-351 | P2 | [MOBILE] | Login ekrani — "DEV: Skip Login" tugmasi production da ko'rinmasligi kerak
-
-- **Sana:** 2026-04-25
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Auth/LoginScreen.tsx`
-- **Muammo:** "DEV: Skip Login" tugmasi login ekranida ko'rinib turibdi. Agar `__DEV__` guard bilan himoyalanmagan bo'lsa, release build da ham ko'rinadi — xavfsizlik xatari.
-- **Kutilgan:** Tugma faqat `__DEV__ === true` bo'lganda render qilinishi kerak. Production/release build da mutlaqo ko'rinmasin.
-- **Topildi:** Visual QA sessiyasi (Abdulaziz, 2026-04-25)
 
 ---
 
