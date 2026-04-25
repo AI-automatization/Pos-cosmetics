@@ -73,7 +73,7 @@ const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Katalog', tKey: 'nav.catalog',
         icon: Package,
-        roles: ['ADMIN', 'MANAGER', 'VIEWER'],
+        roles: ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'],
         children: [
           { label: 'Mahsulotlar', tKey: 'nav.products', href: '/catalog/products' },
           { label: 'Kategoriyalar', tKey: 'nav.categories', href: '/catalog/categories' },
@@ -83,7 +83,7 @@ const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Inventar', tKey: 'nav.inventory',
         icon: Warehouse,
-        roles: ['ADMIN', 'MANAGER', 'VIEWER'],
+        roles: ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'],
         children: [
           { label: 'Zaxira holati', tKey: 'nav.stockLevels', href: '/inventory' },
           { label: 'Kam zaxira', tKey: 'nav.lowStock', href: '/inventory/low-stock' },
