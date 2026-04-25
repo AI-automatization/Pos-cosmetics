@@ -29,6 +29,8 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         payments = [{ method: 'CARD', amount: total }];
       } else if (paymentMethod === 'nasiya') {
         payments = [{ method: 'NASIYA', amount: total }];
+      } else if (paymentMethod === 'bonus') {
+        payments = [{ method: 'BONUS', amount: total }];
       } else {
         // split — include all non-zero components
         payments = (
@@ -43,6 +45,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
 
       const needsCustomer =
         paymentMethod === 'nasiya' ||
+        paymentMethod === 'bonus' ||
         (paymentMethod === 'split' && (splitNasiyaAmount > 0 || bonusPoints > 0));
 
       return salesApi.createOrder({
@@ -57,6 +60,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         orderDiscountType,
         payments,
         ...(needsCustomer && selectedCustomer ? { customerId: selectedCustomer.id } : {}),
+        ...(bonusPoints > 0 ? { bonusPoints } : {}),
       });
     },
     onSuccess: (order) => {
@@ -131,6 +135,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
     if (paymentMethod === 'cash') return cashAmount >= total;
     if (paymentMethod === 'card') return true;
     if (paymentMethod === 'nasiya') return selectedCustomer !== null && !selectedCustomer.isBlocked;
+    if (paymentMethod === 'bonus') return selectedCustomer !== null && !selectedCustomer.isBlocked && bonusPoints > 0;
     // split: sum of all parts must cover total; if nasiya or bonus part present, customer required
     const covered = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * redeemRate;
     const needsCustomer = splitNasiyaAmount > 0 || bonusPoints > 0;

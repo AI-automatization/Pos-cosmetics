@@ -52,7 +52,8 @@ export interface CreateOrderDto {
   orderDiscount: number;
   orderDiscountType: DiscountType;
   payments: PaymentEntryDto[];
-  customerId?: string; // nasiya uchun MAJBURIY
+  customerId?: string; // nasiya/bonus uchun MAJBURIY
+  bonusPoints?: number; // bonus yechish uchun (loyalty redeem)
   note?: string;
 }
 
