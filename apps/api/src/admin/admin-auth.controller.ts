@@ -12,6 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -42,6 +43,7 @@ export class AdminAuthController {
   // ─── PUBLIC: Login ─────────────────────────────────────────────
   @Public()
   @Post('auth/login')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Super Admin tizimga kirishi' })
   login(@Body() dto: AdminLoginDto) {
@@ -51,6 +53,7 @@ export class AdminAuthController {
   // ─── BOOTSTRAP: Birinchi Super Admin yaratish ──────────────────
   @Public()
   @Post('auth/bootstrap')
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Birinchi Super Admin yaratish (ADMIN_BOOTSTRAP_SECRET kerak)' })
   bootstrap(@Body() dto: AdminCreateDto, @Headers('x-bootstrap-secret') secret: string) {
@@ -60,6 +63,7 @@ export class AdminAuthController {
   // ─── BOOTSTRAP: User parolini reset qilish ─────────────────────
   @Public()
   @Post('auth/reset-password')
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User parolini reset qilish (ADMIN_BOOTSTRAP_SECRET kerak)' })
   resetUserPassword(
@@ -308,7 +312,8 @@ export class AdminAuthController {
   // ─── T-094: Dead Letter Queue ──────────────────────────────────────────────
 
   @Get('dlq')
-  @UseGuards(SuperAdminGuard)
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Failed jobs (DLQ) royxati' })
   @ApiQuery({ name: 'queue', required: false, description: 'Queue nomi filtri' })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 50 })
@@ -323,14 +328,16 @@ export class AdminAuthController {
   }
 
   @Get('dlq/count')
-  @UseGuards(SuperAdminGuard)
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'DLQ — failed job soni (queue bo\'yicha)' })
   getDlqCount() {
     return this.queueService.getDlqCount();
   }
 
   @Post('dlq/:queue/:jobId/retry')
-  @UseGuards(SuperAdminGuard)
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Failed jobni qayta urinish' })
   retryDlqJob(
@@ -341,7 +348,8 @@ export class AdminAuthController {
   }
 
   @Delete('dlq/:queue/:jobId')
-  @UseGuards(SuperAdminGuard)
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Failed jobni ochirish (dismiss)' })
   dismissDlqJob(
     @Param('queue') queue: string,
