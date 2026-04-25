@@ -160,7 +160,8 @@ export function CustomerSearchModal({ onSelect, onClose }: CustomerSearchModalPr
   };
 
   const onCreateSubmit = (data: CreateForm) => {
-    createCustomer.mutate({ name: data.name, phone: cleanPhone });
+    const fullPhone = cleanPhone.startsWith('998') ? `+${cleanPhone}` : `+998${cleanPhone}`;
+    createCustomer.mutate({ name: data.name, phone: fullPhone });
   };
 
   return (
