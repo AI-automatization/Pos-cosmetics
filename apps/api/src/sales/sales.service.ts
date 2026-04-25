@@ -63,8 +63,9 @@ export class SalesService {
   }
 
   async closeShift(tenantId: string, userId: string, shiftId: string, dto: CloseShiftDto) {
+    // userId filter olib tashlandi — admin/manager ham smenani yopa olishi kerak
     const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, tenantId, userId, status: ShiftStatus.OPEN },
+      where: { id: shiftId, tenantId, status: ShiftStatus.OPEN },
     });
     if (!shift) throw new NotFoundException(`Open shift ${shiftId} not found`);
 
