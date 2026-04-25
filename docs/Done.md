@@ -1,5 +1,74 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-04-22
+# Yangilangan: 2026-04-25
+
+---
+
+## T-387 | 2026-04-25 | [SECURITY] | Super Admin hardening
+
+- **Yechim:** 3 ta xavfsizlik tuzatish:
+  1. SQL Console — DDL (DROP/ALTER/TRUNCATE/CREATE) taqiqlandi + audit log kengaytirildi
+  2. DLQ endpoints — JwtAuthGuard + ApiBearerAuth qo'shildi (4 ta endpoint)
+  3. Login/Bootstrap/Reset — @Throttle qo'shildi (5/3/3 req/min)
+- **JWT localStorage** — alohida P2 task (katta refactor, httpOnly cookie ga o'tish kerak)
+- **Fayl:** `admin-auth.controller.ts`, `admin-database.service.ts`
+
+---
+
+## T-388 | 2026-04-25 | [BACKEND] | Fiscal worker — tenant isolation + retry logic
+
+- **Yechim:** Commit `a714bb1` da allaqachon fix qilingan:
+  1. `updateMany()` + `tenantId` filter (cross-tenant fix)
+  2. FAILED status faqat oxirgi attemptda
+  3. 3 attempts, exponential backoff (2s)
+  4. `fiscalStatus === 'SENT'` check → idempotent
+- **Fayl:** `apps/worker/src/workers/fiscal.worker.ts`
+
+---
+
+## T-389 | 2026-04-25 | [SECURITY] | Cookie namespace collision — sa_ prefix
+
+- **Yechim:** Super-admin da barcha localStorage/cookie nomlari `sa_` prefix bilan ajratildi:
+  - `access_token` → `sa_access_token`
+  - `admin_id` → `sa_admin_id`, `admin_role` → `sa_admin_role`
+  - `session_active` → `sa_session_active`, `user_role` → `sa_user_role`
+- **Fayl:** `apps/super-admin/src/` — 5 ta fayl (client.ts, useAuth.ts, FounderSidebar.tsx, login/page.tsx, middleware.ts)
+
+---
+
+## T-390 | 2026-04-25 | [BACKEND] | Migration SKU update — prisma rules qo'shildi
+
+- **Yechim:** Migration allaqachon qo'llanilgan. Kelajakdagi migratsiyalar uchun backup qoidasi `.claude/rules/backend/prisma.md` ga qo'shildi
+- **Fayl:** `.claude/rules/backend/prisma.md`
+
+---
+
+## 2026-04-25 | [FRONTEND] | Branch comparison — real data
+
+- **Yechim:** Demo data olib tashlanib, `GET /analytics/branch-comparison` + `GET /analytics/sales-trend` ga ulandi
+- **Fayl:** `apps/web/src/app/(admin)/reports/branches/page.tsx`
+
+---
+
+## 2026-04-25 | [FRONTEND] | Audit log — real data
+
+- **Yechim:** Demo data olib tashlanib, `GET /audit-logs` ga ulandi (pagination, action filter)
+- **Fayl:** `apps/web/src/app/(admin)/settings/audit-log/page.tsx`
+
+---
+
+## 2026-04-25 | [FRONTEND] | POS Cashier Panel overhaul
+
+- **Yechim:**
+  1. ShiftOpenModal — "Chiqish" tugmasi qo'shildi
+  2. Payment system — BONUS → `/loyalty/redeem`, NASIYA → `/nasiya` + DEBT intent
+  3. Split payment — bonus/nasiya alohida handle, CASH/CARD → `/payments/split`
+  4. Shift close — userId filter olib tashlandi + 404 da store tozalanadi
+  5. PaymentPanel scroll fix — F10 tugma doim ko'rinadi
+  6. CustomerSearchModal — phone null crash fix + +998 prefix
+  7. Sidebar — OWNER uchun Katalog va Inventar ko'rsatildi
+  8. UpdateProductDto — `extraBarcodes` field qo'shildi
+  9. Warehouse stock-in — input clearable, validation toast, phone +998
+- **Fayllar:** 15+ fayl (POS, API, warehouse, sidebar)
 
 ---
 
