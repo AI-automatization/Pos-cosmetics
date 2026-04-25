@@ -25,6 +25,12 @@ paths:
 - `npx prisma validate` — Schema tekshirish
 - HECH QACHON: `prisma migrate reset` — BARCHA DATA YO'QOLADI
 
+## Migration Safety (T-390 dan olingan qoida)
+- Data UPDATE/DELETE qiladigan migratsiyalarda avval backup column yaratish
+- Masalan: `ALTER TABLE ADD COLUMN old_sku TEXT` → eski qiymatni saqlash
+- Yoki: `CREATE TABLE _backup_sku AS SELECT id, sku FROM products`
+- Backup siz bulk UPDATE — POS/scanner buzilishi xavfi
+
 ## Quirks (Windows)
 - `incremental: false` in tsconfig — stale tsbuildinfo fix
 - DLL lock: kill node process first, then `prisma generate`

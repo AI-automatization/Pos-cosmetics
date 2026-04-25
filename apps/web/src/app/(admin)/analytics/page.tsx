@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import {
-  AreaChart, Area, BarChart, Bar, Cell,
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import {
-  TrendingUp, Package, Users, AlertTriangle, Activity,
+  TrendingUp, Package, Users, AlertTriangle, Layers, Activity,
   X, Search, ShoppingCart, DollarSign, BarChart3,
 } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
@@ -17,10 +17,15 @@ import {
   useAnalyticsSalesTrend,
   useAnalyticsTopProducts,
   useAnalyticsDeadStock,
+  useAnalyticsMargin,
+  useAnalyticsAbc,
   useAnalyticsCashierPerf,
+  useAnalyticsHeatmap,
 } from '@/hooks/analytics/useAnalytics';
 
 /* ─── Constants ─── */
+
+const DOW_LABELS = ['Yak', 'Du', 'Se', 'Ch', 'Pa', 'Sh', 'Sha'];
 
 const CHART_COLORS = [
   '#6366f1', '#8b5cf6', '#a855f7', '#ec4899',
@@ -28,13 +33,20 @@ const CHART_COLORS = [
   '#14b8a6', '#06b6d4', '#3b82f6', '#2563eb',
 ];
 
-type Tab = 'trend' | 'products' | 'cashiers' | 'deadstock';
+const ABC_COLORS: Record<'A' | 'B' | 'C', string> = {
+  A: '#22c55e', B: '#f59e0b', C: '#94a3b8',
+};
+
+type Tab = 'trend' | 'products' | 'margin' | 'cashiers' | 'heatmap' | 'deadstock' | 'abc';
 
 const TABS: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: 'trend', label: 'Sotuv trendi', icon: TrendingUp },
   { key: 'products', label: 'Top mahsulotlar', icon: BarChart3 },
+  { key: 'margin', label: 'Marja', icon: DollarSign },
+  { key: 'abc', label: 'ABC tahlil', icon: Layers },
   { key: 'cashiers', label: 'Kassirlar', icon: Users },
-  { key: 'deadstock', label: 'Harakatsiz tovar', icon: AlertTriangle },
+  { key: 'heatmap', label: 'Soatlik', icon: Activity },
+  { key: 'deadstock', label: 'Harakatsiz', icon: AlertTriangle },
 ];
 
 /* ─── Custom Tooltip ─── */
@@ -131,7 +143,10 @@ export default function AnalyticsPage() {
   const { data: trend = [], isLoading: loadingTrend } = useAnalyticsSalesTrend(period, days, bid);
   const { data: topProducts = [], isLoading: loadingProducts } = useAnalyticsTopProducts(days, 'revenue', 20, bid);
   const { data: deadStock = [], isLoading: loadingDead } = useAnalyticsDeadStock(90, bid);
+  const { data: marginData = [], isLoading: loadingMargin } = useAnalyticsMargin(days, bid);
+  const { data: abcData = [], isLoading: loadingAbc } = useAnalyticsAbc(days, bid);
   const { data: cashiers = [], isLoading: loadingCashiers } = useAnalyticsCashierPerf(days, bid);
+  const { data: heatmap = [], isLoading: loadingHeatmap } = useAnalyticsHeatmap(days, bid);
 
   const totalRevenue = trend.reduce((s, d) => s + (d.revenue ?? 0), 0);
   const totalOrders = trend.reduce((s, d) => s + (d.orders ?? 0), 0);
@@ -139,6 +154,10 @@ export default function AnalyticsPage() {
   const avgBasket = trend.length > 0
     ? Math.round(trend.reduce((s, d) => s + (d.avgBasket ?? 0), 0) / trend.length)
     : 0;
+
+  const heatmapMax = heatmap.reduce((m, c) => Math.max(m, c.ordersCount), 1);
+  const heatmapGrid: Record<string, number> = {};
+  heatmap.forEach((c) => { heatmapGrid[`${c.dow}-${c.hour}`] = c.ordersCount; });
 
   /* Products pagination */
   const [productsPage, setProductsPage] = useState(0);
@@ -379,7 +398,7 @@ export default function AnalyticsPage() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          {['#', 'Mahsulot', 'Sotildi', 'Daromad', 'Foyda'].map((h) => (
+                          {['#', 'Mahsulot', 'Sotildi', 'Daromad', 'Marja'].map((h) => (
                             <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                               {h}
                             </th>
@@ -426,6 +445,159 @@ export default function AnalyticsPage() {
                       ))}
                     </div>
                   )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* === MARGIN === */}
+          {tab === 'margin' && (
+            <div className="space-y-4">
+              <h2 className="text-base font-semibold text-gray-900">Marja tahlili</h2>
+              {loadingMargin ? (
+                <LoadingSkeleton variant="table" rows={6} />
+              ) : marginData.length === 0 ? (
+                <EmptyState label="Ma'lumotlar topilmadi" />
+              ) : (
+                <>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={marginData.slice(0, 10)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <XAxis dataKey="productName" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} interval={0} angle={-20} textAnchor="end" height={55} />
+                      <YAxis tickFormatter={(v) => `${Number(v)}%`} tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
+                        formatter={(v, name) =>
+                          name === 'Marja %' ? `${Number(v).toFixed(1)}%` : formatPrice(Number(v))
+                        }
+                      />
+                      <Bar dataKey="marginPct" name="Marja %" radius={[8, 8, 0, 0]} barSize={32}>
+                        {marginData.slice(0, 10).map((_, i) => (
+                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="max-h-80 overflow-y-auto rounded-xl border border-gray-100">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-gray-50">
+                        <tr>
+                          {['Mahsulot', 'Kategoriya', 'Daromad', 'Tannarx', 'Foyda', 'Marja'].map((h) => (
+                            <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {marginData.map((m) => (
+                          <tr key={m.productId} className="transition hover:bg-gray-50/80">
+                            <td className="px-4 py-3 font-medium text-gray-900">{m.productName}</td>
+                            <td className="px-4 py-3 text-xs text-gray-400">{m.categoryName ?? '—'}</td>
+                            <td className="px-4 py-3 text-gray-900">{formatPrice(m.revenue)}</td>
+                            <td className="px-4 py-3 text-gray-500">{formatPrice(m.costTotal)}</td>
+                            <td className="px-4 py-3 font-medium text-emerald-600">{formatPrice(m.grossProfit)}</td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={cn(
+                                  'inline-flex rounded-full px-2.5 py-1 text-xs font-bold',
+                                  m.marginPct >= 30 ? 'bg-emerald-50 text-emerald-700'
+                                    : m.marginPct >= 15 ? 'bg-amber-50 text-amber-700'
+                                    : 'bg-red-50 text-red-600',
+                                )}
+                              >
+                                {Number(m.marginPct).toFixed(1)}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* === ABC === */}
+          {tab === 'abc' && (
+            <div className="space-y-5">
+              <h2 className="text-base font-semibold text-gray-900">ABC tahlil</h2>
+              {loadingAbc ? (
+                <LoadingSkeleton variant="table" rows={4} />
+              ) : abcData.length === 0 ? (
+                <EmptyState label="Ma'lumotlar topilmadi" />
+              ) : (
+                <>
+                  {/* Donut + cards */}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={abcData.map((g) => ({ name: `Guruh ${g.group}`, value: g.totalRevenue ?? 0 }))}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={65}
+                            outerRadius={100}
+                            paddingAngle={4}
+                            dataKey="value"
+                            strokeWidth={0}
+                          >
+                            {abcData.map((g) => (
+                              <Cell key={g.group} fill={ABC_COLORS[g.group]} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
+                            formatter={(v) => formatPrice(Number(v))}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex flex-col justify-center gap-3">
+                      {abcData.map((g) => (
+                        <div
+                          key={g.group}
+                          className="flex items-center gap-4 rounded-2xl border p-4 transition hover:shadow-md"
+                          style={{ borderColor: ABC_COLORS[g.group] + '40' }}
+                        >
+                          <span className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl font-black text-white shadow-sm"
+                            style={{ backgroundColor: ABC_COLORS[g.group] }}
+                          >
+                            {g.group}
+                          </span>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-900">{formatPrice(g.totalRevenue ?? 0)}</p>
+                            <p className="text-xs text-gray-500">{(g.products ?? []).length} mahsulot</p>
+                          </div>
+                          <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold text-gray-700">
+                            {Number(g.revenueShare).toFixed(0)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Product lists */}
+                  {abcData.map((g) => (
+                    <div key={g.group}>
+                      <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: ABC_COLORS[g.group] }} />
+                        Guruh {g.group}
+                      </h3>
+                      <div className="max-h-48 overflow-y-auto rounded-xl border border-gray-100">
+                        <table className="w-full text-sm">
+                          <tbody className="divide-y divide-gray-50">
+                            {(g.products ?? []).slice(0, 8).map((p) => (
+                              <tr key={p.productId} className="transition hover:bg-gray-50/80">
+                                <td className="px-4 py-2.5 font-medium text-gray-900">{p.productName}</td>
+                                <td className="px-4 py-2.5 text-right font-semibold text-gray-900">{formatPrice(p.revenue)}</td>
+                                <td className="px-4 py-2.5 text-right text-xs text-gray-400">{Number(p.pct).toFixed(1)}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
                 </>
               )}
             </div>
@@ -502,6 +674,62 @@ export default function AnalyticsPage() {
                       ))}
                   </div>
                 </>
+              )}
+            </div>
+          )}
+
+          {/* === HEATMAP === */}
+          {tab === 'heatmap' && (
+            <div className="space-y-4">
+              <h2 className="text-base font-semibold text-gray-900">Soatlik faoliyat xaritasi</h2>
+              {loadingHeatmap ? (
+                <LoadingSkeleton variant="line" className="h-56" />
+              ) : heatmap.length === 0 ? (
+                <EmptyState label="Ma'lumotlar topilmadi" />
+              ) : (
+                <div className="overflow-x-auto">
+                  <div className="min-w-max">
+                    <div className="mb-1.5 ml-14 flex gap-1">
+                      {Array.from({ length: 24 }, (_, h) => (
+                        <div key={h} className="w-8 text-center text-[10px] font-medium text-gray-400">{h}:00</div>
+                      ))}
+                    </div>
+                    {DOW_LABELS.map((dow, di) => (
+                      <div key={dow} className="mb-1 flex items-center gap-1">
+                        <div className="w-12 pr-2 text-right text-xs font-medium text-gray-500">{dow}</div>
+                        {Array.from({ length: 24 }, (_, h) => {
+                          const count = heatmapGrid[`${di}-${h}`] ?? 0;
+                          const intensity = count / heatmapMax;
+                          return (
+                            <div
+                              key={h}
+                              title={`${dow} ${h}:00 — ${count} buyurtma`}
+                              className="h-8 w-8 rounded-lg transition-all hover:scale-110 hover:shadow-sm"
+                              style={{
+                                backgroundColor: count === 0
+                                  ? '#f8fafc'
+                                  : `rgba(99, 102, 241, ${0.1 + intensity * 0.85})`,
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))}
+                    <div className="mt-4 ml-14 flex items-center gap-2 text-xs text-gray-400">
+                      <span>Kam</span>
+                      <div className="flex gap-0.5">
+                        {[0.1, 0.25, 0.45, 0.65, 0.85].map((op) => (
+                          <div
+                            key={op}
+                            className="h-5 w-5 rounded-md"
+                            style={{ backgroundColor: `rgba(99, 102, 241, ${op})` }}
+                          />
+                        ))}
+                      </div>
+                      <span>Ko&apos;p</span>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -590,6 +818,37 @@ export default function AnalyticsPage() {
           )}
 
         </div>
+
+        {/* ── ABC Quick Summary (when not on ABC tab) ── */}
+        {!loadingAbc && abcData.length > 0 && tab !== 'abc' && (
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+            <div className="mb-3 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-gray-400" />
+              <h3 className="text-sm font-semibold text-gray-900">ABC — tezkor ko&apos;rinish</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {abcData.map((g) => (
+                <div
+                  key={g.group}
+                  className="rounded-xl border p-4 text-center transition hover:shadow-sm"
+                  style={{
+                    borderColor: ABC_COLORS[g.group] + '30',
+                    backgroundColor: ABC_COLORS[g.group] + '08',
+                  }}
+                >
+                  <span className="text-2xl font-black" style={{ color: ABC_COLORS[g.group] }}>
+                    {g.group}
+                  </span>
+                  <p className="mt-1 text-xs text-gray-500">{(g.products ?? []).length} mahsulot</p>
+                  <p className="text-xs font-bold text-gray-700">
+                    {Number(g.revenueShare).toFixed(0)}%
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
