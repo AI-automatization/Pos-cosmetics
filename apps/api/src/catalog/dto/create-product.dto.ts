@@ -167,6 +167,11 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   costCurrency?: string;
+
+  @ApiPropertyOptional({ type: [String], description: 'Extra barcodes' })
+  @IsOptional()
+  @IsString({ each: true })
+  extraBarcodes?: string[];
 }
 
 export class ProductFilterDto {
