@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -10,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -18,6 +20,8 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { AdminDatabaseService } from './admin-database.service';
+
+interface AdminRequest { user?: { role?: string } }
 
 @ApiTags('Super Admin — Database')
 @ApiBearerAuth()
@@ -50,6 +54,7 @@ export class AdminDatabaseController {
   @ApiQuery({ name: 'search', required: false, type: String })
   getTableData(
     @Param('tableName') tableName: string,
+    @Req() req: AdminRequest,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('tenantId') tenantId?: string,
@@ -57,6 +62,10 @@ export class AdminDatabaseController {
     @Query('sortDir') sortDir?: string,
     @Query('search') search?: string,
   ) {
+    // T-391: SUPPORT role — tenantId MAJBURIY (tenant leak oldini olish)
+    if (req.user?.role === 'SUPPORT' && !tenantId) {
+      throw new BadRequestException('SUPPORT role uchun tenantId parametri majburiy');
+    }
     return this.dbService.getTableData(tableName, {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
@@ -85,8 +94,13 @@ export class AdminDatabaseController {
   async exportTable(
     @Param('tableName') tableName: string,
     @Query('tenantId') tenantId: string | undefined,
+    @Req() req: AdminRequest,
     @Res() res: Response,
   ) {
+    // T-391: SUPPORT role — tenantId MAJBURIY
+    if (req.user?.role === 'SUPPORT' && !tenantId) {
+      throw new BadRequestException('SUPPORT role uchun tenantId parametri majburiy');
+    }
     const csv = await this.dbService.exportTable(tableName, tenantId);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${tableName}.csv"`);
@@ -191,7 +205,11 @@ export class AdminDatabaseController {
       },
     },
   })
-  executeQuery(@Body('sql') sql: string) {
+  executeQuery(@Body('sql') sql: string, @Req() req: AdminRequest) {
+    // T-391: SUPPORT role — SQL console taqiqlangan
+    if (req.user?.role === 'SUPPORT') {
+      throw new BadRequestException('SUPPORT role uchun SQL console taqiqlangan. Faqat SUPER_ADMIN ishlatishi mumkin.');
+    }
     return this.dbService.executeQuery(sql);
   }
 }
