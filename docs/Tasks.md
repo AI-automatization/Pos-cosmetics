@@ -131,6 +131,18 @@
 - **Kutilgan:** Butun Founder Panel 100% Ruscha
 
 ---
+
+## T-350 | P1 | [MOBILE] | Login ekrani — "Tashkilot kodi" (slug) maydoni ko'rinmaydi, login ishlamaydi
+
+- **Sana:** 2026-04-25
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Auth/LoginScreen.tsx`
+- **Muammo:** Simulatorda o'rnatilgan app eski bundle ishlatyapti. Yangi `LoginScreen.tsx` kodida `Tashkilot kodi` (slug) maydoni bor, lekin eski bundle da yo'q. API `POST /auth/login` uchun `slug` majburiy — form yubormagani sababli `"Kutilmagan xato"` chiqmoqda, login qilib bo'lmaydi.
+- **Kutilgan:** Login formida `Tashkilot kodi` maydoni ko'rinadi, foydalanuvchi slug kiritib muvaffaqiyatli login qiladi.
+- **Yechim:** `expo run:ios` bilan to'liq rebuild va yangi bundle o'rnatish. Simulator da yangi build ishga tushirilishi kerak.
+- **Topildi:** Visual QA sessiyasi (Abdulaziz, 2026-04-25)
+
+---
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
@@ -154,6 +166,17 @@
   - Frontend: `/founder/billing` — KPI kartalar, pie chart, plan CRUD, subscription table
 - **Eslatma:** Payme/Click integratsiya hali yo'q (T-107). Hozircha faqat manual subscription management.
 - **Kutilgan:** Admin planlarni boshqara oladi, MRR/ARR ko'ra oladi, obunalarni override qila oladi
+
+---
+
+## T-351 | P2 | [MOBILE] | Login ekrani — "DEV: Skip Login" tugmasi production da ko'rinmasligi kerak
+
+- **Sana:** 2026-04-25
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Auth/LoginScreen.tsx`
+- **Muammo:** "DEV: Skip Login" tugmasi login ekranida ko'rinib turibdi. Agar `__DEV__` guard bilan himoyalanmagan bo'lsa, release build da ham ko'rinadi — xavfsizlik xatari.
+- **Kutilgan:** Tugma faqat `__DEV__ === true` bo'lganda render qilinishi kerak. Production/release build da mutlaqo ko'rinmasin.
+- **Topildi:** Visual QA sessiyasi (Abdulaziz, 2026-04-25)
 
 ---
 
@@ -252,26 +275,26 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **12** | **0** | **0** | **6** | **6** |
+| **14** | **0** | **1** | **7** | **6** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | [BACKEND] | 0 | 0 | 0 | 5 | **5** |
-| [FRONTEND] | 0 | 0 | 0 | 0 | **0** |
-| [MOBILE] | 0 | 0 | 3 | 0 | **3** |
+| [FRONTEND] | 0 | 0 | 2 | 0 | **2** |
+| [MOBILE] | 0 | 1 | 1 | 0 | **2** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 0 | 0 | 0 | 0 | **0** |
-| **Abdulaziz** (Mobile) | 0 | 0 | 3 | 0 | **3** |
+| **Ibrat** (Full-Stack) | 0 | 0 | 3 | 0 | **3** |
+| **Abdulaziz** (Mobile) | 0 | 1 | 1 | 0 | **2** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
-> Yangilangan: 2026-04-21 — T-345 bajarildi
+> Yangilandi: 2026-04-25 — T-350 (P1, login slug), T-351 (P2, DEV button) qo'shildi; B-047, B-048 Done.md ga ko'chirildi
 
 ---
 

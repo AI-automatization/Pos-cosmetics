@@ -347,6 +347,8 @@
 | B-044 | 2026-03-29 | BACKEND | "Jami qarz" 0: `findAll` `debtRecord.groupBy` aggregation qo'shildi | customers.service.ts |
 | B-045 | 2026-03-29 | FRONTEND | POS stock salbiy: `Math.max(0, currentStock)` | ProductSearch.tsx |
 | B-046 | 2026-03-29 | FRONTEND | split 400: nol miqdorli to'lovlar filter `p.amount > 0` | sales.api.ts |
+| B-047 | 2026-04-25 | MOBILE | `metro.config.js` Expo 54 hardcoded path lari Expo 55 ga yangilandi — `@expo+metro-config@54.0.14` → `@expo/metro-config` (package resolution), RN 0.81.5 force paths o'chirildi, `extraNodeModules` soddalashtirildi | apps/mobile/metro.config.js |
+| B-048 | 2026-04-25 | MOBILE | `@react-native-async-storage/async-storage@2.2.0` `package.json` da yo'q edi — `npx expo install` + `pod install` bajarildi, NativeModule null xatosi bartaraf etildi | apps/mobile/package.json, apps/mobile/ios/ |
 | BUG-001 | 2026-03-02 | BACKEND | `::uuid` cast xatosi: Prisma $queryRaw da `${tenantId}::uuid` → DB TEXT type bilan mos kelmaydi. Barcha `::uuid` castlar olib tashlandi | inventory.service.ts |
 | BUG-002 | 2026-03-02 | BACKEND | Noto'g'ri ustun nomlari: `oi.total_price` → `oi.total`, `o.total_amount` → `o.total` | ai.service.ts |
 | BUG-003 | 2026-03-02 | BACKEND | OrderStatus enum: `CANCELLED` yo'q, raw SQL da `enum::text` cast kerak. `NOT IN ('CANCELLED','VOIDED')` → `::text = 'COMPLETED'` | ai.service.ts, reports.service.ts, cron.service.ts |
