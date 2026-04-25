@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { warehouseApi, CreateInvoiceDto, WriteOffDto } from '@/api/warehouse.api';
 import { toast } from 'sonner';
+import { extractErrorMessage } from '@/lib/utils';
 
 export function useWarehouseInvoices(params?: { from?: string; to?: string; page?: number }) {
   return useQuery({
@@ -26,7 +27,7 @@ export function useCreateInvoice() {
       void qc.invalidateQueries({ queryKey: ['stock'] });
       toast.success('Nakladnoy saqlandi');
     },
-    onError: () => toast.error('Xato yuz berdi'),
+    onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });
 }
 

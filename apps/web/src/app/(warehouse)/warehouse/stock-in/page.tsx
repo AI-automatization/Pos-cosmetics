@@ -13,6 +13,7 @@ import { SearchableDropdown, type DropdownOption } from '@/components/ui/Searcha
 import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
 import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface ItemRow extends InvoiceItem {
   _key: number;
@@ -49,7 +50,7 @@ export default function StockInPage() {
   const [submitted, setSubmitted] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
-  const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
+  const [supplierForm, setSupplierForm] = useState({ name: '', phone: '+998', company: '', address: '' });
   const [supplierProductIds, setSupplierProductIds] = useState<string[]>([]);
   const [supplierProductSearch, setSupplierProductSearch] = useState('');
 
@@ -164,10 +165,15 @@ export default function StockInPage() {
 
   const handleCreateSupplier = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supplierForm.name.trim()) {
+      toast.error('Kontragent nomini kiriting');
+      return;
+    }
     createSupplier(
-      { name: supplierForm.name, phone: supplierForm.phone, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
+      { name: supplierForm.name.trim(), phone: supplierForm.phone || undefined, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
       {
         onSuccess: async (newSupplier) => {
+          toast.success('Kontragent yaratildi');
           // Link selected products to new supplier (fire-and-forget, best-effort)
           if (supplierProductIds.length > 0) {
             const { suppliersApi } = await import('@/api/suppliers.api');
@@ -175,7 +181,7 @@ export default function StockInPage() {
           }
           setSupplierId(newSupplier.id);
           setShowSupplierModal(false);
-          setSupplierForm({ name: '', phone: '', company: '', address: '' });
+          setSupplierForm({ name: '', phone: '+998', company: '', address: '' });
           setSupplierProductIds([]);
           setSupplierProductSearch('');
         },
@@ -186,6 +192,25 @@ export default function StockInPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+
+    const noProduct = items.filter((r) => !r.productId);
+    if (noProduct.length === items.length) {
+      toast.error('Kamida bitta mahsulot tanlang');
+      return;
+    }
+
+    const invalidQty = items.filter((r) => r.productId && r.quantity <= 0);
+    if (invalidQty.length > 0) {
+      toast.error('Miqdor 0 dan katta bo\'lishi kerak');
+      return;
+    }
+
+    const invalidPrice = items.filter((r) => r.productId && r.purchasePrice < 0);
+    if (invalidPrice.length > 0) {
+      toast.error('Narx manfiy bo\'lishi mumkin emas');
+      return;
+    }
+
     const valid = items.filter((r) => r.productId && r.quantity > 0 && r.purchasePrice >= 0);
     if (valid.length === 0) return;
 
@@ -194,7 +219,11 @@ export default function StockInPage() {
       note: note || undefined,
       supplierId: supplierId || undefined,
       items: valid.map(({ productId, quantity, purchasePrice, warehouseId, batchNumber, expiryDate }) => ({
-        productId, quantity, purchasePrice, warehouseId, batchNumber,
+        productId,
+        quantity: Math.max(1, Math.round(quantity)),
+        purchasePrice: Math.max(0, purchasePrice),
+        warehouseId: warehouseId || undefined,
+        batchNumber: batchNumber?.trim() || undefined,
         expiryDate: expiryDate || undefined,
       })),
     };
@@ -442,8 +471,9 @@ export default function StockInPage() {
                         <input
                           type="number"
                           min={1}
-                          value={row.quantity}
-                          onChange={(e) => updateRow(row._key, { quantity: Number(e.target.value) })}
+                          value={row.quantity || ''}
+                          placeholder="0"
+                          onChange={(e) => updateRow(row._key, { quantity: e.target.value === '' ? 0 : Number(e.target.value) })}
                           className={cn(
                             'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
                             qtyInvalid ? 'border-red-400' : 'border-gray-300',
@@ -454,8 +484,9 @@ export default function StockInPage() {
                         <input
                           type="number"
                           min={0}
-                          value={row.purchasePrice}
-                          onChange={(e) => updateRow(row._key, { purchasePrice: Number(e.target.value) })}
+                          value={row.purchasePrice || ''}
+                          placeholder="0"
+                          onChange={(e) => updateRow(row._key, { purchasePrice: e.target.value === '' ? 0 : Number(e.target.value) })}
                           className={cn(
                             'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
                             priceInvalid ? 'border-red-400' : 'border-gray-300',

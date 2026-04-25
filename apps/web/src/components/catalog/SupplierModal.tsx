@@ -32,7 +32,7 @@ export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
     resolver: zodResolver(supplierSchema),
     defaultValues: {
       name: supplier?.name ?? '',
-      phone: supplier?.phone ?? '',
+      phone: supplier?.phone ?? '+998',
       company: supplier?.company ?? '',
       address: supplier?.address ?? '',
     },
