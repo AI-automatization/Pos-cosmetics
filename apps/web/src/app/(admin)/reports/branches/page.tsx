@@ -1,137 +1,199 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from 'recharts';
-import { GitCompare, ArrowUpDown } from 'lucide-react';
+import { GitCompare, ArrowUpDown, TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { apiClient } from '@/api/client';
 
-// ─── Demo data ────────────────────────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────────────────────
 
-interface BranchStat {
-  id: string;
-  name: string;
-  city: string;
-  orders: number;
+interface BranchComparisonItem {
+  branchId: string;
+  branchName: string;
   revenue: number;
-  cogs: number;
-  expenses: number;
-  profit: number;
-  avgCheck: number;
-  cashiers: number;
-  topProduct: string;
+  orders: number;
+  avgOrderValue: number;
+  growth: number;
 }
 
-const BRANCHES: BranchStat[] = [
-  {
-    id: 'b-1', name: 'Chilonzor filiali', city: 'Toshkent',
-    orders: 312, revenue: 14_250_000, cogs: 8_700_000, expenses: 2_500_000,
-    profit: 3_050_000, avgCheck: 45_673, cashiers: 3, topProduct: 'Nivea Krem 150ml',
-  },
-  {
-    id: 'b-2', name: 'Yunusobod filiali', city: 'Toshkent',
-    orders: 248, revenue: 11_800_000, cogs: 7_200_000, expenses: 2_200_000,
-    profit: 2_400_000, avgCheck: 47_580, cashiers: 2, topProduct: 'Maybelline Pomada',
-  },
-  {
-    id: 'b-3', name: 'Sergeli filiali', city: 'Toshkent',
-    orders: 186, revenue: 7_950_000, cogs: 4_900_000, expenses: 1_800_000,
-    profit: 1_250_000, avgCheck: 42_742, cashiers: 2, topProduct: 'Dove Dezodorant',
-  },
+interface SalesTrendPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+type Period = 'today' | 'week' | 'month' | 'year';
+
+const PERIOD_OPTIONS = [
+  { value: 'today', label: 'Bugun' },
+  { value: 'week', label: 'Hafta' },
+  { value: 'month', label: 'Oy' },
+  { value: 'year', label: 'Yil' },
 ];
 
-// 7 kunlik trend
-const days = Array.from({ length: 7 }, (_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() - (6 - i));
-  return d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' });
-});
+type SortKey = 'revenue' | 'orders' | 'avgOrderValue' | 'growth';
 
-// Deterministic offsets to avoid SSR hydration mismatch (no Math.random() at module level)
-const OFFSETS = [120_000, 80_000, -50_000, 160_000, -30_000, 90_000, 40_000];
-const WEEKLY = days.map((date, i) => ({
-  date,
-  'Chilonzor': Math.round(1_500_000 + Math.sin(i) * 300_000 + OFFSETS[i]),
-  'Yunusobod': Math.round(1_200_000 + Math.sin(i + 1) * 250_000 + OFFSETS[i] * 0.75),
-  'Sergeli':   Math.round(800_000 + Math.sin(i + 2) * 200_000 + OFFSETS[i] * 0.5),
-}));
-
-const TRANSFERS = [
-  { id: 'tr-1', from: 'Chilonzor', to: 'Sergeli', product: 'Nivea Krem 150ml', qty: 20, date: '2026-02-28', status: 'RECEIVED' },
-  { id: 'tr-2', from: 'Yunusobod', to: 'Sergeli', product: 'Garnier Toner', qty: 15, date: '2026-03-01', status: 'SHIPPED' },
-  { id: 'tr-3', from: 'Chilonzor', to: 'Yunusobod', product: 'Maybelline Pomada', qty: 10, date: '2026-03-02', status: 'PENDING' },
+const SORT_OPTIONS = [
+  { value: 'revenue', label: 'Daromad' },
+  { value: 'orders', label: 'Buyurtmalar' },
+  { value: 'avgOrderValue', label: "O'rt. chek" },
+  { value: 'growth', label: "O'sish %" },
 ];
 
-const TRANSFER_STATUS: Record<string, { label: string; className: string }> = {
-  RECEIVED: { label: 'Qabul qilindi', className: 'bg-green-100 text-green-700' },
-  SHIPPED:  { label: 'Yo\'lda', className: 'bg-blue-100 text-blue-700' },
-  PENDING:  { label: 'Kutilmoqda', className: 'bg-yellow-100 text-yellow-700' },
-};
+const BRANCH_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#f97316'];
 
-const BRANCH_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b'];
+// ─── API hooks ──────────────────────────────────────────────────────────────
 
-// ─── Sort helper ──────────────────────────────────────────────────────────────
+function useBranchComparison(period: Period) {
+  return useQuery({
+    queryKey: ['branch-comparison', period],
+    queryFn: () =>
+      apiClient
+        .get<BranchComparisonItem[]>('/analytics/branch-comparison', { params: { period } })
+        .then((r) => r.data),
+  });
+}
 
-type SortKey = keyof Pick<BranchStat, 'revenue' | 'orders' | 'profit' | 'avgCheck'>;
+function useBranchSalesTrend(branchIds: string[]) {
+  const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+
+  return useQuery({
+    queryKey: ['branch-sales-trend', branchIds],
+    queryFn: async () => {
+      if (branchIds.length === 0) return [];
+      const results = await Promise.all(
+        branchIds.map((id) =>
+          apiClient
+            .get<SalesTrendPoint[]>('/analytics/sales-trend', {
+              params: { period: 'daily', from: weekAgo, to: today, branch_id: id },
+            })
+            .then((r) => ({ branchId: id, data: Array.isArray(r.data) ? r.data : [] }))
+            .catch(() => ({ branchId: id, data: [] })),
+        ),
+      );
+      return results;
+    },
+    enabled: branchIds.length > 0,
+  });
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export default function BranchReportsPage() {
+  const [period, setPeriod] = useState<Period>('month');
   const [sortKey, setSortKey] = useState<SortKey>('revenue');
 
-  const sorted = [...BRANCHES].sort((a, b) => b[sortKey] - a[sortKey]);
+  const { data: branches, isLoading, error } = useBranchComparison(period);
+  const branchIds = (branches ?? []).map((b) => b.branchId);
+  const { data: trendData } = useBranchSalesTrend(branchIds);
 
-  const totalRevenue = BRANCHES.reduce((s, b) => s + b.revenue, 0);
-  const totalOrders  = BRANCHES.reduce((s, b) => s + b.orders, 0);
-  const totalProfit  = BRANCHES.reduce((s, b) => s + b.profit, 0);
+  const sorted = [...(branches ?? [])].sort((a, b) => b[sortKey] - a[sortKey]);
+  const totalRevenue = (branches ?? []).reduce((s, b) => s + b.revenue, 0);
+  const totalOrders = (branches ?? []).reduce((s, b) => s + b.orders, 0);
+  const avgGrowth = (branches ?? []).length > 0
+    ? (branches ?? []).reduce((s, b) => s + b.growth, 0) / (branches ?? []).length
+    : 0;
 
+  // Build weekly chart data from trends
+  const weeklyChart = buildWeeklyChart(branches ?? [], trendData ?? []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Ma'lumot yuklashda xatolik yuz berdi
+        </div>
+      </div>
+    );
+  }
+
+  if (!branches || branches.length === 0) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-semibold text-gray-900 mb-4">Filiallar taqqoslama</h1>
+        <div className="rounded-xl border border-gray-200 bg-white px-6 py-12 text-center text-gray-400">
+          Hech qanday filial topilmadi
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">Filiallar taqqoslama</h1>
-        <p className="mt-0.5 text-sm text-gray-500">{BRANCHES.length} ta filial · Oylik ko'rsatkichlar</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">Filiallar taqqoslama</h1>
+          <p className="mt-0.5 text-sm text-gray-500">
+            {branches.length} ta filial
+          </p>
+        </div>
+        <SearchableDropdown
+          options={PERIOD_OPTIONS}
+          value={period}
+          onChange={(val) => setPeriod((val || 'month') as Period)}
+          searchable={false}
+          clearable={false}
+          className="w-36"
+        />
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Jami daromad', value: formatPrice(totalRevenue), note: 'barcha filiallar' },
-          { label: 'Jami buyurtmalar', value: `${totalOrders} ta`, note: 'bu oy' },
-          { label: 'Jami foyda', value: formatPrice(totalProfit), note: 'xarajatlardan keyin' },
-        ].map(({ label, value, note }) => (
-          <div key={label} className="rounded-xl border border-gray-200 bg-white p-4">
-            <p className="text-xs text-gray-500">{label}</p>
-            <p className="mt-0.5 text-xl font-bold text-gray-900">{value}</p>
-            <p className="text-xs text-gray-400">{note}</p>
-          </div>
-        ))}
+        <SummaryCard label="Jami daromad" value={formatPrice(totalRevenue)} note="barcha filiallar" />
+        <SummaryCard label="Jami buyurtmalar" value={`${totalOrders} ta`} note={`${PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? ''} davomida`} />
+        <SummaryCard
+          label="O'rtacha o'sish"
+          value={`${avgGrowth >= 0 ? '+' : ''}${avgGrowth.toFixed(1)}%`}
+          note="oldingi davr bilan"
+          valueColor={avgGrowth > 0 ? 'text-green-600' : avgGrowth < 0 ? 'text-red-600' : 'text-gray-900'}
+        />
       </div>
 
       {/* 7-kunlik trend */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h2 className="mb-4 text-sm font-semibold text-gray-900">7 kunlik daromad taqqoslama</h2>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={WEEKLY} margin={{ left: 0, right: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
-            <YAxis tickFormatter={(v) => `${(v / 1_000_000).toFixed(1)}M`} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-            <Tooltip formatter={(v) => formatPrice(Number(v))} />
-            <Legend />
-            {BRANCHES.map((b, i) => (
-              <Bar
-                key={b.id}
-                dataKey={(b.name ?? 'Branch').split(' ')[0]}
-                fill={BRANCH_COLORS[i]}
-                radius={[3, 3, 0, 0]}
-                maxBarSize={32}
+      {weeklyChart.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 className="mb-4 text-sm font-semibold text-gray-900">7 kunlik daromad taqqoslama</h2>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={weeklyChart} margin={{ left: 0, right: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
+              <YAxis
+                tickFormatter={(v: number) => `${(v / 1_000_000).toFixed(1)}M`}
+                tick={{ fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
               />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+              <Tooltip formatter={(v) => formatPrice(Number(v))} />
+              <Legend />
+              {branches.slice(0, 8).map((b, i) => (
+                <Bar
+                  key={b.branchId}
+                  dataKey={b.branchName}
+                  fill={BRANCH_COLORS[i % BRANCH_COLORS.length]}
+                  radius={[3, 3, 0, 0]}
+                  maxBarSize={32}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Branch DataTable */}
       <div className="rounded-xl border border-gray-200 bg-white">
@@ -140,14 +202,9 @@ export default function BranchReportsPage() {
           <div className="flex items-center gap-2">
             <ArrowUpDown className="h-4 w-4 text-gray-400" />
             <SearchableDropdown
-              options={[
-                { value: 'revenue', label: 'Daromad' },
-                { value: 'orders', label: 'Buyurtmalar' },
-                { value: 'profit', label: 'Foyda' },
-                { value: 'avgCheck', label: "O'rt. chek" },
-              ]}
+              options={SORT_OPTIONS}
               value={sortKey}
-              onChange={(val) => setSortKey(val as SortKey)}
+              onChange={(val) => setSortKey((val || 'revenue') as SortKey)}
               searchable={false}
               clearable={false}
               className="w-44"
@@ -157,71 +214,41 @@ export default function BranchReportsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {['Filial', 'Buyurtmalar', 'Daromad', 'Xarajat', 'Foyda', "O'rt. chek", 'Kassirlar'].map((h) => (
+              {['Filial', 'Buyurtmalar', 'Daromad', "O'rt. chek", "O'sish", 'Ulush'].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {sorted.map((b, _idx) => {
-              const pct = Math.round((b.revenue / totalRevenue) * 100);
+            {sorted.map((b, idx) => {
+              const pct = totalRevenue > 0 ? Math.round((b.revenue / totalRevenue) * 100) : 0;
               return (
-                <tr key={b.id} className="hover:bg-gray-50">
+                <tr key={b.branchId} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span
                         className="inline-block h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: BRANCH_COLORS[BRANCHES.findIndex((x) => x.id === b.id)] }}
+                        style={{ backgroundColor: BRANCH_COLORS[idx % BRANCH_COLORS.length] }}
                       />
-                      <div>
-                        <p className="font-medium text-gray-900">{b.name}</p>
-                        <p className="text-xs text-gray-400">{b.city} · {pct}% ulush</p>
-                      </div>
+                      <p className="font-medium text-gray-900">{b.branchName}</p>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-700">{b.orders}</td>
                   <td className="px-4 py-3 font-semibold text-gray-900">{formatPrice(b.revenue)}</td>
-                  <td className="px-4 py-3 text-red-600">{formatPrice(b.expenses)}</td>
+                  <td className="px-4 py-3 text-gray-700">{formatPrice(b.avgOrderValue)}</td>
                   <td className="px-4 py-3">
-                    <span className={cn('font-semibold', b.profit > 2_000_000 ? 'text-green-600' : 'text-amber-600')}>
-                      {formatPrice(b.profit)}
-                    </span>
+                    <GrowthBadge growth={b.growth} />
                   </td>
-                  <td className="px-4 py-3 text-gray-700">{formatPrice(b.avgCheck)}</td>
-                  <td className="px-4 py-3 text-gray-600">{b.cashiers} ta</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Stock transfers */}
-      <div className="rounded-xl border border-gray-200 bg-white">
-        <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
-          <GitCompare className="h-4 w-4 text-gray-500" />
-          <h2 className="text-sm font-semibold text-gray-900">Filiallar arasi ko'chirma</h2>
-        </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
-              {['Dan', 'Ga', 'Mahsulot', 'Miqdor', 'Sana', 'Holat'].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {TRANSFERS.map((t) => {
-              const { label, className } = TRANSFER_STATUS[t.status];
-              return (
-                <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2.5 text-gray-700">{t.from}</td>
-                  <td className="px-4 py-2.5 text-gray-700">{t.to}</td>
-                  <td className="px-4 py-2.5 font-medium text-gray-900">{t.product}</td>
-                  <td className="px-4 py-2.5 text-gray-600">{t.qty} dona</td>
-                  <td className="px-4 py-2.5 text-gray-500">{t.date}</td>
-                  <td className="px-4 py-2.5">
-                    <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', className)}>{label}</span>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 w-16 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-blue-500"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500">{pct}%</span>
+                    </div>
                   </td>
                 </tr>
               );
@@ -230,7 +257,79 @@ export default function BranchReportsPage() {
         </table>
       </div>
 
-      <p className="text-xs text-gray-400">Demo ma'lumotlar — T-113/T-114 backend tayyor bo'lgach real filial ma'lumotlari ko'rinadi</p>
+      {/* Stock Transfers — placeholder */}
+      <div className="rounded-xl border border-gray-200 bg-white px-4 py-6 text-center">
+        <GitCompare className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+        <p className="text-sm text-gray-400">Filiallar arasi ko'chirma — T-114 backend tayyor bo'lgach ko'rinadi</p>
+      </div>
     </div>
   );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function SummaryCard({ label, value, note, valueColor }: {
+  label: string; value: string; note: string; valueColor?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className={cn('mt-0.5 text-xl font-bold', valueColor ?? 'text-gray-900')}>{value}</p>
+      <p className="text-xs text-gray-400">{note}</p>
+    </div>
+  );
+}
+
+function GrowthBadge({ growth }: { growth: number }) {
+  if (growth > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
+        <TrendingUp className="h-3 w-3" />+{growth.toFixed(1)}%
+      </span>
+    );
+  }
+  if (growth < 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
+        <TrendingDown className="h-3 w-3" />{growth.toFixed(1)}%
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500">
+      <Minus className="h-3 w-3" />0%
+    </span>
+  );
+}
+
+function buildWeeklyChart(
+  branches: BranchComparisonItem[],
+  trendData: { branchId: string; data: SalesTrendPoint[] }[],
+) {
+  if (branches.length === 0 || trendData.length === 0) return [];
+
+  // Collect all unique dates
+  const dateSet = new Set<string>();
+  for (const t of trendData) {
+    for (const point of t.data) {
+      dateSet.add(point.date);
+    }
+  }
+  const dates = [...dateSet].sort();
+
+  // Build map branchId → branchName
+  const nameMap = new Map(branches.map((b) => [b.branchId, b.branchName]));
+
+  // Build chart data
+  return dates.map((date) => {
+    const row: Record<string, string | number> = {
+      date: date.length > 5 ? date.slice(5) : date, // "MM-DD"
+    };
+    for (const t of trendData) {
+      const name = nameMap.get(t.branchId) ?? t.branchId;
+      const point = t.data.find((p) => p.date === date);
+      row[name] = point ? Number(point.revenue) : 0;
+    }
+    return row;
+  });
 }
