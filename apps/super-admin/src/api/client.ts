@@ -8,10 +8,18 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+// T-389: Super-admin localStorage/cookie keys — `sa_` prefix (web app bilan collision oldini olish)
+export const SA_TOKEN_KEY = 'sa_access_token';
+export const SA_ADMIN_ID_KEY = 'sa_admin_id';
+export const SA_ADMIN_ROLE_KEY = 'sa_admin_role';
+export const SA_SESSION_COOKIE = 'sa_session_active';
+export const SA_ROLE_COOKIE = 'sa_user_role';
+export const SA_COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
+
 // Request: JWT token
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem(SA_TOKEN_KEY);
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -19,11 +27,11 @@ apiClient.interceptors.request.use((config) => {
 
 function clearAuthAndRedirect() {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('admin_id');
-  localStorage.removeItem('admin_role');
-  document.cookie = 'session_active=; path=/; max-age=0';
-  document.cookie = 'user_role=; path=/; max-age=0';
+  localStorage.removeItem(SA_TOKEN_KEY);
+  localStorage.removeItem(SA_ADMIN_ID_KEY);
+  localStorage.removeItem(SA_ADMIN_ROLE_KEY);
+  document.cookie = `${SA_SESSION_COOKIE}=; path=/; max-age=0`;
+  document.cookie = `${SA_ROLE_COOKIE}=; path=/; max-age=0`;
   window.location.href = '/login';
 }
 

@@ -7,7 +7,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Zap, Eye, EyeOff, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiClient } from '@/api/client';
+import {
+  apiClient,
+  SA_TOKEN_KEY,
+  SA_ADMIN_ID_KEY,
+  SA_ADMIN_ROLE_KEY,
+  SA_SESSION_COOKIE,
+  SA_ROLE_COOKIE,
+  SA_COOKIE_MAX_AGE,
+} from '@/api/client';
 
 const schema = z.object({
   email: z.string().email('Некорректный email'),
@@ -20,10 +28,6 @@ type AdminLoginResponse = {
   accessToken: string;
   admin: { id: string; name: string; email: string; role: string };
 };
-
-const SESSION_COOKIE = 'session_active';
-const ROLE_COOKIE = 'user_role';
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 export default function FounderLoginPage() {
   const router = useRouter();
@@ -45,12 +49,12 @@ export default function FounderLoginPage() {
       const res = await apiClient.post<AdminLoginResponse>('/admin/auth/login', data);
       const { accessToken, admin } = res.data;
 
-      localStorage.setItem('access_token', accessToken);
-      localStorage.setItem('admin_id', admin.id);
-      localStorage.setItem('admin_role', admin.role);
+      localStorage.setItem(SA_TOKEN_KEY, accessToken);
+      localStorage.setItem(SA_ADMIN_ID_KEY, admin.id);
+      localStorage.setItem(SA_ADMIN_ROLE_KEY, admin.role);
 
-      document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
-      document.cookie = `${ROLE_COOKIE}=SUPER_ADMIN; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+      document.cookie = `${SA_SESSION_COOKIE}=1; path=/; max-age=${SA_COOKIE_MAX_AGE}; SameSite=Lax`;
+      document.cookie = `${SA_ROLE_COOKIE}=SUPER_ADMIN; path=/; max-age=${SA_COOKIE_MAX_AGE}; SameSite=Lax`;
 
       toast.success(`Добро пожаловать, ${admin.name}!`);
       router.push('/founder/overview');
