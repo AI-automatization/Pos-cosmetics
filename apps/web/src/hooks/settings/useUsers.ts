@@ -24,7 +24,14 @@ export function useCreateUser() {
       qc.invalidateQueries({ queryKey: [USERS_KEY] });
       toast.success("Foydalanuvchi qo'shildi!");
     },
-    onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
+    onError: (err: unknown) => {
+      const msg = extractErrorMessage(err);
+      if (msg.toLowerCase().includes('already exists')) {
+        toast.error("Bu email allaqachon ro'yxatdan o'tgan. Boshqa email kiriting.");
+      } else {
+        toast.error(msg || 'Xato yuz berdi');
+      }
+    },
   });
 }
 
