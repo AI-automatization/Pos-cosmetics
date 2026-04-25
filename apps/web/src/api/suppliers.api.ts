@@ -1,11 +1,15 @@
 import { apiClient } from './client';
-import type { Supplier, CreateSupplierDto, UpdateSupplierDto } from '@/types/supplier';
+import type { Supplier, SupplierDetail, CreateSupplierDto, UpdateSupplierDto } from '@/types/supplier';
 
 export const suppliersApi = {
   list() {
     return apiClient
       .get<Supplier[]>('/catalog/suppliers?isActive=true')
       .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  getById(id: string) {
+    return apiClient.get<SupplierDetail>(`/catalog/suppliers/${id}`).then((r) => r.data);
   },
 
   create(dto: CreateSupplierDto) {
@@ -18,5 +22,11 @@ export const suppliersApi = {
 
   remove(id: string) {
     return apiClient.delete<void>(`/catalog/suppliers/${id}`).then((r) => r.data);
+  },
+
+  linkProduct(supplierId: string, productId: string, supplyPrice = 0) {
+    return apiClient
+      .post(`/catalog/suppliers/${supplierId}/products`, { productId, supplyPrice, isDefault: true })
+      .then((r) => r.data);
   },
 };

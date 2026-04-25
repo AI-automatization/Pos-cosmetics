@@ -25,6 +25,7 @@ import {
   BatchStockOutDto,
 } from './dto/stock-movement.dto';
 import { RestockRequestDto } from './dto/restock-request.dto';
+import { OpenTesterDto } from './dto/open-tester.dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TransferService, CreateTransferDto } from './transfer.service';
@@ -144,15 +145,46 @@ export class InventoryController {
     return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
   }
 
-  // mobile-owner calls /inventory/low-stock (not /inventory/stock/low)
+  // ─── T-202: LOW STOCK (mobile-owner format) ─────────────────
+  // GET /inventory/low-stock?branch_id=&limit=20
   @Get('low-stock')
-  @ApiOperation({ summary: 'Mobile-owner alias: GET /inventory/low-stock' })
+  @ApiOperation({ summary: 'T-202: Low stock items — { items: [{ productId, productName, quantity, unit, threshold, status }] }' })
   @ApiQuery({ name: 'branch_id', required: false })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default: 20, max: 100' })
   getLowStock(
     @CurrentUser('tenantId') tenantId: string,
-    @Query('branch_id') _branchId?: string,
+    @Query('branch_id') branchId?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.inventoryService.getStockLevels(tenantId, { lowStock: true });
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    return this.inventoryService.getLowStockList(tenantId, branchId, isNaN(limitNum) ? 20 : limitNum);
+  }
+
+  // ─── T-202: INVENTORY ITEMS (paginated) ──────────────────────
+  // GET /inventory/items?branchId=&status=&search=&page=&limit=
+  @Get('items')
+  @ApiOperation({ summary: 'T-202: Paginated inventory list for Inventory screen' })
+  @ApiQuery({ name: 'branchId', required: false })
+  @ApiQuery({ name: 'status', required: false, enum: ['normal', 'low', 'out_of_stock', 'expiring', 'expired'] })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  getInventoryItems(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('branchId') branchId?: string,
+    @Query('branch_id') branchIdAlt?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
+  ) {
+    return this.inventoryService.getInventoryItems(tenantId, {
+      branchId: branchId ?? branchIdAlt,
+      status,
+      search,
+      page,
+      limit,
+    });
   }
 
   // mobile-owner: GET /inventory/stock-value
@@ -209,6 +241,16 @@ export class InventoryController {
   }
 
   // ─── T-096: TESTER TRACKING ────────────────────────────────────────────────
+
+  @Post('testers')
+  @ApiOperation({ summary: 'T-096: Tester ochish — stock kamaytirish + xarajat yozish' })
+  openTester(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() dto: OpenTesterDto,
+  ) {
+    return this.inventoryService.openTester(tenantId, userId, dto);
+  }
 
   @Get('testers')
   @ApiOperation({ summary: 'T-096: Tester/namuna harakatlari ro\'yxati' })

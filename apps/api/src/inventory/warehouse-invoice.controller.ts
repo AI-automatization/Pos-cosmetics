@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Param, Body, Query,
+  Controller, Get, Post, Patch, Param, Body, Query,
   DefaultValuePipe, ParseIntPipe, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
@@ -61,6 +61,30 @@ export class WarehouseInvoiceController {
     @Param('id') invoiceId: string,
   ) {
     return this.svc.getInvoice(tenantId, invoiceId);
+  }
+
+  // ─── APPROVE / REJECT invoice ────────────────────────────────────────────
+
+  @Patch('invoices/:id/approve')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'Nakladnoyni qabul qilish (PENDING → RECEIVED)' })
+  approveInvoice(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Param('id') invoiceId: string,
+  ) {
+    return this.svc.approveInvoice(tenantId, userId, invoiceId);
+  }
+
+  @Patch('invoices/:id/reject')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'Nakladnoyni rad etish (PENDING → CANCELLED)' })
+  rejectInvoice(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Param('id') invoiceId: string,
+  ) {
+    return this.svc.rejectInvoice(tenantId, userId, invoiceId);
   }
 
   // ─── T-319/T-320: DASHBOARD ───────────────────────────────────────────────

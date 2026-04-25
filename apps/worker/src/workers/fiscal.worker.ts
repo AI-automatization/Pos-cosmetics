@@ -9,29 +9,56 @@ interface FiscalReceiptJob {
   attempt?: number;
 }
 
-// ─── REGOS Stub: Phase 2 da real API bilan almashtiriladi ────────────────────
-async function sendFiscalReceipt(
+interface RegosReceiptPayload {
+  orderId: string;
+  orderNumber: number;
+  total: number;
+  taxAmount: number;
+  taxRate: number;
+  items: Array<{ name: string; qty: number; price: number; total: number; vatRate: number }>;
+  cashier: string;
+  branch: string;
+  inn: string;
+  time: string;
+}
+
+const REGOS_API_URL = process.env['REGOS_API_URL'];
+const REGOS_API_KEY = process.env['REGOS_API_KEY'];
+
+function isRegoConfigured(): boolean {
+  return Boolean(REGOS_API_URL && REGOS_API_KEY);
+}
+
+async function sendToRegos(
   tenantId: string,
-  orderId: string,
+  payload: RegosReceiptPayload,
 ): Promise<{ fiscalId: string; fiscalQr: string }> {
-  // Phase 1: simulatsiya
-  // Phase 2: real REGOS/OFD API call
-  const fiscalId = `RAOS-${orderId.slice(0, 8).toUpperCase()}-${Date.now()}`;
-  const fiscalQr = `https://ofd.soliq.uz/check?id=${fiscalId}&t=${Date.now()}`;
+  const response = await fetch(`${REGOS_API_URL}/receipts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${REGOS_API_KEY}`,
+      'X-Tenant-Id': tenantId,
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10_000),
+  });
 
-  // Simulate fiscal API network latency
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  if (!response.ok) {
+    const text = await response.text().catch(() => 'unknown');
+    throw new Error(`REGOS API error ${response.status}: ${text}`);
+  }
 
-  console.log(JSON.stringify({
-    level: 'info',
-    event: 'fiscal_sent',
-    tenantId,
-    orderId,
+  const data = (await response.json()) as { id: string; qr: string };
+  return { fiscalId: data.id, fiscalQr: data.qr };
+}
+
+function stubReceipt(orderId: string): { fiscalId: string; fiscalQr: string } {
+  const fiscalId = `STUB-${orderId.slice(0, 8).toUpperCase()}-${Date.now()}`;
+  return {
     fiscalId,
-    ts: new Date().toISOString(),
-  }));
-
-  return { fiscalId, fiscalQr };
+    fiscalQr: `https://ofd.soliq.uz/check?id=${fiscalId}&t=${Date.now()}`,
+  };
 }
 
 export function createFiscalWorker(): Worker {
@@ -43,41 +70,74 @@ export function createFiscalWorker(): Worker {
 
       const { tenantId, orderId } = job.data;
 
-      // Order mavjudligini tekshirish
       const order = await prisma.order.findFirst({
         where: { id: orderId, tenantId },
-        select: { id: true, fiscalStatus: true },
+        select: {
+          id: true,
+          orderNumber: true,
+          total: true,
+          taxAmount: true,
+          fiscalStatus: true,
+          createdAt: true,
+          user: { select: { firstName: true, lastName: true } },
+          branch: { select: { name: true } },
+          tenant: { select: { inn: true } },
+          items: {
+            select: {
+              productName: true,
+              quantity: true,
+              unitPrice: true,
+              total: true,
+            },
+          },
+        },
       });
 
       if (!order) {
-        // Order yo'q — job ni skip qilish (DLQ ga tushmasin)
-        console.log(JSON.stringify({
-          level: 'warn',
-          event: 'fiscal_order_not_found',
-          orderId,
-          tenantId,
-          ts: new Date().toISOString(),
-        }));
-        return;
-      }
-
-      if (order.fiscalStatus === 'SENT') {
-        // Allaqachon yuborilgan — idempotent skip
         logJobDone(QUEUE_NAMES.FISCAL_RECEIPT, job.id!, job.name, Date.now() - start);
         return;
       }
 
-      // REGOS API ga yuborish
-      const { fiscalId, fiscalQr } = await sendFiscalReceipt(tenantId, orderId);
+      if (order.fiscalStatus === 'SENT') {
+        logJobDone(QUEUE_NAMES.FISCAL_RECEIPT, job.id!, job.name, Date.now() - start);
+        return;
+      }
 
-      // DB ni yangilash
-      await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          fiscalStatus: 'SENT',
-          fiscalId,
-          fiscalQr,
-        },
+      let fiscalId: string;
+      let fiscalQr: string;
+
+      if (isRegoConfigured()) {
+        const payload: RegosReceiptPayload = {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          total: Number(order.total),
+          taxAmount: Number(order.taxAmount),
+          taxRate: 0.12,
+          items: order.items.map((item) => ({
+            name: item.productName,
+            qty: item.quantity,
+            price: Number(item.unitPrice),
+            total: Number(item.total),
+            vatRate: 0.12,
+          })),
+          cashier: `${order.user.firstName} ${order.user.lastName}`.trim(),
+          branch: order.branch?.name ?? '',
+          inn: order.tenant.inn ?? '',
+          time: order.createdAt.toISOString(),
+        };
+
+        const result = await sendToRegos(tenantId, payload);
+        fiscalId = result.fiscalId;
+        fiscalQr = result.fiscalQr;
+      } else {
+        const result = stubReceipt(orderId);
+        fiscalId = result.fiscalId;
+        fiscalQr = result.fiscalQr;
+      }
+
+      await prisma.order.updateMany({
+        where: { id: orderId, tenantId },
+        data: { fiscalStatus: 'SENT', fiscalId, fiscalQr },
       });
 
       logJobDone(QUEUE_NAMES.FISCAL_RECEIPT, job.id!, job.name, Date.now() - start);
@@ -91,13 +151,14 @@ export function createFiscalWorker(): Worker {
   worker.on('failed', (job, err) => {
     logJobError(QUEUE_NAMES.FISCAL_RECEIPT, job?.id ?? 'unknown', job?.name ?? '', err);
 
-    // BullMQ 3 urinishdan keyin failed deb belgilaydi
-    // Tax controller orqali manual retry mumkin: POST /tax/fiscal/:orderId/retry
-    if (job?.data?.orderId) {
-      prisma.order.update({
-        where: { id: job.data.orderId },
+    // T-388: Only mark as FAILED on final attempt (no more retries left)
+    const maxAttempts = job?.opts?.attempts ?? 3;
+    const currentAttempt = job?.attemptsMade ?? 0;
+    if (job?.data?.orderId && job?.data?.tenantId && currentAttempt >= maxAttempts) {
+      prisma.order.updateMany({
+        where: { id: job.data.orderId, tenantId: job.data.tenantId },
         data: { fiscalStatus: 'FAILED' },
-      }).catch(() => {/* DB xato ham bo'lsa log da ko'rinadi */});
+      }).catch(() => {/* noop — main error already logged */});
     }
   });
 

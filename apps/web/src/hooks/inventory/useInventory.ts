@@ -20,18 +20,29 @@ async function fetchEnrichedStock(params: StockQuery): Promise<StockLevel[]> {
 
   const productMap = new Map(products.map((p) => [p.id, p]));
 
-  return (rawLevels as Array<{ productId: string; warehouseId?: string; stock?: number; currentStock?: number }>).map((raw) => {
-    const p = productMap.get(raw.productId);
-    const currentStock = raw.currentStock ?? raw.stock ?? 0;
+  // Aggregate per-warehouse rows into one row per product (sum stock across warehouses)
+  const aggregated = new Map<string, { totalStock: number; productId: string }>();
+  for (const raw of rawLevels as Array<{ productId: string; warehouseId?: string; stock?: number; currentStock?: number }>) {
+    const existing = aggregated.get(raw.productId);
+    const stock = raw.currentStock ?? raw.stock ?? 0;
+    if (existing) {
+      existing.totalStock += stock;
+    } else {
+      aggregated.set(raw.productId, { productId: raw.productId, totalStock: stock });
+    }
+  }
+
+  return Array.from(aggregated.values()).map(({ productId, totalStock }) => {
+    const p = productMap.get(productId);
     const minStock = Number(p?.minStockLevel ?? 0);
-    const status: StockStatus = currentStock <= 0 ? 'OUT' : currentStock <= minStock ? 'LOW' : 'OK';
+    const status: StockStatus = totalStock <= 0 ? 'OUT' : totalStock <= minStock ? 'LOW' : 'OK';
     return {
-      productId: raw.productId,
-      productName: p?.name ?? raw.productId,
+      productId,
+      productName: p?.name ?? productId,
       barcode: p?.barcode ?? null,
       sku: p?.sku ?? '',
       unit: p ? (typeof p.unit === 'object' ? (p.unit as { name: string })?.name ?? '' : String(p.unit ?? '')) : '',
-      currentStock,
+      currentStock: totalStock,
       minStock,
       status,
       costPrice: Number(p?.costPrice ?? 0),
@@ -87,6 +98,30 @@ export function useStockOut() {
   });
 }
 
+export function useOpenTester() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: { productId: string; warehouseId: string; quantity: number; costPrice: number; note?: string }) =>
+      inventoryApi.openTester(dto),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['inventory'] });
+      qc.invalidateQueries({ queryKey: ['testers'] });
+      toast.success('Tester muvaffaqiyatli ochildi');
+    },
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err));
+    },
+  });
+}
+
+export function useTesters(params: { from?: string; to?: string } = {}) {
+  return useQuery({
+    queryKey: ['testers', params],
+    queryFn: () => inventoryApi.getTesters(params),
+    staleTime: 60_000,
+  });
+}
+
 export function useMovements(productId?: string) {
   return useQuery({
     queryKey: ['inventory', 'movements', productId ?? null],
@@ -98,7 +133,6 @@ export function useMovements(productId?: string) {
 export function useMovementsWithUsers(productId?: string) {
   return useQuery({
     queryKey: ['inventory', 'movements-with-users', productId ?? null],
-    enabled: !!productId,
     queryFn: async (): Promise<(StockMovement & { userName: string })[]> => {
       const [movements, users] = await Promise.all([
         inventoryApi.getMovements(productId),

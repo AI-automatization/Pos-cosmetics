@@ -3,12 +3,15 @@
 import { Minus, Plus, Trash2, Tag, ShoppingCart, Package } from 'lucide-react';
 import { useState } from 'react';
 import { usePOSStore } from '@/store/pos.store';
+import { usePromoMap } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
 import type { CartItem } from '@/types/sales';
 
 function CartItemRow({ item }: { item: CartItem }) {
   const { updateQuantity, removeItem, setLineDiscount } = usePOSStore();
   const [showDiscount, setShowDiscount] = useState(false);
+  const promoMap = usePromoMap();
+  const hasPromo = !!promoMap[item.productId] && item.lineDiscount > 0;
 
   const lineTotal = item.sellPrice * item.quantity * (1 - item.lineDiscount / 100);
 
@@ -20,6 +23,11 @@ function CartItemRow({ item }: { item: CartItem }) {
           <p className="truncate text-sm font-medium text-gray-900">{item.name}</p>
           <div className="flex items-center gap-1.5">
             <p className="text-xs text-gray-400">{item.sku}</p>
+            {hasPromo && (
+              <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+                AKSIYA
+              </span>
+            )}
             {item.isBundle && (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
                 <Package className="h-2.5 w-2.5" />
@@ -114,7 +122,8 @@ function CartItemRow({ item }: { item: CartItem }) {
 
 export function CartPanel() {
   const store = usePOSStore();
-  const { items } = store.carts[store.activeCartId];
+  const cart = store.carts[store.activeCartId];
+  const items = cart?.items ?? [];
   const { clearCart } = store;
 
   if (items.length === 0) {

@@ -278,6 +278,12 @@ export class CatalogService {
         });
       }
 
+      if (dto.supplierId) {
+        await tx.productSupplier.create({
+          data: { productId: product.id, supplierId: dto.supplierId, supplyPrice: dto.costPrice ?? 0, isDefault: true },
+        });
+      }
+
       this.logger.log(`Product created: ${product.id}`, {
         tenantId,
         productId: product.id,

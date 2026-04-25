@@ -47,7 +47,6 @@ export function middleware(request: NextRequest) {
   const userRole = request.cookies.get('user_role')?.value;
   const isWarehousePath = pathname.startsWith('/warehouse');
   const isPosPath = pathname.startsWith('/pos');
-
   if (userRole === 'WAREHOUSE' && !isWarehousePath) {
     return NextResponse.redirect(new URL('/warehouse', request.url));
   }

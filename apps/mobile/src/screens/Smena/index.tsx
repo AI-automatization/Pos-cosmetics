@@ -54,7 +54,6 @@ export default function SmenaScreen() {
   // App ochilganda API bilan sinxronlashtirish
   useEffect(() => {
     void syncWithApi();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Joriy smena detallari

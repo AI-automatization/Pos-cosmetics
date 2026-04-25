@@ -4,8 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, PackageOpen, User } from 'lucide-react';
 import { useMovementsWithUsers } from '@/hooks/inventory/useInventory';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
-import { SearchInput } from '@/components/common/SearchInput';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { cn } from '@/lib/utils';
 import type { MovementType } from '@/types/inventory';
 
@@ -52,42 +51,41 @@ export default function MovementsPage() {
         </div>
       </div>
 
-      <SearchInput
-        value={search}
-        onChange={setSearch}
-        placeholder="Mahsulot nomi, tur yoki izoh..."
-        className="max-w-sm"
-      />
-
-      {isLoading ? (
-        <LoadingSkeleton variant="table" rows={10} />
-      ) : !filtered.length ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center text-gray-400">
-          <PackageOpen className="h-12 w-12 opacity-40" />
-          <p className="text-sm">
-            {search ? "Qidiruv bo'yicha natija topilmadi" : "Harakatlar tarixi yo'q"}
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
+      <ScrollableTable
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Mahsulot nomi, tur yoki izoh..."
+        totalCount={filtered.length}
+        isLoading={isLoading}
+      >
+        <table className="w-full text-sm">
+          <thead className="border-b border-gray-200 bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">Sana</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">Tur</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
+              <th className="px-4 py-3 text-right font-medium text-gray-600">Miqdor</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">Izoh</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <div className="flex items-center gap-1">
+                  <User className="h-3.5 w-3.5" />
+                  Kim kiritgan
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filtered.length === 0 ? (
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Sana</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Tur</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Miqdor</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Izoh</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <User className="h-3.5 w-3.5" />
-                    Kim kiritgan
-                  </div>
-                </th>
+                <td colSpan={6} className="py-16 text-center">
+                  <PackageOpen className="mx-auto mb-2 h-10 w-10 opacity-30" />
+                  <p className="text-sm text-gray-400">
+                    {search ? "Qidiruv bo'yicha natija topilmadi" : "Harakatlar tarixi yo'q"}
+                  </p>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.map((m) => {
+            ) : (
+              filtered.map((m) => {
                 const isIn = m.type === 'IN' || m.type === 'RETURN';
                 const cfg = TYPE_LABELS[m.type] ?? { label: m.type, className: 'bg-gray-100 text-gray-600' };
                 return (
@@ -122,11 +120,11 @@ export default function MovementsPage() {
                     </td>
                   </tr>
                 );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+              })
+            )}
+          </tbody>
+        </table>
+      </ScrollableTable>
     </div>
   );
 }

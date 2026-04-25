@@ -15,6 +15,7 @@ export interface CartState {
   cashAmount: number;
   cardAmount: number;
   bonusPoints: number;
+  splitNasiyaAmount: number;
   selectedCustomer: Customer | null;
 }
 
@@ -27,6 +28,7 @@ export const emptyCart = (id: string): CartState => ({
   cashAmount: 0,
   cardAmount: 0,
   bonusPoints: 0,
+  splitNasiyaAmount: 0,
   selectedCustomer: null,
 });
 
@@ -55,6 +57,7 @@ interface POSState {
   setCashAmount: (amount: number) => void;
   setCardAmount: (amount: number) => void;
   setBonusPoints: (points: number) => void;
+  setSplitNasiyaAmount: (amount: number) => void;
   setSelectedCustomer: (customer: Customer | null) => void;
 
   // Shift
@@ -177,13 +180,14 @@ export const usePOSStore = create<POSState>()(
       setCashAmount: (amount) => set((s) => patchActive(s, { cashAmount: Math.max(0, amount) })),
       setCardAmount: (amount) => set((s) => patchActive(s, { cardAmount: Math.max(0, amount) })),
       setBonusPoints: (points) => set((s) => patchActive(s, { bonusPoints: Math.max(0, points) })),
+      setSplitNasiyaAmount: (amount) => set((s) => patchActive(s, { splitNasiyaAmount: Math.max(0, amount) })),
       setSelectedCustomer: (customer) => set((s) => patchActive(s, { selectedCustomer: customer })),
 
       totals: () => {
         const { carts, activeCartId } = get();
         const cart = carts[activeCartId];
         if (!cart) return { subtotal: 0, discountAmount: 0, total: 0, change: 0 };
-        const { items, orderDiscount, orderDiscountType, cashAmount, cardAmount, paymentMethod, bonusPoints } = cart;
+        const { items, orderDiscount, orderDiscountType, cashAmount, cardAmount, paymentMethod, bonusPoints, splitNasiyaAmount } = cart;
 
         const subtotal = items.reduce((sum, item) => {
           const lineTotal = item.sellPrice * item.quantity * (1 - item.lineDiscount / 100);
@@ -201,7 +205,7 @@ export const usePOSStore = create<POSState>()(
         if (paymentMethod === 'cash') paidAmount = cashAmount;
         else if (paymentMethod === 'card') paidAmount = total;
         else if (paymentMethod === 'bonus') paidAmount = bonusPoints * 100;
-        else paidAmount = cashAmount + cardAmount;
+        else paidAmount = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * 100;
 
         const change =
           paymentMethod === 'cash' || paymentMethod === 'split'
@@ -251,7 +255,10 @@ export const usePOSStore = create<POSState>()(
     }),
     {
       name: 'raos-pos-store',
-      version: 2,
+      version: 3,
+      // skipHydration: server renders with default state (matching client initial render) → no #418.
+      // POSPage calls usePOSStore.persist.rehydrate() in useEffect to load from localStorage.
+      skipHydration: true,
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
           const old = persistedState as Record<string, unknown>;
@@ -267,11 +274,22 @@ export const usePOSStore = create<POSState>()(
                 cashAmount: 0,
                 cardAmount: 0,
                 bonusPoints: 0,
+                splitNasiyaAmount: 0,
                 selectedCustomer: null,
               },
             },
             activeCartId: 'cart-1',
           };
+        }
+        if (version < 3) {
+          // Add splitNasiyaAmount to existing carts
+          const s = persistedState as { carts?: Record<string, Record<string, unknown>> };
+          if (s.carts) {
+            Object.values(s.carts).forEach((cart) => {
+              if (cart.splitNasiyaAmount === undefined) cart.splitNasiyaAmount = 0;
+            });
+          }
+          return s;
         }
         return persistedState;
       },

@@ -11,9 +11,11 @@ import type {
 export const reportsApi = {
   // B-010 fix: backend has no /reports/dashboard — aggregate from multiple endpoints
   async getDashboard(): Promise<DashboardData> {
-    const today = new Date().toISOString().slice(0, 10);
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const toLocal = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const today = toLocal(new Date());
+    const yesterday = toLocal(new Date(Date.now() - 86400000));
+    const weekAgo = toLocal(new Date(Date.now() - 6 * 86400000));
 
     const fetchProfit = (from: string, to: string): Promise<ProfitSummary | null> =>
       apiClient
@@ -98,21 +100,25 @@ export const reportsApi = {
       .then((r) => {
         // Normalize backend shift shape to ShiftReport type
         const items = Array.isArray(r.data) ? r.data : (r.data as { items?: ShiftReport[] }).items ?? [];
-        return items.map((s: ShiftReport & { id?: string }) => ({
-          ...s,
-          shiftId: s.shiftId ?? s.id ?? '',
-          cashierName: s.cashierName ?? '—',
-          openedAt: s.openedAt ?? '',
-          closedAt: s.closedAt ?? null,
-          ordersCount: s.ordersCount ?? 0,
-          cashRevenue: s.cashRevenue ?? 0,
-          cardRevenue: s.cardRevenue ?? 0,
-          totalRevenue: s.totalRevenue ?? 0,
-          openingCash: s.openingCash ?? 0,
-          closingCash: s.closingCash ?? null,
-          expectedCash: s.expectedCash ?? 0,
-          discrepancy: s.discrepancy ?? null,
-        }));
+        return items.map((s: ShiftReport & { id?: string; totalOrders?: number; paymentBreakdown?: { cash?: number; card?: number }; opening_cash?: number; closing_cash?: number }) => {
+          const cash = s.paymentBreakdown?.cash ?? s.cashRevenue ?? 0;
+          const opening = Number(s.openingCash ?? s.opening_cash ?? 0);
+          return {
+            ...s,
+            shiftId: s.shiftId ?? s.id ?? '',
+            cashierName: s.cashierName ?? '—',
+            openedAt: s.openedAt ?? '',
+            closedAt: s.closedAt ?? null,
+            ordersCount: s.totalOrders ?? s.ordersCount ?? 0,
+            cashRevenue: cash,
+            cardRevenue: s.paymentBreakdown?.card ?? s.cardRevenue ?? 0,
+            totalRevenue: s.totalRevenue ?? 0,
+            openingCash: opening,
+            closingCash: s.closingCash ?? s.closing_cash ?? null,
+            expectedCash: s.expectedCash ?? (opening + cash),
+            discrepancy: s.discrepancy ?? null,
+          };
+        });
       });
   },
 

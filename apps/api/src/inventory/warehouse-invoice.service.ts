@@ -23,8 +23,14 @@ export class WarehouseInvoiceService {
     const warehouseId = await this.resolveWarehouseId(tenantId, dto.items[0]?.warehouseId);
     const supplierId = await this.resolveSupplierId(tenantId, dto.supplierId, dto.supplierName);
 
-    const totalCost = dto.items.reduce(
-      (sum, item) => sum + item.quantity * item.purchasePrice,
+    // T-140: accept purchasePrice OR costPrice (mobile alias)
+    const itemsWithPrice = dto.items.map((item) => ({
+      ...item,
+      price: item.purchasePrice ?? item.costPrice ?? 0,
+    }));
+
+    const totalCost = itemsWithPrice.reduce(
+      (sum, item) => sum + item.quantity * item.price,
       0,
     );
 
@@ -42,12 +48,12 @@ export class WarehouseInvoiceService {
             totalCost,
             createdBy: userId,
             items: {
-              create: dto.items.map((item) => ({
+              create: itemsWithPrice.map((item) => ({
                 tenantId,
                 productId: item.productId,
                 quantity: item.quantity,
-                purchasePrice: item.purchasePrice,
-                totalCost: item.quantity * item.purchasePrice,
+                purchasePrice: item.price,
+                totalCost: item.quantity * item.price,
                 warehouseId: item.warehouseId ?? warehouseId,
                 batchNumber: item.batchNumber ?? null,
                 expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
@@ -59,7 +65,7 @@ export class WarehouseInvoiceService {
 
         // Create stock movements for each item
         await Promise.all(
-          dto.items.map((item) =>
+          itemsWithPrice.map((item) =>
             tx.stockMovement.create({
               data: {
                 tenantId,
@@ -68,7 +74,7 @@ export class WarehouseInvoiceService {
                 userId,
                 type: 'IN',
                 quantity: item.quantity,
-                costPrice: item.purchasePrice,
+                costPrice: item.price,
                 refType: 'INVOICE',
                 refId: inv.id,
                 note: dto.invoiceNumber ? `Nakladnoy: ${dto.invoiceNumber}` : 'Warehouse invoice',
@@ -96,7 +102,15 @@ export class WarehouseInvoiceService {
     await this.cache.invalidatePattern(CacheService.key.stockLevels(tenantId, '*'));
     this.logger.log(`[Invoice] Created ${invoice.id}, ${dto.items.length} items, totalCost=${totalCost}`, { tenantId });
 
-    return invoice;
+    // T-140: Mobile-friendly response shape
+    return {
+      id: invoice.id,
+      receiptNumber: invoice.invoiceNumber,
+      date: invoice.createdAt.toISOString(),
+      totalCost: Number(invoice.totalCost),
+      itemsCount: invoice.items.length,
+      status: invoice.status,
+    };
   }
 
   // ─── GET /warehouse/invoices ──────────────────────────────────────────────

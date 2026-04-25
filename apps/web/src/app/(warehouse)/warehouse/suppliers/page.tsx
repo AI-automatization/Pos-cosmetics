@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Truck, Search, Phone, Building2, MapPin, CheckCircle2, XCircle, Plus, Pencil, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Truck, Search, Phone, Building2, MapPin, CheckCircle2, XCircle, Plus, Pencil, PowerOff } from 'lucide-react';
 import { useSuppliers, useDeleteSupplier } from '@/hooks/catalog/useSuppliers';
 import { SupplierModal } from '@/components/catalog/SupplierModal';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
@@ -9,18 +10,21 @@ import { useCurrentUser } from '@/hooks/auth/useAuth';
 import type { Supplier } from '@/types/supplier';
 import { cn } from '@/lib/utils';
 
+const PAGE_SIZE = 12;
+
 export default function WarehouseSuppliersPage() {
   const { data: currentUser } = useCurrentUser();
-  // Yuklanguncha ko'rsatish; barcha rollar uchun ruxsat
   const canEdit = !currentUser?.role || ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE'].includes(currentUser.role);
+
   const [search, setSearch] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+  const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<Supplier | null>(null);
 
   const { data: suppliers = [], isLoading } = useSuppliers();
-  const { mutate: deleteSupplier, isPending: isDeleting } = useDeleteSupplier();
+  const { mutate: deleteSupplier, isPending: isDeactivating } = useDeleteSupplier();
 
   const filtered = suppliers.filter((s) => {
     const matchSearch =
@@ -28,14 +32,17 @@ export default function WarehouseSuppliersPage() {
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       (s.company ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (s.phone ?? '').includes(search);
-
     const matchActive =
       filterActive === 'all' ||
       (filterActive === 'active' && s.isActive) ||
       (filterActive === 'inactive' && !s.isActive);
-
     return matchSearch && matchActive;
   });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => { setPage(1); }, [search, filterActive]);
 
   const activeCount = suppliers.filter((s) => s.isActive).length;
 
@@ -45,7 +52,7 @@ export default function WarehouseSuppliersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Yetkazib beruvchilar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Barcha yetkazib beruvchilar ro'yxati</p>
+          <p className="text-sm text-gray-500 mt-0.5">Barcha yetkazib beruvchilar ro&apos;yxati</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
@@ -123,36 +130,66 @@ export default function WarehouseSuppliersPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((supplier) => (
-            <div
-              key={supplier.id}
-              className={cn(
-                'bg-white border rounded-xl p-4 space-y-3 transition',
-                supplier.isActive
-                  ? 'border-gray-200 hover:border-amber-300 hover:shadow-sm'
-                  : 'border-gray-100 opacity-60',
-              )}
-            >
-              {/* Sarlavha */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-900 leading-tight">{supplier.name}</h3>
-                  {supplier.company && (
-                    <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
-                      <Building2 className="h-3 w-3" />
-                      {supplier.company}
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {paginated.map((supplier) => (
+              <div
+                key={supplier.id}
+                className={cn(
+                  'bg-white border rounded-xl p-4 space-y-3 transition relative',
+                  supplier.isActive
+                    ? 'border-gray-200 hover:border-amber-300 hover:shadow-sm'
+                    : 'border-gray-100 opacity-60',
+                )}
+              >
+                {/* Sarlavha — click detail */}
+                <Link href={`/warehouse/suppliers/${supplier.id}`} className="block">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-900 leading-tight hover:text-amber-700 transition">{supplier.name}</h3>
+                      {supplier.company && (
+                        <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
+                          <Building2 className="h-3 w-3" />
+                          {supplier.company}
+                        </div>
+                      )}
+                    </div>
+                    {supplier.isActive ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-gray-300 mt-0.5 shrink-0" />
+                    )}
+                  </div>
+                </Link>
+
+                {/* Kontakt */}
+                <div className="space-y-1.5">
+                  {supplier.phone && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Phone className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      <a href={`tel:${supplier.phone}`} className="hover:text-amber-600 transition">
+                        {supplier.phone}
+                      </a>
                     </div>
                   )}
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  {supplier.isActive ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-gray-300 mt-0.5" />
+                  {supplier.address && (
+                    <div className="flex items-start gap-2 text-sm text-gray-600">
+                      <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
+                      <span className="line-clamp-2">{supplier.address}</span>
+                    </div>
                   )}
+                  {!supplier.phone && !supplier.address && (
+                    <p className="text-xs text-gray-400">Kontakt ma&apos;lumoti yo&apos;q</p>
+                  )}
+                </div>
+
+                {/* Holat + actions */}
+                <div className="pt-1 border-t border-gray-100 flex items-center justify-between">
+                  <span className={cn('text-xs font-medium', supplier.isActive ? 'text-green-600' : 'text-gray-400')}>
+                    {supplier.isActive ? 'Faol' : 'Faol emas'}
+                  </span>
                   {canEdit && (
-                    <>
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setEditSupplier(supplier)}
@@ -161,54 +198,43 @@ export default function WarehouseSuppliersPage() {
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(supplier)}
-                        className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 transition"
-                        title="O'chirish"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </>
+                      {supplier.isActive && (
+                        <button
+                          type="button"
+                          onClick={() => setDeactivateTarget(supplier)}
+                          className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-red-500 transition"
+                          title="Faolsizlashtirish"
+                        >
+                          <PowerOff className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Kontakt */}
-              <div className="space-y-1.5">
-                {supplier.phone && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Phone className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                    <a href={`tel:${supplier.phone}`} className="hover:text-amber-600 transition">
-                      {supplier.phone}
-                    </a>
-                  </div>
-                )}
-                {supplier.address && (
-                  <div className="flex items-start gap-2 text-sm text-gray-600">
-                    <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
-                    <span className="line-clamp-2">{supplier.address}</span>
-                  </div>
-                )}
-                {!supplier.phone && !supplier.address && (
-                  <p className="text-xs text-gray-400">Kontakt ma'lumoti yo'q</p>
-                )}
-              </div>
-
-              {/* Holat */}
-              <div className="pt-1 border-t border-gray-100">
-                <span
-                  className={cn(
-                    'text-xs font-medium',
-                    supplier.isActive ? 'text-green-600' : 'text-gray-400',
-                  )}
-                >
-                  {supplier.isActive ? 'Faol' : 'Faol emas'}
-                </span>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between text-sm text-gray-500 bg-white border border-gray-200 rounded-xl px-4 py-3">
+              <span>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} / {filtered.length} ta</span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >‹</button>
+                <span className="px-2">{page} / {totalPages}</span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >›</button>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {showModal && <SupplierModal onClose={() => setShowModal(false)} />}
@@ -216,19 +242,19 @@ export default function WarehouseSuppliersPage() {
         <SupplierModal supplier={editSupplier} onClose={() => setEditSupplier(null)} />
       )}
       <ConfirmDialog
-        isOpen={!!deleteTarget}
-        title="Yetkazib beruvchini o'chirish"
-        message={`"${deleteTarget?.name}" ni o'chirmoqchimisiz? Bu amal qaytarib bo'lmaydi.`}
-        confirmLabel="O'chirish"
+        isOpen={!!deactivateTarget}
+        title="Yetkazib beruvchini faolsizlashtirish"
+        message={`"${deactivateTarget?.name}" ni faolsizlashtirishni tasdiqlaysizmi? Ma'lumotlar saqlanib qoladi, kerak bo'lsa qayta faollashtirish mumkin.`}
+        confirmLabel="Faolsizlashtirish"
         cancelLabel="Bekor qilish"
         variant="danger"
-        isPending={isDeleting}
+        isPending={isDeactivating}
         onConfirm={() => {
-          if (deleteTarget) {
-            deleteSupplier(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) });
+          if (deactivateTarget) {
+            deleteSupplier(deactivateTarget.id, { onSuccess: () => setDeactivateTarget(null) });
           }
         }}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => setDeactivateTarget(null)}
       />
     </div>
   );

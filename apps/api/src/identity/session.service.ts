@@ -7,7 +7,7 @@ import {
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
-const MAX_SESSIONS_PER_USER = 3;
+const MAX_SESSIONS_PER_USER = 5;
 const SESSION_DURATION_DAYS = 30;
 
 @Injectable()

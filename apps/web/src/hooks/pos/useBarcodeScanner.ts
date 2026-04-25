@@ -14,10 +14,12 @@ export function useBarcodeScanner(onScan: (barcode: string) => void) {
   const bufferRef = useRef<string>('');
   const lastKeyTimeRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref keeps onScan fresh — prevents effect re-running every time handleBarcodeScan changes.
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Skip if user is typing in an input (except the barcode field itself)
       const target = e.target as HTMLElement;
       const isInInput =
         (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') &&
@@ -33,13 +35,12 @@ export function useBarcodeScanner(onScan: (barcode: string) => void) {
         if (timerRef.current) clearTimeout(timerRef.current);
         const barcode = bufferRef.current.trim();
         if (barcode.length >= BARCODE_MIN_LENGTH) {
-          onScan(barcode);
+          onScanRef.current(barcode);
         }
         bufferRef.current = '';
         return;
       }
 
-      // Reset buffer if typing too slow (manual input)
       if (timeSinceLast > BARCODE_MAX_DELAY_MS && bufferRef.current.length > 0) {
         bufferRef.current = '';
       }
@@ -47,12 +48,11 @@ export function useBarcodeScanner(onScan: (barcode: string) => void) {
       if (e.key.length === 1) {
         bufferRef.current += e.key;
 
-        // Auto-flush after short timeout (in case scanner doesn't send Enter)
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
           const barcode = bufferRef.current.trim();
           if (barcode.length >= BARCODE_MIN_LENGTH) {
-            onScan(barcode);
+            onScanRef.current(barcode);
           }
           bufferRef.current = '';
         }, 150);
@@ -64,5 +64,5 @@ export function useBarcodeScanner(onScan: (barcode: string) => void) {
       window.removeEventListener('keydown', handleKeyDown);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [onScan]);
+  }, []); // Empty: listener registered once, ref keeps onScan fresh
 }

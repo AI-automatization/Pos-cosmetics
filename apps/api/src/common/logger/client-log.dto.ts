@@ -2,9 +2,9 @@ import { IsString, IsOptional, IsIn, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ClientLogDto {
-  @ApiProperty({ enum: ['web', 'mobile', 'pos'], description: 'Client app source' })
+  @ApiProperty({ enum: ['web', 'mobile', 'pos', 'super-admin'], description: 'Client app source' })
   @IsString()
-  @IsIn(['web', 'mobile', 'pos'])
+  @IsIn(['web', 'mobile', 'pos', 'super-admin'])
   source!: string;
 
   @ApiProperty({ description: 'Error message' })

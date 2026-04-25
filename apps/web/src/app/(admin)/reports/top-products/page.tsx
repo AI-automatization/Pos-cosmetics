@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useTopProducts } from '@/hooks/reports/useReports';
@@ -19,12 +19,16 @@ function getDefaultRange() {
 
 export default function TopProductsPage() {
   const [range, setRange] = useState(getDefaultRange);
-  const { data, isLoading, isError } = useTopProducts({ ...range, limit: 20 });
+  const [tablePage, setTablePage] = useState(1);
+  const PAGE_SIZE = 10;
+  const { data, isLoading, isError } = useTopProducts({ ...range, limit: 100 });
 
   const maxRevenue = data?.[0]?.revenue ?? 1;
+  const totalPages = Math.ceil((data?.length ?? 0) / PAGE_SIZE);
+  const paged = useMemo(() => data?.slice((tablePage - 1) * PAGE_SIZE, tablePage * PAGE_SIZE) ?? [], [data, tablePage]);
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/reports" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
@@ -105,12 +109,13 @@ export default function TopProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data.map((p, idx) => {
+              {paged.map((p, idx) => {
                 const barWidth = Math.round((p.revenue / maxRevenue) * 100);
+                const globalIdx = (tablePage - 1) * PAGE_SIZE + idx;
                 return (
                   <tr key={p.productId} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-center text-xs font-medium text-gray-400">
-                      {idx + 1}
+                      {globalIdx + 1}
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {p.productName}
@@ -138,6 +143,16 @@ export default function TopProductsPage() {
               })}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2">
+              <p className="text-xs text-gray-500">Jami: {data?.length ?? 0} ta mahsulot</p>
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
+                <span className="px-2 text-xs text-gray-500">{tablePage} / {totalPages}</span>
+                <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage === totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

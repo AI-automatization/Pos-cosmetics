@@ -88,6 +88,11 @@ export class CreateProductDto {
   @IsOptional()
   @IsString({ each: true })
   extraBarcodes?: string[];
+
+  @ApiPropertyOptional({ description: 'Link product to supplier on create' })
+  @IsOptional()
+  @IsUUID()
+  supplierId?: string;
 }
 
 export class UpdateProductDto {

@@ -28,7 +28,7 @@ async function bootstrap() {
   // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
   const corsOriginRaw = config.get<string>(
     'CORS_ORIGIN',
-    'http://localhost:3001,http://localhost:3000,http://localhost:3003,http://localhost:3004,https://web-production-5b0b7.up.railway.app',
+    'http://localhost:3001,http://localhost:3000,http://localhost:3003,http://localhost:3004,https://web-production-5b0b7.up.railway.app,https://super-admin-production-a0db.up.railway.app',
   );
   // '*' with credentials is rejected by browsers — reflect request origin instead
   const corsOrigin: string | string[] | boolean = corsOriginRaw === '*'

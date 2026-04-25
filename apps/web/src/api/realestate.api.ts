@@ -3,7 +3,7 @@ import type { Property, RentalPayment, RealEstateStats, PaymentStatus } from '@/
 
 export const realestateApi = {
   getProperties() {
-    return apiClient.get<Property[]>('/real-estate/properties').then((r) => r.data);
+    return apiClient.get<Property[]>('/real-estate/properties').then((r) => Array.isArray(r.data) ? r.data : []);
   },
 
   getProperty(id: string) {
@@ -17,12 +17,12 @@ export const realestateApi = {
   getPayments(params?: { status?: PaymentStatus; propertyId?: string }) {
     return apiClient
       .get<RentalPayment[]>('/real-estate/payments', { params })
-      .then((r) => r.data);
+      .then((r) => Array.isArray(r.data) ? r.data : []);
   },
 
   getPropertyPayments(propertyId: string) {
     return apiClient
       .get<RentalPayment[]>(`/real-estate/properties/${propertyId}/payments`)
-      .then((r) => r.data);
+      .then((r) => Array.isArray(r.data) ? r.data : []);
   },
 };

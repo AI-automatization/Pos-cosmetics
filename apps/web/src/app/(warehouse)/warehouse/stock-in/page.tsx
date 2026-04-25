@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Save, Package, X, Hash, FileText, StickyNote } from 'lucide-react';
+import { Plus, Trash2, Save, Package, X, Hash, FileText, StickyNote, Pencil } from 'lucide-react';
 import { useCreateInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
-import { useProducts, useCreateProduct } from '@/hooks/catalog/useProducts';
-import { useSuppliers, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
+import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
+import { useSuppliers, useSupplier, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
 import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
 import { SearchableDropdown, type DropdownOption } from '@/components/ui/SearchableDropdown';
 import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
+import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
 
 interface ItemRow extends InvoiceItem {
@@ -28,21 +29,51 @@ export default function StockInPage() {
   const { data: suppliers } = useSuppliers();
   const { mutate: createSupplier, isPending: isCreatingSupplier } = useCreateSupplier();
   const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
+  const { mutate: updateProduct, isPending: isUpdatingProduct } = useUpdateProduct();
   const { data: categories } = useCategories();
-  const allProducts = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])) as { id: string; name: string; barcode?: string | null; sku?: string | null }[];
+  const allProducts = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])) as { id: string; name: string; barcode?: string | null; sku?: string | null; costPrice?: number }[];
 
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [showInvoiceNumber, setShowInvoiceNumber] = useState(false);
   const [note, setNote] = useState('');
   const [supplierId, setSupplierId] = useState('');
 
+  const [submitted, setSubmitted] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
+  const [supplierProductIds, setSupplierProductIds] = useState<string[]>([]);
+  const [supplierProductSearch, setSupplierProductSearch] = useState('');
 
   const [productModal, setProductModal] = useState<{ rowKey: number } | null>(null);
+  const [editProductModal, setEditProductModal] = useState<Product | null>(null);
+
   const [items, setItems] = useState<ItemRow[]>([
     { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
   ]);
+
+  const { data: supplierDetail } = useSupplier(supplierId || null);
+  // Reset banner when supplier changes
+  useEffect(() => { setBannerDismissed(false); }, [supplierId]);
+  // Auto-populate: when supplier's products loaded and table is empty (1 blank row) → auto-add
+  useEffect(() => {
+    if (!supplierDetail?.productSuppliers?.length) return;
+    const hasFilledRows = items.some((r) => r.productId);
+    if (hasFilledRows) return; // let banner handle it
+    const newRows = supplierDetail.productSuppliers
+      .filter((ps) => ps.product.isActive)
+      .map((ps) => {
+        const p = allProducts.find((x) => x.id === ps.product.id);
+        return { _key: nextKey(), productId: ps.product.id, productName: ps.product.name, quantity: 1, purchasePrice: p?.costPrice ?? 0 };
+      });
+    if (newRows.length > 0) {
+      setItems(newRows);
+      setBannerDismissed(true);
+    }
+  }, [supplierDetail]); // eslint-disable-line react-hooks/exhaustive-deps
+  const supplierProducts = supplierDetail?.productSuppliers?.filter((ps) => ps.product.isActive) ?? [];
+  const showBanner = !!supplierId && !bannerDismissed && supplierProducts.length > 0
+    && !supplierProducts.every((ps) => items.some((r) => r.productId === ps.product.id));
 
   const supplierOptions: DropdownOption[] = useMemo(
     () => (suppliers ?? []).map((s) => ({ value: s.id, label: s.name, sublabel: s.company || s.phone })),
@@ -66,6 +97,7 @@ export default function StockInPage() {
   const totalCost = items.reduce((s, r) => s + r.quantity * r.purchasePrice, 0);
 
   const handleCreateProduct = (formData: ProductFormData) => {
+    const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
     createProduct(
       {
         name: formData.name,
@@ -74,8 +106,9 @@ export default function StockInPage() {
         costPrice: formData.costPrice,
         sellPrice: formData.sellPrice,
         minStockLevel: formData.minStockLevel,
-        barcode: formData.barcode || undefined,
-        extraBarcodes: formData.extraBarcodes?.map((b) => b.value).filter((v) => v.trim().length > 0),
+        barcode: allBarcodes[0] || undefined,
+        extraBarcodes: allBarcodes.slice(1),
+        supplierId: formData.supplierId || undefined,
       },
       {
         onSuccess: (newProduct) => {
@@ -92,15 +125,51 @@ export default function StockInPage() {
     );
   };
 
+  const handleUpdateProduct = (formData: ProductFormData) => {
+    if (!editProductModal) return;
+    const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
+    updateProduct(
+      {
+        id: editProductModal.id,
+        dto: {
+          name: formData.name,
+          sku: formData.sku || undefined,
+          categoryId: formData.categoryId || undefined,
+          costPrice: formData.costPrice,
+          sellPrice: formData.sellPrice,
+          minStockLevel: formData.minStockLevel,
+          barcode: allBarcodes[0] || undefined,
+          extraBarcodes: allBarcodes.slice(1),
+        },
+      },
+      {
+        onSuccess: () => {
+          // Update the row's purchasePrice if this product is in the table
+          setItems((prev) => prev.map((r) =>
+            r.productId === editProductModal.id ? { ...r, purchasePrice: formData.costPrice } : r
+          ));
+          setEditProductModal(null);
+        },
+      },
+    );
+  };
+
   const handleCreateSupplier = (e: React.FormEvent) => {
     e.preventDefault();
     createSupplier(
       { name: supplierForm.name, phone: supplierForm.phone, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
       {
-        onSuccess: (newSupplier) => {
+        onSuccess: async (newSupplier) => {
+          // Link selected products to new supplier (fire-and-forget, best-effort)
+          if (supplierProductIds.length > 0) {
+            const { suppliersApi } = await import('@/api/suppliers.api');
+            await Promise.all(supplierProductIds.map((pid) => suppliersApi.linkProduct(newSupplier.id, pid).catch(() => {})));
+          }
           setSupplierId(newSupplier.id);
           setShowSupplierModal(false);
           setSupplierForm({ name: '', phone: '', company: '', address: '' });
+          setSupplierProductIds([]);
+          setSupplierProductSearch('');
         },
       },
     );
@@ -108,15 +177,17 @@ export default function StockInPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const valid = items.filter((r) => r.productId && r.quantity > 0);
+    setSubmitted(true);
+    const valid = items.filter((r) => r.productId && r.quantity > 0 && r.purchasePrice >= 0);
     if (valid.length === 0) return;
 
     const dto: CreateInvoiceDto = {
       invoiceNumber: invoiceNumber || undefined,
       note: note || undefined,
       supplierId: supplierId || undefined,
-      items: valid.map(({ productId, quantity, purchasePrice, warehouseId, batchNumber }) => ({
+      items: valid.map(({ productId, quantity, purchasePrice, warehouseId, batchNumber, expiryDate }) => ({
         productId, quantity, purchasePrice, warehouseId, batchNumber,
+        expiryDate: expiryDate || undefined,
       })),
     };
 
@@ -217,6 +288,52 @@ export default function StockInPage() {
               </div>
             </div>
           </div>
+
+          {/* Supplier products banner */}
+          {showBanner && (
+            <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-amber-800">
+                <Package className="h-4 w-4 shrink-0 text-amber-600" />
+                <span>
+                  Bu kontragentda <strong>{supplierProducts.length}</strong> ta mahsulot bor
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newRows = supplierProducts
+                      .filter((ps) => !items.some((r) => r.productId === ps.product.id))
+                      .map((ps) => {
+                        const p = allProducts.find((x) => x.id === ps.product.id);
+                        return {
+                          _key: nextKey(),
+                          productId: ps.product.id,
+                          productName: ps.product.name,
+                          quantity: 1,
+                          purchasePrice: p?.costPrice ?? 0,
+                        };
+                      });
+                    setItems((prev) => {
+                      const filtered = prev.filter((r) => r.productId);
+                      return [...filtered, ...newRows];
+                    });
+                    setBannerDismissed(true);
+                  }}
+                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-700"
+                >
+                  Qo&apos;shish
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBannerDismissed(true)}
+                  className="rounded-lg p-1.5 text-amber-500 transition hover:bg-amber-100"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Items table — card */}
@@ -241,104 +358,141 @@ export default function StockInPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50/80">
+              <thead className="bg-gray-50/80 sticky top-0 z-10">
                 <tr className="text-xs text-gray-500 uppercase tracking-wider">
                   <th className="px-4 py-3 text-left min-w-[280px]">Tovar</th>
                   <th className="px-4 py-3 text-right w-24">Miqdor</th>
-                  <th className="px-4 py-3 text-right w-32">Narx (UZS)</th>
+                  <th className="px-4 py-3 text-right w-36">Narx (UZS)</th>
                   <th className="px-4 py-3 text-left w-28">Partiya</th>
                   <th className="px-4 py-3 text-right w-32">Jami</th>
                   <th className="px-4 py-3 w-12" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
-                {items.map((row) => (
-                  <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <SearchableDropdown
-                        options={productOptions}
-                        value={row.productId}
-                        onChange={(val) => {
-                          const p = allProducts.find((x) => x.id === val);
-                          updateRow(row._key, { productId: val, productName: p?.name });
-                        }}
-                        placeholder="Mahsulot tanlang..."
-                        searchPlaceholder="Nomi yoki barcode..."
-                        emptyMessage="Topilmadi"
-                        clearable={false}
-                      />
-                      {!row.productId && (
+            </table>
+            <div className="max-h-[480px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <colgroup>
+                  <col className="min-w-[280px]" />
+                  <col className="w-24" />
+                  <col className="w-36" />
+                  <col className="w-28" />
+                  <col className="w-32" />
+                  <col className="w-12" />
+                </colgroup>
+                <tbody className="divide-y divide-gray-50">
+                  {items.map((row) => {
+                    const rowInvalid = submitted && !row.productId;
+                    const qtyInvalid = submitted && row.quantity <= 0;
+                    const priceInvalid = submitted && row.purchasePrice < 0;
+                    return (
+                    <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <SearchableDropdown
+                          options={productOptions}
+                          value={row.productId}
+                          onChange={(val) => {
+                            const p = allProducts.find((x) => x.id === val);
+                            updateRow(row._key, {
+                              productId: val,
+                              productName: p?.name,
+                              ...(p?.costPrice != null && { purchasePrice: p.costPrice }),
+                            });
+                          }}
+                          placeholder="Mahsulot tanlang..."
+                          searchPlaceholder="Nomi yoki barcode..."
+                          emptyMessage="Topilmadi"
+                          clearable={false}
+                          className={rowInvalid ? 'ring-2 ring-red-400 rounded-xl' : ''}
+                        />
+                        {rowInvalid && (
+                          <p className="mt-1 text-xs text-red-500">Mahsulot tanlanishi shart</p>
+                        )}
+                        {!row.productId && !rowInvalid && (
+                          <button
+                            type="button"
+                            onClick={() => setProductModal({ rowKey: row._key })}
+                            className="mt-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                          >
+                            + Yangi mahsulot yaratish
+                          </button>
+                        )}
+                        {row.productId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const p = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])).find((x: Product) => x.id === row.productId);
+                              if (p) setEditProductModal(p as Product);
+                            }}
+                            className="mt-1 flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 font-medium"
+                          >
+                            <Pencil className="h-3 w-3" /> Tahrirlash
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="number"
+                          min={1}
+                          value={row.quantity}
+                          onChange={(e) => updateRow(row._key, { quantity: Number(e.target.value) })}
+                          className={cn(
+                            'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+                            qtyInvalid ? 'border-red-400' : 'border-gray-300',
+                          )}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="number"
+                          min={0}
+                          value={row.purchasePrice}
+                          onChange={(e) => updateRow(row._key, { purchasePrice: Number(e.target.value) })}
+                          className={cn(
+                            'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+                            priceInvalid ? 'border-red-400' : 'border-gray-300',
+                          )}
+                        />
+                        {priceInvalid && <p className="mt-1 text-xs text-red-500">Narx manfiy bo&apos;lishi mumkin emas</p>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="text"
+                          value={row.batchNumber ?? ''}
+                          onChange={(e) => updateRow(row._key, { batchNumber: e.target.value || undefined })}
+                          placeholder="—"
+                          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="font-semibold text-gray-900">
+                          {(row.quantity * row.purchasePrice).toLocaleString('uz-UZ')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
                         <button
                           type="button"
-                          onClick={() => setProductModal({ rowKey: row._key })}
-                          className="mt-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                          onClick={() => removeRow(row._key)}
+                          disabled={items.length === 1}
+                          className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                         >
-                          + Yangi mahsulot yaratish
+                          <Trash2 className="h-4 w-4" />
                         </button>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="number"
-                        min={1}
-                        value={row.quantity}
-                        onChange={(e) => updateRow(row._key, { quantity: Number(e.target.value) })}
-                        className="w-full text-right rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="number"
-                        min={0}
-                        value={row.purchasePrice}
-                        onChange={(e) => updateRow(row._key, { purchasePrice: Number(e.target.value) })}
-                        className="w-full text-right rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="text"
-                        value={row.batchNumber ?? ''}
-                        onChange={(e) => updateRow(row._key, { batchNumber: e.target.value || undefined })}
-                        placeholder="—"
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="font-semibold text-gray-900">
-                        {(row.quantity * row.purchasePrice).toLocaleString('uz-UZ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => removeRow(row._key)}
-                        disabled={items.length === 1}
-                        className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="border-t-2 border-gray-200 bg-gray-50/80">
-                <tr>
-                  <td colSpan={4} className="px-4 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                    Jami summa:
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-lg font-bold text-gray-900">
-                      {totalCost.toLocaleString('uz-UZ')}
-                    </span>
-                    <span className="ml-1 text-xs text-gray-500">UZS</span>
-                  </td>
-                  <td />
-                </tr>
-              </tfoot>
-            </table>
+                      </td>
+                    </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* Total row — outside scroll area */}
+            <div className="flex items-center justify-end gap-4 border-t-2 border-gray-200 bg-gray-50/80 px-4 py-3">
+              <span className="text-sm font-semibold uppercase tracking-wider text-gray-600">Jami summa:</span>
+              <span className="text-lg font-bold text-gray-900">{totalCost.toLocaleString('uz-UZ')}</span>
+              <span className="text-xs text-gray-500">UZS</span>
+            </div>
           </div>
         </div>
+
 
         {/* Submit bar */}
         <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -377,13 +531,25 @@ export default function StockInPage() {
           isPending={isCreatingProduct}
           onSubmit={handleCreateProduct}
           onClose={() => setProductModal(null)}
+          initialSupplierId={supplierId || undefined}
+        />
+      )}
+
+      {/* Product edit modal */}
+      {editProductModal && (
+        <ProductForm
+          product={editProductModal}
+          categories={categories ?? []}
+          isPending={isUpdatingProduct}
+          onSubmit={handleUpdateProduct}
+          onClose={() => setEditProductModal(null)}
         />
       )}
 
       {/* Supplier create modal */}
       {showSupplierModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md mx-4 rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-md mx-4 rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-gray-900">Yangi kontragent</h3>
               <button
@@ -436,6 +602,53 @@ export default function StockInPage() {
                   />
                 </div>
               </div>
+              {/* Products section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Mahsulotlar <span className="text-xs font-normal text-gray-400">(ixtiyoriy)</span>
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={supplierProductSearch}
+                    onChange={(e) => setSupplierProductSearch(e.target.value)}
+                    placeholder="Mahsulot qidirish..."
+                    className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                  />
+                </div>
+                {supplierProductSearch && (
+                  <div className="max-h-32 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+                    {allProducts
+                      .filter((p) => p.name.toLowerCase().includes(supplierProductSearch.toLowerCase()) && !supplierProductIds.includes(p.id))
+                      .slice(0, 8)
+                      .map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setSupplierProductIds((ids) => [...ids, p.id]); setSupplierProductSearch(''); }}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                        >
+                          <Plus className="h-3 w-3 text-blue-500 shrink-0" />
+                          {p.name}
+                        </button>
+                      ))}
+                  </div>
+                )}
+                {supplierProductIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {supplierProductIds.map((id) => {
+                      const p = allProducts.find((x) => x.id === id);
+                      return (
+                        <span key={id} className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
+                          {p?.name ?? id}
+                          <button type="button" onClick={() => setSupplierProductIds((ids) => ids.filter((i) => i !== id))}><X className="h-3 w-3" /></button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"

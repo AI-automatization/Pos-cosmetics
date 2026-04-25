@@ -98,9 +98,54 @@ export class SalesService {
   }
 
   async getCurrentShift(tenantId: string, userId: string) {
-    return this.prisma.shift.findFirst({
+    const shift = await this.prisma.shift.findFirst({
       where: { tenantId, userId, status: ShiftStatus.OPEN },
+      include: {
+        user: { select: { firstName: true, lastName: true } },
+        branch: { select: { id: true, name: true } },
+      },
     });
+
+    if (!shift) return null;
+
+    // T-138: Smena statistikasini hisoblash
+    const orders = await this.prisma.order.findMany({
+      where: { tenantId, shiftId: shift.id, status: 'COMPLETED' },
+      include: { paymentIntents: { select: { method: true, amount: true } } },
+    });
+
+    let totalRevenue = 0;
+    let naqdAmount = 0;
+    let kartaAmount = 0;
+    let nasiyaAmount = 0;
+
+    for (const order of orders) {
+      const total = Number(order.total);
+      totalRevenue += total;
+
+      for (const payment of order.paymentIntents) {
+        const amount = Number(payment.amount);
+        if (payment.method === 'CASH') naqdAmount += amount;
+        else if (payment.method === 'TERMINAL') kartaAmount += amount;
+        else if (payment.method === 'DEBT') nasiyaAmount += amount;
+      }
+    }
+
+    const ordersCount = orders.length;
+    const avgOrderValue = ordersCount > 0 ? Math.round(totalRevenue / ordersCount) : 0;
+
+    return {
+      ...shift,
+      cashierName: `${shift.user.firstName} ${shift.user.lastName}`.trim(),
+      stats: {
+        totalRevenue: Math.round(totalRevenue),
+        ordersCount,
+        avgOrderValue,
+        naqdAmount: Math.round(naqdAmount),
+        kartaAmount: Math.round(kartaAmount),
+        nasiyaAmount: Math.round(nasiyaAmount),
+      },
+    };
   }
 
   // Mobile alias: GET /sales/shifts/active
@@ -165,21 +210,83 @@ export class SalesService {
     };
   }
 
-  async getShifts(tenantId: string, limit = 20, page = 1) {
+  // ─── T-205: SHIFTS (paginated, filtered) ─────────────────────
+  async getShifts(
+    tenantId: string,
+    limit = 20,
+    page = 1,
+    opts: { branchId?: string; status?: string; userId?: string; role?: string } = {},
+  ) {
     const skip = (page - 1) * limit;
-    const [total, items] = await this.prisma.$transaction([
-      this.prisma.shift.count({ where: { tenantId } }),
+    const statusMap: Record<string, ShiftStatus> = {
+      open: ShiftStatus.OPEN,
+      closed: ShiftStatus.CLOSED,
+    };
+
+    const where = {
+      tenantId,
+      ...(opts.branchId && { branchId: opts.branchId }),
+      ...(opts.status && statusMap[opts.status] && { status: statusMap[opts.status] }),
+      // CASHIER/MANAGER see only their own shifts
+      ...(opts.role && !['OWNER', 'ADMIN'].includes(opts.role) && opts.userId
+        ? { userId: opts.userId }
+        : {}),
+    };
+
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.shift.count({ where }),
       this.prisma.shift.findMany({
-        where: { tenantId },
+        where,
         skip,
         take: limit,
         orderBy: { openedAt: 'desc' },
         include: {
           user: { select: { id: true, firstName: true, lastName: true } },
           branch: { select: { id: true, name: true } },
+          orders: {
+            where: { status: 'COMPLETED' },
+            select: {
+              total: true,
+              paymentIntents: { select: { method: true, amount: true } },
+            },
+          },
         },
       }),
     ]);
+
+    const items = rows.map((s) => {
+      const totalRevenue = s.orders.reduce((sum, o) => sum + Number(o.total), 0);
+      const totalOrders = s.orders.length;
+
+      const pmMap: Record<string, number> = {};
+      for (const o of s.orders) {
+        for (const pi of o.paymentIntents) {
+          const key = pi.method.toLowerCase();
+          pmMap[key] = (pmMap[key] ?? 0) + Number(pi.amount);
+        }
+      }
+      const paymentBreakdown = {
+        cash: pmMap['cash'] ?? 0,
+        card: pmMap['card'] ?? pmMap['terminal'] ?? 0,
+        click: pmMap['click'] ?? 0,
+        payme: pmMap['payme'] ?? 0,
+      };
+
+      return {
+        id: s.id,
+        branchId: s.branchId,
+        branchName: s.branch?.name ?? null,
+        cashierId: s.userId,
+        cashierName: `${s.user?.firstName ?? ''} ${s.user?.lastName ?? ''}`.trim(),
+        status: s.status.toLowerCase(),
+        openedAt: s.openedAt,
+        closedAt: s.closedAt,
+        totalRevenue,
+        totalOrders,
+        paymentBreakdown,
+      };
+    });
+
     return { items, total, page, limit };
   }
 
@@ -234,6 +341,7 @@ export class SalesService {
           costPrice: Number(product.costPrice),
           discountAmount: discount,
           total: Math.max(0, total),
+          isTaxable: product.isTaxable,
         };
       });
 
@@ -249,6 +357,14 @@ export class SalesService {
 
       const total = Math.max(0, subtotal - discountAmount);
 
+      // T-078: QQS (НДС 12%) — tax-inclusive narxlardan soliq hisoblash
+      // Formula: taxAmount = taxableTotal * 0.12 / 1.12
+      const taxableTotal = orderItemsData.reduce(
+        (s, i) => s + (i.isTaxable ? Math.max(0, i.total) : 0),
+        0,
+      );
+      const taxAmount = Math.round((taxableTotal * 0.12) / 1.12);
+
       // Generate order number (per tenant)
       const last = await tx.order.findFirst({
         where: { tenantId },
@@ -256,6 +372,9 @@ export class SalesService {
         select: { orderNumber: true },
       });
       const orderNumber = (last?.orderNumber ?? 0) + 1;
+
+      // Strip isTaxable from items before DB insert (not a DB column)
+      const orderItemsInsert = orderItemsData.map(({ isTaxable: _t, ...rest }) => rest);
 
       const order = await tx.order.create({
         data: {
@@ -269,10 +388,10 @@ export class SalesService {
           subtotal,
           discountAmount,
           discountType: dto.discountType ?? 'FIXED',
-          taxAmount: 0,
+          taxAmount,
           total,
           notes: dto.notes,
-          items: { create: orderItemsData },
+          items: { create: orderItemsInsert },
         },
         include: {
           items: true,
@@ -313,7 +432,7 @@ export class SalesService {
       ...(opts.shiftId && { shiftId: opts.shiftId }),
     };
 
-    const [total, items] = await this.prisma.$transaction([
+    const [total, orders] = await this.prisma.$transaction([
       this.prisma.order.count({ where }),
       this.prisma.order.findMany({
         where,
@@ -328,9 +447,26 @@ export class SalesService {
           },
           customer: { select: { id: true, name: true, phone: true } },
           user: { select: { id: true, firstName: true, lastName: true } },
+          paymentIntents: { select: { method: true, amount: true } },
         },
       }),
     ]);
+
+    // T-139: Extract dominant paymentMethod from payments array
+    const items = orders.map((order) => {
+      const methods = order.paymentIntents.map((p) => p.method);
+      let paymentMethod = 'NAQD';
+      if (methods.some((m) => m === 'DEBT')) paymentMethod = 'NASIYA';
+      else if (methods.length > 0 && methods.every((m) => m === 'TERMINAL')) paymentMethod = 'KARTA';
+      else if (methods.length > 1) paymentMethod = 'ARALASH';
+
+      return {
+        ...order,
+        itemsCount: order.items.length,
+        paymentMethod,
+      };
+    });
+
     return { items, total, page, limit };
   }
 
@@ -481,18 +617,19 @@ export class SalesService {
     const totalOrders = shift.orders.length;
     const totalRefunds = shift.orders.reduce((s, o) => s + o.returns.length, 0);
 
-    const paymentMap = new Map<string, number>();
+    const pmMap: Record<string, number> = {};
     for (const order of shift.orders) {
       for (const pi of order.paymentIntents) {
         const m = pi.method.toLowerCase();
-        paymentMap.set(m, (paymentMap.get(m) ?? 0) + Number(pi.amount));
+        pmMap[m] = (pmMap[m] ?? 0) + Number(pi.amount);
       }
     }
-    const paymentBreakdown = Array.from(paymentMap.entries()).map(([method, amount]) => ({
-      method,
-      amount,
-      percentage: totalRevenue > 0 ? parseFloat((amount / totalRevenue * 100).toFixed(1)) : 0,
-    }));
+    const paymentBreakdown = {
+      cash: pmMap['cash'] ?? 0,
+      card: pmMap['card'] ?? pmMap['terminal'] ?? 0,
+      click: pmMap['click'] ?? 0,
+      payme: pmMap['payme'] ?? 0,
+    };
 
     return {
       id: shift.id,

@@ -88,7 +88,7 @@ export default function BranchReportsPage() {
 
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Filiallar taqqoslama</h1>

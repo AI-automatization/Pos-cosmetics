@@ -161,6 +161,48 @@ export class AdminAuthController {
     return this.adminMetricsService.getTenantHealth(id);
   }
 
+  // ─── T-056: Revenue Series ─────────────────────────────────────
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('revenue-series')
+  @ApiOperation({ summary: 'T-056: Kunlik daromad grafigi (barcha tenantlar)' })
+  @ApiQuery({ name: 'days', required: false, type: Number, description: 'Necha kun (default 14)' })
+  getRevenueSeries(@Query('days') days?: string) {
+    return this.adminMetricsService.getRevenueSeries(days ? parseInt(days) : 14);
+  }
+
+  // ─── T-056: Top Tenants ────────────────────────────────────────
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('top-tenants')
+  @ApiOperation({ summary: 'T-056: Bugungi top 5 tenant — daromad bo\'yicha' })
+  getTopTenants() {
+    return this.adminMetricsService.getTopTenants();
+  }
+
+  // ─── T-056: Client Errors ──────────────────────────────────────
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('errors')
+  @ApiOperation({ summary: 'T-056: Klient xatolari ro\'yxati' })
+  @ApiQuery({ name: 'tenantId', required: false, type: String })
+  @ApiQuery({ name: 'type', required: false, type: String, description: 'CLIENT | API | SYNC' })
+  @ApiQuery({ name: 'severity', required: false, type: String, description: 'ERROR | WARN | CRITICAL | INFO' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max natijalar soni (default 50)' })
+  getErrors(
+    @Query('tenantId') tenantId?: string,
+    @Query('type') type?: string,
+    @Query('severity') severity?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminMetricsService.getErrors({
+      tenantId,
+      type,
+      severity,
+      limit: limit ? parseInt(limit) : undefined,
+    });
+  }
+
   // ─── T-058: Tenant Impersonation ───────────────────────────────
   @UseGuards(JwtAuthGuard, SuperAdminGuard)
   @ApiBearerAuth()
@@ -306,5 +348,175 @@ export class AdminAuthController {
     @Param('jobId') jobId: string,
   ) {
     return this.queueService.dismissDlqJob(queue as QueueName, jobId);
+  }
+
+  // ─── TENANT FULL CREATE (Фаза 2) ──────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Post('tenants/create')
+  @ApiOperation({
+    summary: 'Полное создание компании + Owner + подписка',
+    description: 'Создаёт: Tenant, Owner User, Branch, Categories, Units, Subscription, Settings',
+  })
+  createTenant(
+    @Body() body: {
+      name: string;
+      slug: string;
+      phone?: string;
+      city?: string;
+      businessType?: string;
+      legalName?: string;
+      inn?: string;
+      stir?: string;
+      oked?: string;
+      legalAddress?: string;
+      owner: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone?: string;
+        password?: string;
+      };
+      planId?: string;
+      trialDays?: number;
+      branchName?: string;
+    },
+  ) {
+    // Маппим frontend формат → service формат
+    return this.adminAuthService.createTenantFull({
+      tenantName: body.name,
+      slug: body.slug,
+      phone: body.phone,
+      city: body.city,
+      businessType: body.businessType,
+      legalName: body.legalName,
+      inn: body.inn,
+      stir: body.stir,
+      oked: body.oked,
+      legalAddress: body.legalAddress,
+      ownerFirstName: body.owner.firstName,
+      ownerLastName: body.owner.lastName,
+      ownerEmail: body.owner.email,
+      ownerPhone: body.owner.phone,
+      ownerPassword: body.owner.password,
+      planSlug: body.planId === 'FREE' ? 'free' : body.planId?.toLowerCase(),
+      trialDays: body.trialDays,
+      branchName: body.branchName,
+    });
+  }
+
+  // ─── TENANT EDIT ───────────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Patch('tenants/:id')
+  @ApiOperation({ summary: 'Редактирование тенанта (все поля)' })
+  editTenant(
+    @Param('id') id: string,
+    @Body() dto: {
+      name?: string;
+      slug?: string;
+      phone?: string;
+      city?: string;
+      businessType?: string;
+      legalName?: string;
+      inn?: string;
+      stir?: string;
+      oked?: string;
+      legalAddress?: string;
+      isActive?: boolean;
+    },
+  ) {
+    return this.adminAuthService.editTenant(id, dto);
+  }
+
+  // ─── TENANT DELETE (soft) ──────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Delete('tenants/:id')
+  @ApiOperation({ summary: 'Мягкое удаление тенанта (деактивация)' })
+  deleteTenant(@Param('id') id: string) {
+    return this.adminAuthService.deleteTenant(id);
+  }
+
+  // ─── TENANT USERS ──────────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('tenants/:id/users')
+  @ApiOperation({ summary: 'Все пользователи тенанта' })
+  getTenantUsers(@Param('id') tenantId: string) {
+    return this.adminAuthService.getTenantUsers(tenantId);
+  }
+
+  // ─── ADD OWNER TO TENANT ───────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Post('tenants/:id/owners')
+  @ApiOperation({ summary: 'Добавить нового Owner к тенанту' })
+  addOwner(
+    @Param('id') tenantId: string,
+    @Body() dto: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+      password?: string;
+    },
+  ) {
+    return this.adminAuthService.addOwnerToTenant(tenantId, dto);
+  }
+
+  // ─── TENANT USAGE ──────────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('tenants/:id/usage')
+  @ApiOperation({ summary: 'Использование vs лимиты тенанта' })
+  getTenantUsage(@Param('id') tenantId: string) {
+    return this.adminAuthService.getTenantUsage(tenantId);
+  }
+
+  // ─── TENANT SUBSCRIPTION ──────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('tenants/:id/subscription')
+  @ApiOperation({ summary: 'Подписка тенанта + план' })
+  getTenantSubscription(@Param('id') tenantId: string) {
+    return this.adminAuthService.getTenantSubscription(tenantId);
+  }
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Post('tenants/:id/subscription')
+  @ApiOperation({ summary: 'Override подписки тенанта (сменить план / продлить)' })
+  overrideSubscription(
+    @Param('id') tenantId: string,
+    @Body() dto: { planSlug?: string; expiresAt?: string; status?: string },
+  ) {
+    return this.adminAuthService.overrideSubscription(tenantId, dto);
+  }
+
+  // ─── TENANT AUDIT LOG ─────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Get('tenants/:id/audit-log')
+  @ApiOperation({ summary: 'Аудит-лог тенанта' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  getTenantAuditLog(
+    @Param('id') tenantId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminAuthService.getTenantAuditLog(tenantId, {
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 50,
+    });
   }
 }

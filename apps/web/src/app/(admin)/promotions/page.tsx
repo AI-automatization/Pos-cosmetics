@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Tag, Percent, Zap, Gift, X, Calendar, Package2 } from 'lucide-react';
 import {
   usePromotions,
   useCreatePromotion,
@@ -9,14 +9,15 @@ import {
   useDeletePromotion,
   useTogglePromotion,
 } from '@/hooks/promotions/usePromotions';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { EmptyState } from '@/components/common/EmptyState';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 import { useCanEdit } from '@/hooks/auth/useAuth';
 import type { Promotion, PromotionType, CreatePromotionDto } from '@/types/promotion';
 import { PROMO_TYPE_LABELS, PROMO_TYPE_COLORS, DEMO_PROMOTIONS } from '@/types/promotion';
+import { useProducts } from '@/hooks/catalog/useProducts';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+/* ─── Helpers ─── */
 
 function formatDate(iso: string | null) {
   if (!iso) return '—';
@@ -26,51 +27,121 @@ function formatDate(iso: string | null) {
 function rulesLabel(p: Promotion): string {
   const r = p.rules as Record<string, unknown>;
   switch (p.type) {
-    case 'PERCENT':    return `${r.percent}% chegirma`;
-    case 'FIXED':      return `${Number(r.amount).toLocaleString()} so'm chegirma`;
+    case 'PERCENT':     return `${r.percent}% chegirma`;
+    case 'FIXED':       return `${Number(r.amount).toLocaleString()} so'm chegirma`;
     case 'BUY_X_GET_Y': return `${r.buyQty} olsang ${r.getQty} bepul`;
-    case 'BUNDLE':     return `${r.discount}% paket chegirma`;
-    default:           return '—';
+    case 'BUNDLE':      return `${r.discount}% paket chegirma`;
+    default:            return '—';
   }
 }
 
-// ─── Rules Form ──────────────────────────────────────────────────────────────
+const TYPE_ICONS: Record<PromotionType, React.ComponentType<{ className?: string }>> = {
+  PERCENT:     Percent,
+  FIXED:       Zap,
+  BUY_X_GET_Y: Gift,
+  BUNDLE:      Tag,
+};
+
+const TYPE_GRADIENTS: Record<PromotionType, string> = {
+  PERCENT:     'from-blue-500 to-blue-600',
+  FIXED:       'from-violet-500 to-violet-600',
+  BUY_X_GET_Y: 'from-emerald-500 to-emerald-600',
+  BUNDLE:      'from-amber-500 to-amber-600',
+};
+
+const MODAL_GRADIENTS: Record<PromotionType, string> = {
+  PERCENT:     'from-blue-600 to-blue-700',
+  FIXED:       'from-violet-600 to-violet-700',
+  BUY_X_GET_Y: 'from-emerald-600 to-emerald-700',
+  BUNDLE:      'from-amber-600 to-amber-700',
+};
+
+const TYPE_ICON_BG: Record<PromotionType, string> = {
+  PERCENT:     'bg-blue-50 text-blue-600',
+  FIXED:       'bg-violet-50 text-violet-600',
+  BUY_X_GET_Y: 'bg-emerald-50 text-emerald-600',
+  BUNDLE:      'bg-amber-50 text-amber-600',
+};
+
+/* ─── RulesForm ─── */
+
+interface ProductOption {
+  value: string;
+  label: string;
+}
 
 interface RulesFormProps {
   type: PromotionType;
   rules: Record<string, unknown>;
   onChange: (rules: Record<string, unknown>) => void;
+  products: ProductOption[];
 }
 
-function RulesForm({ type, rules, onChange }: RulesFormProps) {
+function RulesForm({ type, rules, onChange, products }: RulesFormProps) {
   const num = (key: string) => Number(rules[key] ?? 0);
   const set = (key: string, val: unknown) => onChange({ ...rules, [key]: val });
 
+  const inputCls = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition';
+
+  const productOptions = [{ value: '', label: 'Barcha mahsulotlar' }, ...products];
+
   if (type === 'PERCENT') {
     return (
-      <div>
-        <label className="mb-1 block text-xs font-medium text-gray-600">Foiz (%)</label>
-        <input
-          type="number" min={1} max={100}
-          value={num('percent') || ''}
-          onChange={(e) => set('percent', Number(e.target.value))}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="10"
-        />
+      <div className="space-y-3">
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Foiz (%)</label>
+          <input
+            type="number" min={1} max={100}
+            value={num('percent') || ''}
+            onChange={(e) => set('percent', Number(e.target.value))}
+            className={inputCls}
+            placeholder="10"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-gray-600">
+            <Package2 className="h-3.5 w-3.5" />
+            Qaysi mahsulotga <span className="font-normal text-gray-400">(ixtiyoriy)</span>
+          </label>
+          <SearchableDropdown
+            options={productOptions}
+            value={(rules.productId as string) ?? ''}
+            onChange={(val) => set('productId', val || undefined)}
+            placeholder="Barcha mahsulotlar"
+            searchable
+            clearable
+          />
+        </div>
       </div>
     );
   }
   if (type === 'FIXED') {
     return (
-      <div>
-        <label className="mb-1 block text-xs font-medium text-gray-600">Miqdor (so'm)</label>
-        <input
-          type="number" min={0}
-          value={num('amount') || ''}
-          onChange={(e) => set('amount', Number(e.target.value))}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="5000"
-        />
+      <div className="space-y-3">
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Miqdor (so&apos;m)</label>
+          <input
+            type="number" min={0}
+            value={num('amount') || ''}
+            onChange={(e) => set('amount', Number(e.target.value))}
+            className={inputCls}
+            placeholder="5000"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-gray-600">
+            <Package2 className="h-3.5 w-3.5" />
+            Qaysi mahsulotga <span className="font-normal text-gray-400">(ixtiyoriy)</span>
+          </label>
+          <SearchableDropdown
+            options={productOptions}
+            value={(rules.productId as string) ?? ''}
+            onChange={(val) => set('productId', val || undefined)}
+            placeholder="Barcha mahsulotlar"
+            searchable
+            clearable
+          />
+        </div>
       </div>
     );
   }
@@ -78,22 +149,22 @@ function RulesForm({ type, rules, onChange }: RulesFormProps) {
     return (
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Sotib olish soni</label>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Sotib olish soni</label>
           <input
             type="number" min={1}
             value={num('buyQty') || ''}
             onChange={(e) => set('buyQty', Number(e.target.value))}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputCls}
             placeholder="2"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Bepul soni</label>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Bepul soni</label>
           <input
             type="number" min={1}
             value={num('getQty') || ''}
             onChange={(e) => set('getQty', Number(e.target.value))}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputCls}
             placeholder="1"
           />
         </div>
@@ -103,12 +174,12 @@ function RulesForm({ type, rules, onChange }: RulesFormProps) {
   if (type === 'BUNDLE') {
     return (
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-600">Paket chegirmasi (%)</label>
+        <label className="mb-1.5 block text-xs font-semibold text-gray-600">Paket chegirmasi (%)</label>
         <input
           type="number" min={1} max={100}
           value={num('discount') || ''}
           onChange={(e) => set('discount', Number(e.target.value))}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={inputCls}
           placeholder="15"
         />
       </div>
@@ -117,7 +188,7 @@ function RulesForm({ type, rules, onChange }: RulesFormProps) {
   return null;
 }
 
-// ─── Modal ───────────────────────────────────────────────────────────────────
+/* ─── Modal ─── */
 
 const EMPTY_FORM: CreatePromotionDto = {
   name: '',
@@ -129,10 +200,10 @@ const EMPTY_FORM: CreatePromotionDto = {
 };
 
 const DEFAULT_RULES: Record<PromotionType, Record<string, unknown>> = {
-  PERCENT:    { percent: 0 },
-  FIXED:      { amount: 0 },
+  PERCENT:     { percent: 0 },
+  FIXED:       { amount: 0 },
   BUY_X_GET_Y: { buyQty: 2, getQty: 1 },
-  BUNDLE:     { productIds: [], discount: 0 },
+  BUNDLE:      { productIds: [], discount: 0 },
 };
 
 interface ModalProps {
@@ -157,7 +228,13 @@ function PromotionModal({ initial, onClose }: ModalProps) {
 
   const { mutate: create, isPending: creating } = useCreatePromotion();
   const { mutate: update, isPending: updating } = useUpdatePromotion();
+  const { data: productsData } = useProducts({ limit: 200 });
   const isPending = creating || updating;
+
+  const productOptions = (productsData?.items ?? []).map((p) => ({
+    value: p.id,
+    label: p.name,
+  }));
 
   const setField = <K extends keyof CreatePromotionDto>(key: K, val: CreatePromotionDto[K]) =>
     setForm((f) => ({ ...f, [key]: val }));
@@ -168,10 +245,7 @@ function PromotionModal({ initial, onClose }: ModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const dto: CreatePromotionDto = {
-      ...form,
-      validTo: form.validTo || undefined,
-    };
+    const dto: CreatePromotionDto = { ...form, validTo: form.validTo || undefined };
     if (isEdit && initial) {
       update({ id: initial.id, dto }, { onSuccess: onClose });
     } else {
@@ -179,100 +253,129 @@ function PromotionModal({ initial, onClose }: ModalProps) {
     }
   };
 
+  const TypeIcon = TYPE_ICONS[form.type];
+  const inputCls = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-          <h3 className="text-base font-semibold text-gray-900">
-            {isEdit ? 'Aksiyani tahrirlash' : 'Yangi aksiya'}
-          </h3>
-          <button type="button" onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
-            <span className="sr-only">Yopish</span>
-            ✕
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+        {/* Dynamic gradient header */}
+        <div className={cn('relative bg-gradient-to-br px-6 py-5', MODAL_GRADIENTS[form.type])}>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+              <TypeIcon className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white">
+                {isEdit ? 'Aksiyani tahrirlash' : 'Yangi aksiya yaratish'}
+              </h3>
+              <p className="text-xs text-white/70">
+                {isEdit ? 'Mavjud aksiyani yangilash' : "Chegirma yoki aksiya qo'shing"}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-white/70 transition hover:bg-white/20 hover:text-white"
+          >
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
-          {/* Name */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Aksiya nomi</label>
-            <input
-              required
-              value={form.name}
-              onChange={(e) => setField('name', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Masalan: Bahor chegirmasi"
-            />
-          </div>
-
-          {/* Type */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Turi</label>
-            <SearchableDropdown
-              options={(Object.keys(PROMO_TYPE_LABELS) as PromotionType[]).map((t) => ({
-                value: t,
-                label: PROMO_TYPE_LABELS[t],
-              }))}
-              value={form.type}
-              onChange={(val) => handleTypeChange(val as PromotionType)}
-              placeholder="Turni tanlang"
-              searchable={false}
-              clearable={false}
-              disabled={isEdit}
-            />
-          </div>
-
-          {/* Dynamic rules */}
-          <RulesForm
-            type={form.type}
-            rules={form.rules as Record<string, unknown>}
-            onChange={(r) => setField('rules', r)}
-          />
-
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="max-h-[70vh] overflow-y-auto">
+          <div className="flex flex-col gap-4 p-6">
+            {/* Name */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">Boshlanish</label>
+              <label className="mb-1.5 block text-xs font-semibold text-gray-600">Aksiya nomi</label>
               <input
-                type="date" required
-                value={form.validFrom}
-                onChange={(e) => setField('validFrom', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                value={form.name}
+                onChange={(e) => setField('name', e.target.value)}
+                className={inputCls}
+                placeholder="Masalan: Bahor chegirmasi"
               />
             </div>
+
+            {/* Type */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">Tugash (ixtiyoriy)</label>
-              <input
-                type="date"
-                value={form.validTo ?? ''}
-                onChange={(e) => setField('validTo', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <label className="mb-1.5 block text-xs font-semibold text-gray-600">Aksiya turi</label>
+              <SearchableDropdown
+                options={(Object.keys(PROMO_TYPE_LABELS) as PromotionType[]).map((t) => ({
+                  value: t,
+                  label: PROMO_TYPE_LABELS[t],
+                }))}
+                value={form.type}
+                onChange={(val) => handleTypeChange(val as PromotionType)}
+                placeholder="Turni tanlang"
+                searchable={false}
+                clearable={false}
+                disabled={isEdit}
               />
             </div>
-          </div>
 
-          {/* Active */}
-          <label className="flex cursor-pointer items-center gap-3">
-            <input
-              type="checkbox"
-              checked={form.isActive ?? true}
-              onChange={(e) => setField('isActive', e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600"
+            {/* Dynamic rules */}
+            <RulesForm
+              type={form.type}
+              rules={form.rules as Record<string, unknown>}
+              onChange={(r) => setField('rules', r)}
+              products={productOptions}
             />
-            <span className="text-sm text-gray-700">Faol holat</span>
-          </label>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-gray-600">Boshlanish</label>
+                <input
+                  type="date" required
+                  value={form.validFrom}
+                  onChange={(e) => setField('validFrom', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-gray-600">Tugash (ixtiyoriy)</label>
+                <input
+                  type="date"
+                  value={form.validTo ?? ''}
+                  onChange={(e) => setField('validTo', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+            </div>
+
+            {/* Active toggle */}
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 transition hover:bg-gray-100">
+              <input
+                type="checkbox"
+                checked={form.isActive ?? true}
+                onChange={(e) => setField('isActive', e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Faol holat</p>
+                <p className="text-xs text-gray-400">Aksiya darhol boshlanadi</p>
+              </div>
+            </label>
+          </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="flex gap-2 border-t border-gray-100 px-6 py-4">
             <button
               type="button" onClick={onClose}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
             >
               Bekor qilish
             </button>
             <button
               type="submit" disabled={isPending}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              className={cn(
+                'flex-1 rounded-xl py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:opacity-60',
+                form.type === 'PERCENT' ? 'bg-blue-600 hover:bg-blue-700' :
+                form.type === 'FIXED' ? 'bg-violet-600 hover:bg-violet-700' :
+                form.type === 'BUY_X_GET_Y' ? 'bg-emerald-600 hover:bg-emerald-700' :
+                'bg-amber-600 hover:bg-amber-700',
+              )}
             >
               {isPending ? 'Saqlanmoqda...' : isEdit ? 'Saqlash' : "Qo'shish"}
             </button>
@@ -283,7 +386,96 @@ function PromotionModal({ initial, onClose }: ModalProps) {
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+/* ─── PromotionCard ─── */
+
+interface CardProps {
+  promotion: Promotion;
+  canEdit: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggle: () => void;
+}
+
+function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: CardProps) {
+  const TypeIcon = TYPE_ICONS[p.type];
+  return (
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5">
+      {/* Color stripe */}
+      <div className={cn('h-1.5 w-full bg-gradient-to-r', TYPE_GRADIENTS[p.type])} />
+
+      <div className="flex flex-1 flex-col gap-4 p-5">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', TYPE_ICON_BG[p.type])}>
+              <TypeIcon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-gray-900">{p.name}</p>
+              <span className={cn('mt-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', PROMO_TYPE_COLORS[p.type])}>
+                {PROMO_TYPE_LABELS[p.type]}
+              </span>
+            </div>
+          </div>
+          {/* Status toggle */}
+          <button
+            type="button"
+            onClick={onToggle}
+            className="shrink-0 rounded-full p-1 transition hover:bg-gray-100"
+            title={p.isActive ? 'Nofaol qilish' : 'Faol qilish'}
+          >
+            {p.isActive
+              ? <ToggleRight className="h-6 w-6 text-emerald-500" />
+              : <ToggleLeft className="h-6 w-6 text-gray-300" />}
+          </button>
+        </div>
+
+        {/* Rules badge */}
+        <div className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700">
+          {rulesLabel(p)}
+        </div>
+
+        {/* Date + status footer */}
+        <div className="mt-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>{formatDate(p.validFrom)}{p.validTo ? ` → ${formatDate(p.validTo)}` : ' → ∞'}</span>
+          </div>
+          <span className={cn(
+            'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
+            p.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-400',
+          )}>
+            {p.isActive ? 'Faol' : 'Nofaol'}
+          </span>
+        </div>
+      </div>
+
+      {/* Action footer — visible on hover */}
+      {canEdit && (
+        <div className="flex items-center justify-end gap-1 border-t border-gray-50 px-4 py-3 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-blue-50 hover:text-blue-600"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Tahrirlash
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            O&apos;chirish
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Page ─── */
 
 export default function PromotionsPage() {
   const { data: promotions, isLoading, isError } = usePromotions();
@@ -299,20 +491,22 @@ export default function PromotionsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-5 overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Tag className="h-6 w-6 text-blue-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+            <Tag className="h-5 w-5 text-blue-600" />
+          </div>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Aksiyalar</h1>
+            <h1 className="text-xl font-bold text-gray-900">Aksiyalar</h1>
             <p className="text-sm text-gray-500">{items.length} ta aksiya</p>
           </div>
         </div>
         {canEdit && (
           <button
             onClick={() => setModal('create')}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
           >
             <Plus className="h-4 w-4" />
             Yangi aksiya
@@ -320,87 +514,41 @@ export default function PromotionsPage() {
         )}
       </div>
 
-      {/* Table */}
+      {/* Content */}
       {isLoading ? (
-        <LoadingSkeleton />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="animate-pulse rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <div className="mb-4 h-1.5 w-full rounded bg-gray-200" />
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gray-200" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 w-3/4 rounded bg-gray-200" />
+                  <div className="h-3 w-1/2 rounded bg-gray-200" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={Tag}
+          title="Hali aksiyalar yo'q"
+          description="Chegirma yoki aksiya yaratish uchun tugmani bosing"
+          action={canEdit ? { label: 'Aksiya yaratish', onClick: () => setModal('create') } : undefined}
+        />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Nomi</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Turi</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Shartlar</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Muddat</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
-                {canEdit && <th className="px-4 py-3 text-right font-medium text-gray-600">Amallar</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-gray-400">
-                    Hali aksiyalar yo&apos;q
-                  </td>
-                </tr>
-              ) : (
-                items.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
-                    <td className="px-4 py-3">
-                      <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium', PROMO_TYPE_COLORS[p.type])}>
-                        {PROMO_TYPE_LABELS[p.type]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{rulesLabel(p)}</td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {formatDate(p.validFrom)}
-                      {p.validTo ? ` — ${formatDate(p.validTo)}` : ' — belgilangan emas'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => toggle({ id: p.id, isActive: !p.isActive })}
-                        title={p.isActive ? "O'chirish" : 'Yoqish'}
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition"
-                      >
-                        {p.isActive ? (
-                          <>
-                            <ToggleRight className="h-4 w-4 text-green-500" />
-                            <span className="text-green-700">Faol</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-500">Nofaol</span>
-                          </>
-                        )}
-                      </button>
-                    </td>
-                    {canEdit && (
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => setModal(p)}
-                            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
-                            title="Tahrirlash"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(p.id)}
-                            className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                            title="O'chirish"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((p) => (
+            <PromotionCard
+              key={p.id}
+              promotion={p}
+              canEdit={canEdit}
+              onEdit={() => setModal(p)}
+              onDelete={() => handleDelete(p.id)}
+              onToggle={() => toggle({ id: p.id, isActive: !p.isActive })}
+            />
+          ))}
         </div>
       )}
 

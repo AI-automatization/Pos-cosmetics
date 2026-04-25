@@ -72,7 +72,9 @@
     "exchangeRates": "Курсы валют",
     "movements": "Движения",
     "tasks": "Задачи",
-    "branches": "Филиалы"
+    "branches": "Филиалы",
+    "workers": "Сотрудники",
+    "chegirma": "Управление скидками"
   },
   "dashboard": {
     "title": "Главная",

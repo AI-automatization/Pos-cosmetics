@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export interface POSKeyboardHandlers {
   onF1?: () => void;  // Search focus
@@ -14,48 +14,27 @@ export interface POSKeyboardHandlers {
 }
 
 export function usePOSKeyboard(handlers: POSKeyboardHandlers) {
+  // Ref keeps handlers fresh without being a dep — prevents effect re-running every render.
+  // Previously [handlers] dep caused cleanup+setup on every render, contributing to #185.
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Don't intercept when typing in inputs (except F-keys)
       const isFKey = e.key.startsWith('F') && !isNaN(Number(e.key.slice(1)));
       if (!isFKey && e.key !== 'Escape') return;
-
       switch (e.key) {
-        case 'F1':
-          e.preventDefault();
-          handlers.onF1?.();
-          break;
-        case 'F5':
-          e.preventDefault();
-          handlers.onF5?.();
-          break;
-        case 'F6':
-          e.preventDefault();
-          handlers.onF6?.();
-          break;
-        case 'F7':
-          e.preventDefault();
-          handlers.onF7?.();
-          break;
-        case 'F8':
-          e.preventDefault();
-          handlers.onF8?.();
-          break;
-        case 'F9':
-          e.preventDefault();
-          handlers.onF9?.();
-          break;
-        case 'F10':
-          e.preventDefault();
-          handlers.onF10?.();
-          break;
-        case 'Escape':
-          handlers.onEsc?.();
-          break;
+        case 'F1':  e.preventDefault(); handlersRef.current.onF1?.(); break;
+        case 'F5':  e.preventDefault(); handlersRef.current.onF5?.(); break;
+        case 'F6':  e.preventDefault(); handlersRef.current.onF6?.(); break;
+        case 'F7':  e.preventDefault(); handlersRef.current.onF7?.(); break;
+        case 'F8':  e.preventDefault(); handlersRef.current.onF8?.(); break;
+        case 'F9':  e.preventDefault(); handlersRef.current.onF9?.(); break;
+        case 'F10': e.preventDefault(); handlersRef.current.onF10?.(); break;
+        case 'Escape': handlersRef.current.onEsc?.(); break;
       }
     }
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlers]);
+  }, []); // Empty: listener registered once, ref keeps it fresh
 }

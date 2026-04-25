@@ -81,4 +81,42 @@ export class TelegramNotifyService {
       `<i>5 daqiqa amal qiladi. Hech kimga bermang.</i>`;
     return this.sendMessage(chatId, text);
   }
+
+  /** Shift yopilishi hisoboti — OWNER/ADMIN ga yuboriladi */
+  async sendShiftSummary(
+    chatId: string,
+    params: {
+      cashierName: string;
+      branchName: string | null;
+      openedAt: Date;
+      closedAt: Date;
+      totalOrders: number;
+      totalRevenue: number;
+      totalRefunds: number;
+      cash: number;
+      card: number;
+    },
+  ): Promise<boolean> {
+    const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(Math.round(n));
+    const duration = Math.round(
+      (params.closedAt.getTime() - params.openedAt.getTime()) / 60000,
+    );
+    const hours = Math.floor(duration / 60);
+    const mins = duration % 60;
+
+    const text =
+      `<b>🔒 Smena yopildi</b>\n\n` +
+      `👤 Kassir: <b>${params.cashierName}</b>\n` +
+      (params.branchName ? `🏪 Filial: ${params.branchName}\n` : '') +
+      `⏱ Davomiyligi: ${hours}h ${mins}m\n\n` +
+      `📊 <b>Natija:</b>\n` +
+      `🛒 Buyurtmalar: <b>${params.totalOrders}</b> ta\n` +
+      `💰 Jami tushum: <b>${fmt(params.totalRevenue)} so'm</b>\n` +
+      `↩️ Qaytarishlar: ${params.totalRefunds} ta\n\n` +
+      `💳 <b>To'lov usullari:</b>\n` +
+      `  Naqd: ${fmt(params.cash)} so'm\n` +
+      `  Karta: ${fmt(params.card)} so'm`;
+
+    return this.sendMessage(chatId, text);
+  }
 }

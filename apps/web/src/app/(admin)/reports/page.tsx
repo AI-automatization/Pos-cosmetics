@@ -7,8 +7,8 @@ const REPORT_LINKS = [
   {
     href: '/reports/daily-revenue',
     icon: BarChart2,
-    title: 'Kunlik savdo',
-    desc: 'Sana bo\'yicha savdo dinamikasi va grafik',
+    title: 'Kunlik daromad',
+    desc: 'Sana bo\'yicha daromad dinamikasi va grafik',
   },
   {
     href: '/reports/top-products',

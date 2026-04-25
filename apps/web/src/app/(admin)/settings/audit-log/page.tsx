@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, ChevronDown, ChevronUp, Shield } from 'lucide-react';
+import { ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { ScrollableTable } from '@/components/ui/ScrollableTable';
 
 type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'APPROVE';
 
@@ -126,32 +127,26 @@ export default function AuditLogPage() {
         Demo ma'lumotlar ko'rsatilmoqda — Backend (T-027) bajarilgach real loglar ko'rinadi
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Foydalanuvchi, harakat, entity..."
-            className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-400"
-          />
-        </div>
-        <SearchableDropdown
-          options={ACTIONS.map((a) => ({
-            value: a,
-            label: a === 'ALL' ? 'Barcha amallar' : a,
-          }))}
-          value={actionFilter}
-          onChange={(val) => setActionFilter((val || 'ALL') as AuditAction | 'ALL')}
-          searchable={false}
-          clearable={false}
-          className="w-48"
-        />
-      </div>
-
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <ScrollableTable
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Foydalanuvchi, harakat, entity..."
+        filters={
+          <SearchableDropdown
+            options={ACTIONS.map((a) => ({
+              value: a,
+              label: a === 'ALL' ? 'Barcha amallar' : a,
+            }))}
+            value={actionFilter}
+            onChange={(val) => setActionFilter((val || 'ALL') as AuditAction | 'ALL')}
+            searchable={false}
+            clearable={false}
+            className="w-48"
+          />
+        }
+        totalCount={filtered.length}
+      >
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -170,7 +165,7 @@ export default function AuditLogPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollableTable>
     </div>
   );
 }

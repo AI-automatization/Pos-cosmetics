@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Body,
   Param,
@@ -166,6 +167,27 @@ export class NotificationsController {
     return this.pushService.removeToken(token);
   }
 
+  // ─── T-208: DEVICE TOKEN (canonical path for mobile-owner) ────
+
+  @Post('device-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-208: Device token registration (alias for /fcm-token)' })
+  registerDeviceToken(
+    @CurrentUser('userId') userId: string,
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: RegisterFcmTokenDto,
+  ) {
+    return this.pushService.registerToken(userId, tenantId, dto.token, dto.platform);
+  }
+
+  @Delete('device-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-208: Remove device token on logout' })
+  @ApiQuery({ name: 'token', required: true, description: 'FCM token to remove' })
+  removeDeviceToken(@Query('token') token: string) {
+    return this.pushService.removeToken(token);
+  }
+
   // ─── TELEGRAM LINKING (T-122) ─────────────────────────────────
 
   @Post('telegram/link-token')
@@ -196,6 +218,52 @@ export class NotificationsController {
   async verifyTelegramLink(@Body() dto: VerifyTelegramDto) {
     const result = await this.notifyService.verifyLinkToken(dto.token, dto.chatId);
     return result;
+  }
+
+  // ─── T-203: OWNER ALERTS FEED ─────────────────────────────────
+  // Tenant-wide alerts (not user-specific) for mobile-owner
+
+  @Get('alerts')
+  @ApiOperation({ summary: 'T-203: Owner alert feed — tenant-wide, type/isRead/branchId filter' })
+  @ApiQuery({ name: 'type', required: false, enum: ['LOW_STOCK', 'OUT_OF_STOCK', 'EXPIRY_WARNING', 'LARGE_REFUND', 'SUSPICIOUS_ACTIVITY', 'SHIFT_CLOSED', 'SYSTEM_ERROR', 'NASIYA_OVERDUE'] })
+  @ApiQuery({ name: 'isRead', required: false, type: Boolean })
+  @ApiQuery({ name: 'branchId', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  getOwnerAlerts(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('type') type?: string,
+    @Query('isRead') isRead?: string,
+    @Query('branchId') branchId?: string,
+    @Query('branch_id') branchIdAlt?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const isReadBool = isRead === undefined ? undefined : isRead === 'true';
+    return this.notificationsService.getOwnerAlerts(tenantId, {
+      type,
+      isRead: isReadBool,
+      branchId: branchId ?? branchIdAlt,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
+  }
+
+  @Put('alerts/:id/read')
+  @ApiOperation({ summary: 'T-203: Mark alert as read (tenant-wide)' })
+  @ApiParam({ name: 'id', type: String })
+  markOwnerAlertAsRead(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.notificationsService.markOwnerAlertAsRead(tenantId, id);
+  }
+
+  @Put('alerts/read-all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-203: Mark all alerts as read (tenant-wide)' })
+  markAllOwnerAlertsAsRead(@CurrentUser('tenantId') tenantId: string) {
+    return this.notificationsService.markAllOwnerAlertsAsRead(tenantId);
   }
 
   // ─── DEBT REMINDERS ───────────────────────────────────────────

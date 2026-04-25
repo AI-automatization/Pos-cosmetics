@@ -180,12 +180,24 @@ export class InventoryService {
     return this.expiryTracking.getExpiredProducts(tenantId);
   }
 
+  openTester(tenantId: string, userId: string, dto: import('./dto/open-tester.dto').OpenTesterDto) {
+    return this.expiryTracking.openTester(tenantId, userId, dto);
+  }
+
   getTesterMovements(tenantId: string, from?: string, to?: string) {
     return this.expiryTracking.getTesterMovements(tenantId, from, to);
   }
 
   getStockValue(tenantId: string, branchId?: string) {
     return this.stockValue.getStockValue(tenantId, branchId);
+  }
+
+  getLowStockList(tenantId: string, branchId?: string, limit?: number) {
+    return this.stockLevel.getLowStockList(tenantId, branchId, limit);
+  }
+
+  getInventoryItems(tenantId: string, opts: { branchId?: string; status?: string; search?: string; page?: number; limit?: number }) {
+    return this.stockLevel.getInventoryItems(tenantId, opts);
   }
 
   // ─── Private helpers ─────────────────────────────────────────────────────────

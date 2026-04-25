@@ -273,6 +273,14 @@ chore(module): config/tooling change
 test(module): test added/fixed
 docs(module): documentation update
 
+# ATOMIC COMMITS — MAJBURIY (2026-04-15 dan):
+# 1 commit = 1 mantiqiy o'zgarish (1 fix, 1 feature, 1 refactor)
+# ❌ TAQIQLANGAN: "feat: X, Y, Z" — 3 ta feature bitta commitda
+# ❌ TAQIQLANGAN: "fix: A + B + C" — 3 ta fix bitta commitda
+# ✅ TO'G'RI: "feat(customers): add extended fields" → alohida commit
+# ✅ TO'G'RI: "feat(tasks): add tasks module" → alohida commit
+# Sabab: revert, bisect, review — barchasi atomic commit talab qiladi
+
 # Modul nomlari commit da:
 # identity, catalog, inventory, sales, payments, ledger,
 # tax, realestate, ai, pos, admin, mobile, sync, infra
@@ -316,6 +324,12 @@ logJobStart(queue, jobId, jobName, data);
 logJobDone(queue, jobId, jobName, durationMs);
 logJobError(queue, jobId, jobName, err);
 ```
+
+## Reasoning Protocol
+- Before any docker/infra task: Check network persistence and pnpm store caching.
+- If a build fails: Don't just retry. Analyze Dockerfile layers to find where we can inject local cache to avoid registry dependency.
+- For Backend: Always check Prisma schema synchronization before suggesting a deploy.
+
 
 ### API Request Logger (Interceptor — avtomatik)
 
@@ -519,7 +533,7 @@ pnpm -r exec tsc --noEmit
 ❌ prisma migrate reset        — BARCHA ma'lumotlar yo'qoladi!
 ❌ main ga to'g'ridan push     — faqat PR orqali!
 ❌ .env commit qilish          — .gitignore da bo'lishi SHART
-❌ Boshqa zona fayllarini o'zgartirish
+❌ Boshqa zona fayllarini o'zgartirish (quyidagi ZONA QOIDASI ga qarang)
 ❌ Production DB ga qo'lda SQL yozish
 ❌ Secret/API key ni kodga yozish
 ❌ Ledger entry ni UPDATE/DELETE qilish
@@ -527,6 +541,33 @@ pnpm -r exec tsc --noEmit
 ❌ Financial data da last-write-wins
 ❌ Boshqa modul jadvaliga direct query
 ❌ Payment provider real keys dev da
+```
+
+---
+
+## 🚧 ZONA QOIDASI (2026-04-15 dan kuchaytirildi)
+
+```
+QOIDA: Har dasturchi FAQAT o'z zonasidagi fayllarni o'zgartiradi.
+
+ZONALAR:
+  Ibrat     → apps/api/, apps/web/, apps/pos/, apps/bot/, apps/worker/, docker/, prisma/
+  Abdulaziz → apps/mobile/, apps/mobile-owner/
+  UMUMIY    → packages/* (faqat kelishib)
+
+PROTSEDURA (boshqa zona fayli kerak bo'lsa):
+  1. O'z branchida FAQAT o'z zona fayllarini o'zgartir
+  2. Boshqa zona o'zgarishlari kerak bo'lsa → alohida task yoz (docs/Tasks.md)
+  3. Tegishli dasturchi o'zi amalga oshiradi
+  4. HECH QACHON boshqa zona faylini "tezroq bo'ladi" deb o'zgartirma
+
+PR TEKSHIRUVI (merge oldidan):
+  git diff main --name-only | grep -v "^apps/(api|web|pos|bot|worker)/"
+  ↑ Ibrat uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
+
+ISTISNO:
+  - CI lint fix (barcha apps uchun) → Team Lead tasdiqlagandan keyin
+  - packages/* shared types → Telegram/chat da xabar berib, tasdiq olgach
 ```
 
 ---

@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-03-23
+# Yangilangan: 2026-04-22
 
 ---
 
@@ -10,6 +10,327 @@
 2. Format: T-raqam | sana | tur | qisqa yechim | fayl nomi
 3. Bu fayl FAQAT arxiv — o'chirmaslik, o'zgartirmaslik
 ```
+
+---
+
+## T-381 | 2026-04-22 | [FRONTEND] | Super Admin — 7 qolgan sahifalar
+
+- **Yechim:** 7 ta yangi sahifa yaratildi, Playwright orqali har biri tekshirildi:
+  1. `/founder/system` — DB stats (size, connections, uptime, version), DLQ monitoring (counts per queue, failed jobs table with retry/dismiss)
+  2. `/founder/security` — IP block/unblock/check, login_attempts table (136 records), user_locks table with unlock action
+  3. `/founder/analytics` — KPI cards (tenants, orders, revenue), revenue bar chart (7/14/30/90d filter), top tenants table
+  4. `/founder/support` — Tickets list with status filters (Все/Открытые/В работе/Решённые/Закрытые), ticket cards with metadata
+  5. `/founder/admins` — Admin users table with roles/status, "Новый админ" modal (name/email/password), delete with confirm
+  6. `/founder/features` — Feature flags toggle cards (GLOBAL/per-tenant), enable/disable, create modal (name/description/tenantId)
+  7. `/founder/settings` — Subscription plans CRUD cards (name, slug, price, limits, trial), create/edit modal
+- **API:** `founder.api.ts` — добавлены методы: getDlqCounts, getDlqJobs, retryDlqJob, dismissDlqJob, blockIp, unblockIp, getIpStats, getTickets, createAdmin
+- **Fayl:** 7 ta `page.tsx` в `apps/web/src/app/(founder)/founder/{system,security,analytics,support,admins,features,settings}/`
+- **Tekshiruv:** Playwright — barcha 7 sahifa renderlanadi, headings/buttons/tables ko'rinadi, API data yuklanadi
+
+---
+
+## T-385 | 2026-04-22 | [FRONTEND] | Database Manager — Edit/Delete UI (inline + modal)
+
+- **Yechim:** `TableDataPanel.tsx` va `RowEditModal.tsx` — to'liq CRUD UI:
+  - Har qator: "Редактировать" (Pencil) va "Удалить" (Trash) tugmalari oxirgi "Действия" ustunda
+  - Edit klik → `RowEditModal` modal: barcha fieldlar formda, JSON uchun textarea, boolean uchun dropdown
+  - Inline edit: ячейкaga ikki marta klik → input paydo bo'ladi, Enter = saqlash, Escape = bekor
+  - "Добавить" tugma header da (+ icon) → create modal
+  - Delete → `ConfirmDialog` ("Удалить запись #ID?")
+  - Bulk delete: checkbox select → "Удалить N" tugmasi
+  - REDACTED fieldlar: Lock icon bilan ko'rsatiladi, inline edit TAQIQLANGAN, modal da "Защищённые поля" bloki
+  - Auto-fields (created_at, updated_at) edit qilib bo'lmaydi, PK ham
+- **Fayl:** `apps/web/src/app/(founder)/founder/database/TableDataPanel.tsx`, `RowEditModal.tsx`
+- **Tekshiruv:** Playwright — admin_users jadval: data loads (2 row), Добавить modal, Edit modal (prefilled), Delete confirm, inline edit input, REDACTED lock — barchasi ishlaydi
+
+---
+
+## T-386 | 2026-04-22 | [FRONTEND] | Database Manager — X/Y scroll + sticky header/column
+
+- **Yechim:** `TableDataPanel.tsx`: jadval konteyner `overflow-auto` + `w-max min-w-full`. Thead `sticky top-0 z-20`. Checkbox ustuni `sticky left-0 z-30`. Birinchi data ustuni (id) `sticky left-8 z-10`. Har qator uchun `rowBg` class — sticky cella fon berish (scroll da overlapping oldini olish).
+- **Fayl:** `apps/web/src/app/(founder)/founder/database/TableDataPanel.tsx`
+- **Tekshiruv:** Playwright — users jadval (20 qator, 15+ ustun) — X scroll, Y scroll, sticky header ishlaydi
+
+---
+
+## T-383 | 2026-04-21 | [FRONTEND] | 404 sahifa — Super Admin /founder/overview ga redirect
+
+- **Yechim:** `not-found.tsx` da `cookies()` orqali `user_role` o'qiladi. `SUPER_ADMIN` → `/founder/overview` + "Вернуться в панель" tugmasi. Oddiy user → `/dashboard` + "Bosh sahifaga qaytish". Oldin hammasi `/` ga ketardi.
+- **Fayl:** `apps/web/src/app/not-found.tsx`
+- **Tekshiruv:** Playwright — /founder/billing (404) → "Вернуться в панель" → /founder/overview OK
+
+---
+
+## T-382 | 2026-04-21 | [FRONTEND]+[BACKEND] | Super Admin Auth — JWT 24h + redirect fix
+
+- **Yechim:** Backend: Admin JWT expiry 15m → 24h (admin refresh token yo'q). Frontend `client.ts`: `isAdminSession()` helper — admin 401 da `/admin-login` ga redirect (oldin `/login` ga ketardi). Admin uchun `/auth/refresh` skip (bu oddiy user endpoint). `clearAuthAndRedirect()` da `admin_id`, `admin_role` localStorage ham tozalanadi.
+- **Fayl:** `apps/api/src/admin/admin-auth.service.ts`, `apps/web/src/api/client.ts`
+- **Tekshiruv:** Playwright — login → tenant detail → Obuna tab → 0 errors (oldin 6x 401)
+
+---
+
+## T-096 | 2026-04-21 | [BACKEND]+[FRONTEND] | Tester/sample tracking — ochilgan tester hisobi
+
+- **Yechim:** Backend: `OpenTesterDto`, `openTester()` → `StockMovement(TESTER)` + `Expense(TESTER)` bitta transaction da. `POST /inventory/testers` + `GET /inventory/testers`. Web: `TesterModal.tsx`, `getWarehouses()` API, `useOpenTester`/`useTesters` hooks, purple "Tester" button inventory sahifasida.
+- **Fayl:** `apps/api/src/inventory/`, `apps/web/src/app/(admin)/inventory/TesterModal.tsx`
+
+---
+
+## T-118 | 2026-04-21 | [BACKEND] | 1C export — BEKOR QILINDI (kerak emas)
+
+- **Yechim:** Kosmetika POS uchun 1C buxgalteriya integratsiyasi kerak emas deb qaror qilindi. Task o'chirildi.
+
+---
+
+## T-377 | 2026-04-21 | [FRONTEND] | UserModal — credentials ko'rsatish + parol generatsiya
+
+- **Yechim:** `UserModal.tsx` ga qo'shildi: random password generator ("Tasodifiy parol" button), eye toggle, `onSuccess` da green credentials box (email + parol + copy buttons). Rol dropdown da sublabellar: CASHIER/MANAGER/WAREHOUSE/ADMIN/VIEWER tavsifi.
+- **Fayl:** `apps/web/src/components/settings/UserModal.tsx`
+
+---
+
+## T-376 | 2026-04-21 | [FRONTEND] | Web: /workers sahifasi + sidebar "Xaridorlar" → "Xodimlar"
+
+- **Yechim:** Yangi `apps/web/src/app/(admin)/workers/page.tsx` yaratildi: stats row, rol/filial/holat filterlari, workers jadval. `Sidebar.tsx` va `ManagerSidebar.tsx` da "Xaridorlar" → "Xodimlar" → `/workers`. Mavjud `useUsers()`, `UserModal`, `useBranches()` qayta ishlatildi.
+- **Fayl:** `apps/web/src/app/(admin)/workers/page.tsx`, `Sidebar.tsx`, `ManagerSidebar.tsx`
+
+---
+
+## T-220 | 2026-04-20 | [BACKEND] | Owner Panel — barcha endpointlar tasdiqlandi
+
+- **Yechim:** 12 ta endpoint curl orqali test qilindi. Hammasi 200 OK.
+  paymentBreakdown (cash/card/click/payme) ✅, aging buckets ✅, byBranch ✅
+- **Credentials:** `owner@raos.uz` / `Demo1234!` / slug: `kosmetika-demo`
+
+---
+
+## T-348 | 2026-04-20 | [DEVOPS] | ibrat/feat-backend-updates ветка — tozalandi
+
+- **Yechim:** Commit `d7478ec` allaqachon PR #6 orqali main ga merge qilingan (`a27c2e8`). Ветка GitHub da o'chirilgan edi. `git remote prune origin` bilan eskirgan lokal ref tozalandi.
+
+---
+
+## T-372 | 2026-04-20 | [BACKEND] | Login — slug ixtiyoriy + avtomatik tenant aniqlash
+
+- **Yechim:** `LoginDto.slug` → `@IsOptional()`. `identity.service.ts`: slug berilmasa email bo'yicha barcha tenantlarda qidirish. 1 ta topilsa — avtomatik. 2+ ta — `SLUG_REQUIRED` xatosi.
+- **Fayl:** `apps/api/src/identity/dto/login.dto.ts`, `apps/api/src/identity/identity.service.ts`
+
+---
+
+## T-373 | 2026-04-20 | [FRONTEND] | Login sahifasi — slug maydoni ixtiyoriy
+
+- **Yechim:** Slug validatsiyasidan `required` olib tashlandi. Label ga `(ixtiyoriy)` qo'shildi. Hint matn yangilandi.
+- **Fayl:** `apps/web/src/app/(auth)/login/page.tsx`
+
+---
+
+## T-374 | 2026-04-20 | [BACKEND] | Bot login — tenant izolyatsiya xatosi tuzatildi
+
+- **Yechim:** `verifyCredentialsAndSendOtp()` endi `findMany` ishlatadi. 1 foydalanuvchi → davom. 2+ → `multiple_tenants` qaytariladi → bot Admin Panel orqali bog'lashni tavsiya etadi.
+- **Fayl:** `apps/bot/src/services/auth.service.ts`
+
+---
+
+## T-375 | 2026-04-20 | [BACKEND] | Bot OTP — DB da saqlash (BotOtpToken)
+
+- **Yechim:** `BotOtpToken` modeli Prisma ga qo'shildi. `otpStore` Map → DB CRUD. Cleanup cron har 10 daqiqada. Bot qayta ishga tushsa OTP saqlanib qoladi.
+- **Fayl:** `apps/api/prisma/schema.prisma`, `apps/bot/src/services/auth.service.ts`, `apps/bot/src/cron/alerts.cron.ts`
+
+---
+
+## T-040 | 2026-04-20 | [BACKEND] | Telegram bot — shift close alert
+
+- **Yechim:** `ShiftAlertListener` yaratildi — `shift.closed` eventini tinglaydi.
+  Smena yopilganda OWNER/ADMIN lar ga Telegram xabar yuboriladi:
+  kassir, filial, davomiylik, buyurtmalar soni, jami tushum, naqd/karta breakdown.
+- **Fayl:** `apps/api/src/notifications/shift-alert.listener.ts`,
+  `apps/api/src/notifications/telegram-notify.service.ts` (sendShiftSummary qo'shildi)
+- **Eslatma:** Low stock, expiry, refund, daily report alertlar bot da (apps/bot/) allaqachon mavjud edi.
+
+---
+
+## T-140 | 2026-04-20 | [BACKEND] | POST /warehouse/invoices — mobile costPrice alias
+
+- **Yechim:** `InvoiceItemDto.purchasePrice` → optional. `costPrice` alias qo'shildi (mobile yuboradi).
+  Service: `price = purchasePrice ?? costPrice ?? 0`. Response shaped for mobile:
+  `{ id, receiptNumber, date, totalCost, itemsCount, status }`.
+- **Fayl:** `inventory/dto/warehouse-invoice.dto.ts`, `inventory/warehouse-invoice.service.ts`
+
+---
+
+## T-139 | 2026-04-20 | [BACKEND] | getOrders paymentMethod field
+
+- **Yechim:** `getOrders` da `paymentIntents` include qilindi. Dominant metodni aniqlash:
+  DEBT→NASIYA, hammasi TERMINAL→KARTA, hammasi CASH→NAQD, aralash→ARALASH.
+  `itemsCount` ham qo'shildi. `getCurrentShift` da ham `CARD`→`TERMINAL` xato tuzatildi.
+- **Fayl:** `sales/sales.service.ts`
+
+---
+
+## T-138 | 2026-04-20 | [BACKEND] | getCurrentShift stats — cashierName + totalRevenue + breakdown
+
+- **Yechim:** `getCurrentShift()` endi shift buyurtmalarini aggregate qiladi.
+  `stats: { totalRevenue, ordersCount, avgOrderValue, naqdAmount, kartaAmount, nasiyaAmount }`.
+  `cashierName` user relatsiyasidan. `GET /shifts/current` ShiftsController da qo'shildi.
+- **Fayl:** `sales/sales.service.ts`, `sales/shifts.controller.ts`
+
+---
+
+## T-350 | 2026-04-20 | [BACKEND] | Real estate module — Property + RentalContract + RentalPayment
+
+- **Yechim:** Prisma modellari: `Property`, `RentalContract`, `RentalPayment` + 3 ta enum. Migration yaratildi.
+  `RealestateService`: `getProperties()` (aktiv kontraktdan ijarachi ma'lumotlari bilan),
+  `getStats()` (occupancy, totalMonthlyRent, averageRoi, overduePayments),
+  `getPayments()` (pagination + status/propertyId filter). Controller stub → real service.
+- **Fayl:** `prisma/schema.prisma`, `migrations/20260420110000_add_real_estate_module/`, `realestate/`
+
+---
+
+## T-078 | 2026-04-20 | [BACKEND] | QQS (НДС 12%) taxAmount hisoblash
+
+- **Yechim:** `Product.isTaxable Boolean @default(true)` qo'shildi. Migration `20260420100000_add_product_is_taxable`.
+  `createOrder` da: `taxAmount = taxableTotal * 0.12 / 1.12` (tax-inclusive formula).
+  Soliqqa tortilmaydigan mahsulotlar uchun 0. Barcha cheklar to'g'ri NDS ko'rsatadi.
+- **Fayl:** `prisma/schema.prisma`, `migrations/20260420100000_add_product_is_taxable/`, `sales/sales.service.ts`
+
+---
+
+## T-347 | 2026-04-20 | [IKKALASI] | feat-backend-updates zona buzilishi — resolved
+
+- **Yechim:** `git diff` tekshirildi — branchda `apps/mobile/` fayllari YO'Q. Zona buzilishi yo'q.
+- **Eslatma:** Branch `ibrat/feat-backend-updates` da 2 unmerged backend commit bor — T-348 davom ettirildi.
+
+---
+
+## T-344 | 2026-04-20 | [BACKEND] | supplierName optional — zombie task
+
+- **Yechim:** Kod allaqachon to'g'ri: `@IsOptional()` DTO da, `resolveSupplierId()` null ni handle qiladi. Bug yo'q.
+- **Fayl:** `apps/api/src/inventory/dto/warehouse-invoice.dto.ts`
+
+---
+
+## T-081 | 2026-04-20 | [BACKEND+DEVOPS] | REGOS fiscal worker — real API
+
+- **Yechim:** `fiscal.worker.ts` stub `sendFiscalReceipt()` o'chirildi.
+  Endi `REGOS_API_URL` + `REGOS_API_KEY` env bo'lsa → real REGOS API chaqiriladi.
+  Yo'q bo'lsa → stub ishlaydi (dev/test uchun). Order full data (items, cashier, branch, INN)
+  DB dan olinib payload to'ldiriladi. `.env.example` ga REGOS vars qo'shildi.
+- **Fayl:** `apps/worker/src/workers/fiscal.worker.ts`, `.env.example`
+- **Railway:** `REGOS_API_URL` va `REGOS_API_KEY` Variables tabiga qo'shish kerak
+
+---
+
+## T-054 | 2026-04-20 | [BACKEND] | Nasiya Telegram reminders — cron
+
+- **Yechim:** `CronModule` ga `NotificationsModule` import qilindi. `CronService` ga `NotifyService` inject qilindi.
+  `runDebtReminders()` endi real Telegram xabar yuboradi:
+  - DUE_SOON (3 kun ichida): kunlik (bugun yuborilgan bo'lsa o'tkazib yuboradi)
+  - OVERDUE: 1–3 kun — kunlik, 4+ kun — haftalik
+  - `ReminderLog.channel` = `TELEGRAM` yoki `LOG` (xabar bormasa)
+- **Fayl:** `apps/api/src/common/cron/cron.module.ts`, `cron.service.ts`
+
+---
+
+## SESSIYA 2026-04-20 — Warehouse UX + PaymentPanel bonus fixes
+
+| T-raqam | Tur | Yechim | Fayl |
+|---------|-----|--------|------|
+| T-361 | FRONTEND | "Izoh" maydoni allaqachon optional edi — bug yo'q | stock-in/page.tsx |
+| T-362 | FRONTEND | Kontragent tanlanganda `useEffect` → `setItems(newRows)` avto-to'ldirish | stock-in/page.tsx:59-73 |
+| T-363 | FRONTEND | Mahsulot tanlanganda `purchasePrice: p?.costPrice ?? 0` avto-to'ldirish | stock-in/page.tsx:393-399 |
+| T-364 | FRONTEND | "Muddat" (expiryDate) ustuni jadvaldan to'liq olib tashlandi | stock-in/page.tsx |
+| T-365 | FRONTEND | `submitted && row.purchasePrice < 0` → qizil chegarali validatsiya | stock-in/page.tsx |
+| T-366 | FRONTEND | Mahsulot tanlanganda Pencil (karandash) icon → ProductForm edit mode | stock-in/page.tsx:419-430 |
+| T-367 | FRONTEND | Kontragent yaratish modal ichida mahsulotlar SearchableDropdown + chips | stock-in/page.tsx:605-650 |
+| T-368 | FRONTEND | `useCompleteSale` + `splitPaid` — bonus va nasiya hisoblash tuzatildi | useCompleteSale.ts, PaymentPanel.tsx |
+| T-369 | FRONTEND | "Filiallar" Sozlamalar ichidan olib tashlandi — faqat Boshqaruv da qoldi | Sidebar.tsx:175 |
+| T-370 | FRONTEND | `categoryId: z.string().optional()` + `required` prop olib tashlandi — omborchi bug | ProductForm.tsx:23,171 |
+| T-371 | FRONTEND | PaymentPanel: 5 ta `/ 100` → `/ redeemRate` (tenant configurable rate) | PaymentPanel.tsx:361,519,527,533,536 |
+
+---
+
+## T-056 | 2026-04-19 | [BACKEND+FRONTEND] | Founder Dashboard — real endpoints
+
+- **Yechim:**
+  - `ClientErrorLog` model schema.prisma ga qo'shildi + migration yaratildi
+  - `prisma generate` bajarildi
+  - `ClientLogController` — `POST /logs/client-error` endi DB ga ham yozadi
+  - `AdminMetricsService` — 3 ta yangi metod:
+    - `getRevenueSeries(days)` → `$queryRaw` GROUP BY DATE
+    - `getTopTenants()` → bugungi top 5, `order.groupBy + tenant.findMany`
+    - `getErrors(params)` → `clientErrorLog.findMany` + tenant name join
+  - `AdminAuthController` — 3 ta yangi route:
+    - `GET /admin/revenue-series?days=14`
+    - `GET /admin/top-tenants`
+    - `GET /admin/errors?type=&severity=&tenantId=&limit=`
+  - `founder.api.ts` — `Promise.reject('no-endpoint')` → real API calls
+- **Fayl:**
+  - `apps/api/prisma/schema.prisma` — `ClientErrorLog` model
+  - `apps/api/prisma/migrations/20260419120000_add_client_error_logs/`
+  - `apps/api/src/common/logger/client-log.controller.ts`
+  - `apps/api/src/admin/admin-metrics.service.ts`
+  - `apps/api/src/admin/admin-auth.controller.ts`
+  - `apps/web/src/api/founder.api.ts`
+- **Eslatma:** Migration DB yuklanganida `prisma migrate deploy` bilan qo'llaniladi.
+
+---
+
+## YOPILGAN ZOMBIE-TASKLAR (2026-04-19 audit)
+
+> Quyidagi tasklar Polat davrida yozilgan edi. 2026-04-19 audit natijasida kod ichida
+> to'liq implementatsiya topildi — Done.md ga ko'chirildi.
+
+| T-raqam | Tur | Yechim | Fayl |
+|---------|-----|--------|------|
+| T-011..T-015 | BACKEND | Catalog, Sales, Payments schema + service — Prisma migratsiyalar va modullar mavjud | schema.prisma, catalog/, sales/, payments/ |
+| T-019 | BACKEND | Receipt printing — `GET /orders/:id/receipt` ishlaydi, ESC/POS lib mavjud | sales.service.ts, lib/escpos.ts |
+| T-021..T-022 | BACKEND | Inventory schema + StockMovement service — `stock_movements` immutable, `stock-level.service.ts` | schema.prisma, inventory/ |
+| T-024 | BACKEND | Reports module — daily-revenue, top-products, profit, sales-summary endpointlar ishlaydi | reports.service.ts, revenue-reports.service.ts |
+| T-026 | BACKEND | Returns/Refund — `POST /orders/:id/return`, PIN verify, `return.created` event | sales.service.ts |
+| T-027 | BACKEND | Audit log — `AuditInterceptor` global, `GET /audit-logs` | audit.service.ts, audit.controller.ts |
+| T-031 | BACKEND | Expiry tracking — `GET /inventory/expiring?days=`, `ExpiryTrackingService` | expiry-tracking.service.ts |
+| T-032 | BACKEND | Expenses — `POST/GET /finance/expenses`, category filter | finance.service.ts, finance.controller.ts |
+| T-035 | BACKEND | Ledger double-entry — `LedgerService`, journal_entries immutable, reversal | ledger.service.ts |
+| T-036 | BACKEND | Fiscal adapter stub — `FiscalAdapterService`, `isReal` flag, queue retry | fiscal-adapter.service.ts |
+| T-037 | DEVOPS | Staging deploy — Dockerfile (API+Web), docker-compose.staging.yml, GitHub Actions CI | docker/, .github/workflows/ |
+| T-039 | BACKEND | Domain events — EventEmitter2, `sale.created`→inventory→ledger→fiscal zanjiri | event-bus.service.ts, event-log.service.ts |
+| T-050..T-051 | BACKEND | Customer + Nasiya module — CRUD, debt lifecycle, aging report, partial payment FIFO | customers.service.ts, debts/ |
+| T-055 | BACKEND | Super Admin auth — `admin_users`, `POST /admin/auth/login`, `SuperAdminGuard` | admin-auth.service.ts, super-admin.guard.ts |
+| T-067 | SECURITY | Login lockout — `MAX_FAILED_ATTEMPTS=5`, `LOCKOUT_MINUTES=15`, `userLock` table | identity.service.ts |
+| T-068 | SECURITY | Admin PIN — `pin.service.ts`, bcrypt hash, 3 noto'g'ri → 5 daqiqa lock, `POST /auth/verify-pin` | pin.service.ts, auth.controller.ts |
+| T-069 | SECURITY | Session management — httpOnly cookie, refresh token, `DELETE /auth/sessions/:id` | auth.controller.ts, identity.service.ts |
+| T-070 | BACKEND | Employee activity monitor — per-cashier metrics, suspicious patterns, `GET /reports/employee-activity` | employee-activity.service.ts |
+| T-071 | SECURITY | API Key auth — `ApiKey` Prisma model, scoped keys, revocable, rate limited | schema.prisma, identity/ |
+| T-072 | SECURITY | Input sanitization — `SanitizeStringPipe` global, HTML strip, barcode/phone validators | sanitize-string.pipe.ts, validators.ts |
+| T-073 | BACKEND | Redis caching — `CacheService` (ioredis), TTL strategy, barcode cache, stock cache | cache.service.ts, catalog.service.ts |
+| T-074 | BACKEND | DB indexing — composite indexes [tenantId,createdAt], [tenantId,barcode], partial indexes | schema.prisma |
+| T-075 | BACKEND | Stock snapshot — `StockSnapshot` model, `cron.service.ts` hourly materialization | stock-level.service.ts, cron.service.ts |
+| T-076 | BACKEND | BullMQ worker — 6 ta worker: fiscal, notification, data-export, report, stock-snapshot, sync-process | apps/worker/src/workers/ |
+| T-077 | BACKEND | Rate limiting — `TenantThrottlerGuard`, per-tenant limit, gzip compression | tenant-throttler.guard.ts, app.module.ts |
+| T-079 | BACKEND | INN/STIR validation — `@Matches(/^(\d{9}\|\d{14})$/)` DTO da, tenant jadvalida saqlanadi | register-tenant.dto.ts |
+| T-080 | BACKEND | UZS rounding — `roundUZS(amount, precision)` util funksiya | currency.util.ts |
+| T-082 | BACKEND | USD/UZS valyuta — `exchange_rates` jadval, CBU cron, product cost convert | exchange-rate.service.ts |
+| T-083 | BACKEND | Z-report — `createZReport()`, immutable, sequence number, `POST /reports/z-report` | z-report.service.ts |
+| T-084 | DEVOPS | DB backups — `backup.sh` (pg_dump→GPG→MinIO), cron 02:00 UTC, Telegram notify | scripts/backup.sh, docker/backup/ |
+| T-085 | DEVOPS | Health checks — `GET /health/live`, `/health/ready` (DB+Redis+MinIO), graceful shutdown | health.controller.ts |
+| T-086 | DEVOPS | Monitoring — Prometheus+Grafana+pg_exporter+redis_exporter docker-compose config | docker/monitoring/ |
+| T-087 | BACKEND | Data export — `data-export.worker.ts`, `GET /reports/export/download?type=` CSV | data-export.worker.ts, reports.controller.ts |
+| T-088 | BACKEND | Cron jobs — `cron.service.ts`: hourly snapshot, daily exchange rate, expiry, debt reminder | cron.service.ts |
+| T-089 | BACKEND | Analytics endpoints — 7 ta: sales-trend, top-products, dead-stock, margin, ABC, cashier-perf, heatmap | ai.service.ts, ai.controller.ts |
+| T-091..T-092 | BACKEND | Global exception filter + $transaction — `AllExceptionsFilter`, order/nasiya/stock 1 transaction | global-exception.filter.ts, sales.service.ts |
+| T-093 | BACKEND | Circuit breaker — `circuit-breaker.service.ts`, 3 fail→OPEN, fallback strategy | circuit-breaker.service.ts |
+| T-094 | BACKEND | Dead letter queue — `queue.service.ts` DLQ management, `GET /admin/dlq`, retry/dismiss | queue.service.ts, admin-auth.controller.ts |
+| T-095 | BACKEND | Product variants — `product_variants` table, har variant o'z barcode/narx/stock | schema.prisma, catalog.service.ts |
+| T-098 | BACKEND | Price management — `ProductPrice` model (RETAIL/WHOLESALE/tiered minQty), price history | schema.prisma |
+| T-099 | BACKEND | Promotions engine — `promotions` CRUD, PERCENT/FIXED/BUY_X_GET_Y types, auto-apply POS da | promotions.service.ts |
+| T-103 | BACKEND | Push notifications — `push.service.ts`, FCM integration, `notifications` table, GET/PATCH | push.service.ts, notifications.controller.ts |
+| T-104 | BACKEND | Telegram bot — grammY, /sales /stock /debt /shift /report commands, auto-alerts | commands.ts, handlers/ |
+| T-105 | BACKEND | CBU exchange rate — kunlik cron, `GET /exchange-rates/current`, fallback cached | exchange-rate.service.ts, cron.service.ts |
+| T-108 | BACKEND | Subscription plans — `tenant_subscriptions`, TRIAL/ACTIVE/PAST_DUE, usage limits, BillingGuard | billing.service.ts, billing.controller.ts |
+| T-113 | BACKEND | Branch management — `GET/POST/PATCH/DELETE /branches`, user-branch assignment | identity.service.ts |
+| T-114 | BACKEND | Inter-branch transfer — `stock_transfers` (REQUESTED→APPROVED→SHIPPED→RECEIVED), 4-step workflow | inventory.service.ts |
+| T-124 | BACKEND | Feature flags — `FeatureFlagsService` (Redis 1min cache), `@FeatureFlag()` decorator, tenant scope | feature-flags.service.ts, feature-flag.decorator.ts |
+| T-346 | BACKEND | schema.prisma deleted models — `ibrat/feat-inventory-ui` branch mavjud emas, main da barcha modellar bor | schema.prisma |
 
 ---
 
@@ -48,6 +369,9 @@
 | T-326 | 2026-03-24 | BACKEND | Path conflict cleanup: analytics.controller.ts — removed 6 dead-code duplicate endpoints (shadowed by ai.controller.ts), kept stock-value + insights; debts.controller.ts marked @deprecated | analytics.controller.ts, debts.controller.ts |
 | T-329 | 2026-03-24 | BACKEND | HR invite flow: NotifyService.createInviteTokenForUser() (7-day TTL via TelegramLinkToken), POST /employees auto-generates token + returns inviteLink, EmployeesModule imports NotificationsModule | notify.service.ts, employees.service.ts, employees.module.ts |
 | T-303 | 2026-03-24 | BACKEND | PDF export: PdfExportService (HTML→PDF fallback, 4 report types: daily-revenue/pnl/z-report/tax-report), GET /reports/export/pdf/:reportType endpoint, ReportsModule updated | pdf-export.service.ts, reports.controller.ts, reports.module.ts |
+| T-125 | 2026-04-16 | BACKEND | Swagger/OpenAPI: `@nestjs/swagger` v11 o'rnatilgan, `SwaggerModule.setup('api/v1/docs')`, `DocumentBuilder` (title+Bearer auth), barcha 41 controller `@ApiTags`, 32/35 DTO `@ApiProperty` bilan — `http://localhost:3000/api/v1/docs` da ishlaydi | main.ts, *.dto.ts |
+| T-339 | 2026-04-16 | BACKEND | Demo seed: `La Roche-Posay SPF50+` (SKU: LRP-SPF-50) qo'shildi — `initialQty=7`, `minStockLevel=10`. POS da bitta sotganda low-stock toast ko'rinadi. `initialQty` field idempotent. | prisma/seed.ts |
+| T-340 | 2026-04-16 | FRONTEND | Warehouse dashboard beep: `playBeep()` Web Audio API (ruxsat kerak emas), `useRef`+`useEffect` — `restockRequests.length` oshganda signal. Bonus: `useDebtDetail` duplikati olib tashlandi (TS2323/TS2393). | warehouse/page.tsx, hooks/customers/useDebts.ts |
 | T-340 | 2026-03-31 | SECURITY | Employees controller: `RolesGuard` + `@Roles(OWNER, ADMIN)` controller darajasida qo'shildi; `UpdateStatusDto` (`@IsEnum`) + `UpdatePosAccessDto` (`@IsBoolean`) alohida DTO faylda yaratildi; inline `CreateEmployeeDto` alohida `dto/employee.dto.ts` ga ko'chirildi | employees.controller.ts, employees/dto/employee.dto.ts |
 | T-341 | 2026-03-31 | BACKEND | N+1 query bartaraf: `getPerformance()` → bitta `$queryRaw` JOIN (users+orders+returns); `getSuspiciousActivity()` → `return.groupBy()` + bitta `user.findMany`. 50 xodim uchun 100+ query → 2 query | employees.service.ts |
 | T-342 | 2026-03-31 | SECURITY | Feature flags tenant isolation: (1) `RolesGuard` qo'shildi — `@Roles` endi ishlaydi; (2) `overrideTenantId` param o'chirildi — faqat JWT tenantId; (3) `setFlag`/`deleteFlag` dagi `global` bypass o'chirildi — tenant scope majburiy | feature-flags.controller.ts |
@@ -91,6 +415,8 @@
 | T-310 | 2026-03-27 | FRONTEND | POS tablet layout: TabBar komponent (Mahsulotlar/Savat+badge/To'lov); lg+ da 3-column, lg- da tab-based single panel; keyboard shortcuts bar lg+ da yashirildi; portrait/landscape uchun CSS | pos/page.tsx |
 | T-314 | 2026-03-27 | FRONTEND | Subscription UI: settings/billing/page.tsx allaqachon mavjud (plan card+status badge+expiry, UsageBar filial/mahsulot/user uchun, PlanCard grid upgrade tugmasi bilan); useBilling.ts hooks; billingApi allaqachon ishlaydi | settings/billing/page.tsx, hooks/settings/useBilling.ts, api/billing.api.ts |
 | B-039 | 2026-03-29 | SECURITY | reports.controller.ts, exchange-rate.controller.ts — GET /reports/profit va GET /exchange-rate/history da @Roles('OWNER','ADMIN') edi, MANAGER yo'q edi → 403. @Roles ga 'MANAGER' qo'shildi. Playwright audit (scripts/audit-all-roles.mjs) bilan aniqlandi | reports.controller.ts, exchange-rate.controller.ts |
+| T-343 | 2026-04-19 | BACKEND | Dashboard reports CASHIER access: `reports.controller.ts` da `/reports/sales-summary`, `/reports/daily-revenue`, `/reports/top-products` endpointlaridan CASHIER roli olib tashlandi — endi CASHIER ham o'z shift statistikasini ko'ra oladi. Commit: `bd38bec` | reports.controller.ts |
+| T-345 | 2026-04-19 | DEVOPS | CI/CD BROKEN tuzatildi: (1) `apps/mobile` — `as any` fixlar + `react-hooks/exhaustive-deps` eslint config; (2) `apps/web` — Next.js lint migration; (3) `apps/api` — lint xatoliklar bartaraf etildi. Pipeline yashil, prod deploy tiklandi. Commits: `6dfa6a1`, `c71a8f2` | .github/workflows/ci.yml, apps/*/eslint config |
 
 ---
 
@@ -848,6 +1174,23 @@
 
 ---
 
+## T-349 | 2026-04-15 | [MOBILE] | ibrat/feat-inventory-ui — apps/mobile/ 20 fayl review
+
+- **Mas'ul:** AbdulazizYormatov (Team Lead review)
+- **Yechim:** 20 fayl review qilindi va qabul qilindi:
+  - TS fixes: `icon as any` → `ComponentProps` (4 ta fayl)
+  - API kengaytmalar: inventory, nasiya, sales, catalog
+  - Bugfix: `user.name` → `user.firstName/lastName` (auth.store ga mos)
+  - Navigation types: 6 yangi stack param list
+  - Infra: tsconfig `@/*` alias, `safeQueryFn`, `SupportedLanguage`
+- **Topilgan muammolar → yangi tasklar:**
+  - T-346: schema.prisma da modellar o'chirilgan (ProductCertificate, PriceChange)
+  - T-347: zonalar aralashgan — mobile/web/api bir PR da
+  - T-348: 3 ta stale branch tozalash kerak
+  - T-345: CI/CD 13+ kun broken (P0)
+
+---
+
 ## T-342 | 2026-03-28 | [MOBILE] | Backend integratsiya — Smena, Kirim, Ombor, Savdo
 
 - **Mas'ul:** Abdulaziz
@@ -860,6 +1203,30 @@
   - `SavdoScreen` — MOCK_PRODUCTS o'chirildi, `catalogApi.getProducts()` + `salesApi.createOrder()` ulandi
   - Commit: 5f42746, 2166f66
 - **Fayllar:** store/shiftStore.ts, api/sales.api.ts, api/inventory.api.ts, api/catalog.api.ts, screens/Smena/index.tsx, screens/Savdo/index.tsx
+
+---
+
+## 2026-04-20 SESSIYA — WAREHOUSE UX + POS FIX
+
+| T-# | Sana | Kategoriya | Yechim | Fayl(lar) |
+|-----|------|-----------|--------|-----------|
+| T-351 | 2026-04-20 | [FRONTEND] | Barcode redesign — asosiy barcode field o'chirildi, faqat `extraBarcodes` array. BarcodeFields.tsx har qatorda scanner tugmasi. page.tsx: `allBarcodes[0]` → `barcode` DTO ga | `ProductForm.tsx`, `BarcodeFields.tsx`, `catalog/products/page.tsx` |
+| T-352 | 2026-04-20 | [FRONTEND] | StockIn jadval scroll — `max-h-[520px] overflow-y-auto` + sticky thead | `warehouse/stock-in/page.tsx` |
+| T-353 | 2026-04-20 | [FRONTEND] | WriteOff jadval scroll — `max-h-[520px] overflow-y-auto` + sticky thead | `warehouse/write-off/page.tsx` |
+| T-355 | 2026-04-20 | [IKKALASI] | ProductForm supplier field — frontend `supplierId` Zod schema + SearchableDropdown. Backend: `CreateProductDto.supplierId` + `ProductSupplier.create()` in transaction | `ProductForm.tsx`, `create-product.dto.ts`, `catalog.service.ts`, `types/catalog.ts` |
+| T-356 | 2026-04-20 | [FRONTEND] | StockIn smart banner — kontragent tanlanganda "X ta mahsulot bor [Qo'shish]" banner; click → barcha supplier mahsulotlari qatorlarga qo'shiladi | `warehouse/stock-in/page.tsx` |
+| T-357 | 2026-04-20 | [FRONTEND] | StockIn muddat — muddat kolonkasi butunlay yashirildi (expiryDate=today UX yomon, chunki mahsulot kelgan kuni yaroqsiz bo'ladi) | `warehouse/stock-in/page.tsx` |
+| T-358 | 2026-04-20 | [FRONTEND] | WarehouseSidebar kengaytildi — `w-56` → `w-64` | `WarehouseSidebar.tsx` |
+| T-359 | 2026-04-20 | [FRONTEND] | Warehouse navbar — `WarehouseHeader.tsx` yangi komponent (foydalanuvchi ismi, roli, avatar, logout). `(warehouse)/layout.tsx` ga integratsiya | `WarehouseHeader.tsx`, `(warehouse)/layout.tsx` |
+| T-360 | 2026-04-20 | [FRONTEND] | Forma validatsiya — stock-in va write-off da `submitted` state, bo'sh qator qizil border, xato matni, Save button disabled | `stock-in/page.tsx`, `write-off/page.tsx` |
+| T-362 | 2026-04-20 | [FRONTEND] | Auto-populate — kontragent tanlanganda va jadval bo'sh bo'lsa, supplier mahsulotlari avtomatik qo'shiladi (costPrice bilan) | `warehouse/stock-in/page.tsx` |
+| T-363 | 2026-04-20 | [FRONTEND] | Narx auto-fill — mahsulot tanlanganda `costPrice` avtomatik `purchasePrice` ga o'tkaziladi | `warehouse/stock-in/page.tsx` |
+| T-364 | 2026-04-20 | [FRONTEND] | Muddat kolonkasi yashirildi — expiryDate=today mantiqsiz (chegirish sanasi emas, yaroqlilik sanasi). Backend ga yuborilmaydi | `warehouse/stock-in/page.tsx` |
+| T-365 | 2026-04-20 | [FRONTEND] | Narx validatsiya — manfiy narxda qizil border + "Narx manfiy bo'lmasligi kerak" xabar | `warehouse/stock-in/page.tsx` |
+| T-366 | 2026-04-20 | [FRONTEND] | Mahsulot tahrirlash — har qatorda qalam tugmasi, ProductForm modal bilan mavjud mahsulotni tahrirlash imkoni | `warehouse/stock-in/page.tsx` |
+| T-367 | 2026-04-20 | [FRONTEND] | Kontragent yaratish formasiga mahsulotlar bo'limi — mahsulot search + chip tanlash, saqlashdan keyin `suppliersApi.linkProduct()` orqali bog'lash | `warehouse/stock-in/page.tsx`, `api/suppliers.api.ts` |
+| T-368 | 2026-04-20 | [FRONTEND] | Aralash to'lov bonus bug — hardcoded `bonusPoints * 100` → `bonusPoints * redeemRate` (loyaltyConfig dan). `useLoyaltyConfig()` hook `useCompleteSale` va `PaymentPanel` ga qo'shildi | `useCompleteSale.ts`, `PaymentPanel.tsx` |
+| T-369 | 2026-04-20 | [FRONTEND] | Sidebar — Sozlamalar bo'limidan "Filiallar" o'chirildi (Boshqaruv bo'limida qoldi) | `Sidebar.tsx` |
 
 ---
 

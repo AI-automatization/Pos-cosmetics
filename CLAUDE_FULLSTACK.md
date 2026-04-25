@@ -1208,7 +1208,6 @@
   const useAppStore = create<AppStore>((set) => ({
     sidebarOpen: true,
     toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-    selectedBranch: null,
     setSelectedBranch: (id) => set({ selectedBranch: id }),
   }));
 

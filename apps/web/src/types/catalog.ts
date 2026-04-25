@@ -128,6 +128,7 @@ export interface CreateProductDto {
   imageUrl?: string;
   description?: string;
   expiryTracking?: boolean;
+  supplierId?: string;
 }
 
 export type UpdateProductDto = Partial<CreateProductDto>;

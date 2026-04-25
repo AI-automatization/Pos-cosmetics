@@ -19,7 +19,7 @@ export default function LoginPage() {
     if (!email.trim()) errs.email = 'Email kiritilmadi';
     else if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = 'Email formati noto\'g\'ri';
     if (!password) errs.password = 'Parol kiritilmadi';
-    if (!slug.trim()) errs.slug = 'Do\'kon slugi kiritilmadi';
+    // slug ixtiyoriy — bo'sh qoldirilsa backend avtomatik aniqlaydi
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -51,6 +51,7 @@ export default function LoginPage() {
             <div>
               <label className="mb-1.5 block text-sm font-medium text-blue-200">
                 Do&apos;kon slugi
+                <span className="ml-1.5 text-xs font-normal text-white/40">(ixtiyoriy)</span>
               </label>
               <input
                 type="text"
@@ -154,7 +155,7 @@ export default function LoginPage() {
 
           {/* Help text */}
           <p className="mt-6 text-center text-xs text-white/30">
-            Do&apos;kon slugingizni bilmasangiz, admin bilan bog&apos;laning
+            Bitta do&apos;koningiz bo&apos;lsa slug bo&apos;sh qoldiring
           </p>
         </div>
 

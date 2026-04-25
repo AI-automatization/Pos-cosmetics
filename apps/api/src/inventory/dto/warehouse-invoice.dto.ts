@@ -1,7 +1,7 @@
 import { WriteOffReason } from '@prisma/client';
 import {
   IsString, IsOptional, IsArray, IsNumber, Min, IsInt, IsPositive,
-  ValidateNested, IsDateString, IsEnum, IsUUID, IsNotEmpty,
+  ValidateNested, IsDateString, IsEnum, IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -16,10 +16,18 @@ export class InvoiceItemDto {
   @IsPositive()
   quantity!: number;
 
-  @ApiProperty({ example: 25000, description: 'Sotib olish narxi (UZS)' })
+  // T-140: purchasePrice OR costPrice (mobile alias) — at least one required
+  @ApiPropertyOptional({ example: 25000, description: 'Sotib olish narxi (UZS)' })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  purchasePrice!: number;
+  purchasePrice?: number;
+
+  @ApiPropertyOptional({ example: 25000, description: 'Mobile alias for purchasePrice' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  costPrice?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -31,10 +39,10 @@ export class InvoiceItemDto {
   @IsString()
   batchNumber?: string;
 
-  @ApiProperty({ example: '2027-01-01', description: 'Muddati (YYYY-MM-DD) — majburiy' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: '2027-01-01', description: 'Muddati (YYYY-MM-DD) — ixtiyoriy' })
+  @IsOptional()
   @IsDateString()
-  expiryDate!: string;
+  expiryDate?: string;
 }
 
 export class CreateInvoiceDto {
@@ -42,6 +50,11 @@ export class CreateInvoiceDto {
   @IsOptional()
   @IsString()
   supplierId?: string;
+
+  @ApiPropertyOptional({ example: 'Anvar Savdo', description: 'Supplier name — creates new supplier if supplierId omitted' })
+  @IsOptional()
+  @IsString()
+  supplierName?: string;
 
   @ApiPropertyOptional({ example: 'INV-2026-001' })
   @IsOptional()

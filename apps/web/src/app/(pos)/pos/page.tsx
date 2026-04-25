@@ -150,14 +150,19 @@ export default function POSPage() {
 
   const [showRecovery, setShowRecovery] = useState(false);
 
-  // Hydrate shift state from server on mount (handles page refresh / new session)
+  // 1. Rehydrate persist from localStorage (skipHydration: true = server & initial client render both
+  //    use default state → no #418 SSR mismatch). Read AFTER rehydrate() using getState() so we
+  //    see the fresh persisted shiftId, not the stale captured value from initial render.
+  // 2. If no active shift in store, query the server (handles page refresh / new session).
   useEffect(() => {
-    if (!store.shiftId) {
+    usePOSStore.persist.rehydrate();
+    const { shiftId } = usePOSStore.getState();
+    if (!shiftId) {
       shiftApi.getActiveShift().then((shift) => {
         if (shift) {
           const s = shift as typeof shift & { user?: { firstName?: string; lastName?: string } };
           const cashierName = [s.user?.firstName, s.user?.lastName].filter(Boolean).join(' ') || 'Kassir';
-          store.openShift(shift.id, cashierName, Number(shift.openingCash));
+          usePOSStore.getState().openShift(shift.id, cashierName, Number(shift.openingCash));
         }
       });
     }

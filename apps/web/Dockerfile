@@ -3,12 +3,12 @@ FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY .npmrc package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/types/package.json ./packages/types/
 COPY packages/ui/package.json ./packages/ui/
 
-RUN pnpm install --frozen-lockfile --filter web...
+RUN pnpm install --no-frozen-lockfile --filter web...
 
 COPY apps/web/ ./apps/web/
 COPY packages/types/ ./packages/types/
@@ -46,7 +46,7 @@ USER nextjs
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3001/api/health || exit 1
+  CMD wget -qO- http://127.0.0.1:3001/ || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/web/server.js"]

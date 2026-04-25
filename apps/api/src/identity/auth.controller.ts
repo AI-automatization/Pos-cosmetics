@@ -64,7 +64,10 @@ const REFRESH_COOKIE = 'refreshToken';
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  // SameSite=None required for cross-origin Railway deployment (frontend ≠ backend domain).
+  // SameSite=Strict blocks XHR cookies on cross-site requests → refresh always 401 in prod.
+  // SameSite=None requires Secure=true — already set in production.
+  sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 kun
   path: '/',
 };

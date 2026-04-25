@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotifyService } from '../notifications/notify.service';
 import { Prisma, UserRole } from '@prisma/client';
@@ -6,6 +6,8 @@ import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class EmployeesService {
+  private readonly logger = new Logger(EmployeesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly notify: NotifyService,
@@ -16,7 +18,7 @@ export class EmployeesService {
     const users = await this.prisma.user.findMany({
       where: {
         tenantId,
-        ...(branchId ? {} : {}), // branch filter via shifts (users aren't directly linked to branch)
+        ...(branchId ? { branchId } : {}),
         isActive: true,
       },
       select: {
@@ -153,6 +155,34 @@ export class EmployeesService {
     await this.prisma.user.update({ where: { id }, data: { isActive: false } });
   }
 
+  // ─── TRANSFER ─────────────────────────────────────────────────
+  async transferEmployee(tenantId: string, employeeId: string, newBranchId: string) {
+    const employee = await this.prisma.user.findFirst({
+      where: { id: employeeId, tenantId },
+    });
+    if (!employee) throw new NotFoundException('Xodim topilmadi');
+
+    const branch = await this.prisma.branch.findFirst({
+      where: { id: newBranchId, tenantId },
+    });
+    if (!branch) throw new NotFoundException('Filial topilmadi');
+
+    const updated = await this.prisma.user.update({
+      where: { id: employeeId },
+      data: { branchId: newBranchId },
+      select: {
+        id: true, firstName: true, lastName: true, email: true,
+        role: true, isActive: true, createdAt: true, botSettings: true,
+      },
+    });
+
+    this.logger.log(
+      `Employee ${employeeId} transferred to branch ${newBranchId}`,
+      { tenantId },
+    );
+    return this.toEmployee(updated);
+  }
+
   // ─── PERFORMANCE ──────────────────────────────────────────────
   async getPerformance(tenantId: string, opts: {
     branchId?: string;
@@ -160,71 +190,82 @@ export class EmployeesService {
     toDate?: string;
     period?: string;
   }) {
-    const from = opts.fromDate
-      ? new Date(opts.fromDate)
-      : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
-    const to = opts.toDate ? new Date(opts.toDate) : new Date();
+    const { from, to } = this.resolveDateRange(opts.fromDate, opts.toDate, opts.period);
+    const branchFilter = opts.branchId
+      ? Prisma.sql`AND o.branch_id = ${opts.branchId}`
+      : Prisma.empty;
 
-    // Bitta JOIN query — N+1 ni bartaraf etadi (getEmployeeActivity pattern)
     const rows = await this.prisma.$queryRaw<{
       employeeId: string;
       firstName: string;
       lastName: string;
       role: string;
+      branchName: string | null;
       totalOrders: number;
       totalRevenue: number;
       totalDiscountOrders: number;
       totalRefunds: number;
+      totalRefundAmount: number;
+      totalVoids: number;
     }[]>`
       SELECT
-        u.id                                                                         AS "employeeId",
-        u.first_name                                                                 AS "firstName",
-        u.last_name                                                                  AS "lastName",
-        u.role::text                                                                 AS "role",
-        COUNT(DISTINCT CASE WHEN o.status::text = 'COMPLETED' THEN o.id END)::int   AS "totalOrders",
-        COALESCE(SUM(CASE WHEN o.status::text = 'COMPLETED' THEN o.total END), 0)::float
-                                                                                     AS "totalRevenue",
+        u.id                                                                              AS "employeeId",
+        u.first_name                                                                      AS "firstName",
+        u.last_name                                                                       AS "lastName",
+        u.role::text                                                                      AS "role",
+        MAX(b.name)                                                                       AS "branchName",
+        COUNT(DISTINCT CASE WHEN o.status::text = 'COMPLETED' THEN o.id END)::int        AS "totalOrders",
+        COALESCE(SUM(CASE WHEN o.status::text = 'COMPLETED' THEN o.total END), 0)::float AS "totalRevenue",
         COUNT(DISTINCT CASE WHEN o.status::text = 'COMPLETED'
-                             AND o.discount_amount > 0 THEN o.id END)::int          AS "totalDiscountOrders",
-        COUNT(DISTINCT r.id)::int                                                    AS "totalRefunds"
+                             AND o.discount_amount > 0 THEN o.id END)::int               AS "totalDiscountOrders",
+        COUNT(DISTINCT r.id)::int                                                         AS "totalRefunds",
+        COALESCE(SUM(r.total), 0)::float                                                  AS "totalRefundAmount",
+        COUNT(DISTINCT CASE WHEN o.status::text = 'VOIDED' THEN o.id END)::int           AS "totalVoids"
       FROM users u
       LEFT JOIN orders o
-        ON o.user_id   = u.id
-       AND o.tenant_id = ${tenantId}
+        ON o.user_id    = u.id
+       AND o.tenant_id  = ${tenantId}
        AND o.created_at >= ${from}
        AND o.created_at <  ${to}
+       ${branchFilter}
+      LEFT JOIN branches b ON b.id = o.branch_id
       LEFT JOIN returns r
-        ON r.user_id   = u.id
-       AND r.tenant_id = ${tenantId}
+        ON r.user_id    = u.id
+       AND r.tenant_id  = ${tenantId}
        AND r.created_at >= ${from}
        AND r.created_at <  ${to}
       WHERE u.tenant_id  = ${tenantId}
         AND u."isActive" = true
-        ${opts.branchId ? Prisma.sql`AND u.branch_id = ${opts.branchId}` : Prisma.empty}
       GROUP BY u.id, u.first_name, u.last_name, u.role
       ORDER BY "totalOrders" DESC
     `;
 
-    return rows.map((row) => ({
-      employeeId: row.employeeId,
-      employeeName: `${row.firstName} ${row.lastName}`,
-      role: row.role.toLowerCase(),
-      branchName: null,
-      totalOrders: row.totalOrders,
-      totalRevenue: row.totalRevenue,
-      avgOrderValue: row.totalOrders > 0 ? Math.round(row.totalRevenue / row.totalOrders) : 0,
-      totalRefunds: row.totalRefunds,
-      refundRate: row.totalOrders > 0
-        ? parseFloat((row.totalRefunds / row.totalOrders * 100).toFixed(1))
-        : 0,
-      totalVoids: 0,
-      totalDiscounts: row.totalDiscountOrders,
-      discountRate: row.totalOrders > 0
-        ? parseFloat((row.totalDiscountOrders / row.totalOrders * 100).toFixed(1))
-        : 0,
-      suspiciousActivityCount: 0,
-      alerts: [],
-    }));
+    const employees = rows.map((row) => {
+      const revenue = row.totalRevenue || 1;
+      const refundRatio = row.totalRefundAmount / revenue;
+      const discountRatio = row.totalDiscountOrders / Math.max(row.totalOrders, 1);
+      let suspiciousActivityCount = 0;
+      if (refundRatio > 0.20) suspiciousActivityCount++;
+      if (discountRatio > 0.30) suspiciousActivityCount++;
+      if (row.totalVoids >= 3) suspiciousActivityCount++;
+
+      return {
+        employeeId: row.employeeId,
+        employeeName: `${row.firstName} ${row.lastName}`,
+        role: row.role.toLowerCase(),
+        branchName: row.branchName ?? null,
+        totalOrders: row.totalOrders,
+        totalRevenue: row.totalRevenue,
+        totalRefunds: row.totalRefunds,
+        refundRate: row.totalOrders > 0
+          ? parseFloat((row.totalRefunds / row.totalOrders * 100).toFixed(1))
+          : 0,
+        totalVoids: row.totalVoids,
+        suspiciousActivityCount,
+      };
+    });
+
+    return { employees };
   }
 
   // ─── EMPLOYEE PERFORMANCE ─────────────────────────────────────
@@ -326,27 +367,117 @@ export class EmployeesService {
     return alerts;
   }
 
-  async getEmployeeSuspiciousActivity(tenantId: string, id: string) {
+  async getEmployeeSuspiciousActivity(tenantId: string, id: string, limit = 20) {
     const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) throw new NotFoundException('Employee not found');
 
     const from = new Date(); from.setDate(from.getDate() - 30);
-    const returns = await this.prisma.return.count({
-      where: { tenantId, userId: id, createdAt: { gte: from } },
-    });
+    const safeLimit = Math.min(Math.max(limit, 1), 100);
 
-    if (returns < 3) return [];
+    // Avg order value for this tenant — refund > 3× avg trigger
+    const avgRows = await this.prisma.$queryRaw<{ avg: number }[]>`
+      SELECT COALESCE(AVG(total), 0)::float AS avg
+      FROM orders
+      WHERE tenant_id = ${tenantId} AND status::text = 'COMPLETED'
+    `;
+    const avgOrderValue = Number(avgRows[0]?.avg ?? 0);
+    const refundThreshold = avgOrderValue * 3;
 
-    return [{
-      id: `${id}-rapid-refunds`,
-      type: 'RAPID_REFUNDS',
-      description: `${returns} ta qaytarish 30 kun ichida`,
-      occurredAt: new Date(),
-      severity: returns >= 5 ? 'high' : 'medium',
-    }];
+    const [largeRefunds, highDiscountOrders, voidedOrders] = await Promise.all([
+      // 1. Large refunds (> 3× avg order value)
+      this.prisma.return.findMany({
+        where: {
+          tenantId, userId: id,
+          createdAt: { gte: from },
+          ...(refundThreshold > 0 && { total: { gt: refundThreshold } }),
+        },
+        select: { id: true, total: true, orderId: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: safeLimit,
+      }),
+      // 2. High discount orders (> 30% of original price)
+      this.prisma.$queryRaw<{ id: string; total: number; discountAmount: number; createdAt: Date }[]>`
+        SELECT id, total::float, discount_amount::float AS "discountAmount", created_at AS "createdAt"
+        FROM orders
+        WHERE tenant_id  = ${tenantId}
+          AND user_id    = ${id}
+          AND status::text = 'COMPLETED'
+          AND created_at >= ${from}
+          AND total > 0
+          AND discount_amount > 0
+          AND discount_amount::float / (total::float + discount_amount::float) > 0.30
+        ORDER BY created_at DESC
+        LIMIT ${safeLimit}
+      `,
+      // 3. Voided orders
+      this.prisma.order.findMany({
+        where: { tenantId, userId: id, status: 'VOIDED', createdAt: { gte: from } },
+        select: { id: true, total: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: safeLimit,
+      }),
+    ]);
+
+    const activities = [
+      ...largeRefunds.map((r) => ({
+        id: r.id,
+        type: 'LARGE_REFUND' as const,
+        description: `Katta qaytarish: ${Number(r.total).toLocaleString()} so'm (o'rtachadan 3× ko'p)`,
+        orderId: r.orderId ?? undefined,
+        amount: Number(r.total),
+        createdAt: r.createdAt,
+      })),
+      ...highDiscountOrders.map((o) => ({
+        id: o.id,
+        type: 'HIGH_DISCOUNT' as const,
+        description: `Katta chegirma: ${Number(o.discountAmount).toLocaleString()} so'm (>30%)`,
+        orderId: o.id,
+        amount: Number(o.discountAmount),
+        createdAt: o.createdAt,
+      })),
+      ...voidedOrders.map((o) => ({
+        id: o.id,
+        type: 'VOID' as const,
+        description: `Bekor qilingan buyurtma: ${Number(o.total).toLocaleString()} so'm`,
+        orderId: o.id,
+        amount: Number(o.total),
+        createdAt: o.createdAt,
+      })),
+    ]
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, safeLimit);
+
+    return { activities };
   }
 
-  // ─── HELPER ───────────────────────────────────────────────────
+  // ─── HELPERS ──────────────────────────────────────────────────
+  private resolveDateRange(fromDate?: string, toDate?: string, period?: string) {
+    if (fromDate || toDate) {
+      const from = fromDate ? new Date(fromDate) : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
+      const to = toDate ? new Date(toDate) : new Date();
+      return { from, to };
+    }
+    const now = new Date();
+    switch (period) {
+      case 'today': {
+        const from = new Date(now); from.setHours(0, 0, 0, 0);
+        return { from, to: now };
+      }
+      case 'week': {
+        const from = new Date(now); from.setDate(now.getDate() - 6); from.setHours(0, 0, 0, 0);
+        return { from, to: now };
+      }
+      case 'month': {
+        const from = new Date(now); from.setDate(1); from.setHours(0, 0, 0, 0);
+        return { from, to: now };
+      }
+      default: {
+        const from = new Date(now); from.setDate(now.getDate() - 30);
+        return { from, to: now };
+      }
+    }
+  }
+
   private toEmployee(u: {
     id: string; firstName: string; lastName: string;
     email: string; role: string; isActive: boolean;

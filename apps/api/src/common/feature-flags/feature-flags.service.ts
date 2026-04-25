@@ -4,12 +4,12 @@ import { CacheService } from '../cache/cache.service';
 
 const FLAG_CACHE_TTL = 60; // 1 min — no deploy needed for toggles
 const FLAG_CACHE_PREFIX = 'feature_flag:';
-const GLOBAL_TENANT = ''; // empty string = global default in DB
+const GLOBAL_TENANT = null; // null = global default in DB
 
 export interface FeatureFlagDto {
   key: string;
   enabled: boolean;
-  tenantId: string; // '' means global
+  tenantId: string | null; // null means global
   description?: string | null;
   updatedAt: Date;
 }
@@ -29,13 +29,13 @@ export class FeatureFlagsService {
     const cached = await this.cache.get<boolean>(cacheKey);
     if (cached !== null) return cached;
 
-    // Tenant-specific flag first, then global default ('')
+    // Tenant-specific flag first
     const flag = await this.prisma.featureFlag.findFirst({
       where: {
         key,
-        tenantId: { in: [tenantId, GLOBAL_TENANT] },
+        OR: [{ tenantId }, { tenantId: GLOBAL_TENANT }],
       },
-      orderBy: { tenantId: 'desc' }, // non-empty (tenant-specific) sorts after ''
+      orderBy: { tenantId: { sort: 'desc', nulls: 'last' } },
     });
 
     const enabled = flag?.enabled ?? false;
@@ -46,7 +46,7 @@ export class FeatureFlagsService {
   /** List all flags — optionally scoped to a tenant + global */
   async listFlags(tenantId?: string): Promise<FeatureFlagDto[]> {
     const where = tenantId
-      ? { tenantId: { in: [tenantId, GLOBAL_TENANT] } }
+      ? { OR: [{ tenantId }, { tenantId: GLOBAL_TENANT }] }
       : {};
     const flags = await this.prisma.featureFlag.findMany({
       where,
@@ -61,27 +61,43 @@ export class FeatureFlagsService {
     }));
   }
 
-  /** Create or update a flag for a tenant (or globally if tenantId='') */
+  /** Create or update a flag for a tenant (or globally if tenantId=null) */
   async setFlag(
     key: string,
     enabled: boolean,
-    tenantId: string,
+    tenantId: string | null,
     description?: string,
   ): Promise<FeatureFlagDto> {
-    const flag = await this.prisma.featureFlag.upsert({
-      where: { key_tenantId: { key, tenantId } },
-      create: { key, enabled, tenantId, description },
-      update: { enabled, description, updatedAt: new Date() },
-    });
+    let flag;
+    if (tenantId !== null) {
+      flag = await this.prisma.featureFlag.upsert({
+        where: { key_tenantId: { key, tenantId } },
+        create: { key, enabled, tenantId, description },
+        update: { enabled, description, updatedAt: new Date() },
+      });
+    } else {
+      // PostgreSQL NULL != NULL — composite unique can't match null, use findFirst
+      const existing = await this.prisma.featureFlag.findFirst({
+        where: { key, tenantId: null },
+      });
+      flag = existing
+        ? await this.prisma.featureFlag.update({
+            where: { id: existing.id },
+            data: { enabled, description, updatedAt: new Date() },
+          })
+        : await this.prisma.featureFlag.create({
+            data: { key, enabled, tenantId: null, description },
+          });
+    }
 
     // Invalidate cache
-    if (tenantId !== GLOBAL_TENANT) {
+    if (tenantId !== null) {
       await this.cache.del(`${FLAG_CACHE_PREFIX}${tenantId}:${key}`);
     } else {
       await this.cache.invalidatePattern(`${FLAG_CACHE_PREFIX}*:${key}`);
     }
 
-    this.logger.log(`Feature flag [${key}] = ${enabled} (tenant=${tenantId || 'GLOBAL'})`);
+    this.logger.log(`Feature flag [${key}] = ${enabled} (tenant=${tenantId ?? 'GLOBAL'})`);
     return {
       key: flag.key,
       enabled: flag.enabled,
@@ -92,7 +108,7 @@ export class FeatureFlagsService {
   }
 
   /** Delete a flag (reverts to default) */
-  async deleteFlag(key: string, tenantId: string): Promise<void> {
+  async deleteFlag(key: string, tenantId: string | null): Promise<void> {
     await this.prisma.featureFlag.deleteMany({ where: { key, tenantId } });
     await this.cache.del(`${FLAG_CACHE_PREFIX}${tenantId}:${key}`);
   }

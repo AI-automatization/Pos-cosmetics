@@ -17,70 +17,79 @@ function todayIso(): string {
   return isoDate(new Date());
 }
 
-export function useAnalyticsSalesTrend(period: 'daily' | 'weekly' | 'monthly' = 'daily', days = 30) {
+export function useAnalyticsSalesTrend(
+  period: 'daily' | 'weekly' | 'monthly' = 'daily',
+  days = 30,
+  branchId?: string,
+) {
   const from = daysAgoIso(days);
   const to = todayIso();
   return useQuery({
-    queryKey: ['analytics', 'sales-trend', period, days],
-    queryFn: () => analyticsApi.getSalesTrend({ period, from, to }),
+    queryKey: ['analytics', 'sales-trend', period, days, branchId],
+    queryFn: () => analyticsApi.getSalesTrend({ period, from, to, branchId }),
     staleTime: 60_000,
   });
 }
 
-export function useAnalyticsTopProducts(days = 30, sortBy: 'revenue' | 'qty' = 'revenue', limit = 10) {
+export function useAnalyticsTopProducts(
+  days = 30,
+  sortBy: 'revenue' | 'qty' = 'revenue',
+  limit = 10,
+  branchId?: string,
+) {
   const from = daysAgoIso(days);
   const to = todayIso();
   return useQuery({
-    queryKey: ['analytics', 'top-products', days, sortBy, limit],
-    queryFn: () => analyticsApi.getTopProducts({ from, to, limit, sortBy }),
+    queryKey: ['analytics', 'top-products', days, sortBy, limit, branchId],
+    queryFn: () => analyticsApi.getTopProducts({ from, to, limit, sortBy, branchId }),
     staleTime: 60_000,
   });
 }
 
-export function useAnalyticsDeadStock(days = 90) {
+export function useAnalyticsDeadStock(days = 90, branchId?: string) {
   return useQuery({
-    queryKey: ['analytics', 'dead-stock', days],
-    queryFn: () => analyticsApi.getDeadStock({ days }),
+    queryKey: ['analytics', 'dead-stock', days, branchId],
+    queryFn: () => analyticsApi.getDeadStock({ days, branchId }),
     staleTime: 300_000,
   });
 }
 
-export function useAnalyticsMargin(days = 30) {
+export function useAnalyticsMargin(days = 30, branchId?: string) {
   const from = daysAgoIso(days);
   const to = todayIso();
   return useQuery({
-    queryKey: ['analytics', 'margin', days],
-    queryFn: () => analyticsApi.getMargin({ from, to }),
+    queryKey: ['analytics', 'margin', days, branchId],
+    queryFn: () => analyticsApi.getMargin({ from, to, branchId }),
     staleTime: 60_000,
   });
 }
 
-export function useAnalyticsAbc(days = 30) {
+export function useAnalyticsAbc(days = 30, branchId?: string) {
   const from = daysAgoIso(days);
   const to = todayIso();
   return useQuery({
-    queryKey: ['analytics', 'abc', days],
+    queryKey: ['analytics', 'abc', days, branchId],
     queryFn: () => analyticsApi.getAbc({ from, to }),
     staleTime: 60_000,
   });
 }
 
-export function useAnalyticsCashierPerf(days = 30) {
+export function useAnalyticsCashierPerf(days = 30, branchId?: string) {
   const from = daysAgoIso(days);
   const to = todayIso();
   return useQuery({
-    queryKey: ['analytics', 'cashier-performance', days],
-    queryFn: () => analyticsApi.getCashierPerformance({ from, to }),
+    queryKey: ['analytics', 'cashier-performance', days, branchId],
+    queryFn: () => analyticsApi.getCashierPerformance({ from, to, branchId }),
     staleTime: 60_000,
   });
 }
 
-export function useAnalyticsHeatmap(days = 30) {
+export function useAnalyticsHeatmap(days = 30, branchId?: string) {
   const from = daysAgoIso(days);
   const to = todayIso();
   return useQuery({
-    queryKey: ['analytics', 'heatmap', days],
-    queryFn: () => analyticsApi.getHourlyHeatmap({ from, to }),
+    queryKey: ['analytics', 'heatmap', days, branchId],
+    queryFn: () => analyticsApi.getHourlyHeatmap({ from, to, branchId }),
     staleTime: 60_000,
   });
 }

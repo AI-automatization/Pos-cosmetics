@@ -11,6 +11,12 @@ import type {
 } from '@/types/inventory';
 
 export const inventoryApi = {
+  getWarehouses() {
+    return apiClient
+      .get<{ id: string; name: string; branchId?: string | null }[]>('/inventory/warehouses')
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
   // B-010 fix: backend route is /inventory/levels (not /inventory/stock)
   getStock(params: StockQuery = {}) {
     return apiClient
@@ -115,5 +121,13 @@ export const inventoryApi = {
 
   sendRestockRequest(dto: { productId: string; productName: string; currentStock: number }) {
     return apiClient.post<{ success: boolean; notifiedCount: number }>('/inventory/restock-request', dto).then((r) => r.data);
+  },
+
+  openTester(dto: { productId: string; warehouseId: string; quantity: number; costPrice: number; note?: string }) {
+    return apiClient.post<{ movement: { id: string }; expense: { id: string }; totalCost: number }>('/inventory/testers', dto).then((r) => r.data);
+  },
+
+  getTesters(params: { from?: string; to?: string } = {}) {
+    return apiClient.get<{ items: unknown[]; totalCost: number; count: number }>('/inventory/testers', { params }).then((r) => r.data);
   },
 };

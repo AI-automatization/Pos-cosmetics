@@ -19,7 +19,7 @@ export interface AuthUser {
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // backend sends via httpOnly cookie, not in response body
 }
 
 export const authApi = {

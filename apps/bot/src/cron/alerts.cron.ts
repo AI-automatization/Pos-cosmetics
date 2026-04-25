@@ -9,6 +9,7 @@ import { logger } from '../logger';
 import { BotSettings, DEFAULT_SETTINGS } from '../services/auth.service';
 import { getLowStockItems, getExpiringItems, getRecentSuspiciousRefunds, getOverdueDebtSummary } from '../services/alert.service';
 import { formatLowStockAlert, formatExpiryAlert, formatRefundAlert, formatDebtSummaryAlert } from '../services/formatter';
+import { cleanExpiredOtpTokens } from '../services/auth.service';
 
 // ─── Tenant OWNER larini topish ──────────────────────────────
 
@@ -158,11 +159,21 @@ export function startCronJobs(bot: Bot): void {
     }
   }, { timezone: 'Asia/Tashkent' });
 
+  // ─── 6. Eskirgan OTP tokenlarni tozalash — har 10 daqiqa ────
+  cron.schedule('*/10 * * * *', async () => {
+    try {
+      await cleanExpiredOtpTokens();
+    } catch (err) {
+      logger.error('[Cron] OTP cleanup failed', { error: (err as Error).message });
+    }
+  }, { timezone: 'Asia/Tashkent' });
+
   logger.log('[Bot] Cron jobs registered', {
     lowStock: config.lowStockCheckCron,
     expiry:   config.expiryCheckCron,
     debts:    config.debtCheckCron,
     refunds:  '*/15 * * * *',
     daily:    '0 20 * * *',
+    otpCleanup: '*/10 * * * *',
   });
 }

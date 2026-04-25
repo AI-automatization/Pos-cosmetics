@@ -6,29 +6,44 @@ import { salesApi } from '@/api/sales.api';
 import { inventoryApi } from '@/api/inventory.api';
 import { extractErrorMessage } from '@/lib/utils';
 import { usePOSStore } from '@/store/pos.store';
+import { useLoyaltyConfig } from '@/hooks/customers/useLoyalty';
+import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import type { Order } from '@/types/sales';
 
 export function useCompleteSale(onSuccess: (order: Order) => void) {
   const store = usePOSStore();
   const cart = store.carts[store.activeCartId];
-  const { items, orderDiscount, orderDiscountType, paymentMethod, cashAmount, cardAmount, selectedCustomer } = cart;
+  const { items, orderDiscount, orderDiscountType, paymentMethod, cashAmount, cardAmount, bonusPoints, splitNasiyaAmount, selectedCustomer } = cart;
   const { shiftId, totals, clearCart, recordSale } = store;
+  const { data: loyaltyConfig } = useLoyaltyConfig();
+  const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
 
   const mutation = useMutation({
     mutationFn: () => {
       const { total } = totals();
 
-      const payments =
-        paymentMethod === 'cash'
-          ? [{ method: 'CASH' as const, amount: total }]
-          : paymentMethod === 'card'
-            ? [{ method: 'CARD' as const, amount: total }]
-            : paymentMethod === 'nasiya'
-              ? [{ method: 'NASIYA' as const, amount: total }]
-              : [
-                  { method: 'CASH' as const, amount: cashAmount },
-                  { method: 'CARD' as const, amount: cardAmount },
-                ];
+      let payments: { method: 'CASH' | 'CARD' | 'NASIYA' | 'BONUS'; amount: number }[];
+      if (paymentMethod === 'cash') {
+        payments = [{ method: 'CASH', amount: total }];
+      } else if (paymentMethod === 'card') {
+        payments = [{ method: 'CARD', amount: total }];
+      } else if (paymentMethod === 'nasiya') {
+        payments = [{ method: 'NASIYA', amount: total }];
+      } else {
+        // split — include all non-zero components
+        payments = (
+          [
+            cashAmount > 0 ? { method: 'CASH' as const, amount: cashAmount } : null,
+            cardAmount > 0 ? { method: 'CARD' as const, amount: cardAmount } : null,
+            splitNasiyaAmount > 0 ? { method: 'NASIYA' as const, amount: splitNasiyaAmount } : null,
+            bonusPoints > 0 ? { method: 'BONUS' as const, amount: bonusPoints * redeemRate } : null,
+          ] as (typeof payments[0] | null)[]
+        ).filter((p): p is typeof payments[0] => p !== null);
+      }
+
+      const needsCustomer =
+        paymentMethod === 'nasiya' ||
+        (paymentMethod === 'split' && (splitNasiyaAmount > 0 || bonusPoints > 0));
 
       return salesApi.createOrder({
         shiftId: shiftId ?? '',
@@ -41,9 +56,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         orderDiscount,
         orderDiscountType,
         payments,
-        ...(paymentMethod === 'nasiya' && selectedCustomer
-          ? { customerId: selectedCustomer.id }
-          : {}),
+        ...(needsCustomer && selectedCustomer ? { customerId: selectedCustomer.id } : {}),
       });
     },
     onSuccess: (order) => {
@@ -118,7 +131,10 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
     if (paymentMethod === 'cash') return cashAmount >= total;
     if (paymentMethod === 'card') return true;
     if (paymentMethod === 'nasiya') return selectedCustomer !== null && !selectedCustomer.isBlocked;
-    return cashAmount + cardAmount >= total; // split
+    // split: sum of all parts must cover total; if nasiya or bonus part present, customer required
+    const covered = cashAmount + cardAmount + splitNasiyaAmount + bonusPoints * redeemRate;
+    const needsCustomer = splitNasiyaAmount > 0 || bonusPoints > 0;
+    return covered >= total && (!needsCustomer || (selectedCustomer !== null && !selectedCustomer.isBlocked));
   })();
 
   return { mutate: mutation.mutate, isPending: mutation.isPending, canComplete };

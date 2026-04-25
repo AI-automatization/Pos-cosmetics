@@ -11,6 +11,8 @@ interface PaginatedOrders {
 type RawOrder = Order & {
   user?: { firstName?: string; lastName?: string } | null;
   customer?: { id: string; name: string; phone: string } | null;
+  payments?: Array<{ method: string }> | null;
+  paymentIntents?: Array<{ method: string; amount?: number | string }> | null;
 };
 
 export const ordersApi = {
@@ -26,6 +28,7 @@ export const ordersApi = {
             cashierName: item.user
               ? `${item.user.firstName ?? ''} ${item.user.lastName ?? ''}`.trim() || null
               : (item.cashierName ?? null),
+            paymentMethod: item.paymentMethod ?? (item.paymentIntents?.[0]?.method as Order['paymentMethod']) ?? (item.payments?.[0]?.method as Order['paymentMethod']) ?? null,
             customerName: item.customer?.name ?? item.customerName ?? null,
           })) as Order[],
           total: (d.total as number) ?? 0,
@@ -36,6 +39,18 @@ export const ordersApi = {
   },
 
   getById(id: string) {
-    return apiClient.get<Order>(`/sales/orders/${id}`).then((r) => r.data);
+    return apiClient.get<Order>(`/sales/orders/${id}`).then((r) => {
+      const raw = (r.data as unknown as Record<string, unknown>)?.data
+        ? ((r.data as unknown as Record<string, unknown>).data as RawOrder)
+        : (r.data as unknown as RawOrder);
+      return {
+        ...raw,
+        cashierName: raw.user
+          ? `${raw.user.firstName ?? ''} ${raw.user.lastName ?? ''}`.trim() || null
+          : (raw.cashierName ?? null),
+        paymentMethod: raw.paymentMethod ?? (raw.payments?.[0]?.method as Order['paymentMethod']) ?? null,
+        customerName: raw.customer?.name ?? raw.customerName ?? null,
+      } as Order;
+    });
   },
 };
