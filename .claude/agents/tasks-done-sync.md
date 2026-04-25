@@ -118,6 +118,28 @@ grep "^## T-23" docs/Done.md
 
 ---
 
+## 6.5-qadam: Obsidian QA Report checkboxlarini yangilash
+
+Agar bajarilgan T-raqamlar Visual QA tomonidan topilgan bo'lsa (Tasks.md da `**Topildi:** Visual QA` yozuvi bor edi), Obsidian QA report fayllarida checkboxlarni yangilash.
+
+```bash
+# QA report papkasini tekshir
+QA_DIR="/Users/mrz0101aicloud.com/Documents/Obsidian Vault/PROJECTS/RAOS/qa-reports"
+ls "$QA_DIR" 2>/dev/null || echo "QA reports yo'q — skip"
+```
+
+Agar papka mavjud va `.md` fayllar bor bo'lsa, har bajarilgan T-raqam uchun (`T-XXX` o'rniga haqiqiy raqam):
+
+```bash
+for f in "$QA_DIR"/*.md; do
+  sed -i '' "s/- \[ \] T-XXX/- [x] T-XXX/g" "$f"
+done
+```
+
+Agar QA report fayllari yo'q → bu qadamni skip qil.
+
+---
+
 ## 7-qadam: Commit
 
 ```bash
@@ -137,6 +159,9 @@ Tugagach shunday xabar ber:
 
 ⏭️  Done.md da allaqachon bor edi (faqat Tasks.md dan o'chirildi):
 - T-XXX: sarlavha
+
+🔄 Obsidian checkboxlar yangilandi:
+- T-XXX: - [ ] → - [x] (yoki "QA report yo'q — skip")
 
 📋 Tasks.md da qoldi (hali ochiq): X ta task
 ```
