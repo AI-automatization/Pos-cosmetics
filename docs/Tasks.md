@@ -50,13 +50,7 @@
 
 ---
 
-## T-391 | P1 | [SECURITY] | admin-database: SUPPORT role CSV download — tenant leak
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Muammo:** SUPPORT role barcha tenants CSV yuklay oladi tenantId filtersiz
-- **Kutilgan:** tenantId filter MAJBURIY
+*(T-391 — Done.md ga ko'chirildi 2026-04-25)*
 
 ---
 

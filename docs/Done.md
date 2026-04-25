@@ -42,6 +42,16 @@
 
 ---
 
+## T-391 | 2026-04-25 | [SECURITY] | SUPPORT role tenant isolation
+
+- **Yechim:** SUPPORT role uchun database manager da tenant isolation:
+  1. `getTableData` — tenantId parametri MAJBURIY (400 agar yo'q)
+  2. `exportTable/CSV` — tenantId MAJBURIY (400 agar yo'q)
+  3. SQL Console — SUPPORT uchun to'liq taqiqlangan (faqat SUPER_ADMIN)
+- **Fayl:** `apps/api/src/admin/admin-database.controller.ts`
+
+---
+
 ## 2026-04-25 | [FRONTEND] | Branch comparison — real data
 
 - **Yechim:** Demo data olib tashlanib, `GET /analytics/branch-comparison` + `GET /analytics/sales-trend` ga ulandi
