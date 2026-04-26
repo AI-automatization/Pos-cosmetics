@@ -83,7 +83,7 @@ const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Inventar', tKey: 'nav.inventory',
         icon: Warehouse,
-        roles: ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'],
+        roles: ['ADMIN', 'MANAGER', 'VIEWER'],
         children: [
           { label: 'Zaxira holati', tKey: 'nav.stockLevels', href: '/inventory' },
           { label: 'Kam zaxira', tKey: 'nav.lowStock', href: '/inventory/low-stock' },
