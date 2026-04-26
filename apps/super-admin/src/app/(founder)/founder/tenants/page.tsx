@@ -63,9 +63,9 @@ export default function FounderTenantsPage() {
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Тенанты</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Магазины</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            {tenants ? `${tenants.length} тенантов` : 'Загрузка...'}
+            {tenants ? `${tenants.length} магазинов` : 'Загрузка...'}
           </p>
         </div>
         <Link
@@ -117,7 +117,7 @@ export default function FounderTenantsPage() {
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Тенант</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Магазин</th>
                 <th className="px-4 py-3 text-center font-medium text-gray-500">Статус</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-500">Продажи (сегодня)</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-500">Выручка (сегодня)</th>
@@ -130,7 +130,7 @@ export default function FounderTenantsPage() {
               {!tenants || tenants.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                    Тенанты не найдены
+                    Магазины не найдены
                   </td>
                 </tr>
               ) : (

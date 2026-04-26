@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-4 py-2.5 text-left font-medium text-gray-500">#</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-gray-500">Тенант</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-gray-500">Магазин</th>
                   <th className="px-4 py-2.5 text-right font-medium text-gray-500">Выручка</th>
                   <th className="px-4 py-2.5 text-right font-medium text-gray-500">Заказы</th>
                 </tr>

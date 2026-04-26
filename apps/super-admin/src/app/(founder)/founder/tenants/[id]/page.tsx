@@ -82,7 +82,7 @@ export default function TenantDetailPage() {
   const editMut = useMutation({
     mutationFn: (data: Record<string, unknown>) => founderApi.editTenant(id, data),
     onSuccess: () => {
-      toast.success('Тенант обновлён');
+      toast.success('Магазин обновлён');
       setShowEdit(false);
       queryClient.invalidateQueries({ queryKey: ['founder', 'tenants'] });
     },
@@ -117,7 +117,7 @@ export default function TenantDetailPage() {
     mutationFn: () =>
       founderApi.editTenant(id, { isActive: tenant?.status !== 'ACTIVE' }),
     onSuccess: () => {
-      toast.success(tenant?.status === 'ACTIVE' ? 'Тенант деактивирован' : 'Тенант активирован');
+      toast.success(tenant?.status === 'ACTIVE' ? 'Магазин деактивирован' : 'Магазин активирован');
       setShowToggle(false);
       queryClient.invalidateQueries({ queryKey: ['founder', 'tenants'] });
     },
@@ -137,7 +137,7 @@ export default function TenantDetailPage() {
   if (!tenant) {
     return (
       <div className="flex flex-col items-center gap-4 p-12">
-        <p className="text-gray-500">Тенант не найден</p>
+        <p className="text-gray-500">Магазин не найден</p>
         <Link href="/founder/tenants" className="rounded-lg bg-violet-600 px-4 py-2 text-sm text-white">
           Назад
         </Link>
@@ -157,7 +157,7 @@ export default function TenantDetailPage() {
           className="mb-4 flex w-fit items-center gap-1.5 text-sm text-gray-500 transition hover:text-gray-700"
         >
           <ArrowLeft className="h-4 w-4" />
-          Тенанты
+          Магазины
         </Link>
 
         {/* Title + actions */}
@@ -294,8 +294,8 @@ export default function TenantDetailPage() {
 
       <ConfirmDialog
         isOpen={showDelete}
-        title="Удалить тенант"
-        message={`Вы уверены что хотите удалить "${tenant.name}"? Тенант будет деактивирован.`}
+        title="Удалить магазин"
+        message={`Вы уверены что хотите удалить "${tenant.name}"? Магазин будет деактивирован.`}
         confirmLabel="Удалить"
         cancelLabel="Отмена"
         variant="danger"

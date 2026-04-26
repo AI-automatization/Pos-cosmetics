@@ -41,7 +41,7 @@ export function ResultScreen({ result }: ResultScreenProps) {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
-        <h2 className="text-xl font-bold text-green-800">Тенант успешно создан!</h2>
+        <h2 className="text-xl font-bold text-green-800">Магазин успешно создан!</h2>
         <p className="text-sm text-green-600">
           {result.tenantName} &mdash; тариф {result.planName}
         </p>

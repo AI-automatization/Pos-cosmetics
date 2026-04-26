@@ -31,7 +31,7 @@ const NAV_SECTIONS = [
     title: null,
     items: [
       { label: 'Обзор', href: '/founder/overview', icon: LayoutDashboard },
-      { label: 'Тенанты', href: '/founder/tenants', icon: Building2 },
+      { label: 'Магазины', href: '/founder/tenants', icon: Building2 },
       { label: 'Аналитика', href: '/founder/analytics', icon: TrendingUp },
     ],
   },

@@ -89,7 +89,7 @@ export default function NewTenantPage() {
         password: pwd,
         planName: PLANS.find((p) => p.id === planData?.planId)?.name ?? '',
       });
-      toast.success('Тенант создан!');
+      toast.success('Магазин создан!');
     },
     onError: () => {
       toast.error('Произошла ошибка. Попробуйте снова.');
