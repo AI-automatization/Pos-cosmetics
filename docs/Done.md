@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-04-22
+# Yangilangan: 2026-04-26
 
 ---
 
@@ -10,6 +10,25 @@
 2. Format: T-raqam | sana | tur | qisqa yechim | fayl nomi
 3. Bu fayl FAQAT arxiv — o'chirmaslik, o'zgartirmaslik
 ```
+
+---
+
+## T-393 | 2026-04-26 | [MOBILE] | Staff app — Smena holati inconsistency tuzatildi
+
+- **Yechim:** Dashboard API dan (react-query), Savdo esa Zustand store dan smena holatini olayotgan edi. Store app ishga tushganda HECH QACHON sync qilinmas edi (`isShiftOpen: false` default). 2 joyda fix:
+  1. `App.tsx` — startup da `useShiftStore.getState().syncWithApi()` chaqirildi (auth load dan keyin)
+  2. `ShiftGuard.tsx` — fallback: agar `isShiftOpen === false` bo'lsa, `syncWithApi()` chaqirib qayta tekshiradi
+- **Fayl:** `apps/mobile/src/App.tsx`, `apps/mobile/src/components/common/ShiftGuard.tsx`
+
+---
+
+## T-394 | 2026-04-26 | [MOBILE] | Staff app — Katalog tabi CatalogNavigator ga ulandi
+
+- **Yechim:** CatalogPlaceholder (`[grid]`) o'rniga haqiqiy CatalogNavigator (stack) yaratildi. 4 ta tayyor ekran ulandi: ProductsScreen (CatalogMain), CategoriesScreen, ProductFormScreen, SuppliersScreen.
+- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`
+- **O'zgarishlar:**
+  1. `types.ts` — `CatalogStackParamList` type qo'shildi (CatalogMain, Categories, ProductForm, Suppliers)
+  2. `TabNavigator.tsx` — CatalogPlaceholder o'chirildi, CatalogNavigator (createNativeStackNavigator) yaratildi, 4 Catalog screen importlari qo'shildi, Tab.Screen component CatalogNavigator ga o'zgartirildi
 
 ---
 

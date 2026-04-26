@@ -198,25 +198,7 @@
 
 ---
 
-## T-393 | P1 | [MOBILE] | Staff app — Smena holati inconsistency (Bosh sahifa vs Savdo)
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`, `apps/mobile/src/screens/Sales/index.tsx`
-- **Muammo:** Bosh sahifada smena "OCHIQ" (Smena №688608) ko'rsatiladi, lekin Savdo tabiga o'tganda "Smena ochilmagan" deyiladi va sotuv qilish bloklanadi. Smena holati ikkala ekranda bir xil manbadan olinishi kerak.
-- **Kutilgan:** Smena holati barcha ekranlarda sinxron bo'lishi kerak — agar OCHIQ bo'lsa, Savdo tabida ham sotuv qilish imkoni bo'lsin
-- **Topildi:** Visual QA (iOS Simulator) — 2026-04-26
-
 ---
-
-## T-394 | P1 | [MOBILE] | Staff app — Katalog tabi placeholder ko'rsatadi (ekran tayyor, routing ulanmagan)
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/Catalog/`
-- **Muammo:** Katalog tabida faqat `[grid]` placeholder ko'rinadi. Lekin `screens/Catalog/` da 4 ta tayyor ekran bor: `ProductsScreen.tsx` (369 qator), `CategoriesScreen.tsx` (414 qator), `ProductFormScreen.tsx` (433 qator), `SuppliersScreen.tsx` (413 qator). TabNavigator da placeholder komponent ishlatilgan, haqiqiy ekranlarga routing ulanmagan.
-- **Kutilgan:** TabNavigator da Katalog tabi `CatalogNavigator` (stack) ga ulangan bo'lishi kerak — ProductsScreen, CategoriesScreen, SuppliersScreen
-- **Topildi:** Visual QA (iOS Simulator) + codebase tahlil — 2026-04-26
 
 ---
 
@@ -308,6 +290,55 @@
 
 ---
 
+## T-403 | P2 | [MOBILE] | Staff app — Role-based UI: ADMIN roli uchun kengaytirilgan menular
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Muammo:** Staff app hozir barcha rollar uchun bir xil UI ko'rsatadi. Web da ADMIN roli to'liq boshqaruv imkoniyatiga ega: mahsulot CRUD, inventar, xodimlar, moliya (P&L, xarajatlar), sozlamalar, hisobotlar. Mobile da ADMIN login qilsa ham kassir bilan bir xil cheklangan menyu ko'rinadi.
+- **Yechim:** `apps/mobile` da role-based UI — login qilganda user role tekshiriladi, ADMIN rolida qo'shimcha menular va ekranlar ko'rsatiladi:
+  - Katalog CRUD (mahsulot qo'shish/tahrirlash — kassirda faqat ko'rish)
+  - Xodimlar boshqaruvi (role, PIN, commission)
+  - Moliya (P&L, xarajatlar)
+  - Hisobotlar (to'liq)
+  - Sozlamalar (users, branches, printer, audit log)
+- **Kutilgan:** ADMIN login → kengaytirilgan tab/menyular; CASHIER login → hozirgi ko'rinish saqlanadi
+- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
+
+---
+
+## T-404 | P2 | [MOBILE] | Staff app — Role-based UI: MANAGER roli uchun o'rta darajali menular
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Muammo:** Web da MANAGER soddalashtirilgan admin ko'rinishga ega: dashboard, katalog (ko'rish), inventar (ko'rish), sotuvlar, nasiya, xodimlar (ko'rish), hisobotlar. Mobile da Manager login qilsa kassir bilan bir xil ko'rinish — qo'shimcha imkoniyatlar yo'q.
+- **Yechim:** MANAGER rolida qo'shimcha ko'rinadigan ekranlar (READ-ONLY):
+  - Hisobotlar (ko'rish)
+  - Nasiya (ko'rish)
+  - Xodimlar (ko'rish, tahrirlamasdan)
+  - Inventar kengaytirilgan (low stock, expiry)
+- **Kutilgan:** MANAGER login → CASHIER dan ko'proq, ADMIN dan kam menyular ko'rinadi
+- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
+
+---
+
+## T-405 | P2 | [MOBILE] | Staff app — Role-based UI: WAREHOUSE roli uchun ombor ekranlari
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Muammo:** Web da Warehouse xodimi uchun alohida bo'lim (7 ta ekran): stock-in, write-off, stock count, expiry, low stock, movement history, suppliers. Mobile da faqat Kirim va Ombor (2 ta ekran) bor. WAREHOUSE roli login qilganda savdo emas, ombor ekranlari ko'rinishi kerak.
+- **Yechim:** WAREHOUSE rolida tab bar va menyular o'zgaradi:
+  - Savdo tabi → **Kirim** (stock-in) ga almashadi
+  - Katalog tabi → **Inventarizatsiya** (stock count) ga almashadi
+  - Ko'proq menusida: Write-Off, Expiry, Movement History, Low Stock, Suppliers
+  - Barcode scanner barcha ombor ekranlarida ishlashi kerak
+- **Kutilgan:** WAREHOUSE login → ombor-focused UI; savdo/kassa ekranlari yashirinadi
+- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
+
+---
+
 ## ════════════════════════════════════════════════════════════════
 ## 🔴 MOBILE-OWNER API CONTRACT (T-221..T-226) — 2026-03-14
 ## apps/mobile-owner/src/config/endpoints.ts bilan TO'LIQ MOS KELISHI SHART
@@ -357,26 +388,27 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **24** | **0** | **4** | **11** | **9** |
+| **27** | **3** | **5** | **11** | **8** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 0 | 0 | 0 | 5 | **5** |
-| [FRONTEND] | 0 | 0 | 2 | 0 | **2** |
-| [MOBILE] | 0 | 4 | 5 | 3 | **12** |
+| [BACKEND] | 1 | 2 | 3 | 3 | **9** |
+| [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
+| [MOBILE] | 0 | 2 | 7 | 3 | **12** |
+| [SECURITY] | 2 | 1 | 0 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 0 | 0 | 3 | 0 | **3** |
-| **Abdulaziz** (Mobile) | 0 | 4 | 5 | 3 | **12** |
-| **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
+| **Ibrat** (Full-Stack) | 3 | 3 | 4 | 0 | **10** |
+| **Abdulaziz** (Mobile) | 0 | 2 | 7 | 3 | **12** |
+| **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
 
-> Yangilandi: 2026-04-26 — T-393..T-402 Visual QA + Web vs Mobile solishtirma; Katalog/Moliya ekranlari tayyor lekin routing ulanmagan
+> Yangilandi: 2026-04-26 — T-403..T-405 qo'shildi: Admin Panel, Manager Panel, Warehouse mobile applar yo'q
 
 ---
 
