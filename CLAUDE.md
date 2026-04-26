@@ -22,7 +22,6 @@ Kimligingizni aniqlay olmayman — ismingiz kim?
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
-
 - Ibrat → `CLAUDE_FULLSTACK.md`
 - Abdulaziz → `CLAUDE_MOBILE.md`
 - AbdulazizYormatov → `CLAUDE_FULLSTACK.md` + `CLAUDE_MOBILE.md` (read-only review uchun)
