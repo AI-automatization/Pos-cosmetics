@@ -7,8 +7,6 @@ import { X, Plus } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import type { Category, Product } from '@/types/catalog';
 import { VariantsSection } from './VariantsSection';
-import { BundleSection } from './BundleSection';
-import { CertificatesSection } from './CertificatesSection';
 import { Field, inputCls } from './FormField';
 import { MarginBadge } from './MarginBadge';
 import { ImageUpload } from './ImageUpload';
@@ -265,14 +263,10 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             </Field>
 
             {product ? (
-              <>
-                <VariantsSection productId={product.id} />
-                <BundleSection productId={product.id} />
-                <CertificatesSection productId={product.id} />
-              </>
+              <VariantsSection productId={product.id} />
             ) : (
               <p className="col-span-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400">
-                Variantlar, bundle va sertifikatlar mahsulot saqlangandan keyin qo&apos;shiladi
+                Variantlar mahsulot saqlangandan keyin qo&apos;shiladi
               </p>
             )}
           </div>

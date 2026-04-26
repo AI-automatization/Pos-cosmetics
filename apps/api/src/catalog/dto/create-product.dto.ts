@@ -179,6 +179,11 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString({ each: true })
   extraBarcodes?: string[];
+
+  @ApiPropertyOptional({ description: 'Update default supplier' })
+  @IsOptional()
+  @IsUUID()
+  supplierId?: string;
 }
 
 export class ProductFilterDto {

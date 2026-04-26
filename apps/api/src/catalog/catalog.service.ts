@@ -202,6 +202,7 @@ export class CatalogService {
         category: { select: { id: true, name: true } },
         unit: { select: { id: true, name: true, shortName: true } },
         barcodes: true,
+        productSuppliers: { where: { isDefault: true }, select: { supplierId: true }, take: 1 },
       },
     });
     if (!product) throw new NotFoundException(`Product ${id} not found`);
@@ -319,36 +320,54 @@ export class CatalogService {
 
   async updateProduct(tenantId: string, id: string, dto: UpdateProductDto) {
     await this.getProductById(tenantId, id);
-    const updated = await this.prisma.product.update({
-      where: { id },
-      data: {
-        ...(dto.name !== undefined && { name: dto.name }),
-        ...(dto.sku !== undefined && { sku: dto.sku }),
-        ...(dto.barcode !== undefined && { barcode: dto.barcode }),
-        ...(dto.categoryId !== undefined && { categoryId: dto.categoryId }),
-        ...(dto.unitId !== undefined && { unitId: dto.unitId }),
-        ...(dto.costPrice !== undefined && { costPrice: dto.costPrice }),
-        ...(dto.sellPrice !== undefined && { sellPrice: dto.sellPrice }),
-        ...(dto.minStockLevel !== undefined && {
-          minStockLevel: dto.minStockLevel,
-        }),
-        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
-        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
-        ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.expiryTracking !== undefined && {
-          expiryTracking: dto.expiryTracking,
-        }),
-      },
-      include: {
-        category: { select: { id: true, name: true } },
-        unit: { select: { id: true, name: true, shortName: true } },
-        barcodes: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.product.update({
+        where: { id },
+        data: {
+          ...(dto.name !== undefined && { name: dto.name }),
+          ...(dto.sku !== undefined && { sku: dto.sku }),
+          ...(dto.barcode !== undefined && { barcode: dto.barcode }),
+          ...(dto.categoryId !== undefined && { categoryId: dto.categoryId }),
+          ...(dto.unitId !== undefined && { unitId: dto.unitId }),
+          ...(dto.costPrice !== undefined && { costPrice: dto.costPrice }),
+          ...(dto.sellPrice !== undefined && { sellPrice: dto.sellPrice }),
+          ...(dto.minStockLevel !== undefined && {
+            minStockLevel: dto.minStockLevel,
+          }),
+          ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+          ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.expiryTracking !== undefined && {
+            expiryTracking: dto.expiryTracking,
+          }),
+        },
+        include: {
+          category: { select: { id: true, name: true } },
+          unit: { select: { id: true, name: true, shortName: true } },
+          barcodes: true,
+          productSuppliers: { where: { isDefault: true }, select: { supplierId: true }, take: 1 },
+        },
+      });
+
+      // Supplier upsert
+      if (dto.supplierId !== undefined) {
+        await tx.productSupplier.updateMany({
+          where: { productId: id, isDefault: true },
+          data: { isDefault: false },
+        });
+        if (dto.supplierId) {
+          await tx.productSupplier.upsert({
+            where: { productId_supplierId: { productId: id, supplierId: dto.supplierId } },
+            create: { productId: id, supplierId: dto.supplierId, supplyPrice: dto.costPrice ?? updated.costPrice ?? 0, isDefault: true },
+            update: { isDefault: true, supplyPrice: dto.costPrice ?? updated.costPrice ?? 0 },
+          });
+        }
+      }
+
+      this.logger.log(`Product updated: ${id}`, { tenantId, productId: id });
+      await this.cache.invalidatePattern(CacheService.key.products(tenantId, '*'));
+      return updated;
     });
-    this.logger.log(`Product updated: ${id}`, { tenantId, productId: id });
-    // Cache invalidate — barcode va list cachelarni tozalash
-    await this.cache.invalidatePattern(CacheService.key.products(tenantId, '*'));
-    return updated;
   }
 
   async deleteProduct(tenantId: string, id: string) {

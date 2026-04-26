@@ -73,6 +73,7 @@ export interface Product {
   bundleItems?: BundleItem[];
   /** Nearest batch expiry date (populated by backend for expiryTracking products) */
   expiryDate?: string | null;
+  productSuppliers?: { supplierId: string }[];
   tenantId: string;
   createdAt: string;
   updatedAt: string;

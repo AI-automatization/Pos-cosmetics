@@ -63,7 +63,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Asosiy',
     items: [
-      { label: 'Dashboard', tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ALL },
+      { label: 'Dashboard', tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: NO_CASHIER },
       { label: 'POS Kassa', tKey: 'nav.pos', href: '/pos', icon: Monitor, roles: ['CASHIER'] },
     ],
   },

@@ -57,7 +57,7 @@ export default function ProductsPage() {
   const handleFormSubmit = (formData: ProductFormData) => {
     // Map form data to backend DTO field names
     const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
-    const dto: CreateProductDto = {
+    const base = {
       name: formData.name,
       barcode: allBarcodes[0] || undefined,
       extraBarcodes: allBarcodes.slice(1),
@@ -66,16 +66,16 @@ export default function ProductsPage() {
       costPrice: formData.costPrice,
       sellPrice: formData.sellPrice,
       minStockLevel: formData.minStockLevel,
-      initialStock: formData.initialStock || undefined,
       expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
       supplierId: formData.supplierId || undefined,
     };
     if (editingProduct) {
       updateProduct.mutate(
-        { id: editingProduct.id, dto: dto as UpdateProductDto },
+        { id: editingProduct.id, dto: base as UpdateProductDto },
         { onSuccess: () => setFormOpen(false) },
       );
     } else {
+      const dto: CreateProductDto = { ...base, initialStock: formData.initialStock || undefined };
       createProduct.mutate(dto, {
         onSuccess: () => setFormOpen(false),
       });
@@ -165,6 +165,7 @@ export default function ProductsPage() {
           isPending={isPendingForm}
           onSubmit={(data) => handleFormSubmit(data)}
           onClose={() => setFormOpen(false)}
+          initialSupplierId={editingProduct?.productSuppliers?.[0]?.supplierId}
         />
       )}
 
