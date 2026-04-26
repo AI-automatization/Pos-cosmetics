@@ -48,7 +48,7 @@ export default function AddEmployeeScreen() {
     emergencyContactName: '',
     emergencyContactPhone: '',
     hireDate: new Date().toISOString().split('T')[0] ?? '',
-    role: 'cashier',
+    role: 'CASHIER',
     branchId: branches[0]?.id ?? '',
     login: '',
     password: '',

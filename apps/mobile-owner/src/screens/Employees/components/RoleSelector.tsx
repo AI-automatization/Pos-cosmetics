@@ -9,9 +9,10 @@ interface RoleSelectorProps {
 }
 
 const ROLES: { key: EmployeeRole; label: string }[] = [
-  { key: 'cashier', label: 'Kassir' },
-  { key: 'manager', label: 'Menejer' },
-  { key: 'admin', label: 'Admin' },
+  { key: 'CASHIER', label: 'Kassir' },
+  { key: 'MANAGER', label: 'Menejer' },
+  { key: 'ADMIN', label: 'Admin' },
+  { key: 'WAREHOUSE', label: 'Omborchi' },
 ];
 
 export default function RoleSelector({ value, onChange }: RoleSelectorProps) {

@@ -4,7 +4,7 @@ import { ENDPOINTS } from '../config/endpoints';
 // ─── Enums / union types ─────────────────────────────────────────────────────
 
 export type EmployeeStatus = 'active' | 'inactive' | 'fired';
-export type EmployeeRole = 'cashier' | 'manager' | 'admin';
+export type EmployeeRole = 'CASHIER' | 'MANAGER' | 'ADMIN' | 'WAREHOUSE';
 
 // ─── Existing interfaces (performance / suspicious) ──────────────────────────
 

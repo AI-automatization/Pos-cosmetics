@@ -16,9 +16,10 @@ interface Props {
 }
 
 const ROLES: { value: EmployeeRole; label: string }[] = [
-  { value: 'cashier', label: 'Kassir' },
-  { value: 'manager', label: 'Menejer' },
-  { value: 'admin', label: 'Admin' },
+  { value: 'CASHIER', label: 'Kassir' },
+  { value: 'MANAGER', label: 'Menejer' },
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'WAREHOUSE', label: 'Omborchi' },
 ];
 
 export default function HRInviteSheet({ visible, onClose, onSubmit, isLoading }: Props) {
@@ -29,7 +30,7 @@ export default function HRInviteSheet({ visible, onClose, onSubmit, isLoading }:
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<EmployeeRole>('cashier');
+  const [role, setRole] = useState<EmployeeRole>('CASHIER');
   const [branchId, setBranchId] = useState(selectedBranchId ?? '');
 
   function handleSubmit() {
@@ -45,15 +46,15 @@ export default function HRInviteSheet({ visible, onClose, onSubmit, isLoading }:
       login,
       password: Math.random().toString(36).slice(2, 10),
       hireDate: new Date().toISOString().slice(0, 10),
-      hasPosAccess: role === 'cashier',
-      hasAdminAccess: role === 'admin',
-      hasReportsAccess: role !== 'cashier',
+      hasPosAccess: role === 'CASHIER',
+      hasAdminAccess: role === 'ADMIN',
+      hasReportsAccess: role !== 'CASHIER',
     });
   }
 
   function handleClose() {
     setFirstName(''); setLastName(''); setEmail(''); setPhone('');
-    setRole('cashier'); setBranchId(selectedBranchId ?? '');
+    setRole('CASHIER'); setBranchId(selectedBranchId ?? '');
     onClose();
   }
 

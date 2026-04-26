@@ -46,7 +46,7 @@ const MOCK_PROFILE: Employee = {
   passportId: 'AA 1234567',
   address: 'Toshkent, Chilonzor, 12-kvartal',
   hireDate: '2023-06-01',
-  role: 'cashier',
+  role: 'CASHIER',
   branchId: 'b1',
   branchName: 'Chilonzor',
   status: 'active',
