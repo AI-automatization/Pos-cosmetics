@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,12 @@ interface ShiftGuardProps {
 export default function ShiftGuard({ children }: ShiftGuardProps) {
   const { isShiftOpen } = useShiftStore();
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
+
+  useEffect(() => {
+    if (!isShiftOpen) {
+      useShiftStore.getState().syncWithApi();
+    }
+  }, [isShiftOpen]);
 
   if (isShiftOpen) {
     return <>{children}</>;

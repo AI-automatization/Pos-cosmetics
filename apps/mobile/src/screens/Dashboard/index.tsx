@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,9 @@ import WeeklyTrendChart from './WeeklyTrendChart';
 import TopProductsCard from './TopProductsCard';
 import StatCard from '../../components/common/StatCard';
 import { formatCompact } from '../../utils/currency';
+import { useShiftStore } from '../../store/shiftStore';
+import SmenaOpenSheet from '../Smena/SmenaOpenSheet';
+import SmenaCloseSheet from '../Smena/SmenaCloseSheet';
 
 const PRIMARY = '#2563EB';
 const PRIMARY_LIGHT = '#EFF6FF';
@@ -68,10 +72,41 @@ export default function DashboardScreen() {
     refetchAll,
   } = useDashboardData();
 
+  const { openShift, closeShift } = useShiftStore();
+  const [loading, setLoading] = useState(false);
+  const [openSheetVisible, setOpenSheetVisible] = useState(false);
+  const [closeSheetVisible, setCloseSheetVisible] = useState(false);
+
   const shift = currentShift.data ?? null;
   const summary = todaySummary.data;
   const weekly = weeklyRevenue.data ?? [];
   const products = topProducts.data ?? [];
+
+  const handleOpenConfirm = (openingCash: number) => {
+    setLoading(true);
+    openShift(openingCash)
+      .then(() => {
+        setOpenSheetVisible(false);
+        Alert.alert('Tayyor', 'Smena muvaffaqiyatli ochildi');
+        refetchAll();
+      })
+      .catch(() => Alert.alert('Xatolik', 'Smena ochishda xatolik'))
+      .finally(() => setLoading(false));
+  };
+
+  const handleCloseConfirm = async (actualCash: number) => {
+    setLoading(true);
+    try {
+      await closeShift(actualCash);
+      setCloseSheetVisible(false);
+      Alert.alert('Tayyor', 'Smena muvaffaqiyatli yopildi');
+      refetchAll();
+    } catch {
+      Alert.alert('Xatolik', 'Smena yopishda xatolik');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -123,15 +158,19 @@ export default function DashboardScreen() {
             <TouchableOpacity
               style={styles.smenaOpenBtn}
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('Savdo')}
+              onPress={() => setOpenSheetVisible(true)}
             >
               <Text style={styles.smenaOpenBtnText}>Smena ochish</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.section}
+            onPress={() => setCloseSheetVisible(true)}
+            activeOpacity={0.85}
+          >
             <ActiveShiftCard shift={shift} />
-          </View>
+          </TouchableOpacity>
         )}
 
         {/* Stats 2x2 grid */}
@@ -230,6 +269,20 @@ export default function DashboardScreen() {
 
         <View style={styles.bottomPad} />
       </ScrollView>
+
+      <SmenaOpenSheet
+        visible={openSheetVisible}
+        loading={loading}
+        onClose={() => setOpenSheetVisible(false)}
+        onConfirm={handleOpenConfirm}
+      />
+      <SmenaCloseSheet
+        visible={closeSheetVisible}
+        loading={loading}
+        shift={shift}
+        onClose={() => setCloseSheetVisible(false)}
+        onConfirm={handleCloseConfirm}
+      />
     </SafeAreaView>
   );
 }

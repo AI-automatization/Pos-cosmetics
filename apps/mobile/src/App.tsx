@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import './i18n';
 import { useAuthStore } from './store/auth.store';
+import { useShiftStore } from './store/shiftStore';
 import RootNavigator from './navigation/RootNavigator';
 import { useNotifications } from './hooks/useNotifications';
 
@@ -26,7 +27,9 @@ function AppContent() {
   useNotifications();
 
   useEffect(() => {
-    loadFromStorage().finally(() => setReady(true));
+    loadFromStorage()
+      .then(() => useShiftStore.getState().syncWithApi())
+      .finally(() => setReady(true));
   }, [loadFromStorage]);
 
   if (!ready) {
