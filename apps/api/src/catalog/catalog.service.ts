@@ -287,24 +287,28 @@ export class CatalogService {
 
       // initialStock > 0 bo'lsa, avtomatik StockMovement (IN) yaratish
       if (dto.initialStock && dto.initialStock > 0) {
-        const warehouse = await tx.warehouse.findFirst({
+        let warehouse = await tx.warehouse.findFirst({
           where: { tenantId, isActive: true },
           orderBy: { createdAt: 'asc' },
         });
-        if (warehouse) {
-          await tx.stockMovement.create({
-            data: {
-              tenantId,
-              warehouseId: warehouse.id,
-              productId: product.id,
-              type: 'IN',
-              quantity: dto.initialStock,
-              costPrice: dto.costPrice ?? 0,
-              note: 'Initial stock on product creation',
-            },
+        if (!warehouse) {
+          warehouse = await tx.warehouse.create({
+            data: { tenantId, name: 'Asosiy ombor', isActive: true },
           });
-          this.logger.log(`Initial stock ${dto.initialStock} created for product ${product.id}`, { tenantId });
+          this.logger.log(`Default warehouse created for tenant ${tenantId}`);
         }
+        await tx.stockMovement.create({
+          data: {
+            tenantId,
+            warehouseId: warehouse.id,
+            productId: product.id,
+            type: 'IN',
+            quantity: dto.initialStock,
+            costPrice: dto.costPrice ?? 0,
+            note: 'Initial stock on product creation',
+          },
+        });
+        this.logger.log(`Initial stock ${dto.initialStock} created for product ${product.id}`, { tenantId });
       }
 
       this.logger.log(`Product created: ${product.id}`, {
