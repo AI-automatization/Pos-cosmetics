@@ -707,6 +707,14 @@
 
 ---
 
+## T-378 | 2026-04-26 | [MOBILE] | mobile-owner: EmployeeRole type mismatch — lowercase → UPPERCASE
+
+- **Yechim:** `EmployeeRole` type `'cashier' | 'manager' | 'admin'` → `'CASHIER' | 'MANAGER' | 'ADMIN' | 'WAREHOUSE'` ga o'zgartirildi. 7 ta faylda barcha lowercase role qiymatlari UPPERCASE ga yangilandi. WAREHOUSE (`Omborchi`) roli RoleSelector va HRInviteSheet ga qo'shildi.
+- **Fayllar:** `employees.api.ts`, `RoleSelector.tsx`, `HRInviteSheet.tsx`, `AddEmployeeScreen.tsx`, `EmployeeDetailScreen.tsx`, `useHRData.ts`, `types.ts`
+- **Commit:** (sessiya — 2026-04-26)
+
+---
+
 ## T-061 | 2026-03-19 | [BACKEND] | Real-time events — WebSocket Gateway
 
 - **Yechim:** NestJS WebSocket Gateway (Socket.io) yaratildi. Room-based: tenant_id room (tenant admin), `admin` room (founder). Events: `sale:completed`, `error:new`, `sync:status`, `shift:changed`. JWT auth for WebSocket connections.

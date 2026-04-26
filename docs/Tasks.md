@@ -185,15 +185,6 @@
 
 ---
 
-## T-378 | P2 | [MOBILE] | mobile-owner: EmployeeRole type mismatch — lowercase → UPPERCASE
-
-- **Sana:** 2026-04-21
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile-owner/src/api/employees.api.ts`, `screens/HR/HRInviteSheet.tsx`, `screens/Employees/components/RoleSelector.tsx`
-- **Muammo:** `EmployeeRole = 'cashier' | 'manager' | 'admin'` — lowercase. Backend Prisma enum `CASHIER | MANAGER | ADMIN | WAREHOUSE` kutadi. Yaratish Prisma da fail bo'ladi.
-- **Vazifa:** `EmployeeRole` type ni UPPERCASE ga o'zgartirish + ROLES array labellarni yangilash
-- **Kutilgan:** `POST /employees` muvaffaqiyatli ishlaydi
-
 ---
 
 ## T-379 | P2 | [MOBILE] | mobile-owner: AddEmployeeScreen — backend qo'llamaydigan fieldlarni tozalash
@@ -204,6 +195,116 @@
 - **Muammo:** `CreateEmployeeDto` da `login`, `dateOfBirth`, `passportId`, `address` bor — backend User modelida yo'q, faqat `{ firstName, lastName, email, password, role, phone }` saqlanadi.
 - **Vazifa:** `login` field olib tashlash (login = email). Qolgan extra fieldlarni `botSettings` da saqlash uchun backend endpoint kengaytirish yoki formdan olib tashlash.
 - **Kutilgan:** DTO backend bilan mos, form faqat real saqlanadigan fieldlarni so'raydi
+
+---
+
+## T-393 | P1 | [MOBILE] | Staff app — Smena holati inconsistency (Bosh sahifa vs Savdo)
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`, `apps/mobile/src/screens/Sales/index.tsx`
+- **Muammo:** Bosh sahifada smena "OCHIQ" (Smena №688608) ko'rsatiladi, lekin Savdo tabiga o'tganda "Smena ochilmagan" deyiladi va sotuv qilish bloklanadi. Smena holati ikkala ekranda bir xil manbadan olinishi kerak.
+- **Kutilgan:** Smena holati barcha ekranlarda sinxron bo'lishi kerak — agar OCHIQ bo'lsa, Savdo tabida ham sotuv qilish imkoni bo'lsin
+- **Topildi:** Visual QA (iOS Simulator) — 2026-04-26
+
+---
+
+## T-394 | P1 | [MOBILE] | Staff app — Katalog tabi placeholder ko'rsatadi (ekran tayyor, routing ulanmagan)
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/Catalog/`
+- **Muammo:** Katalog tabida faqat `[grid]` placeholder ko'rinadi. Lekin `screens/Catalog/` da 4 ta tayyor ekran bor: `ProductsScreen.tsx` (369 qator), `CategoriesScreen.tsx` (414 qator), `ProductFormScreen.tsx` (433 qator), `SuppliersScreen.tsx` (413 qator). TabNavigator da placeholder komponent ishlatilgan, haqiqiy ekranlarga routing ulanmagan.
+- **Kutilgan:** TabNavigator da Katalog tabi `CatalogNavigator` (stack) ga ulangan bo'lishi kerak — ProductsScreen, CategoriesScreen, SuppliersScreen
+- **Topildi:** Visual QA (iOS Simulator) + codebase tahlil — 2026-04-26
+
+---
+
+## T-395 | P1 | [MOBILE] | Staff app — Moliya tabi placeholder ko'rsatadi (9 ta ekran tayyor, routing ulanmagan)
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/Finance/`
+- **Muammo:** Moliya tabida faqat `[chart]` placeholder ko'rinadi. Lekin `screens/Finance/` da 9 ta tayyor ekran bor: `FinanceScreen.tsx`, `ReportsHubScreen.tsx`, `DailyRevenueScreen.tsx`, `ExpensesScreen.tsx`, `PnLScreen.tsx`, `TopProductsScreen.tsx`, `PaymentsHistoryScreen.tsx`, `NasiyaAgingScreen.tsx`, `ShiftReportsScreen.tsx`. TabNavigator da placeholder komponent ishlatilgan, haqiqiy ekranlarga routing ulanmagan.
+- **Kutilgan:** TabNavigator da Moliya tabi `FinanceNavigator` (stack) ga ulangan bo'lishi kerak — FinanceScreen (hub) dan boshqa ekranlarga navigatsiya
+- **Topildi:** Visual QA (iOS Simulator) + codebase tahlil — 2026-04-26
+
+---
+
+## T-396 | P2 | [MOBILE] | Staff app — Sozlamalar ekranida i18n key lari tarjima qilinmagan
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/i18n/uz.json`, `apps/mobile/src/screens/Settings/index.tsx`
+- **Muammo:** Sozlamalar (Ko'proq) ekranida quyidagi i18n keylar raw ko'rinishda chiqyapti: `SETTINGS.SECTIONAPP`, `settings.theme`, `settings.printer`, `settings.printerSubtitle`, `SETTINGS.SECTIONSECURITY`, `settings.biometric`, `settings.biometricSubtitle`, `settings.autoLock`, `settings.autoLockSubtitle`, `SETTINGS.SECTIONINFO`, `settings.privacy`, `settings.help`. Faqat "Til", "Versiya", "Chiqish" tarjima qilingan.
+- **Kutilgan:** Barcha keylar o'zbek tilida ko'rsatilishi kerak (Mavzu, Printer, Biometrik, Avtomatik qulflash, Maxfiylik, Yordam va h.k.)
+- **Topildi:** Visual QA (iOS Simulator) — 2026-04-26
+
+---
+
+## T-397 | P2 | [MOBILE] | Staff app — Mijozlar (Customers) ekrani yo'q — web da bor
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Customers/` (yaratilishi kerak)
+- **Muammo:** Web da `/customers` sahifasi bor: mijozlar ro'yxati, aloqa ma'lumotlari, sotib olish tarixi, loyalty tracking, mijoz detail sahifasi. Mobile staff appda bu ekran umuman yo'q — na tab da, na Ko'proq menusida.
+- **Kutilgan:** Mijozlar ekrani — FlatList (ism, telefon, balans), qidiruv, mijoz detail (sotib olish tarixi, nasiya holati), yangi mijoz qo'shish
+- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
+
+---
+
+## T-398 | P2 | [MOBILE] | Staff app — Chegirmalar/Aksiyalar (Promotions) ekrani yo'q — web da bor
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Promotions/` (yaratilishi kerak)
+- **Muammo:** Web da `/promotions` sahifasi bor: aktiv aksiyalar, chegirma qoidalari, kuponlar boshqaruvi. Mobile staff appda bu ekran umuman yo'q. Kassir chegirmalarni faqat qo'lda kiritishi mumkin — oldindan belgilangan aksiyalar ro'yxati ko'rinmaydi.
+- **Kutilgan:** Aksiyalar ekrani — aktiv chegirmalar ro'yxati (foiz/summa, muddat, shart), kupon qo'llash, avtomatik chegirma ko'rsatish savdo paytida
+- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
+
+---
+
+## T-399 | P2 | [MOBILE] | Staff app — Hisobotlar (Reports) hub ekrani yo'q — web da 7 ta hisobot bor
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx` (tayyor lekin routing yo'q)
+- **Muammo:** Web da `/reports` bo'limida 7 ta hisobot mavjud: kunlik daromad, top mahsulotlar, smenalar, filiallar, hisobot yaratish, export. Mobile da `ReportsHubScreen.tsx` tayyor lekin faqat Moliya navigator orqali kirilishi kerak (T-395 bilan bog'liq). Alohida Reports tabi yoki Ko'proq menusidan kirish yo'q.
+- **Kutilgan:** Hisobotlar hub ekraniga Ko'proq menusidan yoki Moliya tabi orqali kirish imkoni bo'lishi kerak
+- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
+
+---
+
+## T-400 | P3 | [MOBILE] | Staff app — Valyuta kurslari (Exchange Rates) ekrani yo'q — web da bor
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Finance/` (qo'shilishi kerak)
+- **Muammo:** Web da `/finance/exchange-rates` sahifasi bor: USD/UZS va boshqa kurslar, kurs tarixi, qo'lda kurs kiritish, konvertatsiya. Mobile da bu funksiya yo'q.
+- **Kutilgan:** Valyuta kurslari ekrani Moliya bo'limida — joriy kurslar, kurs tarixi
+- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
+
+---
+
+## T-401 | P3 | [MOBILE] | Staff app — Ko'proq menusida Moliya va Nasiya disabled — routing ulanmagan
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Muammo:** Ko'proq menusida "Moliya" va "Nasiya" bandlari "Tez orada" badge bilan disabled holda. Moliya ekranlari tayyor (T-395), Nasiya esa Savdo stack ichida mavjud. Lekin Ko'proq menusidan ularga navigatsiya yo'q.
+- **Kutilgan:** Ko'proq menusidagi Moliya → FinanceScreen, Nasiya → NasiyaScreen ga navigatsiya ishlashi kerak
+- **Topildi:** Visual QA + codebase tahlil — 2026-04-26
+
+---
+
+## T-402 | P3 | [MOBILE] | Staff app — Ko'proq menusida Foydalanuvchilar disabled — routing ulanmagan
+
+- **Sana:** 2026-04-26
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Muammo:** Ko'proq menusida "Foydalanuvchilar" bandi "Tez orada" badge bilan disabled holda. Lekin `screens/Settings/UsersScreen.tsx` (416 qator) allaqachon tayyor va Sozlamalar orqali kirish mumkin. Ko'proq menusidan to'g'ridan-to'g'ri navigatsiya yo'q.
+- **Kutilgan:** Ko'proq menusidagi Foydalanuvchilar → UsersScreen ga navigatsiya ishlashi kerak
+- **Topildi:** Visual QA + codebase tahlil — 2026-04-26
 
 ---
 
@@ -256,7 +357,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **14** | **0** | **1** | **7** | **6** |
+| **24** | **0** | **4** | **11** | **9** |
 
 ### Kategoriya bo'yicha
 
@@ -264,7 +365,7 @@
 |-----------|----|----|----|----|------|
 | [BACKEND] | 0 | 0 | 0 | 5 | **5** |
 | [FRONTEND] | 0 | 0 | 2 | 0 | **2** |
-| [MOBILE] | 0 | 1 | 1 | 0 | **2** |
+| [MOBILE] | 0 | 4 | 5 | 3 | **12** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
 ### Mas'uliyat taqsimoti
@@ -272,10 +373,10 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 0 | 0 | 3 | 0 | **3** |
-| **Abdulaziz** (Mobile) | 0 | 1 | 1 | 0 | **2** |
+| **Abdulaziz** (Mobile) | 0 | 4 | 5 | 3 | **12** |
 | **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
 
-> Yangilandi: 2026-04-25 — T-350 (P1, login slug), T-351 (P2, DEV button) qo'shildi; B-047, B-048 Done.md ga ko'chirildi
+> Yangilandi: 2026-04-26 — T-393..T-402 Visual QA + Web vs Mobile solishtirma; Katalog/Moliya ekranlari tayyor lekin routing ulanmagan
 
 ---
 
