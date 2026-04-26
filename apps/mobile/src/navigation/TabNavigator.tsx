@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { TabParamList, SavdoStackParamList, MoreStackParamList } from './types';
+import type { TabParamList, SavdoStackParamList, CatalogStackParamList, MoreStackParamList } from './types';
 
 // Existing screens
 import DashboardScreen from '../screens/Dashboard';
@@ -18,6 +18,10 @@ import SettingsScreen from '../screens/Settings';
 import MoreMenuScreen from '../screens/MoreMenu';
 import BranchesScreen from '../screens/Settings/BranchesScreen';
 import AuditLogScreen from '../screens/Settings/AuditLogScreen';
+import ProductsScreen from '../screens/Catalog/ProductsScreen';
+import CategoriesScreen from '../screens/Catalog/CategoriesScreen';
+import ProductFormScreen from '../screens/Catalog/ProductFormScreen';
+import SuppliersScreen from '../screens/Catalog/SuppliersScreen';
 
 // ─── Colors ───────────────────────────────────────────────
 const PRIMARY = '#2563EB';
@@ -36,14 +40,17 @@ const SPACING_32 = 32;
 const TAB_HEIGHT = 60;
 const ICON_SIZE = 22;
 
-// ─── Placeholder screens for new tabs ─────────────────────
-function CatalogPlaceholder(): React.JSX.Element {
+// ─── Katalog Stack (Products, Categories, ProductForm, Suppliers) ──
+const CatalogStack = createNativeStackNavigator<CatalogStackParamList>();
+
+function CatalogNavigator(): React.JSX.Element {
   return (
-    <View style={placeholderStyles.container}>
-      <Text style={placeholderStyles.emoji}>{'[grid]'}</Text>
-      <Text style={placeholderStyles.title}>Katalog</Text>
-      <Text style={placeholderStyles.sub}>Tez orada ishga tushadi</Text>
-    </View>
+    <CatalogStack.Navigator screenOptions={{ headerShown: false }}>
+      <CatalogStack.Screen name="CatalogMain" component={ProductsScreen} />
+      <CatalogStack.Screen name="Categories" component={CategoriesScreen} />
+      <CatalogStack.Screen name="ProductForm" component={ProductFormScreen} />
+      <CatalogStack.Screen name="Suppliers" component={SuppliersScreen} />
+    </CatalogStack.Navigator>
   );
 }
 
@@ -167,10 +174,10 @@ export default function TabNavigator(): React.JSX.Element {
         }}
       />
 
-      {/* Tab 3: Katalog — placeholder */}
+      {/* Tab 3: Katalog — stack bilan (Products, Categories, Suppliers nested) */}
       <Tab.Screen
         name="Katalog"
-        component={CatalogPlaceholder}
+        component={CatalogNavigator}
         options={{
           tabBarLabel: 'Katalog',
           tabBarIcon: ({ focused, color }) =>

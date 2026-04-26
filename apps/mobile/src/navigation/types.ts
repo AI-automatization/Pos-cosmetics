@@ -40,6 +40,13 @@ export type SavdoStackParamList = {
     | undefined;
 };
 
+export type CatalogStackParamList = {
+  CatalogMain: undefined;
+  Categories: undefined;
+  ProductForm: { productId?: string } | undefined;
+  Suppliers: undefined;
+};
+
 export type MoreStackParamList = {
   MoreMenu: undefined;
   KirimScreen: undefined;
