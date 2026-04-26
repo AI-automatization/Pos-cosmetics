@@ -21,7 +21,7 @@ Kimligingizni aniqlay olmayman — ismingiz kim?
   4. Bekzod (PM — Project Management & QA)
 ```
 
-Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
+Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:T
 - Ibrat → `CLAUDE_FULLSTACK.md`
 - Abdulaziz → `CLAUDE_MOBILE.md`
 - AbdulazizYormatov → `CLAUDE_FULLSTACK.md` + `CLAUDE_MOBILE.md` (read-only review uchun)
