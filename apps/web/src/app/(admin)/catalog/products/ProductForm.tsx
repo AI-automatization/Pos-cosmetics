@@ -26,6 +26,7 @@ const productSchema = z.object({
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   minStockLevel: z.coerce.number().min(0),
+  initialStock: z.coerce.number().min(0).optional(),
   expiryTracking: z.boolean().optional(),
   expiryDate: z.string().optional(),
 });
@@ -44,7 +45,7 @@ interface ProductFormProps {
 function buildDefaultValues(product?: Product | null, initialSupplierId?: string): ProductFormData {
   if (!product) {
     return {
-      costPrice: 0, sellPrice: 0, minStockLevel: 0,
+      costPrice: 0, sellPrice: 0, minStockLevel: 0, initialStock: 0,
       extraBarcodes: [], description: '', name: '', sku: '', categoryId: '',
       supplierId: initialSupplierId ?? '',
     };
@@ -241,6 +242,18 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             </Field>
 
             <MarginBadge costPrice={Number(costPrice)} sellPrice={Number(sellPrice)} />
+
+            {!product && (
+              <Field label="Boshlang'ich zaxira (dona)" error={errors.initialStock?.message} className="col-span-2">
+                <input
+                  {...register('initialStock')}
+                  type="number"
+                  min={0}
+                  placeholder="Masalan: 10"
+                  className={inputCls}
+                />
+              </Field>
+            )}
 
             <Field label="Minimal zaxira" error={errors.minStockLevel?.message} className="col-span-2">
               <input

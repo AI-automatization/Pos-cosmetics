@@ -129,6 +129,7 @@ export interface CreateProductDto {
   description?: string;
   expiryTracking?: boolean;
   supplierId?: string;
+  initialStock?: number;
 }
 
 export type UpdateProductDto = Partial<CreateProductDto>;

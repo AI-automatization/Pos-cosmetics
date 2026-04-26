@@ -66,6 +66,7 @@ export default function ProductsPage() {
       costPrice: formData.costPrice,
       sellPrice: formData.sellPrice,
       minStockLevel: formData.minStockLevel,
+      initialStock: formData.initialStock || undefined,
       expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
       supplierId: formData.supplierId || undefined,
     };
