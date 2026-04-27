@@ -73,14 +73,12 @@ const BIZNES_GROUP: MenuGroup = {
       title: 'Moliya',
       subtitle: 'Hisobotlar va tahlil',
       screen: null,
-      badge: 'Tez orada',
     },
     {
       icon: 'people-outline',
       title: 'Nasiya',
       subtitle: 'Qarzlar boshqaruvi',
       screen: null,
-      badge: 'Tez orada',
     },
   ],
 };
@@ -183,6 +181,16 @@ export default function MoreMenuScreen(): React.JSX.Element {
   ];
 
   const handlePress = (item: MenuItem): void => {
+    // Maxsus navigatsiya — boshqa tab larga o'tish
+    if (item.title === 'Moliya') {
+      navigation.getParent()?.navigate('Moliya');
+      return;
+    }
+    if (item.title === 'Nasiya') {
+      navigation.getParent()?.navigate('Savdo', { screen: 'NasiyaScreen' });
+      return;
+    }
+
     if (item.screen == null) {
       Alert.alert('Tez orada', `"${item.title}" bo'limi tez orada qo'shiladi`);
       return;

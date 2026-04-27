@@ -10,7 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { reportsApi } from '../../api/reports.api';
+import type { FinanceStackParamList } from '../../navigation/types';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -119,6 +122,7 @@ function NavCard({
 
 // ─── FinanceScreen ─────────────────────────────────────
 export default function FinanceScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<FinanceStackParamList, 'FinanceMain'>>();
   const [period, setPeriod] = useState<PeriodKey>('30d');
 
   const { from, to } = useMemo(() => getPeriodDates(period), [period]);
@@ -252,28 +256,56 @@ export default function FinanceScreen() {
             iconName="analytics-outline"
             iconColor={C.primary}
             iconBg="#EFF6FF"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('PnL')}
           />
           <NavCard
             label="Xarajatlar"
             iconName="receipt-outline"
             iconColor={C.orange}
             iconBg="#FFFBEB"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('Expenses')}
           />
           <NavCard
             label="To'lovlar tarixi"
             iconName="card-outline"
             iconColor={C.green}
             iconBg="#F0FDF4"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('PaymentsHistory')}
           />
           <NavCard
             label="Hisobotlar"
             iconName="document-text-outline"
             iconColor="#7C3AED"
             iconBg="#F5F3FF"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('ReportsHub')}
+          />
+          <NavCard
+            label="Kunlik daromad"
+            iconName="calendar-outline"
+            iconColor={C.green}
+            iconBg="#F0FDF4"
+            onPress={() => navigation.navigate('DailyRevenue')}
+          />
+          <NavCard
+            label="Top mahsulotlar"
+            iconName="star-outline"
+            iconColor={C.orange}
+            iconBg="#FFFBEB"
+            onPress={() => navigation.navigate('TopProducts')}
+          />
+          <NavCard
+            label="Nasiya eskirishi"
+            iconName="time-outline"
+            iconColor={C.red}
+            iconBg="#FEF2F2"
+            onPress={() => navigation.navigate('NasiyaAging')}
+          />
+          <NavCard
+            label="Smena hisobotlari"
+            iconName="people-outline"
+            iconColor={C.primary}
+            iconBg="#EFF6FF"
+            onPress={() => navigation.navigate('ShiftReports')}
           />
         </View>
       </ScrollView>

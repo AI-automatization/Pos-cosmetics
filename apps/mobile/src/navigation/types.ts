@@ -47,6 +47,18 @@ export type CatalogStackParamList = {
   Suppliers: undefined;
 };
 
+export type FinanceStackParamList = {
+  FinanceMain: undefined;
+  DailyRevenue: undefined;
+  Expenses: undefined;
+  PnL: undefined;
+  TopProducts: undefined;
+  PaymentsHistory: undefined;
+  NasiyaAging: undefined;
+  ShiftReports: undefined;
+  ReportsHub: undefined;
+};
+
 export type MoreStackParamList = {
   MoreMenu: undefined;
   KirimScreen: undefined;

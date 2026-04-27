@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { TabParamList, SavdoStackParamList, CatalogStackParamList, MoreStackParamList } from './types';
+import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MoreStackParamList } from './types';
 
 // Existing screens
 import DashboardScreen from '../screens/Dashboard';
@@ -22,6 +22,15 @@ import ProductsScreen from '../screens/Catalog/ProductsScreen';
 import CategoriesScreen from '../screens/Catalog/CategoriesScreen';
 import ProductFormScreen from '../screens/Catalog/ProductFormScreen';
 import SuppliersScreen from '../screens/Catalog/SuppliersScreen';
+import FinanceScreen from '../screens/Finance/FinanceScreen';
+import DailyRevenueScreen from '../screens/Finance/DailyRevenueScreen';
+import ExpensesScreen from '../screens/Finance/ExpensesScreen';
+import PnLScreen from '../screens/Finance/PnLScreen';
+import TopProductsScreen from '../screens/Finance/TopProductsScreen';
+import PaymentsHistoryScreen from '../screens/Finance/PaymentsHistoryScreen';
+import NasiyaAgingScreen from '../screens/Finance/NasiyaAgingScreen';
+import ShiftReportsScreen from '../screens/Finance/ShiftReportsScreen';
+import ReportsHubScreen from '../screens/Finance/ReportsHubScreen';
 
 // ─── Colors ───────────────────────────────────────────────
 const PRIMARY = '#2563EB';
@@ -29,14 +38,9 @@ const INACTIVE = '#9CA3AF';
 
 // ─── Spacing / sizing tokens ──────────────────────────────
 const FONT_SM = 11;
-const FONT_LG = 20;
-const FONT_MD = 14;
-const FONT_XL = 48;
 const SPACING_4 = 4;
 const SPACING_6 = 6;
 const SPACING_8 = 8;
-const SPACING_16 = 16;
-const SPACING_32 = 32;
 const TAB_HEIGHT = 60;
 const ICON_SIZE = 22;
 
@@ -54,41 +58,24 @@ function CatalogNavigator(): React.JSX.Element {
   );
 }
 
-function FinancePlaceholder(): React.JSX.Element {
+// ─── Moliya Stack (Finance screens) ─────────────────────────
+const FinanceStack = createNativeStackNavigator<FinanceStackParamList>();
+
+function FinanceNavigator(): React.JSX.Element {
   return (
-    <View style={placeholderStyles.container}>
-      <Text style={placeholderStyles.emoji}>{'[chart]'}</Text>
-      <Text style={placeholderStyles.title}>Moliya</Text>
-      <Text style={placeholderStyles.sub}>Tez orada ishga tushadi</Text>
-    </View>
+    <FinanceStack.Navigator screenOptions={{ headerShown: false }}>
+      <FinanceStack.Screen name="FinanceMain" component={FinanceScreen} />
+      <FinanceStack.Screen name="DailyRevenue" component={DailyRevenueScreen} />
+      <FinanceStack.Screen name="Expenses" component={ExpensesScreen} />
+      <FinanceStack.Screen name="PnL" component={PnLScreen} />
+      <FinanceStack.Screen name="TopProducts" component={TopProductsScreen} />
+      <FinanceStack.Screen name="PaymentsHistory" component={PaymentsHistoryScreen} />
+      <FinanceStack.Screen name="NasiyaAging" component={NasiyaAgingScreen} />
+      <FinanceStack.Screen name="ShiftReports" component={ShiftReportsScreen} />
+      <FinanceStack.Screen name="ReportsHub" component={ReportsHubScreen} />
+    </FinanceStack.Navigator>
   );
 }
-
-
-const placeholderStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING_32,
-  },
-  emoji: {
-    fontSize: FONT_XL,
-    marginBottom: SPACING_16,
-    color: '#6B7280',
-  },
-  title: {
-    fontSize: FONT_LG,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: SPACING_8,
-  },
-  sub: {
-    fontSize: FONT_MD,
-    color: '#9CA3AF',
-  },
-});
 
 // ─── Savdo Stack (SavdoMain + nested screens) ──────────────
 const SavdoStack = createNativeStackNavigator<SavdoStackParamList>();
@@ -185,10 +172,10 @@ export default function TabNavigator(): React.JSX.Element {
         }}
       />
 
-      {/* Tab 4: Moliya — placeholder */}
+      {/* Tab 4: Moliya — stack bilan */}
       <Tab.Screen
         name="Moliya"
-        component={FinancePlaceholder}
+        component={FinanceNavigator}
         options={{
           tabBarLabel: 'Moliya',
           tabBarIcon: ({ focused, color }) =>
