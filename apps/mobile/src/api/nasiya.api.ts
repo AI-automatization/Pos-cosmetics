@@ -78,7 +78,7 @@ export const nasiyaApi = {
   },
 
   recordPayment: async (dto: RecordPaymentDto): Promise<void> => {
-    await api.post(`/nasiya/debtors/${dto.debtorId}/pay`, {
+    await api.post(`/nasiya/${dto.debtorId}/pay`, {
       amount: dto.amount,
       paymentMethod: dto.paymentMethod,
       note: dto.note,
