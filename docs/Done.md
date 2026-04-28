@@ -13,6 +13,51 @@
 
 ---
 
+## T-417 | fix(mobile) | 2026-04-28
+
+- **Muammo:** Ko'proq menyu "Nasiya" → `Savdo/NasiyaScreen` navigatsiyasi noto'g'ri (ekran yo'q)
+- **Yechim:** `Savdo/NasiyaScreen` → `Moliya/NasiyaAging` (to'g'ri stack va ekran nomi)
+- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx:190`
+- **Commit:** `fix(mobile): correct Nasiya navigation in MoreMenu`
+
+---
+
+## T-413 | fix(mobile) | 2026-04-28
+
+- **Muammo:** "Chekni chop etish" button `onPress={() => {}}` — hech narsa qilmaydi
+- **Yechim:** `Share.share()` (react-native built-in) — matnli chek generatsiya: mahsulotlar, QQS 12%, to'lov usuli, buyurtma raqami
+- **Fayl:** `apps/mobile/src/screens/Savdo/PaymentSuccessScreen.tsx`
+- **Commit:** `fix(mobile): implement receipt sharing on PaymentSuccessScreen`
+
+---
+
+## T-410 | fix(mobile) | 2026-04-28
+
+- **Muammo:** iOS Simulator da axios timeout localhost uchun ishlamaydi — `.catch()` hech qachon chaqirilmadi, Alert ko'rsatilmadi
+- **Yechim:** `Promise.race` + `setTimeout(15_000)` — `openShift` va `closeShift` da manual timeout wrapper
+- **Fayl:** `apps/mobile/src/store/shiftStore.ts`
+- **Commit:** `fix(mobile): add manual timeout to openShift/closeShift for iOS`
+
+---
+
+## T-409 | fix(mobile) | 2026-04-28
+
+- **Muammo:** Loading paytida backdrop tap `onClose()` ni chaqirib, modal yopilardi
+- **Yechim:** `onRequestClose` va backdrop `onPress` → `loading ? undefined : onClose`
+- **Fayl:** `apps/mobile/src/screens/Smena/SmenaOpenSheet.tsx:27-28`
+- **Commit:** `fix(mobile): disable SmenaOpenSheet dismiss during loading`
+
+---
+
+## T-406 | fix(mobile) | 2026-04-28
+
+- **Muammo:** `nasiyaApi.recordPayment` noto'g'ri URL: `/nasiya/debtors/:id/pay` → 404
+- **Yechim:** URL to'g'irlandi: `/nasiya/:id/pay` (backend `@Post(':id/pay')` bilan mos)
+- **Fayl:** `apps/mobile/src/api/nasiya.api.ts:81`
+- **Commit:** `fix(mobile): correct nasiyaApi.recordPayment URL path`
+
+---
+
 ## T-408 | DONE | [MOBILE] | Staff app — ReportsHubScreen navigatsiya bugi tuzatildi
 - **Bajarildi:** 2026-04-28
 - **Muammo:** `ReportsHubScreen` `onNavigate?: (screen) => void` prop ishlatgan — bu prop hech qachon berilmagan, barcha kartochkalar tap qilsa hech narsa bo'lmagan

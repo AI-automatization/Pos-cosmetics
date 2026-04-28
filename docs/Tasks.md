@@ -302,17 +302,6 @@
 
 ---
 
-## T-406 | P1 | [MOBILE] | Staff app — nasiyaApi.recordPayment URL path mismatch
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/api/nasiya.api.ts:80`
-- **Muammo:** `nasiyaApi.recordPayment` `POST /nasiya/debtors/:debtorId/pay` URL ishlatmoqda, lekin backend controller `@Post(':id/pay')` — ya'ni `POST /nasiya/:id/pay`. URL path noto'g'ri, to'lov so'rovi 404 qaytaradi.
-- **Kutilgan:** `POST /nasiya/:id/pay` — backend bilan mos bo'lishi kerak
-- **Topildi:** Visual QA + kodni tahlil — 2026-04-28
-
----
-
 ## T-407 | P2 | [MOBILE] | Staff app — Finance ekranlar: error va empty state yo'q
 
 - **Sana:** 2026-04-28
@@ -323,28 +312,6 @@
   1. Error state: `isError` true bo'lganda "Ma'lumotlarni yuklashda xatolik" + "Qayta urinish" button
   2. Empty state: data `[]` bo'lganda kontekstli xabar (masalan "Bu davr uchun ma'lumot yo'q")
 - **Izoh:** `ExpensesScreen` da bu allaqachon bor — shu patternni qolgan ekranlarga ham qo'llash kerak
-- **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
-
----
-
-## T-409 | P1 | [MOBILE] | SmenaOpenSheet — loading paytida backdrop tap modal yopadi
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Smena/SmenaOpenSheet.tsx`
-- **Muammo:** "Smena boshlash" bosilgandan keyin `loading=true` holda backdrop tap qilinsa, `onClose()` chaqiriladi va modal yopiladi. API call background da davom etadi, loading state handle qilinmaydi. Foydalanuvchi hech qanday xabar olmaydi.
-- **Kutilgan:** Loading paytida backdrop tap ishlamasligi kerak (`onClose` disabled bo'lishi kerak loading holatda) yoki `onClose` chaqirilganda pending API call bekor qilinishi kerak (AbortController).
-- **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
-
----
-
-## T-410 | P1 | [MOBILE] | SmenaOpenSheet — API xatolik bo'lganda Alert ko'rsatilmayapti (iOS timeout muammosi)
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/store/shiftStore.ts`, `apps/mobile/src/api/client.ts`
-- **Muammo:** iOS Simulator da backend (`localhost:3003`) ishlamayotganda `POST /sales/shifts/open` request 2+ soat "pending" holda qoldi. Axios `timeout: 15_000` sozlangan bo'lsa ham, iOS network stack localhost connectionni ECONNREFUSED o'rniga indefinitely pending holatda ushlab qolmoqda. Natijada `.catch()` hech qachon chaqirilmadi va foydalanuvchiga "Xatolik" Alert ko'rsatilmadi.
-- **Kutilgan:** 15 sekund ichida xatolik Alert ko'rsatilishi kerak. `AbortController` + `AbortSignal.timeout(15000)` yoki `signal: AbortSignal.timeout(15_000)` fetch opsiyasi bilan hal qilish mumkin. Yoki `shiftStore.openShift` da manual timeout wrapper qo'shish.
 - **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
 
 ---
@@ -379,20 +346,6 @@
 
 ---
 
-## T-413 | P1 | [MOBILE] | To'lov muvaffaqiyatli ekrani — "Chekni chop etish" button hech narsa qilmaydi
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Savdo/PaymentSuccessScreen.tsx:83`
-- **Muammo:** `onPress={() => {}}` — "Chekni chop etish" tugmasi bosilganda hech narsa bo'lmaydi.
-- **Kutilgan:** Chekni chiqarish funksiyasi:
-  1. Bluetooth printer mavjud bo'lsa → `react-native-thermal-receipt-printer` orqali chop etish
-  2. Printer yo'q bo'lsa → PDF formatida generate qilib Share sheet ochish (`expo-sharing`)
-  3. Backend da `GET /sales/orders/:id/receipt` endpoint mavjud — PDF yoki HTML receipt.
-- **Topildi:** Visual QA — 2026-04-28
-
----
-
 ## T-414 | P2 | [MOBILE] | Mahsulotlar — O'chirish tasdiqlash dialog hech narsa qilmaydi
 
 - **Sana:** 2026-04-28
@@ -423,20 +376,6 @@
 - **Muammo:** `handleEdit` funksiyasi `Alert.alert('Tahrirlash', '[nom] tahrirlash (tez orada)')` ko'rsatadi — real ekran yo'q.
 - **Kutilgan:** `ProductFormScreen` ekrani tahrirlash rejimida ochilishi kerak (mavjud ma'lumotlar pre-filled). Backend: `PATCH /catalog/products/:id`.
 - **Izoh:** T-415 bilan birgalikda `ProductFormScreen` yaratilganda hal qilinadi.
-- **Topildi:** Visual QA — 2026-04-28
-
----
-
-## T-417 | P1 | [MOBILE] | Ko'proq menyu — Moliya va Nasiya `screen: null` (ekranlar allaqachon mavjud!)
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx:75,81`
-- **Muammo:** `BIZNES_GROUP` da "Moliya" va "Nasiya" menu itemlari `screen: null` — bosilganda "Tez orada" Alert ko'rsatadi. Lekin bu ekranlar allaqachon T-395 da yaratilgan!
-- **Kutilgan:**
-  - "Moliya" → `FinanceMain` ekraniga navigate qilishi kerak
-  - "Nasiya" → `NasiyaAging` ekraniga navigate qilishi kerak (Finance stackida mavjud)
-- **Fix:** `screen: null` → `screen: 'FinanceMain'` va `screen: 'NasiyaAging'` qilib o'zgartirish. Shuningdek navigation stack cross-tab navigate qo'llab-quvvatlashi kerak.
 - **Topildi:** Visual QA — 2026-04-28
 
 ---
@@ -501,7 +440,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **27** | **3** | **5** | **11** | **8** |
+| **22** | **3** | **0** | **11** | **8** |
 
 ### Kategoriya bo'yicha
 
@@ -509,7 +448,7 @@
 |-----------|----|----|----|----|------|
 | [BACKEND] | 1 | 2 | 3 | 3 | **9** |
 | [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
-| [MOBILE] | 0 | 2 | 7 | 3 | **12** |
+| [MOBILE] | 0 | 0 | 7 | 3 | **8** |
 | [SECURITY] | 2 | 1 | 0 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 
@@ -518,7 +457,7 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 3 | 3 | 4 | 0 | **10** |
-| **Abdulaziz** (Mobile) | 0 | 2 | 7 | 3 | **12** |
+| **Abdulaziz** (Mobile) | 0 | 0 | 7 | 3 | **7** |
 | **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
 
 > Yangilandi: 2026-04-26 — T-403..T-405 qo'shildi: Admin Panel, Manager Panel, Warehouse mobile applar yo'q
