@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -50,12 +51,9 @@ function ReportCard({ title, description, iconName, iconColor, iconBg, onPress }
 }
 
 // ─── ReportsHubScreen ──────────────────────────────────
-interface Props {
-  onNavigate?: (screen: string) => void;
-}
-
-export default function ReportsHubScreen({ onNavigate }: Props) {
-  const nav = (screen: string) => onNavigate?.(screen);
+export default function ReportsHubScreen() {
+  const navigation = useNavigation();
+  const nav = (screen: string) => navigation.navigate(screen as never);
 
   const REPORTS: ReportCardProps[] = [
     {

@@ -13,6 +13,14 @@
 
 ---
 
+## T-408 | DONE | [MOBILE] | Staff app — ReportsHubScreen navigatsiya bugi tuzatildi
+- **Bajarildi:** 2026-04-28
+- **Muammo:** `ReportsHubScreen` `onNavigate?: (screen) => void` prop ishlatgan — bu prop hech qachon berilmagan, barcha kartochkalar tap qilsa hech narsa bo'lmagan
+- **Yechim:** `useNavigation()` hook qo'shildi, `navigation.navigate(screen as never)` ishlatildi
+- **Fayl:** `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`
+
+---
+
 ## T-396 | DONE | [MOBILE] | Staff app — Sozlamalar i18n keylari tuzatildi
 - **Bajarildi:** 2026-04-28
 - **Yechim:** uz.ts, ru.ts, en.ts fayllariga 21 ta settings va 1 ta common.comingSoon kaliti qo'shildi. i18n/index.ts .ts fayllarni import qiladi (json emas), shuning uchun .ts fayllarni to'ldirish kerak edi.

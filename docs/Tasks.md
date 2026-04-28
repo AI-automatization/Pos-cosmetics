@@ -302,6 +302,31 @@
 
 ---
 
+## T-406 | P1 | [MOBILE] | Staff app — nasiyaApi.recordPayment URL path mismatch
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/api/nasiya.api.ts:80`
+- **Muammo:** `nasiyaApi.recordPayment` `POST /nasiya/debtors/:debtorId/pay` URL ishlatmoqda, lekin backend controller `@Post(':id/pay')` — ya'ni `POST /nasiya/:id/pay`. URL path noto'g'ri, to'lov so'rovi 404 qaytaradi.
+- **Kutilgan:** `POST /nasiya/:id/pay` — backend bilan mos bo'lishi kerak
+- **Topildi:** Visual QA + kodni tahlil — 2026-04-28
+
+---
+
+## T-407 | P2 | [MOBILE] | Staff app — Finance ekranlar: error va empty state yo'q
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Finance/PnLScreen.tsx`, `PaymentsHistoryScreen.tsx`, `DailyRevenueScreen.tsx`, `TopProductsScreen.tsx`, `ShiftReportsScreen.tsx`, `NasiyaAgingScreen.tsx`
+- **Muammo:** Backend unavailable bo'lganda yuqoridagi 6 ta ekran cheksiz loading spinner ko'rsatadi — xato xabari ham, "Qayta urinish" button ham yo'q. Ma'lumot bo'lmasa (empty) ham bo'sh joy qoladi, foydalanuvchi nima qilish kerakligini bilmaydi.
+- **Kutilgan:** Har ekranda:
+  1. Error state: `isError` true bo'lganda "Ma'lumotlarni yuklashda xatolik" + "Qayta urinish" button
+  2. Empty state: data `[]` bo'lganda kontekstli xabar (masalan "Bu davr uchun ma'lumot yo'q")
+- **Izoh:** `ExpensesScreen` da bu allaqachon bor — shu patternni qolgan ekranlarga ham qo'llash kerak
+- **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
+
+---
+
 ## ════════════════════════════════════════════════════════════════
 ## 🔴 MOBILE-OWNER API CONTRACT (T-221..T-226) — 2026-03-14
 ## apps/mobile-owner/src/config/endpoints.ts bilan TO'LIQ MOS KELISHI SHART
