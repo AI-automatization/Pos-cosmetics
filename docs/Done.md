@@ -13,6 +13,13 @@
 
 ---
 
+## T-396 | DONE | [MOBILE] | Staff app — Sozlamalar i18n keylari tuzatildi
+- **Bajarildi:** 2026-04-28
+- **Yechim:** uz.ts, ru.ts, en.ts fayllariga 21 ta settings va 1 ta common.comingSoon kaliti qo'shildi. i18n/index.ts .ts fayllarni import qiladi (json emas), shuning uchun .ts fayllarni to'ldirish kerak edi.
+- **Fayllar:** apps/mobile/src/i18n/uz.ts, apps/mobile/src/i18n/ru.ts, apps/mobile/src/i18n/en.ts
+
+---
+
 ## T-395 | DONE | [MOBILE] | Staff app — Moliya tabi FinanceNavigator ga ulandi
 - **Bajarildi:** 2026-04-27
 - **Yechim:** FinanceNavigator (9 screen) TabNavigator.tsx ga to'liq ulandi — FinanceScreen hub, DailyRevenue, Expenses, PnL, TopProducts, PaymentsHistory, NasiyaAging, ShiftReports, ReportsHub. Ko'proq menusidan Moliya/Nasiya navigatsiyasi ham ishlaydi.

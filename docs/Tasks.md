@@ -198,17 +198,6 @@
 
 ---
 
-## T-396 | P2 | [MOBILE] | Staff app — Sozlamalar ekranida i18n key lari tarjima qilinmagan
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/i18n/uz.json`, `apps/mobile/src/screens/Settings/index.tsx`
-- **Muammo:** Sozlamalar (Ko'proq) ekranida quyidagi i18n keylar raw ko'rinishda chiqyapti: `SETTINGS.SECTIONAPP`, `settings.theme`, `settings.printer`, `settings.printerSubtitle`, `SETTINGS.SECTIONSECURITY`, `settings.biometric`, `settings.biometricSubtitle`, `settings.autoLock`, `settings.autoLockSubtitle`, `SETTINGS.SECTIONINFO`, `settings.privacy`, `settings.help`. Faqat "Til", "Versiya", "Chiqish" tarjima qilingan.
-- **Kutilgan:** Barcha keylar o'zbek tilida ko'rsatilishi kerak (Mavzu, Printer, Biometrik, Avtomatik qulflash, Maxfiylik, Yordam va h.k.)
-- **Topildi:** Visual QA (iOS Simulator) — 2026-04-26
-
----
-
 ## T-397 | P2 | [MOBILE] | Staff app — Mijozlar (Customers) ekrani yo'q — web da bor
 
 - **Sana:** 2026-04-26
