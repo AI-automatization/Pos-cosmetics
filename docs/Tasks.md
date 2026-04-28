@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-04-28 (T-406, T-407 qo'shildi; T-408 Done ga o'tdi)
+# Yangilangan: 2026-04-28 (T-409, T-410 qo'shildi — Smena ochish QA buglar)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -323,6 +323,28 @@
   1. Error state: `isError` true bo'lganda "Ma'lumotlarni yuklashda xatolik" + "Qayta urinish" button
   2. Empty state: data `[]` bo'lganda kontekstli xabar (masalan "Bu davr uchun ma'lumot yo'q")
 - **Izoh:** `ExpensesScreen` da bu allaqachon bor — shu patternni qolgan ekranlarga ham qo'llash kerak
+- **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
+
+---
+
+## T-409 | P1 | [MOBILE] | SmenaOpenSheet — loading paytida backdrop tap modal yopadi
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Smena/SmenaOpenSheet.tsx`
+- **Muammo:** "Smena boshlash" bosilgandan keyin `loading=true` holda backdrop tap qilinsa, `onClose()` chaqiriladi va modal yopiladi. API call background da davom etadi, loading state handle qilinmaydi. Foydalanuvchi hech qanday xabar olmaydi.
+- **Kutilgan:** Loading paytida backdrop tap ishlamasligi kerak (`onClose` disabled bo'lishi kerak loading holatda) yoki `onClose` chaqirilganda pending API call bekor qilinishi kerak (AbortController).
+- **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
+
+---
+
+## T-410 | P1 | [MOBILE] | SmenaOpenSheet — API xatolik bo'lganda Alert ko'rsatilmayapti (iOS timeout muammosi)
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/store/shiftStore.ts`, `apps/mobile/src/api/client.ts`
+- **Muammo:** iOS Simulator da backend (`localhost:3003`) ishlamayotganda `POST /sales/shifts/open` request 2+ soat "pending" holda qoldi. Axios `timeout: 15_000` sozlangan bo'lsa ham, iOS network stack localhost connectionni ECONNREFUSED o'rniga indefinitely pending holatda ushlab qolmoqda. Natijada `.catch()` hech qachon chaqirilmadi va foydalanuvchiga "Xatolik" Alert ko'rsatilmadi.
+- **Kutilgan:** 15 sekund ichida xatolik Alert ko'rsatilishi kerak. `AbortController` + `AbortSignal.timeout(15000)` yoki `signal: AbortSignal.timeout(15_000)` fetch opsiyasi bilan hal qilish mumkin. Yoki `shiftStore.openShift` da manual timeout wrapper qo'shish.
 - **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
 
 ---
