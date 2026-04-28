@@ -16,6 +16,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  expensesApi,
+  ExpenseCategory,
+  EXPENSE_CATEGORY_LABELS,
+  EXPENSE_CATEGORIES,
+  Expense,
+  CreateExpensePayload,
+} from '../../api/expenses.api';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -30,32 +39,17 @@ const C = {
   orange:  '#D97706',
 };
 
-// ─── Types ─────────────────────────────────────────────
-type Category = 'Ijara' | 'Kommunal' | 'Maosh' | 'Boshqa';
-type PayMethod = 'Naqd' | 'Karta' | 'Transfer';
-
-interface Expense {
-  id: string;
-  category: Category;
-  description: string;
-  date: string;
-  amount: number;
-  payMethod: PayMethod;
-}
-
 // ─── Category config ───────────────────────────────────
-const CAT_CONFIG: Record<Category, { icon: React.ComponentProps<typeof Ionicons>['name']; color: string; bg: string }> = {
-  Ijara:    { icon: 'home-outline',    color: C.orange,  bg: '#FFFBEB' },
-  Kommunal: { icon: 'flash-outline',   color: C.primary, bg: '#EFF6FF' },
-  Maosh:    { icon: 'people-outline',  color: C.green,   bg: '#F0FDF4' },
-  Boshqa:   { icon: 'grid-outline',    color: C.muted,   bg: C.bg      },
+const CAT_CONFIG: Record<ExpenseCategory, { icon: React.ComponentProps<typeof Ionicons>['name']; color: string; bg: string }> = {
+  RENT:      { icon: 'home-outline',    color: C.orange,  bg: '#FFFBEB' },
+  SALARY:    { icon: 'people-outline',  color: C.green,   bg: '#F0FDF4' },
+  DELIVERY:  { icon: 'bicycle-outline', color: C.primary, bg: '#EFF6FF' },
+  UTILITIES: { icon: 'flash-outline',   color: C.primary, bg: '#EFF6FF' },
+  OTHER:     { icon: 'grid-outline',    color: C.muted,   bg: C.bg      },
 };
 
-const CATEGORIES: Category[] = ['Ijara', 'Kommunal', 'Maosh', 'Boshqa'];
-const PAY_METHODS: PayMethod[] = ['Naqd', 'Karta', 'Transfer'];
-
-type FilterKey = 'Barchasi' | Category;
-const FILTERS: FilterKey[] = ['Barchasi', ...CATEGORIES];
+type FilterKey = 'Barchasi' | ExpenseCategory;
+const FILTERS: FilterKey[] = ['Barchasi', ...EXPENSE_CATEGORIES];
 
 // ─── Helpers ───────────────────────────────────────────
 function fmt(n: number): string {
@@ -76,22 +70,19 @@ function ExpenseFormSheet({
   visible: boolean;
   expense: Expense | null;
   onClose: () => void;
-  onSaved: (data: Omit<Expense, 'id'>) => void;
+  onSaved: (data: CreateExpensePayload) => void;
 }) {
-  const [date, setDate]           = useState(todayStr());
-  const [category, setCategory]   = useState<Category>('Boshqa');
-  const [description, setDesc]    = useState('');
-  const [amount, setAmount]       = useState('');
-  const [payMethod, setPayMethod] = useState<PayMethod>('Naqd');
-  const [loading, setLoading]     = useState(false);
+  const [date, setDate]         = useState(todayStr());
+  const [category, setCategory] = useState<ExpenseCategory>('OTHER');
+  const [description, setDesc]  = useState('');
+  const [amount, setAmount]     = useState('');
 
   React.useEffect(() => {
     if (visible) {
       setDate(expense?.date ?? todayStr());
-      setCategory(expense?.category ?? 'Boshqa');
+      setCategory(expense?.category ?? 'OTHER');
       setDesc(expense?.description ?? '');
       setAmount(expense ? String(expense.amount) : '');
-      setPayMethod(expense?.payMethod ?? 'Naqd');
     }
   }, [visible, expense]);
 
@@ -99,26 +90,22 @@ function ExpenseFormSheet({
 
   const handleCategoryPick = () => {
     Alert.alert('Kategoriyani tanlang', undefined, [
-      ...CATEGORIES.map((c) => ({ text: c, onPress: () => setCategory(c) })),
-      { text: 'Bekor qilish', style: 'cancel' as const },
-    ]);
-  };
-
-  const handleMethodPick = () => {
-    Alert.alert("To'lov usulini tanlang", undefined, [
-      ...PAY_METHODS.map((m) => ({ text: m, onPress: () => setPayMethod(m) })),
+      ...EXPENSE_CATEGORIES.map((c) => ({
+        text: EXPENSE_CATEGORY_LABELS[c],
+        onPress: () => setCategory(c),
+      })),
       { text: 'Bekor qilish', style: 'cancel' as const },
     ]);
   };
 
   const handleSave = () => {
     if (!canSave) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onSaved({ date, category, description: description.trim(), amount: parseFloat(amount), payMethod });
-      onClose();
-    }, 400);
+    onSaved({
+      date,
+      category,
+      description: description.trim(),
+      amount: parseFloat(amount),
+    });
   };
 
   const cfg = CAT_CONFIG[category];
@@ -158,7 +145,7 @@ function ExpenseFormSheet({
           <Text style={sheet.label}>KATEGORIYA</Text>
           <TouchableOpacity style={sheet.selectRow} onPress={handleCategoryPick}>
             <Ionicons name={cfg.icon} size={18} color={cfg.color} />
-            <Text style={sheet.selectText}>{category}</Text>
+            <Text style={sheet.selectText}>{EXPENSE_CATEGORY_LABELS[category]}</Text>
             <Ionicons name="chevron-forward" size={16} color={C.muted} />
           </TouchableOpacity>
 
@@ -183,24 +170,13 @@ function ExpenseFormSheet({
             keyboardType="numeric"
           />
 
-          {/* Pay method */}
-          <Text style={sheet.label}>TO'LOV USULI</Text>
-          <TouchableOpacity style={sheet.selectRow} onPress={handleMethodPick}>
-            <Ionicons name="card-outline" size={18} color={C.muted} />
-            <Text style={sheet.selectText}>{payMethod}</Text>
-            <Ionicons name="chevron-forward" size={16} color={C.muted} />
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={[sheet.saveBtn, !canSave && sheet.saveBtnDisabled]}
             onPress={handleSave}
             activeOpacity={0.85}
-            disabled={!canSave || loading}
+            disabled={!canSave}
           >
-            {loading
-              ? <ActivityIndicator size="small" color="#FFFFFF" />
-              : <Text style={sheet.saveBtnText}>{expense ? 'Saqlash' : "Qo'shish"}</Text>
-            }
+            <Text style={sheet.saveBtnText}>{expense ? 'Saqlash' : "Qo'shish"}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -211,28 +187,26 @@ function ExpenseFormSheet({
 // ─── ExpenseCard ───────────────────────────────────────
 function ExpenseCard({
   expense,
-  onEdit,
   onDelete,
 }: {
   expense: Expense;
-  onEdit: (e: Expense) => void;
-  onDelete: (e: Expense) => void;
+  onDelete: (id: string) => void;
 }) {
   const cfg = CAT_CONFIG[expense.category];
+  const label = EXPENSE_CATEGORY_LABELS[expense.category];
 
   const handleMenu = () => {
-    Alert.alert(expense.description, undefined, [
-      { text: 'Tahrirlash', onPress: () => onEdit(expense) },
+    Alert.alert(expense.description ?? label, undefined, [
       {
         text: "O'chirish",
         style: 'destructive',
         onPress: () =>
           Alert.alert(
             "O'chirishni tasdiqlang",
-            `"${expense.description}" o'chirilsinmi?`,
+            `"${expense.description ?? label}" o'chirilsinmi?`,
             [
               { text: 'Bekor', style: 'cancel' },
-              { text: "O'chirish", style: 'destructive', onPress: () => onDelete(expense) },
+              { text: "O'chirish", style: 'destructive', onPress: () => onDelete(expense.id) },
             ],
           ),
       },
@@ -246,13 +220,14 @@ function ExpenseCard({
         <Ionicons name={cfg.icon} size={20} color={cfg.color} />
       </View>
       <View style={styles.cardBody}>
-        <Text style={styles.cardDesc} numberOfLines={1}>{expense.description}</Text>
+        <Text style={styles.cardDesc} numberOfLines={1}>
+          {expense.description ?? label}
+        </Text>
         <View style={styles.cardMeta}>
           <View style={[styles.catBadge, { backgroundColor: cfg.bg }]}>
-            <Text style={[styles.catBadgeText, { color: cfg.color }]}>{expense.category}</Text>
+            <Text style={[styles.catBadgeText, { color: cfg.color }]}>{label}</Text>
           </View>
           <Text style={styles.cardDate}>{expense.date}</Text>
-          <Text style={styles.cardMethod}>{expense.payMethod}</Text>
         </View>
       </View>
       <View style={styles.cardRight}>
@@ -267,44 +242,72 @@ function ExpenseCard({
 
 // ─── ExpensesScreen ────────────────────────────────────
 export default function ExpensesScreen() {
-  const [filter, setFilter]           = useState<FilterKey>('Barchasi');
+  const [filter, setFilter]             = useState<FilterKey>('Barchasi');
   const [sheetVisible, setSheetVisible] = useState(false);
-  const [editExpense, setEditExpense] = useState<Expense | null>(null);
-  const [expenses, setExpenses]       = useState<Expense[]>([]);
 
-  const filtered = useMemo(() => {
-    if (filter === 'Barchasi') return expenses;
-    return expenses.filter((e) => e.category === filter);
-  }, [expenses, filter]);
+  const queryClient = useQueryClient();
+
+  const categoryParam = filter !== 'Barchasi' ? filter : undefined;
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['expenses', categoryParam],
+    queryFn: () => expensesApi.getExpenses({ category: categoryParam }),
+    staleTime: 30_000,
+  });
+
+  const expenses: Expense[] = data?.data ?? [];
 
   const total = useMemo(
-    () => filtered.reduce((s, e) => s + e.amount, 0),
-    [filtered],
+    () => expenses.reduce((s, e) => s + e.amount, 0),
+    [expenses],
   );
 
+  const createMutation = useMutation({
+    mutationFn: (payload: CreateExpensePayload) => expensesApi.createExpense(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      setSheetVisible(false);
+    },
+    onError: () => {
+      Alert.alert('Xatolik', "Xarajatni saqlashda xatolik yuz berdi.");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => expensesApi.deleteExpense(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    },
+    onError: () => {
+      Alert.alert('Xatolik', "O'chirishda xatolik yuz berdi.");
+    },
+  });
+
   const handleAdd = () => {
-    setEditExpense(null);
     setSheetVisible(true);
   };
 
-  const handleEdit = (e: Expense) => {
-    setEditExpense(e);
-    setSheetVisible(true);
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
   };
 
-  const handleDelete = (e: Expense) => {
-    setExpenses((prev) => prev.filter((x) => x.id !== e.id));
+  const handleSaved = (payload: CreateExpensePayload) => {
+    createMutation.mutate(payload);
   };
 
-  const handleSaved = (data: Omit<Expense, 'id'>) => {
-    if (editExpense) {
-      setExpenses((prev) =>
-        prev.map((e) => (e.id === editExpense.id ? { ...e, ...data } : e)),
-      );
-    } else {
-      setExpenses((prev) => [{ id: Date.now().toString(), ...data }, ...prev]);
-    }
-  };
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.centerState}>
+          <Ionicons name="alert-circle-outline" size={44} color={C.red} />
+          <Text style={styles.errorText}>Ma'lumotlarni yuklashda xatolik</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => void refetch()}>
+            <Text style={styles.retryBtnText}>Qayta urinish</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -312,7 +315,7 @@ export default function ExpensesScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Xarajatlar</Text>
-          <Text style={styles.headerSub}>{expenses.length} ta yozuv</Text>
+          <Text style={styles.headerSub}>{data?.total ?? 0} ta yozuv</Text>
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={handleAdd} activeOpacity={0.85}>
           <Ionicons name="add" size={22} color="#FFFFFF" />
@@ -327,13 +330,13 @@ export default function ExpensesScreen() {
           </View>
           <View>
             <Text style={styles.summaryLabel}>
-              {filter === 'Barchasi' ? 'Jami xarajat' : filter}
+              {filter === 'Barchasi' ? 'Jami xarajat' : EXPENSE_CATEGORY_LABELS[filter]}
             </Text>
             <Text style={styles.summaryAmount}>{fmt(total)}</Text>
           </View>
         </View>
-        {filtered.length > 0 && (
-          <Text style={styles.summaryCount}>{filtered.length} ta</Text>
+        {expenses.length > 0 && (
+          <Text style={styles.summaryCount}>{expenses.length} ta</Text>
         )}
       </View>
 
@@ -355,49 +358,58 @@ export default function ExpensesScreen() {
             >
               {f !== 'Barchasi' && (
                 <Ionicons
-                  name={CAT_CONFIG[f as Category].icon}
+                  name={CAT_CONFIG[f].icon}
                   size={13}
-                  color={active ? C.white : CAT_CONFIG[f as Category].color}
+                  color={active ? C.white : CAT_CONFIG[f].color}
                 />
               )}
-              <Text style={[styles.pillText, active && styles.pillTextActive]}>{f}</Text>
+              <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                {f === 'Barchasi' ? 'Barchasi' : EXPENSE_CATEGORY_LABELS[f]}
+              </Text>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
 
       {/* List */}
-      <FlatList
-        data={filtered}
-        keyExtractor={(e) => e.id}
-        renderItem={({ item }) => (
-          <ExpenseCard
-            expense={item}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="receipt-outline" size={44} color={C.muted} />
-            <Text style={styles.emptyTitle}>
-              {filter !== 'Barchasi' ? `${filter} bo'yicha xarajat yo'q` : "Xarajatlar yo'q"}
-            </Text>
-            {filter === 'Barchasi' && (
-              <TouchableOpacity style={styles.emptyBtn} onPress={handleAdd}>
-                <Text style={styles.emptyBtnText}>Birinchisini qo'shish</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        }
-      />
+      {isLoading ? (
+        <View style={styles.centerState}>
+          <ActivityIndicator size="large" color={C.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={expenses}
+          keyExtractor={(e) => e.id}
+          renderItem={({ item }) => (
+            <ExpenseCard
+              expense={item}
+              onDelete={handleDelete}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="receipt-outline" size={44} color={C.muted} />
+              <Text style={styles.emptyTitle}>
+                {filter !== 'Barchasi'
+                  ? `${EXPENSE_CATEGORY_LABELS[filter]} bo'yicha xarajat yo'q`
+                  : "Xarajatlar yo'q"}
+              </Text>
+              {filter === 'Barchasi' && (
+                <TouchableOpacity style={styles.emptyBtn} onPress={handleAdd}>
+                  <Text style={styles.emptyBtnText}>Birinchisini qo'shish</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
+        />
+      )}
 
       <ExpenseFormSheet
         visible={sheetVisible}
-        expense={editExpense}
+        expense={null}
         onClose={() => setSheetVisible(false)}
         onSaved={handleSaved}
       />
@@ -516,7 +528,6 @@ const styles = StyleSheet.create({
   catBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
   catBadgeText: { fontSize: 11, fontWeight: '700' },
   cardDate: { fontSize: 11, color: C.muted },
-  cardMethod: { fontSize: 11, color: C.muted },
 
   cardRight: { alignItems: 'flex-end', gap: 4 },
   cardAmount: { fontSize: 14, fontWeight: '800', color: C.red },
@@ -524,6 +535,14 @@ const styles = StyleSheet.create({
     width: 28, height: 28, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
   },
+
+  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  errorText: { fontSize: 15, color: C.muted, fontWeight: '600' },
+  retryBtn: {
+    paddingHorizontal: 20, paddingVertical: 10,
+    backgroundColor: C.primary, borderRadius: 10,
+  },
+  retryBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 
   empty: { alignItems: 'center', paddingVertical: 60, gap: 12 },
   emptyTitle: { fontSize: 15, color: C.muted, fontWeight: '600' },
