@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-04-28 (T-409, T-410 qo'shildi — Smena ochish QA buglar)
+# Yangilangan: 2026-04-28 (T-411..T-418 qo'shildi — ishlamaydigan buttonlar)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -346,6 +346,109 @@
 - **Muammo:** iOS Simulator da backend (`localhost:3003`) ishlamayotganda `POST /sales/shifts/open` request 2+ soat "pending" holda qoldi. Axios `timeout: 15_000` sozlangan bo'lsa ham, iOS network stack localhost connectionni ECONNREFUSED o'rniga indefinitely pending holatda ushlab qolmoqda. Natijada `.catch()` hech qachon chaqirilmadi va foydalanuvchiga "Xatolik" Alert ko'rsatilmadi.
 - **Kutilgan:** 15 sekund ichida xatolik Alert ko'rsatilishi kerak. `AbortController` + `AbortSignal.timeout(15000)` yoki `signal: AbortSignal.timeout(15_000)` fetch opsiyasi bilan hal qilish mumkin. Yoki `shiftStore.openShift` da manual timeout wrapper qo'shish.
 - **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
+
+---
+
+## ════════════════════════════════════════════════════════════════
+## 📌 ISHLAMAYDIGAN BUTTONLAR (T-411..T-418) — 2026-04-28
+## Barcha button tap qilinganda hech narsa bo'lmaydi
+## Mas'ul: Abdulaziz
+## ════════════════════════════════════════════════════════════════
+
+---
+
+## T-411 | P2 | [MOBILE] | Dashboard — Bell (bildirishnoma) button hech narsa qilmaydi
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx:134`
+- **Muammo:** Header dagi qo'ng'iroq (notifications-outline) icon tugmasida `onPress` prop yo'q — bosilganda hech narsa bo'lmaydi.
+- **Kutilgan:** Bildirishnomalar ekrani ochilishi kerak. Loyiha konteksti: backend da `GET /notifications` endpoint mavjud. Yangi bildirishnomalar bo'lsa, icon ustida badge (qizil doira + son) ko'rsatilishi kerak.
+- **Topildi:** Visual QA — 2026-04-28
+
+---
+
+## T-412 | P2 | [MOBILE] | Buyurtmalar tarixi — Calendar (sana filter) button hech narsa qilmaydi
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Sales/index.tsx:94`
+- **Muammo:** Header dagi calendar-outline icon tugmasida `onPress` prop yo'q — bosilganda hech narsa bo'lmaydi.
+- **Kutilgan:** Sana oraliqni tanlash uchun DatePicker modal ochilishi kerak (masalan: "Bugun / Bu hafta / Bu oy / Maxsus oraliq"). Tanlangan oraliq buyurtmalar ro'yxatini filterlashi kerak (`GET /sales/orders?from=&to=`).
+- **Topildi:** Visual QA — 2026-04-28
+
+---
+
+## T-413 | P1 | [MOBILE] | To'lov muvaffaqiyatli ekrani — "Chekni chop etish" button hech narsa qilmaydi
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Savdo/PaymentSuccessScreen.tsx:83`
+- **Muammo:** `onPress={() => {}}` — "Chekni chop etish" tugmasi bosilganda hech narsa bo'lmaydi.
+- **Kutilgan:** Chekni chiqarish funksiyasi:
+  1. Bluetooth printer mavjud bo'lsa → `react-native-thermal-receipt-printer` orqali chop etish
+  2. Printer yo'q bo'lsa → PDF formatida generate qilib Share sheet ochish (`expo-sharing`)
+  3. Backend da `GET /sales/orders/:id/receipt` endpoint mavjud — PDF yoki HTML receipt.
+- **Topildi:** Visual QA — 2026-04-28
+
+---
+
+## T-414 | P2 | [MOBILE] | Mahsulotlar — O'chirish tasdiqlash dialog hech narsa qilmaydi
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx:166`
+- **Muammo:** `Alert.alert` da "O'chirish" tugmasi `onPress: () => {}` — bosilganda hech narsa bo'lmaydi. Mahsulot o'chirilmaydi.
+- **Kutilgan:** `DELETE /catalog/products/:id` API chaqirilishi, so'ng mahsulotlar ro'yxati yangilanishi kerak (`queryClient.invalidateQueries`). O'chirish faqat admin/manager roli uchun ruxsat berilishi kerak.
+- **Topildi:** Visual QA — 2026-04-28
+
+---
+
+## T-415 | P2 | [MOBILE] | Mahsulotlar — "Yangi mahsulot" (+) FAB tugmasi placeholder alert ko'rsatadi
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx:273`
+- **Muammo:** `Alert.alert('Yangi mahsulot', 'ProductFormScreen (tez orada)')` — real ekran yo'q.
+- **Kutilgan:** `ProductFormScreen` (yangi mahsulot qo'shish) ekrani yaratilishi va navigatsiya ulanishi kerak. Fields: nom, kategoriya, birlik, narx, shtrix-kod (kamera scanner), rasm. Backend: `POST /catalog/products`.
+- **Topildi:** Visual QA — 2026-04-28
+
+---
+
+## T-416 | P2 | [MOBILE] | Mahsulotlar — "Tahrirlash" harakati placeholder alert ko'rsatadi
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx:158`
+- **Muammo:** `handleEdit` funksiyasi `Alert.alert('Tahrirlash', '[nom] tahrirlash (tez orada)')` ko'rsatadi — real ekran yo'q.
+- **Kutilgan:** `ProductFormScreen` ekrani tahrirlash rejimida ochilishi kerak (mavjud ma'lumotlar pre-filled). Backend: `PATCH /catalog/products/:id`.
+- **Izoh:** T-415 bilan birgalikda `ProductFormScreen` yaratilganda hal qilinadi.
+- **Topildi:** Visual QA — 2026-04-28
+
+---
+
+## T-417 | P1 | [MOBILE] | Ko'proq menyu — Moliya va Nasiya `screen: null` (ekranlar allaqachon mavjud!)
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx:75,81`
+- **Muammo:** `BIZNES_GROUP` da "Moliya" va "Nasiya" menu itemlari `screen: null` — bosilganda "Tez orada" Alert ko'rsatadi. Lekin bu ekranlar allaqachon T-395 da yaratilgan!
+- **Kutilgan:**
+  - "Moliya" → `FinanceMain` ekraniga navigate qilishi kerak
+  - "Nasiya" → `NasiyaAging` ekraniga navigate qilishi kerak (Finance stackida mavjud)
+- **Fix:** `screen: null` → `screen: 'FinanceMain'` va `screen: 'NasiyaAging'` qilib o'zgartirish. Shuningdek navigation stack cross-tab navigate qo'llab-quvvatlashi kerak.
+- **Topildi:** Visual QA — 2026-04-28
+
+---
+
+## T-418 | P2 | [MOBILE] | Ko'chmas mulk — "Yangi mulk qo'shish" TODO placeholder
+
+- **Sana:** 2026-04-28
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/RealEstate/index.tsx:50`
+- **Muammo:** `handleAddProperty` funksiyasida `// TODO: navigate to AddProperty screen when implemented` — bosilganda hech narsa bo'lmaydi.
+- **Kutilgan:** `AddPropertyScreen` yaratilishi va navigatsiya ulanishi kerak. Fields: manzil, tur (kvartira/ofis/ombor), narx, ijara narxi, holat. Backend: `POST /realestate/properties`.
+- **Topildi:** Visual QA — 2026-04-28
 
 ---
 
