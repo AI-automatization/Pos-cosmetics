@@ -57,12 +57,11 @@ async function registerForPushNotifications(): Promise<void> {
 
   if (finalStatus !== 'granted') return;
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
-  const expoPushToken = tokenData.data;
-
   try {
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const expoPushToken = tokenData.data;
     await api.post('/notifications/register-token', { token: expoPushToken });
   } catch {
-    // Token registration fails silently — notifications are non-blocking
+    // EAS projectId yo'q yoki token registration failed — notifications are non-blocking
   }
 }
