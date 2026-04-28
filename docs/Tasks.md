@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-04-19 (T-056 yopildi)
+# Yangilangan: 2026-04-28 (T-406, T-407 qo'shildi; T-408 Done ga o'tdi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
