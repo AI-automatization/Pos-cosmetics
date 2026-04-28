@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { catalogApi, type CatalogProduct, type CatalogCategory } from '../../api/catalog.api';
 
@@ -32,7 +33,7 @@ const C = {
 // ─── Props ─────────────────────────────────────────────
 interface Props {
   product?: CatalogProduct;
-  onClose: () => void;
+  onClose?: () => void;
   onSaved?: () => void;
 }
 
@@ -97,6 +98,8 @@ function Input({
 
 // ─── Main Component ────────────────────────────────────
 export default function ProductFormScreen({ product, onClose, onSaved }: Props) {
+  const navigation = useNavigation();
+  const handleClose = onClose ?? (() => navigation.goBack());
   const isEdit = !!product;
 
   const [name, setName]               = useState(product?.name ?? '');
@@ -137,7 +140,7 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
     setTimeout(() => {
       setLoading(false);
       Alert.alert('Muvaffaqiyat', `"${name}" ${isEdit ? 'yangilandi' : 'qo\'shildi'}`, [
-        { text: 'OK', onPress: () => { onSaved?.(); onClose(); } },
+        { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
       ]);
     }, 800);
   };
@@ -161,7 +164,7 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerBtn} onPress={onClose} activeOpacity={0.75}>
+        <TouchableOpacity style={styles.headerBtn} onPress={handleClose} activeOpacity={0.75}>
           <Ionicons name="arrow-back" size={20} color={C.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>

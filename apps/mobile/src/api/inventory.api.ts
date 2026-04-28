@@ -195,9 +195,9 @@ export const inventoryApi = {
       items: r.items?.map((item) => ({
         productId: item.productId,
         productName: item.productName ?? item.product?.name ?? '',
-        qty: item.quantity ?? item.qty,
+        qty: item.quantity ?? item.qty ?? 0,
         unit: item.unit ?? '',
-        costPrice: item.purchasePrice ?? item.costPrice,
+        costPrice: item.purchasePrice ?? item.costPrice ?? 0,
         batchNumber: item.batchNumber,
         expiryDate: item.expiryDate,
       })),

@@ -5,12 +5,23 @@ import {
   KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { C, fmt, type ShiftRecord } from './SmenaComponents';
+import { C, fmt } from './SmenaComponents';
+
+interface CloseSheetShift {
+  openingCash: number;
+  closingCash?: number | null;
+  cashAmount?: number;
+  totalRevenue?: number;
+  totalOrders?: number;
+  cardAmount?: number;
+  nasiyaAmount?: number;
+  expenses?: number;
+}
 
 interface Props {
   readonly visible: boolean;
   readonly loading: boolean;
-  readonly shift: ShiftRecord | null;
+  readonly shift: CloseSheetShift | null;
   readonly onClose: () => void;
   readonly onConfirm: (actualCash: number) => void;
 }
@@ -29,12 +40,12 @@ export default function SmenaCloseSheet({ visible, loading, shift, onClose, onCo
 
   useEffect(() => {
     if (visible && shift) {
-      setActualCash(String(shift.cashAmount));
+      setActualCash(String(shift.cashAmount ?? 0));
     }
   }, [visible, shift]);
 
   const actualNum = parseFloat(actualCash.replace(/\s/g, '')) || 0;
-  const expectedCash = shift ? shift.openingCash + shift.cashAmount - shift.expenses : 0;
+  const expectedCash = shift ? shift.openingCash + (shift.cashAmount ?? 0) - (shift.expenses ?? 0) : 0;
   const diff = actualNum - expectedCash;
   const diffColor = diff >= 0 ? C.green : C.red;
 
