@@ -198,21 +198,6 @@
 
 ---
 
----
-
----
-
-## T-395 | P1 | [MOBILE] | Staff app — Moliya tabi placeholder ko'rsatadi (9 ta ekran tayyor, routing ulanmagan)
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/Finance/`
-- **Muammo:** Moliya tabida faqat `[chart]` placeholder ko'rinadi. Lekin `screens/Finance/` da 9 ta tayyor ekran bor: `FinanceScreen.tsx`, `ReportsHubScreen.tsx`, `DailyRevenueScreen.tsx`, `ExpensesScreen.tsx`, `PnLScreen.tsx`, `TopProductsScreen.tsx`, `PaymentsHistoryScreen.tsx`, `NasiyaAgingScreen.tsx`, `ShiftReportsScreen.tsx`. TabNavigator da placeholder komponent ishlatilgan, haqiqiy ekranlarga routing ulanmagan.
-- **Kutilgan:** TabNavigator da Moliya tabi `FinanceNavigator` (stack) ga ulangan bo'lishi kerak — FinanceScreen (hub) dan boshqa ekranlarga navigatsiya
-- **Topildi:** Visual QA (iOS Simulator) + codebase tahlil — 2026-04-26
-
----
-
 ## T-396 | P2 | [MOBILE] | Staff app — Sozlamalar ekranida i18n key lari tarjima qilinmagan
 
 - **Sana:** 2026-04-26
@@ -265,17 +250,6 @@
 - **Muammo:** Web da `/finance/exchange-rates` sahifasi bor: USD/UZS va boshqa kurslar, kurs tarixi, qo'lda kurs kiritish, konvertatsiya. Mobile da bu funksiya yo'q.
 - **Kutilgan:** Valyuta kurslari ekrani Moliya bo'limida — joriy kurslar, kurs tarixi
 - **Topildi:** Web vs Mobile solishtirma — 2026-04-26
-
----
-
-## T-401 | P3 | [MOBILE] | Staff app — Ko'proq menusida Moliya va Nasiya disabled — routing ulanmagan
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Muammo:** Ko'proq menusida "Moliya" va "Nasiya" bandlari "Tez orada" badge bilan disabled holda. Moliya ekranlari tayyor (T-395), Nasiya esa Savdo stack ichida mavjud. Lekin Ko'proq menusidan ularga navigatsiya yo'q.
-- **Kutilgan:** Ko'proq menusidagi Moliya → FinanceScreen, Nasiya → NasiyaScreen ga navigatsiya ishlashi kerak
-- **Topildi:** Visual QA + codebase tahlil — 2026-04-26
 
 ---
 

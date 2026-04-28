@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-04-26
+# Yangilangan: 2026-04-27
 
 ---
 
@@ -10,6 +10,20 @@
 2. Format: T-raqam | sana | tur | qisqa yechim | fayl nomi
 3. Bu fayl FAQAT arxiv — o'chirmaslik, o'zgartirmaslik
 ```
+
+---
+
+## T-395 | DONE | [MOBILE] | Staff app — Moliya tabi FinanceNavigator ga ulandi
+- **Bajarildi:** 2026-04-27
+- **Yechim:** FinanceNavigator (9 screen) TabNavigator.tsx ga to'liq ulandi — FinanceScreen hub, DailyRevenue, Expenses, PnL, TopProducts, PaymentsHistory, NasiyaAging, ShiftReports, ReportsHub. Ko'proq menusidan Moliya/Nasiya navigatsiyasi ham ishlaydi.
+- **Fayllar:** apps/mobile/src/navigation/TabNavigator.tsx, apps/mobile/src/screens/Finance/*.tsx, apps/mobile/src/screens/MoreMenu/index.tsx
+
+---
+
+## T-401 | DONE | [MOBILE] | Ko'proq menusida Moliya va Nasiya navigatsiyasi ulandi
+- **Bajarildi:** 2026-04-27
+- **Yechim:** MoreMenu/index.tsx da handlePress orqali Moliya → tab navigation (getParent().navigate('Moliya')), Nasiya → Savdo stack (getParent().navigate('Savdo', {screen: 'NasiyaScreen'})). Badge olib tashlandi, chevron ko'rsatiladi.
+- **Fayllar:** apps/mobile/src/screens/MoreMenu/index.tsx
 
 ---
 
