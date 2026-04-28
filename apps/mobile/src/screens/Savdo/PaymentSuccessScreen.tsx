@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
   SafeAreaView,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -33,6 +35,51 @@ export default function PaymentSuccessScreen({ navigation, route }: Props) {
   const { items, paymentMethod, orderNumber } = route.params;
 
   const [countdown, setCountdown] = useState(COUNTDOWN_START);
+
+  const handlePrintReceipt = useCallback(async () => {
+    const TAX_RATE = 0.12;
+    const fmt = (n: number) =>
+      n.toLocaleString('uz-UZ', { minimumFractionDigits: 0 });
+
+    const subtotal = items.reduce(
+      (sum, ci) => sum + ci.product.sellPrice * ci.qty,
+      0,
+    );
+    const tax = subtotal * TAX_RATE;
+    const total = subtotal + tax;
+
+    const now = new Date();
+    const dateStr = `${now.getDate().toString().padStart(2, '0')}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    const lines = items.map((ci) => {
+      const lineTotal = ci.product.sellPrice * ci.qty;
+      return `${ci.product.name.slice(0, 20).padEnd(20)} ${ci.qty}x ${fmt(ci.product.sellPrice)} = ${fmt(lineTotal)}`;
+    });
+
+    const receipt = [
+      '================================',
+      '          RAOS — Chek          ',
+      '================================',
+      `Buyurtma: #${orderNumber}`,
+      `Sana: ${dateStr}`,
+      '--------------------------------',
+      ...lines,
+      '--------------------------------',
+      `Jami:           ${fmt(subtotal)} UZS`,
+      `QQS (12%):      ${fmt(tax)} UZS`,
+      `TO'LOV:         ${fmt(total)} UZS`,
+      '--------------------------------',
+      `To'lov usuli: ${paymentMethod}`,
+      '================================',
+      '         Rahmat!               ',
+    ].join('\n');
+
+    try {
+      await Share.share({ message: receipt, title: `Chek #${orderNumber}` });
+    } catch {
+      Alert.alert('Xatolik', 'Chekni ulashishda xatolik yuz berdi');
+    }
+  }, [items, orderNumber, paymentMethod]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -80,7 +127,7 @@ export default function PaymentSuccessScreen({ navigation, route }: Props) {
 
         <TouchableOpacity
           style={styles.printButton}
-          onPress={() => {}}
+          onPress={() => { void handlePrintReceipt(); }}
           activeOpacity={0.7}
         >
           <Text style={styles.printButtonText}>{t('payment.printReceipt')}</Text>
