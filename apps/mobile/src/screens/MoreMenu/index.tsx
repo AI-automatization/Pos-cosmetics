@@ -187,7 +187,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
       return;
     }
     if (item.title === 'Nasiya') {
-      navigation.getParent()?.navigate('Savdo', { screen: 'NasiyaScreen' });
+      navigation.getParent()?.navigate('Moliya', { screen: 'NasiyaAging' });
       return;
     }
 
