@@ -24,8 +24,8 @@ export default function SmenaOpenSheet({ visible, loading, onClose, onConfirm }:
   const cashNum = parseFloat(cash.replace(/\s/g, '')) || 0;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={loading ? undefined : onClose}>
+      <TouchableWithoutFeedback onPress={loading ? undefined : onClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
