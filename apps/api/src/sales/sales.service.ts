@@ -285,6 +285,9 @@ export class SalesService {
         totalRevenue,
         totalOrders,
         paymentBreakdown,
+        openingCash: Number(s.openingCash),
+        closingCash: s.closingCash !== null ? Number(s.closingCash) : null,
+        expectedCash: s.expectedCash !== null ? Number(s.expectedCash) : null,
       };
     });
 
@@ -314,6 +317,16 @@ export class SalesService {
             `${userRole} role uchun maksimal chegirma ${maxPct}% (so'ralgan: ${discountPct.toFixed(1)}%)`,
           );
         }
+      }
+
+      // Auto-resolve branchId from shift if not provided in DTO
+      let resolvedBranchId = dto.branchId;
+      if (!resolvedBranchId && dto.shiftId) {
+        const shift = await tx.shift.findUnique({
+          where: { id: dto.shiftId },
+          select: { branchId: true },
+        });
+        resolvedBranchId = shift?.branchId ?? undefined;
       }
 
       // Fetch products and validate
@@ -382,7 +395,7 @@ export class SalesService {
           tenantId,
           userId,
           shiftId: dto.shiftId,
-          branchId: dto.branchId,
+          branchId: resolvedBranchId,
           customerId: dto.customerId,
           orderNumber,
           status: OrderStatus.COMPLETED,

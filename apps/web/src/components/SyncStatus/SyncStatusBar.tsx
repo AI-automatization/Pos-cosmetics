@@ -3,7 +3,27 @@
 import { useEffect, useRef, useState } from 'react';
 import { Wifi, WifiOff, RefreshCw, Clock, AlertTriangle, X } from 'lucide-react';
 import { useSyncStore } from '@/store/sync.store';
+import { salesApi } from '@/api/sales.api';
 import { cn } from '@/lib/utils';
+import type { CreateOrderDto } from '@/types/sales';
+
+/** Sync pending offline orders to server when connection is restored */
+async function syncPendingOrders() {
+  const store = useSyncStore.getState();
+  const pending = store.getPendingOrders();
+  if (pending.length === 0) return;
+
+  store.setState('online-syncing');
+  for (const item of pending) {
+    try {
+      await salesApi.createOrder(item.payload as unknown as CreateOrderDto);
+      store.removePendingOrder(item.id);
+    } catch {
+      // Bu order yuborilmadi — keyingi urinishda qayta sinab ko'riladi
+    }
+  }
+  store.setState('online-synced');
+}
 
 /** Simulates online/offline detection + ping-based latency tracking */
 function useSyncMonitor() {
@@ -11,7 +31,10 @@ function useSyncMonitor() {
 
   useEffect(() => {
     // Online/offline listener
-    const handleOnline = () => setState('online-synced');
+    const handleOnline = () => {
+      setState('online-synced');
+      void syncPendingOrders();
+    };
     const handleOffline = () => setState('offline');
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -31,6 +54,7 @@ function useSyncMonitor() {
         } else {
           setState('online-synced');
           setPendingCount(0);
+          void syncPendingOrders();
         }
       } catch {
         setState('offline');
@@ -104,12 +128,13 @@ const STATUS_CONFIG = {
 export function SyncStatusBar() {
   useSyncMonitor();
 
-  const { state, pendingCount, pendingItems, lastSyncAt, latencyMs } = useSyncStore();
+  const { state, pendingCount, pendingItems, pendingOrders, lastSyncAt, latencyMs } = useSyncStore();
   const [showQueue, setShowQueue] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const cfg = STATUS_CONFIG[state];
   const Icon = cfg.icon;
+  const totalPending = pendingCount + pendingOrders.length;
 
   // Close popup on outside click
   useEffect(() => {
@@ -124,9 +149,9 @@ export function SyncStatusBar() {
 
   const label =
     state === 'online-syncing'
-      ? `Syncing (${pendingCount} pending)`
+      ? `Syncing (${totalPending} pending)`
       : state === 'offline'
-      ? `Offline — ${pendingCount} unsynced`
+      ? `Offline — ${totalPending} unsynced`
       : cfg.text;
 
   return (
@@ -192,6 +217,41 @@ export function SyncStatusBar() {
               <span>So'nggi sync: {formatTime(lastSyncAt)}</span>
             </div>
 
+            {/* Buyurmala: offline orders queue */}
+            {pendingOrders.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-2 text-xs font-medium text-amber-400">
+                  Buyurmala — offline savdolar ({pendingOrders.length})
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {pendingOrders.slice(0, 5).map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between rounded-lg bg-amber-900/20 border border-amber-900/40 px-3 py-2 text-xs"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="rounded px-1.5 py-0.5 text-xs font-mono bg-amber-900/50 text-amber-400">
+                          order
+                        </span>
+                        <span className="text-gray-300">{item.label}</span>
+                      </div>
+                      <span className="text-gray-600">
+                        {new Date(item.createdAt).toLocaleTimeString('uz-UZ', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                  {pendingOrders.length > 5 && (
+                    <p className="text-center text-xs text-gray-600">
+                      +{pendingOrders.length - 5} ta boshqa
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Pending queue */}
             {pendingCount > 0 ? (
               <>
@@ -234,13 +294,13 @@ export function SyncStatusBar() {
                   )}
                 </div>
               </>
-            ) : (
+            ) : pendingOrders.length === 0 ? (
               <div className="rounded-lg bg-gray-800/50 px-3 py-3 text-center text-xs text-gray-500">
                 {state === 'offline'
                   ? 'Internet ulanishi yo\'q — savdolar lokal saqlanmoqda'
                   : 'Barcha ma\'lumotlar serverga yuborilgan ✓'}
               </div>
-            )}
+            ) : null}
 
             {/* Auto-retry */}
             {state !== 'online-synced' && (

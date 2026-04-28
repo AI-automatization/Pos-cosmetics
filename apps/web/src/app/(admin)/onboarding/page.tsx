@@ -198,6 +198,15 @@ export default function OnboardingPage() {
         <p className="mt-6 text-center text-xs text-gray-400">
           Istalgan vaqtda o'tkazib yuborish mumkin. Sozlamalar &gt; Onboarding orqali qaytib kelishingiz mumkin.
         </p>
+
+        {/* Demo warning */}
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-semibold text-amber-800">Demo rejim</p>
+          <p className="mt-0.5 text-xs text-amber-700">
+            Bu hisob sinov uchun yaratilgan. Haqiqiy savdo va ma'lumotlarni ishlatishdan oldin
+            administrator bilan bog'laning va to'liq versiyaga o'ting.
+          </p>
+        </div>
       </div>
     </div>
   );

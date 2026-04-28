@@ -6,6 +6,7 @@ import { salesApi } from '@/api/sales.api';
 import { inventoryApi } from '@/api/inventory.api';
 import { extractErrorMessage } from '@/lib/utils';
 import { usePOSStore } from '@/store/pos.store';
+import { useSyncStore } from '@/store/sync.store';
 import { useLoyaltyConfig } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import type { Order } from '@/types/sales';
@@ -15,6 +16,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
   const cart = store.carts[store.activeCartId];
   const { items, orderDiscount, orderDiscountType, paymentMethod, cashAmount, cardAmount, bonusPoints, splitNasiyaAmount, selectedCustomer } = cart;
   const { shiftId, totals, clearCart, recordSale } = store;
+  const { addPendingOrder } = useSyncStore();
   const { data: loyaltyConfig } = useLoyaltyConfig();
   const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
 
@@ -48,7 +50,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         paymentMethod === 'bonus' ||
         (paymentMethod === 'split' && (splitNasiyaAmount > 0 || bonusPoints > 0));
 
-      return salesApi.createOrder({
+      const orderPayload = {
         shiftId: shiftId ?? '',
         items: items.map((item) => ({
           productId: item.productId,
@@ -61,7 +63,27 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         payments,
         ...(needsCustomer && selectedCustomer ? { customerId: selectedCustomer.id } : {}),
         ...(bonusPoints > 0 ? { bonusPoints } : {}),
-      });
+      };
+
+      // Offline fallback: queue order in localStorage
+      if (!navigator.onLine) {
+        const label = `${items.length} ta mahsulot — ${total.toLocaleString()} so'm`;
+        addPendingOrder({
+          id: crypto.randomUUID(),
+          label,
+          createdAt: new Date().toISOString(),
+          payload: orderPayload as Record<string, unknown>,
+        });
+        const { total: totalAmt } = totals();
+        const cash = paymentMethod === 'cash' ? totalAmt : paymentMethod === 'split' ? cashAmount : 0;
+        const card = paymentMethod === 'card' ? totalAmt : paymentMethod === 'split' ? cardAmount : 0;
+        recordSale(totalAmt, cash, card);
+        clearCart();
+        toast.warning("Internet yo'q — order Buyurmalaga saqlandi. Ulanish tiklanganda avtomatik yuboriladi.", { duration: 6000 });
+        return Promise.resolve({} as Order);
+      }
+
+      return salesApi.createOrder(orderPayload);
     },
     onSuccess: (order) => {
       // Snapshot items BEFORE clearing — currentStock saqlangan
