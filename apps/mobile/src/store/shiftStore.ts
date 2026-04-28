@@ -14,14 +14,26 @@ export const useShiftStore = create<ShiftState>((set, get) => ({
   shiftId: null,
 
   openShift: async (openingCash = 0) => {
-    const shift = await salesApi.openShiftApi({ openingCash });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Ulanish vaqti tugadi. Internetni tekshiring.')), 15_000),
+    );
+    const shift = await Promise.race([
+      salesApi.openShiftApi({ openingCash }),
+      timeoutPromise,
+    ]);
     set({ isShiftOpen: true, shiftId: shift.id });
   },
 
   closeShift: async (closingCash = 0) => {
     const { shiftId } = get();
     if (!shiftId) return;
-    await salesApi.closeShiftApi(shiftId, { closingCash });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Ulanish vaqti tugadi. Internetni tekshiring.')), 15_000),
+    );
+    await Promise.race([
+      salesApi.closeShiftApi(shiftId, { closingCash }),
+      timeoutPromise,
+    ]);
     set({ isShiftOpen: false, shiftId: null });
   },
 
