@@ -81,6 +81,7 @@ export type RootStackParamList = {
 export type DashboardStackParamList = {
   DashboardMain: undefined;
   BranchDetail: { branchId: string; branchName: string };
+  NotificationsScreen: undefined;
 };
 
 export type InventoryStackParamList = {

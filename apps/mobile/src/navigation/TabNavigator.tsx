@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MoreStackParamList } from './types';
 
-// Existing screens
-import DashboardScreen from '../screens/Dashboard';
+// Navigators
+import DashboardNavigator from './DashboardNavigator';
 import SavdoScreen from '../screens/Savdo';
 import SmenaScreen from '../screens/Smena';
 import SalesNavigator from './SalesNavigator';
@@ -139,10 +139,10 @@ export default function TabNavigator(): React.JSX.Element {
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
-      {/* Tab 1: Bosh sahifa */}
+      {/* Tab 1: Bosh sahifa — DashboardNavigator (Dashboard + Notifications) */}
       <Tab.Screen
         name="BoshSahifa"
-        component={DashboardScreen}
+        component={DashboardNavigator}
         options={{
           tabBarLabel: 'Bosh sahifa',
           tabBarIcon: ({ focused, color }) =>

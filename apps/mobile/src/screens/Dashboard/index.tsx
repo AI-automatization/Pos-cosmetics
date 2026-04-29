@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { DashboardStackParamList, TabParamList } from '../../navigation/types';
+import { alertsApi } from '../../api/alerts.api';
 import { useDashboardData } from './useDashboardData';
 import ActiveShiftCard from './ActiveShiftCard';
 import RevenueCard from './RevenueCard';
@@ -22,6 +27,11 @@ import { formatCompact } from '../../utils/currency';
 import { useShiftStore } from '../../store/shiftStore';
 import SmenaOpenSheet from '../Smena/SmenaOpenSheet';
 import SmenaCloseSheet from '../Smena/SmenaCloseSheet';
+
+type DashboardNavProp = CompositeNavigationProp<
+  NativeStackNavigationProp<DashboardStackParamList>,
+  BottomTabNavigationProp<TabParamList>
+>;
 
 const PRIMARY = '#2563EB';
 const PRIMARY_LIGHT = '#EFF6FF';
@@ -60,7 +70,7 @@ function QuickAction({ icon, label, color, bg, onPress }: QuickActionProps) {
 }
 
 export default function DashboardScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<DashboardNavProp>();
   const {
     todaySummary,
     weeklyRevenue,
@@ -76,6 +86,21 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(false);
   const [openSheetVisible, setOpenSheetVisible] = useState(false);
   const [closeSheetVisible, setCloseSheetVisible] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    alertsApi.getActive().then((alerts) => {
+      if (!cancelled) {
+        setUnreadCount(alerts.filter((a) => !a.isRead).length);
+      }
+    }).catch(() => {
+      // Silent fail — badge siz ishlashda davom etadi
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const shift = currentShift.data ?? null;
   const summary = todaySummary.data;
@@ -131,8 +156,19 @@ export default function DashboardScreen() {
           <Text style={styles.headerTitle}>Bosh sahifa</Text>
           <Text style={styles.headerDate}>{formatUzbekDate()}</Text>
         </View>
-        <TouchableOpacity style={styles.bellBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.bellBtn}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('NotificationsScreen')}
+        >
           <Ionicons name="notifications-outline" size={24} color="#374151" />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {unreadCount > 99 ? '99+' : String(unreadCount)}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -326,6 +362,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
   },
 
   // Scroll
