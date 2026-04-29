@@ -75,6 +75,7 @@ interface POSState {
   openShift: (shiftId: string, cashierName: string, openingCash: number) => void;
   closeShift: () => void;
   recordSale: (revenue: number, cashRevenue: number, cardRevenue: number) => void;
+  recordReturn: (total: number, refundMethod: 'CASH' | 'TERMINAL') => void;
   incrementSalesCount: () => void;
 }
 
@@ -82,6 +83,7 @@ const DEFAULT_SHIFT_TOTALS: ShiftTotals = {
   revenue: 0,
   cashRevenue: 0,
   cardRevenue: 0,
+  cashReturned: 0,
 };
 
 // ─── Helper: patch active cart ────────────────────────────────────────────────
@@ -245,9 +247,21 @@ export const usePOSStore = create<POSState>()(
         set((s) => ({
           salesCount: s.salesCount + 1,
           shiftTotals: {
+            ...s.shiftTotals,
             revenue: s.shiftTotals.revenue + revenue,
             cashRevenue: s.shiftTotals.cashRevenue + cashRevenue,
             cardRevenue: s.shiftTotals.cardRevenue + cardRevenue,
+          },
+        })),
+
+      recordReturn: (total, refundMethod) =>
+        set((s) => ({
+          shiftTotals: {
+            ...s.shiftTotals,
+            cashReturned:
+              refundMethod === 'CASH'
+                ? s.shiftTotals.cashReturned + total
+                : s.shiftTotals.cashReturned,
           },
         })),
 
@@ -255,7 +269,7 @@ export const usePOSStore = create<POSState>()(
     }),
     {
       name: 'raos-pos-store',
-      version: 3,
+      version: 4,
       // skipHydration: server renders with default state (matching client initial render) → no #418.
       // POSPage calls usePOSStore.persist.rehydrate() in useEffect to load from localStorage.
       skipHydration: true,
@@ -288,6 +302,14 @@ export const usePOSStore = create<POSState>()(
             Object.values(s.carts).forEach((cart) => {
               if (cart.splitNasiyaAmount === undefined) cart.splitNasiyaAmount = 0;
             });
+          }
+          return s;
+        }
+        if (version < 4) {
+          // Add cashReturned to existing shiftTotals
+          const s = persistedState as { shiftTotals?: Record<string, unknown> };
+          if (s.shiftTotals && s.shiftTotals.cashReturned === undefined) {
+            s.shiftTotals.cashReturned = 0;
           }
           return s;
         }

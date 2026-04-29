@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 export interface POSKeyboardHandlers {
   onF1?: () => void;  // Search focus
+  onF4?: () => void;  // Return/Refund
   onF5?: () => void;  // Cash payment
   onF6?: () => void;  // Card payment
   onF7?: () => void;  // Split payment
@@ -25,6 +26,7 @@ export function usePOSKeyboard(handlers: POSKeyboardHandlers) {
       if (!isFKey && e.key !== 'Escape') return;
       switch (e.key) {
         case 'F1':  e.preventDefault(); handlersRef.current.onF1?.(); break;
+        case 'F4':  e.preventDefault(); handlersRef.current.onF4?.(); break;
         case 'F5':  e.preventDefault(); handlersRef.current.onF5?.(); break;
         case 'F6':  e.preventDefault(); handlersRef.current.onF6?.(); break;
         case 'F7':  e.preventDefault(); handlersRef.current.onF7?.(); break;

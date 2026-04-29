@@ -9,6 +9,7 @@ import { PaymentPanel } from './PaymentPanel';
 import { ReceiptPreview } from './ReceiptPreview';
 import { ShiftOpenModal } from './shift/ShiftOpenModal';
 import { ShiftCloseModal } from './shift/ShiftCloseModal';
+import { ReturnModal } from './ReturnModal';
 import { usePOSKeyboard } from '@/hooks/pos/usePOSKeyboard';
 import { usePOSStore } from '@/store/pos.store';
 import type { CartState } from '@/store/pos.store';
@@ -141,6 +142,7 @@ export default function POSPage() {
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [lastChange, setLastChange] = useState(0);
   const [showCloseShift, setShowCloseShift] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('products');
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -182,12 +184,15 @@ export default function POSPage() {
 
   usePOSKeyboard({
     onF1: focusSearch,
+    onF4: () => { if (store.shiftId) setShowReturnModal(true); },
     onF5: () => store.setPaymentMethod('cash'),
     onF6: () => store.setPaymentMethod('card'),
     onF7: () => store.setPaymentMethod('split'),
     onF8: () => store.setPaymentMethod('nasiya'),
     onEsc: () => {
-      if (completedOrder) {
+      if (showReturnModal) {
+        setShowReturnModal(false);
+      } else if (completedOrder) {
         setCompletedOrder(null);
       } else if (showCloseShift) {
         setShowCloseShift(false);
@@ -212,7 +217,10 @@ export default function POSPage() {
   return (
     <>
       {/* Top shift bar */}
-      <ShiftBar onCloseShift={() => setShowCloseShift(true)} />
+      <ShiftBar
+        onCloseShift={() => setShowCloseShift(true)}
+        onOpenReturn={() => setShowReturnModal(true)}
+      />
 
       {/* T-066: Cart recovery banner */}
       {showRecovery && (
@@ -243,6 +251,7 @@ export default function POSPage() {
       <div className="hidden shrink-0 items-center gap-4 bg-gray-800 px-4 py-1.5 text-xs text-gray-400 lg:flex">
         {[
           ['F1', 'Qidirish'],
+          ['F4', 'Qaytarish'],
           ['F5', 'Naqd'],
           ['F6', 'Karta'],
           ['F7', 'Aralash'],
@@ -314,6 +323,14 @@ export default function POSPage() {
         <ShiftCloseModal
           onClose={() => setShowCloseShift(false)}
           onClosed={() => setShowCloseShift(false)}
+        />
+      )}
+
+      {/* Return modal */}
+      {showReturnModal && (
+        <ReturnModal
+          onClose={() => setShowReturnModal(false)}
+          onReturnComplete={() => setShowReturnModal(false)}
         />
       )}
 

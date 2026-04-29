@@ -98,6 +98,49 @@ export class SalesService {
     return updated;
   }
 
+  async getShiftAvailableCash(tenantId: string, shiftId: string): Promise<{ availableCash: number; shiftId: string }> {
+    const shift = await this.prisma.shift.findFirst({
+      where: { id: shiftId, tenantId, status: ShiftStatus.OPEN },
+      select: { openingCash: true },
+    });
+    if (!shift) throw new NotFoundException(`Open shift ${shiftId} not found`);
+
+    const [cashSales, cashReturns] = await Promise.all([
+      this.prisma.paymentIntent.aggregate({
+        where: { tenantId, order: { shiftId }, method: 'CASH', status: 'SETTLED' },
+        _sum: { amount: true },
+      }),
+      this.prisma.return.aggregate({
+        where: { tenantId, order: { shiftId }, refundMethod: 'CASH', status: ReturnStatus.APPROVED },
+        _sum: { total: true },
+      }),
+    ]);
+
+    const availableCash =
+      Number(shift.openingCash) +
+      Number(cashSales._sum.amount ?? 0) -
+      Number(cashReturns._sum.total ?? 0);
+
+    this.logger.log(`Available cash for shift ${shiftId}: ${availableCash}`, { tenantId });
+    return { availableCash, shiftId };
+  }
+
+  async getOrderByNumber(tenantId: string, orderNumber: number) {
+    const order = await this.prisma.order.findFirst({
+      where: { tenantId, orderNumber },
+      include: {
+        items: {
+          include: { product: { select: { id: true, name: true } } },
+        },
+        paymentIntents: { where: { status: 'SETTLED' }, select: { method: true, amount: true } },
+        customer: { select: { id: true, name: true, phone: true } },
+        user: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+    if (!order) throw new NotFoundException(`Order #${orderNumber} not found`);
+    return order;
+  }
+
   async getCurrentShift(tenantId: string, userId: string) {
     const shift = await this.prisma.shift.findFirst({
       where: { tenantId, userId, status: ShiftStatus.OPEN },
@@ -529,6 +572,40 @@ export class SalesService {
 
       const total = returnItemsData.reduce((s, i) => s + i.amount, 0);
 
+      // ── POS cash return: check balance + auto-approve ──────────
+      let initialStatus: ReturnStatus = ReturnStatus.PENDING;
+      let approvedBy: string | undefined;
+
+      if (dto.refundMethod === 'CASH' && order.shiftId) {
+        const [cashSales, cashReturns, shift] = await Promise.all([
+          tx.paymentIntent.aggregate({
+            where: { tenantId, order: { shiftId: order.shiftId }, method: 'CASH', status: 'SETTLED' },
+            _sum: { amount: true },
+          }),
+          tx.return.aggregate({
+            where: { tenantId, order: { shiftId: order.shiftId }, refundMethod: 'CASH', status: ReturnStatus.APPROVED },
+            _sum: { total: true },
+          }),
+          tx.shift.findUnique({ where: { id: order.shiftId }, select: { openingCash: true } }),
+        ]);
+
+        const availableCash =
+          Number(shift?.openingCash ?? 0) +
+          Number(cashSales._sum.amount ?? 0) -
+          Number(cashReturns._sum.total ?? 0);
+
+        if (availableCash >= total) {
+          initialStatus = ReturnStatus.APPROVED;
+          approvedBy = userId;
+        } else {
+          throw new BadRequestException(
+            `INSUFFICIENT_CASH:${Math.round(availableCash)}:${Math.round(total)}`,
+          );
+        }
+      }
+      // TERMINAL → always PENDING (bank reversal)
+      // refundMethod undefined → always PENDING (admin path, backward compat)
+
       const ret = await tx.return.create({
         data: {
           tenantId,
@@ -536,7 +613,9 @@ export class SalesService {
           userId,
           reason: dto.reason,
           total,
-          status: ReturnStatus.PENDING,
+          refundMethod: dto.refundMethod,
+          status: initialStatus,
+          ...(approvedBy ? { approvedBy } : {}),
           items: { create: returnItemsData },
         },
         include: { items: true },
@@ -546,12 +625,23 @@ export class SalesService {
         tenantId,
         returnId: ret.id,
         orderId: dto.orderId,
+        refundMethod: dto.refundMethod,
+        status: initialStatus,
         items: returnItemsData,
       });
 
-      this.logger.log(`Return created: ${ret.id}`, {
+      if (initialStatus === ReturnStatus.APPROVED) {
+        this.eventEmitter.emit('return.approved', {
+          tenantId,
+          returnId: ret.id,
+          items: returnItemsData,
+        });
+      }
+
+      this.logger.log(`Return created: ${ret.id} status=${initialStatus}`, {
         tenantId,
         returnId: ret.id,
+        refundMethod: dto.refundMethod,
       });
       return ret;
     });

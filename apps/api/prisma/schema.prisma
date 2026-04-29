@@ -545,11 +545,12 @@ model Return {
   tenantId   String       @map("tenant_id")
   orderId    String       @map("order_id")
   userId     String       @map("user_id")
-  reason     String?
-  total      Decimal      @db.Decimal(15, 2)
-  status     ReturnStatus @default(PENDING)
-  approvedBy String?      @map("approved_by")
-  createdAt  DateTime     @default(now()) @map("created_at")
+  reason       String?
+  total        Decimal       @db.Decimal(15, 2)
+  status       ReturnStatus  @default(PENDING)
+  approvedBy   String?       @map("approved_by")
+  refundMethod PaymentMethod? @map("refund_method")
+  createdAt    DateTime      @default(now()) @map("created_at")
 
   tenant Tenant       @relation(fields: [tenantId], references: [id])
   order  Order        @relation(fields: [orderId], references: [id])

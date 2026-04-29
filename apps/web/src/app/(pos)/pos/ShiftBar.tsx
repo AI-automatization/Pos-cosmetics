@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, ShoppingBag, User, ArrowLeft, LogOut, Archive } from 'lucide-react';
+import { Clock, ShoppingBag, User, ArrowLeft, LogOut, Archive, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { usePOSStore } from '@/store/pos.store';
 import { useEffect, useState } from 'react';
@@ -37,9 +37,10 @@ function useShiftClock(openedAt: Date | string | null) {
 
 interface ShiftBarProps {
   onCloseShift: () => void;
+  onOpenReturn?: () => void;
 }
 
-export function ShiftBar({ onCloseShift }: ShiftBarProps) {
+export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
   const { cashierName, shiftOpenedAt, salesCount, shiftId } = usePOSStore();
   const elapsed = useShiftClock(shiftOpenedAt);
 
@@ -90,6 +91,19 @@ export function ShiftBar({ onCloseShift }: ShiftBarProps) {
           <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
             Smena ochilmagan
           </span>
+        )}
+
+        {shiftId && onOpenReturn && (
+          <button
+            type="button"
+            onClick={onOpenReturn}
+            className="flex items-center gap-1.5 rounded-lg border border-orange-800 px-3 py-1 text-xs font-medium text-orange-400 transition hover:border-orange-600 hover:bg-orange-900/30 hover:text-orange-300"
+            title="Qaytarish (F4)"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Qaytarish
+            <kbd className="rounded bg-gray-700 px-1 py-0.5 font-mono text-[10px] text-gray-400">F4</kbd>
+          </button>
         )}
 
         {shiftId && isCashDrawerEnabled() && (
