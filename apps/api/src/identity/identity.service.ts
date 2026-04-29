@@ -344,7 +344,9 @@ export class IdentityService {
     const tokens = await this.login(dto);
     // Login muvaffaqiyatli bo'lgandan keyin session yaratish
     // JWT dan userId/tenantId olish uchun tenantni qayta topamiz
-    const tenant = await this.prisma.tenant.findUnique({ where: { slug: dto.slug } });
+    const tenant = dto.slug
+      ? await this.prisma.tenant.findUnique({ where: { slug: dto.slug } })
+      : null;
     if (tenant) {
       const loginEmail = dto.email ?? dto.login ?? '';
       const user = await this.prisma.user.findUnique({
