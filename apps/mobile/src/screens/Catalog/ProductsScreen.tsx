@@ -12,9 +12,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { catalogApi, type CatalogProduct, type CatalogCategory } from '../../api/catalog.api';
 import SearchBar from '../../components/common/SearchBar';
+import { useAuthStore } from '../../store/auth.store';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -115,10 +116,18 @@ function ProductListCard({
 }
 
 // ─── ProductsScreen ────────────────────────────────────
+const DELETABLE_ROLES = ['OWNER', 'ADMIN', 'MANAGER'] as const;
+
 export default function ProductsScreen() {
   const [search, setSearch]           = useState('');
   const [categoryId, setCategoryId]   = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('ALL');
+
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const canDelete = DELETABLE_ROLES.includes(
+    (user?.role ?? '') as typeof DELETABLE_ROLES[number],
+  );
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['catalog-products'],
@@ -161,10 +170,30 @@ export default function ProductsScreen() {
   };
 
   const handleDelete = (p: CatalogProduct) => {
-    Alert.alert('O\'chirish', `"${p.name}" o'chirilsinmi?`, [
-      { text: 'Bekor', style: 'cancel' },
-      { text: "O'chirish", style: 'destructive', onPress: () => {} },
-    ]);
+    if (!canDelete) {
+      Alert.alert('Ruxsat yo\'q', 'Mahsulot o\'chirish uchun admin ruxsati kerak.');
+      return;
+    }
+    Alert.alert(
+      'O\'chirish',
+      `"${p.name}" o'chirilsinmi? Bu amalni qaytarib bo'lmaydi.`,
+      [
+        { text: 'Bekor', style: 'cancel' },
+        {
+          text: "O'chirish",
+          style: 'destructive',
+          onPress: () => {
+            catalogApi.deleteProduct(p.id)
+              .then(() => {
+                void queryClient.invalidateQueries({ queryKey: ['catalog-products'] });
+              })
+              .catch(() => {
+                Alert.alert('Xatolik', 'Mahsulotni o\'chirishda xatolik yuz berdi.');
+              });
+          },
+        },
+      ],
+    );
   };
 
   return (

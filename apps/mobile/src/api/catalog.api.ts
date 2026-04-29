@@ -66,4 +66,8 @@ export const catalogApi = {
     const { data } = await api.get<CatalogCategory[]>('/catalog/categories');
     return Array.isArray(data) ? data : [];
   },
+
+  deleteProduct: async (id: string): Promise<void> => {
+    await api.delete(`/catalog/products/${id}`);
+  },
 };
