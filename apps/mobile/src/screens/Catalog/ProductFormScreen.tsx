@@ -14,9 +14,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
-import { catalogApi, type CatalogProduct, type CatalogCategory } from '../../api/catalog.api';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { catalogApi, type CatalogProduct, type CatalogCategory, type CreateProductDto } from '../../api/catalog.api';
+import type { CatalogStackParamList } from '../../navigation/types';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -29,6 +31,10 @@ const C = {
   green:   '#16A34A',
   red:     '#DC2626',
 };
+
+// ─── Navigation types ──────────────────────────────────
+type RouteProps = RouteProp<CatalogStackParamList, 'ProductForm'>;
+type NavProp = NativeStackNavigationProp<CatalogStackParamList>;
 
 // ─── Props ─────────────────────────────────────────────
 interface Props {
@@ -98,9 +104,11 @@ function Input({
 
 // ─── Main Component ────────────────────────────────────
 export default function ProductFormScreen({ product, onClose, onSaved }: Props) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavProp>();
+  const route = useRoute<RouteProps>();
+  const routeProductId = route.params?.productId;
   const handleClose = onClose ?? (() => navigation.goBack());
-  const isEdit = !!product;
+  const isEdit = !!(product ?? routeProductId);
 
   const [name, setName]               = useState(product?.name ?? '');
   const [sku, setSku]                 = useState(product?.sku ?? '');
@@ -112,6 +120,8 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
   const [barcode, setBarcode]         = useState(product?.barcode ?? '');
   const [isActive, setIsActive]       = useState(product?.isActive ?? true);
   const [loading, setLoading]         = useState(false);
+
+  const queryClient = useQueryClient();
 
   const { data: categories = [] } = useQuery({
     queryKey: ['catalog-categories'],
@@ -134,15 +144,32 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
   const canSave = name.trim().length > 0 && sellNum > 0;
 
   const handleSave = () => {
-    if (!canSave) return;
+    if (!canSave || isEdit) return;
     setLoading(true);
-    // API call placeholder
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert('Muvaffaqiyat', `"${name}" ${isEdit ? 'yangilandi' : 'qo\'shildi'}`, [
-        { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
-      ]);
-    }, 800);
+
+    const dto: CreateProductDto = {
+      name: name.trim(),
+      sku: sku.trim() || undefined,
+      categoryId: categoryId || undefined,
+      costPrice: costNum,
+      sellPrice: sellNum,
+      minStockLevel: parseInt(minStock, 10) || 0,
+      barcode: barcode.trim() || undefined,
+      isActive,
+      description: description.trim() || undefined,
+    };
+
+    catalogApi.createProduct(dto)
+      .then(() => {
+        void queryClient.invalidateQueries({ queryKey: ['catalog-products'] });
+        Alert.alert('Muvaffaqiyat', `"${name}" qo'shildi`, [
+          { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
+        ]);
+      })
+      .catch(() => {
+        Alert.alert('Xatolik', 'Mahsulot qo\'shishda xatolik yuz berdi.');
+      })
+      .finally(() => setLoading(false));
   };
 
   const handleCategoryPick = () => {

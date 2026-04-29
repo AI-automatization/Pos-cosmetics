@@ -46,6 +46,18 @@ export interface ProductsFilter {
   limit?: number;
 }
 
+export interface CreateProductDto {
+  name: string;
+  sku?: string;
+  categoryId?: string;
+  costPrice: number;
+  sellPrice: number;
+  minStockLevel?: number;
+  barcode?: string;
+  isActive: boolean;
+  description?: string;
+}
+
 export const catalogApi = {
   getByBarcode: async (barcode: string): Promise<ProductInfo> => {
     const { data } = await api.get<ProductInfo>(
@@ -69,5 +81,10 @@ export const catalogApi = {
 
   deleteProduct: async (id: string): Promise<void> => {
     await api.delete(`/catalog/products/${id}`);
+  },
+
+  createProduct: async (dto: CreateProductDto): Promise<CatalogProduct> => {
+    const { data } = await api.post<CatalogProduct>('/catalog/products', dto);
+    return data;
   },
 };

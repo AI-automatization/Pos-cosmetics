@@ -13,9 +13,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { catalogApi, type CatalogProduct, type CatalogCategory } from '../../api/catalog.api';
 import SearchBar from '../../components/common/SearchBar';
 import { useAuthStore } from '../../store/auth.store';
+import type { CatalogStackParamList } from '../../navigation/types';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -115,6 +118,9 @@ function ProductListCard({
   );
 }
 
+// ─── Types ─────────────────────────────────────────────
+type CatalogNavProp = NativeStackNavigationProp<CatalogStackParamList>;
+
 // ─── ProductsScreen ────────────────────────────────────
 const DELETABLE_ROLES = ['OWNER', 'ADMIN', 'MANAGER'] as const;
 
@@ -123,6 +129,7 @@ export default function ProductsScreen() {
   const [categoryId, setCategoryId]   = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('ALL');
 
+  const navigation = useNavigation<CatalogNavProp>();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const canDelete = DELETABLE_ROLES.includes(
@@ -299,7 +306,7 @@ export default function ProductsScreen() {
       <TouchableOpacity
         style={styles.fab}
         activeOpacity={0.85}
-        onPress={() => Alert.alert('Yangi mahsulot', 'ProductFormScreen (tez orada)')}
+        onPress={() => navigation.navigate('ProductForm', undefined)}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
