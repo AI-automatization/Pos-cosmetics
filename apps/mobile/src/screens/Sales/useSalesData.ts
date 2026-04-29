@@ -4,14 +4,14 @@ import { todayISO } from '../../utils/date';
 import { CONFIG } from '../../config';
 import { useShiftStore } from '../../store/shiftStore';
 
-export function useSalesData() {
-  const today = todayISO();
+export function useSalesData(from: string, to: string) {
   const { shiftId, isShiftOpen } = useShiftStore();
 
   const orders = useQuery({
-    queryKey: ['sales', 'orders', today],
-    queryFn: () => salesApi.getOrders({ from: today, to: today, limit: 50 }),
+    queryKey: ['sales', 'orders', from, to],
+    queryFn: () => salesApi.getOrders({ from, to, limit: 50 }),
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    staleTime: 30_000,
   });
 
   const shiftDetail = useQuery({
@@ -22,4 +22,10 @@ export function useSalesData() {
   });
 
   return { orders, shiftDetail };
+}
+
+// Default export uchun today range — backward compat kerak bo'lsa
+export function useSalesDataToday() {
+  const today = todayISO();
+  return useSalesData(today, today);
 }

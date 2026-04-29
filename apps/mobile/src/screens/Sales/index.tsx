@@ -19,6 +19,8 @@ import type { Sale } from './SalesTypes';
 import SaleRow from './SaleRow';
 import SaleDetailModal from './SaleDetailModal';
 import SalesListHeader from './SalesListHeader';
+import DateRangeSheet, { type DateRange } from './DateRangeSheet';
+import { todayISO } from '../../utils/date';
 
 // ─── Filter config ─────────────────────────────────────────────
 type FilterKey = 'ALL' | OrderStatus;
@@ -41,10 +43,18 @@ function EmptyState() {
 }
 
 // ─── SalesScreen ──────────────────────────────────────────────
+const DEFAULT_RANGE: DateRange = {
+  from: todayISO(),
+  to: todayISO(),
+  label: 'Bugun',
+};
+
 export default function SalesScreen() {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [filter, setFilter] = useState<FilterKey>('ALL');
-  const { orders, shiftDetail } = useSalesData();
+  const [dateRange, setDateRange] = useState<DateRange>(DEFAULT_RANGE);
+  const [dateSheetVisible, setDateSheetVisible] = useState(false);
+  const { orders, shiftDetail } = useSalesData(dateRange.from, dateRange.to);
   const { user } = useAuthStore();
   const { isShiftOpen } = useShiftStore();
 
@@ -91,8 +101,13 @@ export default function SalesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Buyurtmalar tarixi</Text>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Ionicons name="calendar-outline" size={22} color={C.text} />
+        <TouchableOpacity
+          style={styles.headerCalendarBtn}
+          onPress={() => setDateSheetVisible(true)}
+          activeOpacity={0.75}
+        >
+          <Ionicons name="calendar-outline" size={16} color={C.primary} />
+          <Text style={styles.headerCalendarLabel}>{dateRange.label}</Text>
         </TouchableOpacity>
       </View>
 
@@ -143,6 +158,13 @@ export default function SalesScreen() {
         sale={selectedSale}
         onClose={() => setSelectedSale(null)}
       />
+
+      <DateRangeSheet
+        visible={dateSheetVisible}
+        selected={dateRange}
+        onClose={() => setDateSheetVisible(false)}
+        onSelect={setDateRange}
+      />
     </SafeAreaView>
   );
 }
@@ -171,13 +193,21 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: C.text,
   },
-  headerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: C.bg,
+  headerCalendarBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  headerCalendarLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.primary,
   },
   filterScroll: {
     flexGrow: 0,
