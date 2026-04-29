@@ -166,8 +166,13 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
           { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
         ]);
       })
-      .catch(() => {
-        Alert.alert('Xatolik', 'Mahsulot qo\'shishda xatolik yuz berdi.');
+      .catch((err: unknown) => {
+        const msg =
+          (err as { response?: { data?: { message?: string } } })
+            ?.response?.data?.message ??
+          'Mahsulot qo\'shishda xatolik yuz berdi.';
+        const text = Array.isArray(msg) ? (msg as string[]).join('\n') : String(msg);
+        Alert.alert('Xatolik', text);
       })
       .finally(() => setLoading(false));
   };
