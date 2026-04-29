@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { salesApi, type ShiftDetail } from '../../api/sales.api';
+import ErrorView from '@/components/common/ErrorView';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -163,7 +164,7 @@ interface Props {
 export default function ShiftReportsScreen({ onClose }: Props) {
   const [period, setPeriod] = useState<PeriodKey>('30d');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['shifts-list'],
     queryFn: () => salesApi.getShifts(1, 100),
     staleTime: 3 * 60_000,
@@ -184,6 +185,8 @@ export default function ShiftReportsScreen({ onClose }: Props) {
   const totalRevenue = filtered.reduce((s, x) => s + (x.totalRevenue ?? 0), 0);
   const totalOrders  = filtered.reduce((s, x) => s + (x.totalOrders  ?? 0), 0);
   const closedCount  = filtered.filter((s) => s.status === 'CLOSED').length;
+
+  if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

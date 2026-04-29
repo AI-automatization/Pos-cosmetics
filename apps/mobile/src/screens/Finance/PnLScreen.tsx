@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../../api/reports.api';
+import ErrorView from '@/components/common/ErrorView';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -156,7 +157,7 @@ export default function PnLScreen({ onClose }: Props) {
 
   const { from, to } = useMemo(() => getPeriodDates(period), [period]);
 
-  const { data: summary, isLoading } = useQuery({
+  const { data: summary, isLoading, error, refetch } = useQuery({
     queryKey: ['sales-summary', from, to],
     queryFn: () => reportsApi.getSalesSummary(from, to),
     staleTime: 5 * 60_000,
@@ -221,6 +222,12 @@ export default function PnLScreen({ onClose }: Props) {
 
         {isLoading ? (
           <ActivityIndicator size="large" color={C.primary} style={styles.loader} />
+        ) : error ? (
+          <ErrorView error={error} onRetry={() => void refetch()} />
+        ) : !summary ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Ma'lumot yo'q</Text>
+          </View>
         ) : (
           <>
             {/* KPI cards 2×2 */}
@@ -361,6 +368,11 @@ const styles = StyleSheet.create({
   pillTextActive: { color: C.white },
 
   loader: { marginTop: 40 },
+
+  emptyContainer: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60,
+  },
+  emptyText: { fontSize: 15, color: '#9CA3AF' },
 
   sectionLabel: {
     fontSize: 11, fontWeight: '700', color: C.muted,

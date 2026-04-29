@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { nasiyaApi, type DebtRecord } from '../../api/nasiya.api';
+import ErrorView from '@/components/common/ErrorView';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -312,7 +313,7 @@ export default function NasiyaAgingScreen({ onClose }: Props) {
   const [payRecord, setPayRecord] = useState<DebtRecord | null>(null);
   const queryClient             = useQueryClient();
 
-  const { data: allData, isLoading: allLoading } = useQuery({
+  const { data: allData, isLoading: allLoading, error, refetch } = useQuery({
     queryKey: ['nasiya-list'],
     queryFn: () => nasiyaApi.getList(),
     staleTime: 2 * 60_000,
@@ -346,6 +347,8 @@ export default function NasiyaAgingScreen({ onClose }: Props) {
     void queryClient.invalidateQueries({ queryKey: ['nasiya-list'] });
     void queryClient.invalidateQueries({ queryKey: ['nasiya-overdue'] });
   };
+
+  if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

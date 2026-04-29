@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../../api/reports.api';
+import ErrorView from '@/components/common/ErrorView';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -159,7 +160,7 @@ export default function TopProductsScreen({ onClose }: Props) {
   const days = PERIODS.find((p) => p.key === period)!.days;
   const { from, to } = useMemo(() => getPeriodDates(days), [days]);
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, error, refetch } = useQuery({
     queryKey: ['top-products', from, to],
     queryFn: () => reportsApi.getTopProducts(from, to, 10),
     staleTime: 5 * 60_000,
@@ -173,6 +174,8 @@ export default function TopProductsScreen({ onClose }: Props) {
     () => products.reduce((s, p) => s + p.totalQty, 0),
     [products],
   );
+
+  if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

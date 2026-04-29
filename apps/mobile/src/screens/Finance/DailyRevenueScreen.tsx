@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../../api/reports.api';
+import ErrorView from '@/components/common/ErrorView';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -147,7 +148,7 @@ export default function DailyRevenueScreen({ onClose }: Props) {
   const days = PERIODS.find((p) => p.key === period)!.days;
   const { from, to } = useMemo(() => getPeriodDates(days), [days]);
 
-  const { data: daily = [], isLoading } = useQuery({
+  const { data: daily = [], isLoading, error, refetch } = useQuery({
     queryKey: ['daily-revenue', from, to],
     queryFn: () => reportsApi.getDailyRevenue(from, to),
     staleTime: 5 * 60_000,
@@ -163,6 +164,8 @@ export default function DailyRevenueScreen({ onClose }: Props) {
     () => [...daily].sort((a, b) => a.date.localeCompare(b.date)),
     [daily],
   );
+
+  if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

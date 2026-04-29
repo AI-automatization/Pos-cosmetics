@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { reportsApi } from '../../api/reports.api';
 import type { FinanceStackParamList } from '../../navigation/types';
+import ErrorView from '@/components/common/ErrorView';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -127,7 +128,7 @@ export default function FinanceScreen() {
 
   const { from, to } = useMemo(() => getPeriodDates(period), [period]);
 
-  const { data: summary, isLoading } = useQuery({
+  const { data: summary, isLoading, error, refetch } = useQuery({
     queryKey: ['sales-summary', from, to],
     queryFn: () => reportsApi.getSalesSummary(from, to),
     staleTime: 5 * 60_000,
@@ -185,6 +186,12 @@ export default function FinanceScreen() {
         {/* Summary cards */}
         {isLoading ? (
           <ActivityIndicator size="large" color={C.primary} style={styles.loader} />
+        ) : error ? (
+          <ErrorView error={error} onRetry={() => void refetch()} />
+        ) : !summary ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Ma'lumot yo'q</Text>
+          </View>
         ) : (
           <>
             <Text style={styles.sectionLabel}>ASOSIY KO'RSATKICHLAR</Text>
@@ -342,6 +349,11 @@ const styles = StyleSheet.create({
   pillTextActive: { color: C.white },
 
   loader: { marginTop: 40 },
+
+  emptyContainer: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60,
+  },
+  emptyText: { fontSize: 15, color: '#9CA3AF' },
 
   sectionLabel: {
     fontSize: 11, fontWeight: '700', color: C.muted,

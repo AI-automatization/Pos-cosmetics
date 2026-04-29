@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api/sales.api';
 import SearchBar from '../../components/common/SearchBar';
+import ErrorView from '@/components/common/ErrorView';
 import type { OrderStatus } from '@raos/types';
 
 // ─── Colors ────────────────────────────────────────────
@@ -156,7 +157,7 @@ export default function PaymentsHistoryScreen() {
 
   const { from, to } = useMemo(() => getPeriodDates(period), [period]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['orders', from, to],
     queryFn: () => salesApi.getOrders({ from, to, limit: 200 }),
     staleTime: 3 * 60_000,
@@ -182,6 +183,8 @@ export default function PaymentsHistoryScreen() {
     [filtered],
   );
   const completedCount = filtered.filter((o) => o.status === 'COMPLETED').length;
+
+  if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
