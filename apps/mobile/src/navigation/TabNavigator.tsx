@@ -18,6 +18,8 @@ import SettingsScreen from '../screens/Settings';
 import MoreMenuScreen from '../screens/MoreMenu';
 import BranchesScreen from '../screens/Settings/BranchesScreen';
 import AuditLogScreen from '../screens/Settings/AuditLogScreen';
+import CustomersScreen from '../screens/Customers/CustomersScreen';
+import CustomerDetailScreen from '../screens/Customers/CustomerDetailScreen';
 import ProductsScreen from '../screens/Catalog/ProductsScreen';
 import CategoriesScreen from '../screens/Catalog/CategoriesScreen';
 import ProductFormScreen from '../screens/Catalog/ProductFormScreen';
@@ -103,6 +105,8 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="SettingsScreen" component={SettingsScreen} />
       <MoreStack.Screen name="BranchesScreen" component={BranchesScreen} />
       <MoreStack.Screen name="AuditLogScreen" component={AuditLogScreen} />
+      <MoreStack.Screen name="CustomersScreen" component={CustomersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="CustomerDetail" component={CustomerDetailScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
   );
 }

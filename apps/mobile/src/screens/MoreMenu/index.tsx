@@ -80,6 +80,12 @@ const BIZNES_GROUP: MenuGroup = {
       subtitle: 'Qarzlar boshqaruvi',
       screen: null,
     },
+    {
+      icon: 'people-outline',
+      title: 'Mijozlar',
+      subtitle: 'Mijozlar ro\'yxati',
+      screen: 'CustomersScreen',
+    },
   ],
 };
 

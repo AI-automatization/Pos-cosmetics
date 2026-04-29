@@ -66,6 +66,8 @@ export type MoreStackParamList = {
   SettingsScreen: undefined;
   BranchesScreen: undefined;
   AuditLogScreen: undefined;
+  CustomersScreen: undefined;
+  CustomerDetail: { customerId: string; customerName: string };
 };
 
 export type RootStackParamList = {
