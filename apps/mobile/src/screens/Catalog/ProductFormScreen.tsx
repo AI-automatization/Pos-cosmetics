@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -129,6 +129,27 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
     staleTime: 5 * 60_000,
   });
 
+  // Edit mode: routeProductId orqali kelganda mahsulot ma'lumotlarini yukla
+  const { data: editProduct } = useQuery({
+    queryKey: ['catalog-product', routeProductId],
+    queryFn: () => catalogApi.getProductById(routeProductId!),
+    enabled: !!routeProductId && !product,
+    staleTime: 30_000,
+  });
+
+  useEffect(() => {
+    const p = product ?? editProduct;
+    if (!p) return;
+    setName(p.name);
+    setSku(p.sku ?? '');
+    setCategoryId(p.categoryId ?? '');
+    setCostPrice(String(p.costPrice));
+    setSellPrice(String(p.sellPrice));
+    setMinStock(String(p.minStockLevel ?? 0));
+    setBarcode(p.barcode ?? '');
+    setIsActive(p.isActive);
+  }, [product, editProduct]);
+
   const costNum = parseFloat(costPrice.replace(/\s/g, '')) || 0;
   const sellNum = parseFloat(sellPrice.replace(/\s/g, '')) || 0;
   const margin  = costNum > 0
@@ -144,7 +165,7 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
   const canSave = name.trim().length > 0 && sellNum > 0;
 
   const handleSave = () => {
-    if (!canSave || isEdit) return;
+    if (!canSave) return;
     setLoading(true);
 
     const dto: CreateProductDto = {
@@ -159,22 +180,44 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
       description: description.trim() || undefined,
     };
 
-    catalogApi.createProduct(dto)
-      .then(() => {
-        void queryClient.invalidateQueries({ queryKey: ['catalog-products'] });
-        Alert.alert('Muvaffaqiyat', `"${name}" qo'shildi`, [
-          { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
-        ]);
-      })
-      .catch((err: unknown) => {
-        const msg =
-          (err as { response?: { data?: { message?: string } } })
-            ?.response?.data?.message ??
-          'Mahsulot qo\'shishda xatolik yuz berdi.';
-        const text = Array.isArray(msg) ? (msg as string[]).join('\n') : String(msg);
-        Alert.alert('Xatolik', text);
-      })
-      .finally(() => setLoading(false));
+    const editId = product?.id ?? routeProductId;
+
+    if (isEdit && editId) {
+      catalogApi.updateProduct(editId, dto)
+        .then(() => {
+          void queryClient.invalidateQueries({ queryKey: ['catalog-products'] });
+          void queryClient.invalidateQueries({ queryKey: ['catalog-product', editId] });
+          Alert.alert('Muvaffaqiyat', `"${name}" yangilandi`, [
+            { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
+          ]);
+        })
+        .catch((err: unknown) => {
+          const msg =
+            (err as { response?: { data?: { message?: string } } })
+              ?.response?.data?.message ??
+            'Mahsulot yangilashda xatolik yuz berdi.';
+          const text = Array.isArray(msg) ? (msg as string[]).join('\n') : String(msg);
+          Alert.alert('Xatolik', text);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      catalogApi.createProduct(dto)
+        .then(() => {
+          void queryClient.invalidateQueries({ queryKey: ['catalog-products'] });
+          Alert.alert('Muvaffaqiyat', `"${name}" qo'shildi`, [
+            { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
+          ]);
+        })
+        .catch((err: unknown) => {
+          const msg =
+            (err as { response?: { data?: { message?: string } } })
+              ?.response?.data?.message ??
+            'Mahsulot qo\'shishda xatolik yuz berdi.';
+          const text = Array.isArray(msg) ? (msg as string[]).join('\n') : String(msg);
+          Alert.alert('Xatolik', text);
+        })
+        .finally(() => setLoading(false));
+    }
   };
 
   const handleCategoryPick = () => {

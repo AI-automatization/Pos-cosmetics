@@ -172,8 +172,7 @@ export default function ProductsScreen() {
   }, [products, activeFilter, categoryId, search]);
 
   const handleEdit = (p: CatalogProduct) => {
-    // Navigate to ProductFormScreen (edit mode)
-    Alert.alert('Tahrirlash', `"${p.name}" tahrirlash (tez orada)`);
+    navigation.navigate('ProductForm', { productId: p.id });
   };
 
   const handleDelete = (p: CatalogProduct) => {

@@ -79,12 +79,22 @@ export const catalogApi = {
     return Array.isArray(data) ? data : [];
   },
 
+  getProductById: async (id: string): Promise<CatalogProduct> => {
+    const { data } = await api.get<CatalogProduct>(`/catalog/products/${id}`);
+    return data;
+  },
+
   deleteProduct: async (id: string): Promise<void> => {
     await api.delete(`/catalog/products/${id}`);
   },
 
   createProduct: async (dto: CreateProductDto): Promise<CatalogProduct> => {
     const { data } = await api.post<CatalogProduct>('/catalog/products', dto);
+    return data;
+  },
+
+  updateProduct: async (id: string, dto: Partial<CreateProductDto>): Promise<CatalogProduct> => {
+    const { data } = await api.patch<CatalogProduct>(`/catalog/products/${id}`, dto);
     return data;
   },
 };
