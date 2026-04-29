@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-04-27
+# Yangilangan: 2026-04-29
 
 ---
 
@@ -10,6 +10,54 @@
 2. Format: T-raqam | sana | tur | qisqa yechim | fayl nomi
 3. Bu fayl FAQAT arxiv — o'chirmaslik, o'zgartirmaslik
 ```
+
+---
+
+## T-418 | 2026-04-29 | [MOBILE] | Ko'chmas mulk — handleAddProperty informative alert
+
+- **Yechim:** Ko'chmas mulk ekranida `handleAddProperty` TODO placeholder o'rniga foydalanuvchiga `POST /real-estate/properties` backend endpoint hali yo'qligi haqida informative `Alert` qo'shildi
+- **Fayllar:** `apps/mobile-owner/src/screens/RealEstate/RealEstateScreen.tsx`
+- **Commit:** `fix(mobile): T-418 — handleAddProperty TODO → informative alert`
+
+---
+
+## T-416 | 2026-04-29 | [MOBILE] | Mahsulot tahrirlash — ProductFormScreen edit mode navigatsiyasi
+
+- **Yechim:** `catalog.api.ts` ga `getProductById` + `updateProduct` qo'shildi; `ProductFormScreen` edit mode qo'llab-quvvatlaydi; `ProductsScreen` da `handleEdit` navigation ishlaydi
+- **Fayllar:** `apps/mobile/src/api/catalog.api.ts`, `apps/mobile/src/screens/Catalog/ProductFormScreen.tsx`, `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
+- **Commit:** `feat(mobile): T-416 — Tahrirlash navigates to ProductFormScreen with edit mode`
+
+---
+
+## T-415 | 2026-04-29 | [MOBILE] | Mahsulotlar — FAB placeholder real ProductFormScreen navigatsiyasiga aylandi
+
+- **Yechim:** FAB endi `ProductFormScreen` ga navigate qiladi (yangi mahsulot qo'shish rejimi), `Alert.alert` placeholder o'chirildi
+- **Fayllar:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
+- **Commit:** `fix(mobile): T-415 — FAB placeholder → real navigation`
+
+---
+
+## T-414 | 2026-04-29 | [MOBILE] | Mahsulotlar — O'chirish dialog real API call bilan ishlaydi
+
+- **Yechim:** `Alert.alert` da "O'chirish" tugmasi `DELETE /catalog/products/:id` API chaqiradi, so'ng `queryClient.invalidateQueries` bilan ro'yxat yangilanadi
+- **Fayllar:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
+- **Commit:** `fix(mobile): T-414 — O'chirish dialog`
+
+---
+
+## T-412 | 2026-04-29 | [MOBILE] | Buyurtmalar tarixi — Calendar filter implementatsiya qilindi
+
+- **Yechim:** `SalesHistoryScreen` da calendar filter implementatsiya qilindi — DatePicker modal, sana oraliq tanlash, `GET /sales/orders?from=&to=` so'rovi
+- **Fayllar:** `apps/mobile/src/screens/Sales/index.tsx`
+- **Commit:** `fix(mobile): T-412 — Calendar filter button`
+
+---
+
+## T-407 | 2026-04-29 | [MOBILE] | Finance ekranlar — ErrorView error state qo'shildi
+
+- **Yechim:** `FinanceScreen`, `PnLScreen`, `DailyRevenueScreen`, `TopProductsScreen`, `PaymentsHistoryScreen`, `NasiyaAgingScreen`, `ShiftReportsScreen` — barchaga `ErrorView` import va `isError` guard qo'shildi
+- **Fayllar:** `apps/mobile/src/screens/Finance/FinanceScreen.tsx`, `PnLScreen.tsx`, `DailyRevenueScreen.tsx`, `TopProductsScreen.tsx`, `PaymentsHistoryScreen.tsx`, `NasiyaAgingScreen.tsx`, `ShiftReportsScreen.tsx`
+- **Commit:** `fix(mobile): T-407 — add ErrorView error state to all Finance screens`
 
 ---
 

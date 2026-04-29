@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-04-28 (T-411..T-418 qo'shildi — ishlamaydigan buttonlar)
+# Yangilangan: 2026-04-29 (T-407, T-412, T-414, T-415, T-416, T-418 Done.md ga ko'chirildi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -302,62 +302,6 @@
 
 ---
 
-## T-407 | P2 | [MOBILE] | Staff app — Finance ekranlar: error va empty state yo'q
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Finance/PnLScreen.tsx`, `PaymentsHistoryScreen.tsx`, `DailyRevenueScreen.tsx`, `TopProductsScreen.tsx`, `ShiftReportsScreen.tsx`, `NasiyaAgingScreen.tsx`
-- **Muammo:** Backend unavailable bo'lganda yuqoridagi 6 ta ekran cheksiz loading spinner ko'rsatadi — xato xabari ham, "Qayta urinish" button ham yo'q. Ma'lumot bo'lmasa (empty) ham bo'sh joy qoladi, foydalanuvchi nima qilish kerakligini bilmaydi.
-- **Kutilgan:** Har ekranda:
-  1. Error state: `isError` true bo'lganda "Ma'lumotlarni yuklashda xatolik" + "Qayta urinish" button
-  2. Empty state: data `[]` bo'lganda kontekstli xabar (masalan "Bu davr uchun ma'lumot yo'q")
-- **Izoh:** `ExpensesScreen` da bu allaqachon bor — shu patternni qolgan ekranlarga ham qo'llash kerak
-- **Topildi:** Visual QA (iOS Simulator) — 2026-04-28
-
----
-
-## ════════════════════════════════════════════════════════════════
-## 📌 ISHLAMAYDIGAN BUTTONLAR (T-411..T-418) — 2026-04-28
-## Barcha button tap qilinganda hech narsa bo'lmaydi
-## Mas'ul: Abdulaziz
-## ════════════════════════════════════════════════════════════════
-
----
-
-
-## T-412 | P2 | [MOBILE] | Buyurtmalar tarixi — Calendar (sana filter) button hech narsa qilmaydi
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Sales/index.tsx:94`
-- **Muammo:** Header dagi calendar-outline icon tugmasida `onPress` prop yo'q — bosilganda hech narsa bo'lmaydi.
-- **Kutilgan:** Sana oraliqni tanlash uchun DatePicker modal ochilishi kerak (masalan: "Bugun / Bu hafta / Bu oy / Maxsus oraliq"). Tanlangan oraliq buyurtmalar ro'yxatini filterlashi kerak (`GET /sales/orders?from=&to=`).
-- **Topildi:** Visual QA — 2026-04-28
-
----
-
-## T-414 | P2 | [MOBILE] | Mahsulotlar — O'chirish tasdiqlash dialog hech narsa qilmaydi
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx:166`
-- **Muammo:** `Alert.alert` da "O'chirish" tugmasi `onPress: () => {}` — bosilganda hech narsa bo'lmaydi. Mahsulot o'chirilmaydi.
-- **Kutilgan:** `DELETE /catalog/products/:id` API chaqirilishi, so'ng mahsulotlar ro'yxati yangilanishi kerak (`queryClient.invalidateQueries`). O'chirish faqat admin/manager roli uchun ruxsat berilishi kerak.
-- **Topildi:** Visual QA — 2026-04-28
-
----
-
-## T-415 | P2 | [MOBILE] | Mahsulotlar — "Yangi mahsulot" (+) FAB tugmasi placeholder alert ko'rsatadi
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx:273`
-- **Muammo:** `Alert.alert('Yangi mahsulot', 'ProductFormScreen (tez orada)')` — real ekran yo'q.
-- **Kutilgan:** `ProductFormScreen` (yangi mahsulot qo'shish) ekrani yaratilishi va navigatsiya ulanishi kerak. Fields: nom, kategoriya, birlik, narx, shtrix-kod (kamera scanner), rasm. Backend: `POST /catalog/products`.
-- **Topildi:** Visual QA — 2026-04-28
-
----
-
 
 ## T-419 | P2 | [BACKEND] | Ko'chmas mulk — POST /real-estate/properties endpoint yo'q
 
@@ -419,27 +363,29 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **22** | **3** | **0** | **11** | **8** |
+| **26** | **3** | **4** | **11** | **8** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 1 | 2 | 3 | 3 | **9** |
+| [BACKEND] | 1 | 2 | 5 | 4 | **12** |
 | [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
-| [MOBILE] | 0 | 0 | 7 | 3 | **8** |
+| [MOBILE] | 0 | 0 | 6 | 2 | **8** |
 | [SECURITY] | 2 | 1 | 0 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
+| [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 3 | 3 | 4 | 0 | **10** |
-| **Abdulaziz** (Mobile) | 0 | 0 | 7 | 3 | **7** |
-| **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
+| **Ibrat** (Full-Stack) | 3 | 3 | 5 | 0 | **11** |
+| **Abdulaziz** (Mobile) | 0 | 0 | 6 | 2 | **8** |
+| **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
+| **Ibrat + Abdulaziz** | 0 | 1 | 0 | 0 | **1** |
 
-> Yangilandi: 2026-04-26 — T-403..T-405 qo'shildi: Admin Panel, Manager Panel, Warehouse mobile applar yo'q
+> Yangilandi: 2026-04-29 — T-407, T-412, T-414, T-415, T-416, T-418 Done.md ga ko'chirildi
 
 ---
 
