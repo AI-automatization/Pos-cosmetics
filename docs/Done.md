@@ -1332,6 +1332,7 @@
 | T-367 | 2026-04-20 | [FRONTEND] | Kontragent yaratish formasiga mahsulotlar bo'limi — mahsulot search + chip tanlash, saqlashdan keyin `suppliersApi.linkProduct()` orqali bog'lash | `warehouse/stock-in/page.tsx`, `api/suppliers.api.ts` |
 | T-368 | 2026-04-20 | [FRONTEND] | Aralash to'lov bonus bug — hardcoded `bonusPoints * 100` → `bonusPoints * redeemRate` (loyaltyConfig dan). `useLoyaltyConfig()` hook `useCompleteSale` va `PaymentPanel` ga qo'shildi | `useCompleteSale.ts`, `PaymentPanel.tsx` |
 | T-369 | 2026-04-20 | [FRONTEND] | Sidebar — Sozlamalar bo'limidan "Filiallar" o'chirildi (Boshqaruv bo'limida qoldi) | `Sidebar.tsx` |
+| T-411 | 2026-04-29 | [MOBILE] | Dashboard bell tugmasiga onPress + NotificationsScreen + unread badge (qizil doira, 99+). DashboardNavigator stack yaratildi. | `Dashboard/index.tsx`, `DashboardNavigator.tsx`, `screens/Notifications/index.tsx`, `types.ts`, `TabNavigator.tsx` |
 
 ---
 

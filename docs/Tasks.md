@@ -324,16 +324,6 @@
 
 ---
 
-## T-411 | P2 | [MOBILE] | Dashboard — Bell (bildirishnoma) button hech narsa qilmaydi
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx:134`
-- **Muammo:** Header dagi qo'ng'iroq (notifications-outline) icon tugmasida `onPress` prop yo'q — bosilganda hech narsa bo'lmaydi.
-- **Kutilgan:** Bildirishnomalar ekrani ochilishi kerak. Loyiha konteksti: backend da `GET /notifications` endpoint mavjud. Yangi bildirishnomalar bo'lsa, icon ustida badge (qizil doira + son) ko'rsatilishi kerak.
-- **Topildi:** Visual QA — 2026-04-28
-
----
 
 ## T-412 | P2 | [MOBILE] | Buyurtmalar tarixi — Calendar (sana filter) button hech narsa qilmaydi
 
