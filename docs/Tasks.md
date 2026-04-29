@@ -358,26 +358,15 @@
 
 ---
 
-## T-416 | P2 | [MOBILE] | Mahsulotlar — "Tahrirlash" harakati placeholder alert ko'rsatadi
 
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx:158`
-- **Muammo:** `handleEdit` funksiyasi `Alert.alert('Tahrirlash', '[nom] tahrirlash (tez orada)')` ko'rsatadi — real ekran yo'q.
-- **Kutilgan:** `ProductFormScreen` ekrani tahrirlash rejimida ochilishi kerak (mavjud ma'lumotlar pre-filled). Backend: `PATCH /catalog/products/:id`.
-- **Izoh:** T-415 bilan birgalikda `ProductFormScreen` yaratilganda hal qilinadi.
-- **Topildi:** Visual QA — 2026-04-28
+## T-419 | P2 | [BACKEND] | Ko'chmas mulk — POST /real-estate/properties endpoint yo'q
 
----
-
-## T-418 | P2 | [MOBILE] | Ko'chmas mulk — "Yangi mulk qo'shish" TODO placeholder
-
-- **Sana:** 2026-04-28
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/RealEstate/index.tsx:50`
-- **Muammo:** `handleAddProperty` funksiyasida `// TODO: navigate to AddProperty screen when implemented` — bosilganda hech narsa bo'lmaydi.
-- **Kutilgan:** `AddPropertyScreen` yaratilishi va navigatsiya ulanishi kerak. Fields: manzil, tur (kvartira/ofis/ombor), narx, ijara narxi, holat. Backend: `POST /realestate/properties`.
-- **Topildi:** Visual QA — 2026-04-28
+- **Sana:** 2026-04-29
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/realestate/realestate.controller.ts`
+- **Muammo:** Backend da faqat GET endpointlar bor. `POST /real-estate/properties` yo'q — yangi mulk yaratib bo'lmaydi.
+- **Kutilgan:** `POST /real-estate/properties` — name, address, type, rentAmount, area?, roi? fieldlar bilan
+- **Bog'liq:** T-418 (mobile AddPropertyScreen) — backend tayyor bo'lgach faollashtiriladi
 
 ---
 

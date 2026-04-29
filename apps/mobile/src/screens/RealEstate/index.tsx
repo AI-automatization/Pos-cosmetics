@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Alert, FlatList, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,7 +47,11 @@ export default function PropertiesScreen({ navigation }: Props): React.JSX.Eleme
   });
 
   const handleAddProperty = useCallback((): void => {
-    // TODO: navigate to AddProperty screen when implemented
+    Alert.alert(
+      'Tez orada',
+      'Yangi ko\'chmas mulk qo\'shish funksiyasi backend qo\'llab-quvvatlagandan keyin faollashtiriladi.',
+      [{ text: 'OK' }],
+    );
   }, []);
 
   const listHeader = (

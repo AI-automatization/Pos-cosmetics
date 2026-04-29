@@ -94,6 +94,7 @@ export type RealEstateStackParamList = {
   Properties: undefined;
   PropertyDetail: { propertyId: string; propertyName: string };
   RentalPayments: { propertyId: string; propertyName?: string };
+  AddProperty: undefined;
 };
 
 export type SettingsStackParamList = {
