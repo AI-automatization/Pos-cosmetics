@@ -40,23 +40,13 @@ export interface Employee {
   readonly firstName: string;
   readonly lastName: string;
   readonly fullName: string;
-  readonly phone: string;
-  readonly email: string | null;
-  readonly dateOfBirth: string | null;
-  readonly passportId: string | null;
-  readonly address: string | null;
-  readonly hireDate: string;
+  readonly phone: string | null;
+  readonly email: string;
   readonly role: EmployeeRole;
   readonly branchId: string;
   readonly branchName: string;
   readonly status: EmployeeStatus;
-  readonly login: string;
   readonly photoUrl: string | null;
-  readonly hasPosAccess: boolean;
-  readonly hasAdminAccess: boolean;
-  readonly hasReportsAccess: boolean;
-  readonly emergencyContactName: string | null;
-  readonly emergencyContactPhone: string | null;
 }
 
 // ─── Create / update DTOs ────────────────────────────────────────────────────
@@ -64,21 +54,10 @@ export interface Employee {
 export interface CreateEmployeeDto {
   firstName: string;
   lastName: string;
-  phone: string;
-  email?: string;
-  dateOfBirth?: string;
-  passportId?: string;
-  address?: string;
-  hireDate: string;
-  role: EmployeeRole;
-  branchId: string;
-  login: string;
+  email: string;
   password: string;
-  hasPosAccess: boolean;
-  hasAdminAccess: boolean;
-  hasReportsAccess: boolean;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
+  role?: EmployeeRole;
+  phone?: string;
 }
 
 export interface UpdateEmployeeStatusDto {

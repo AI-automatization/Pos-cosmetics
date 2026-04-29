@@ -16,14 +16,14 @@ import { useTranslation } from 'react-i18next';
 import { EmployeesStackParamList } from '../../navigation/types';
 import { useCreateEmployee } from '../../hooks/useEmployees';
 import { Colors, Radii, Shadows, Typography } from '../../config/theme';
-import { useBranchStore } from '../../store/branch.store';
 
 import type { FormState, SetField } from './components/types';
 import PersonalSection from './components/PersonalSection';
-import EmergencySection from './components/EmergencySection';
 import WorkSection from './components/WorkSection';
 import CredentialsSection from './components/CredentialsSection';
-import AccessSection from './components/AccessSection';
+
+// T-379: EmergencySection, AccessSection, useBranchStore, selectedBranchId removed —
+// fields not supported by backend. Backend accepts: firstName, lastName, email, password, role?, phone?
 
 type Nav = NativeStackNavigationProp<EmployeesStackParamList, 'AddEmployee'>;
 
@@ -32,30 +32,17 @@ export default function AddEmployeeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const createEmployee = useCreateEmployee();
-  const branches = useBranchStore((s) => s.branches);
 
-  const [showPassword, setShowPassword]       = useState(false);
-  const [selectedBranchId, setSelectedBranchId] = useState<string>(branches[0]?.id ?? '');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState<FormState>({
     firstName: '',
     lastName: '',
     phone: '',
     email: '',
-    dateOfBirth: '',
-    passportId: '',
-    address: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    hireDate: new Date().toISOString().split('T')[0] ?? '',
     role: 'CASHIER',
-    branchId: branches[0]?.id ?? '',
-    login: '',
     password: '',
     passwordConfirm: '',
-    hasPosAccess: true,
-    hasAdminAccess: false,
-    hasReportsAccess: false,
   });
 
   const set: SetField = (key, value) =>
@@ -65,10 +52,8 @@ export default function AddEmployeeScreen() {
   const validate = (): string | null => {
     if (!form.firstName.trim())  return "Ism kiritilishi shart";
     if (!form.lastName.trim())   return "Familiya kiritilishi shart";
-    if (!form.phone.trim())      return "Telefon kiritilishi shart";
-    if (!form.hireDate.trim())   return "Ishga kirish sanasi kiritilishi shart";
-    if (!form.branchId)          return "Filial tanlanishi shart";
-    if (!form.login.trim())      return "Login kiritilishi shart";
+    if (!form.email.trim())      return "Email kiritilishi shart";
+    if (!/\S+@\S+\.\S+/.test(form.email)) return "Email formati noto'g'ri";
     if (!form.password)          return "Parol kiritilishi shart";
     if (form.password.length < 6) return "Parol kamida 6 ta belgi bo'lishi kerak";
     if (form.password !== form.passwordConfirm) return "Parollar mos emas";
@@ -82,23 +67,12 @@ export default function AddEmployeeScreen() {
 
     createEmployee.mutate(
       {
-        firstName:            form.firstName.trim(),
-        lastName:             form.lastName.trim(),
-        phone:                form.phone.trim(),
-        email:                form.email.trim() || undefined,
-        dateOfBirth:          form.dateOfBirth || undefined,
-        passportId:           form.passportId || undefined,
-        address:              form.address || undefined,
-        hireDate:             form.hireDate,
-        role:                 form.role,
-        branchId:             form.branchId,
-        login:                form.login.trim(),
-        password:             form.password,
-        hasPosAccess:         form.hasPosAccess,
-        hasAdminAccess:       form.hasAdminAccess,
-        hasReportsAccess:     form.hasReportsAccess,
-        emergencyContactName:  form.emergencyContactName || undefined,
-        emergencyContactPhone: form.emergencyContactPhone || undefined,
+        firstName: form.firstName.trim(),
+        lastName:  form.lastName.trim(),
+        phone:     form.phone.trim() || undefined,
+        email:     form.email.trim(),
+        role:      form.role,
+        password:  form.password,
       },
       {
         onSuccess: () => {
@@ -108,11 +82,6 @@ export default function AddEmployeeScreen() {
         onError: () => Alert.alert(t('common.error'), t('common.serverError')),
       },
     );
-  };
-
-  const handleSelectBranch = (id: string) => {
-    setSelectedBranchId(id);
-    set('branchId', id);
   };
 
   return (
@@ -140,15 +109,7 @@ export default function AddEmployeeScreen() {
 
           <PersonalSection form={form} set={set} />
 
-          <EmergencySection form={form} set={set} />
-
-          <WorkSection
-            form={form}
-            set={set}
-            branches={branches}
-            selectedBranchId={selectedBranchId}
-            onSelectBranch={handleSelectBranch}
-          />
+          <WorkSection form={form} set={set} />
 
           <CredentialsSection
             form={form}
@@ -156,8 +117,6 @@ export default function AddEmployeeScreen() {
             showPassword={showPassword}
             onTogglePassword={() => setShowPassword((v) => !v)}
           />
-
-          <AccessSection form={form} set={set} />
 
           {/* Submit */}
           <View style={styles.submitSection}>

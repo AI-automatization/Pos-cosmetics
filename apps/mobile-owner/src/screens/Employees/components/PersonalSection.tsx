@@ -41,30 +41,12 @@ export default function PersonalSection({ form, set }: PersonalSectionProps) {
       />
       <Field
         label="Email"
+        required
         value={form.email}
         onChangeText={(v) => set('email', v)}
-        placeholder="email@example.com"
+        placeholder="email@example.com (login uchun ishlatiladi)"
         keyboardType="email-address"
         autoCapitalize="none"
-      />
-      <Field
-        label="Tug'ilgan sana"
-        value={form.dateOfBirth}
-        onChangeText={(v) => set('dateOfBirth', v)}
-        placeholder="1995-07-15"
-      />
-      <Field
-        label="Pasport / ID"
-        value={form.passportId}
-        onChangeText={(v) => set('passportId', v)}
-        placeholder="AA 1234567"
-        autoCapitalize="characters"
-      />
-      <Field
-        label="Manzil"
-        value={form.address}
-        onChangeText={(v) => set('address', v)}
-        placeholder="Toshkent, Chilonzor"
       />
     </View>
   );

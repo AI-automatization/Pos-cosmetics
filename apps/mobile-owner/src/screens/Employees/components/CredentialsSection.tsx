@@ -22,17 +22,11 @@ export default function CredentialsSection({
 }: CredentialsSectionProps) {
   const { t } = useTranslation();
 
+  // T-379: login removed — email (from PersonalSection) is used as login identifier.
+
   return (
     <View style={styles.section}>
       <SectionHeader icon="🔐" title={t('employees.sectionCredentials')} />
-      <Field
-        label="Login"
-        required
-        value={form.login}
-        onChangeText={(v) => set('login', v)}
-        placeholder="sarvar.kassir"
-        autoCapitalize="none"
-      />
 
       <View style={styles.field}>
         <Text style={styles.fieldLabel}>
