@@ -108,6 +108,32 @@ const BOSHQARUV_GROUP: MenuGroup = {
   ],
 };
 
+const WAREHOUSE_GROUP: MenuGroup = {
+  title: "Ombor boshqaruvi",
+  items: [
+    {
+      icon: 'storefront-outline',
+      title: 'Yetkazuvchilar',
+      subtitle: 'Yetkazib beruvchilar',
+      screen: 'SuppliersScreen' as keyof MoreStackParamList,
+    },
+    {
+      icon: 'trash-outline',
+      title: 'Hisobdan chiqarish',
+      subtitle: 'Write-off',
+      screen: null,
+      badge: 'Tez orada',
+    },
+    {
+      icon: 'time-outline',
+      title: 'Muddati o\'tganlar',
+      subtitle: 'Expiry tracking',
+      screen: null,
+      badge: 'Tez orada',
+    },
+  ],
+};
+
 const SOZLAMALAR_GROUP: MenuGroup = {
   title: 'Sozlamalar',
   items: [
@@ -178,22 +204,15 @@ export default function MoreMenuScreen(): React.JSX.Element {
       {
         ...INVENTAR_GROUP,
         items: roleLevel >= 3
-          ? [
-              ...INVENTAR_GROUP.items,
-              {
-                icon: 'warning-outline' as const,
-                title: 'Kam qolgan',
-                subtitle: 'Zaxira kam mahsulotlar',
-                screen: 'LowStockList' as keyof MoreStackParamList,
-              },
-            ]
+          ? [...INVENTAR_GROUP.items, { icon: 'warning-outline' as const, title: 'Kam qolgan', subtitle: 'Zaxira kam mahsulotlar', screen: 'LowStockList' as keyof MoreStackParamList }]
           : INVENTAR_GROUP.items,
       },
+      ...(user?.role === 'WAREHOUSE' ? [WAREHOUSE_GROUP] : []),
       BIZNES_GROUP,
       ...(roleLevel >= 3 ? [BOSHQARUV_GROUP] : []),
       SOZLAMALAR_GROUP,
     ],
-    [roleLevel],
+    [roleLevel, user?.role],
   );
 
   const handlePress = (item: MenuItem): void => {

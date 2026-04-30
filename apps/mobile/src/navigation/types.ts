@@ -72,6 +72,7 @@ export type MoreStackParamList = {
   PromotionsScreen: undefined;
   UsersScreen: undefined;
   LowStockList: undefined;
+  SuppliersScreen: undefined;
 };
 
 export type RootStackParamList = {

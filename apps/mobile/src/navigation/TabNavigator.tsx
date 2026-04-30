@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MoreStackParamList } from './types';
+import { useAuthStore } from '../store/auth.store';
 
 // Navigators
 import DashboardNavigator from './DashboardNavigator';
@@ -115,7 +116,28 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="PromotionsScreen" component={PromotionsScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="UsersScreen" component={UsersScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="LowStockList" component={LowStockScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SuppliersScreen" component={SuppliersScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
+  );
+}
+
+// ─── Kirim Tab Stack (WAREHOUSE role: replaces Savdo tab) ─
+const KirimTabStack = createNativeStackNavigator();
+function KirimTabNavigator(): React.JSX.Element {
+  return (
+    <KirimTabStack.Navigator screenOptions={{ headerShown: false }}>
+      <KirimTabStack.Screen name="KirimMain" component={KirimScreen} />
+    </KirimTabStack.Navigator>
+  );
+}
+
+// ─── Ombor Tab Stack (WAREHOUSE role: replaces Katalog tab) ─
+const OmborTabStack = createNativeStackNavigator();
+function OmborTabNavigator(): React.JSX.Element {
+  return (
+    <OmborTabStack.Navigator screenOptions={{ headerShown: false }}>
+      <OmborTabStack.Screen name="OmborMain" component={OmborScreen} />
+    </OmborTabStack.Navigator>
   );
 }
 
@@ -141,6 +163,9 @@ function TabIcon(
 const Tab = createBottomTabNavigator<TabParamList>();
 
 export default function TabNavigator(): React.JSX.Element {
+  const { user } = useAuthStore();
+  const isWarehouse = user?.role === 'WAREHOUSE';
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -162,25 +187,35 @@ export default function TabNavigator(): React.JSX.Element {
         }}
       />
 
-      {/* Tab 2: Savdo — stack bilan (Smena, Tarix, Nasiya nested) */}
+      {/* Tab 2: Savdo (WAREHOUSE: Kirim) — stack bilan */}
       <Tab.Screen
         name="Savdo"
-        component={SavdoNavigator}
+        component={isWarehouse ? KirimTabNavigator : SavdoNavigator}
         options={{
-          tabBarLabel: 'Savdo',
+          tabBarLabel: isWarehouse ? 'Kirim' : 'Savdo',
           tabBarIcon: ({ focused, color }) =>
-            TabIcon(focused, 'cart-outline', 'cart', color),
+            TabIcon(
+              focused,
+              isWarehouse ? 'archive-outline' : 'cart-outline',
+              isWarehouse ? 'archive' : 'cart',
+              color,
+            ),
         }}
       />
 
-      {/* Tab 3: Katalog — stack bilan (Products, Categories, Suppliers nested) */}
+      {/* Tab 3: Katalog (WAREHOUSE: Ombor) — stack bilan */}
       <Tab.Screen
         name="Katalog"
-        component={CatalogNavigator}
+        component={isWarehouse ? OmborTabNavigator : CatalogNavigator}
         options={{
-          tabBarLabel: 'Katalog',
+          tabBarLabel: isWarehouse ? 'Ombor' : 'Katalog',
           tabBarIcon: ({ focused, color }) =>
-            TabIcon(focused, 'grid-outline', 'grid', color),
+            TabIcon(
+              focused,
+              isWarehouse ? 'cube-outline' : 'grid-outline',
+              isWarehouse ? 'cube' : 'grid',
+              color,
+            ),
         }}
       />
 
