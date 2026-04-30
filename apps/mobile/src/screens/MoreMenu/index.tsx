@@ -86,6 +86,7 @@ const BIZNES_GROUP: MenuGroup = {
       subtitle: 'Mijozlar ro\'yxati',
       screen: 'CustomersScreen',
     },
+    { icon: 'pricetag-outline', title: 'Aksiyalar', subtitle: 'Chegirmalar va aksiyalar', screen: 'PromotionsScreen' },
   ],
 };
 
