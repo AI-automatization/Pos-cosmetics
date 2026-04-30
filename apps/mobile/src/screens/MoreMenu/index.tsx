@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '../../store/auth.store';
+import { getRoleLevel } from '@/utils/roles';
 import type { MoreStackParamList } from '../../navigation/types';
 
 // ─── Types ────────────────────────────────────────────────
@@ -30,14 +31,6 @@ interface MenuGroup {
 }
 
 // ─── Constants ────────────────────────────────────────────
-
-const ROLE_LEVEL: Record<string, number> = {
-  OWNER: 5,
-  ADMIN: 4,
-  MANAGER: 3,
-  CASHIER: 2,
-  VIEWER: 1,
-};
 
 const ROLE_BADGE: Record<string, { bg: string; text: string; label: string }> = {
   OWNER:   { bg: '#F3E8FF', text: '#7C3AED', label: 'Egasi'     },
@@ -178,7 +171,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
   const navigation = useNavigation<MoreMenuNavProp>();
   const { user, clearAuth } = useAuthStore();
 
-  const roleLevel = ROLE_LEVEL[user?.role ?? ''] ?? 1;
+  const roleLevel = getRoleLevel(user?.role);
 
   const groups: readonly MenuGroup[] = [
     INVENTAR_GROUP,

@@ -19,6 +19,7 @@ import { catalogApi, type CatalogProduct, type CatalogCategory } from '../../api
 import SearchBar from '../../components/common/SearchBar';
 import { useAuthStore } from '../../store/auth.store';
 import type { CatalogStackParamList } from '../../navigation/types';
+import { canEditCatalog } from '@/utils/roles';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -63,10 +64,12 @@ function ProductListCard({
   product,
   onEdit,
   onDelete,
+  canEdit,
 }: {
   product: CatalogProduct;
   onEdit: (p: CatalogProduct) => void;
   onDelete: (p: CatalogProduct) => void;
+  canEdit: boolean;
 }) {
   const status = stockStatus(product.stockQuantity, product.minStockLevel);
   const stock = STOCK_STYLE[status];
@@ -76,11 +79,13 @@ function ProductListCard({
     : 0;
 
   const handleMenu = () => {
-    Alert.alert(product.name, undefined, [
-      { text: 'Tahrirlash', onPress: () => onEdit(product) },
-      { text: "O'chirish", style: 'destructive', onPress: () => onDelete(product) },
-      { text: 'Bekor qilish', style: 'cancel' },
-    ]);
+    const actions: Parameters<typeof Alert.alert>[2] = [];
+    if (canEdit) {
+      actions.push({ text: 'Tahrirlash', onPress: () => onEdit(product) });
+    }
+    actions.push({ text: "O'chirish", style: 'destructive', onPress: () => onDelete(product) });
+    actions.push({ text: 'Bekor qilish', style: 'cancel' });
+    Alert.alert(product.name, undefined, actions);
   };
 
   return (
@@ -135,6 +140,7 @@ export default function ProductsScreen() {
   const canDelete = DELETABLE_ROLES.includes(
     (user?.role ?? '') as typeof DELETABLE_ROLES[number],
   );
+  const canEdit = canEditCatalog(user?.role);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['catalog-products'],
@@ -287,6 +293,7 @@ export default function ProductsScreen() {
               product={item}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              canEdit={canEdit}
             />
           )}
           contentContainerStyle={styles.listContent}
@@ -302,13 +309,15 @@ export default function ProductsScreen() {
       )}
 
       {/* FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate('ProductForm', undefined)}
-      >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
+      {canEdit && (
+        <TouchableOpacity
+          style={styles.fab}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('ProductForm', undefined)}
+        >
+          <Ionicons name="add" size={28} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }
