@@ -27,6 +27,8 @@ import { formatCompact } from '../../utils/currency';
 import { useShiftStore } from '../../store/shiftStore';
 import SmenaOpenSheet from '../Smena/SmenaOpenSheet';
 import SmenaCloseSheet from '../Smena/SmenaCloseSheet';
+import { useAuthStore } from '../../store/auth.store';
+import { getRoleLevel } from '../../utils/roles';
 
 type DashboardNavProp = CompositeNavigationProp<
   NativeStackNavigationProp<DashboardStackParamList>,
@@ -82,6 +84,8 @@ export default function DashboardScreen() {
     refetchAll,
   } = useDashboardData();
 
+  const { user } = useAuthStore();
+  const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
   const { openShift, closeShift } = useShiftStore();
   const [loading, setLoading] = useState(false);
   const [openSheetVisible, setOpenSheetVisible] = useState(false);
@@ -184,8 +188,8 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Smena banner yoki ActiveShiftCard */}
-        {!shift ? (
+        {/* Smena banner yoki ActiveShiftCard — OWNER/ADMIN uchun emas */}
+        {!isOwnerAdmin && (!shift ? (
           <View style={styles.smenaBanner}>
             <View style={styles.smenaBannerLeft}>
               <Ionicons name="time-outline" size={20} color="#D97706" />
@@ -207,7 +211,7 @@ export default function DashboardScreen() {
           >
             <ActiveShiftCard shift={shift} />
           </TouchableOpacity>
-        )}
+        ))}
 
         {/* Stats 2x2 grid */}
         <View style={styles.statsGrid}>
@@ -272,34 +276,69 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tez harakatlar</Text>
           <View style={styles.quickGrid}>
-            <QuickAction
-              icon="cart-outline"
-              label="Savdo"
-              color="#2563EB"
-              bg="#EFF6FF"
-              onPress={() => navigation.navigate('Savdo')}
-            />
-            <QuickAction
-              icon="arrow-down-circle-outline"
-              label="Kirim"
-              color="#16A34A"
-              bg="#F0FDF4"
-              onPress={() => navigation.navigate('Koproq')}
-            />
-            <QuickAction
-              icon="grid-outline"
-              label="Katalog"
-              color="#D97706"
-              bg="#FFFBEB"
-              onPress={() => navigation.navigate('Katalog')}
-            />
-            <QuickAction
-              icon="bar-chart-outline"
-              label="Hisobot"
-              color="#7C3AED"
-              bg="#F5F3FF"
-              onPress={() => navigation.navigate('Moliya')}
-            />
+            {isOwnerAdmin ? (
+              <>
+                <QuickAction
+                  icon="bar-chart-outline"
+                  label="Analitika"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Analytics')}
+                />
+                <QuickAction
+                  icon="trending-up-outline"
+                  label="Moliya"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Moliya')}
+                />
+                <QuickAction
+                  icon="people-outline"
+                  label="Mijozlar"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="pulse-outline"
+                  label="Sistema"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+              </>
+            ) : (
+              <>
+                <QuickAction
+                  icon="cart-outline"
+                  label="Savdo"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Savdo')}
+                />
+                <QuickAction
+                  icon="arrow-down-circle-outline"
+                  label="Kirim"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="grid-outline"
+                  label="Katalog"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Katalog')}
+                />
+                <QuickAction
+                  icon="bar-chart-outline"
+                  label="Hisobot"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Moliya')}
+                />
+              </>
+            )}
           </View>
         </View>
 
