@@ -66,7 +66,10 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
       };
 
       // Offline fallback: queue order in localStorage
-      if (!navigator.onLine) {
+      // navigator.onLine unreliable (returns true if WiFi connected but no internet)
+      // Also check sync store state which uses actual ping-based detection
+      const isOffline = !navigator.onLine || useSyncStore.getState().state === 'offline';
+      if (isOffline) {
         const label = `${items.length} ta mahsulot — ${total.toLocaleString()} so'm`;
         addPendingOrder({
           id: crypto.randomUUID(),
