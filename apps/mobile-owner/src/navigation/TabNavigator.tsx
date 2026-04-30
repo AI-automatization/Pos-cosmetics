@@ -4,6 +4,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { TabParamList } from './types';
 import { useAlertsStore } from '../store/alerts.store';
+import { useAuthStore } from '../store/auth.store';
+import {
+  canSeeAnalytics,
+  canSeeEmployees,
+  canSeeSystemHealth,
+  canSeeShifts,
+  canSeeInventory,
+} from '../utils/roles';
 import { Colors } from '../config/theme';
 
 import DashboardNavigator from './DashboardNavigator';
@@ -54,6 +62,9 @@ function AlertsBellTabIcon({ color, size }: { color: string; size: number }) {
 }
 
 export default function TabNavigator() {
+  const { user } = useAuthStore();
+  const role = user?.role;
+
   function tabIcon(name: IoniconsName) {
     return ({ color, size }: { color: string; size: number }) => (
       <Ionicons name={name} size={size} color={color} />
@@ -76,20 +87,66 @@ export default function TabNavigator() {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
       }}
     >
-      <Tab.Screen name="Dashboard" component={DashboardNavigator} options={{ tabBarIcon: tabIcon('grid-outline'), title: 'DASHBOARD' }} />
-      <Tab.Screen name="Analytics" component={AnalyticsScreen} options={{ tabBarIcon: tabIcon('bar-chart-outline'), title: 'ANALITIKA' }} />
-      <Tab.Screen name="Shifts" component={ShiftsScreen} options={{ tabBarIcon: tabIcon('time-outline'), title: 'SMENLAR' }} />
-      <Tab.Screen name="Inventory" component={WarehouseScreen} options={{ tabBarIcon: tabIcon('cube-outline'), title: 'OMBOR' }} />
-      <Tab.Screen name="Employees" component={EmployeesNavigator} options={{ tabBarIcon: tabIcon('people-outline'), title: 'XODIMLAR' }} />
-      <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarIcon: tabIcon('settings-outline'), title: 'SOZLAMALAR' }} />
-
+      {/* Dashboard — har doim ko'rinadi */}
       <Tab.Screen
-        name="SystemHealth"
-        component={SystemHealthScreen}
-        options={{ tabBarIcon: tabIcon('pulse-outline'), title: 'SISTEMA' }}
+        name="Dashboard"
+        component={DashboardNavigator}
+        options={{ tabBarIcon: tabIcon('grid-outline'), title: 'DASHBOARD' }}
       />
 
-      {/* Hidden tab — navigable via bell icon in header */}
+      {/* Analytics — OWNER, ADMIN, MANAGER (level >= 3) */}
+      {canSeeAnalytics(role) && (
+        <Tab.Screen
+          name="Analytics"
+          component={AnalyticsScreen}
+          options={{ tabBarIcon: tabIcon('bar-chart-outline'), title: 'ANALITIKA' }}
+        />
+      )}
+
+      {/* Shifts — OWNER, ADMIN, MANAGER (level >= 3) */}
+      {canSeeShifts(role) && (
+        <Tab.Screen
+          name="Shifts"
+          component={ShiftsScreen}
+          options={{ tabBarIcon: tabIcon('time-outline'), title: 'SMENLAR' }}
+        />
+      )}
+
+      {/* Inventory — OWNER, ADMIN, MANAGER (level >= 3) yoki WAREHOUSE */}
+      {canSeeInventory(role) && (
+        <Tab.Screen
+          name="Inventory"
+          component={WarehouseScreen}
+          options={{ tabBarIcon: tabIcon('cube-outline'), title: 'OMBOR' }}
+        />
+      )}
+
+      {/* Employees — OWNER, ADMIN faqat (level >= 4) */}
+      {canSeeEmployees(role) && (
+        <Tab.Screen
+          name="Employees"
+          component={EmployeesNavigator}
+          options={{ tabBarIcon: tabIcon('people-outline'), title: 'XODIMLAR' }}
+        />
+      )}
+
+      {/* Settings — har doim ko'rinadi */}
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ tabBarIcon: tabIcon('settings-outline'), title: 'SOZLAMALAR' }}
+      />
+
+      {/* SystemHealth — OWNER, ADMIN faqat (level >= 4) */}
+      {canSeeSystemHealth(role) && (
+        <Tab.Screen
+          name="SystemHealth"
+          component={SystemHealthScreen}
+          options={{ tabBarIcon: tabIcon('pulse-outline'), title: 'SISTEMA' }}
+        />
+      )}
+
+      {/* Hidden tab — faqat header dagi qo'ng'iroq icon orqali navigatsiya */}
       <Tab.Screen
         name="Alerts"
         component={AlertsScreen}
