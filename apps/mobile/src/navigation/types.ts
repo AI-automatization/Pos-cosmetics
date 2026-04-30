@@ -70,6 +70,7 @@ export type MoreStackParamList = {
   CustomersScreen: undefined;
   CustomerDetail: { customerId: string; customerName: string };
   PromotionsScreen: undefined;
+  UsersScreen: undefined;
 };
 
 export type RootStackParamList = {

@@ -98,8 +98,7 @@ const BOSHQARUV_GROUP: MenuGroup = {
       icon: 'person-outline',
       title: 'Foydalanuvchilar',
       subtitle: "Tizim a'zolari",
-      screen: null,
-      badge: 'Tez orada',
+      screen: 'UsersScreen',
     },
     {
       icon: 'business-outline',
