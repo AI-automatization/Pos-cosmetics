@@ -105,21 +105,27 @@ export class SalesService {
     });
     if (!shift) throw new NotFoundException(`Open shift ${shiftId} not found`);
 
-    const [cashSales, cashReturns] = await Promise.all([
-      this.prisma.paymentIntent.aggregate({
-        where: { tenantId, order: { shiftId }, method: 'CASH', status: 'SETTLED' },
-        _sum: { amount: true },
-      }),
-      this.prisma.return.aggregate({
-        where: { tenantId, order: { shiftId }, refundMethod: 'CASH', status: ReturnStatus.APPROVED },
-        _sum: { total: true },
-      }),
-    ]);
+    let cashSalesAmt = 0;
+    let cashReturnsAmt = 0;
+    try {
+      const [cashSales, cashReturns] = await Promise.all([
+        this.prisma.paymentIntent.aggregate({
+          where: { tenantId, order: { shiftId }, method: 'CASH', status: 'SETTLED' },
+          _sum: { amount: true },
+        }),
+        this.prisma.return.aggregate({
+          where: { tenantId, order: { shiftId }, refundMethod: 'CASH', status: ReturnStatus.APPROVED },
+          _sum: { total: true },
+        }),
+      ]);
+      cashSalesAmt = Number(cashSales._sum.amount ?? 0);
+      cashReturnsAmt = Number(cashReturns._sum.total ?? 0);
+    } catch (err) {
+      this.logger.error('getShiftAvailableCash aggregate failed — returning openingCash only', { shiftId, err });
+    }
 
     const availableCash =
-      Number(shift.openingCash) +
-      Number(cashSales._sum.amount ?? 0) -
-      Number(cashReturns._sum.total ?? 0);
+      Number(shift.openingCash) + cashSalesAmt - cashReturnsAmt;
 
     this.logger.log(`Available cash for shift ${shiftId}: ${availableCash}`, { tenantId });
     return { availableCash, shiftId };
