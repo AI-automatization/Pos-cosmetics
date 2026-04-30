@@ -34,6 +34,7 @@ import PaymentsHistoryScreen from '../screens/Finance/PaymentsHistoryScreen';
 import NasiyaAgingScreen from '../screens/Finance/NasiyaAgingScreen';
 import ShiftReportsScreen from '../screens/Finance/ShiftReportsScreen';
 import ReportsHubScreen from '../screens/Finance/ReportsHubScreen';
+import ExchangeRatesScreen from '../screens/Finance/ExchangeRatesScreen';
 
 // ─── Colors ───────────────────────────────────────────────
 const PRIMARY = '#2563EB';
@@ -76,6 +77,7 @@ function FinanceNavigator(): React.JSX.Element {
       <FinanceStack.Screen name="NasiyaAging" component={NasiyaAgingScreen} />
       <FinanceStack.Screen name="ShiftReports" component={ShiftReportsScreen} />
       <FinanceStack.Screen name="ReportsHub" component={ReportsHubScreen} />
+      <FinanceStack.Screen name="ExchangeRates" component={ExchangeRatesScreen} options={{ headerShown: false }} />
     </FinanceStack.Navigator>
   );
 }

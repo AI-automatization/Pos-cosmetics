@@ -57,6 +57,7 @@ export type FinanceStackParamList = {
   NasiyaAging: undefined;
   ShiftReports: undefined;
   ReportsHub: undefined;
+  ExchangeRates: undefined;
 };
 
 export type MoreStackParamList = {

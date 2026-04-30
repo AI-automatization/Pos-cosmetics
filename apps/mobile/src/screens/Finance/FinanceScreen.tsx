@@ -314,6 +314,13 @@ export default function FinanceScreen() {
             iconBg="#EFF6FF"
             onPress={() => navigation.navigate('ShiftReports')}
           />
+          <NavCard
+            label="Valyuta kurslari"
+            iconName="globe-outline"
+            iconColor="#0891B2"
+            iconBg="#ECFEFF"
+            onPress={() => navigation.navigate('ExchangeRates')}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
