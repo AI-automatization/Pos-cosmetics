@@ -9,6 +9,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { FinanceStackParamList } from '@/navigation/types';
+
+type Nav = NativeStackNavigationProp<FinanceStackParamList, 'ReportsHub'>;
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -52,8 +56,8 @@ function ReportCard({ title, description, iconName, iconColor, iconBg, onPress }
 
 // ─── ReportsHubScreen ──────────────────────────────────
 export default function ReportsHubScreen() {
-  const navigation = useNavigation();
-  const nav = (screen: string) => navigation.navigate(screen as never);
+  const navigation = useNavigation<Nav>();
+  const nav = (screen: keyof FinanceStackParamList) => navigation.navigate(screen);
 
   const REPORTS: ReportCardProps[] = [
     {
@@ -94,7 +98,10 @@ export default function ReportsHubScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color={C.text} />
+        </TouchableOpacity>
+        <View style={styles.headerText}>
           <Text style={styles.headerTitle}>Hisobotlar</Text>
           <Text style={styles.headerSub}>Moliyaviy tahlil va hisobotlar</Text>
         </View>
@@ -134,6 +141,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 14,
     backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
   },
+  backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', marginLeft: -8 },
+  headerText: { flex: 1, marginLeft: 4 },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerSub: { fontSize: 12, color: C.muted, marginTop: 2 },
   headerIcon: {

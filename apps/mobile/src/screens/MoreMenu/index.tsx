@@ -87,6 +87,7 @@ const BIZNES_GROUP: MenuGroup = {
       screen: 'CustomersScreen',
     },
     { icon: 'pricetag-outline', title: 'Aksiyalar', subtitle: 'Chegirmalar va aksiyalar', screen: 'PromotionsScreen' },
+    { icon: 'document-text-outline', title: 'Hisobotlar', subtitle: 'Moliyaviy hisobotlar', screen: null },
   ],
 };
 
@@ -195,6 +196,10 @@ export default function MoreMenuScreen(): React.JSX.Element {
     }
     if (item.title === 'Nasiya') {
       navigation.getParent()?.navigate('Moliya', { screen: 'NasiyaAging' });
+      return;
+    }
+    if (item.title === 'Hisobotlar') {
+      navigation.getParent()?.navigate('Moliya' as never, { screen: 'ReportsHub' } as never);
       return;
     }
 
