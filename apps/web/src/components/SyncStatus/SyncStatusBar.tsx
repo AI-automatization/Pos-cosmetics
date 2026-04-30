@@ -30,6 +30,9 @@ function useSyncMonitor() {
   const { setState, setLatency, markSynced, setPendingCount } = useSyncStore();
 
   useEffect(() => {
+    // Load pending orders from localStorage only on client (prevents SSR hydration mismatch)
+    useSyncStore.getState().loadPendingOrdersFromStorage();
+
     // Online/offline listener
     const handleOnline = () => {
       setState('online-synced');

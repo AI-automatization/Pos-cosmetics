@@ -61,8 +61,8 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
   state: 'online-synced',
   pendingCount: 0,
   pendingItems: [],
-  pendingOrders: loadPendingOrders(),
-  lastSyncAt: new Date(),
+  pendingOrders: [],
+  lastSyncAt: null,
   latencyMs: 0,
 
   setState: (state) => set({ state }),
