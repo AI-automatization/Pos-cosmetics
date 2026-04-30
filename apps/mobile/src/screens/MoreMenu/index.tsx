@@ -209,7 +209,20 @@ export default function MoreMenuScreen(): React.JSX.Element {
       },
       ...(user?.role === 'WAREHOUSE' ? [WAREHOUSE_GROUP] : []),
       BIZNES_GROUP,
-      ...(roleLevel >= 3 ? [BOSHQARUV_GROUP] : []),
+      ...(roleLevel >= 3 ? [{
+        ...BOSHQARUV_GROUP,
+        items: roleLevel >= 4
+          ? [
+              ...BOSHQARUV_GROUP.items,
+              {
+                icon: 'pulse-outline' as const,
+                title: 'Sistema holati',
+                subtitle: 'Xizmatlar va xatolar holati',
+                screen: 'SystemHealthScreen' as keyof MoreStackParamList,
+              },
+            ]
+          : BOSHQARUV_GROUP.items,
+      }] : []),
       SOZLAMALAR_GROUP,
     ],
     [roleLevel, user?.role],

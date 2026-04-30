@@ -12,6 +12,7 @@ export type SalesStackParamList = {
 
 export type TabParamList = {
   BoshSahifa: undefined;
+  Analytics: undefined;
   Savdo: undefined;
   Katalog: undefined;
   Moliya: undefined;
@@ -73,6 +74,7 @@ export type MoreStackParamList = {
   UsersScreen: undefined;
   LowStockList: undefined;
   SuppliersScreen: undefined;
+  SystemHealthScreen: undefined;
 };
 
 export type RootStackParamList = {

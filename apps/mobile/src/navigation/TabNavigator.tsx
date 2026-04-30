@@ -38,6 +38,9 @@ import NasiyaAgingScreen from '../screens/Finance/NasiyaAgingScreen';
 import ShiftReportsScreen from '../screens/Finance/ShiftReportsScreen';
 import ReportsHubScreen from '../screens/Finance/ReportsHubScreen';
 import ExchangeRatesScreen from '../screens/Finance/ExchangeRatesScreen';
+import AnalyticsScreen from '../screens/Analytics/AnalyticsScreen';
+import SystemHealthScreen from '../screens/SystemHealth/SystemHealthScreen';
+import { getRoleLevel } from '../utils/roles';
 
 // ─── Colors ───────────────────────────────────────────────
 const PRIMARY = '#2563EB';
@@ -117,6 +120,7 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="UsersScreen" component={UsersScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="LowStockList" component={LowStockScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="SuppliersScreen" component={SuppliersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SystemHealthScreen" component={SystemHealthScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
   );
 }
@@ -165,6 +169,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 export default function TabNavigator(): React.JSX.Element {
   const { user } = useAuthStore();
   const isWarehouse = user?.role === 'WAREHOUSE';
+  const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
 
   return (
     <Tab.Navigator
@@ -176,7 +181,7 @@ export default function TabNavigator(): React.JSX.Element {
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
-      {/* Tab 1: Bosh sahifa — DashboardNavigator (Dashboard + Notifications) */}
+      {/* Tab 1: Bosh sahifa — har doim */}
       <Tab.Screen
         name="BoshSahifa"
         component={DashboardNavigator}
@@ -187,39 +192,56 @@ export default function TabNavigator(): React.JSX.Element {
         }}
       />
 
-      {/* Tab 2: Savdo (WAREHOUSE: Kirim) — stack bilan */}
-      <Tab.Screen
-        name="Savdo"
-        component={isWarehouse ? KirimTabNavigator : SavdoNavigator}
-        options={{
-          tabBarLabel: isWarehouse ? 'Kirim' : 'Savdo',
-          tabBarIcon: ({ focused, color }) =>
-            TabIcon(
-              focused,
-              isWarehouse ? 'archive-outline' : 'cart-outline',
-              isWarehouse ? 'archive' : 'cart',
-              color,
-            ),
-        }}
-      />
+      {/* Tab 2: Analitika — faqat OWNER / ADMIN */}
+      {isOwnerAdmin && (
+        <Tab.Screen
+          name="Analytics"
+          component={AnalyticsScreen}
+          options={{
+            tabBarLabel: 'Analitika',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(focused, 'bar-chart-outline', 'bar-chart', color),
+          }}
+        />
+      )}
 
-      {/* Tab 3: Katalog (WAREHOUSE: Ombor) — stack bilan */}
-      <Tab.Screen
-        name="Katalog"
-        component={isWarehouse ? OmborTabNavigator : CatalogNavigator}
-        options={{
-          tabBarLabel: isWarehouse ? 'Ombor' : 'Katalog',
-          tabBarIcon: ({ focused, color }) =>
-            TabIcon(
-              focused,
-              isWarehouse ? 'cube-outline' : 'grid-outline',
-              isWarehouse ? 'cube' : 'grid',
-              color,
-            ),
-        }}
-      />
+      {/* Tab 2/3: Savdo (WAREHOUSE: Kirim) — OWNER/ADMIN uchun emas */}
+      {!isOwnerAdmin && (
+        <Tab.Screen
+          name="Savdo"
+          component={isWarehouse ? KirimTabNavigator : SavdoNavigator}
+          options={{
+            tabBarLabel: isWarehouse ? 'Kirim' : 'Savdo',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(
+                focused,
+                isWarehouse ? 'archive-outline' : 'cart-outline',
+                isWarehouse ? 'archive' : 'cart',
+                color,
+              ),
+          }}
+        />
+      )}
 
-      {/* Tab 4: Moliya — stack bilan */}
+      {/* Tab 3/4: Katalog (WAREHOUSE: Ombor) — OWNER/ADMIN uchun emas */}
+      {!isOwnerAdmin && (
+        <Tab.Screen
+          name="Katalog"
+          component={isWarehouse ? OmborTabNavigator : CatalogNavigator}
+          options={{
+            tabBarLabel: isWarehouse ? 'Ombor' : 'Katalog',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(
+                focused,
+                isWarehouse ? 'cube-outline' : 'grid-outline',
+                isWarehouse ? 'cube' : 'grid',
+                color,
+              ),
+          }}
+        />
+      )}
+
+      {/* Tab 4/3: Moliya — har doim */}
       <Tab.Screen
         name="Moliya"
         component={FinanceNavigator}
@@ -230,7 +252,7 @@ export default function TabNavigator(): React.JSX.Element {
         }}
       />
 
-      {/* Tab 5: Ko'proq — stack bilan (Kirim, Ombor, Settings nested) */}
+      {/* Tab 5/4: Ko'proq — har doim */}
       <Tab.Screen
         name="Koproq"
         component={MoreNavigator}
