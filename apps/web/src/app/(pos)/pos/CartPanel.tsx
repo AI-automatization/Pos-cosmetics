@@ -131,9 +131,6 @@ export function CartPanel() {
       <div className="flex h-full flex-col items-center justify-center p-6 text-center">
         <ShoppingCart className="mb-3 h-12 w-12 text-gray-200" />
         <p className="text-sm text-gray-400">Savatcha bo'sh</p>
-        <p className="mt-1 text-xs text-gray-300">
-          Mahsulot qo'shish uchun chap paneldan tanlang
-        </p>
       </div>
     );
   }

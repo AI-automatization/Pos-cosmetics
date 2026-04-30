@@ -249,17 +249,21 @@ export function usePOSReturn(shiftId: string | null) {
       );
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Xato yuz berdi';
+      // Access NestJS error body: err.response.data.message (not err.message which is HTTP status text)
+      type AxiosLike = { response?: { data?: { message?: string } } };
+      const backendMsg =
+        (err as AxiosLike)?.response?.data?.message ??
+        (err instanceof Error ? err.message : 'Xato yuz berdi');
       // Parse INSUFFICIENT_CASH:available:required
-      if (msg.startsWith('INSUFFICIENT_CASH:')) {
-        const [, avail, req] = msg.split(':');
+      if (typeof backendMsg === 'string' && backendMsg.startsWith('INSUFFICIENT_CASH:')) {
+        const [, avail, req] = backendMsg.split(':');
         const message = `Kassada yetarli pul yo'q. Mavjud: ${Number(avail).toLocaleString()} so'm, kerak: ${Number(req).toLocaleString()} so'm`;
         dispatch({ type: 'SUBMIT_ERROR', message });
         // Force switch to TERMINAL
         dispatch({ type: 'SET_METHOD', method: 'TERMINAL' });
         return;
       }
-      dispatch({ type: 'SUBMIT_ERROR', message: msg });
+      dispatch({ type: 'SUBMIT_ERROR', message: typeof backendMsg === 'string' ? backendMsg : 'Xato yuz berdi' });
     },
   });
 
