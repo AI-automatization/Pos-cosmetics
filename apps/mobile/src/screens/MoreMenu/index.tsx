@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -173,12 +173,28 @@ export default function MoreMenuScreen(): React.JSX.Element {
 
   const roleLevel = getRoleLevel(user?.role);
 
-  const groups: readonly MenuGroup[] = [
-    INVENTAR_GROUP,
-    BIZNES_GROUP,
-    ...(roleLevel >= 3 ? [BOSHQARUV_GROUP] : []),
-    SOZLAMALAR_GROUP,
-  ];
+  const groups = useMemo<readonly MenuGroup[]>(
+    () => [
+      {
+        ...INVENTAR_GROUP,
+        items: roleLevel >= 3
+          ? [
+              ...INVENTAR_GROUP.items,
+              {
+                icon: 'warning-outline' as const,
+                title: 'Kam qolgan',
+                subtitle: 'Zaxira kam mahsulotlar',
+                screen: 'LowStockList' as keyof MoreStackParamList,
+              },
+            ]
+          : INVENTAR_GROUP.items,
+      },
+      BIZNES_GROUP,
+      ...(roleLevel >= 3 ? [BOSHQARUV_GROUP] : []),
+      SOZLAMALAR_GROUP,
+    ],
+    [roleLevel],
+  );
 
   const handlePress = (item: MenuItem): void => {
     // Maxsus navigatsiya — boshqa tab larga o'tish

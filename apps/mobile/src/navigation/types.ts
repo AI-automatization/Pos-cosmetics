@@ -71,6 +71,7 @@ export type MoreStackParamList = {
   CustomerDetail: { customerId: string; customerName: string };
   PromotionsScreen: undefined;
   UsersScreen: undefined;
+  LowStockList: undefined;
 };
 
 export type RootStackParamList = {
