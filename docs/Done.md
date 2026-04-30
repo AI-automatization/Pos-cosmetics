@@ -1,5 +1,5 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-04-29
+# Yangilangan: 2026-04-30
 
 ---
 
@@ -10,6 +10,78 @@
 2. Format: T-raqam | sana | tur | qisqa yechim | fayl nomi
 3. Bu fayl FAQAT arxiv — o'chirmaslik, o'zgartirmaslik
 ```
+
+---
+
+## T-405 | 2026-04-30 | [MOBILE] | Staff app — WAREHOUSE roli uchun ombor-focused UI
+
+- **Yechim:** TabNavigator da WAREHOUSE roli uchun tab almashtirish implementatsiya qilindi — Savdo tabi Kirim (stock-in) ga, Katalog tabi Inventarizatsiya (stock count) ga almashdi; Ko'proq menusida WAREHOUSE_GROUP ekranlar qo'shildi
+- **Fayllar:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `feat(mobile): T-405 — WAREHOUSE roli uchun ombor-focused UI`
+
+---
+
+## T-404 | 2026-04-30 | [MOBILE] | Staff app — MANAGER roli LowStockList qo'shildi
+
+- **Yechim:** LowStockList MoreNavigator ga qo'shildi; Ko'proq menusida INVENTAR_GROUP roleLevel >= 3 shartida ko'rinadi
+- **Fayllar:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `feat(mobile): T-404 — MANAGER roli uchun LowStockList qo'shildi`
+
+---
+
+## T-403 | 2026-04-30 | [MOBILE] | Staff app — Role-based UI ADMIN/CASHIER farqi
+
+- **Yechim:** `utils/roles.ts` shared utility yaratildi; `ProductsScreen` da FAB va Tahrirlash tugmalari role-based ko'rsatiladi — ADMIN ko'radi, CASHIER ko'rmaydi
+- **Fayllar:** `apps/mobile/src/utils/roles.ts`, `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
+- **Commit:** `feat(mobile): T-403 — Role-based UI ADMIN/CASHIER farqi`
+
+---
+
+## T-402 | 2026-04-30 | [MOBILE] | Staff app — Ko'proq menusida Foydalanuvchilar UsersScreen ga ulandi
+
+- **Yechim:** `MoreStackParamList` ga `UsersScreen` qo'shildi; Ko'proq menusidagi "Foydalanuvchilar" elementi "Tez orada" badge o'chirildi, to'g'ridan-to'g'ri `UsersScreen` ga navigatsiya ishlaydi
+- **Fayllar:** `apps/mobile/src/navigation/MoreNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `fix(mobile): T-402 — Foydalanuvchilar MoreMenu → UsersScreen navigatsiya`
+
+---
+
+## T-400 | 2026-04-30 | [MOBILE] | Staff app — Valyuta kurslari (Exchange Rates) ekrani qo'shildi
+
+- **Yechim:** `ExchangeRatesScreen` yaratildi; `exchange.api.ts` API integratsiyasi; `FinanceScreen` da NavCard qo'shildi
+- **Fayllar:** `apps/mobile/src/screens/Finance/ExchangeRatesScreen.tsx`, `apps/mobile/src/api/exchange.api.ts`, `apps/mobile/src/screens/Finance/FinanceScreen.tsx`
+- **Commit:** `feat(mobile): T-400 — Valyuta kurslari (Exchange Rates) ekrani qo'shildi`
+
+---
+
+## T-399 | 2026-04-30 | [MOBILE] | Staff app — ReportsHub back button + MoreMenu Hisobotlar
+
+- **Yechim:** `ReportsHubScreen` ga back button qo'shildi; typed navigation parametrlari tuzatildi; Ko'proq menusida "Hisobotlar" elementi ReportsHub ga navigatsiya qiladi
+- **Fayllar:** `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `fix(mobile): T-399 — ReportsHub back button + MoreMenu Hisobotlar`
+
+---
+
+## T-398 | 2026-04-30 | [MOBILE] | Staff app — Aksiyalar (Promotions) ekrani qo'shildi
+
+- **Yechim:** `PromotionsScreen` yaratildi; `promotions.api.ts` API integratsiyasi; Ko'proq menusiga qo'shildi
+- **Fayllar:** `apps/mobile/src/screens/Promotions/PromotionsScreen.tsx`, `apps/mobile/src/api/promotions.api.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `feat(mobile): T-398 — Aksiyalar (Promotions) ekrani qo'shildi`
+
+---
+
+## T-397 | 2026-04-30 | [MOBILE] | Staff app — Mijozlar (Customers) ekrani qo'shildi
+
+- **Yechim:** `CustomersScreen` va `CustomerDetailScreen` yaratildi; Ko'proq menusiga qo'shildi
+- **Fayllar:** `apps/mobile/src/screens/Customers/CustomersScreen.tsx`, `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `feat(mobile): T-397 — Mijozlar (Customers) ekrani qo'shildi`
+
+---
+
+## T-379 | 2026-04-30 | [MOBILE] | mobile-owner: AddEmployeeScreen — backend DTO bilan sinxronlashtirildi
+
+- **Yechim:** `CreateEmployeeDto` backendga moslashtirildi — 11 ta ortiqcha field (`login`, `dateOfBirth`, `passportId`, `address` va boshqalar) olib tashlandi; faqat `{ firstName, lastName, email, password, role, phone }` qoldi
+- **Fayllar:** `apps/mobile-owner/src/screens/Employees/AddEmployeeScreen.tsx`, `apps/mobile-owner/src/api/employees.api.ts`
+- **Commit:** `fix(mobile): T-379 — sync AddEmployeeScreen DTO with backend`
 
 ---
 

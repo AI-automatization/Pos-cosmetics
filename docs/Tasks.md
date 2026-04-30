@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-04-29 (T-407, T-412, T-414, T-415, T-416, T-418 Done.md ga ko'chirildi)
+# Yangilangan: 2026-04-30 (T-379, T-397, T-398, T-399, T-400, T-402, T-403, T-404, T-405 Done.md ga ko'chirildi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -187,120 +187,14 @@
 
 ---
 
-## T-379 | P2 | [MOBILE] | mobile-owner: AddEmployeeScreen — backend qo'llamaydigan fieldlarni tozalash
 
-- **Sana:** 2026-04-21
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile-owner/src/screens/Employees/AddEmployeeScreen.tsx`, `employees.api.ts` `CreateEmployeeDto`
-- **Muammo:** `CreateEmployeeDto` da `login`, `dateOfBirth`, `passportId`, `address` bor — backend User modelida yo'q, faqat `{ firstName, lastName, email, password, role, phone }` saqlanadi.
-- **Vazifa:** `login` field olib tashlash (login = email). Qolgan extra fieldlarni `botSettings` da saqlash uchun backend endpoint kengaytirish yoki formdan olib tashlash.
-- **Kutilgan:** DTO backend bilan mos, form faqat real saqlanadigan fieldlarni so'raydi
 
----
 
-## T-397 | P2 | [MOBILE] | Staff app — Mijozlar (Customers) ekrani yo'q — web da bor
 
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Customers/` (yaratilishi kerak)
-- **Muammo:** Web da `/customers` sahifasi bor: mijozlar ro'yxati, aloqa ma'lumotlari, sotib olish tarixi, loyalty tracking, mijoz detail sahifasi. Mobile staff appda bu ekran umuman yo'q — na tab da, na Ko'proq menusida.
-- **Kutilgan:** Mijozlar ekrani — FlatList (ism, telefon, balans), qidiruv, mijoz detail (sotib olish tarixi, nasiya holati), yangi mijoz qo'shish
-- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
 
----
 
-## T-398 | P2 | [MOBILE] | Staff app — Chegirmalar/Aksiyalar (Promotions) ekrani yo'q — web da bor
 
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Promotions/` (yaratilishi kerak)
-- **Muammo:** Web da `/promotions` sahifasi bor: aktiv aksiyalar, chegirma qoidalari, kuponlar boshqaruvi. Mobile staff appda bu ekran umuman yo'q. Kassir chegirmalarni faqat qo'lda kiritishi mumkin — oldindan belgilangan aksiyalar ro'yxati ko'rinmaydi.
-- **Kutilgan:** Aksiyalar ekrani — aktiv chegirmalar ro'yxati (foiz/summa, muddat, shart), kupon qo'llash, avtomatik chegirma ko'rsatish savdo paytida
-- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
 
----
-
-## T-399 | P2 | [MOBILE] | Staff app — Hisobotlar (Reports) hub ekrani yo'q — web da 7 ta hisobot bor
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx` (tayyor lekin routing yo'q)
-- **Muammo:** Web da `/reports` bo'limida 7 ta hisobot mavjud: kunlik daromad, top mahsulotlar, smenalar, filiallar, hisobot yaratish, export. Mobile da `ReportsHubScreen.tsx` tayyor lekin faqat Moliya navigator orqali kirilishi kerak (T-395 bilan bog'liq). Alohida Reports tabi yoki Ko'proq menusidan kirish yo'q.
-- **Kutilgan:** Hisobotlar hub ekraniga Ko'proq menusidan yoki Moliya tabi orqali kirish imkoni bo'lishi kerak
-- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
-
----
-
-## T-400 | P3 | [MOBILE] | Staff app — Valyuta kurslari (Exchange Rates) ekrani yo'q — web da bor
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Finance/` (qo'shilishi kerak)
-- **Muammo:** Web da `/finance/exchange-rates` sahifasi bor: USD/UZS va boshqa kurslar, kurs tarixi, qo'lda kurs kiritish, konvertatsiya. Mobile da bu funksiya yo'q.
-- **Kutilgan:** Valyuta kurslari ekrani Moliya bo'limida — joriy kurslar, kurs tarixi
-- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
-
----
-
-## T-402 | P3 | [MOBILE] | Staff app — Ko'proq menusida Foydalanuvchilar disabled — routing ulanmagan
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Muammo:** Ko'proq menusida "Foydalanuvchilar" bandi "Tez orada" badge bilan disabled holda. Lekin `screens/Settings/UsersScreen.tsx` (416 qator) allaqachon tayyor va Sozlamalar orqali kirish mumkin. Ko'proq menusidan to'g'ridan-to'g'ri navigatsiya yo'q.
-- **Kutilgan:** Ko'proq menusidagi Foydalanuvchilar → UsersScreen ga navigatsiya ishlashi kerak
-- **Topildi:** Visual QA + codebase tahlil — 2026-04-26
-
----
-
-## T-403 | P2 | [MOBILE] | Staff app — Role-based UI: ADMIN roli uchun kengaytirilgan menular
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Muammo:** Staff app hozir barcha rollar uchun bir xil UI ko'rsatadi. Web da ADMIN roli to'liq boshqaruv imkoniyatiga ega: mahsulot CRUD, inventar, xodimlar, moliya (P&L, xarajatlar), sozlamalar, hisobotlar. Mobile da ADMIN login qilsa ham kassir bilan bir xil cheklangan menyu ko'rinadi.
-- **Yechim:** `apps/mobile` da role-based UI — login qilganda user role tekshiriladi, ADMIN rolida qo'shimcha menular va ekranlar ko'rsatiladi:
-  - Katalog CRUD (mahsulot qo'shish/tahrirlash — kassirda faqat ko'rish)
-  - Xodimlar boshqaruvi (role, PIN, commission)
-  - Moliya (P&L, xarajatlar)
-  - Hisobotlar (to'liq)
-  - Sozlamalar (users, branches, printer, audit log)
-- **Kutilgan:** ADMIN login → kengaytirilgan tab/menyular; CASHIER login → hozirgi ko'rinish saqlanadi
-- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
-
----
-
-## T-404 | P2 | [MOBILE] | Staff app — Role-based UI: MANAGER roli uchun o'rta darajali menular
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Muammo:** Web da MANAGER soddalashtirilgan admin ko'rinishga ega: dashboard, katalog (ko'rish), inventar (ko'rish), sotuvlar, nasiya, xodimlar (ko'rish), hisobotlar. Mobile da Manager login qilsa kassir bilan bir xil ko'rinish — qo'shimcha imkoniyatlar yo'q.
-- **Yechim:** MANAGER rolida qo'shimcha ko'rinadigan ekranlar (READ-ONLY):
-  - Hisobotlar (ko'rish)
-  - Nasiya (ko'rish)
-  - Xodimlar (ko'rish, tahrirlamasdan)
-  - Inventar kengaytirilgan (low stock, expiry)
-- **Kutilgan:** MANAGER login → CASHIER dan ko'proq, ADMIN dan kam menyular ko'rinadi
-- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
-
----
-
-## T-405 | P2 | [MOBILE] | Staff app — Role-based UI: WAREHOUSE roli uchun ombor ekranlari
-
-- **Sana:** 2026-04-26
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Muammo:** Web da Warehouse xodimi uchun alohida bo'lim (7 ta ekran): stock-in, write-off, stock count, expiry, low stock, movement history, suppliers. Mobile da faqat Kirim va Ombor (2 ta ekran) bor. WAREHOUSE roli login qilganda savdo emas, ombor ekranlari ko'rinishi kerak.
-- **Yechim:** WAREHOUSE rolida tab bar va menyular o'zgaradi:
-  - Savdo tabi → **Kirim** (stock-in) ga almashadi
-  - Katalog tabi → **Inventarizatsiya** (stock count) ga almashadi
-  - Ko'proq menusida: Write-Off, Expiry, Movement History, Low Stock, Suppliers
-  - Barcode scanner barcha ombor ekranlarida ishlashi kerak
-- **Kutilgan:** WAREHOUSE login → ombor-focused UI; savdo/kassa ekranlari yashirinadi
-- **Topildi:** Web vs Mobile solishtirma — 2026-04-26
-
----
 
 
 ## T-419 | P2 | [BACKEND] | Ko'chmas mulk — POST /real-estate/properties endpoint yo'q
@@ -363,7 +257,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **26** | **3** | **4** | **11** | **8** |
+| **17** | **3** | **4** | **5** | **5** |
 
 ### Kategoriya bo'yicha
 
@@ -371,7 +265,7 @@
 |-----------|----|----|----|----|------|
 | [BACKEND] | 1 | 2 | 5 | 4 | **12** |
 | [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
-| [MOBILE] | 0 | 0 | 6 | 2 | **8** |
+| [MOBILE] | 0 | 0 | 0 | 0 | **0** |
 | [SECURITY] | 2 | 1 | 0 | 0 | **3** |
 | [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
@@ -381,11 +275,11 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 3 | 3 | 5 | 0 | **11** |
-| **Abdulaziz** (Mobile) | 0 | 0 | 6 | 2 | **8** |
-| **Belgilanmagan** | 0 | 0 | 0 | 6 | **6** |
+| **Abdulaziz** (Mobile) | 0 | 0 | 0 | 0 | **0** |
+| **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
 | **Ibrat + Abdulaziz** | 0 | 1 | 0 | 0 | **1** |
 
-> Yangilandi: 2026-04-29 — T-407, T-412, T-414, T-415, T-416, T-418 Done.md ga ko'chirildi
+> Yangilandi: 2026-04-30 — T-379, T-397, T-398, T-399, T-400, T-402, T-403, T-404, T-405 Done.md ga ko'chirildi
 
 ---
 
