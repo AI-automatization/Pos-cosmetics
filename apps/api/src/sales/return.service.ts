@@ -91,20 +91,26 @@ export class ReturnService {
       // TERMINAL → always PENDING (bank reversal)
       // refundMethod undefined → always PENDING (admin path, backward compat)
 
-      const ret = await tx.return.create({
-        data: {
-          tenantId,
-          orderId: dto.orderId,
-          userId,
-          reason: dto.reason,
-          total,
-          refundMethod: dto.refundMethod,
-          status: initialStatus,
-          ...(approvedBy ? { approvedBy } : {}),
-          items: { create: returnItemsData },
-        },
-        include: { items: true },
-      });
+      const [ret] = await Promise.all([
+        tx.return.create({
+          data: {
+            tenantId,
+            orderId: dto.orderId,
+            userId,
+            reason: dto.reason,
+            total,
+            refundMethod: dto.refundMethod,
+            status: initialStatus,
+            ...(approvedBy ? { approvedBy } : {}),
+            items: { create: returnItemsData },
+          },
+          include: { items: true },
+        }),
+        tx.order.update({
+          where: { id: dto.orderId },
+          data: { status: OrderStatus.RETURNED },
+        }),
+      ]);
 
       this.eventEmitter.emit('return.created', {
         tenantId,
