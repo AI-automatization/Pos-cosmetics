@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Banknote,
   CreditCard,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useLoyaltyAccount, useLoyaltyConfig, pointsToMoney } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
+import { useGlobalPromo } from '@/hooks/promotions/usePromotions';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
@@ -64,6 +65,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const { data: user } = useCurrentUser();
   const isCashier = user?.role === 'CASHIER';
+  const globalPromo = useGlobalPromo();
 
   const { subtotal, discountAmount, total, change } = totals();
   const { mutate: completeSale, isPending, canComplete } = useCompleteSale(
@@ -72,6 +74,9 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
+  // Ref so we can read latest globalPromo inside effect without adding it to deps
+  const globalPromoRef = useRef(globalPromo);
+  globalPromoRef.current = globalPromo;
 
   const discountVal = parseFloat(discountInput) || 0;
   const discountPct = discountType === 'percent'
@@ -80,11 +85,30 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const overLimit = isCashier && discountPct > 5;
   const [showCustomerModal, setShowCustomerModal] = useState(false);
 
-  // Sync local state when store resets after clearCart()
+  // Sync local state when store resets after clearCart().
+  // Also auto-applies an active global PERCENT/FIXED promo when discount is 0.
   useEffect(() => {
+    const promo = globalPromoRef.current;
+    if (promo && orderDiscount === 0) {
+      const rules = promo.rules as Record<string, number>;
+      if (promo.type === 'PERCENT' && (rules.percent ?? 0) > 0) {
+        const pct = rules.percent;
+        setDiscountInput(String(pct));
+        setDiscountType('percent');
+        setOrderDiscount(pct, 'percent');
+        return;
+      }
+      if (promo.type === 'FIXED' && (rules.amount ?? 0) > 0) {
+        const amt = rules.amount;
+        setDiscountInput(String(amt));
+        setDiscountType('fixed');
+        setOrderDiscount(amt, 'fixed');
+        return;
+      }
+    }
     setDiscountInput(String(orderDiscount));
     setDiscountType(orderDiscountType);
-  }, [orderDiscount, orderDiscountType]);
+  }, [orderDiscount, orderDiscountType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDiscountApply = () => {
     const val = parseFloat(discountInput) || 0;
@@ -129,6 +153,20 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
       {/* Discount */}
       <div className="shrink-0 border-b border-gray-100 p-3">
+        {/* Active global promotion banner */}
+        {globalPromo && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5">
+            <Tag className="h-3.5 w-3.5 shrink-0 text-red-600" />
+            <span className="min-w-0 flex-1 truncate text-xs font-semibold text-red-700">
+              {globalPromo.name}
+            </span>
+            <span className="shrink-0 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+              {globalPromo.type === 'PERCENT'
+                ? `−${(globalPromo.rules as { percent: number }).percent ?? 0}%`
+                : `−${formatPrice((globalPromo.rules as { amount: number }).amount ?? 0)}`}
+            </span>
+          </div>
+        )}
         <p className="mb-2 flex items-center gap-1 text-xs font-medium text-gray-500">
           <Tag className="h-3 w-3" /> Chegirma
         </p>

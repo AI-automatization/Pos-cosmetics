@@ -3,7 +3,7 @@
 import { Minus, Plus, Trash2, Tag, ShoppingCart, Package } from 'lucide-react';
 import { useState } from 'react';
 import { usePOSStore } from '@/store/pos.store';
-import { usePromoMap } from '@/hooks/promotions/usePromotions';
+import { usePromoMap, useGlobalPromo } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
 import type { CartItem } from '@/types/sales';
 
@@ -125,6 +125,7 @@ export function CartPanel() {
   const cart = store.carts[store.activeCartId];
   const items = cart?.items ?? [];
   const { clearCart } = store;
+  const globalPromo = useGlobalPromo();
 
   if (items.length === 0) {
     return (
@@ -139,12 +140,20 @@ export function CartPanel() {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-3 py-2">
-        <span className="text-sm font-semibold text-gray-700">
-          Savatcha{' '}
-          <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
-            {items.length}
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold text-gray-700">
+            Savatcha{' '}
+            <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
+              {items.length}
+            </span>
           </span>
-        </span>
+          {globalPromo && (
+            <span className="flex items-center gap-0.5 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+              <Tag className="h-2.5 w-2.5" />
+              Aksiya
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={clearCart}
