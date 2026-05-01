@@ -1,816 +1,96 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  OpenShiftDto,
-  CloseShiftDto,
-  CreateOrderDto,
-  CreateReturnDto,
-  DiscountTypeEnum,
-} from './dto';
-import { ShiftStatus, OrderStatus, ReturnStatus, UserRole, Prisma } from '@prisma/client';
-
-// Discount limits by role
-const DISCOUNT_LIMIT: Record<string, number> = {
-  [UserRole.CASHIER]: 5,
-  [UserRole.MANAGER]: 15,
-  [UserRole.ADMIN]: 100,
-  [UserRole.OWNER]: 100,
-  [UserRole.VIEWER]: 0,
-};
+/**
+ * SalesService — facade delegating to ShiftService, OrderService, ReturnService.
+ * Controllers continue to inject this single entry-point (backward compatible).
+ * SRP is maintained: each sub-service has one responsibility.
+ */
+import { Injectable } from '@nestjs/common';
+import { ShiftService } from './shift.service';
+import { OrderService } from './order.service';
+import { ReturnService } from './return.service';
+import { OpenShiftDto, CloseShiftDto, CreateOrderDto, CreateReturnDto } from './dto';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class SalesService {
-  private readonly logger = new Logger(SalesService.name);
-
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly shifts: ShiftService,
+    private readonly orders: OrderService,
+    private readonly returns: ReturnService,
   ) {}
 
   // ─── SHIFTS ───────────────────────────────────────────────────
-
-  async openShift(tenantId: string, userId: string, dto: OpenShiftDto) {
-    // Check if user already has an open shift
-    const existing = await this.prisma.shift.findFirst({
-      where: { tenantId, userId, status: ShiftStatus.OPEN },
-    });
-    if (existing) {
-      throw new BadRequestException(
-        `User already has an open shift: ${existing.id}`,
-      );
-    }
-
-    const shift = await this.prisma.shift.create({
-      data: {
-        tenantId,
-        userId,
-        branchId: dto.branchId,
-        openingCash: dto.openingCash,
-        notes: dto.notes,
-        status: ShiftStatus.OPEN,
-      },
-    });
-
-    this.logger.log(`Shift opened: ${shift.id}`, { tenantId, userId });
-    return shift;
+  openShift(tenantId: string, userId: string, dto: OpenShiftDto) {
+    return this.shifts.openShift(tenantId, userId, dto);
   }
 
-  async closeShift(tenantId: string, userId: string, shiftId: string, dto: CloseShiftDto) {
-    // userId filter olib tashlandi — admin/manager ham smenani yopa olishi kerak
-    const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, tenantId, status: ShiftStatus.OPEN },
-    });
-    if (!shift) throw new NotFoundException(`Open shift ${shiftId} not found`);
-
-    // Calculate expected cash: opening + cash sales
-    const cashSales = await this.prisma.paymentIntent.aggregate({
-      where: {
-        tenantId,
-        order: { shiftId },
-        method: 'CASH',
-        status: 'SETTLED',
-      },
-      _sum: { amount: true },
-    });
-    const expectedCash =
-      Number(shift.openingCash) + Number(cashSales._sum.amount ?? 0);
-
-    const updated = await this.prisma.shift.update({
-      where: { id: shiftId },
-      data: {
-        status: ShiftStatus.CLOSED,
-        closedAt: new Date(),
-        closingCash: dto.closingCash,
-        expectedCash,
-        notes: dto.notes ?? shift.notes,
-      },
-    });
-
-    this.logger.log(`Shift closed: ${shiftId}`, { tenantId, userId });
-    this.eventEmitter.emit('shift.closed', { tenantId, shiftId, userId });
-    return updated;
+  closeShift(tenantId: string, userId: string, shiftId: string, dto: CloseShiftDto) {
+    return this.shifts.closeShift(tenantId, userId, shiftId, dto);
   }
 
-  async getShiftAvailableCash(tenantId: string, shiftId: string): Promise<{ availableCash: number; shiftId: string }> {
-    const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, tenantId, status: ShiftStatus.OPEN },
-      select: { openingCash: true },
-    });
-    if (!shift) throw new NotFoundException(`Open shift ${shiftId} not found`);
-
-    let cashSalesAmt = 0;
-    let cashReturnsAmt = 0;
-    try {
-      const [cashSales, cashReturns] = await Promise.all([
-        this.prisma.paymentIntent.aggregate({
-          where: { tenantId, order: { shiftId }, method: 'CASH', status: 'SETTLED' },
-          _sum: { amount: true },
-        }),
-        this.prisma.return.aggregate({
-          where: { tenantId, order: { shiftId }, refundMethod: 'CASH', status: ReturnStatus.APPROVED },
-          _sum: { total: true },
-        }),
-      ]);
-      cashSalesAmt = Number(cashSales._sum.amount ?? 0);
-      cashReturnsAmt = Number(cashReturns._sum.total ?? 0);
-    } catch (err) {
-      this.logger.error('getShiftAvailableCash aggregate failed — returning openingCash only', { shiftId, err });
-    }
-
-    const availableCash =
-      Number(shift.openingCash) + cashSalesAmt - cashReturnsAmt;
-
-    this.logger.log(`Available cash for shift ${shiftId}: ${availableCash}`, { tenantId });
-    return { availableCash, shiftId };
+  getShiftAvailableCash(tenantId: string, shiftId: string) {
+    return this.shifts.getShiftAvailableCash(tenantId, shiftId);
   }
 
-  async getOrderByNumber(tenantId: string, orderNumber: number) {
-    const order = await this.prisma.order.findFirst({
-      where: { tenantId, orderNumber },
-      include: {
-        items: {
-          include: { product: { select: { id: true, name: true } } },
-        },
-        paymentIntents: { where: { status: 'SETTLED' }, select: { method: true, amount: true } },
-        customer: { select: { id: true, name: true, phone: true } },
-        user: { select: { id: true, firstName: true, lastName: true } },
-      },
-    });
-    if (!order) throw new NotFoundException(`Order #${orderNumber} not found`);
-    return order;
+  getCurrentShift(tenantId: string, userId: string) {
+    return this.shifts.getCurrentShift(tenantId, userId);
   }
 
-  async getCurrentShift(tenantId: string, userId: string) {
-    const shift = await this.prisma.shift.findFirst({
-      where: { tenantId, userId, status: ShiftStatus.OPEN },
-      include: {
-        user: { select: { firstName: true, lastName: true } },
-        branch: { select: { id: true, name: true } },
-      },
-    });
-
-    if (!shift) return null;
-
-    // T-138: Smena statistikasini hisoblash
-    const orders = await this.prisma.order.findMany({
-      where: { tenantId, shiftId: shift.id, status: 'COMPLETED' },
-      include: { paymentIntents: { select: { method: true, amount: true } } },
-    });
-
-    let totalRevenue = 0;
-    let naqdAmount = 0;
-    let kartaAmount = 0;
-    let nasiyaAmount = 0;
-
-    for (const order of orders) {
-      const total = Number(order.total);
-      totalRevenue += total;
-
-      for (const payment of order.paymentIntents) {
-        const amount = Number(payment.amount);
-        if (payment.method === 'CASH') naqdAmount += amount;
-        else if (payment.method === 'TERMINAL') kartaAmount += amount;
-        else if (payment.method === 'DEBT') nasiyaAmount += amount;
-      }
-    }
-
-    const ordersCount = orders.length;
-    const avgOrderValue = ordersCount > 0 ? Math.round(totalRevenue / ordersCount) : 0;
-
-    return {
-      ...shift,
-      cashierName: `${shift.user.firstName} ${shift.user.lastName}`.trim(),
-      stats: {
-        totalRevenue: Math.round(totalRevenue),
-        ordersCount,
-        avgOrderValue,
-        naqdAmount: Math.round(naqdAmount),
-        kartaAmount: Math.round(kartaAmount),
-        nasiyaAmount: Math.round(nasiyaAmount),
-      },
-    };
+  getActiveShifts(tenantId: string, branchId?: string) {
+    return this.shifts.getActiveShifts(tenantId, branchId);
   }
 
-  // Mobile alias: GET /sales/shifts/active
-  async getActiveShifts(tenantId: string, branchId?: string) {
-    return this.prisma.shift.findMany({
-      where: { tenantId, status: ShiftStatus.OPEN, ...(branchId && { branchId }) },
-      include: {
-        user: { select: { id: true, firstName: true, lastName: true } },
-        branch: { select: { id: true, name: true } },
-      },
-      orderBy: { openedAt: 'desc' },
-    });
-  }
-
-  // Mobile alias: GET /sales/quick-stats
-  async getQuickStats(tenantId: string, branchId?: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const where = {
-      tenantId,
-      status: 'COMPLETED' as const,
-      createdAt: { gte: today },
-      ...(branchId && { branchId }),
-    };
-
-    const [orders, topProducts] = await this.prisma.$transaction([
-      this.prisma.order.findMany({ where, select: { total: true } }),
-      this.prisma.orderItem.groupBy({
-        by: ['productId'],
-        where: { order: { ...where } },
-        _sum: { quantity: true, total: true },
-        orderBy: { _sum: { total: 'desc' } },
-        take: 5,
-      }),
-    ]);
-
-    const ordersCount = orders.length;
-    const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
-    const avgBasket = ordersCount > 0 ? totalRevenue / ordersCount : 0;
-
-    const productIds = topProducts.map((p) => p.productId);
-    const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, name: true },
-    });
-
-    return {
-      ordersCount,
-      avgBasket: Math.round(avgBasket),
-      currency: 'UZS',
-      topProducts: topProducts.map((p) => {
-        const product = products.find((pr) => pr.id === p.productId);
-        const sum = p._sum ?? {};
-        return {
-          productId: p.productId,
-          productName: product?.name ?? 'Unknown',
-          quantity: Number((sum as { quantity?: unknown }).quantity ?? 0),
-          revenue: Number((sum as { total?: unknown }).total ?? 0),
-        };
-      }),
-    };
-  }
-
-  // ─── T-205: SHIFTS (paginated, filtered) ─────────────────────
-  async getShifts(
+  getShifts(
     tenantId: string,
-    limit = 20,
-    page = 1,
-    opts: { branchId?: string; status?: string; userId?: string; role?: string } = {},
+    limit?: number,
+    page?: number,
+    opts?: { branchId?: string; status?: string; userId?: string; role?: string },
   ) {
-    const skip = (page - 1) * limit;
-    const statusMap: Record<string, ShiftStatus> = {
-      open: ShiftStatus.OPEN,
-      closed: ShiftStatus.CLOSED,
-    };
+    return this.shifts.getShifts(tenantId, limit, page, opts);
+  }
 
-    const where = {
-      tenantId,
-      ...(opts.branchId && { branchId: opts.branchId }),
-      ...(opts.status && statusMap[opts.status] && { status: statusMap[opts.status] }),
-      // CASHIER/MANAGER see only their own shifts
-      ...(opts.role && !['OWNER', 'ADMIN'].includes(opts.role) && opts.userId
-        ? { userId: opts.userId }
-        : {}),
-    };
+  getShiftById(tenantId: string, shiftId: string) {
+    return this.shifts.getShiftById(tenantId, shiftId);
+  }
 
-    const [total, rows] = await this.prisma.$transaction([
-      this.prisma.shift.count({ where }),
-      this.prisma.shift.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { openedAt: 'desc' },
-        include: {
-          user: { select: { id: true, firstName: true, lastName: true } },
-          branch: { select: { id: true, name: true } },
-          orders: {
-            where: { status: 'COMPLETED' },
-            select: {
-              total: true,
-              paymentIntents: { select: { method: true, amount: true } },
-            },
-          },
-        },
-      }),
-    ]);
-
-    const items = rows.map((s) => {
-      const totalRevenue = s.orders.reduce((sum, o) => sum + Number(o.total), 0);
-      const totalOrders = s.orders.length;
-
-      const pmMap: Record<string, number> = {};
-      for (const o of s.orders) {
-        for (const pi of o.paymentIntents) {
-          const key = pi.method.toLowerCase();
-          pmMap[key] = (pmMap[key] ?? 0) + Number(pi.amount);
-        }
-      }
-      const paymentBreakdown = {
-        cash: pmMap['cash'] ?? 0,
-        card: pmMap['card'] ?? pmMap['terminal'] ?? 0,
-        click: pmMap['click'] ?? 0,
-        payme: pmMap['payme'] ?? 0,
-      };
-
-      return {
-        id: s.id,
-        branchId: s.branchId,
-        branchName: s.branch?.name ?? null,
-        cashierId: s.userId,
-        cashierName: `${s.user?.firstName ?? ''} ${s.user?.lastName ?? ''}`.trim(),
-        status: s.status.toLowerCase(),
-        openedAt: s.openedAt,
-        closedAt: s.closedAt,
-        totalRevenue,
-        totalOrders,
-        paymentBreakdown,
-        openingCash: Number(s.openingCash),
-        closingCash: s.closingCash !== null ? Number(s.closingCash) : null,
-        expectedCash: s.expectedCash !== null ? Number(s.expectedCash) : null,
-      };
-    });
-
-    return { items, total, page, limit };
+  getShiftSummary(tenantId: string, opts: { branchId?: string; fromDate?: string; toDate?: string }) {
+    return this.shifts.getShiftSummary(tenantId, opts);
   }
 
   // ─── ORDERS ───────────────────────────────────────────────────
-
-  async createOrder(tenantId: string, userId: string, dto: CreateOrderDto, userRole?: UserRole) {
-    return this.prisma.$transaction(async (tx) => {
-      // ─── Discount limit check (T-026) ─────────────────────
-      if (dto.discountAmount && dto.discountAmount > 0 && userRole) {
-        const maxPct = DISCOUNT_LIMIT[userRole] ?? 0;
-        let discountPct = dto.discountAmount;
-
-        if (dto.discountType !== DiscountTypeEnum.PERCENT) {
-          // Fixed discount — compute subtotal first for % check
-          const rawSubtotal = dto.items.reduce(
-            (s, i) => s + Number(i.unitPrice) * Number(i.quantity),
-            0,
-          );
-          discountPct = rawSubtotal > 0 ? (dto.discountAmount / rawSubtotal) * 100 : 0;
-        }
-
-        if (discountPct > maxPct) {
-          throw new ForbiddenException(
-            `${userRole} role uchun maksimal chegirma ${maxPct}% (so'ralgan: ${discountPct.toFixed(1)}%)`,
-          );
-        }
-      }
-
-      // Auto-resolve branchId from shift if not provided in DTO
-      let resolvedBranchId = dto.branchId;
-      if (!resolvedBranchId && dto.shiftId) {
-        const shift = await tx.shift.findUnique({
-          where: { id: dto.shiftId },
-          select: { branchId: true },
-        });
-        resolvedBranchId = shift?.branchId ?? undefined;
-      }
-
-      // Fetch products and validate
-      const productIds = dto.items.map((i) => i.productId);
-      const products = await tx.product.findMany({
-        where: { id: { in: productIds }, tenantId, deletedAt: null },
-      });
-
-      if (products.length !== productIds.length) {
-        throw new NotFoundException('One or more products not found');
-      }
-
-      const productMap = new Map(products.map((p) => [p.id, p]));
-
-      // Build order items with snapshots
-      const orderItemsData = dto.items.map((item) => {
-        const product = productMap.get(item.productId)!;
-        const discount = item.discountAmount ?? 0;
-        const total =
-          Number(item.unitPrice) * Number(item.quantity) - discount;
-        return {
-          productId: item.productId,
-          productName: product.name,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          costPrice: Number(product.costPrice),
-          discountAmount: discount,
-          total: Math.max(0, total),
-          isTaxable: product.isTaxable,
-        };
-      });
-
-      const subtotal = orderItemsData.reduce(
-        (s, i) => s + Number(i.unitPrice) * Number(i.quantity),
-        0,
-      );
-
-      let discountAmount = dto.discountAmount ?? 0;
-      if (dto.discountType === DiscountTypeEnum.PERCENT) {
-        discountAmount = (subtotal * discountAmount) / 100;
-      }
-
-      const total = Math.max(0, subtotal - discountAmount);
-
-      // T-078: QQS (НДС 12%) — tax-inclusive narxlardan soliq hisoblash
-      // Formula: taxAmount = taxableTotal * 0.12 / 1.12
-      const taxableTotal = orderItemsData.reduce(
-        (s, i) => s + (i.isTaxable ? Math.max(0, i.total) : 0),
-        0,
-      );
-      const taxAmount = Math.round((taxableTotal * 0.12) / 1.12);
-
-      // Generate order number (per tenant)
-      const last = await tx.order.findFirst({
-        where: { tenantId },
-        orderBy: { orderNumber: 'desc' },
-        select: { orderNumber: true },
-      });
-      const orderNumber = (last?.orderNumber ?? 0) + 1;
-
-      // Strip isTaxable from items before DB insert (not a DB column)
-      const orderItemsInsert = orderItemsData.map(({ isTaxable: _t, ...rest }) => rest);
-
-      const order = await tx.order.create({
-        data: {
-          tenantId,
-          userId,
-          shiftId: dto.shiftId,
-          branchId: resolvedBranchId,
-          customerId: dto.customerId,
-          orderNumber,
-          status: OrderStatus.COMPLETED,
-          subtotal,
-          discountAmount,
-          discountType: dto.discountType ?? 'FIXED',
-          taxAmount,
-          total,
-          notes: dto.notes,
-          items: { create: orderItemsInsert },
-        },
-        include: {
-          items: true,
-          customer: { select: { id: true, name: true, phone: true } },
-        },
-      });
-
-      // Emit domain event
-      this.eventEmitter.emit('sale.created', {
-        tenantId,
-        orderId: order.id,
-        userId,
-        customerId: dto.customerId,
-        items: orderItemsData,
-        total,
-      });
-
-      this.logger.log(`Order created: #${orderNumber} (${order.id})`, {
-        tenantId,
-        orderId: order.id,
-        total,
-      });
-
-      return order;
-    });
+  createOrder(tenantId: string, userId: string, dto: CreateOrderDto, userRole?: UserRole) {
+    return this.orders.createOrder(tenantId, userId, dto, userRole);
   }
 
-  async getOrders(
-    tenantId: string,
-    opts: { page?: number; limit?: number; shiftId?: string },
-  ) {
-    const page = opts.page ?? 1;
-    const limit = opts.limit ?? 20;
-    const skip = (page - 1) * limit;
-
-    const where = {
-      tenantId,
-      ...(opts.shiftId && { shiftId: opts.shiftId }),
-    };
-
-    const [total, orders] = await this.prisma.$transaction([
-      this.prisma.order.count({ where }),
-      this.prisma.order.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          items: {
-            include: {
-              product: { select: { id: true, name: true } },
-            },
-          },
-          customer: { select: { id: true, name: true, phone: true } },
-          user: { select: { id: true, firstName: true, lastName: true } },
-          paymentIntents: { select: { method: true, amount: true } },
-        },
-      }),
-    ]);
-
-    // T-139: Extract dominant paymentMethod from payments array
-    const items = orders.map((order) => {
-      const methods = order.paymentIntents.map((p) => p.method);
-      let paymentMethod = 'NAQD';
-      if (methods.some((m) => m === 'DEBT')) paymentMethod = 'NASIYA';
-      else if (methods.length > 0 && methods.every((m) => m === 'TERMINAL')) paymentMethod = 'KARTA';
-      else if (methods.length > 1) paymentMethod = 'ARALASH';
-
-      return {
-        ...order,
-        itemsCount: order.items.length,
-        paymentMethod,
-      };
-    });
-
-    return { items, total, page, limit };
+  getQuickStats(tenantId: string, branchId?: string) {
+    return this.orders.getQuickStats(tenantId, branchId);
   }
 
-  async getOrderById(tenantId: string, id: string) {
-    const order = await this.prisma.order.findFirst({
-      where: { id, tenantId },
-      include: {
-        items: {
-          include: { product: { select: { id: true, name: true } } },
-        },
-        customer: { select: { id: true, name: true, phone: true } },
-        user: { select: { id: true, firstName: true, lastName: true } },
-        paymentIntents: true,
-      },
-    });
-    if (!order) throw new NotFoundException(`Order ${id} not found`);
-    return order;
+  getOrders(tenantId: string, opts: { page?: number; limit?: number; shiftId?: string }) {
+    return this.orders.getOrders(tenantId, opts);
+  }
+
+  getOrderById(tenantId: string, id: string) {
+    return this.orders.getOrderById(tenantId, id);
+  }
+
+  getOrderByNumber(tenantId: string, orderNumber: number) {
+    return this.orders.getOrderByNumber(tenantId, orderNumber);
+  }
+
+  getReceipt(tenantId: string, orderId: string) {
+    return this.orders.getReceipt(tenantId, orderId);
   }
 
   // ─── RETURNS ──────────────────────────────────────────────────
-
-  async createReturn(tenantId: string, userId: string, dto: CreateReturnDto) {
-    const order = await this.prisma.order.findFirst({
-      where: { id: dto.orderId, tenantId },
-      include: { items: true },
-    });
-    if (!order) throw new NotFoundException(`Order ${dto.orderId} not found`);
-    if (order.status === OrderStatus.RETURNED) {
-      throw new BadRequestException('Order already returned');
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      const returnItemsData = dto.items.map((ri) => {
-        const orderItem = order.items.find((oi) => oi.id === ri.orderItemId);
-        if (!orderItem) {
-          throw new NotFoundException(`OrderItem ${ri.orderItemId} not found`);
-        }
-        const amount = Number(orderItem.unitPrice) * ri.quantity;
-        return {
-          orderItemId: ri.orderItemId,
-          productId: ri.productId,
-          quantity: ri.quantity,
-          amount,
-        };
-      });
-
-      const total = returnItemsData.reduce((s, i) => s + i.amount, 0);
-
-      // ── POS cash return: check balance + auto-approve ──────────
-      let initialStatus: ReturnStatus = ReturnStatus.PENDING;
-      let approvedBy: string | undefined;
-
-      if (dto.refundMethod === 'CASH' && order.shiftId) {
-        const [cashSales, cashReturns, shift] = await Promise.all([
-          tx.paymentIntent.aggregate({
-            where: { tenantId, order: { shiftId: order.shiftId }, method: 'CASH', status: 'SETTLED' },
-            _sum: { amount: true },
-          }),
-          tx.return.aggregate({
-            where: { tenantId, order: { shiftId: order.shiftId }, refundMethod: 'CASH', status: ReturnStatus.APPROVED },
-            _sum: { total: true },
-          }),
-          tx.shift.findUnique({ where: { id: order.shiftId }, select: { openingCash: true } }),
-        ]);
-
-        const availableCash =
-          Number(shift?.openingCash ?? 0) +
-          Number(cashSales._sum.amount ?? 0) -
-          Number(cashReturns._sum.total ?? 0);
-
-        if (availableCash >= total) {
-          initialStatus = ReturnStatus.APPROVED;
-          approvedBy = userId;
-        } else {
-          throw new BadRequestException(
-            `INSUFFICIENT_CASH:${Math.round(availableCash)}:${Math.round(total)}`,
-          );
-        }
-      }
-      // TERMINAL → always PENDING (bank reversal)
-      // refundMethod undefined → always PENDING (admin path, backward compat)
-
-      const ret = await tx.return.create({
-        data: {
-          tenantId,
-          orderId: dto.orderId,
-          userId,
-          reason: dto.reason,
-          total,
-          refundMethod: dto.refundMethod,
-          status: initialStatus,
-          ...(approvedBy ? { approvedBy } : {}),
-          items: { create: returnItemsData },
-        },
-        include: { items: true },
-      });
-
-      this.eventEmitter.emit('return.created', {
-        tenantId,
-        returnId: ret.id,
-        orderId: dto.orderId,
-        refundMethod: dto.refundMethod,
-        status: initialStatus,
-        items: returnItemsData,
-      });
-
-      if (initialStatus === ReturnStatus.APPROVED) {
-        this.eventEmitter.emit('return.approved', {
-          tenantId,
-          returnId: ret.id,
-          items: returnItemsData,
-        });
-      }
-
-      this.logger.log(`Return created: ${ret.id} status=${initialStatus}`, {
-        tenantId,
-        returnId: ret.id,
-        refundMethod: dto.refundMethod,
-      });
-      return ret;
-    });
+  createReturn(tenantId: string, userId: string, dto: CreateReturnDto) {
+    return this.returns.createReturn(tenantId, userId, dto);
   }
 
-  async approveReturn(tenantId: string, approvedBy: string, returnId: string) {
-    const ret = await this.prisma.return.findFirst({
-      where: { id: returnId, tenantId, status: ReturnStatus.PENDING },
-      include: { items: true },
-    });
-    if (!ret) throw new NotFoundException(`Return ${returnId} not found`);
-
-    const updated = await this.prisma.return.update({
-      where: { id: returnId },
-      data: { status: ReturnStatus.APPROVED, approvedBy },
-    });
-
-    this.eventEmitter.emit('return.approved', {
-      tenantId,
-      returnId,
-      items: ret.items,
-    });
-
-    this.logger.log(`Return approved: ${returnId}`, { tenantId, approvedBy });
-    return updated;
+  approveReturn(tenantId: string, approvedBy: string, returnId: string) {
+    return this.returns.approveReturn(tenantId, approvedBy, returnId);
   }
 
-  // ─── RECEIPT ──────────────────────────────────────────────────
-
-  async getReceipt(tenantId: string, orderId: string) {
-    const order = await this.getOrderById(tenantId, orderId);
-    return {
-      orderNumber: order.orderNumber,
-      date: order.createdAt,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cashier: `${(order as any).user?.firstName} ${(order as any).user?.lastName}`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      customer: (order as any).customer?.name ?? null,
-      items: order.items.map((i) => ({
-        name: i.productName,
-        qty: i.quantity,
-        price: i.unitPrice,
-        total: i.total,
-      })),
-      subtotal: order.subtotal,
-      discount: order.discountAmount,
-      tax: order.taxAmount,
-      total: order.total,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payments: (order as any).paymentIntents?.map((p: any) => ({
-        method: p.method,
-        amount: p.amount,
-      })),
-    };
-  }
-
-  // ─── T-223: SHIFT BY ID ───────────────────────────────────────
-  async getShiftById(tenantId: string, shiftId: string) {
-    const shift = await this.prisma.shift.findFirst({
-      where: { id: shiftId, tenantId },
-      include: {
-        user: { select: { id: true, firstName: true, lastName: true } },
-        branch: { select: { id: true, name: true } },
-        orders: {
-          where: { status: 'COMPLETED' },
-          include: {
-            paymentIntents: { select: { method: true, amount: true } },
-            returns: { select: { id: true } },
-          },
-        },
-      },
-    });
-
-    if (!shift) throw new NotFoundException('Shift not found');
-
-    const totalRevenue = shift.orders.reduce((s, o) => s + Number(o.total), 0);
-    const totalOrders = shift.orders.length;
-    const totalRefunds = shift.orders.reduce((s, o) => s + o.returns.length, 0);
-
-    const pmMap: Record<string, number> = {};
-    for (const order of shift.orders) {
-      for (const pi of order.paymentIntents) {
-        const m = pi.method.toLowerCase();
-        pmMap[m] = (pmMap[m] ?? 0) + Number(pi.amount);
-      }
-    }
-    const paymentBreakdown = {
-      cash: pmMap['cash'] ?? 0,
-      card: pmMap['card'] ?? pmMap['terminal'] ?? 0,
-      click: pmMap['click'] ?? 0,
-      payme: pmMap['payme'] ?? 0,
-    };
-
-    return {
-      id: shift.id,
-      branchId: shift.branchId,
-      branchName: shift.branch?.name ?? null,
-      cashierId: shift.userId,
-      cashierName: `${shift.user?.firstName ?? ''} ${shift.user?.lastName ?? ''}`.trim(),
-      openedAt: shift.openedAt,
-      closedAt: shift.closedAt,
-      status: shift.status.toLowerCase(),
-      totalRevenue,
-      totalOrders,
-      avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
-      totalRefunds,
-      totalVoids: 0,
-      totalDiscounts: shift.orders.filter((o) => Number(o.discountAmount) > 0).length,
-      paymentBreakdown,
-    };
-  }
-
-  // ─── T-223: SHIFT SUMMARY ─────────────────────────────────────
-  async getShiftSummary(tenantId: string, opts: { branchId?: string; fromDate?: string; toDate?: string }) {
-    const from = opts.fromDate
-      ? new Date(opts.fromDate)
-      : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
-    const to = opts.toDate ? new Date(opts.toDate) : new Date();
-
-    const shifts = await this.prisma.shift.findMany({
-      where: {
-        tenantId,
-        openedAt: { gte: from, lte: to },
-        ...(opts.branchId ? { branchId: opts.branchId } : {}),
-      },
-      include: {
-        orders: { where: { status: 'COMPLETED' }, select: { total: true } },
-      },
-    });
-
-    const totalRevenue = shifts.reduce(
-      (s, sh) => s + sh.orders.reduce((os, o) => os + Number(o.total), 0), 0,
-    );
-    const totalOrders = shifts.reduce((s, sh) => s + sh.orders.length, 0);
-    const totalShifts = shifts.length;
-
-    return {
-      totalRevenue,
-      totalOrders,
-      totalShifts,
-      avgRevenuePerShift: totalShifts > 0 ? Math.round(totalRevenue / totalShifts) : 0,
-    };
-  }
-
-  async listReturns(tenantId: string, query: { page?: number; limit?: number; status?: string }) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.ReturnWhereInput = { tenantId };
-    if (query.status) where.status = query.status as ReturnStatus;
-
-    const [items, total] = await Promise.all([
-      this.prisma.return.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        include: { items: true },
-      }),
-      this.prisma.return.count({ where }),
-    ]);
-
-    return { items, total, page, limit, pages: Math.ceil(total / limit) };
+  listReturns(tenantId: string, query: { page?: number; limit?: number; status?: string }) {
+    return this.returns.listReturns(tenantId, query);
   }
 }
