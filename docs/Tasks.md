@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-04-25
+# Yangilangan: 2026-05-02
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -54,14 +54,52 @@
 
 ---
 
-## T-392 | P1 | [BACKEND] | shift-alert listener tenantId yo'q + sales.service 707 qator
+*(T-392 — Done.md ga ko'chirildi 2026-05-01)*
 
-- **Sana:** 2026-04-24
+---
+
+## T-393 | P1 | [FRONTEND] | Aksiyalar (PERCENT/FIXED) POS da ishlamayapti
+
+- **Sana:** 2026-05-02
 - **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Fayl:** `apps/api/src/sales/sales.service.ts`
-- **Muammo:** shift-alert listener tenantId yo'q; sales.service.ts 707 qator — SRP buzilgan
-- **Kutilgan:** tenantId qo'shish; 4 ta fayl ga bo'lish
+- **Fayl:** `apps/web/src/hooks/promotions/usePromotions.ts`
+- **Muammo:** `usePromoMap()` faqat `BUNDLE` promotions apply qiladi. PERCENT va FIXED promotions yaratiladi, lekin POS cashierda narxlar o'zgarmaydi.
+- **Root cause:** `usePromoMap()` line 31 — `if (p.type === 'BUNDLE')` — boshqa type lar ignore
+- **Kutilgan:**
+  - PERCENT promotion (masalan 20%) → POS da "Aksiya -20%" badge + order-level discount auto-apply
+  - FIXED promotion → order-level fixed discount auto-apply
+  - `useGlobalPromo()` hook mavjud lekin CartPanel/PaymentPanel da chaqirilmaydi
+- **O'zgartiriladigan fayllar:**
+  - `apps/web/src/hooks/promotions/usePromotions.ts` — usePromoMap() extend
+  - `apps/web/src/app/(pos)/pos/CartPanel.tsx` — global promo auto-show
+  - `apps/web/src/app/(pos)/pos/PaymentPanel.tsx` — active promo indicator
+  - `apps/web/src/app/(pos)/pos/ProductSearch.tsx` — PERCENT badge per product
+
+---
+
+## T-396 | P1 | [FRONTEND] | Filiallar taqqoslama — React #418 hydration + analitika ko'rinmayapti
+
+- **Sana:** 2026-05-02
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(admin)/reports/branches/page.tsx`
+- **Muammo:** React #418 hydration xatosi + branch comparison analitika ko'rinmayapti
+- **Root cause:** lines 64-65 — `Date.now()` va `new Date()` component body da (server SSR vs client render da vaqt farqi → HTML mismatch)
+- **Kutilgan:** `useState + useEffect` bilan client-only date calculation, analitika to'g'ri ko'rinadi
+
+---
+
+## T-399 | P1 | [IKKALASI] | Global i18n — 3 til (uz/ru/en) + auto-translate ma'lumotlar
+
+- **Sana:** 2026-05-02
+- **Mas'ul:** Ibrat
+- **Scope:** Owner/Admin panel, POS (Cashier), Warehouse, Manager, Super Admin
+- **Muammo:** POS UI ~70-80% hardcoded Uzbek. Admin panel ham hardcoded. Foydalanuvchi Ruscha yozsa product nomi ham 3 tilga auto-translate bo'lishi kerak.
+- **Infrastructure:** `apps/web/src/i18n/` mavjud (uz.json, ru.json, en.json) lekin to'liq qo'llanilmagan
+- **3 Faza:**
+  - **Faza 1** — UI Labels: hardcoded stringlar → `t('key')` (POS + Admin)
+  - **Faza 2** — Schema: `Product/Category/Unit` ga `name_uz, name_ru, name_en` qo'shish + migration
+  - **Faza 3** — Auto-translate service: `apps/api/src/common/translate/translate.service.ts` (Google Translate API yoki LibreTranslate)
+- **Kutilgan:** Til tanlanganda butun UI o'zgaradi; product yaratishda auto 3-til tarjima
 
 ---
 
@@ -92,6 +130,49 @@
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
+
+---
+
+## T-394 | P2 | [FRONTEND] | Owner panel — Top Navbar (page title + user info) yo'q
+
+- **Sana:** 2026-05-02
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(admin)/layout.tsx`
+- **Muammo:** Admin layout da faqat chap Sidebar bor, top header/navbar yo'q. Har sahifada page title ko'rinmaydi.
+- **Kutilgan:** Yangi `<TopNavbar>` component — sahifa nomi (route-based), foydalanuvchi info, til switcher
+- **O'zgartiriladigan fayllar:**
+  - `apps/web/src/app/(admin)/layout.tsx` — TopNavbar qo'shish
+  - `apps/web/src/components/layout/TopNavbar.tsx` — yangi component
+
+---
+
+## T-395 | P2 | [FRONTEND] | Owner panel — Prikhod (Stock-In) OWNER roldan yashirish
+
+- **Sana:** 2026-05-02
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`, `apps/web/src/app/(admin)/inventory/page.tsx`
+- **Muammo:** OWNER role faqat ko'rishi kerak, kirim (stock-in) yara olmasligi kerak
+- **Kutilgan:** OWNER uchun "Kirim qo'shish" button va link ko'rinmaydi
+
+---
+
+## T-397 | P2 | [BACKEND] | Top mahsulotlar — ordersCount backend dan kelmaydigan
+
+- **Sana:** 2026-05-02
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/ai/ai.service.ts`
+- **Muammo:** `getTopProducts()` `ordersCount` qaytarmaydi. Frontend kolonnasi bor lekin `undefined`
+- **Kutilgan:** SQL ga `COUNT(DISTINCT o.id) as orders_count` qo'shish
+
+---
+
+## T-398 | P2 | [FRONTEND] | Kunlik daromad — sahifa scroll qo'shish
+
+- **Sana:** 2026-05-02
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(admin)/reports/daily-revenue/page.tsx`
+- **Muammo:** Ko'p ma'lumot bo'lganda sahifa scroll bo'lmaydi
+- **Kutilgan:** `overflow-y-auto h-full` wrapper + table scroll
 
 ---
 

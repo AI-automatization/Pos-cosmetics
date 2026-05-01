@@ -1,5 +1,16 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-04-25
+# Yangilangan: 2026-05-02
+
+---
+
+## T-392 | 2026-05-01 | [BACKEND] | shift-alert listener tenantId + SalesService SRP
+
+- **Yechim:** Commit `e9073b0`:
+  1. `sales.service.ts` 707 qator → 4 ta fayl ga bo'lindi (ShiftService, OrderService, ReturnService, SalesService facade)
+  2. `shift-alert.listener.ts` — `findUnique` → `findFirst` + `tenantId` filter qo'shildi
+  3. `SalesModule` — yangi 3 service providers ga qo'shildi
+  4. `getQuickStats` — OrderService ga ko'chirildi, SalesService facade orqali expose
+- **Fayl:** `apps/api/src/sales/`
 
 ---
 
