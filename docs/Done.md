@@ -3,6 +3,13 @@
 
 ---
 
+## T-394 | 2026-05-02 | [FRONTEND] | Owner panel — Top Navbar qo'shildi
+
+- **Yechim:** Commit `9b072dc` — yangi `TopNavbar.tsx` component yaratildi + `(admin)/layout.tsx` ga qo'shildi. Route-based page title (35+ marshrut), UZ/RU/EN til switcher, user avatar + ism/role. Mobile hamburger `MobileSidebarContext` orqali ishlaydi.
+- **Fayl:** `apps/web/src/components/layout/TopNavbar.tsx`, `apps/web/src/app/(admin)/layout.tsx`
+
+---
+
 ## T-396 | 2026-05-01 | [FRONTEND] | Filiallar taqqoslama React #418 hydration fix
 
 - **Yechim:** Commit `7b78161` — `Date.now()` ni `useBranchSalesTrend` hook body dan `useEffect` ichiga ko'chirish. `useState({weekAgo:'',today:''})` + `useEffect` bilan client-only date. `enabled` condition ga `!!weekAgo && !!today` qo'shildi. `queryKey` ga dateRange qo'shildi.

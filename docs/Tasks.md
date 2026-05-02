@@ -111,16 +111,7 @@
 
 ---
 
-## T-394 | P2 | [FRONTEND] | Owner panel — Top Navbar (page title + user info) yo'q
-
-- **Sana:** 2026-05-02
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/layout.tsx`
-- **Muammo:** Admin layout da faqat chap Sidebar bor, top header/navbar yo'q. Har sahifada page title ko'rinmaydi.
-- **Kutilgan:** Yangi `<TopNavbar>` component — sahifa nomi (route-based), foydalanuvchi info, til switcher
-- **O'zgartiriladigan fayllar:**
-  - `apps/web/src/app/(admin)/layout.tsx` — TopNavbar qo'shish
-  - `apps/web/src/components/layout/TopNavbar.tsx` — yangi component
+*(T-394 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
 
