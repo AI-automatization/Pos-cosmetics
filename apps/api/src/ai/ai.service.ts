@@ -71,6 +71,7 @@ export class AiService {
         productId: string;
         productName: string;
         qtySold: number;
+        ordersCount: number;
         revenue: number;
         costTotal: number;
         margin: number;
@@ -80,7 +81,8 @@ export class AiService {
         oi.product_id                           AS "productId",
         p.name                                  AS "productName",
         SUM(oi.quantity)::float                 AS "qtySold",
-        SUM(oi.total)::float              AS revenue,
+        COUNT(DISTINCT o.id)::int               AS "ordersCount",
+        SUM(oi.total)::float                    AS revenue,
         SUM(oi.quantity * p.cost_price)::float  AS "costTotal",
         (SUM(oi.total) - SUM(oi.quantity * p.cost_price))::float AS margin
       FROM order_items oi
@@ -102,6 +104,7 @@ export class AiService {
       name: r.productName,        // mobile expects "name"
       qtySold: Number(r.qtySold),
       quantity: Number(r.qtySold), // mobile expects "quantity"
+      ordersCount: Number(r.ordersCount),
       revenue: Number(r.revenue),
       costTotal: Number(r.costTotal),
       margin: Number(r.margin),
