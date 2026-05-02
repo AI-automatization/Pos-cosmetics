@@ -3,6 +3,13 @@
 
 ---
 
+## T-397 | 2026-05-02 | [BACKEND] | Top mahsulotlar — ordersCount qo'shildi
+
+- **Yechim:** Commit `5a46e7c` — `getTopProducts()` SQL ga `COUNT(DISTINCT o.id)::int AS "ordersCount"` qo'shildi. Return map da `ordersCount: Number(r.ordersCount)` qo'shildi. Frontend `top-products/page.tsx` allaqachon `p.ordersCount` o'qiyotgan edi.
+- **Fayl:** `apps/api/src/ai/ai.service.ts`
+
+---
+
 ## T-395 | 2026-05-02 | [FRONTEND] | Inventory — Kirim/Chiqim OWNER roldan yashirildi
 
 - **Yechim:** Commit `112f4ad` — `inventory/page.tsx` da `useCurrentUser()` bilan `isOwner` flag, Kirim + Chiqim buttonlar `{!isOwner && ...}` bilan yashirildi. `/inventory/stock-in/page.tsx` — OWNER `useEffect` bilan `/inventory` ga redirect.

@@ -119,15 +119,10 @@
 
 ---
 
-## T-397 | P2 | [BACKEND] | Top mahsulotlar — ordersCount backend dan kelmaydigan
-
-- **Sana:** 2026-05-02
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/ai/ai.service.ts`
-- **Muammo:** `getTopProducts()` `ordersCount` qaytarmaydi. Frontend kolonnasi bor lekin `undefined`
-- **Kutilgan:** SQL ga `COUNT(DISTINCT o.id) as orders_count` qo'shish
+*(T-397 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
+
 
 ## T-398 | P2 | [FRONTEND] | Kunlik daromad — sahifa scroll qo'shish
 
