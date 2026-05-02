@@ -182,8 +182,6 @@ export default function ExchangeRatesPage() {
 
   return (
     <PageLayout
-      title="Valyuta kurslari"
-      subtitle="Markaziy bank (CBU) USD/UZS kursi"
       actions={
         <button
           type="button"

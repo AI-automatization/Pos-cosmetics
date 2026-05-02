@@ -1,10 +1,13 @@
 'use client';
 
-import { Menu } from 'lucide-react';
+import { Bell, ChevronDown, User, Menu, LogOut } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useCurrentUser } from '@/hooks/auth/useAuth';
+import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
+import { useUnreadCount, useMarkAllRead } from '@/hooks/notifications/useNotifications';
 import { useTranslation } from '@/i18n/i18n-context';
 import { useMobileSidebar } from '@/components/layout/mobile-sidebar-context';
+import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { cn } from '@/lib/utils';
 import { LOCALES } from '@/i18n/index';
 
@@ -83,17 +86,106 @@ function LangSwitcher() {
   );
 }
 
+/* ─── Notification Bell ───────────────────────────────────────────────────── */
+
+function NotificationBell() {
+  const { data: unreadCount = 0 } = useUnreadCount();
+  const { mutate: markAllRead } = useMarkAllRead();
+
+  return (
+    <button
+      type="button"
+      onClick={() => { if (unreadCount > 0) markAllRead(); }}
+      className="relative rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+      aria-label="Bildirishnomalar"
+    >
+      <Bell className="h-5 w-5" />
+      {unreadCount > 0 && (
+        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white leading-none">
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* ─── User Menu ───────────────────────────────────────────────────────────── */
+
+function UserMenu() {
+  const { data: user } = useCurrentUser();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    if (open) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const displayName = user
+    ? `${user.firstName} ${user.lastName ?? ''}`.trim()
+    : 'Admin';
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 transition hover:bg-gray-50"
+      >
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100">
+          <User className="h-4 w-4 text-blue-600" />
+        </div>
+        <div className="hidden text-left md:block">
+          <p className="text-sm font-medium text-gray-700 leading-tight">{displayName}</p>
+          {user && (
+            <p className="text-xs text-gray-400 leading-tight capitalize">
+              {user.role.toLowerCase()}
+            </p>
+          )}
+        </div>
+        <ChevronDown
+          className={cn('h-4 w-4 text-gray-400 transition-transform', open && 'rotate-180')}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-gray-200 bg-white shadow-lg">
+          {user && (
+            <div className="px-4 py-3">
+              <p className="text-sm font-medium text-gray-900">{displayName}</p>
+              <p className="text-xs text-gray-400 truncate">{user.email}</p>
+              {user.tenant && (
+                <p className="mt-1 text-xs text-blue-600 font-medium">{user.tenant.name}</p>
+              )}
+            </div>
+          )}
+          <div className="border-t border-gray-100 mt-1 pt-1 px-1 pb-1">
+            <button
+              type="button"
+              onClick={() => { logout(); }}
+              disabled={isLoggingOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <LogOut className="w-4 h-4" />
+              {isLoggingOut ? 'Chiqilmoqda...' : 'Chiqish'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── TopNavbar ───────────────────────────────────────────────────────────── */
 
 export function TopNavbar() {
   const pathname = usePathname();
-  const { data: user } = useCurrentUser();
   const { toggle } = useMobileSidebar();
   const pageTitle = getPageTitle(pathname);
-
-  const displayName = user
-    ? (user.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : user.email)
-    : null;
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-100 bg-white px-4 shadow-[0_1px_0_0_#f3f4f6]">
@@ -113,22 +205,11 @@ export function TopNavbar() {
       </h1>
 
       {/* Right side */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        <SyncStatusBar />
         <LangSwitcher />
-
-        {displayName && (
-          <div className="hidden items-center gap-2 sm:flex">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
-              {displayName.slice(0, 1).toUpperCase()}
-            </div>
-            <div className="hidden flex-col lg:flex">
-              <span className="max-w-[120px] truncate text-xs font-semibold text-gray-800">
-                {displayName}
-              </span>
-              <span className="text-[10px] font-medium text-gray-400">{user?.role}</span>
-            </div>
-          </div>
-        )}
+        <NotificationBell />
+        <UserMenu />
       </div>
     </header>
   );

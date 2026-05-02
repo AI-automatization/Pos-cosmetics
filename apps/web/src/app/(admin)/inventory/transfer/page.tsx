@@ -135,8 +135,6 @@ export default function TransferPage() {
 
   return (
     <PageLayout
-      title="Tovar ko'chirish"
-      subtitle={`Jami: ${data?.total ?? 0}`}
       actions={
         <button
           type="button"

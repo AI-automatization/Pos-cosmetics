@@ -93,8 +93,6 @@ export default function ProductsPage() {
 
   return (
     <PageLayout
-      title="Mahsulotlar"
-      subtitle={data ? `Jami: ${data.meta.total} ta mahsulot` : undefined}
       actions={
         <>
           {data && data.items.length > 0 && (
