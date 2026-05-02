@@ -1,5 +1,22 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-02
+# Yangilangan: 2026-05-01
+
+---
+
+## T-396 | 2026-05-01 | [FRONTEND] | Filiallar taqqoslama React #418 hydration fix
+
+- **Yechim:** Commit `7b78161` — `Date.now()` ni `useBranchSalesTrend` hook body dan `useEffect` ichiga ko'chirish. `useState({weekAgo:'',today:''})` + `useEffect` bilan client-only date. `enabled` condition ga `!!weekAgo && !!today` qo'shildi. `queryKey` ga dateRange qo'shildi.
+- **Fayl:** `apps/web/src/app/(admin)/reports/branches/page.tsx`
+
+---
+
+## T-393 | 2026-05-01 | [FRONTEND] | Aksiyalar (PERCENT/FIXED) POS da ishlashi
+
+- **Yechim:** Commit `80f1248`:
+  1. `usePromoMap()` — PERCENT type + `productId` ni map ga qo'shish
+  2. `CartPanel.tsx` — `useGlobalPromo()` + "Aksiya" badge header da
+  3. `PaymentPanel.tsx` — `useGlobalPromo()` + promo banner + auto-apply `useEffect` (`useRef` bilan)
+- **Fayl:** `apps/web/src/hooks/promotions/usePromotions.ts`, `CartPanel.tsx`, `PaymentPanel.tsx`
 
 ---
 

@@ -58,33 +58,11 @@
 
 ---
 
-## T-393 | P1 | [FRONTEND] | Aksiyalar (PERCENT/FIXED) POS da ishlamayapti
-
-- **Sana:** 2026-05-02
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/hooks/promotions/usePromotions.ts`
-- **Muammo:** `usePromoMap()` faqat `BUNDLE` promotions apply qiladi. PERCENT va FIXED promotions yaratiladi, lekin POS cashierda narxlar o'zgarmaydi.
-- **Root cause:** `usePromoMap()` line 31 — `if (p.type === 'BUNDLE')` — boshqa type lar ignore
-- **Kutilgan:**
-  - PERCENT promotion (masalan 20%) → POS da "Aksiya -20%" badge + order-level discount auto-apply
-  - FIXED promotion → order-level fixed discount auto-apply
-  - `useGlobalPromo()` hook mavjud lekin CartPanel/PaymentPanel da chaqirilmaydi
-- **O'zgartiriladigan fayllar:**
-  - `apps/web/src/hooks/promotions/usePromotions.ts` — usePromoMap() extend
-  - `apps/web/src/app/(pos)/pos/CartPanel.tsx` — global promo auto-show
-  - `apps/web/src/app/(pos)/pos/PaymentPanel.tsx` — active promo indicator
-  - `apps/web/src/app/(pos)/pos/ProductSearch.tsx` — PERCENT badge per product
+*(T-393 — Done.md ga ko'chirildi 2026-05-01)*
 
 ---
 
-## T-396 | P1 | [FRONTEND] | Filiallar taqqoslama — React #418 hydration + analitika ko'rinmayapti
-
-- **Sana:** 2026-05-02
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/reports/branches/page.tsx`
-- **Muammo:** React #418 hydration xatosi + branch comparison analitika ko'rinmayapti
-- **Root cause:** lines 64-65 — `Date.now()` va `new Date()` component body da (server SSR vs client render da vaqt farqi → HTML mismatch)
-- **Kutilgan:** `useState + useEffect` bilan client-only date calculation, analitika to'g'ri ko'rinadi
+*(T-396 — Done.md ga ko'chirildi 2026-05-01)*
 
 ---
 
