@@ -190,7 +190,7 @@ export default function DailyRevenuePage() {
             const paged = reversed.slice((tablePage - 1) * PAGE_SIZE, tablePage * PAGE_SIZE);
             return (
               <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                <div className="max-h-[500px] overflow-y-auto">
+                <div className="max-h-[calc(100vh-400px)] overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
                       <tr>
