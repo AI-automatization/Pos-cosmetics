@@ -23,10 +23,15 @@ interface OrderWithCustomer extends Order {
 }
 
 const METHOD_LABEL: Record<string, string> = {
+  // Backend-computed keys (Uzbek)
+  NAQD: 'Naqd',
+  KARTA: 'Karta',
+  NASIYA: 'Nasiya',
+  ARALASH: 'Aralash',
+  // PaymentIntent method keys (English)
   CASH: 'Naqd',
   CARD: 'Karta',
   TERMINAL: 'Karta',
-  NASIYA: 'Nasiya',
   DEBT: 'Nasiya',
   TRANSFER: "Bank o'tkazma",
   CLICK: 'Click',
@@ -34,10 +39,15 @@ const METHOD_LABEL: Record<string, string> = {
 };
 
 const METHOD_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
+  // Backend-computed keys (Uzbek)
+  NAQD: Banknote,
+  KARTA: CreditCard,
+  NASIYA: Clock,
+  ARALASH: ArrowUpRight,
+  // PaymentIntent method keys (English)
   CASH: Banknote,
   CARD: CreditCard,
   TERMINAL: CreditCard,
-  NASIYA: Clock,
   DEBT: Clock,
   TRANSFER: ArrowUpRight,
   CLICK: Smartphone,
@@ -278,9 +288,12 @@ export default function PaymentsHistoryPage() {
   // Compute stats from current page orders
   const stats = useMemo(() => {
     if (!orders.length) return null;
-    const cash = orders.filter((o) => o.paymentMethod === 'CASH');
+    const cash = orders.filter((o) => o.paymentMethod === 'NAQD' || o.paymentMethod === 'CASH');
     const card = orders.filter(
-      (o) => o.paymentMethod === 'CARD' || o.paymentMethod === ('TERMINAL' as Order['paymentMethod']),
+      (o) =>
+        o.paymentMethod === 'KARTA' ||
+        o.paymentMethod === 'CARD' ||
+        o.paymentMethod === ('TERMINAL' as Order['paymentMethod']),
     );
     const debt = orders.filter(
       (o) =>
