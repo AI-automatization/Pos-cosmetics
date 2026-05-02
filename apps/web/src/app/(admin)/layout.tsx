@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { TopNavbar } from '@/components/layout/TopNavbar';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { MobileSidebarContext } from '@/components/layout/mobile-sidebar-context';
 
@@ -14,9 +15,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <MobileSidebarContext.Provider value={{ toggle }}>
       <div className="flex h-screen overflow-hidden bg-gray-50">
         <Sidebar mobileOpen={mobileOpen} onMobileClose={close} />
-        <main className="flex-1 overflow-hidden">
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </main>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <TopNavbar />
+          <main className="flex-1 overflow-hidden">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
+        </div>
       </div>
     </MobileSidebarContext.Provider>
   );
