@@ -115,13 +115,7 @@
 
 ---
 
-## T-395 | P2 | [FRONTEND] | Owner panel — Prikhod (Stock-In) OWNER roldan yashirish
-
-- **Sana:** 2026-05-02
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`, `apps/web/src/app/(admin)/inventory/page.tsx`
-- **Muammo:** OWNER role faqat ko'rishi kerak, kirim (stock-in) yara olmasligi kerak
-- **Kutilgan:** OWNER uchun "Kirim qo'shish" button va link ko'rinmaydi
+*(T-395 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
 

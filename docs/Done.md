@@ -3,6 +3,13 @@
 
 ---
 
+## T-395 | 2026-05-02 | [FRONTEND] | Inventory — Kirim/Chiqim OWNER roldan yashirildi
+
+- **Yechim:** Commit `112f4ad` — `inventory/page.tsx` da `useCurrentUser()` bilan `isOwner` flag, Kirim + Chiqim buttonlar `{!isOwner && ...}` bilan yashirildi. `/inventory/stock-in/page.tsx` — OWNER `useEffect` bilan `/inventory` ga redirect.
+- **Fayl:** `apps/web/src/app/(admin)/inventory/page.tsx`, `inventory/stock-in/page.tsx`
+
+---
+
 ## T-394 | 2026-05-02 | [FRONTEND] | Owner panel — Top Navbar qo'shildi
 
 - **Yechim:** Commit `9b072dc` — yangi `TopNavbar.tsx` component yaratildi + `(admin)/layout.tsx` ga qo'shildi. Route-based page title (35+ marshrut), UZ/RU/EN til switcher, user avatar + ism/role. Mobile hamburger `MobileSidebarContext` orqali ishlaydi.
