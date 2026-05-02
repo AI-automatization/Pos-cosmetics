@@ -13,6 +13,7 @@ export interface ReturnItem {
   productId: string;
   quantity: number;
   amount: number;
+  product?: { name: string };
 }
 
 export interface Return {
@@ -26,6 +27,16 @@ export interface Return {
   refundMethod: RefundMethod | null;
   createdAt: string;
   items: ReturnItem[];
+  order?: { orderNumber: number };
+  user?: { firstName: string | null; lastName: string | null };
+}
+
+export interface ReturnListResponse {
+  items: Return[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
 }
 
 export interface CreateReturnDto {

@@ -174,7 +174,13 @@ export class ReturnService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-        include: { items: true },
+        include: {
+          items: {
+            include: { product: { select: { name: true } } },
+          },
+          order: { select: { orderNumber: true } },
+          user: { select: { firstName: true, lastName: true } },
+        },
       }),
       this.prisma.return.count({ where }),
     ]);
