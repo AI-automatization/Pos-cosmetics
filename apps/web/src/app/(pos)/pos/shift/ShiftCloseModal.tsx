@@ -14,6 +14,7 @@ interface ShiftCloseModalProps {
 export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
   const { openingCash, salesCount, shiftTotals } = usePOSStore();
   const [closingCash, setClosingCash] = useState(0);
+  const [cashEntered, setCashEntered] = useState(false);
   const [notes, setNotes] = useState('');
   const [showReport, setShowReport] = useState(false);
 
@@ -52,6 +53,7 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
               autoFocus
               onChange={(e) => {
                 setClosingCash(parseFloat(e.target.value) || 0);
+                setCashEntered(true);
                 setShowReport(true);
               }}
               placeholder="0"
@@ -98,6 +100,13 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
             </button>
           )}
 
+          {/* Validation hint */}
+          {!cashEntered && (
+            <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              ⚠️ Kassadagi haqiqiy naqd pul summasini kiriting
+            </p>
+          )}
+
           {/* Actions */}
           <div className="flex gap-3">
             <button
@@ -111,8 +120,8 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={closeShiftMutation.isPending}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+              disabled={closeShiftMutation.isPending || !cashEntered}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <LogOut className="h-4 w-4" />
               {closeShiftMutation.isPending ? 'Yopilmoqda...' : 'Smenani yopish'}
