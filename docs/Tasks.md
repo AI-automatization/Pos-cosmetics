@@ -124,13 +124,7 @@
 ---
 
 
-## T-398 | P2 | [FRONTEND] | Kunlik daromad — sahifa scroll qo'shish
-
-- **Sana:** 2026-05-02
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/reports/daily-revenue/page.tsx`
-- **Muammo:** Ko'p ma'lumot bo'lganda sahifa scroll bo'lmaydi
-- **Kutilgan:** `overflow-y-auto h-full` wrapper + table scroll
+*(T-398 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
 
