@@ -3,6 +3,13 @@
 
 ---
 
+## T-384 | 2026-05-02 | [FRONTEND] | Founder Panel — to'liq Ruscha tarjima
+
+- **Yechim:** Commit `e63297f` — Barcha super-admin sahifalari tekshirildi. Ko'pchilik allaqachon Ruscha edi. 3 ta Uzbek string topildi va tuzatildi: `database/page.tsx` da `'Boshqa'` → `'Прочее'`; `ConfirmDialog.tsx` da default label lar va loading text → Ruscha.
+- **Fayl:** `apps/super-admin/src/app/(founder)/founder/database/page.tsx`, `apps/super-admin/src/components/common/ConfirmDialog.tsx`
+
+---
+
 ## T-398 | 2026-05-02 | [FRONTEND] | Kunlik daromad — table scroll responsive
 
 - **Yechim:** Commit `6a72b7f` — `max-h-[500px]` → `max-h-[calc(100vh-400px)]`. Sahifa `h-full overflow-y-auto` allaqachon bor edi. TopNavbar (h-14) qo'shilgandan so'ng endi responsive.
