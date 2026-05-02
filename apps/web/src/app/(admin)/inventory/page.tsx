@@ -10,6 +10,7 @@ import { StockInModal } from './StockInModal';
 import { StockOutModal } from './StockOutModal';
 import { TesterModal } from './TesterModal';
 import { ProductStockDrawer } from './ProductStockDrawer';
+import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { cn } from '@/lib/utils';
 import type { StockLevel, StockStatus } from '@/types/inventory';
 
@@ -58,6 +59,9 @@ export default function InventoryPage() {
   const [testerOpen, setTesterOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<StockLevel | null>(null);
 
+  const { data: currentUser } = useCurrentUser();
+  const isOwner = currentUser?.role === 'OWNER';
+
   const { data: stock, isLoading, isError, refetch } = useStock({ search: search || undefined });
   const { data: movements, isLoading: movLoading } = useMovementsWithUsers();
 
@@ -87,22 +91,26 @@ export default function InventoryPage() {
             <FlaskConical className="h-4 w-4" />
             Tester
           </button>
-          <button
-            type="button"
-            onClick={() => setStockOutOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-          >
-            <ArrowUpFromLine className="h-4 w-4" />
-            Chiqim
-          </button>
-          <button
-            type="button"
-            onClick={() => setStockInOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            <ArrowDownToLine className="h-4 w-4" />
-            Kirim
-          </button>
+          {!isOwner && (
+            <button
+              type="button"
+              onClick={() => setStockOutOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              <ArrowUpFromLine className="h-4 w-4" />
+              Chiqim
+            </button>
+          )}
+          {!isOwner && (
+            <button
+              type="button"
+              onClick={() => setStockInOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+            >
+              <ArrowDownToLine className="h-4 w-4" />
+              Kirim
+            </button>
+          )}
         </div>
       </div>
 
@@ -294,9 +302,9 @@ export default function InventoryPage() {
         </>
       )}
 
-      {/* Modals */}
-      <StockInModal isOpen={stockInOpen} onClose={() => setStockInOpen(false)} />
-      <StockOutModal isOpen={stockOutOpen} onClose={() => setStockOutOpen(false)} />
+      {/* Modals — hidden for OWNER role */}
+      {!isOwner && <StockInModal isOpen={stockInOpen} onClose={() => setStockInOpen(false)} />}
+      {!isOwner && <StockOutModal isOpen={stockOutOpen} onClose={() => setStockOutOpen(false)} />}
       <TesterModal isOpen={testerOpen} onClose={() => setTesterOpen(false)} />
 
       {/* Product detail drawer — to'liq product ob'ekti uzatiladi */}
