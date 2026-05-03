@@ -20,7 +20,7 @@ export function useProducts(filters: ProductsQuery = {}) {
   return useQuery({
     queryKey: [PRODUCTS_KEY, filters],
     queryFn: () => catalogApi.getProducts(filters),
-    staleTime: 30_000,
+    staleTime: 60_000,
   });
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Search, Barcode, Plus, Package } from 'lucide-react';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';
@@ -101,8 +101,15 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
   const promoMap = usePromoMap();
 
+  // Debounce: avoid API call on every keystroke — fire 200ms after user stops typing
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const { data, isFetching } = useProducts({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     limit: 24,
     isActive: true,
   });
