@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { usePOSStore } from '@/store/pos.store';
 import { usePromoMap, useGlobalPromo } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { CartItem } from '@/types/sales';
 
 function CartItemRow({ item }: { item: CartItem }) {
@@ -12,6 +13,7 @@ function CartItemRow({ item }: { item: CartItem }) {
   const [showDiscount, setShowDiscount] = useState(false);
   const promoMap = usePromoMap();
   const hasPromo = !!promoMap[item.productId] && item.lineDiscount > 0;
+  const { t } = useTranslation();
 
   const lineTotal = item.sellPrice * item.quantity * (1 - item.lineDiscount / 100);
 
@@ -25,13 +27,13 @@ function CartItemRow({ item }: { item: CartItem }) {
             <p className="text-xs text-gray-400">{item.sku}</p>
             {hasPromo && (
               <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
-                AKSIYA
+                {t('pos.promo').toUpperCase()}
               </span>
             )}
             {item.isBundle && (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
                 <Package className="h-2.5 w-2.5" />
-                Bundle
+                {t('products.bundle')}
               </span>
             )}
           </div>
@@ -40,7 +42,7 @@ function CartItemRow({ item }: { item: CartItem }) {
           type="button"
           onClick={() => removeItem(item.productId)}
           className="shrink-0 rounded-lg p-1 text-gray-300 transition hover:bg-red-50 hover:text-red-500"
-          aria-label="O'chirish"
+          aria-label={t('common.delete')}
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -95,7 +97,7 @@ function CartItemRow({ item }: { item: CartItem }) {
             className="flex items-center gap-1 text-xs text-gray-400 transition hover:text-blue-600"
           >
             <Tag className="h-3 w-3" />
-            {item.lineDiscount > 0 ? `${item.lineDiscount}% chegirma` : 'Chegirma qo\'shish'}
+            {item.lineDiscount > 0 ? `${item.lineDiscount}% ${t('pos.discount').toLowerCase()}` : t('pos.addDiscount')}
           </button>
         ) : (
           <div className="flex items-center gap-2">
@@ -126,12 +128,13 @@ export function CartPanel() {
   const items = cart?.items ?? [];
   const { clearCart } = store;
   const globalPromo = useGlobalPromo();
+  const { t } = useTranslation();
 
   if (items.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-6 text-center">
         <ShoppingCart className="mb-3 h-12 w-12 text-gray-200" />
-        <p className="text-sm text-gray-400">Savatcha bo'sh</p>
+        <p className="text-sm text-gray-400">{t('pos.emptyCart')}</p>
       </div>
     );
   }
@@ -142,7 +145,7 @@ export function CartPanel() {
       <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-3 py-2">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-gray-700">
-            Savatcha{' '}
+            {t('pos.cart')}{' '}
             <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
               {items.length}
             </span>
@@ -150,7 +153,7 @@ export function CartPanel() {
           {globalPromo && (
             <span className="flex items-center gap-0.5 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
               <Tag className="h-2.5 w-2.5" />
-              Aksiya
+              {t('pos.promo')}
             </span>
           )}
         </div>
@@ -159,7 +162,7 @@ export function CartPanel() {
           onClick={clearCart}
           className="text-xs text-gray-400 transition hover:text-red-500"
         >
-          Tozalash
+          {t('pos.clearCart')}
         </button>
       </div>
 
