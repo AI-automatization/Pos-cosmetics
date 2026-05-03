@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen, User, FlaskConical } from 'lucide-react';
-import { useStock, useMovementsWithUsers } from '@/hooks/inventory/useInventory';
+import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle, PackageOpen, User, FlaskConical, FileText } from 'lucide-react';
+import { useStock, useMovementsWithUsers, useInvoices } from '@/hooks/inventory/useInventory';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -10,8 +10,9 @@ import { StockInModal } from './StockInModal';
 import { StockOutModal } from './StockOutModal';
 import { TesterModal } from './TesterModal';
 import { ProductStockDrawer } from './ProductStockDrawer';
+import { InvoiceDetailDrawer } from './InvoiceDetailDrawer';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import type { StockLevel, StockStatus } from '@/types/inventory';
 
 function StatusBadge({ status }: { status: StockStatus }) {
@@ -53,17 +54,19 @@ function formatDate(iso: string) {
 
 export default function InventoryPage() {
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<'stock' | 'movements'>('stock');
+  const [tab, setTab] = useState<'stock' | 'movements' | 'invoices'>('stock');
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockOutOpen, setStockOutOpen] = useState(false);
   const [testerOpen, setTesterOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<StockLevel | null>(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
 
   const { data: currentUser } = useCurrentUser();
   const isOwner = currentUser?.role === 'OWNER';
 
   const { data: stock, isLoading, isError, refetch } = useStock({ search: search || undefined });
   const { data: movements, isLoading: movLoading } = useMovementsWithUsers();
+  const { data: invoicesData, isLoading: invLoading } = useInvoices({ limit: 50 });
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-y-auto p-6">
@@ -142,6 +145,23 @@ export default function InventoryPage() {
           {movements && movements.length > 0 && (
             <span className="ml-1.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
               {movements.length}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('invoices')}
+          className={cn(
+            '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition',
+            tab === 'invoices'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700',
+          )}
+        >
+          Nakладные
+          {invoicesData && invoicesData.total > 0 && (
+            <span className="ml-1.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
+              {invoicesData.total}
             </span>
           )}
         </button>
@@ -302,6 +322,75 @@ export default function InventoryPage() {
         </>
       )}
 
+      {/* Invoices tab */}
+      {tab === 'invoices' && (
+        <>
+          {invLoading && <LoadingSkeleton variant="table" rows={5} />}
+          {!invLoading && (!invoicesData || invoicesData.items.length === 0) && (
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+              <FileText className="h-10 w-10 text-gray-200" />
+              <p className="text-sm text-gray-400">Nakладные topilmadi</p>
+            </div>
+          )}
+          {invoicesData && invoicesData.items.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-gray-200">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {['Sana', 'Hujjat #', 'Yetkazib beruvchi', 'Mahsulotlar', 'Jami summa', 'Holat', ''].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {invoicesData.items.map((inv) => {
+                    const statusColors: Record<string, string> = {
+                      PENDING: 'bg-yellow-50 text-yellow-700',
+                      APPROVED: 'bg-green-50 text-green-700',
+                      REJECTED: 'bg-red-50 text-red-700',
+                    };
+                    const statusLabels: Record<string, string> = {
+                      PENDING: 'Kutilmoqda',
+                      APPROVED: 'Tasdiqlangan',
+                      REJECTED: 'Rad etilgan',
+                    };
+                    return (
+                      <tr key={inv.id} className="hover:bg-gray-50 transition">
+                        <td className="px-4 py-3 text-gray-500 text-xs">
+                          {new Date(inv.createdAt).toLocaleDateString('uz-UZ')}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs text-gray-700">
+                          {inv.invoiceNumber ?? '—'}
+                        </td>
+                        <td className="px-4 py-3 text-gray-900">{inv.supplier?.name ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-500">{inv.itemsCount} ta</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{formatPrice(inv.totalAmount)}</td>
+                        <td className="px-4 py-3">
+                          <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', statusColors[inv.status] ?? 'bg-gray-100 text-gray-600')}>
+                            {statusLabels[inv.status] ?? inv.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedInvoiceId(inv.id)}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            Ko&apos;rish
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
       {/* Modals — hidden for OWNER role */}
       {!isOwner && <StockInModal isOpen={stockInOpen} onClose={() => setStockInOpen(false)} />}
       {!isOwner && <StockOutModal isOpen={stockOutOpen} onClose={() => setStockOutOpen(false)} />}
@@ -311,6 +400,10 @@ export default function InventoryPage() {
       <ProductStockDrawer
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
+      />
+      <InvoiceDetailDrawer
+        invoiceId={selectedInvoiceId}
+        onClose={() => setSelectedInvoiceId(null)}
       />
     </div>
   );

@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Trash2, Save, X } from 'lucide-react';
+import { Plus, Trash2, Save, X, Scan } from 'lucide-react';
 import { useStockIn } from '@/hooks/inventory/useInventory';
+import { useProducts } from '@/hooks/catalog/useProducts';
+import { useBarcodeScanner } from '@/hooks/pos/useBarcodeScanner';
+import { BarcodeScanner } from '@/components/ui/BarcodeScanner';
 import { SupplierSearchSelect } from './SupplierSearchSelect';
 import { ProductSearchSelect } from './ProductSearchSelect';
 import { cn } from '@/lib/utils';
@@ -39,6 +42,9 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
   const [supplier, setSupplier] = useState('');
   const [notes, setNotes] = useState('');
   const [rows, setRows] = useState<ItemRow[]>([newRow()]);
+  // Barcode scanning — null = closed, number = rowKey being scanned
+  const [scanRowKey, setScanRowKey] = useState<number | null>(null);
+  const { data: productsData } = useProducts({ limit: 500, isActive: true });
 
   useEffect(() => {
     if (isOpen) {
@@ -47,6 +53,29 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
       setRows([newRow()]);
     }
   }, [isOpen]);
+
+  // Auto-select product by barcode (hardware scanner or camera scan result)
+  const applyBarcode = useCallback((barcode: string, rowKey?: number) => {
+    const products = productsData?.items ?? [];
+    const found = products.find(
+      (p) => p.barcode === barcode || p.sku === barcode,
+    );
+    if (!found) return;
+    const unit = typeof found.unit === 'object'
+      ? (found.unit as { shortName?: string; name: string })?.shortName ?? (found.unit as { name: string }).name
+      : String(found.unit ?? '');
+    const targetKey = rowKey ?? rows.find((r) => !r.productId)?._key ?? rows[rows.length - 1]._key;
+    setRows((prev) =>
+      prev.map((r) =>
+        r._key === targetKey ? { ...r, productId: found.id, productUnit: unit } : r,
+      ),
+    );
+    setScanRowKey(null);
+  }, [productsData, rows]);
+
+  useBarcodeScanner((barcode) => {
+    if (isOpen) applyBarcode(barcode);
+  });
 
   const addRow = useCallback(() => setRows((prev) => [...prev, newRow()]), []);
 
@@ -92,6 +121,13 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
   if (!isOpen) return null;
 
   return (
+    <>
+    {scanRowKey !== null && (
+      <BarcodeScanner
+        onScan={(barcode) => applyBarcode(barcode, scanRowKey)}
+        onClose={() => setScanRowKey(null)}
+      />
+    )}
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-6">
       {/* Overlay */}
       <div className="fixed inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
@@ -162,14 +198,24 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
                     <span className="text-xs font-semibold text-gray-400">
                       #{idx + 1}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => removeRow(row._key)}
-                      disabled={rows.length === 1}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        title="Barcode skanerlash"
+                        onClick={() => setScanRowKey(row._key)}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-500"
+                      >
+                        <Scan className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeRow(row._key)}
+                        disabled={rows.length === 1}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Product search — full width */}
@@ -281,5 +327,6 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
         </form>
       </div>
     </div>
+    </>
   );
 }
