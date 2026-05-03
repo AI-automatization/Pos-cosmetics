@@ -10,8 +10,10 @@ import {
   UserCircle,
   AlertTriangle,
   ChevronRight,
+  ChevronDown,
   Star,
   CheckCircle2,
+  Keyboard,
 } from 'lucide-react';
 import { useLoyaltyAccount, useLoyaltyConfig, pointsToMoney } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
@@ -76,6 +78,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
+  const [showHotkeys, setShowHotkeys] = useState(false);
   // Ref so we can read latest globalPromo inside effect without adding it to deps
   const globalPromoRef = useRef(globalPromo);
   globalPromoRef.current = globalPromo;
@@ -603,6 +606,43 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
       )}
 
       </div>{/* end scrollable area */}
+
+      {/* Hotkeys reference panel */}
+      <div className="shrink-0 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={() => setShowHotkeys((v) => !v)}
+          className="flex w-full items-center justify-between px-3 py-2 text-xs text-gray-400 hover:text-gray-600 transition"
+        >
+          <span className="flex items-center gap-1.5">
+            <Keyboard className="h-3.5 w-3.5" />
+            Klaviatura yorliqlari
+          </span>
+          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', showHotkeys && 'rotate-180')} />
+        </button>
+        {showHotkeys && (
+          <div className="grid grid-cols-3 gap-1 px-3 pb-3">
+            {[
+              { key: 'F1', label: 'Qidirish' },
+              { key: 'F4', label: 'Qaytarish' },
+              { key: 'F5', label: 'Naqd' },
+              { key: 'F6', label: 'Karta' },
+              { key: 'F7', label: 'Aralash' },
+              { key: 'F8', label: 'Nasiya' },
+              { key: 'F10', label: 'Yakunlash' },
+              { key: 'Esc', label: 'Bekor' },
+              { key: 'Ctrl+T', label: 'Yangi savat' },
+            ].map((hk) => (
+              <div key={hk.key} className="flex items-center gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5">
+                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-[9px] font-bold text-gray-700 whitespace-nowrap leading-none">
+                  {hk.key}
+                </kbd>
+                <span className="text-[10px] text-gray-500 truncate leading-none">{hk.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Complete button */}
       <div className="shrink-0 border-t border-gray-100 p-3">
