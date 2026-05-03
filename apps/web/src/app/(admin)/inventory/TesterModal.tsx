@@ -65,8 +65,8 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="relative flex h-full w-full flex-col max-w-2xl mx-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="relative w-full max-w-lg flex flex-col rounded-2xl bg-white shadow-2xl max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <div className="flex items-center gap-2.5">
@@ -189,7 +189,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4">
+          <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 rounded-b-2xl">
             <button
               type="button"
               onClick={onClose}

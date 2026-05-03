@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, ChevronDown, User, Menu, LogOut } from 'lucide-react';
+import { Bell, ChevronDown, User, Menu, LogOut, KeyRound, Eye, EyeOff, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
@@ -8,8 +8,74 @@ import { useUnreadCount, useMarkAllRead } from '@/hooks/notifications/useNotific
 import { useTranslation } from '@/i18n/i18n-context';
 import { useMobileSidebar } from '@/components/layout/mobile-sidebar-context';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
+import { useResetPassword } from '@/hooks/settings/useUsers';
 import { cn } from '@/lib/utils';
 import { LOCALES } from '@/i18n/index';
+
+/* ─── Change Password Modal ──────────────────────────────────────────────── */
+
+function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () => void }) {
+  const [newPassword, setNewPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+  const { mutate: resetPassword, isPending } = useResetPassword();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) return;
+    resetPassword({ id: userId, newPassword }, { onSuccess: onClose });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-semibold text-gray-900">Parolni o&apos;zgartirish</h3>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Yangi parol <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showPwd ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={6}
+                required
+                autoFocus
+                placeholder="Kamida 6 belgi"
+                className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={newPassword.length < 6 || isPending}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 /* ─── Route → Page title map ─────────────────────────────────────────────── */
 
@@ -115,6 +181,7 @@ function UserMenu() {
   const { data: user } = useCurrentUser();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const [open, setOpen] = useState(false);
+  const [showChangePwd, setShowChangePwd] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -163,7 +230,15 @@ function UserMenu() {
               )}
             </div>
           )}
-          <div className="border-t border-gray-100 mt-1 pt-1 px-1 pb-1">
+          <div className="border-t border-gray-100 mt-1 pt-1 px-1 pb-1 space-y-0.5">
+            <button
+              type="button"
+              onClick={() => { setOpen(false); setShowChangePwd(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <KeyRound className="w-4 h-4 text-gray-400" />
+              Parolni o&apos;zgartirish
+            </button>
             <button
               type="button"
               onClick={() => { logout(); }}
@@ -175,6 +250,13 @@ function UserMenu() {
             </button>
           </div>
         </div>
+      )}
+
+      {showChangePwd && user && (
+        <ChangePasswordModal
+          userId={user.id}
+          onClose={() => setShowChangePwd(false)}
+        />
       )}
     </div>
   );

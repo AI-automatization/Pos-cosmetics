@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X, Search, CheckSquare, Square, RotateCcw, Banknote, CreditCard, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { X, Search, CheckSquare, Square, RotateCcw, Banknote, CreditCard, CheckCircle2, AlertTriangle, Loader2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
 import type { OrderItem } from '@/types/order';
@@ -19,10 +19,12 @@ interface ReturnModalProps {
 
 // ─── Overlay wrapper ──────────────────────────────────────────────────────────
 
-function ModalOverlay({ children }: { children: React.ReactNode; onClose: () => void }) {
+function ModalOverlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gray-900 overflow-hidden">
-      {children}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="relative w-full max-w-lg rounded-2xl bg-gray-900 shadow-2xl border border-gray-700 flex flex-col max-h-[90vh] overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 }
@@ -107,62 +109,45 @@ function StepLookup({
   );
 }
 
-const RETURN_REASONS = [
-  { value: "Buzilgan tovar",         emoji: "🔴" },
-  { value: "Mijoz fikri o'zgardi",   emoji: "💭" },
-  { value: "Pul yetmadi",            emoji: "💸" },
-  { value: "Muddati o'tgan",         emoji: "⏰" },
-  { value: "Boshqa",                 emoji: "✏️" },
+const RETURN_REASON_OPTIONS = [
+  "Buzilgan tovar",
+  "Mijoz fikri o'zgardi",
+  "Pul yetmadi",
+  "Muddati o'tgan",
+  "Boshqa",
 ] as const;
 
 // ─── Reason select sub-component ─────────────────────────────────────────────
 
 function ReasonSelect({ reason, onChange }: { reason: string; onChange: (v: string) => void }) {
-  const presetValues = RETURN_REASONS.slice(0, -1).map((r) => r.value);
-  const isCustom = reason !== '' && !presetValues.includes(reason as typeof presetValues[number]);
-  const selectedValue = presetValues.includes(reason as typeof presetValues[number])
-    ? reason
-    : isCustom ? 'Boshqa' : '';
+  const presets = RETURN_REASON_OPTIONS.slice(0, -1) as readonly string[];
+  const isCustom = reason !== '' && reason !== '__custom__' && !presets.includes(reason);
+  const selectedOption = presets.includes(reason) ? reason : (isCustom || reason === '__custom__') ? 'Boshqa' : '';
+  const showTextarea = selectedOption === 'Boshqa';
+  const textareaValue = isCustom ? reason : '';
 
-  function handlePick(val: string) {
+  function handleSelect(val: string) {
     if (val === 'Boshqa') onChange('__custom__');
     else onChange(val);
   }
 
-  const showTextarea = selectedValue === 'Boshqa' || isCustom;
-  const textareaValue = isCustom ? reason : '';
-
   return (
     <div className="mt-3 space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Qaytarish sababi</p>
-      <div className="grid grid-cols-1 gap-1.5">
-        {RETURN_REASONS.map((r) => {
-          const active = selectedValue === r.value || (r.value === 'Boshqa' && isCustom);
-          return (
-            <button
-              key={r.value}
-              type="button"
-              onClick={() => handlePick(r.value)}
-              className={cn(
-                'flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all',
-                active
-                  ? 'border-orange-500 bg-orange-900/30 text-white shadow-sm shadow-orange-900/40'
-                  : 'border-gray-700 bg-gray-800/60 text-gray-400 hover:border-gray-600 hover:text-gray-200',
-              )}
-            >
-              <span className="text-lg leading-none">{r.emoji}</span>
-              <span className="flex-1 text-sm font-medium">{r.value}</span>
-              <span
-                className={cn(
-                  'h-4 w-4 rounded-full border-2 transition-all shrink-0',
-                  active ? 'border-orange-500 bg-orange-500' : 'border-gray-600',
-                )}
-              >
-                {active && <span className="block h-full w-full rounded-full scale-50 bg-white" />}
-              </span>
-            </button>
-          );
-        })}
+      <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Qaytarish sababi
+      </label>
+      <div className="relative">
+        <select
+          value={selectedOption}
+          onChange={(e) => handleSelect(e.target.value)}
+          className="w-full appearance-none rounded-xl border border-gray-600 bg-gray-800 px-4 py-3 pr-10 text-sm text-white outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+        >
+          <option value="" disabled>Sababni tanlang...</option>
+          {RETURN_REASON_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
       </div>
 
       {showTextarea && (

@@ -723,6 +723,38 @@ export class IdentityService {
     });
   }
 
+  async resetUserPassword(
+    targetId: string,
+    newPassword: string,
+    callerId: string,
+    callerRole: UserRole,
+    tenantId: string,
+  ) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: targetId, tenantId },
+      select: { id: true, role: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Allow self-reset; otherwise enforce role hierarchy
+    if (targetId !== callerId) {
+      this.enforceRoleHierarchy(callerRole, user.role);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: { passwordHash },
+    });
+
+    this.logger.log(`Password reset for user ${targetId} by ${callerId}`);
+    return { message: 'Password updated successfully' };
+  }
+
   private enforceRoleHierarchy(
     callerRole: UserRole,
     targetRole: UserRole,

@@ -46,3 +46,12 @@ export function useUpdateUser() {
     onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
   });
 }
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>
+      usersApi.resetPassword(id, newPassword),
+    onSuccess: () => toast.success('Parol muvaffaqiyatli yangilandi!'),
+    onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
+  });
+}

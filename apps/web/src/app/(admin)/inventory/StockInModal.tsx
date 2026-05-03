@@ -128,9 +128,8 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
         onClose={() => setScanRowKey(null)}
       />
     )}
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      {/* Modal — full screen */}
-      <div className="relative flex flex-col h-full w-full">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 py-6 px-4">
+      <div className="relative w-full max-w-3xl flex flex-col rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <div>
@@ -146,8 +145,8 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 overflow-y-auto flex flex-col gap-5 p-6 max-w-5xl mx-auto w-full">
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <div className="flex flex-col gap-5 p-6">
 
             {/* Supplier + Notes */}
             <div className="grid grid-cols-2 gap-4">
@@ -292,8 +291,8 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
             </div>
           </div>
 
-          {/* Footer — sticky at bottom */}
-          <div className="shrink-0 flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 max-w-5xl mx-auto w-full">
+          {/* Footer */}
+          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 rounded-b-2xl">
             <div className="text-sm text-gray-600">
               Umumiy jami:{' '}
               <span className="font-bold text-gray-900">

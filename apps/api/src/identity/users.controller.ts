@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentTenant, CurrentUser, Roles } from '../common/decorators';
-import { CreateUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto, UpdateUserDto, ResetPasswordDto } from './dto';
 import { IdentityService } from './identity.service';
 
 @ApiTags('Users')
@@ -118,5 +118,28 @@ export class UsersController {
   ) {
     await this.identityService.unlockUser(adminUserId, id);
     return { message: 'User unlocked successfully' };
+  }
+
+  @Post(':id/reset-password')
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER, UserRole.WAREHOUSE, UserRole.VIEWER)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset user password (self or lower role)' })
+  @ApiResponse({ status: 200, description: 'Password updated' })
+  @ApiResponse({ status: 403, description: 'Role hierarchy violation' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async resetPassword(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ResetPasswordDto,
+    @CurrentUser('userId') callerId: string,
+    @CurrentUser('role') callerRole: UserRole,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.identityService.resetUserPassword(
+      id,
+      dto.newPassword,
+      callerId,
+      callerRole,
+      tenantId,
+    );
   }
 }

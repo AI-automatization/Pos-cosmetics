@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { authApi, type LoginPayload } from '@/api/auth.api';
 import { extractErrorMessage } from '@/lib/utils';
@@ -26,13 +27,22 @@ export function useCurrentUser() {
   const hasToken =
     typeof window !== 'undefined' && !!localStorage.getItem('access_token');
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: authApi.me,
     retry: false,
     staleTime: 5 * 60_000,
     enabled: hasToken,
   });
+
+  // Ensure role cookie always matches the actual user role (fixes stale CASHIER cookie bug)
+  useEffect(() => {
+    if (query.data?.role) {
+      document.cookie = `${ROLE_COOKIE}=${query.data.role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    }
+  }, [query.data?.role]);
+
+  return query;
 }
 
 export function useLogin() {
