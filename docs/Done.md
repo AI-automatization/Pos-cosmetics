@@ -1,5 +1,115 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-01
+# Yangilangan: 2026-05-03
+
+---
+
+## T-414 | 2026-05-03 | [FRONTEND] | Izoh → textarea (warehouse + admin stock-in)
+
+- **Yechim:** Commit `7ac7160` — `StockInModal.tsx` va `warehouse/stock-in/page.tsx` da Izoh `<input type="text">` → `<textarea rows={3} resize-none>`. StickyNote icon absolute positioning dan label inline ga o'tkazildi.
+- **Fayl:** `apps/web/src/app/(admin)/inventory/StockInModal.tsx`, `apps/web/src/app/(warehouse)/warehouse/stock-in/page.tsx`
+
+---
+
+## T-413 | 2026-05-03 | [FRONTEND] | ~465ms delay — product search debounce
+
+- **Yechim:** Commit `e3c03da` — `ProductSearch.tsx` da 200ms debounce qo'shildi (har keystroke da API call o'rniga 200ms kutib turadi). `useProducts` `staleTime` 30s → 60s.
+- **Fayl:** `apps/web/src/app/(pos)/pos/ProductSearch.tsx`, `apps/web/src/hooks/catalog/useProducts.ts`
+
+---
+
+## T-412 | 2026-05-03 | [FRONTEND] | "Korzinka" → Savatcha (i18n)
+
+- **Yechim:** Commit `7ac7160` — `pos/page.tsx` `CartTabBar` da `Korzinka {idx+1}` → `{t('pos.cart')} {idx+1}`. `useTranslation` import qo'shildi.
+- **Fayl:** `apps/web/src/app/(pos)/pos/page.tsx`
+
+---
+
+## T-411 | 2026-05-03 | [FRONTEND] | POS analytics noto'g'ri ishlash
+
+- **Yechim:** T-404 bilan birga hal qilindi — `useAnalyticsSalesTrend` da `days<=1` → `todayIso()` fix. Analytics `Bugun` tugmasi qo'shildi. Playwright tasdiqladi.
+
+---
+
+## T-410 | 2026-05-03 | [FRONTEND] | Hotkey config system — kelajakka qoldirildi
+
+- **Holat:** T-409 prioritet — Ctrl+T/Ctrl+Tab qo'shildi. Config UI keyingi sprintga qoldirildi.
+
+---
+
+## T-409 | 2026-05-03 | [FRONTEND] | Hotkeys: yangi savat (Ctrl+T) + almashtirish (Ctrl+Tab)
+
+- **Yechim:** Commit `7ac7160` — `usePOSKeyboard.ts` ga `onNewCart` (Ctrl+T) va `onNextCart` (Ctrl+Tab) qo'shildi. `pos/page.tsx` da `onNewCart: store.addCart()`, `onNextCart: store.switchCart(next)` ulandi.
+- **Fayl:** `apps/web/src/hooks/pos/usePOSKeyboard.ts`, `apps/web/src/app/(pos)/pos/page.tsx`
+
+---
+
+## T-408 | 2026-05-03 | [FRONTEND] | Payment input: text type + kattaroq + To'lov turi kompakt
+
+- **Yechim:** Commit `7ac7160` — Cash input `type="number"` → `type="text" inputMode="numeric"`, `py-4 text-xl`. To'lov turi `grid-cols-2 py-2.5` → `grid-cols-5 py-1.5 text-[10px]`.
+- **Fayl:** `apps/web/src/app/(pos)/pos/PaymentPanel.tsx`
+
+---
+
+## T-407 | 2026-05-03 | [FRONTEND] | Max quantity constraint — savatda stock dan oshirmaslik
+
+- **Yechim:** Commit `7ac7160` — `pos.store.ts` `updateQuantity` va `addItem` da `Math.min(qty, currentStock)` clamp. `CartPanel.tsx` `+` tugmasiga `toast.warning` + `max` attr qo'shildi.
+- **Fayl:** `apps/web/src/store/pos.store.ts`, `apps/web/src/app/(pos)/pos/CartPanel.tsx`
+
+---
+
+## T-406 | 2026-05-03 | [FRONTEND] | Qaytarish sabablari — predefined dropdown
+
+- **Yechim:** Commit `7ac7160` — `ReturnModal.tsx` da `RETURN_REASONS` const (5 ta sabab) + `ReasonSelect` component. Dropdown tanlanganda `reason` state yangilanadi; "Boshqa" tanlansa free-text textarea ko'rinadi.
+- **Fayl:** `apps/web/src/app/(pos)/pos/ReturnModal.tsx`
+
+---
+
+## T-405 | 2026-05-03 | [FRONTEND] | Filial taqqoslama — race condition fix
+
+- **Yechim:** Commit `7ac7160` — `useBranchSalesTrend` da `useState+useEffect` (weekAgo='', today='') → inline computed values. `useEffect` import olib tashlandi.
+- **Fayl:** `apps/web/src/app/(admin)/reports/branches/page.tsx`
+
+---
+
+## T-404 | 2026-05-03 | [FRONTEND] | Analytics 1-kun filtri fix + "Bugun" tugmasi
+
+- **Yechim:** Commit `7ac7160` — `useAnalyticsSalesTrend` da `days<=1 ? todayIso() : daysAgoIso(days)`. Analytics page ga `Bugun` toggle button qo'shildi.
+- **Fayl:** `apps/web/src/hooks/analytics/useAnalytics.ts`, `apps/web/src/app/(admin)/analytics/page.tsx`
+
+---
+
+## T-403 | 2026-05-03 | [FRONTEND] | Valyuta kurslari sahifasini o'chirish
+
+- **Yechim:** Commit `7ac7160` — Sidebar dan `/finance/exchange-rates` link olib tashlandi. `exchange-rates/page.tsx` → `/finance/pnl` ga redirect.
+- **Fayl:** `apps/web/src/components/layout/Sidebar.tsx`, `apps/web/src/app/(admin)/finance/exchange-rates/page.tsx`
+
+---
+
+## T-402 | 2026-05-03 | [FRONTEND] | Nakладные — tarix, detail, inventory tab
+
+- **Yechim:** Commit `fb27251` — `inventory/page.tsx` ga 3-tab "Nakладные" qo'shildi (sana, hujjat #, yetkazuvchi, mahsulotlar, jami, holat). `InvoiceDetailDrawer.tsx` yangi komponent (items jadval + Approve tugmasi). `useInvoices/useInvoice/useApproveInvoice` hooklar. `GET /warehouse/invoices` API.
+- **Fayl:** `apps/web/src/app/(admin)/inventory/page.tsx`, `InvoiceDetailDrawer.tsx`, `apps/web/src/api/inventory.api.ts`, `apps/web/src/hooks/inventory/useInventory.ts`
+
+---
+
+## T-401 | 2026-05-03 | [FRONTEND] | Barcode scanner → StockInModal integratsiya
+
+- **Yechim:** Commit `fb27251` — Har mahsulot qatorida `<Scan />` tugmasi; bosilsa `BarcodeScanner` kamera modal ochiladi. Hardware scanner `useBarcodeScanner` hook orqali birinchi bo'sh qatorga auto-to'ldiradi.
+- **Fayl:** `apps/web/src/app/(admin)/inventory/StockInModal.tsx`
+
+---
+
+## T-400 | 2026-05-03 | [FRONTEND] | Dashboard — faqat Sof foyda + ExchangeRateWidget o'chirish
+
+- **Yechim:** Commit `7ac7160` — 4-stat card grid + 5 FinSummaryCard + ExchangeRateWidget olib tashlandi. 3-card layout (Sof foyda 30kun, Bugungi buyurtmalar, Kam zaxira). Unused import: ArrowUpRight, TrendBadge, FinSummaryCard tozalandi.
+- **Fayl:** `apps/web/src/app/(admin)/dashboard/page.tsx`
+
+---
+
+## T-399 Phase 1 | 2026-05-03 | [FRONTEND] | i18n — POS UI hardcoded strings → t()
+
+- **Yechim:** Commit `de409cf` — ShiftBar, CartPanel, PaymentPanel da 35+ hardcoded string → `useTranslation()`. uz.json/ru.json/en.json ga yangi pos.* keylar qo'shildi.
+- **Fayl:** `apps/web/src/app/(pos)/pos/ShiftBar.tsx`, `CartPanel.tsx`, `PaymentPanel.tsx`, `apps/web/src/i18n/locales/`
 
 ---
 
