@@ -14,6 +14,7 @@ import { usePOSKeyboard } from '@/hooks/pos/usePOSKeyboard';
 import { usePOSStore } from '@/store/pos.store';
 import type { CartState } from '@/store/pos.store';
 import { shiftApi } from '@/api/shift.api';
+import { useTranslation } from '@/i18n/i18n-context';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types/sales';
 
@@ -35,6 +36,7 @@ function CartTabBar({
   onRemove: (id: string) => void;
 }) {
   const cartList = Object.values(carts);
+  const { t } = useTranslation();
   return (
     <div className="flex shrink-0 items-center gap-1 border-b border-gray-200 bg-white px-3 py-1.5 overflow-x-auto">
       {cartList.map((cart, idx) => (
@@ -50,7 +52,7 @@ function CartTabBar({
             )}
           >
             <ShoppingCart className="h-3 w-3" />
-            Korzinka {idx + 1}
+            {t('pos.cart')} {idx + 1}
             {cart.items.length > 0 && (
               <span
                 className={cn(
@@ -189,6 +191,12 @@ export default function POSPage() {
     onF6: () => store.setPaymentMethod('card'),
     onF7: () => store.setPaymentMethod('split'),
     onF8: () => store.setPaymentMethod('nasiya'),
+    onNewCart: () => store.addCart(),
+    onNextCart: () => {
+      const cartList = Object.values(store.carts);
+      const idx = cartList.findIndex((c) => c.id === store.activeCartId);
+      store.switchCart(cartList[(idx + 1) % cartList.length].id);
+    },
     onEsc: () => {
       if (showReturnModal) {
         setShowReturnModal(false);

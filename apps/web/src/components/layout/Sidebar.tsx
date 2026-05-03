@@ -135,7 +135,6 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { label: 'Foyda va zarar', tKey: 'nav.pnl', href: '/finance/pnl' },
           { label: 'Xarajatlar', tKey: 'nav.expenses', href: '/finance/expenses' },
-          { label: 'Valyuta kurslari', tKey: 'nav.exchangeRates', href: '/finance/exchange-rates' },
         ],
       },
       { label: 'Analitika', tKey: 'nav.analytics', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },

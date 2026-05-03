@@ -5,7 +5,6 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
   TrendingUp,
-  ArrowUpRight,
   ShoppingCart,
   PackageCheck,
 } from 'lucide-react';
@@ -15,12 +14,11 @@ import { useBranches } from '@/hooks/settings/useBranches';
 import { useAnalyticsSalesTrend } from '@/hooks/analytics/useAnalytics';
 import { formatPrice } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
-import { StatCard, TrendBadge } from './StatCards';
+import { StatCard } from './StatCards';
 import { ProfitBreakdown } from './ProfitBreakdown';
 import { TopProductsList, TopProductsGrid } from './TopProductsList';
 import { LowStockBanner } from './LowStockBanner';
 import { DemoContent } from './DemoContent';
-import { ExchangeRateWidget } from './ExchangeRateWidget';
 import { useRealtimeEvents } from '@/hooks/realtime/useRealtimeEvents';
 import type { Branch } from '@/api/branches.api';
 
@@ -48,27 +46,6 @@ function daysAgoIso(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return d.toISOString().split('T')[0];
-}
-
-// Monthly financial summary card
-interface FinSummaryCardProps {
-  label: string;
-  value: number;
-  positive?: boolean; // green if positive, red if negative (for profit cards)
-  neutral?: boolean;  // gray — always neutral (e.g. daromad)
-}
-
-function FinSummaryCard({ label, value, positive, neutral }: FinSummaryCardProps) {
-  let valueColor = 'text-gray-900';
-  if (!neutral) {
-    valueColor = positive ? 'text-green-600' : 'text-red-500';
-  }
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
-      <p className={`text-sm font-semibold ${valueColor}`}>{formatPrice(value)}</p>
-    </div>
-  );
 }
 
 // Per-branch revenue row — each branch fetches its own 30-day trend
@@ -162,7 +139,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { today, profit, profitYesterday, weeklyRevenue, topProducts, lowStockCount } = data;
+  const { today, profit, weeklyRevenue, topProducts, lowStockCount } = data;
   if (!today || !weeklyRevenue || !topProducts) {
     return (
       <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
@@ -206,21 +183,20 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      {/* Asosiy metrikalar — 3 ta */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Sof foyda — bosh metrika */}
         <Link
-          href="/analytics"
-          className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md"
+          href="/finance/pnl"
+          className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md sm:col-span-1"
         >
           <StatCard
-            title="Bugungi tushum"
-            tooltip="Barcha buyurtmalar jami summasi (chegirmadan oldin)"
-            value={formatPrice(today.totalRevenue)}
-            sub={today.ordersCount === 0 ? "Bugun savdo yo'q" : `${today.ordersCount} ta buyurtma`}
-            trend={
-              <TrendBadge current={today.totalRevenue} previous={profitYesterday?.revenue} />
-            }
+            title="Sof foyda (30 kun)"
+            tooltip="Daromad − Tannarx − Xarajatlar. Haqiqiy sof foyda."
+            value={isProfitLoading ? '…' : profitReport ? formatPrice(profitReport.netProfit) : profit ? formatPrice(profit.grossProfit) : '—'}
+            sub={profitReport ? `Daromad: ${formatPrice(profitReport.revenue)}` : 'Ma\'lumot yo\'q'}
             icon={TrendingUp}
-            accent="blue"
+            accent={profitReport && profitReport.netProfit >= 0 ? 'green' : 'red'}
           />
         </Link>
         <Link
@@ -228,28 +204,10 @@ export default function DashboardPage() {
           className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md"
         >
           <StatCard
-            title="Yalpi foyda"
-            tooltip="Tushum − Tannarx (COGS) − Qaytarishlar. Xarajatlar hisobga olinmaydi."
-            value={profit ? formatPrice(profit.grossProfit) : '—'}
-            sub={profit ? `Marja: ${profit.grossMarginPct}%` : 'Ma\'lumot yo\'q'}
-            trend={
-              profit && profitYesterday ? (
-                <TrendBadge current={profit.grossProfit} previous={profitYesterday.grossProfit} />
-              ) : undefined
-            }
-            icon={ArrowUpRight}
-            accent={profit && profit.grossProfit >= 0 ? 'green' : 'red'}
-          />
-        </Link>
-        <Link
-          href="/analytics"
-          className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md"
-        >
-          <StatCard
-            title="O'rtacha chek"
-            tooltip="Bugungi barcha buyurtmalar summasi / buyurtmalar soni"
-            value={formatPrice(today.averageOrderValue)}
-            sub="Bugungi o'rtacha"
+            title="Bugungi buyurtmalar"
+            tooltip="Bugun yakunlangan buyurtmalar soni"
+            value={`${today.ordersCount} ta`}
+            sub={today.ordersCount === 0 ? "Bugun savdo yo'q" : `${formatPrice(today.totalRevenue)}`}
             icon={ShoppingCart}
             accent="blue"
           />
@@ -268,65 +226,6 @@ export default function DashboardPage() {
           />
         </Link>
       </div>
-
-      {/* USD/UZS valyuta kursi widget */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <ExchangeRateWidget />
-      </div>
-
-      {/* Oylik moliyaviy xulosa */}
-      {!isProfitLoading && profitReport && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-700">
-              So&apos;nggi 30 kun — Moliyaviy xulosa
-            </h2>
-            <Link
-              href="/finance/expenses"
-              className="text-xs text-blue-600 hover:underline"
-            >
-              Batafsil →
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            <FinSummaryCard
-              label="Daromad"
-              value={profitReport.revenue}
-              neutral
-            />
-            <FinSummaryCard
-              label="Tannarx (COGS)"
-              value={profitReport.cogs}
-              neutral
-            />
-            <FinSummaryCard
-              label="Yalpi foyda"
-              value={profitReport.grossProfit}
-              positive={profitReport.grossProfit >= 0}
-            />
-            <FinSummaryCard
-              label="Xarajatlar"
-              value={profitReport.totalExpenses}
-              neutral
-            />
-            <FinSummaryCard
-              label="Sof foyda"
-              value={profitReport.netProfit}
-              positive={profitReport.netProfit >= 0}
-            />
-          </div>
-        </div>
-      )}
-      {isProfitLoading && (
-        <div>
-          <LoadingSkeleton variant="line" className="mb-3 h-4 w-56" />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {[...Array(5)].map((_, i) => (
-              <LoadingSkeleton key={i} variant="card" rows={1} />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Filiallar daromadi */}
       {!isBranchesLoading && branches && branches.length > 0 && (

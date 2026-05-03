@@ -221,7 +221,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
       {/* Payment method — 2×2 grid */}
       <div className="shrink-0 border-b border-gray-100 p-3">
         <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.paymentType')}</p>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-5 gap-1">
           {METHODS.map((m) => (
             <button
               key={m.key}
@@ -231,7 +231,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                 if (m.key !== 'nasiya' && m.key !== 'bonus') setSelectedCustomer(null);
               }}
               className={cn(
-                'flex flex-col items-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition',
+                'flex flex-col items-center gap-0.5 rounded-lg border py-1.5 px-1 text-[10px] font-medium transition',
                 paymentMethod === m.key
                   ? m.key === 'nasiya'
                     ? 'border-orange-400 bg-orange-50 text-orange-700'
@@ -242,8 +242,8 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
               )}
             >
               {m.icon}
-              <span>{m.label}</span>
-              <span className="text-gray-400">{m.shortcut}</span>
+              <span className="truncate w-full text-center">{m.label}</span>
+              <span className="text-gray-400 text-[9px]">{m.shortcut}</span>
             </button>
           ))}
         </div>
@@ -257,11 +257,15 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         <div className="shrink-0 border-b border-gray-100 p-3">
           <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.customerPaid')}</p>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={cashAmount || ''}
-            onChange={(e) => setCashAmount(parseFloat(e.target.value) || 0)}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\s/g, '').replace(',', '.');
+              if (/^\d*\.?\d*$/.test(raw)) setCashAmount(parseFloat(raw) || 0);
+            }}
             placeholder={formatPrice(total)}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-base font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+            className="w-full rounded-xl border border-gray-200 px-4 py-4 text-right text-xl font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
           />
           <div className="mt-2 flex flex-wrap gap-1">
             {QUICK_CASH.filter((v) => v >= total * 0.5).slice(0, 4).map((v) => (

@@ -134,11 +134,14 @@ export const usePOSStore = create<POSState>()(
           const cart = s.carts[s.activeCartId];
           if (!cart) return {};
           const existing = cart.items.find((i) => i.productId === newItem.productId);
+          const maxQty = newItem.currentStock ?? Infinity;
           const items = existing
             ? cart.items.map((i) =>
-                i.productId === newItem.productId ? { ...i, quantity: i.quantity + 1 } : i,
+                i.productId === newItem.productId
+                  ? { ...i, quantity: Math.min(i.quantity + 1, maxQty) }
+                  : i,
               )
-            : [...cart.items, { ...newItem, quantity: 1, lineDiscount: 0 }];
+            : [...cart.items, { ...newItem, quantity: Math.min(1, maxQty), lineDiscount: 0 }];
           return patchActive(s, { items });
         }),
 
@@ -153,10 +156,13 @@ export const usePOSStore = create<POSState>()(
         set((s) => {
           const cart = s.carts[s.activeCartId];
           if (!cart) return {};
+          const item = cart.items.find((i) => i.productId === productId);
+          const maxQty = item?.currentStock ?? Infinity;
+          const clampedQty = Math.min(qty, maxQty);
           const items =
-            qty <= 0
+            clampedQty <= 0
               ? cart.items.filter((i) => i.productId !== productId)
-              : cart.items.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i));
+              : cart.items.map((i) => (i.productId === productId ? { ...i, quantity: clampedQty } : i));
           return patchActive(s, { items });
         }),
 

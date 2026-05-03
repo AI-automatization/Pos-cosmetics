@@ -193,6 +193,18 @@ export default function AnalyticsPage() {
               className="w-52"
             />
             <div className="flex rounded-xl bg-gray-100 p-1">
+              <button
+                type="button"
+                onClick={() => setDays(1)}
+                className={cn(
+                  'rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all',
+                  days === 1
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700',
+                )}
+              >
+                Bugun
+              </button>
               {([7, 30, 90] as const).map((d) => (
                 <button
                   key={d}

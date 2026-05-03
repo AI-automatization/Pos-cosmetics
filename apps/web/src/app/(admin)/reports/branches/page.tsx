@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -61,17 +61,9 @@ function useBranchComparison(period: Period) {
 }
 
 function useBranchSalesTrend(branchIds: string[]) {
-  const [dateRange, setDateRange] = useState({ weekAgo: '', today: '' });
-
-  useEffect(() => {
-    const now = Date.now();
-    setDateRange({
-      weekAgo: new Date(now - 6 * 86400000).toISOString().slice(0, 10),
-      today: new Date(now).toISOString().slice(0, 10),
-    });
-  }, []);
-
-  const { weekAgo, today } = dateRange;
+  const now = Date.now();
+  const weekAgo = new Date(now - 6 * 86400000).toISOString().slice(0, 10);
+  const today = new Date(now).toISOString().slice(0, 10);
 
   return useQuery({
     queryKey: ['branch-sales-trend', branchIds, weekAgo, today],

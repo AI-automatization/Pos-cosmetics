@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X, Search, CheckSquare, Square, RotateCcw, Banknote, CreditCard, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
@@ -105,6 +105,53 @@ function StepLookup({
   );
 }
 
+const RETURN_REASONS = [
+  "Buzilgan tovar",
+  "Mijoz fikri o'zgardi",
+  "Pul yetmadi",
+  "Muddati o'tgan",
+  "Boshqa",
+] as const;
+
+// ─── Reason select sub-component ─────────────────────────────────────────────
+
+function ReasonSelect({ reason, onChange }: { reason: string; onChange: (v: string) => void }) {
+  const isCustom = reason !== '' && !RETURN_REASONS.slice(0, -1).includes(reason as typeof RETURN_REASONS[number]);
+  const preset = RETURN_REASONS.includes(reason as typeof RETURN_REASONS[number]) ? reason : isCustom ? 'Boshqa' : '';
+
+  function handlePreset(val: string) {
+    if (val === 'Boshqa') {
+      onChange('');
+    } else {
+      onChange(val);
+    }
+  }
+
+  return (
+    <div className="mt-2 space-y-2">
+      <select
+        value={preset}
+        onChange={(e) => handlePreset(e.target.value)}
+        className="w-full rounded-xl border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500 appearance-none"
+      >
+        <option value="">Qaytarish sababini tanlang...</option>
+        {RETURN_REASONS.map((r) => (
+          <option key={r} value={r}>{r}</option>
+        ))}
+      </select>
+      {(preset === 'Boshqa' || isCustom) && (
+        <textarea
+          value={preset === 'Boshqa' && !isCustom ? '' : reason}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Sababni kiriting..."
+          rows={2}
+          className="w-full rounded-xl border border-gray-600 bg-gray-800 px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-orange-500 resize-none"
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── Step 2: Item selection ───────────────────────────────────────────────────
 
 function StepItemSelect({
@@ -196,13 +243,7 @@ function StepItemSelect({
           );
         })}
 
-        <textarea
-          value={reason}
-          onChange={(e) => onReasonChange(e.target.value)}
-          placeholder="Qaytarish sababi (ixtiyoriy)..."
-          rows={2}
-          className="w-full rounded-xl border border-gray-600 bg-gray-800 px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-orange-500 resize-none mt-2"
-        />
+        <ReasonSelect reason={reason} onChange={onReasonChange} />
       </div>
 
       <div className="border-t border-gray-700 px-5 py-4 flex items-center justify-between">

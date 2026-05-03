@@ -312,17 +312,17 @@ export default function StockInPage() {
 
             {/* Note */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Izoh</label>
-              <div className="relative">
-                <StickyNote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Qo'shimcha izoh..."
-                  className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-3.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                <StickyNote className="h-4 w-4 text-gray-400" />
+                Izoh
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Qo'shimcha izoh..."
+                rows={3}
+                className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
+              />
             </div>
           </div>
 

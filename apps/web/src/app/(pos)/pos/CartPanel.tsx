@@ -2,6 +2,7 @@
 
 import { Minus, Plus, Trash2, Tag, ShoppingCart, Package } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { usePOSStore } from '@/store/pos.store';
 import { usePromoMap, useGlobalPromo } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
@@ -62,6 +63,7 @@ function CartItemRow({ item }: { item: CartItem }) {
             type="number"
             value={item.quantity}
             min={1}
+            max={item.currentStock ?? undefined}
             onChange={(e) => {
               const v = parseInt(e.target.value);
               if (!isNaN(v)) updateQuantity(item.productId, v);
@@ -70,7 +72,14 @@ function CartItemRow({ item }: { item: CartItem }) {
           />
           <button
             type="button"
-            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+            onClick={() => {
+              const max = item.currentStock ?? Infinity;
+              if (item.quantity >= max) {
+                toast.warning(`Zaxirada faqat ${max} ta bor`);
+                return;
+              }
+              updateQuantity(item.productId, item.quantity + 1);
+            }}
             className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50 active:scale-95"
           >
             <Plus className="h-3.5 w-3.5" />
