@@ -57,6 +57,7 @@ function useBranchComparison(period: Period) {
       apiClient
         .get<BranchComparisonItem[]>('/analytics/branch-comparison', { params: { period } })
         .then((r) => r.data),
+    staleTime: 30_000,
   });
 }
 
@@ -324,7 +325,7 @@ function buildWeeklyChart(
   // Build chart data
   return dates.map((date) => {
     const row: Record<string, string | number> = {
-      date: date.length > 5 ? date.slice(5) : date, // "MM-DD"
+      date: date.slice(5, 10), // "MM-DD" — backend returns ISO "2026-05-01T00:00:00.000Z"
     };
     for (const t of trendData) {
       const name = nameMap.get(t.branchId) ?? t.branchId;
