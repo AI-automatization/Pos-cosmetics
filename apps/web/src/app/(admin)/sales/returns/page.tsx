@@ -468,7 +468,7 @@ export default function ReturnsPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Qaytarishlar</h1>
         <p className="mt-0.5 text-sm text-gray-500">Qaytarish tarixi va buyurtmalardan qaytarish</p>

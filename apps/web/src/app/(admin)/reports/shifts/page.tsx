@@ -183,16 +183,14 @@ export default function ShiftReportsPage() {
               </div>
             );
           })}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2">
-              <p className="text-xs text-gray-500">Jami: {data?.length ?? 0} ta smena</p>
-              <div className="flex items-center gap-1">
-                <button type="button" onClick={() => setShiftPage(p => Math.max(1, p - 1))} disabled={shiftPage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
-                <span className="px-2 text-xs text-gray-500">{shiftPage} / {totalPages}</span>
-                <button type="button" onClick={() => setShiftPage(p => Math.min(totalPages, p + 1))} disabled={shiftPage === totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
-              </div>
+          <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2">
+            <p className="text-xs text-gray-500">Jami: {data?.length ?? 0} ta smena</p>
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => setShiftPage(p => Math.max(1, p - 1))} disabled={shiftPage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
+              <span className="px-2 text-xs text-gray-500">{shiftPage} / {Math.max(1, totalPages)}</span>
+              <button type="button" onClick={() => setShiftPage(p => Math.min(totalPages, p + 1))} disabled={shiftPage >= totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

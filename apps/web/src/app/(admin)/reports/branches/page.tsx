@@ -6,7 +6,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from 'recharts';
-import { GitCompare, ArrowUpDown, TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react';
+import { GitCompare, ArrowUpDown, TrendingUp, TrendingDown, Minus, Loader2, Building2 } from 'lucide-react';
+import Link from 'next/link';
 import { formatPrice, cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { apiClient } from '@/api/client';
@@ -126,10 +127,31 @@ export default function BranchReportsPage() {
 
   if (!branches || branches.length === 0) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold text-gray-900 mb-4">Filiallar taqqoslama</h1>
-        <div className="rounded-xl border border-gray-200 bg-white px-6 py-12 text-center text-gray-400">
-          Hech qanday filial topilmadi
+      <div className="flex flex-col gap-4 p-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-900">Filiallar taqqoslama</h1>
+          <SearchableDropdown
+            options={PERIOD_OPTIONS}
+            value={period}
+            onChange={(val) => setPeriod((val || 'month') as Period)}
+            searchable={false}
+            clearable={false}
+            className="w-36"
+          />
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white px-6 py-14 text-center">
+          <Building2 className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+          <p className="text-base font-medium text-gray-600">Filiallar topilmadi</p>
+          <p className="mt-1 text-sm text-gray-400">
+            Hali hech qanday faol filial mavjud emas yoki tanlangan davrda savdo yo&apos;q.
+          </p>
+          <Link
+            href="/settings/branches"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Building2 className="h-4 w-4" />
+            Filiallarni sozlash →
+          </Link>
         </div>
       </div>
     );

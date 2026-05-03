@@ -10,9 +10,18 @@ import {
 } from '@/hooks/catalog/useSuppliers';
 import type { Supplier, CreateSupplierDto, UpdateSupplierDto } from '@/types/supplier';
 
+function isValidUzPhone(val: string | undefined) {
+  if (!val || val.trim() === '' || val === '+998') return true; // optional
+  const digits = val.replace(/[\s\-()]/g, '');
+  return /^\+998\d{9}$/.test(digits) || /^998\d{9}$/.test(digits) || /^0\d{9}$/.test(digits);
+}
+
 const supplierSchema = z.object({
   name: z.string().min(2, 'Kamida 2 belgi'),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .optional()
+    .refine(isValidUzPhone, { message: "Format: +998 XX XXX XX XX" }),
   company: z.string().optional(),
   address: z.string().optional(),
 });
@@ -81,9 +90,14 @@ export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
             <label className="mb-1 block text-sm font-medium text-gray-700">Telefon</label>
             <input
               {...register('phone')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              type="tel"
+              inputMode="tel"
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.phone ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
               placeholder="+998 90 000 00 00"
             />
+            {errors.phone && (
+              <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>
+            )}
           </div>
 
           <div>

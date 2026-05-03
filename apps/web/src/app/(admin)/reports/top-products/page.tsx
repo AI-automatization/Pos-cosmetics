@@ -97,62 +97,62 @@ export default function TopProductsPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
-              <tr>
-                <th className="w-8 px-4 py-3 text-left font-medium text-gray-500">#</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Sotildi</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Buyurtmalar</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Daromad</th>
-                <th className="w-40 px-4 py-3 font-medium text-gray-600" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {paged.map((p, idx) => {
-                const barWidth = Math.round((p.revenue / maxRevenue) * 100);
-                const globalIdx = (tablePage - 1) * PAGE_SIZE + idx;
-                return (
-                  <tr key={p.productId} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-center text-xs font-medium text-gray-400">
-                      {globalIdx + 1}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      {p.productName}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-gray-700">
-                      {p.quantity} ta
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-gray-500">
-                      {p.ordersCount}
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
-                      {formatPrice(p.revenue)}
-                    </td>
-                    {/* Mini bar */}
-                    <td className="px-4 py-3">
-                      <div className="h-2 w-full rounded-full bg-gray-100">
-                        <div
-                          className="h-2 rounded-full bg-blue-400"
-                          style={{ width: `${barWidth}%` }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2">
-              <p className="text-xs text-gray-500">Jami: {data?.length ?? 0} ta mahsulot</p>
-              <div className="flex items-center gap-1">
-                <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
-                <span className="px-2 text-xs text-gray-500">{tablePage} / {totalPages}</span>
-                <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage === totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
-              </div>
+          <div className="overflow-y-auto max-h-[calc(100vh-380px)]">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="w-8 px-4 py-3 text-left font-medium text-gray-500">#</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">Sotildi</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">Buyurtmalar</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">Daromad</th>
+                  <th className="w-40 px-4 py-3 font-medium text-gray-600" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paged.map((p, idx) => {
+                  const barWidth = Math.round((p.revenue / maxRevenue) * 100);
+                  const globalIdx = (tablePage - 1) * PAGE_SIZE + idx;
+                  return (
+                    <tr key={p.productId} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-center text-xs font-medium text-gray-400">
+                        {globalIdx + 1}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        {p.productName}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-gray-700">
+                        {p.quantity} ta
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-gray-500">
+                        {p.ordersCount}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
+                        {formatPrice(p.revenue)}
+                      </td>
+                      {/* Mini bar */}
+                      <td className="px-4 py-3">
+                        <div className="h-2 w-full rounded-full bg-gray-100">
+                          <div
+                            className="h-2 rounded-full bg-blue-400"
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2">
+            <p className="text-xs text-gray-500">Jami: {data?.length ?? 0} ta mahsulot</p>
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
+              <span className="px-2 text-xs text-gray-500">{tablePage} / {Math.max(1, totalPages)}</span>
+              <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage >= totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
