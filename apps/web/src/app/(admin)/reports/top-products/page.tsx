@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTopProducts } from '@/hooks/reports/useReports';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function getDefaultRange() {
   const to = new Date();
@@ -18,6 +19,7 @@ function getDefaultRange() {
 }
 
 export default function TopProductsPage() {
+  const { t } = useTranslation();
   const [range, setRange] = useState(getDefaultRange);
   const [tablePage, setTablePage] = useState(1);
   const PAGE_SIZE = 10;
@@ -35,15 +37,15 @@ export default function TopProductsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Top mahsulotlar</h1>
-          <p className="text-sm text-gray-500">Savdo bo'yicha eng faol mahsulotlar</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nav.topProducts')}</h1>
+          <p className="text-sm text-gray-500">{t('reports.topProductsSubtitle')}</p>
         </div>
       </div>
 
       {/* Date range */}
       <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-600">Dan:</label>
+          <label className="text-sm font-medium text-gray-600">{t('reports.from')}</label>
           <input
             type="date"
             value={range.from}
@@ -53,7 +55,7 @@ export default function TopProductsPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-600">Gacha:</label>
+          <label className="text-sm font-medium text-gray-600">{t('reports.to')}</label>
           <input
             type="date"
             value={range.to}
@@ -64,7 +66,11 @@ export default function TopProductsPage() {
           />
         </div>
         <div className="ml-auto flex gap-2">
-          {[7, 30, 90].map((days) => (
+          {[
+            { key: 'reports.days7', days: 7 },
+            { key: 'reports.days30', days: 30 },
+            { key: 'reports.days90', days: 90 },
+          ].map(({ key, days }) => (
             <button
               key={days}
               type="button"
@@ -79,7 +85,7 @@ export default function TopProductsPage() {
               }}
               className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
             >
-              {days} kun
+              {t(key)}
             </button>
           ))}
         </div>
@@ -93,7 +99,7 @@ export default function TopProductsPage() {
         </div>
       ) : !data || data.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-400">
-          Tanlangan sana oralig'ida savdo ma'lumotlari yo'q
+          {t('reports.noData')}
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
@@ -102,10 +108,10 @@ export default function TopProductsPage() {
               <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="w-8 px-4 py-3 text-left font-medium text-gray-500">#</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">Sotildi</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">Buyurtmalar</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">Daromad</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">{t('reports.product')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.sold')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.orders')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.revenue')}</th>
                   <th className="w-40 px-4 py-3 font-medium text-gray-600" />
                 </tr>
               </thead>
@@ -146,11 +152,11 @@ export default function TopProductsPage() {
             </table>
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2">
-            <p className="text-xs text-gray-500">Jami: {data?.length ?? 0} ta mahsulot</p>
+            <p className="text-xs text-gray-500">{t('reports.totalProducts', { count: data?.length ?? 0 })}</p>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
+              <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">{t('reports.prev')}</button>
               <span className="px-2 text-xs text-gray-500">{tablePage} / {Math.max(1, totalPages)}</span>
-              <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage >= totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
+              <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage >= totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">{t('reports.next')}</button>
             </div>
           </div>
         </div>

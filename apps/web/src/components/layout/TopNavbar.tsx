@@ -77,48 +77,50 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
   );
 }
 
-/* ─── Route → Page title map ─────────────────────────────────────────────── */
+/* ─── Route → i18n key map ───────────────────────────────────────────────── */
 
-const PAGE_TITLES: [string, string][] = [
-  ['/dashboard', 'Dashboard'],
-  ['/catalog/products', 'Mahsulotlar'],
-  ['/catalog/categories', 'Kategoriyalar'],
-  ['/catalog/suppliers', 'Yetkazib beruvchilar'],
-  ['/inventory/low-stock', 'Kam zaxira'],
-  ['/inventory/expiry', 'Yaroqlilik muddati'],
-  ['/inventory/transfer', "Ko'chirish"],
-  ['/inventory/stock-in', "Kirim qo'shish"],
-  ['/inventory', 'Inventar'],
-  ['/sales/orders', 'Buyurtmalar'],
-  ['/sales/returns', 'Qaytarishlar'],
-  ['/sales/shifts', 'Smenalar'],
-  ['/promotions', 'Aksiyalar'],
-  ['/payments/history', "To'lovlar"],
-  ['/nasiya/aging', 'Aging hisobot'],
-  ['/nasiya', 'Nasiya'],
-  ['/workers', 'Xodimlar'],
-  ['/finance/pnl', 'Foyda va zarar'],
-  ['/finance/expenses', 'Xarajatlar'],
-  ['/finance/exchange-rates', 'Valyuta kurslari'],
-  ['/analytics', 'Analitika'],
-  ['/reports/daily-revenue', 'Kunlik daromad'],
-  ['/reports/top-products', 'Top mahsulotlar'],
-  ['/reports/shifts', 'Smenalar hisoboti'],
-  ['/reports/branches', 'Filiallar taqqoslama'],
-  ['/reports/builder', 'Hisobot yaratish'],
-  ['/reports', 'Hisobotlar'],
-  ['/tasks', 'Topshiriqlar'],
-  ['/settings/branches', 'Filiallar'],
-  ['/settings/users', 'Foydalanuvchilar'],
-  ['/settings/printer', 'Printer'],
-  ['/settings/audit-log', 'Audit log'],
-  ['/settings/billing', 'Hisob va tarif'],
+const PAGE_TITLE_KEYS: [string, string][] = [
+  ['/dashboard', 'nav.dashboard'],
+  ['/catalog/products', 'nav.products'],
+  ['/catalog/categories', 'nav.categories'],
+  ['/catalog/suppliers', 'nav.suppliers'],
+  ['/inventory/low-stock', 'nav.lowStock'],
+  ['/inventory/expiry', 'nav.expiry'],
+  ['/inventory/transfer', 'nav.transfer'],
+  ['/inventory/stock-in', 'nav.stockIn'],
+  ['/inventory', 'nav.inventory'],
+  ['/sales/orders', 'nav.orders'],
+  ['/sales/returns', 'nav.returns'],
+  ['/sales/shifts', 'nav.shifts'],
+  ['/promotions', 'nav.promotions'],
+  ['/payments/history', 'nav.paymentHistory'],
+  ['/nasiya/aging', 'nav.aging'],
+  ['/nasiya', 'nav.nasiya'],
+  ['/workers', 'nav.workers'],
+  ['/finance/pnl', 'nav.pnl'],
+  ['/finance/expenses', 'nav.expenses'],
+  ['/finance/exchange-rates', 'nav.exchangeRates'],
+  ['/analytics', 'nav.analytics'],
+  ['/reports/daily-revenue', 'nav.dailyRevenue'],
+  ['/reports/top-products', 'nav.topProducts'],
+  ['/reports/shifts', 'nav.shiftReports'],
+  ['/reports/branches', 'nav.branchComparison'],
+  ['/reports/builder', 'nav.reportBuilder'],
+  ['/reports', 'nav.reports'],
+  ['/tasks', 'nav.tasks'],
+  ['/settings/branches', 'nav.branches'],
+  ['/settings/users', 'nav.users'],
+  ['/settings/printer', 'nav.printer'],
+  ['/settings/audit-log', 'nav.auditLog'],
+  ['/settings/billing', 'nav.billing'],
 ];
 
-function getPageTitle(pathname: string): string {
-  for (const [prefix, title] of PAGE_TITLES) {
+function usePageTitle() {
+  const { t } = useTranslation();
+  const pathname = usePathname();
+  for (const [prefix, key] of PAGE_TITLE_KEYS) {
     if (pathname === prefix || pathname.startsWith(prefix + '/')) {
-      return title;
+      return t(key);
     }
   }
   return 'RAOS';
@@ -265,9 +267,8 @@ function UserMenu() {
 /* ─── TopNavbar ───────────────────────────────────────────────────────────── */
 
 export function TopNavbar() {
-  const pathname = usePathname();
   const { toggle } = useMobileSidebar();
-  const pageTitle = getPageTitle(pathname);
+  const pageTitle = usePageTitle();
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-100 bg-white px-4 shadow-[0_1px_0_0_#f3f4f6]">

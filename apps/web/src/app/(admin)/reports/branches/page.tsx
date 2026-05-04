@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { formatPrice, cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { apiClient } from '@/api/client';
+import { useTranslation } from '@/i18n/i18n-context';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -31,21 +32,7 @@ interface SalesTrendPoint {
 
 type Period = 'today' | 'week' | 'month' | 'year';
 
-const PERIOD_OPTIONS = [
-  { value: 'today', label: 'Bugun' },
-  { value: 'week', label: 'Hafta' },
-  { value: 'month', label: 'Oy' },
-  { value: 'year', label: 'Yil' },
-];
-
 type SortKey = 'revenue' | 'orders' | 'avgOrderValue' | 'growth';
-
-const SORT_OPTIONS = [
-  { value: 'revenue', label: 'Daromad' },
-  { value: 'orders', label: 'Buyurtmalar' },
-  { value: 'avgOrderValue', label: "O'rt. chek" },
-  { value: 'growth', label: "O'sish %" },
-];
 
 const BRANCH_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#f97316'];
 
@@ -90,8 +77,23 @@ function useBranchSalesTrend(branchIds: string[]) {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function BranchReportsPage() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>('month');
   const [sortKey, setSortKey] = useState<SortKey>('revenue');
+
+  const PERIOD_OPTIONS = [
+    { value: 'today', label: t('reports.today') },
+    { value: 'week', label: t('reports.week') },
+    { value: 'month', label: t('reports.month') },
+    { value: 'year', label: t('reports.year') },
+  ];
+
+  const SORT_OPTIONS = [
+    { value: 'revenue', label: t('reports.revenue') },
+    { value: 'orders', label: t('reports.orders') },
+    { value: 'avgOrderValue', label: t('reports.avgOrder') },
+    { value: 'growth', label: t('reports.growthPct') },
+  ];
 
   const { data: branches, isLoading, error } = useBranchComparison(period);
   const branchIds = (branches ?? []).map((b) => b.branchId);
@@ -129,7 +131,7 @@ export default function BranchReportsPage() {
     return (
       <div className="flex flex-col gap-4 p-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Filiallar taqqoslama</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nav.branchComparison')}</h1>
           <SearchableDropdown
             options={PERIOD_OPTIONS}
             value={period}
@@ -141,16 +143,16 @@ export default function BranchReportsPage() {
         </div>
         <div className="rounded-xl border border-gray-200 bg-white px-6 py-14 text-center">
           <Building2 className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-base font-medium text-gray-600">Filiallar topilmadi</p>
+          <p className="text-base font-medium text-gray-600">{t('reports.noBranches')}</p>
           <p className="mt-1 text-sm text-gray-400">
-            Hali hech qanday faol filial mavjud emas yoki tanlangan davrda savdo yo&apos;q.
+            {t('reports.noBranchesHint')}
           </p>
           <Link
             href="/settings/branches"
             className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             <Building2 className="h-4 w-4" />
-            Filiallarni sozlash →
+            {t('reports.settingsBranches')}
           </Link>
         </div>
       </div>
@@ -162,9 +164,9 @@ export default function BranchReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Filiallar taqqoslama</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nav.branchComparison')}</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            {branches.length} ta filial
+            {branches.length} {t('nav.branches').toLowerCase()}
           </p>
         </div>
         <SearchableDropdown
@@ -179,12 +181,12 @@ export default function BranchReportsPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
-        <SummaryCard label="Jami daromad" value={formatPrice(totalRevenue)} note="barcha filiallar" />
-        <SummaryCard label="Jami buyurtmalar" value={`${totalOrders} ta`} note={`${PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? ''} davomida`} />
+        <SummaryCard label={t('reports.totalRevenue')} value={formatPrice(totalRevenue)} note={t('reports.allBranches')} />
+        <SummaryCard label={t('reports.orders')} value={`${totalOrders} ta`} note={`${PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? ''}`} />
         <SummaryCard
-          label="O'rtacha o'sish"
+          label={t('reports.avgGrowth')}
           value={`${avgGrowth >= 0 ? '+' : ''}${avgGrowth.toFixed(1)}%`}
-          note="oldingi davr bilan"
+          note={t('reports.prevPeriod')}
           valueColor={avgGrowth > 0 ? 'text-green-600' : avgGrowth < 0 ? 'text-red-600' : 'text-gray-900'}
         />
       </div>
@@ -192,7 +194,7 @@ export default function BranchReportsPage() {
       {/* 7-kunlik trend */}
       {weeklyChart.length > 0 && (
         <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <h2 className="mb-4 text-sm font-semibold text-gray-900">7 kunlik daromad taqqoslama</h2>
+          <h2 className="mb-4 text-sm font-semibold text-gray-900">{t('reports.weeklyTrend')}</h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={weeklyChart} margin={{ left: 0, right: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -222,7 +224,7 @@ export default function BranchReportsPage() {
       {/* Branch DataTable */}
       <div className="rounded-xl border border-gray-200 bg-white">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">Filiallar jadvali</h2>
+          <h2 className="text-sm font-semibold text-gray-900">{t('reports.branchTable')}</h2>
           <div className="flex items-center gap-2">
             <ArrowUpDown className="h-4 w-4 text-gray-400" />
             <SearchableDropdown
@@ -238,7 +240,7 @@ export default function BranchReportsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {['Filial', 'Buyurtmalar', 'Daromad', "O'rt. chek", "O'sish", 'Ulush'].map((h) => (
+              {[t('reports.branch'), t('reports.orders'), t('reports.revenue'), t('reports.avgOrder'), t('reports.growthPct'), t('reports.share')].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
               ))}
             </tr>

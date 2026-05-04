@@ -7,6 +7,7 @@ import { useShiftReports } from '@/hooks/reports/useReports';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function fmtDateTime(str: string | null): string {
   if (!str) return '—';
@@ -29,6 +30,7 @@ function getDefaultRange() {
 }
 
 export default function ShiftReportsPage() {
+  const { t } = useTranslation();
   const [range, setRange] = useState(getDefaultRange);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [shiftPage, setShiftPage] = useState(1);
@@ -45,15 +47,15 @@ export default function ShiftReportsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Smena hisobotlari</h1>
-          <p className="text-sm text-gray-500">Smenalar bo'yicha savdo va naqd tahlili</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nav.shiftReports')}</h1>
+          <p className="text-sm text-gray-500">{t('reports.shiftReportsSubtitle')}</p>
         </div>
       </div>
 
       {/* Date range */}
       <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-600">Dan:</label>
+          <label className="text-sm font-medium text-gray-600">{t('reports.from')}</label>
           <input
             type="date"
             value={range.from}
@@ -63,7 +65,7 @@ export default function ShiftReportsPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-600">Gacha:</label>
+          <label className="text-sm font-medium text-gray-600">{t('reports.to')}</label>
           <input
             type="date"
             value={range.to}
@@ -83,7 +85,7 @@ export default function ShiftReportsPage() {
         </div>
       ) : !data || data.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-400">
-          Tanlangan sana oralig'ida smena topilmadi
+          {t('reports.noData')}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -106,7 +108,7 @@ export default function ShiftReportsPage() {
                     <p className="font-medium text-gray-900">{shift.cashierName}</p>
                     <p className="text-xs text-gray-400">
                       {fmtDateTime(shift.openedAt)}
-                      {shift.closedAt ? ` → ${fmtDateTime(shift.closedAt)}` : ' (ochiq)'}
+                      {shift.closedAt ? ` → ${fmtDateTime(shift.closedAt)}` : ` (${t('reports.opened')})`}
                     </p>
                   </div>
                   <div className="text-right">
@@ -123,7 +125,7 @@ export default function ShiftReportsPage() {
                         : 'bg-green-100 text-green-700',
                     )}
                   >
-                    {shift.closedAt ? 'Yopilgan' : 'Ochiq'}
+                    {shift.closedAt ? t('reports.closed') : t('reports.opened')}
                   </div>
                   <span className="text-gray-400">{isOpen ? '▲' : '▼'}</span>
                 </button>
@@ -133,31 +135,31 @@ export default function ShiftReportsPage() {
                   <div className="border-t border-gray-100 bg-gray-50 px-5 py-4">
                     <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Naqd savdo:</span>
+                        <span className="text-gray-500">{t('reports.cashRevenue')}</span>
                         <span className="font-medium">{formatPrice(shift.cashRevenue)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Karta savdo:</span>
+                        <span className="text-gray-500">{t('reports.cardRevenue')}</span>
                         <span className="font-medium">{formatPrice(shift.cardRevenue)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Boshlang'ich naqd:</span>
+                        <span className="text-gray-500">{t('reports.openingCash')}</span>
                         <span className="font-medium">{formatPrice(shift.openingCash)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Kutilgan naqd:</span>
+                        <span className="text-gray-500">{t('reports.expectedCash')}</span>
                         <span className="font-medium">{formatPrice(shift.expectedCash)}</span>
                       </div>
                       {shift.closingCash !== null && (
                         <>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">Haqiqiy naqd:</span>
+                            <span className="text-gray-500">{t('reports.closingCash')}</span>
                             <span className="font-medium">
                               {formatPrice(shift.closingCash)}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">Farq:</span>
+                            <span className="text-gray-500">{t('reports.discrepancy')}</span>
                             <span
                               className={cn(
                                 'font-semibold',
@@ -184,11 +186,11 @@ export default function ShiftReportsPage() {
             );
           })}
           <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2">
-            <p className="text-xs text-gray-500">Jami: {data?.length ?? 0} ta smena</p>
+            <p className="text-xs text-gray-500">{t('reports.totalShifts', { count: data?.length ?? 0 })}</p>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => setShiftPage(p => Math.max(1, p - 1))} disabled={shiftPage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
+              <button type="button" onClick={() => setShiftPage(p => Math.max(1, p - 1))} disabled={shiftPage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">{t('reports.prev')}</button>
               <span className="px-2 text-xs text-gray-500">{shiftPage} / {Math.max(1, totalPages)}</span>
-              <button type="button" onClick={() => setShiftPage(p => Math.min(totalPages, p + 1))} disabled={shiftPage >= totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
+              <button type="button" onClick={() => setShiftPage(p => Math.min(totalPages, p + 1))} disabled={shiftPage >= totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">{t('reports.next')}</button>
             </div>
           </div>
         </div>

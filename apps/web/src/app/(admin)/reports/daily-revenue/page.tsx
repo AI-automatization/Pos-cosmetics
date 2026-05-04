@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useDailyRevenue } from '@/hooks/reports/useReports';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function fmtDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -50,6 +51,7 @@ function getDefaultRange() {
 }
 
 export default function DailyRevenuePage() {
+  const { t } = useTranslation();
   const [range, setRange] = useState(getDefaultRange);
   const [tablePage, setTablePage] = useState(1);
   const PAGE_SIZE = 15;
@@ -70,15 +72,15 @@ export default function DailyRevenuePage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Kunlik daromad</h1>
-          <p className="text-sm text-gray-500">Sana oralig'i bo'yicha daromad dinamikasi</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nav.dailyRevenue')}</h1>
+          <p className="text-sm text-gray-500">{t('reports.dailyRevenueSubtitle')}</p>
         </div>
       </div>
 
       {/* Date range */}
       <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-600">Dan:</label>
+          <label className="text-sm font-medium text-gray-600">{t('reports.from')}</label>
           <input
             type="date"
             value={range.from}
@@ -88,7 +90,7 @@ export default function DailyRevenuePage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-600">Gacha:</label>
+          <label className="text-sm font-medium text-gray-600">{t('reports.to')}</label>
           <input
             type="date"
             value={range.to}
@@ -101,10 +103,10 @@ export default function DailyRevenuePage() {
         {/* Quick ranges */}
         <div className="ml-auto flex gap-2">
           {[
-            { label: '7 kun', days: 7 },
-            { label: '30 kun', days: 30 },
-            { label: '90 kun', days: 90 },
-          ].map(({ label, days }) => (
+            { labelKey: 'reports.days7', days: 7 },
+            { labelKey: 'reports.days30', days: 30 },
+            { labelKey: 'reports.days90', days: 90 },
+          ].map(({ labelKey, days }) => (
             <button
               key={days}
               type="button"
@@ -119,7 +121,7 @@ export default function DailyRevenuePage() {
               }}
               className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
             >
-              {label}
+              {t(labelKey)}
             </button>
           ))}
         </div>
@@ -136,9 +138,9 @@ export default function DailyRevenuePage() {
           {/* Summary cards */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: 'Jami savdo', value: formatPrice(totalRevenue) },
-              { label: 'Jami buyurtma', value: `${totalOrders} ta` },
-              { label: 'Kunlik o\'rtacha', value: formatPrice(avgPerDay) },
+              { label: t('reports.totalSales'), value: formatPrice(totalRevenue) },
+              { label: t('reports.totalOrders'), value: `${totalOrders} ta` },
+              { label: t('reports.avgPerDay'), value: formatPrice(avgPerDay) },
             ].map(({ label, value }) => (
               <div
                 key={label}
@@ -152,10 +154,10 @@ export default function DailyRevenuePage() {
 
           {/* Bar chart */}
           <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold text-gray-700">Savdo grafigi</h2>
+            <h2 className="mb-4 text-sm font-semibold text-gray-700">{t('reports.salesChart')}</h2>
             {!data || data.length === 0 ? (
               <p className="py-10 text-center text-sm text-gray-400">
-                Tanlangan sana oralig'ida savdo yo'q
+                {t('reports.noData')}
               </p>
             ) : (
               <ResponsiveContainer width="100%" height={260}>
@@ -194,10 +196,10 @@ export default function DailyRevenuePage() {
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left font-medium text-gray-600">Sana</th>
-                        <th className="px-4 py-3 text-right font-medium text-gray-600">Savdo</th>
-                        <th className="px-4 py-3 text-right font-medium text-gray-600">Buyurtmalar</th>
-                        <th className="px-4 py-3 text-right font-medium text-gray-600">Chegirma</th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-600">{t('common.date')}</th>
+                        <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.revenue')}</th>
+                        <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.orders')}</th>
+                        <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.discount')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -226,11 +228,11 @@ export default function DailyRevenuePage() {
                 </div>
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2">
-                    <p className="text-xs text-gray-500">Jami: {reversed.length} kun</p>
+                    <p className="text-xs text-gray-500">{t('reports.totalDays', { count: reversed.length })}</p>
                     <div className="flex items-center gap-1">
-                      <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Oldingi</button>
+                      <button type="button" onClick={() => setTablePage(p => Math.max(1, p - 1))} disabled={tablePage === 1} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">{t('reports.prev')}</button>
                       <span className="px-2 text-xs text-gray-500">{tablePage} / {totalPages}</span>
-                      <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage === totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">Keyingi</button>
+                      <button type="button" onClick={() => setTablePage(p => Math.min(totalPages, p + 1))} disabled={tablePage === totalPages} className="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40">{t('reports.next')}</button>
                     </div>
                   </div>
                 )}
