@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X, Search, CheckSquare, Square, RotateCcw, Banknote, CreditCard, CheckCircle2, AlertTriangle, Loader2, ChevronDown } from 'lucide-react';
+import {
+  X, Search, CheckSquare, Square, RotateCcw,
+  Banknote, CreditCard, CheckCircle2, AlertTriangle, Loader2, ChevronDown,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
 import type { OrderItem } from '@/types/order';
@@ -17,12 +20,74 @@ interface ReturnModalProps {
   onReturnComplete: (ret: Return) => void;
 }
 
-// ─── Overlay wrapper ──────────────────────────────────────────────────────────
+// ─── Step indicator ───────────────────────────────────────────────────────────
 
-function ModalOverlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+const STEPS = ['Qidirish', 'Tovarlar', 'Usul', 'Tasdiqlash'];
+
+function StepIndicator({ current }: { current: number }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="relative w-full max-w-lg rounded-2xl bg-gray-900 shadow-2xl border border-gray-700 flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="flex items-center gap-1 px-6 py-2 border-b border-gray-100 bg-gray-50/80">
+      {STEPS.map((label, i) => (
+        <div key={label} className="flex items-center gap-1">
+          <div className={cn(
+            'flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold transition-all',
+            i < current ? 'bg-orange-500 text-white' :
+            i === current ? 'bg-orange-100 text-orange-600 ring-2 ring-orange-400 ring-offset-1' :
+            'bg-gray-200 text-gray-400',
+          )}>
+            {i < current ? '✓' : i + 1}
+          </div>
+          <span className={cn(
+            'text-[11px] font-medium hidden sm:block',
+            i === current ? 'text-orange-600' : i < current ? 'text-gray-500' : 'text-gray-300',
+          )}>{label}</span>
+          {i < STEPS.length - 1 && (
+            <div className={cn('mx-1 h-px w-4 sm:w-6', i < current ? 'bg-orange-400' : 'bg-gray-200')} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Modal shell ─────────────────────────────────────────────────────────────
+
+function ModalShell({
+  children,
+  onClose,
+  step,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  step: number;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 flex flex-col max-h-[92vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-50">
+              <RotateCcw className="h-4 w-4 text-orange-500" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Mahsulot qaytarish</h2>
+              <p className="text-xs text-gray-400">{STEPS[step] ?? 'Bajarildi'}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Yopish"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Step dots (only show for steps 0-3) */}
+        {step < 4 && <StepIndicator current={step} />}
+
         {children}
       </div>
     </div>
@@ -37,77 +102,56 @@ function StepLookup({
   onSubmit,
   isLoading,
   error,
-  onClose,
 }: {
   orderNumberInput: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
   isLoading: boolean;
   error: string | null;
-  onClose: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  useEffect(() => { inputRef.current?.focus(); }, []);
 
   return (
-    <>
-      <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800/60 px-6 py-5">
-        <div className="flex items-center gap-3 text-white">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-600/20">
-            <RotateCcw className="h-5 w-5 text-orange-400" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold">Mahsulot qaytarish</h2>
-            <p className="text-xs text-gray-400">Chek raqami orqali qidirish</p>
-          </div>
+    <div className="flex flex-col gap-4 px-6 py-6">
+      <p className="text-sm text-gray-500">Chek raqamini kiriting yoki skanerlang</p>
+
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            ref={inputRef}
+            type="number"
+            min="1"
+            value={orderNumberInput}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') onSubmit(); }}
+            placeholder="Chek №"
+            className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-9 pr-4 text-gray-900 placeholder-gray-400 text-lg font-mono outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition"
+          />
         </div>
-        <button type="button" onClick={onClose} className="rounded-xl p-2 text-gray-500 transition hover:bg-gray-700 hover:text-white">
-          <X className="h-5 w-5" />
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={isLoading || !orderNumberInput}
+          className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+          Qidirish
         </button>
       </div>
 
-      <div className="flex-1 flex items-start justify-center pt-16 px-6">
-      <div className="w-full max-w-md space-y-4">
-        <p className="text-sm text-gray-400">Chek raqamini kiriting yoki skanerlang</p>
-
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <input
-              ref={inputRef}
-              type="number"
-              min="1"
-              value={orderNumberInput}
-              onChange={(e) => onChange(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') onSubmit(); }}
-              placeholder="Chek №"
-              className="w-full rounded-xl border border-gray-600 bg-gray-800 py-3 pl-9 pr-4 text-white placeholder-gray-500 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 text-lg font-mono"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={isLoading || !orderNumberInput}
-            className="flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Qidirish'}
-          </button>
+      {error && (
+        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {error}
         </div>
-
-        {error && (
-          <div className="flex items-center gap-2 rounded-lg bg-red-900/30 border border-red-700/50 px-4 py-3 text-sm text-red-400">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            {error}
-          </div>
-        )}
-      </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }
+
+// ─── Return reason select ─────────────────────────────────────────────────────
 
 const RETURN_REASON_OPTIONS = [
   "Buzilgan tovar",
@@ -116,8 +160,6 @@ const RETURN_REASON_OPTIONS = [
   "Muddati o'tgan",
   "Boshqa",
 ] as const;
-
-// ─── Reason select sub-component ─────────────────────────────────────────────
 
 function ReasonSelect({ reason, onChange }: { reason: string; onChange: (v: string) => void }) {
   const presets = RETURN_REASON_OPTIONS.slice(0, -1) as readonly string[];
@@ -133,14 +175,12 @@ function ReasonSelect({ reason, onChange }: { reason: string; onChange: (v: stri
 
   return (
     <div className="mt-3 space-y-2">
-      <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Qaytarish sababi
-      </label>
+      <label className="block text-xs font-semibold text-gray-600">Qaytarish sababi</label>
       <div className="relative">
         <select
           value={selectedOption}
           onChange={(e) => handleSelect(e.target.value)}
-          className="w-full appearance-none rounded-xl border border-gray-600 bg-gray-800 px-4 py-3 pr-10 text-sm text-white outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+          className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-10 text-sm text-gray-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition"
         >
           <option value="" disabled>Sababni tanlang...</option>
           {RETURN_REASON_OPTIONS.map((opt) => (
@@ -149,15 +189,14 @@ function ReasonSelect({ reason, onChange }: { reason: string; onChange: (v: stri
         </select>
         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
       </div>
-
       {showTextarea && (
         <textarea
           value={textareaValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Sababni kiriting..."
-          rows={3}
+          rows={2}
           autoFocus
-          className="w-full rounded-xl border border-orange-500/50 bg-gray-800 px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 resize-none transition"
+          className="w-full rounded-xl border border-orange-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 resize-none transition"
         />
       )}
     </div>
@@ -191,50 +230,36 @@ function StepItemSelect({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800/60 px-6 py-5">
-        <button type="button" onClick={onBack} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-400 transition hover:bg-gray-700 hover:text-white">
-          ← Orqaga
-        </button>
-        <h2 className="text-base font-bold text-white">Qaytariladigan tovarlar</h2>
-        <div className="w-20" />
-      </div>
-
-      <div className="overflow-y-auto flex-1 p-4">
-      <div className="mx-auto max-w-2xl space-y-2">
+      <div className="overflow-y-auto flex-1 px-5 py-4 space-y-2">
         {items.map((item) => {
           const sel = selectedItems[item.id];
           const isChecked = !!sel;
           return (
             <div
               key={item.id}
-              className={cn(
-                'flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition',
-                isChecked
-                  ? 'border-orange-600/60 bg-orange-900/20'
-                  : 'border-gray-700 bg-gray-800 hover:border-gray-600',
-              )}
               onClick={() => onToggle(item)}
-            >
-              {isChecked ? (
-                <CheckSquare className="h-5 w-5 text-orange-400 shrink-0" />
-              ) : (
-                <Square className="h-5 w-5 text-gray-600 shrink-0" />
+              className={cn(
+                'flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition-all',
+                isChecked
+                  ? 'border-orange-300 bg-orange-50 shadow-sm'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
               )}
+            >
+              {isChecked
+                ? <CheckSquare className="h-5 w-5 text-orange-500 shrink-0" />
+                : <Square className="h-5 w-5 text-gray-300 shrink-0" />
+              }
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{item.productName}</p>
-                <p className="text-xs text-gray-400">
-                  {formatPrice(item.unitPrice)} × {item.quantity}
-                </p>
+                <p className="text-sm font-medium text-gray-900 truncate">{item.productName}</p>
+                <p className="text-xs text-gray-400">{formatPrice(item.unitPrice)} × {item.quantity}</p>
               </div>
               {isChecked && (
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     onClick={() => onSetQty(item.id, sel.qty - 1)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-700 text-white hover:bg-gray-600 text-sm font-bold"
-                  >
-                    −
-                  </button>
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 font-bold text-sm"
+                  >−</button>
                   <input
                     type="number"
                     min={0.001}
@@ -242,15 +267,13 @@ function StepItemSelect({
                     step={0.001}
                     value={sel.qty}
                     onChange={(e) => onSetQty(item.id, Number(e.target.value))}
-                    className="w-16 rounded-lg border border-gray-600 bg-gray-700 px-2 py-1 text-center text-sm text-white outline-none focus:border-orange-500"
+                    className="w-14 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-sm text-gray-900 outline-none focus:border-orange-400"
                   />
                   <button
                     type="button"
                     onClick={() => onSetQty(item.id, sel.qty + 1)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-700 text-white hover:bg-gray-600 text-sm font-bold"
-                  >
-                    +
-                  </button>
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 font-bold text-sm"
+                  >+</button>
                 </div>
               )}
             </div>
@@ -259,21 +282,26 @@ function StepItemSelect({
 
         <ReasonSelect reason={reason} onChange={onReasonChange} />
       </div>
-      </div>
 
-      <div className="border-t border-gray-700 bg-gray-800/60 px-6 py-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-500">Qaytarish summasi</p>
-          <span className="text-2xl font-bold text-orange-400">{formatPrice(refundTotal)}</span>
-        </div>
-        <button
-          type="button"
-          onClick={onProceed}
-          disabled={!hasSelected}
-          className="rounded-xl bg-orange-600 px-8 py-3 text-sm font-bold text-white transition hover:bg-orange-500 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Davom etish →
+      {/* Footer */}
+      <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex items-center justify-between rounded-b-2xl">
+        <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 transition">
+          ← Orqaga
         </button>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-xs text-gray-400">Qaytarish</p>
+            <span className="text-lg font-bold text-orange-500">{formatPrice(refundTotal)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onProceed}
+            disabled={!hasSelected}
+            className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Davom →
+          </button>
+        </div>
       </div>
     </>
   );
@@ -302,44 +330,29 @@ function StepMethodSelect({
 }) {
   return (
     <>
-      <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800/60 px-6 py-5">
-        <button type="button" onClick={onBack} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-400 transition hover:bg-gray-700 hover:text-white">
-          ← Orqaga
-        </button>
-        <h2 className="text-base font-bold text-white">Qaytarish usuli</h2>
-        <div className="w-20" />
-      </div>
-
-      <div className="flex-1 flex items-start justify-center pt-10 px-6">
-      <div className="w-full max-w-lg space-y-3">
-        {/* Cash option */}
+      <div className="flex-1 px-5 py-5 space-y-3 overflow-y-auto">
+        {/* Cash */}
         <div
           onClick={() => isCashAllowed && onSetMethod('CASH')}
           className={cn(
-            'flex items-start gap-4 rounded-xl border-2 p-4 transition',
+            'flex items-start gap-4 rounded-xl border-2 p-4 transition-all',
             !isCashAllowed
-              ? 'border-gray-700 bg-gray-800/50 opacity-60 cursor-not-allowed'
+              ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
               : refundMethod === 'CASH'
-              ? 'border-orange-500 bg-orange-900/20 cursor-pointer'
-              : 'border-gray-600 bg-gray-800 cursor-pointer hover:border-gray-500',
+              ? 'border-orange-400 bg-orange-50 cursor-pointer'
+              : 'border-gray-200 bg-white cursor-pointer hover:border-orange-200 hover:bg-orange-50/30',
           )}
         >
-          <div
-            className={cn(
-              'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition',
-              refundMethod === 'CASH' && isCashAllowed
-                ? 'border-orange-500 bg-orange-500'
-                : 'border-gray-600',
-            )}
-          >
-            {refundMethod === 'CASH' && isCashAllowed && (
-              <div className="h-2 w-2 rounded-full bg-white" />
-            )}
+          <div className={cn(
+            'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition',
+            refundMethod === 'CASH' && isCashAllowed ? 'border-orange-500 bg-orange-500' : 'border-gray-300',
+          )}>
+            {refundMethod === 'CASH' && isCashAllowed && <div className="h-2 w-2 rounded-full bg-white" />}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <Banknote className="h-5 w-5 text-green-400" />
-              <span className="font-semibold text-white">{REFUND_METHOD_LABELS.CASH}</span>
+              <Banknote className="h-5 w-5 text-green-500" />
+              <span className="font-semibold text-gray-900">{REFUND_METHOD_LABELS.CASH}</span>
             </div>
             {isLoadingCash ? (
               <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
@@ -347,7 +360,7 @@ function StepMethodSelect({
                 Kassa balansi tekshirilmoqda...
               </p>
             ) : availableCash !== null ? (
-              <p className={cn('mt-1 text-xs', isCashAllowed ? 'text-green-400' : 'text-red-400')}>
+              <p className={cn('mt-1 text-xs', isCashAllowed ? 'text-green-600' : 'text-red-500')}>
                 {isCashAllowed
                   ? `Kassada: ${formatPrice(availableCash)} — yetarli`
                   : `Kassada: ${formatPrice(availableCash)} — yetarli emas (kerak: ${formatPrice(refundTotal)})`}
@@ -356,41 +369,41 @@ function StepMethodSelect({
           </div>
         </div>
 
-        {/* Terminal option */}
+        {/* Terminal */}
         <div
           onClick={() => onSetMethod('TERMINAL')}
           className={cn(
-            'flex items-start gap-4 rounded-xl border-2 p-4 cursor-pointer transition',
+            'flex items-start gap-4 rounded-xl border-2 p-4 cursor-pointer transition-all',
             refundMethod === 'TERMINAL'
-              ? 'border-blue-500 bg-blue-900/20'
-              : 'border-gray-600 bg-gray-800 hover:border-gray-500',
+              ? 'border-blue-400 bg-blue-50'
+              : 'border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50/30',
           )}
         >
-          <div
-            className={cn(
-              'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition',
-              refundMethod === 'TERMINAL' ? 'border-blue-500 bg-blue-500' : 'border-gray-600',
-            )}
-          >
+          <div className={cn(
+            'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition',
+            refundMethod === 'TERMINAL' ? 'border-blue-500 bg-blue-500' : 'border-gray-300',
+          )}>
             {refundMethod === 'TERMINAL' && <div className="h-2 w-2 rounded-full bg-white" />}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-blue-400" />
-              <span className="font-semibold text-white">{REFUND_METHOD_LABELS.TERMINAL}</span>
+              <CreditCard className="h-5 w-5 text-blue-500" />
+              <span className="font-semibold text-gray-900">{REFUND_METHOD_LABELS.TERMINAL}</span>
             </div>
-            <p className="mt-1 text-xs text-gray-400">Qaytarish 1–3 ish kuni ichida amalga oshiriladi</p>
+            <p className="mt-1 text-xs text-gray-500">Qaytarish 1–3 ish kuni ichida amalga oshiriladi</p>
           </div>
         </div>
       </div>
-      </div>
 
-      <div className="border-t border-gray-700 bg-gray-800/60 px-6 py-4 flex justify-end">
+      <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex items-center justify-between rounded-b-2xl">
+        <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 transition">
+          ← Orqaga
+        </button>
         <button
           type="button"
           onClick={onProceed}
           disabled={!refundMethod}
-          className="rounded-xl bg-orange-600 px-8 py-3 text-sm font-bold text-white transition hover:bg-orange-500 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Tasdiqlash →
         </button>
@@ -399,7 +412,7 @@ function StepMethodSelect({
   );
 }
 
-// ─── Step 4: Confirm ─────────────────────────────────────────────────────────
+// ─── Step 4: Confirm ──────────────────────────────────────────────────────────
 
 function StepConfirm({
   order,
@@ -422,70 +435,64 @@ function StepConfirm({
 }) {
   return (
     <>
-      <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800/60 px-6 py-5">
-        <button type="button" onClick={onBack} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-400 transition hover:bg-gray-700 hover:text-white">
-          ← Orqaga
-        </button>
-        <h2 className="text-base font-bold text-white">Tasdiqlash</h2>
-        <div className="w-20" />
-      </div>
-
-      <div className="overflow-y-auto flex-1 flex items-start justify-center pt-10 px-6">
-      <div className="w-full max-w-lg space-y-4">
-        <div className="rounded-xl border border-gray-700 bg-gray-800 divide-y divide-gray-700">
+      <div className="overflow-y-auto flex-1 px-5 py-5 space-y-4">
+        {/* Summary card */}
+        <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100 shadow-sm">
           <div className="flex justify-between px-4 py-3 text-sm">
-            <span className="text-gray-400">Chek №</span>
-            <span className="font-mono text-white">{order.orderNumber}</span>
+            <span className="text-gray-500">Chek №</span>
+            <span className="font-mono font-semibold text-gray-900">{order.orderNumber}</span>
           </div>
           {Object.values(selectedItems).map((item) => (
             <div key={item.productName} className="flex justify-between px-4 py-3 text-sm">
-              <span className="text-gray-300 truncate max-w-[60%]">{item.productName}</span>
-              <span className="text-white">× {item.qty} = {formatPrice(item.unitPrice * item.qty)}</span>
+              <span className="text-gray-700 truncate max-w-[60%]">{item.productName}</span>
+              <span className="text-gray-900 font-medium">× {item.qty} = {formatPrice(item.unitPrice * item.qty)}</span>
             </div>
           ))}
           <div className="flex justify-between px-4 py-3">
-            <span className="text-sm text-gray-400">Qaytarish summasi</span>
-            <span className="text-base font-bold text-orange-400">{formatPrice(refundTotal)}</span>
+            <span className="text-sm text-gray-500">Qaytarish summasi</span>
+            <span className="text-base font-bold text-orange-500">{formatPrice(refundTotal)}</span>
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
-            <span className="text-gray-400">Usul</span>
-            <span className="text-white">{REFUND_METHOD_LABELS[refundMethod]}</span>
+            <span className="text-gray-500">Usul</span>
+            <span className="font-medium text-gray-900">{REFUND_METHOD_LABELS[refundMethod]}</span>
           </div>
         </div>
 
         {refundMethod === 'CASH' && (
-          <div className="flex items-center gap-3 rounded-xl border border-green-700/50 bg-green-900/20 px-4 py-3">
-            <Banknote className="h-5 w-5 text-green-400 shrink-0" />
-            <p className="text-sm text-green-300">
-              Mijozga <strong className="text-green-200">{formatPrice(refundTotal)}</strong> naqd pul bering
+          <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+            <Banknote className="h-5 w-5 text-green-500 shrink-0" />
+            <p className="text-sm text-green-700">
+              Mijozga <strong>{formatPrice(refundTotal)}</strong> naqd pul bering
             </p>
           </div>
         )}
 
         {refundMethod === 'TERMINAL' && (
-          <div className="flex items-start gap-3 rounded-xl border border-blue-700/50 bg-blue-900/20 px-4 py-3">
-            <CreditCard className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-blue-300">
-              Bank orqali qaytarish so'rovi yaratiladi. 1–3 ish kuni ichida mijoz kartasiga qaytariladi.
+          <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+            <CreditCard className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-700">
+              Bank orqali qaytarish so'rovi yaratiladi. 1–3 ish kuni ichida kartaga qaytariladi.
             </p>
           </div>
         )}
 
         {submitError && (
-          <div className="flex items-start gap-2 rounded-xl border border-red-700/50 bg-red-900/20 px-4 py-3 text-sm text-red-400">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
             {submitError}
           </div>
         )}
       </div>
-      </div>
 
-      <div className="border-t border-gray-700 bg-gray-800/60 px-6 py-4 flex justify-end">
+      <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex items-center justify-between rounded-b-2xl">
+        <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 transition">
+          ← Orqaga
+        </button>
         <button
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="flex items-center gap-2 rounded-xl bg-orange-600 px-8 py-3 text-sm font-bold text-white transition hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {isSubmitting ? 'Bajarilmoqda...' : 'Qaytarishni tasdiqlash'}
@@ -510,33 +517,26 @@ function StepSuccess({
 }) {
   return (
     <>
-      <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800/60 px-6 py-5">
-        <h2 className="text-base font-bold text-white">Qaytarish amalga oshirildi</h2>
-        <div />
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-900/30 border-2 border-green-600">
-          <CheckCircle2 className="h-12 w-12 text-green-400" />
+      <div className="flex-1 flex flex-col items-center justify-center p-8 gap-5">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+          <CheckCircle2 className="h-10 w-10 text-green-500" />
         </div>
-
         <div className="text-center">
-          <p className="text-3xl font-bold text-white">{formatPrice(refundTotal)}</p>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-2xl font-bold text-gray-900">{formatPrice(refundTotal)}</p>
+          <p className="text-sm text-gray-500 mt-1.5">
             {refundMethod === 'CASH'
               ? 'Naqd pul mijozga berildi'
-              : 'Bank kartasi qaytarish so\'rovi yaratildi'}
+              : "Bank kartasi qaytarish so'rovi yaratildi"}
           </p>
         </div>
-
-        <p className="text-xs text-gray-600 font-mono">Qaytarish ID: {ret.id.slice(0, 8)}...</p>
+        <p className="text-xs text-gray-400 font-mono">ID: {ret.id.slice(0, 8)}...</p>
       </div>
 
-      <div className="border-t border-gray-700 bg-gray-800/60 px-6 py-4 flex justify-center">
+      <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex justify-center rounded-b-2xl">
         <button
           type="button"
           onClick={onClose}
-          className="rounded-xl bg-gray-700 px-12 py-3 text-sm font-bold text-white transition hover:bg-gray-600"
+          className="rounded-xl bg-gray-900 px-10 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-700"
         >
           Yopish
         </button>
@@ -544,6 +544,16 @@ function StepSuccess({
     </>
   );
 }
+
+// ─── Step → index map ────────────────────────────────────────────────────────
+
+const STEP_INDEX: Record<string, number> = {
+  LOOKUP: 0,
+  ITEM_SELECT: 1,
+  METHOD_SELECT: 2,
+  CONFIRM: 3,
+  SUCCESS: 4,
+};
 
 // ─── Main modal ───────────────────────────────────────────────────────────────
 
@@ -567,15 +577,16 @@ export function ReturnModal({ onClose, onReturnComplete }: ReturnModalProps) {
     goBack,
   } = usePOSReturn(shiftId);
 
-  // When SUCCESS: notify parent
   useEffect(() => {
     if (state.step === 'SUCCESS' && state.createdReturn) {
       onReturnComplete(state.createdReturn);
     }
   }, [state.step, state.createdReturn, onReturnComplete]);
 
+  const stepIndex = STEP_INDEX[state.step] ?? 0;
+
   return (
-    <ModalOverlay onClose={onClose}>
+    <ModalShell onClose={onClose} step={stepIndex}>
       {state.step === 'LOOKUP' && (
         <StepLookup
           orderNumberInput={state.orderNumberInput}
@@ -583,7 +594,6 @@ export function ReturnModal({ onClose, onReturnComplete }: ReturnModalProps) {
           onSubmit={lookupOrder}
           isLoading={isLookingUp}
           error={state.lookupError}
-          onClose={onClose}
         />
       )}
 
@@ -635,6 +645,6 @@ export function ReturnModal({ onClose, onReturnComplete }: ReturnModalProps) {
           onClose={onClose}
         />
       )}
-    </ModalOverlay>
+    </ModalShell>
   );
 }
