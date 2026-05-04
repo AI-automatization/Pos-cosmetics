@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { Search, Barcode, Plus, Package } from 'lucide-react';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';
@@ -100,6 +100,8 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
   );
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
   const promoMap = usePromoMap();
+  // Track whether the last search was triggered by barcode scan (for auto-add)
+  const barcodeTriggeredRef = useRef(false);
 
   // Debounce: avoid API call on every keystroke — fire 200ms after user stops typing
   const [debouncedSearch, setDebouncedSearch] = useState(search);
@@ -149,16 +151,27 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
   const handleBarcodeScan = useCallback(
     (barcode: string) => {
       onSearchChange(barcode);
-      // Auto-add if single match
-      if (data?.items.length === 1) {
-        handleAdd(data.items[0]);
-        onSearchChange('');
-      }
+      // Bypass debounce for barcode scan — triggers API call immediately (-200ms delay)
+      barcodeTriggeredRef.current = true;
+      setDebouncedSearch(barcode);
     },
-    [data, handleAdd, onSearchChange],
+    [onSearchChange],
   );
 
   useBarcodeScanner(handleBarcodeScan);
+
+  // Auto-add when barcode scan returns exactly 1 result
+  useEffect(() => {
+    if (!barcodeTriggeredRef.current || isFetching || !data) return;
+    if (data.items.length === 1) {
+      barcodeTriggeredRef.current = false;
+      handleAdd(data.items[0]);
+      onSearchChange('');
+      setDebouncedSearch('');
+    } else if (!isFetching) {
+      barcodeTriggeredRef.current = false;
+    }
+  }, [data, isFetching, handleAdd, onSearchChange]);
 
   return (
     <div className="flex h-full flex-col">
