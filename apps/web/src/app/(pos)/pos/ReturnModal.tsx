@@ -536,7 +536,7 @@ function StepSuccess({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-xl bg-gray-900 px-10 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-700"
+          className="rounded-xl bg-orange-500 px-10 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600"
         >
           Yopish
         </button>
