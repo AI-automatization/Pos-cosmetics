@@ -255,65 +255,14 @@
 
 ---
 
-## T-439 | P2 | [MOBILE] | Filial hisobotlari (Branch Reports) — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN
-- **Fayl:** `apps/mobile/src/screens/Finance/` (kengaytirish)
-- **Muammo:** Web da `/reports/branches` orqali OWNER bir nechta filial ko'rsatkichlarini solishtira oladi. Moliya ekranida `ReportsHubScreen` bor, lekin filial kesimida hisobot yo'q.
-- **Kutilgan:** `ReportsHubScreen` yoki alohida screen da filial bo'yicha daromad, xarajat, sotuv taqqoslash.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/reports/branches/`
-
----
-
-## T-440 | P2 | [MOBILE] | Chegirmalar (Discounts) yaratish — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN
-- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
-- **Muammo:** Web da `/chegirma` orqali chegirmalar yaratiladi va boshqariladi. Mobileda `Promotions` ekrani bor, lekin `Chegirma` (discount) ekrani yo'q.
-- **Kutilgan:** `Ko'proq` menyusida "Chegirmalar" — list + yaratish. `GET/POST /sales/discounts` API.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/chegirma/`
 
 ---
 
 ---
 
-## T-442 | P2 | [MOBILE] | Manager Dashboard — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** MANAGER (OWNER/ADMIN uchun mavjud Dashboard o'zgarishsiz qoladi)
-- **Fayl:** `apps/mobile/src/screens/Dashboard/` (kengaytirish)
-- **Muammo:** Web da `/(manager)/manager-dashboard` MANAGER roli uchun alohida dashboard. Mobileda MANAGER roli OWNER/ADMIN bilan bir xil dashboard ko'radi — manager-spesifik KPIlar yo'q.
-- **Kutilgan:** MANAGER role login qilganda `Dashboard` ekranida alohida ko'rinish: o'z smena statistikasi, filial KPIlar, smena yopish/ochish tugmasi.
-- **Bog'liq:** Web: `apps/web/src/app/(manager)/manager-dashboard/`
-
 ---
 
-## T-443 | P3 | [MOBILE] | Hisobot yaratuvchi (Report Builder) — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN
-- **Fayl:** `apps/mobile/src/screens/Finance/` (yangi screen)
-- **Muammo:** Web da `/reports/builder` orqali custom hisobotlar yaratish mumkin. Mobileda faqat tayyor hisobotlar bor.
-- **Kutilgan:** Soddalashtirilgan hisobot yaratuvchi (sana oralig'i, metrikalar tanlash) mobile uchun.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/reports/builder/`
-
 ---
-
-## T-444 | P3 | [MOBILE] | Hisobot eksport (CSV/Excel) — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN, MANAGER
-- **Fayl:** `apps/mobile/src/screens/Finance/` (kengaytirish)
-- **Muammo:** Web da `/reports/export` orqali hisobotlar CSV/Excel formatida yuklab olish mumkin. Mobileda bu imkoniyat yo'q.
-- **Kutilgan:** Hisobot ekranlarida "Eksport" tugmasi — `GET /reports/export?format=csv` API, Share Sheet orqali fayl yuborish.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/reports/export/`
 
 ---
 

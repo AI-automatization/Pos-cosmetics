@@ -245,6 +245,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
             : []),
           ...(roleLevel >= 3
             ? [
+                { icon: 'checkmark-circle-outline' as const, title: 'Vazifalar', subtitle: 'Topshiriqlar boshqaruvi', screen: 'TasksScreen' as keyof MoreStackParamList },
                 { icon: 'receipt-outline' as const, title: 'Buyurtmalar', subtitle: 'Sotuv tarixi', screen: 'SalesOrdersScreen' as keyof MoreStackParamList },
                 { icon: 'return-down-back-outline' as const, title: 'Qaytarish', subtitle: 'Mahsulot qaytarish', screen: 'SalesReturnsScreen' as keyof MoreStackParamList },
               ]

@@ -186,6 +186,7 @@ export default function SettingsScreen() {
   } = useSettingsStore();
 
   const isAdmin    = user?.role === 'OWNER' || user?.role === 'ADMIN';
+  const isOwner    = user?.role === 'OWNER';
   const roleLabel  = ROLE_LABELS[user?.role ?? ''] ?? (user?.role ?? '—');
   const branchName = user?.tenant?.name ?? '—';
   const fullName   = user ? `${user.firstName} ${user.lastName}` : '—';
@@ -291,6 +292,23 @@ export default function SettingsScreen() {
             onPress={() => Alert.alert(t('settings.notifications'))}
           />
         </Card>
+
+        {/* ── Obuna (faqat OWNER) ── */}
+        {isOwner && (
+          <>
+            <SectionTitle title="OBUNA VA TARIF" />
+            <Card>
+              <MenuRow
+                icon="card-outline"
+                iconBg="#F5F3FF"
+                iconColor="#7C3AED"
+                label="Hisob va tarif"
+                subtitle="Joriy obuna holati va limitlar"
+                onPress={() => navigation.navigate('BillingScreen')}
+              />
+            </Card>
+          </>
+        )}
 
         {/* ── Ilova ── */}
         <SectionTitle title={t('settings.sectionApp')} />

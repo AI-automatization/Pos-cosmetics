@@ -13,6 +13,31 @@
 
 ---
 
+## T-444 | 2026-05-05 | [MOBILE] | Hisobot eksport (CSV/Excel)
+
+- **Yechim:** `ExportScreen.tsx` (203 qator) + `ExportCard.tsx` (91 qator, React.memo) yaratildi — 6 eksport turi (sales/order-items/products/inventory/customers/debts), period pills (7/30/90 kun), FlatList, `Share.share()` orqali CSV yuborish. `reports.api.ts` ga `ExportType` va `exportDownload()` (arraybuffer→TextDecoder) qo'shildi. `ReportsHubScreen` da OWNER/ADMIN uchun "Eksport (CSV)" kartasi. Navigation va TabNavigator yangilandi. CLAUDE_MOBILE.md audit: backBtn 40→48dp tuzatildi.
+- **Fayllar:** `apps/mobile/src/screens/Finance/ExportScreen.tsx`, `apps/mobile/src/screens/Finance/ExportCard.tsx`, `apps/mobile/src/api/reports.api.ts`, `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
+
+## T-443 | 2026-05-05 | [MOBILE] | Hisobot yaratuvchi (Report Builder)
+
+- **Yechim:** `ReportBuilderScreen.tsx` yaratildi — dimension (Mahsulot/Sana/Kassir) va period (7/30/90 kun) tanlash, "Ishga tushirish" → lazy fetch, dinamik natija jadvali (sarlavha, qatorlar, jami). `reports.api.ts` ga `getEmployeeActivity()` va `EmployeeActivity` qo'shildi. `ReportsHubScreen` da OWNER/ADMIN uchun "Hisobot yaratish" kartasi. Navigation va TabNavigator yangilandi.
+- **Fayllar:** `apps/mobile/src/screens/Finance/ReportBuilderScreen.tsx`, `apps/mobile/src/api/reports.api.ts`, `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
+
+## T-442 | 2026-05-05 | [MOBILE] | Manager Dashboard — KPI va tez harakatlar
+
+- **Yechim:** `ManagerKPICard.tsx` yaratildi — bugungi smena statistikasi (smenalar soni, buyurtmalar, daromad, o'rtacha smena) `shiftsApi.getShiftSummary` orqali. `Dashboard/index.tsx` ga `isManager` qo'shildi — MANAGER uchun alohida quick actions (Savdo, Hisobot, Mijozlar, Buyurtmalar) va ManagerKPICard stats grid dan keyin ko'rsatiladi.
+- **Fayllar:** `apps/mobile/src/screens/Dashboard/ManagerKPICard.tsx`, `apps/mobile/src/screens/Dashboard/index.tsx`
+
+## T-440 | 2026-05-05 | [MOBILE] | Chegirmalar (Discounts) ekrani
+
+- **Yechim:** `ChegirmaScreen.tsx` yaratildi — PERCENT/FIXED promotions ro'yxati, 3 tab filter (Barchasi/Faol/Yakunlangan), Modal create form (nom, tur toggle, qiymat, sana). `promotionsApi.create()` va `update()` metodlari qo'shildi. MoreMenu BIZNES_GROUP da "Chegirmalar" OWNER/ADMIN uchun (roleLevel≥4). `MoreStackParamList` va `MoreNavigator` yangilandi.
+- **Fayllar:** `apps/mobile/src/screens/Chegirmalar/ChegirmaScreen.tsx`, `apps/mobile/src/api/promotions.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+
+## T-439 | 2026-05-05 | [MOBILE] | Filial hisobotlari (Branch Reports) — Finance hub
+
+- **Yechim:** `BranchReportsScreen.tsx` yaratildi — period filter (Hafta/Oy/Yil), FlatList branch cards (revenue, orders, stockValue, trend badge). `ReportsHubScreen` ga "Filial hisobotlari" kartasi OWNER/ADMIN uchun qo'shildi (`getRoleLevel >= 4`). `FinanceStackParamList` ga `BranchReports` qo'shildi. `FinanceNavigator` da screen ro'yxatdan o'tkazildi.
+- **Fayllar:** `apps/mobile/src/screens/Finance/BranchReportsScreen.tsx`, `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
+
 ## T-438 | 2026-05-05 | [MOBILE] | Qaytarish (Sales Returns) ekrani
 
 - **Yechim:** `SalesReturns/index.tsx` yaratildi — COMPLETED orderlar ro'yxati, order tanlash → `salesApi.getById()` bilan to'liq detail (productId bilan), `ReturnScreen` modal, `onConfirm` → `salesApi.returnOrder(orderId, { items, reason })`. `sales.api.ts` ga `returnOrder` metodi qo'shildi. `MoreStackParamList` ga `SalesReturnsScreen` qo'shildi. MoreMenu `BIZNES_GROUP` da "Qaytarish" (MANAGER+).
