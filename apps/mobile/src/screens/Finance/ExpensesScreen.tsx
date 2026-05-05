@@ -255,7 +255,7 @@ export default function ExpensesScreen() {
     staleTime: 30_000,
   });
 
-  const expenses: Expense[] = data?.data ?? [];
+  const expenses: Expense[] = data?.items ?? [];
 
   const total = useMemo(
     () => expenses.reduce((s, e) => s + e.amount, 0),

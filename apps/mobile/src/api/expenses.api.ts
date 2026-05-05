@@ -37,7 +37,7 @@ export interface ExpenseFilter {
 }
 
 export interface PaginatedExpenses {
-  data: Expense[];
+  items: Expense[];
   total: number;
   page: number;
   limit: number;
@@ -50,12 +50,12 @@ export interface ExpenseSummaryItem {
 
 export const expensesApi = {
   getExpenses: async (filter?: ExpenseFilter): Promise<PaginatedExpenses> => {
-    const { data } = await api.get<{ data: Array<Omit<Expense, 'amount'> & { amount: string }>; total: number; page: number; limit: number }>('/finance/expenses', {
+    const { data } = await api.get<{ items: Array<Omit<Expense, 'amount'> & { amount: string }>; total: number; page: number; limit: number }>('/finance/expenses', {
       params: filter,
     });
     return {
       ...data,
-      data: data.data.map((e) => ({ ...e, amount: parseFloat(e.amount) })),
+      items: data.items.map((e) => ({ ...e, amount: parseFloat(e.amount) })),
     };
   },
 
