@@ -78,6 +78,7 @@ export interface CreateResult {
   ownerPhone: string;
   password: string | null;
   planName: string;
+  emailSent: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
