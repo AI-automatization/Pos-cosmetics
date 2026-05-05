@@ -38,6 +38,7 @@ import NasiyaAgingScreen from '../screens/Finance/NasiyaAgingScreen';
 import ShiftReportsScreen from '../screens/Finance/ShiftReportsScreen';
 import ReportsHubScreen from '../screens/Finance/ReportsHubScreen';
 import ExchangeRatesScreen from '../screens/Finance/ExchangeRatesScreen';
+import BranchReportsScreen from '../screens/Finance/BranchReportsScreen';
 import AnalyticsScreen from '../screens/Analytics/AnalyticsScreen';
 import SystemHealthScreen from '../screens/SystemHealth/SystemHealthScreen';
 import EmployeesNavigator from './EmployeesNavigator';
@@ -93,6 +94,7 @@ function FinanceNavigator(): React.JSX.Element {
       <FinanceStack.Screen name="ShiftReports" component={ShiftReportsScreen} />
       <FinanceStack.Screen name="ReportsHub" component={ReportsHubScreen} />
       <FinanceStack.Screen name="ExchangeRates" component={ExchangeRatesScreen} options={{ headerShown: false }} />
+      <FinanceStack.Screen name="BranchReports" component={BranchReportsScreen} options={{ headerShown: false }} />
     </FinanceStack.Navigator>
   );
 }

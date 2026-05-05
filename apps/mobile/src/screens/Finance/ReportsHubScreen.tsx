@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { FinanceStackParamList } from '@/navigation/types';
+import { useAuthStore } from '@/store/auth.store';
+import { getRoleLevel } from '@/utils/roles';
 
 type Nav = NativeStackNavigationProp<FinanceStackParamList, 'ReportsHub'>;
 
@@ -57,6 +59,8 @@ function ReportCard({ title, description, iconName, iconColor, iconBg, onPress }
 // ─── ReportsHubScreen ──────────────────────────────────
 export default function ReportsHubScreen() {
   const navigation = useNavigation<Nav>();
+  const { user } = useAuthStore();
+  const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
   const nav = (screen: keyof FinanceStackParamList) => navigation.navigate(screen);
 
   const REPORTS: ReportCardProps[] = [
@@ -92,6 +96,18 @@ export default function ReportsHubScreen() {
       iconBg:      '#FFFBEB',
       onPress:     () => nav('NasiyaAging'),
     },
+    ...(isOwnerAdmin
+      ? [
+          {
+            title:       'Filial hisobotlari',
+            description: "Filiallar bo'yicha tushum va solishtirma",
+            iconName:    'business-outline' as const,
+            iconColor:   '#0D9488',
+            iconBg:      '#F0FDFA',
+            onPress:     () => nav('BranchReports'),
+          },
+        ]
+      : []),
   ];
 
   return (
