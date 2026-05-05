@@ -337,4 +337,29 @@ export const inventoryApi = {
     const res = await api.get('/inventory/warehouses');
     return res.data;
   },
+
+  getExpiringProducts: async (days: number = 30): Promise<Array<{
+    productId: string;
+    productName: string;
+    warehouseId: string;
+    warehouseName: string;
+    batchNumber: string | null;
+    expiryDate: string;
+    qty: number;
+    daysLeft: number;
+  }>> => {
+    const res = await api.get('/inventory/expiring', { params: { days } });
+    return res.data;
+  },
+
+  getExpiredProducts: async (): Promise<Array<{
+    productId: string;
+    productName: string;
+    batchNumber: string | null;
+    expiryDate: string;
+    qty: number;
+  }>> => {
+    const res = await api.get('/inventory/expired');
+    return res.data;
+  },
 };

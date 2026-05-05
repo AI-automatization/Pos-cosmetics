@@ -153,8 +153,7 @@ const WAREHOUSE_GROUP: MenuGroup = {
       icon: 'time-outline',
       title: 'Muddati o\'tganlar',
       subtitle: 'Expiry tracking',
-      screen: null,
-      badge: 'Tez orada',
+      screen: 'ExpiryScreen' as keyof MoreStackParamList,
     },
   ],
 };
