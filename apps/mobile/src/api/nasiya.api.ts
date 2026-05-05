@@ -102,8 +102,8 @@ export const nasiyaApi = {
     return data;
   },
 
-  pay: async (id: string, amount: number, notes?: string): Promise<void> => {
-    await api.post(`/nasiya/${id}/pay`, { amount, method: 'CASH', notes });
+  pay: async (id: string, amount: number, method?: string, notes?: string): Promise<void> => {
+    await api.post(`/nasiya/${id}/pay`, { amount, method: method ?? 'CASH', notes });
   },
 
   sendReminder: async (id: string): Promise<void> => {

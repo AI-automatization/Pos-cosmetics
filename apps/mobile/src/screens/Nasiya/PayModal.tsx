@@ -57,7 +57,7 @@ export default function PayModal({ debt, visible, onClose, onSuccess }: Props) {
 
   const handleConfirm = async () => {
     if (!debt) return;
-    const parsed = parseInt(amount.replace(/\s/g, ''), 10);
+    const parsed = parseFloat(amount.replace(/[\s,]/g, ''));
     if (!parsed || parsed <= 0) {
       Alert.alert('Xatolik', "To'lov summasi 0 dan katta bo'lishi kerak");
       return;
@@ -72,9 +72,11 @@ export default function PayModal({ debt, visible, onClose, onSuccess }: Props) {
     setLoading(true);
     try {
       await nasiyaApi.pay(debt.id, parsed, method);
-      Alert.alert('', "To'lov muvaffaqiyatli amalga oshirildi");
-      onSuccess();
-      onClose();
+      Alert.alert(
+        '',
+        "To'lov muvaffaqiyatli amalga oshirildi",
+        [{ text: 'OK', onPress: () => { onSuccess?.(); onClose(); } }],
+      );
     } catch (err) {
       Alert.alert('Xatolik', extractErrorMessage(err));
     } finally {
