@@ -185,6 +185,7 @@ export default function SettingsScreen() {
     setAutoLockMinutes,
   } = useSettingsStore();
 
+  const isAdmin    = user?.role === 'OWNER' || user?.role === 'ADMIN';
   const roleLabel  = ROLE_LABELS[user?.role ?? ''] ?? (user?.role ?? '—');
   const branchName = user?.tenant?.name ?? '—';
   const fullName   = user ? `${user.firstName} ${user.lastName}` : '—';
@@ -267,15 +268,19 @@ export default function SettingsScreen() {
             subtitle={t('settings.profileSubtitle')}
             onPress={() => Alert.alert(t('settings.profile'))}
           />
-          <Divider />
-          <MenuRow
-            icon="business-outline"
-            iconBg="#EEF2FF"
-            iconColor="#6366F1"
-            label={t('settings.branches')}
-            subtitle={branchName}
-            onPress={() => navigation.navigate('BranchesScreen')}
-          />
+          {isAdmin && (
+            <>
+              <Divider />
+              <MenuRow
+                icon="business-outline"
+                iconBg="#EEF2FF"
+                iconColor="#6366F1"
+                label={t('settings.branches')}
+                subtitle={branchName}
+                onPress={() => navigation.navigate('BranchesScreen')}
+              />
+            </>
+          )}
           <Divider />
           <MenuRow
             icon="notifications-outline"
