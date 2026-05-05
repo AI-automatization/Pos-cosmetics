@@ -13,6 +13,104 @@
 
 ---
 
+## T-438 | 2026-05-05 | [MOBILE] | Qaytarish (Sales Returns) ekrani
+
+- **Yechim:** `SalesReturns/index.tsx` yaratildi — COMPLETED orderlar ro'yxati, order tanlash → `salesApi.getById()` bilan to'liq detail (productId bilan), `ReturnScreen` modal, `onConfirm` → `salesApi.returnOrder(orderId, { items, reason })`. `sales.api.ts` ga `returnOrder` metodi qo'shildi. `MoreStackParamList` ga `SalesReturnsScreen` qo'shildi. MoreMenu `BIZNES_GROUP` da "Qaytarish" (MANAGER+).
+- **Fayllar:** `apps/mobile/src/screens/SalesReturns/index.tsx`, `apps/mobile/src/api/sales.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **TypeScript:** 0 xato
+- **Commit:** pending
+
+---
+
+## T-437 | 2026-05-05 | [MOBILE] | Buyurtmalar (Sales Orders) admin ko'rinishi
+
+- **Yechim:** `SalesOrders/` stack navigator yaratildi — `SalesOrderList` (status filter: Barchasi/Bajarilgan/Qaytarilgan/Bekor) + `SalesOrderDetail`. `useSalesOrdersData` hook `salesApi.getOrders({ limit: 100 })`. `MoreStackParamList` ga `SalesOrdersScreen` qo'shildi. `TabNavigator` MoreNavigator ga screen ulandi. MoreMenu `BIZNES_GROUP` da roleLevel ≥ 3 (MANAGER+) uchun "Buyurtmalar" item qo'shildi.
+- **Fayllar:** `apps/mobile/src/screens/SalesOrders/index.tsx`, `SalesOrderList.tsx`, `SalesOrderRow.tsx`, `SalesOrderDetailScreen.tsx`, `useSalesOrdersData.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Eslatma:** Sana filtri T-423 (backend from/to) fix bo'lgandan keyin to'liq ishlaydi.
+- **Commit:** pending
+
+---
+
+## T-420 | 2026-05-05 | [MOBILE] | mobile-owner → mobile merge: role-based UI
+
+- **Yechim:** To'liq amalga oshirilgan. API (`debts.api.ts`, `employees.api.ts`, `shifts.api.ts`), config (`theme.ts`, `endpoints.ts`, `queryKeys.ts`), hooks (`useDebts`, `useEmployees`, `useShifts`), screenlar (`Debts/`, `Employees/`, `HR/`, `ShiftsOwner/`) — barchasi `apps/mobile` da mavjud. `TabNavigator`: `isOwnerAdmin` (roleLevel ≥ 4) → Analytics + Xodimlar tab; boshqalar → Savdo + Katalog. `MoreMenu`: `OWNER_GROUP` → Smenlar + Qarzdorlik. i18n kalitlari va navigation types to'liq.
+- **Fayllar:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/EmployeesNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`, `apps/mobile/src/screens/Debts/`, `apps/mobile/src/screens/Employees/`, `apps/mobile/src/screens/HR/`, `apps/mobile/src/screens/ShiftsOwner/`
+- **Commit:** (oldingi sessiyalarda yozilgan)
+
+---
+
+## T-441 | 2026-05-05 | [MOBILE] | To'liq Warehouse moduli — Kirim + WriteOff
+
+- **Yechim:** `Kirim/` screen: hisobvaraqlar list (`GET /inventory/receipts`), `KirimDetailSheet` (detail + qabul/bekor). `StockOut/` screen: `POST /inventory/write-off` to'liq ulangan — miqdor, sabab (DAMAGED/EXPIRED/LOST/OTHER), izoh. MoreMenu da `WAREHOUSE_GROUP` da mavjud.
+- **Fayllar:** `apps/mobile/src/screens/Kirim/`, `apps/mobile/src/screens/StockOut/`
+- **Commit:** (oldingi sessiyalarda yozilgan)
+
+---
+
+## T-427 | 2026-05-05 | [MOBILE] | Nasiya PayModal — Alert/onClose tartib xatosi
+
+- **Yechim:** `Alert.alert('', msg, [{ text: 'OK', onPress: () => { onSuccess?.(); onClose(); } }])` — onSuccess va onClose faqat OK tugmasi bosilganda chaqiriladi. iOS modal konflikti yo'qoldi.
+- **Fayllar:** `apps/mobile/src/screens/Nasiya/PayModal.tsx`
+- **Commit:** (oldingi sessiyada yozilgan)
+
+---
+
+## T-426 | 2026-05-05 | [MOBILE] | Nasiya PayModal — parseInt bilan katta summa parse xatosi
+
+- **Yechim:** `parseInt` → `parseFloat(amount.replace(/[\s,]/g, ''))`. Katta summalar (1,000,000) to'g'ri parse qilinadi. `isNaN` tekshiruvi qo'shilgan.
+- **Fayllar:** `apps/mobile/src/screens/Nasiya/PayModal.tsx`
+- **Commit:** (oldingi sessiyada yozilgan)
+
+---
+
+## T-425 | 2026-05-05 | [MOBILE] | Nasiya — nasiyaApi.pay() CASH hardcoded
+
+- **Yechim:** `pay(id, amount, method?, notes?)` — method alohida parametr sifatida qo'shildi. Backend ga `{ amount, method: method ?? 'CASH', notes }` yuboriladi. PayModal `nasiyaApi.pay(debt.id, parsed, method)` to'g'ri signature bilan chaqiradi.
+- **Fayllar:** `apps/mobile/src/api/nasiya.api.ts`, `apps/mobile/src/screens/Nasiya/PayModal.tsx`
+- **Commit:** (oldingi sessiyada yozilgan)
+
+---
+
+## T-432 | 2026-05-05 | [MOBILE] | Settings — Kassir filialni ko'ra olmasligi
+
+- **Yechim:** `const isAdmin = user?.role === 'OWNER' || user?.role === 'ADMIN'` — Branches MenuRow `{isAdmin && ...}` shartli render. CASHIER/VIEWER/WAREHOUSE/MANAGER ko'ra olmaydi.
+- **Fayllar:** `apps/mobile/src/screens/Settings/index.tsx`
+- **Commit:** (oldingi sessiyada yozilgan)
+
+---
+
+## T-422 | 2026-05-05 | [MOBILE] | client.ts — CONFIG.API_URL default port 3003 → 3000
+
+- **Yechim:** `apps/mobile/src/config/index.ts` da `'http://localhost:3003/api/v1'` → `'http://localhost:3000/api/v1'`. iOS/Android simulatorda `EXPO_PUBLIC_API_URL` set qilinmasa to'g'ri portga ulandi.
+- **Fayllar:** `apps/mobile/src/config/index.ts`
+- **Commit:** (oldingi sessiyada yozilgan)
+
+---
+
+## T-421 | 2026-05-05 | [IKKALASI] | ExpensesScreen — Backend response key mismatch
+
+- **Yechim:** `expenses.api.ts` da `data.data` → `data.items`. `PaginatedExpenses` interfeysi `items` kalit bilan yangilandi. `ExpensesScreen.tsx` da `data?.data` → `data?.items`. `GET /finance/expenses` response `{ items, total, page, limit }` to'g'ri o'qiladi.
+- **Fayllar:** `apps/mobile/src/api/expenses.api.ts`, `apps/mobile/src/screens/Finance/ExpensesScreen.tsx`
+- **Commit:** (oldingi sessiyada yozilgan)
+
+---
+
+## T-429 | 2026-05-05 | [MOBILE] | InventoryScreen — barcha mahsulotlar ko'rsatilishi
+
+- **Yechim:** `useInventoryData` hook `getInventoryItems({ limit: 100 })` → `GET /inventory/items` (status filtr yo'q = BARCHA mahsulotlar). `STATUS_SORT_ORDER` orqali: `out_of_stock` → `low` → `expiring` → `expired` → `normal`. `LowStockItem` komponenti `InventoryItem` type qabul qiladi.
+- **Fayllar:** `apps/mobile/src/screens/Inventory/useInventoryData.ts`, `apps/mobile/src/screens/Inventory/LowStockItem.tsx`, `apps/mobile/src/screens/Inventory/index.tsx`
+- **Commit:** (allaqachon kod ichida tayyor)
+
+---
+
+## T-428 | 2026-05-05 | [MOBILE] | OmborRequestSheet "Yuborish" tugmasi API integratsiyasi
+
+- **Yechim:** `handleSubmit` `inventoryApi.sendRestockRequest()` orqali `POST /inventory/restock-request` ga to'liq ulangan. `loading` state `RequestFooter` ga uzatilgan (ActivityIndicator + disabled). Checked mahsulotlar uchun `{ productId, productName, currentStock }` payload yuboriladi, success/error Alert ko'rsatiladi.
+- **Fayllar:** `apps/mobile/src/screens/Ombor/OmborRequestSheet.tsx`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/screens/Ombor/components/RequestFooter.tsx`
+- **Commit:** (allaqachon kod ichida tayyor, alohida commit yo'q)
+
+---
+
 ## T-436 | 2026-05-05 | [MOBILE] | Stock harakatlari tarixi (StockMovements) ekrani qo'shildi
 
 - **Yechim:** `StockMovementsScreen` to'liq implementatsiya qilindi — filtrlash (sana, tur, mahsulot), `GET /inventory/movements` API integratsiyasi, `useStockMovementData` hook, `StockMovementCard`, `StockMovementHeader`, `StockMovementListHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
