@@ -17,59 +17,20 @@ import SuspiciousActivityList from './SuspiciousActivityList';
 import { useEmployees } from '../../hooks/useEmployees';
 import { Period } from '../../hooks/usePeriodFilter';
 import { Colors, Radii, Shadows } from '../../config/theme';
-import { EmployeePerformance, SuspiciousActivityAlert } from '../../api/employees.api';
+import { EmployeePerformance } from '../../api/employees.api';
 import { EmployeesStackParamList } from '../../navigation/types';
+import SkeletonList from '../../components/common/SkeletonList';
+import ErrorView from '../../components/common/ErrorView';
 
 type Nav = NativeStackNavigationProp<EmployeesStackParamList, 'EmployeeList'>;
 
 const PERIODS: Period[] = ['today', 'week', 'month', 'year'];
-
-const MOCK_EMPLOYEES: EmployeePerformance[] = [
-  {
-    employeeId: 'e1', employeeName: 'Sarvar Qodirov', role: 'Kassir', branchName: 'Chilonzor',
-    totalOrders: 142, totalRevenue: 18_540_000, avgOrderValue: 130_563,
-    totalRefunds: 4, refundRate: 2.8, totalVoids: 1, totalDiscounts: 8, discountRate: 5.6,
-    suspiciousActivityCount: 1,
-    alerts: [{ id: 'a1', type: 'LARGE_DISCOUNT', description: '35% chegirma berildi', occurredAt: '2026-03-11T14:22:00Z', severity: 'medium' }],
-  },
-  {
-    employeeId: 'e2', employeeName: 'Muhabbat Tosheva', role: 'Kassir', branchName: 'Yunusabad',
-    totalOrders: 98, totalRevenue: 12_100_000, avgOrderValue: 123_469,
-    totalRefunds: 1, refundRate: 1.0, totalVoids: 0, totalDiscounts: 3, discountRate: 3.1,
-    suspiciousActivityCount: 0, alerts: [],
-  },
-  {
-    employeeId: 'e3', employeeName: 'Jahongir Nazarov', role: 'Kassir', branchName: "Mirzo Ulug'bek",
-    totalOrders: 76, totalRevenue: 9_450_000, avgOrderValue: 124_342,
-    totalRefunds: 6, refundRate: 7.9, totalVoids: 3, totalDiscounts: 2, discountRate: 2.6,
-    suspiciousActivityCount: 2,
-    alerts: [
-      { id: 'a2', type: 'RAPID_REFUNDS', description: "6 ta qaytarish — yuqori ko'rsatkich", occurredAt: '2026-03-10T10:00:00Z', severity: 'high' },
-      { id: 'a3', type: 'EXCESSIVE_VOIDS', description: "3 ta to'lov bekor qilindi", occurredAt: '2026-03-09T16:45:00Z', severity: 'medium' },
-    ],
-  },
-  {
-    employeeId: 'e4', employeeName: 'Zulfiya Ergasheva', role: 'Kassir', branchName: 'Sergeli',
-    totalOrders: 54, totalRevenue: 6_230_000, avgOrderValue: 115_370,
-    totalRefunds: 0, refundRate: 0, totalVoids: 0, totalDiscounts: 5, discountRate: 9.3,
-    suspiciousActivityCount: 0, alerts: [],
-  },
-];
-
-const MOCK_SUSPICIOUS: SuspiciousActivityAlert[] = [
-  { id: 's1', type: 'RAPID_REFUNDS', description: "Jahongir Nazarov — 6 ta qaytarish (30 daqiqada)", occurredAt: '2026-03-10T10:00:00Z', severity: 'high' },
-  { id: 's2', type: 'LARGE_DISCOUNT', description: "Sarvar Qodirov — 35% chegirma (ruxsat etilgan: 20%)", occurredAt: '2026-03-11T14:22:00Z', severity: 'medium' },
-  { id: 's3', type: 'EXCESSIVE_VOIDS', description: "Jahongir Nazarov — 3 ta to'lov bekor qilindi", occurredAt: '2026-03-09T16:45:00Z', severity: 'medium' },
-];
 
 export default function EmployeesScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const [period, setPeriod] = React.useState<Period>('month');
   const { performance, suspicious } = useEmployees(period);
-
-  const performanceData = performance.data && performance.data.length > 0 ? performance.data : MOCK_EMPLOYEES;
-  const suspiciousData = suspicious.data && suspicious.data.length > 0 ? suspicious.data : MOCK_SUSPICIOUS;
 
   const handleRefresh = async () => {
     await Promise.all([performance.refetch(), suspicious.refetch()]);
@@ -80,6 +41,33 @@ export default function EmployeesScreen() {
       employeeId: item.employeeId,
       employeeName: item.employeeName,
     });
+  };
+
+  const renderContent = () => {
+    if (performance.isLoading) {
+      return <SkeletonList count={4} itemHeight={100} />;
+    }
+
+    if (performance.isError) {
+      return (
+        <ErrorView
+          error={performance.error}
+          onRetry={() => { void performance.refetch(); }}
+        />
+      );
+    }
+
+    return (
+      <>
+        <EmployeeList
+          data={performance.data ?? []}
+          isRefreshing={false}
+          onRefresh={() => { void performance.refetch(); }}
+          onPressEmployee={handlePressEmployee}
+        />
+        <SuspiciousActivityList data={suspicious.data ?? []} />
+      </>
+    );
   };
 
   return (
@@ -109,18 +97,12 @@ export default function EmployeesScreen() {
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={performance.isFetching}
+            refreshing={performance.isFetching && !performance.isLoading}
             onRefresh={() => { void handleRefresh(); }}
           />
         }
       >
-        <EmployeeList
-          data={performanceData}
-          isRefreshing={false}
-          onRefresh={() => { void performance.refetch(); }}
-          onPressEmployee={handlePressEmployee}
-        />
-        <SuspiciousActivityList data={suspiciousData} />
+        {renderContent()}
       </ScrollView>
     </ScreenLayout>
   );
