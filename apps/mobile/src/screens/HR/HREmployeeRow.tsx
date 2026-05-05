@@ -10,9 +10,12 @@ interface Props {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  cashier: 'Kassir',
-  manager: 'Menejer',
-  admin: 'Admin',
+  cashier:   'Kassir',
+  manager:   'Menejer',
+  admin:     'Admin',
+  owner:     'Egasi',
+  warehouse: 'Omborchi',
+  viewer:    'Kuzatuvchi',
 };
 
 const STATUS_STYLE: Record<EmployeeStatus, { bg: string; text: string; label: string }> = {
