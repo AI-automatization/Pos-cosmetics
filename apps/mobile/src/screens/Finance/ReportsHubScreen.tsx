@@ -106,6 +106,14 @@ export default function ReportsHubScreen() {
             iconBg:      '#F0FDFA',
             onPress:     () => nav('BranchReports'),
           },
+          {
+            title:       'Hisobot yaratish',
+            description: "O'lchov, metrika va davr bo'yicha tahlil",
+            iconName:    'construct-outline' as const,
+            iconColor:   '#374151',
+            iconBg:      '#F3F4F6',
+            onPress:     () => nav('ReportBuilder'),
+          },
         ]
       : []),
   ];

@@ -61,6 +61,7 @@ export type FinanceStackParamList = {
   ReportsHub: undefined;
   ExchangeRates: undefined;
   BranchReports: undefined;
+  ReportBuilder: undefined;
 };
 
 export type MoreStackParamList = {

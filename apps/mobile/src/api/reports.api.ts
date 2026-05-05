@@ -1,6 +1,13 @@
 import type { SalesSummary, DailyRevenue, TopProduct } from '@raos/types';
 import api from './client';
 
+export interface EmployeeActivity {
+  employeeId: string;
+  employeeName: string;
+  ordersCount: number;
+  revenue: number;
+}
+
 export const reportsApi = {
   getSalesSummary: async (from: string, to: string): Promise<SalesSummary> => {
     const { data } = await api.get<SalesSummary>('/reports/sales-summary', {
@@ -23,6 +30,13 @@ export const reportsApi = {
   ): Promise<TopProduct[]> => {
     const { data } = await api.get<TopProduct[]>('/reports/top-products', {
       params: { from, to, limit },
+    });
+    return data;
+  },
+
+  getEmployeeActivity: async (from: string, to: string): Promise<EmployeeActivity[]> => {
+    const { data } = await api.get<EmployeeActivity[]>('/reports/employee-activity', {
+      params: { from, to },
     });
     return data;
   },
