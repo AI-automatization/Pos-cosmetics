@@ -136,6 +136,14 @@ const WAREHOUSE_GROUP: MenuGroup = {
       screen: 'SuppliersScreen' as keyof MoreStackParamList,
     },
     {
+      icon: 'swap-horizontal-outline' as const,
+      iconBg: '#EFF6FF',
+      iconColor: '#2563EB',
+      title: "O'tkazma",
+      subtitle: "Filiallar orasida tovar ko'chirish",
+      screen: 'TransferScreen' as keyof MoreStackParamList,
+    },
+    {
       icon: 'trash-outline',
       title: 'Hisobdan chiqarish',
       subtitle: 'Write-off',

@@ -44,6 +44,7 @@ import EmployeesNavigator from './EmployeesNavigator';
 import DebtsScreen from '../screens/Debts';
 import ShiftsOwnerScreen from '../screens/ShiftsOwner';
 import StockOutScreen from '../screens/StockOut';
+import StockTransferScreen from '../screens/StockTransfer';
 import { getRoleLevel } from '../utils/roles';
 
 // ─── Colors ───────────────────────────────────────────────
@@ -128,6 +129,7 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="DebtsScreen" component={DebtsScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="ShiftsOwnerScreen" component={ShiftsOwnerScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="StockOutScreen" component={StockOutScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="TransferScreen" component={StockTransferScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
   );
 }
