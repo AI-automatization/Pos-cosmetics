@@ -11,15 +11,16 @@ interface EmployeeSuspiciousCardProps {
 
 export default function EmployeeSuspiciousCard({ alerts }: EmployeeSuspiciousCardProps) {
   const { t } = useTranslation();
+  const safeAlerts = Array.isArray(alerts) ? alerts : [];
 
-  if (alerts.length === 0) return null;
+  if (safeAlerts.length === 0) return null;
 
   return (
     <Card style={styles.card}>
       <Text style={styles.sectionTitle}>
-        {`⚠️ ${t('employees.suspiciousActivity')} (${alerts.length})`}
+        {`⚠️ ${t('employees.suspiciousActivity')} (${safeAlerts.length})`}
       </Text>
-      {alerts.map((alert) => (
+      {safeAlerts.map((alert) => (
         <View key={alert.id} style={styles.alertRow}>
           <View style={[styles.alertDot, styles[`dot_${alert.severity}`]]} />
           <View style={styles.alertContent}>

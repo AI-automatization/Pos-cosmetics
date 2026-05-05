@@ -75,7 +75,8 @@ export default function EmployeeDetailScreen() {
 
   const emp = profile.data ?? MOCK_PROFILE;
   const perf = performance.data;
-  const suspAlerts = suspicious.data ?? [];
+  const rawSuspicious = suspicious.data;
+  const suspAlerts = Array.isArray(rawSuspicious) ? rawSuspicious : [];
 
   const handleRefresh = async () => {
     await Promise.all([profile.refetch(), performance.refetch(), suspicious.refetch()]);
