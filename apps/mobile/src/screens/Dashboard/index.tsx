@@ -22,6 +22,7 @@ import ActiveShiftCard from './ActiveShiftCard';
 import RevenueCard from './RevenueCard';
 import WeeklyTrendChart from './WeeklyTrendChart';
 import TopProductsCard from './TopProductsCard';
+import ManagerKPICard from './ManagerKPICard';
 import StatCard from '../../components/common/StatCard';
 import { formatCompact } from '../../utils/currency';
 import { useShiftStore } from '../../store/shiftStore';
@@ -87,6 +88,7 @@ export default function DashboardScreen() {
   const { user } = useAuthStore();
   const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
   const isWarehouse = user?.role === 'WAREHOUSE';
+  const isManager = user?.role === 'MANAGER';
   const { openShift, closeShift } = useShiftStore();
   const [loading, setLoading] = useState(false);
   const [openSheetVisible, setOpenSheetVisible] = useState(false);
@@ -254,6 +256,13 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Manager KPI card — faqat MANAGER rol uchun */}
+        {isManager && (
+          <View style={styles.section}>
+            <ManagerKPICard />
+          </View>
+        )}
+
         {/* Weekly chart */}
         <View style={styles.section}>
           <WeeklyTrendChart data={weekly} />
@@ -303,6 +312,37 @@ export default function DashboardScreen() {
                 <QuickAction
                   icon="pulse-outline"
                   label="Sistema"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+              </>
+            ) : isManager ? (
+              <>
+                <QuickAction
+                  icon="cart-outline"
+                  label="Savdo"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Savdo')}
+                />
+                <QuickAction
+                  icon="document-text-outline"
+                  label="Hisobot"
+                  color="#0D9488"
+                  bg="#F0FDFA"
+                  onPress={() => navigation.navigate('Moliya')}
+                />
+                <QuickAction
+                  icon="people-outline"
+                  label="Mijozlar"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="receipt-outline"
+                  label="Buyurtmalar"
                   color="#7C3AED"
                   bg="#F5F3FF"
                   onPress={() => navigation.navigate('Koproq')}
