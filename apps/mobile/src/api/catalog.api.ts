@@ -1,5 +1,32 @@
 import api from './client';
 
+// ─── Supplier types ────────────────────────────────────
+export interface Supplier {
+  id: string;
+  name: string;
+  phone?: string | null;
+  company?: string | null;
+  address?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSupplierDto {
+  name: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+}
+
+export interface UpdateSupplierDto {
+  name?: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+  isActive?: boolean;
+}
+
 export interface ProductInfo {
   id: string;
   name: string;
@@ -96,5 +123,25 @@ export const catalogApi = {
   updateProduct: async (id: string, dto: Partial<CreateProductDto>): Promise<CatalogProduct> => {
     const { data } = await api.patch<CatalogProduct>(`/catalog/products/${id}`, dto);
     return data;
+  },
+
+  // ─── Suppliers ────────────────────────────────────────
+  getSuppliers: async (): Promise<Supplier[]> => {
+    const { data } = await api.get<Supplier[]>('/catalog/suppliers');
+    return Array.isArray(data) ? data : [];
+  },
+
+  createSupplier: async (dto: CreateSupplierDto): Promise<Supplier> => {
+    const { data } = await api.post<Supplier>('/catalog/suppliers', dto);
+    return data;
+  },
+
+  updateSupplier: async (id: string, dto: UpdateSupplierDto): Promise<Supplier> => {
+    const { data } = await api.patch<Supplier>(`/catalog/suppliers/${id}`, dto);
+    return data;
+  },
+
+  deleteSupplier: async (id: string): Promise<void> => {
+    await api.delete(`/catalog/suppliers/${id}`);
   },
 };

@@ -15,6 +15,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { catalogApi, type Supplier, type CreateSupplierDto, type UpdateSupplierDto } from '../../api/catalog.api';
+import { extractErrorMessage } from '../../utils/error';
 import SearchBar from '../../components/common/SearchBar';
 
 // ─── Colors ────────────────────────────────────────────
@@ -28,32 +31,24 @@ const C = {
   red:     '#DC2626',
 };
 
-// ─── Types ─────────────────────────────────────────────
-interface Supplier {
-  id: string;
-  name: string;
-  phone: string;
-  company: string;
-  address: string;
-}
-
 // ─── SupplierFormSheet ─────────────────────────────────
 function SupplierFormSheet({
   visible,
   supplier,
   onClose,
-  onSaved,
+  onSave,
+  isSaving,
 }: {
   visible: boolean;
   supplier: Supplier | null;
   onClose: () => void;
-  onSaved: (s: Omit<Supplier, 'id'>) => void;
+  onSave: (dto: CreateSupplierDto | UpdateSupplierDto) => void;
+  isSaving: boolean;
 }) {
   const [name, setName]       = useState('');
   const [phone, setPhone]     = useState('');
   const [company, setCompany] = useState('');
   const [address, setAddress] = useState('');
-  const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
     if (visible) {
@@ -67,13 +62,13 @@ function SupplierFormSheet({
   const canSave = name.trim().length > 0;
 
   const handleSave = () => {
-    if (!canSave) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onSaved({ name: name.trim(), phone, company, address });
-      onClose();
-    }, 500);
+    if (!canSave || isSaving) return;
+    onSave({
+      name: name.trim(),
+      phone: phone.trim() || undefined,
+      company: company.trim() || undefined,
+      address: address.trim() || undefined,
+    });
   };
 
   return (
@@ -139,9 +134,9 @@ function SupplierFormSheet({
             style={[sheet.saveBtn, !canSave && sheet.saveBtnDisabled]}
             onPress={handleSave}
             activeOpacity={0.85}
-            disabled={!canSave || loading}
+            disabled={!canSave || isSaving}
           >
-            {loading
+            {isSaving
               ? <ActivityIndicator size="small" color="#FFFFFF" />
               : <Text style={sheet.saveBtnText}>
                   {supplier ? 'Saqlash' : "Qo'shish"}
@@ -225,22 +220,65 @@ function SupplierCard({
 
 // ─── SuppliersScreen ───────────────────────────────────
 export default function SuppliersScreen() {
-  const [search, setSearch]           = useState('');
+  const qc = useQueryClient();
+  const [search, setSearch]             = useState('');
   const [sheetVisible, setSheetVisible] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
-  const [suppliers, setSuppliers]     = useState<Supplier[]>([]);
 
+  // ── Fetch ──────────────────────────────────────────────
+  const { data: suppliers = [], isLoading, error } = useQuery<Supplier[]>({
+    queryKey: ['catalog-suppliers'],
+    queryFn: catalogApi.getSuppliers,
+    staleTime: 2 * 60_000,
+  });
+
+  // ── Mutations ──────────────────────────────────────────
+  const createMutation = useMutation({
+    mutationFn: (dto: CreateSupplierDto) => catalogApi.createSupplier(dto),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['catalog-suppliers'] });
+      setSheetVisible(false);
+    },
+    onError: (err: unknown) => {
+      Alert.alert('Xatolik', extractErrorMessage(err));
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: UpdateSupplierDto }) =>
+      catalogApi.updateSupplier(id, dto),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['catalog-suppliers'] });
+      setSheetVisible(false);
+    },
+    onError: (err: unknown) => {
+      Alert.alert('Xatolik', extractErrorMessage(err));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => catalogApi.deleteSupplier(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['catalog-suppliers'] });
+    },
+    onError: (err: unknown) => {
+      Alert.alert('Xatolik', extractErrorMessage(err));
+    },
+  });
+
+  // ── Derived ────────────────────────────────────────────
   const filtered = useMemo(() => {
     if (!search.trim()) return suppliers;
     const q = search.toLowerCase();
     return suppliers.filter(
       (s) =>
         s.name.toLowerCase().includes(q) ||
-        s.company.toLowerCase().includes(q) ||
-        s.phone.includes(q),
+        (s.company ?? '').toLowerCase().includes(q) ||
+        (s.phone ?? '').includes(q),
     );
   }, [suppliers, search]);
 
+  // ── Handlers ───────────────────────────────────────────
   const handleAdd = () => {
     setEditSupplier(null);
     setSheetVisible(true);
@@ -252,19 +290,20 @@ export default function SuppliersScreen() {
   };
 
   const handleDelete = (s: Supplier) => {
-    setSuppliers((prev) => prev.filter((x) => x.id !== s.id));
+    deleteMutation.mutate(s.id);
   };
 
-  const handleSaved = (data: Omit<Supplier, 'id'>) => {
+  const handleSave = (dto: CreateSupplierDto | UpdateSupplierDto) => {
     if (editSupplier) {
-      setSuppliers((prev) =>
-        prev.map((s) => (s.id === editSupplier.id ? { ...s, ...data } : s)),
-      );
+      updateMutation.mutate({ id: editSupplier.id, dto });
     } else {
-      setSuppliers((prev) => [...prev, { id: Date.now().toString(), ...data }]);
+      createMutation.mutate(dto as CreateSupplierDto);
     }
   };
 
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  // ── Render ─────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
@@ -287,40 +326,52 @@ export default function SuppliersScreen() {
         />
       </View>
 
-      {/* List */}
-      <FlatList
-        data={filtered}
-        keyExtractor={(s) => s.id}
-        renderItem={({ item }) => (
-          <SupplierCard
-            supplier={item}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="business-outline" size={44} color={C.muted} />
-            <Text style={styles.emptyTitle}>
-              {search ? 'Topilmadi' : 'Yetkazib beruvchilar yo\'q'}
-            </Text>
-            {!search && (
-              <TouchableOpacity style={styles.emptyBtn} onPress={handleAdd}>
-                <Text style={styles.emptyBtnText}>Birinchisini qo'shish</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        }
-      />
+      {/* Loading */}
+      {isLoading ? (
+        <ActivityIndicator style={styles.loader} size="large" color={C.primary} />
+      ) : error ? (
+        <View style={styles.empty}>
+          <Ionicons name="cloud-offline-outline" size={44} color={C.muted} />
+          <Text style={styles.emptyTitle}>Ma'lumot yuklanmadi</Text>
+          <Text style={styles.errorText}>{extractErrorMessage(error)}</Text>
+        </View>
+      ) : (
+        /* List */
+        <FlatList
+          data={filtered}
+          keyExtractor={(s) => s.id}
+          renderItem={({ item }) => (
+            <SupplierCard
+              supplier={item}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="business-outline" size={44} color={C.muted} />
+              <Text style={styles.emptyTitle}>
+                {search ? 'Topilmadi' : "Yetkazib beruvchilar yo'q"}
+              </Text>
+              {!search && (
+                <TouchableOpacity style={styles.emptyBtn} onPress={handleAdd}>
+                  <Text style={styles.emptyBtnText}>Birinchisini qo'shish</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
+        />
+      )}
 
       <SupplierFormSheet
         visible={sheetVisible}
         supplier={editSupplier}
         onClose={() => setSheetVisible(false)}
-        onSaved={handleSaved}
+        onSave={handleSave}
+        isSaving={isSaving}
       />
     </SafeAreaView>
   );
@@ -378,6 +429,7 @@ const styles = StyleSheet.create({
     shadowColor: C.primary, shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3, shadowRadius: 6, elevation: 3,
   },
+  loader: { flex: 1 },
   searchWrap: {
     paddingHorizontal: 16, paddingVertical: 10,
     backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
@@ -405,6 +457,7 @@ const styles = StyleSheet.create({
   },
   empty: { alignItems: 'center', paddingVertical: 60, gap: 12 },
   emptyTitle: { fontSize: 15, color: C.muted, fontWeight: '600' },
+  errorText: { fontSize: 13, color: C.red, textAlign: 'center', paddingHorizontal: 24 },
   emptyBtn: {
     paddingHorizontal: 20, paddingVertical: 10,
     backgroundColor: C.primary, borderRadius: 10,
