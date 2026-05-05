@@ -284,9 +284,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 32,
+    paddingTop: 60,
+    paddingBottom: 32,
   },
 
   // ── Logo ──
