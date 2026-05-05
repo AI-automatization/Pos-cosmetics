@@ -8,33 +8,33 @@ import EmptyState from '../../components/common/EmptyState';
 import ScreenLayout from '../../components/common/ScreenLayout';
 import LowStockItem from './LowStockItem';
 import { useInventoryData } from './useInventoryData';
-import type { LowStockItem as LowStockItemType } from '../../api/inventory.api';
+import type { InventoryItem } from '../../api/inventory.api';
 
 export default function InventoryScreen() {
   const { t } = useTranslation();
-  const { lowStock } = useInventoryData();
+  const { allStock } = useInventoryData();
 
-  if (lowStock.isLoading) return <LoadingSpinner />;
-  if (lowStock.error) {
+  if (allStock.isLoading) return <LoadingSpinner />;
+  if (allStock.error) {
     return (
       <SafeAreaView style={styles.safe}>
-        <ErrorView error={lowStock.error} onRetry={lowStock.refetch} />
+        <ErrorView error={allStock.error} onRetry={allStock.refetch} />
       </SafeAreaView>
     );
   }
 
-  const data = lowStock.data ?? [];
+  const data = allStock.data ?? [];
 
   return (
     <ScreenLayout
-      title={t('inventory.lowStock')}
-      onRefresh={lowStock.refetch}
-      isRefreshing={lowStock.isFetching}
+      title={t('inventory.title')}
+      onRefresh={allStock.refetch}
+      isRefreshing={allStock.isFetching}
       scrollable={false}
     >
-      <FlatList<LowStockItemType>
+      <FlatList<InventoryItem>
         data={data}
-        keyExtractor={(item) => `${item.productId}-${item.warehouseId}`}
+        keyExtractor={(item) => item.productId}
         renderItem={({ item }) => <LowStockItem item={item} />}
         ListEmptyComponent={
           <EmptyState title={t('inventory.noLowStock')} />

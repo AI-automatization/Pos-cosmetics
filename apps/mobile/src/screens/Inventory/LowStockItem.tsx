@@ -1,14 +1,22 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import type { LowStockItem as LowStockItemType } from '../../api/inventory.api';
+import type { InventoryItem, InventoryItemStatus } from '../../api/inventory.api';
 import Badge from '../../components/common/Badge';
 
 interface LowStockItemProps {
-  readonly item: LowStockItemType;
+  readonly item: InventoryItem;
 }
 
+const STATUS_BADGE: Record<InventoryItemStatus, { label: string; variant: 'danger' | 'warning' | 'info' | 'success' }> = {
+  out_of_stock: { label: 'TUGADI',   variant: 'danger' },
+  low:          { label: 'KAM',      variant: 'warning' },
+  expiring:     { label: 'MUDDATI',  variant: 'warning' },
+  expired:      { label: 'MUDDATI O\'TDI', variant: 'danger' },
+  normal:       { label: 'NORMAL',   variant: 'success' },
+};
+
 function LowStockItem({ item }: LowStockItemProps) {
-  const isCritical = item.stock === 0;
+  const badge = STATUS_BADGE[item.status] ?? STATUS_BADGE.normal;
 
   return (
     <View style={styles.container}>
@@ -16,15 +24,12 @@ function LowStockItem({ item }: LowStockItemProps) {
         <Text style={styles.name} numberOfLines={2}>
           {item.productName}
         </Text>
-        <Badge
-          label={isCritical ? 'TUGADI' : 'KAM'}
-          variant={isCritical ? 'danger' : 'warning'}
-        />
+        <Badge label={badge.label} variant={badge.variant} />
       </View>
       <View style={styles.row}>
-        <Text style={styles.warehouse}>{item.warehouseName}</Text>
-        <Text style={styles.stock}>
-          {item.stock} / min {item.minStockLevel}
+        <Text style={styles.warehouse}>{item.branchName ?? '—'}</Text>
+        <Text style={[styles.stock, item.quantity === 0 && styles.stockCritical]}>
+          {item.quantity} {item.unit}
         </Text>
       </View>
     </View>
@@ -65,6 +70,9 @@ const styles = StyleSheet.create({
   stock: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#374151',
+  },
+  stockCritical: {
     color: '#DC2626',
   },
 });
