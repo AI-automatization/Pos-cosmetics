@@ -60,7 +60,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
     extraBarcodes: barcodes,
     sku: product.sku ?? '',
     categoryId: product.categoryId ?? '',
-    supplierId: initialSupplierId ?? '',
+    supplierId: initialSupplierId ?? product.productSuppliers?.[0]?.supplierId ?? '',
     unitId: product.unitId ?? '',
     description: (p.description as string) ?? '',
     costPrice: Number(product.costPrice),
