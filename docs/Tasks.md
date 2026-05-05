@@ -132,6 +132,29 @@
 
 ---
 
+## T-420 | P1 | [MOBILE] | mobile-owner → mobile merge: role-based UI
+
+- **Sana:** 2026-05-02
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/`
+- **Muammo:** `apps/mobile-owner` alohida app sifatida mavjud. Barcha unique screen/hook/api/component `apps/mobile` ga ko'chirilmagan. Login qilinganda role bo'yicha UI o'zgarmaydi (OWNER/ADMIN uchun owner-specific UI ko'rsatilmaydi).
+- **Kutilgan:**
+  - OWNER/ADMIN login → BoshSahifa + Analytics + **Xodimlar** tab + Moliya + Ko'proq
+  - Ko'proq menyu (OWNER/ADMIN): Smenlar (owner view) + Qarzdorlik qo'shiladi
+  - Boshqa rollar: hozirgi holat (o'zgarmaydi)
+- **Ko'chiriladigan narsalar (mobile-owner → mobile):**
+  - Config: `theme.ts`, `endpoints.ts`, `queryKeys.ts`
+  - Components: `AgingBucketChart`, `HorizontalBarChart`, `CurrencyText`, `FilterSheet`, `PullToRefresh`, `SkeletonCard`, `TrendBadge`, `StatusIndicator`
+  - API: `debts.api.ts`, `employees.api.ts`, `shifts.api.ts`
+  - Hooks: `useDebts.ts`, `useEmployees.ts`, `useShifts.ts`
+  - Screens: `Debts/`, `Employees/`, `HR/`, `Shifts/` (ShiftsOwner nomi bilan)
+  - i18n: `debts`, `shifts`, `employees` kalitlari
+  - Navigation: `EmployeesNavigator`, types yangilash, TabNavigator, MoreNavigator, MoreMenu
+- **Izoh:** `apps/mobile-owner` hozircha saqlanadi — merge to'liq tekshirilgandan keyin o'chiriladi
+- **Reja:** `docs/superpowers/plans/2026-05-02-mobile-owner-merge.md`
+
+---
+
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
