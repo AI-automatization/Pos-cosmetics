@@ -214,7 +214,7 @@ export const inventoryApi = {
       supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
       totalCost: r.totalCost ?? 0,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
       notes: r.notes ?? r.note,
     }));
     return { items, total: data.total ?? 0, page: data.page ?? 1, limit: data.limit ?? 20 };
@@ -230,7 +230,7 @@ export const inventoryApi = {
       supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
       totalCost: r.totalCost,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
       notes: r.notes ?? r.note,
       items: r.items?.map((item) => ({
         productId: item.productId,
@@ -266,7 +266,7 @@ export const inventoryApi = {
   },
 
   acceptReceipt: async (id: string): Promise<Receipt> => {
-    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/receive`);
+    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/approve`);
     const r = data;
     return {
       id: r.id,
@@ -280,7 +280,7 @@ export const inventoryApi = {
   },
 
   cancelReceipt: async (id: string): Promise<Receipt> => {
-    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/cancel`);
+    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/reject`);
     const r = data;
     return {
       id: r.id,
@@ -313,7 +313,7 @@ export const inventoryApi = {
       date: new Date(r.createdAt).toLocaleDateString('uz-UZ'),
       totalCost: r.totalCost,
       itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : 'PENDING',
+      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
     };
   },
 };
