@@ -3,7 +3,7 @@
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Loader2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import type { Category, Product } from '@/types/catalog';
 import { Field, inputCls } from './FormField';
@@ -12,6 +12,9 @@ import { ImageUpload } from './ImageUpload';
 import { BarcodeFields } from './BarcodeFields';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { useSuppliers } from '@/hooks/catalog/useSuppliers';
+import { useUnits } from '@/hooks/catalog/useProducts';
+import { catalogApi } from '@/api/catalog.api';
+import { cn } from '@/lib/utils';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nom kiritilishi shart').max(200),
@@ -19,6 +22,7 @@ const productSchema = z.object({
   sku: z.string().max(100).optional(),
   categoryId: z.string().optional(),
   supplierId: z.string().optional(),
+  unitId: z.string().optional(),
   description: z.string().max(2000).optional(),
   costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
   sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
@@ -44,11 +48,10 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
     return {
       costPrice: 0, sellPrice: 0, minStockLevel: 0, initialStock: 0,
       extraBarcodes: [], description: '', name: '', sku: '', categoryId: '',
-      supplierId: initialSupplierId ?? '',
+      supplierId: initialSupplierId ?? '', unitId: '',
     };
   }
   const p = product as unknown as Record<string, unknown>;
-  // Existing barcode moves to first extraBarcode
   const barcodes: { value: string }[] = [];
   if (product.barcode) barcodes.push({ value: product.barcode });
   (product.extraBarcodes ?? []).forEach((v) => barcodes.push({ value: v }));
@@ -58,6 +61,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
     sku: product.sku ?? '',
     categoryId: product.categoryId ?? '',
     supplierId: initialSupplierId ?? '',
+    unitId: product.unitId ?? '',
     description: (p.description as string) ?? '',
     costPrice: Number(product.costPrice),
     sellPrice: Number(product.sellPrice),
@@ -74,11 +78,22 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
   const { fields, append, remove } = useFieldArray({ control, name: 'extraBarcodes' });
   const costPrice = watch('costPrice') ?? 0;
   const sellPrice = watch('sellPrice') ?? 0;
+  const selectedUnitId = watch('unitId') ?? '';
+
   const [showSku, setShowSku] = useState(!!product?.sku);
   const [imageUrl, setImageUrl] = useState<string>(
     ((product as unknown as Record<string, unknown>)?.imageUrl as string) ?? '',
   );
 
+  // Custom unit state
+  const [unitMode, setUnitMode] = useState<'existing' | 'custom'>(
+    product?.unitId ? 'existing' : 'existing',
+  );
+  const [customUnitName, setCustomUnitName] = useState('');
+  const [customUnitShort, setCustomUnitShort] = useState('');
+  const [isCreatingUnit, setIsCreatingUnit] = useState(false);
+
+  const { data: units = [] } = useUnits();
   const { data: suppliers } = useSuppliers();
 
   const categoryOptions = useMemo(
@@ -91,11 +106,28 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
     [suppliers],
   );
 
+  const handleFormSubmit = async (data: ProductFormData) => {
+    if (unitMode === 'custom' && customUnitName.trim() && customUnitShort.trim()) {
+      setIsCreatingUnit(true);
+      try {
+        const newUnit = await catalogApi.createUnit({
+          name: customUnitName.trim(),
+          shortName: customUnitShort.trim(),
+        });
+        onSubmit({ ...data, unitId: newUnit.id });
+      } finally {
+        setIsCreatingUnit(false);
+      }
+    } else {
+      onSubmit(data);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+      <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-lg font-bold text-gray-900">
             {product ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot qo\'shish'}
@@ -109,7 +141,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="max-h-[80vh] overflow-y-auto p-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="max-h-[82vh] overflow-y-auto p-6">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Nomi" error={errors.name?.message} required className="col-span-2">
               <input
@@ -153,7 +185,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               )}
             </div>
 
-            {/* Barcodes — only array, no primary */}
+            {/* Barcodes */}
             <BarcodeFields
               register={register}
               fields={fields}
@@ -162,12 +194,8 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               setValue={(name, value) => setValue(name, value)}
             />
 
-            {/* Category — SearchableDropdown */}
-            <Field
-              label="Kategoriya"
-              error={errors.categoryId?.message}
-              className="col-span-2"
-            >
+            {/* Category */}
+            <Field label="Kategoriya" error={errors.categoryId?.message} className="col-span-2">
               <Controller
                 control={control}
                 name="categoryId"
@@ -185,7 +213,82 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               />
             </Field>
 
-            {/* Supplier — optional */}
+            {/* Unit — o'lchov birligi */}
+            <div className="col-span-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                O&apos;lchov birligi
+                <span className="ml-1 text-xs font-normal text-gray-400">(ixtiyoriy)</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {units.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => {
+                      setValue('unitId', u.id);
+                      setUnitMode('existing');
+                    }}
+                    className={cn(
+                      'rounded-xl border px-4 py-2 text-sm font-medium transition',
+                      selectedUnitId === u.id && unitMode === 'existing'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
+                    )}
+                  >
+                    {u.name}
+                    <span className="ml-1 text-xs text-gray-400">({u.shortName})</span>
+                  </button>
+                ))}
+                {/* Boshqa */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue('unitId', '');
+                    setUnitMode('custom');
+                  }}
+                  className={cn(
+                    'rounded-xl border px-4 py-2 text-sm font-medium transition',
+                    unitMode === 'custom'
+                      ? 'border-orange-400 bg-orange-50 text-orange-700'
+                      : 'border-dashed border-gray-300 text-gray-500 hover:border-orange-300 hover:text-orange-600',
+                  )}
+                >
+                  + Boshqa
+                </button>
+              </div>
+
+              {/* Custom unit inputs */}
+              {unitMode === 'custom' && (
+                <div className="mt-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Nomi <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customUnitName}
+                      onChange={(e) => setCustomUnitName(e.target.value)}
+                      placeholder="Masalan: Kilogram"
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Qisqa nom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customUnitShort}
+                      onChange={(e) => setCustomUnitShort(e.target.value)}
+                      placeholder="Masalan: kg"
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Supplier */}
             <div className="col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 Yetkazib beruvchi
@@ -267,17 +370,18 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             <button
               type="button"
               onClick={onClose}
-              disabled={isPending}
+              disabled={isPending || isCreatingUnit}
               className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
-              disabled={isPending}
-              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
+              disabled={isPending || isCreatingUnit}
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
             >
-              {isPending ? 'Saqlanmoqda...' : product ? 'Saqlash' : 'Qo\'shish'}
+              {(isPending || isCreatingUnit) && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPending || isCreatingUnit ? 'Saqlanmoqda...' : product ? 'Saqlash' : 'Qo\'shish'}
             </button>
           </div>
         </form>

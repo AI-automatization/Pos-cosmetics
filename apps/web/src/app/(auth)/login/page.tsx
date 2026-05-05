@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [slug, setSlug] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -19,7 +18,6 @@ export default function LoginPage() {
     if (!email.trim()) errs.email = 'Email kiritilmadi';
     else if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = 'Email formati noto\'g\'ri';
     if (!password) errs.password = 'Parol kiritilmadi';
-    // slug ixtiyoriy — bo'sh qoldirilsa backend avtomatik aniqlaydi
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -27,7 +25,7 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    login({ email: email.trim(), password, slug: slug.trim() });
+    login({ email: email.trim(), password, slug: '' });
   };
 
   return (
@@ -47,31 +45,6 @@ export default function LoginPage() {
           <h2 className="mb-6 text-lg font-semibold text-white">Tizimga kirish</h2>
 
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-            {/* Do'kon slug */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-blue-200">
-                Do&apos;kon slugi
-                <span className="ml-1.5 text-xs font-normal text-white/40">(ixtiyoriy)</span>
-              </label>
-              <input
-                type="text"
-                value={slug}
-                onChange={(e) => { setSlug(e.target.value); setErrors((p) => ({ ...p, slug: '' })); }}
-                placeholder="my-store"
-                autoComplete="organization"
-                className={cn(
-                  'w-full rounded-xl border bg-white/10 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition',
-                  'focus:ring-2 focus:ring-blue-500',
-                  errors.slug
-                    ? 'border-red-400/60 focus:border-red-400'
-                    : 'border-white/10 focus:border-blue-500',
-                )}
-              />
-              {errors.slug && (
-                <p className="mt-1 text-xs text-red-400">{errors.slug}</p>
-              )}
-            </div>
-
             {/* Email */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-blue-200">
@@ -153,10 +126,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Help text */}
-          <p className="mt-6 text-center text-xs text-white/30">
-            Bitta do&apos;koningiz bo&apos;lsa slug bo&apos;sh qoldiring
-          </p>
         </div>
 
         {/* Footer */}

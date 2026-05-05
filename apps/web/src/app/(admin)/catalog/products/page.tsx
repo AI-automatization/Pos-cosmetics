@@ -68,6 +68,7 @@ export default function ProductsPage() {
       minStockLevel: formData.minStockLevel,
       expiryTracking: !!formData.expiryDate || (formData.expiryTracking ?? false),
       supplierId: formData.supplierId || undefined,
+      unitId: formData.unitId || undefined,
     };
     if (editingProduct) {
       updateProduct.mutate(

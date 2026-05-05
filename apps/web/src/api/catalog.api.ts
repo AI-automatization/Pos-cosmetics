@@ -91,6 +91,10 @@ export const catalogApi = {
     return apiClient.get<ProductUnitObject[]>('/catalog/units').then((r) => r.data);
   },
 
+  createUnit(dto: { name: string; shortName: string }) {
+    return apiClient.post<ProductUnitObject>('/catalog/units', dto).then((r) => r.data);
+  },
+
   // --- Categories ---
 
   getCategories() {
