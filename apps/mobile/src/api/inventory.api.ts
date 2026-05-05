@@ -1,5 +1,12 @@
 import api from './client';
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 interface WarehouseInvoiceItem {
   productId: string;
   productName?: string;

@@ -29,6 +29,7 @@ interface ScreenLayoutProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   scrollable?: boolean;
+  rightAction?: React.ReactNode;
 }
 
 function getInitials(name: string): string {
