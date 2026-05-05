@@ -88,6 +88,7 @@ export type MoreStackParamList = {
   StockMovementsScreen: undefined;
   SalesOrdersScreen: undefined;
   SalesReturnsScreen: undefined;
+  ChegirmaScreen: undefined;
 };
 
 export type RootStackParamList = {

@@ -50,6 +50,7 @@ import ExpiryScreen from '../screens/Expiry';
 import StockMovementsScreen from '../screens/StockMovements';
 import SalesOrdersScreen from '../screens/SalesOrders';
 import SalesReturnsScreen from '../screens/SalesReturns';
+import ChegirmaScreen from '../screens/Chegirmalar/ChegirmaScreen';
 import { getRoleLevel } from '../utils/roles';
 
 // ─── Colors ───────────────────────────────────────────────
@@ -140,6 +141,7 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="StockMovementsScreen" component={StockMovementsScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="SalesOrdersScreen" component={SalesOrdersScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="SalesReturnsScreen" component={SalesReturnsScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="ChegirmaScreen" component={ChegirmaScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
   );
 }

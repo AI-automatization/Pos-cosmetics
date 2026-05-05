@@ -23,6 +23,15 @@ export interface ApplyPromotionsResult {
   appliedPromotions: Array<{ promotionId: string; name: string; discount: number }>;
 }
 
+export interface CreateDiscountDto {
+  name: string;
+  type: 'PERCENT' | 'FIXED';
+  rules: Record<string, number>;
+  validFrom: string;
+  validTo?: string | null;
+  isActive?: boolean;
+}
+
 export const promotionsApi = {
   getAll: async (activeOnly?: boolean): Promise<Promotion[]> => {
     const { data } = await api.get<Promotion[]>('/promotions', {
@@ -38,6 +47,16 @@ export const promotionsApi = {
 
   apply: async (dto: ApplyPromotionsDto): Promise<ApplyPromotionsResult> => {
     const { data } = await api.post<ApplyPromotionsResult>('/promotions/apply', dto);
+    return data;
+  },
+
+  create: async (dto: CreateDiscountDto): Promise<Promotion> => {
+    const { data } = await api.post<Promotion>('/promotions', dto);
+    return data;
+  },
+
+  update: async (id: string, dto: Partial<CreateDiscountDto>): Promise<Promotion> => {
+    const { data } = await api.patch<Promotion>(`/promotions/${id}`, dto);
     return data;
   },
 };

@@ -11,6 +11,6 @@ export { branchesApi } from './branches.api';
 export { alertsApi } from './alerts.api';
 export { analyticsApi } from './analytics.api';
 export { promotionsApi } from './promotions.api';
-export type { Promotion, PromotionType, ApplyPromotionsDto, ApplyPromotionsResult } from './promotions.api';
+export type { Promotion, PromotionType, ApplyPromotionsDto, ApplyPromotionsResult, CreateDiscountDto } from './promotions.api';
 export { exchangeApi } from './exchange.api';
 export type { ExchangeRate, ExchangeRateHistory } from './exchange.api';

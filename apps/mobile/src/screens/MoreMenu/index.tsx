@@ -238,14 +238,19 @@ export default function MoreMenuScreen(): React.JSX.Element {
       ...(user?.role === 'WAREHOUSE' ? [WAREHOUSE_GROUP] : []),
       {
         ...BIZNES_GROUP,
-        items: roleLevel >= 3
-          ? [
-              ...BIZNES_GROUP.items.slice(0, 4),
-              { icon: 'receipt-outline' as const, title: 'Buyurtmalar', subtitle: 'Sotuv tarixi', screen: 'SalesOrdersScreen' as keyof MoreStackParamList },
-              { icon: 'return-down-back-outline' as const, title: 'Qaytarish', subtitle: 'Mahsulot qaytarish', screen: 'SalesReturnsScreen' as keyof MoreStackParamList },
-              ...BIZNES_GROUP.items.slice(4),
-            ]
-          : BIZNES_GROUP.items,
+        items: [
+          ...BIZNES_GROUP.items.slice(0, 4),
+          ...(roleLevel >= 4
+            ? [{ icon: 'pricetags-outline' as const, title: 'Chegirmalar', subtitle: 'Chegirma yaratish va boshqaruv', screen: 'ChegirmaScreen' as keyof MoreStackParamList }]
+            : []),
+          ...(roleLevel >= 3
+            ? [
+                { icon: 'receipt-outline' as const, title: 'Buyurtmalar', subtitle: 'Sotuv tarixi', screen: 'SalesOrdersScreen' as keyof MoreStackParamList },
+                { icon: 'return-down-back-outline' as const, title: 'Qaytarish', subtitle: 'Mahsulot qaytarish', screen: 'SalesReturnsScreen' as keyof MoreStackParamList },
+              ]
+            : []),
+          ...BIZNES_GROUP.items.slice(4),
+        ],
       },
       ...(roleLevel >= 3 ? [{
         ...BOSHQARUV_GROUP,
