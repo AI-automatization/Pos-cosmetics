@@ -108,6 +108,24 @@ const BOSHQARUV_GROUP: MenuGroup = {
   ],
 };
 
+const OWNER_GROUP: MenuGroup = {
+  title: "Egasi bo'limi",
+  items: [
+    {
+      icon: 'time-outline',
+      title: 'Smenlar',
+      subtitle: 'Barcha filial smenlari',
+      screen: 'ShiftsOwnerScreen' as keyof MoreStackParamList,
+    },
+    {
+      icon: 'card-outline',
+      title: 'Qarzdorlik',
+      subtitle: 'Mijozlar qarzdorligi',
+      screen: 'DebtsScreen' as keyof MoreStackParamList,
+    },
+  ],
+};
+
 const WAREHOUSE_GROUP: MenuGroup = {
   title: "Ombor boshqaruvi",
   items: [
@@ -223,6 +241,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
             ]
           : BOSHQARUV_GROUP.items,
       }] : []),
+      ...(roleLevel >= 4 ? [OWNER_GROUP] : []),
       SOZLAMALAR_GROUP,
     ],
     [roleLevel, user?.role],
@@ -239,7 +258,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
       return;
     }
     if (item.title === 'Hisobotlar') {
-      navigation.getParent()?.navigate('Moliya' as never, { screen: 'ReportsHub' } as never);
+      navigation.getParent()?.navigate('Moliya', { screen: 'ReportsHub' });
       return;
     }
 
@@ -247,7 +266,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
       Alert.alert('Tez orada', `"${item.title}" bo'limi tez orada qo'shiladi`);
       return;
     }
-    navigation.navigate(item.screen);
+    navigation.navigate(item.screen as never);
   };
 
   const handleLogout = (): void => {
