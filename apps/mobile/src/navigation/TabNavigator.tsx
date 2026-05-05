@@ -40,6 +40,9 @@ import ReportsHubScreen from '../screens/Finance/ReportsHubScreen';
 import ExchangeRatesScreen from '../screens/Finance/ExchangeRatesScreen';
 import AnalyticsScreen from '../screens/Analytics/AnalyticsScreen';
 import SystemHealthScreen from '../screens/SystemHealth/SystemHealthScreen';
+import EmployeesNavigator from './EmployeesNavigator';
+import DebtsScreen from '../screens/Debts';
+import ShiftsOwnerScreen from '../screens/ShiftsOwner';
 import { getRoleLevel } from '../utils/roles';
 
 // ─── Colors ───────────────────────────────────────────────
@@ -121,6 +124,8 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="LowStockList" component={LowStockScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="SuppliersScreen" component={SuppliersScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="SystemHealthScreen" component={SystemHealthScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="DebtsScreen" component={DebtsScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="ShiftsOwnerScreen" component={ShiftsOwnerScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
   );
 }
@@ -201,6 +206,19 @@ export default function TabNavigator(): React.JSX.Element {
             tabBarLabel: 'Analitika',
             tabBarIcon: ({ focused, color }) =>
               TabIcon(focused, 'bar-chart-outline', 'bar-chart', color),
+          }}
+        />
+      )}
+
+      {/* Tab 3: Xodimlar — faqat OWNER / ADMIN */}
+      {isOwnerAdmin && (
+        <Tab.Screen
+          name="Xodimlar"
+          component={EmployeesNavigator}
+          options={{
+            tabBarLabel: 'Xodimlar',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(focused, 'people-outline', 'people', color),
           }}
         />
       )}
