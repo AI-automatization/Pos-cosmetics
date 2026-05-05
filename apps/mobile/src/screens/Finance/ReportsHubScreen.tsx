@@ -114,6 +114,14 @@ export default function ReportsHubScreen() {
             iconBg:      '#F3F4F6',
             onPress:     () => nav('ReportBuilder'),
           },
+          {
+            title:       'Eksport (CSV)',
+            description: "Sotuvlar, inventar, mijozlarni yuklab olish",
+            iconName:    'download-outline' as const,
+            iconColor:   '#7C3AED',
+            iconBg:      '#F5F3FF',
+            onPress:     () => nav('Export'),
+          },
         ]
       : []),
   ];

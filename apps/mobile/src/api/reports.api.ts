@@ -8,6 +8,14 @@ export interface EmployeeActivity {
   revenue: number;
 }
 
+export type ExportType =
+  | 'sales'
+  | 'order-items'
+  | 'products'
+  | 'inventory'
+  | 'customers'
+  | 'debts';
+
 export const reportsApi = {
   getSalesSummary: async (from: string, to: string): Promise<SalesSummary> => {
     const { data } = await api.get<SalesSummary>('/reports/sales-summary', {
@@ -39,5 +47,16 @@ export const reportsApi = {
       params: { from, to },
     });
     return data;
+  },
+
+  exportDownload: async (
+    type: ExportType,
+    params: { from?: string; to?: string } = {},
+  ): Promise<string> => {
+    const { data } = await api.get<ArrayBuffer>(`/reports/export/${type}`, {
+      params: { ...params, format: 'csv' },
+      responseType: 'arraybuffer',
+    });
+    return new TextDecoder('utf-8').decode(data);
   },
 };
