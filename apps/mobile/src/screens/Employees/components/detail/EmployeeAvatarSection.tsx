@@ -23,6 +23,17 @@ function StatusBadge({ status }: StatusBadgeProps) {
   );
 }
 
+// ─── Role labels ─────────────────────────────────────────────────────────────
+
+const ROLE_LABELS: Record<string, string> = {
+  cashier:   'Kassir',
+  manager:   'Menejer',
+  admin:     'Admin',
+  owner:     'Egasi',
+  warehouse: 'Omborchi',
+  viewer:    'Kuzatuvchi',
+};
+
 // ─── EmployeeAvatarSection ────────────────────────────────────────────────────
 
 interface EmployeeAvatarSectionProps {
@@ -30,6 +41,7 @@ interface EmployeeAvatarSectionProps {
 }
 
 export default function EmployeeAvatarSection({ employee }: EmployeeAvatarSectionProps) {
+  const roleLabel = ROLE_LABELS[employee.role.toLowerCase()] ?? employee.role;
   return (
     <View style={styles.avatarSection}>
       <View style={[styles.avatar, { backgroundColor: Colors.primary }]}>
@@ -38,7 +50,7 @@ export default function EmployeeAvatarSection({ employee }: EmployeeAvatarSectio
         </Text>
       </View>
       <Text style={styles.fullName}>{employee.fullName}</Text>
-      <Text style={styles.roleText}>{employee.role} · {employee.branchName}</Text>
+      <Text style={styles.roleText}>{roleLabel} · {employee.branchName}</Text>
       <StatusBadge status={employee.status} />
     </View>
   );
