@@ -362,4 +362,40 @@ export const inventoryApi = {
     const res = await api.get('/inventory/expired');
     return res.data;
   },
+
+  getStockMovements: async (params?: {
+    page?: number;
+    limit?: number;
+    productId?: string;
+    warehouseId?: string;
+  }): Promise<{
+    items: Array<{
+      id: string;
+      productId: string;
+      product?: { id: string; name: string; sku: string | null };
+      warehouseId: string;
+      warehouse?: { id: string; name: string };
+      type: string;
+      quantity: number;
+      costPrice: number | null;
+      note: string | null;
+      batchNumber: string | null;
+      expiryDate: string | null;
+      userId: string | null;
+      user?: { id: string; firstName: string; lastName: string };
+      refId: string | null;
+      refType: string | null;
+      createdAt: string;
+    }>;
+    total: number;
+    page: number;
+    limit: number;
+  }> => {
+    const res = await api.get('/inventory/movements', { params });
+    // Backend may return array or paginated object
+    if (Array.isArray(res.data)) {
+      return { items: res.data, total: res.data.length, page: 1, limit: res.data.length };
+    }
+    return res.data;
+  },
 };

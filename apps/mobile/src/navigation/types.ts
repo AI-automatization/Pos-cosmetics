@@ -84,6 +84,7 @@ export type MoreStackParamList = {
   StockOutScreen: undefined;
   TransferScreen: undefined;
   ExpiryScreen: undefined;
+  StockMovementsScreen: undefined;
 };
 
 export type RootStackParamList = {

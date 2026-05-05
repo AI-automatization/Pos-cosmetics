@@ -105,6 +105,12 @@ const BOSHQARUV_GROUP: MenuGroup = {
       subtitle: 'Tizim hodisalari',
       screen: 'AuditLogScreen',
     },
+    {
+      icon: 'swap-horizontal-outline' as const,
+      title: 'Harakatlar tarixi',
+      subtitle: 'Stock kirim va chiqim tarixi',
+      screen: 'StockMovementsScreen' as keyof MoreStackParamList,
+    },
   ],
 };
 
