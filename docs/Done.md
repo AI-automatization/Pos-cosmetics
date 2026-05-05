@@ -13,6 +13,38 @@
 
 ---
 
+## T-436 | 2026-05-05 | [MOBILE] | Stock harakatlari tarixi (StockMovements) ekrani qo'shildi
+
+- **Yechim:** `StockMovementsScreen` to'liq implementatsiya qilindi — filtrlash (sana, tur, mahsulot), `GET /inventory/movements` API integratsiyasi, `useStockMovementData` hook, `StockMovementCard`, `StockMovementHeader`, `StockMovementListHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
+- **Fayllar:** `apps/mobile/src/screens/StockMovements/index.tsx`, `StockMovementCard.tsx`, `StockMovementColors.ts`, `StockMovementHeader.tsx`, `StockMovementListHeader.tsx`, `StockMovementTypes.ts`, `useStockMovementData.ts`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `8ec446d`
+
+---
+
+## T-435 | 2026-05-05 | [MOBILE] | Muddati o'tish (Expiry) kuzatuvi ekrani qo'shildi
+
+- **Yechim:** `ExpiryScreen` to'liq implementatsiya qilindi — muddati yaqinlashgan va o'tgan mahsulotlar ro'yxati, `GET /inventory/expiry` API integratsiyasi, `useExpiryData` hook, `ExpiryProductCard`, `ExpiryHeader`, `ExpiryListHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
+- **Fayllar:** `apps/mobile/src/screens/Expiry/index.tsx`, `ExpiryColors.ts`, `ExpiryHeader.tsx`, `ExpiryListHeader.tsx`, `ExpiryProductCard.tsx`, `ExpiryTypes.ts`, `useExpiryData.ts`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `dcb9560`
+
+---
+
+## T-434 | 2026-05-05 | [MOBILE] | Stock Transfer (O'tkazma) ekrani qo'shildi
+
+- **Yechim:** `StockTransferScreen` to'liq implementatsiya qilindi — omborlar/filiallar o'rtasida mahsulot ko'chirish, `POST /inventory/transfers` API integratsiyasi, `NewTransferSheet` bottom sheet, `useStockTransferData` hook, `StockTransferProductCard`, `StockTransferHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
+- **Fayllar:** `apps/mobile/src/screens/StockTransfer/index.tsx`, `NewTransferSheet.tsx`, `StockTransferColors.ts`, `StockTransferHeader.tsx`, `StockTransferProductCard.tsx`, `StockTransferTypes.ts`, `useStockTransferData.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `6b7934d`
+
+---
+
+## T-433 | 2026-05-05 | [MOBILE] | Stock Out (Hisobdan chiqarish) ekrani qo'shildi
+
+- **Yechim:** `StockOutScreen` to'liq implementatsiya qilindi — mahsulotdan miqdor chiqarish, `POST /inventory/movements` (type: OUT) API integratsiyasi, `NewStockOutSheet` bottom sheet, `useStockOutData` hook, `StockOutProductCard`, `StockOutHeader`, `StockOutListHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
+- **Fayllar:** `apps/mobile/src/screens/StockOut/index.tsx`, `NewStockOutSheet.tsx`, `StockOutColors.ts`, `StockOutHeader.tsx`, `StockOutListHeader.tsx`, `StockOutProductCard.tsx`, `StockOutTypes.ts`, `useStockOutData.ts`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+- **Commit:** `428cae9`
+
+---
+
 ## T-405 | 2026-04-30 | [MOBILE] | Staff app — WAREHOUSE roli uchun ombor-focused UI
 
 - **Yechim:** TabNavigator da WAREHOUSE roli uchun tab almashtirish implementatsiya qilindi — Savdo tabi Kirim (stock-in) ga, Katalog tabi Inventarizatsiya (stock count) ga almashdi; Ko'proq menusida WAREHOUSE_GROUP ekranlar qo'shildi

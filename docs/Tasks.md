@@ -272,54 +272,6 @@
 
 ---
 
-## T-433 | P2 | [MOBILE] | Stock Out (Chiqim) ekrani — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN, MANAGER
-- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
-- **Muammo:** Web da `/inventory/stock-in` va `/inventory/stock-out` mavjud. Mobileda faqat `Kirim` (stock in) ekrani bor, `Stock Out` (chiqim, inventardan chiqarish) ekrani yo'q.
-- **Kutilgan:** Mahsulotdan miqdor chiqarish imkoniyati. `POST /inventory/movements` (type: OUT) API chaqiruvi.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/stock-out/`
-
----
-
-## T-434 | P2 | [MOBILE] | Stock Transfer ekrani — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN, MANAGER
-- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
-- **Muammo:** Web da `/inventory/transfer` orqali filiallar/omborlar o'rtasida stock ko'chirish mumkin. Mobileda bu imkoniyat yo'q.
-- **Kutilgan:** Ombordan ombor/filialga mahsulot ko'chirish ekrani. `POST /inventory/transfers` API.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/transfer/`
-
----
-
-## T-435 | P2 | [MOBILE] | Muddati o'tish (Expiry) boshqaruvi — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN, MANAGER, WAREHOUSE
-- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
-- **Muammo:** Web da `/inventory/expiry` orqali muddati tugaydigan mahsulotlar kuzatiladi. Kosmetika POS uchun muhim feature. Mobileda yo'q.
-- **Kutilgan:** Muddati yaqinlashgan va o'tgan mahsulotlar ro'yxati. `GET /inventory/expiry` API.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/expiry/`
-
----
-
-## T-436 | P2 | [MOBILE] | Stock harakatlari tarixi — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN, MANAGER
-- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
-- **Muammo:** Web da `/inventory/movements` orqali har bir mahsulot bo'yicha kirim/chiqim tarixi ko'rinadi. Mobileda bu history screen yo'q.
-- **Kutilgan:** Filtrlash (sana, tur, mahsulot) bilan stock movement log. `GET /inventory/movements` API.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/movements/`
-
----
-
 ## T-437 | P2 | [MOBILE] | Buyurtmalar (Sales Orders) admin ko'rinishi — mobileda yo'q
 
 - **Sana:** 2026-05-05
@@ -563,7 +515,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **31** | **3** | **9** | **13** | **6** |
+| **27** | **3** | **9** | **9** | **6** |
 
 ### Kategoriya bo'yicha
 
@@ -571,9 +523,9 @@
 |-----------|----|----|----|----|------|
 | [BACKEND] | 1 | 2 | 5 | 4 | **12** |
 | [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
-| [MOBILE] | 0 | 5 | 8 | 4 | **17** |
+| [MOBILE] | 0 | 5 | 4 | 4 | **13** |
 | [SECURITY] | 2 | 1 | 0 | 0 | **3** |
-| [IKKALASI] | 0 | 1 | 0 | 1 | **2** |
+| [IKKALASI] | 0 | 2 | 0 | 1 | **3** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
 
 ### Mas'uliyat taqsimoti
@@ -581,11 +533,11 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 3 | 3 | 5 | 0 | **11** |
-| **Abdulaziz** (Mobile) | 0 | 5 | 9 | 4 | **18** |
+| **Abdulaziz** (Mobile) | 0 | 5 | 5 | 4 | **14** |
 | **Belgilanmagan** | 0 | 0 | 0 | 2 | **2** |
 | **Ibrat + Abdulaziz** | 0 | 1 | 0 | 0 | **1** |
 
-> Yangilandi: 2026-05-05 — T-433..T-446 qo'shildi (web da bor, mobileda yo'q featurelar)
+> Yangilandi: 2026-05-05 — T-433..T-436 Done.md ga ko'chirildi (git da bajarilgan)
 
 ---
 
