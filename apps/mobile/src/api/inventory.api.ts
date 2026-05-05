@@ -316,4 +316,25 @@ export const inventoryApi = {
       status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
     };
   },
+
+  writeOff: async (body: {
+    items: Array<{ productId: string; qty: number }>;
+    reason: 'DAMAGED' | 'EXPIRED' | 'LOST' | 'OTHER';
+    note?: string;
+    warehouseId?: string;
+  }): Promise<{ created: number; reason: string; movements: unknown[] }> => {
+    const res = await api.post('/inventory/write-off', body);
+    return res.data;
+  },
+
+  getWarehouses: async (): Promise<Array<{
+    id: string;
+    name: string;
+    branchId: string | null;
+    isActive: boolean;
+    branch?: { id: string; name: string };
+  }>> => {
+    const res = await api.get('/inventory/warehouses');
+    return res.data;
+  },
 };

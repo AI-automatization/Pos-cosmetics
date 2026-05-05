@@ -139,8 +139,7 @@ const WAREHOUSE_GROUP: MenuGroup = {
       icon: 'trash-outline',
       title: 'Hisobdan chiqarish',
       subtitle: 'Write-off',
-      screen: null,
-      badge: 'Tez orada',
+      screen: 'StockOutScreen' as keyof MoreStackParamList,
     },
     {
       icon: 'time-outline',

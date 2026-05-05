@@ -81,6 +81,7 @@ export type MoreStackParamList = {
   EmployeesScreen: undefined;
   EmployeeDetailScreen: { employeeId: string; employeeName: string };
   AddEmployeeScreen: undefined;
+  StockOutScreen: undefined;
 };
 
 export type RootStackParamList = {
