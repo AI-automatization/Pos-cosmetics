@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { C } from './types';
 
 interface RequestFooterProps {
   onCancel: () => void;
   onSubmit: () => void;
+  loading?: boolean;
 }
 
-export default function RequestFooter({ onCancel, onSubmit }: RequestFooterProps) {
+export default function RequestFooter({ onCancel, onSubmit, loading = false }: RequestFooterProps) {
   return (
     <View style={styles.footer}>
       <View style={styles.footerButtons}>
@@ -16,17 +17,25 @@ export default function RequestFooter({ onCancel, onSubmit }: RequestFooterProps
           style={styles.cancelBtn}
           onPress={onCancel}
           activeOpacity={0.75}
+          disabled={loading}
         >
           <Text style={styles.cancelBtnText}>Bekor qilish</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.submitBtn}
+          style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
           onPress={onSubmit}
           activeOpacity={0.8}
+          disabled={loading}
         >
-          <Ionicons name="send" size={16} color={C.white} />
-          <Text style={styles.submitBtnText}>Yuborish</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color={C.white} />
+          ) : (
+            <>
+              <Ionicons name="send" size={16} color={C.white} />
+              <Text style={styles.submitBtnText}>Yuborish</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -76,6 +85,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+  },
+  submitBtnDisabled: {
+    opacity: 0.65,
   },
   submitBtnText: {
     fontSize: 15,

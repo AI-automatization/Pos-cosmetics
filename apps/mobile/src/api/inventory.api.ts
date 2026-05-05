@@ -116,6 +116,39 @@ export interface TransferItem {
   warehouseId?: string;
 }
 
+export type InventoryItemStatus = 'out_of_stock' | 'low' | 'normal' | 'expiring' | 'expired';
+
+export interface InventoryItem {
+  productId: string;
+  productName: string;
+  barcode: string | null;
+  branchName: string | null;
+  branchId: string | null;
+  quantity: number;
+  unit: string;
+  stockValue: number;
+  expiryDate: string | null;
+  status: InventoryItemStatus;
+}
+
+export interface InventoryItemsResponse {
+  items: InventoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface RestockRequestBody {
+  productId: string;
+  productName: string;
+  currentStock: number;
+}
+
+export interface RestockRequestResponse {
+  success: boolean;
+  notifiedCount: number;
+}
+
 export interface CreateTransferBody {
   fromBranchId: string;
   toBranchId: string;
@@ -209,6 +242,22 @@ export const inventoryApi = {
         expiryDate: item.expiryDate,
       })),
     };
+  },
+
+  getInventoryItems: async (params?: {
+    branchId?: string;
+    status?: InventoryItemStatus;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<InventoryItemsResponse> => {
+    const { data } = await api.get<InventoryItemsResponse>('/inventory/items', { params });
+    return data;
+  },
+
+  sendRestockRequest: async (body: RestockRequestBody): Promise<RestockRequestResponse> => {
+    const { data } = await api.post<RestockRequestResponse>('/inventory/restock-request', body);
+    return data;
   },
 
   createTransfer: async (body: CreateTransferBody): Promise<CreateTransferResponse> => {

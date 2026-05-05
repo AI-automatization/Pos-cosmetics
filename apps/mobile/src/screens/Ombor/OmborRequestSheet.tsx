@@ -11,10 +11,12 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   TextInput,
+  Alert,
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { LowStockItem } from '../../api/inventory.api';
+import { inventoryApi } from '../../api/inventory.api';
 
 import { C, getStatus, buildRequestItems } from './components/types';
 import type { RequestItem } from './components/types';
@@ -37,6 +39,7 @@ export default function OmborRequestSheet({ visible, onClose, items }: Props) {
   const [cameraOpen, setCameraOpen]       = useState(false);
   const [isScanActive, setIsScanActive]   = useState(true);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const [loading, setLoading]             = useState(false);
 
   // Re-initialise items each time sheet opens
   React.useEffect(() => {
@@ -103,9 +106,34 @@ export default function OmborRequestSheet({ visible, onClose, items }: Props) {
     setIsScanActive(true);
   };
 
-  const handleSubmit = () => {
-    // API integration is a separate task — just close for now.
-    onClose();
+  const handleSubmit = async () => {
+    const selected = requestItems.filter((item) => item.checked && item.qty > 0);
+    if (selected.length === 0) {
+      Alert.alert("Tanlang", "Kamida bitta mahsulot tanlang.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await Promise.all(
+        selected.map((item) =>
+          inventoryApi.sendRestockRequest({
+            productId:    item.productId,
+            productName:  item.productName,
+            currentStock: item.stock,
+          }),
+        ),
+      );
+      Alert.alert(
+        "Yuborildi",
+        `${selected.length} ta mahsulot bo'yicha so'rov omborchiga yuborildi.`,
+        [{ text: "OK", onPress: onClose }],
+      );
+    } catch {
+      Alert.alert("Xatolik", "So'rov yuborishda xatolik yuz berdi. Qayta urinib ko'ring.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openCamera = () => { setIsScanActive(true); setCameraOpen(true); };
@@ -174,7 +202,7 @@ export default function OmborRequestSheet({ visible, onClose, items }: Props) {
             ))}
           </ScrollView>
 
-          <RequestFooter onCancel={onClose} onSubmit={handleSubmit} />
+          <RequestFooter onCancel={onClose} onSubmit={() => { void handleSubmit(); }} loading={loading} />
         </View>
 
         {/* Camera overlay — inside Modal, avoids iOS nested-modal issue */}
