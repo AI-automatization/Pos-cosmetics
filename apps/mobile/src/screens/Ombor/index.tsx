@@ -12,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useOmborData } from './useOmborData';
 import OmborRequestSheet from './OmborRequestSheet';
-import ShiftGuard from '../../components/common/ShiftGuard';
 import { C } from './OmborColors';
 import { getStatus, type FilterTab } from './OmborTypes';
 import OmborHeader from './OmborHeader';
@@ -76,8 +75,7 @@ export default function OmborScreen() {
   }
 
   return (
-    <ShiftGuard>
-      <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
         <OmborHeader />
 
         <FlatList
@@ -117,7 +115,6 @@ export default function OmborScreen() {
           items={allItems}
         />
       </SafeAreaView>
-    </ShiftGuard>
   );
 }
 

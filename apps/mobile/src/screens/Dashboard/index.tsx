@@ -86,6 +86,7 @@ export default function DashboardScreen() {
 
   const { user } = useAuthStore();
   const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
+  const isWarehouse = user?.role === 'WAREHOUSE';
   const { openShift, closeShift } = useShiftStore();
   const [loading, setLoading] = useState(false);
   const [openSheetVisible, setOpenSheetVisible] = useState(false);
@@ -189,7 +190,7 @@ export default function DashboardScreen() {
         }
       >
         {/* Smena banner yoki ActiveShiftCard — OWNER/ADMIN uchun emas */}
-        {!isOwnerAdmin && (!shift ? (
+        {!isOwnerAdmin && !isWarehouse && (!shift ? (
           <View style={styles.smenaBanner}>
             <View style={styles.smenaBannerLeft}>
               <Ionicons name="time-outline" size={20} color="#D97706" />
