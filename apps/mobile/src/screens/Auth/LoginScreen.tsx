@@ -250,7 +250,7 @@ export default function LoginScreen({ navigation }: Props) {
                 setLoading(true);
                 try {
                   const demoSlug = 'kosmetika-demo';
-                  const demoEmail = 'cashier@raos.uz';
+                  const demoEmail = 'owner@raos.uz';
                   const demoPass = 'Demo1234!';
                   const res = await authApi.login({ slug: demoSlug, email: demoEmail, password: demoPass });
                   await SecureStore.setItemAsync('access_token', res.accessToken);
