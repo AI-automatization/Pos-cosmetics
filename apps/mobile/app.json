@@ -15,6 +15,10 @@
       "adaptiveIcon": {
         "backgroundColor": "#6366F1"
       },
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "plugins": [
       "expo-secure-store",
@@ -30,8 +34,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "raos-mobile"
+        "projectId": "a7b6eeff-ea24-4713-a3ca-12887bc805fb"
       }
-    }
+    },
+    "owner": "mirzaevv077"
   }
 }

@@ -1,5 +1,20 @@
 {
   "ios": {
     "bundleIdentifier": "com.mirzaevv077.raos"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "d0d09e97-7e25-4568-9456-fed783ec54a0"
+    }
+  },
+  "expo": {
+    "android": {
+      "package": "com.mirzaevv077.raos"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d0d09e97-7e25-4568-9456-fed783ec54a0"
+      }
+    }
   }
 }
