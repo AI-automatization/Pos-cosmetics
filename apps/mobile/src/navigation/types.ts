@@ -13,6 +13,7 @@ export type SalesStackParamList = {
 export type TabParamList = {
   BoshSahifa: undefined;
   Analytics: undefined;
+  Xodimlar: undefined;
   Savdo: undefined;
   Katalog: undefined;
   Moliya: undefined;
@@ -75,6 +76,11 @@ export type MoreStackParamList = {
   LowStockList: undefined;
   SuppliersScreen: undefined;
   SystemHealthScreen: undefined;
+  DebtsScreen: undefined;
+  ShiftsOwnerScreen: undefined;
+  EmployeesScreen: undefined;
+  EmployeeDetailScreen: { employeeId: string; employeeName: string };
+  AddEmployeeScreen: undefined;
 };
 
 export type RootStackParamList = {
@@ -116,4 +122,15 @@ export type SettingsStackParamList = {
 export type NasiyaStackParamList = {
   NasiyaList: undefined;
   DebtDetail: { debtorId: string; customerName: string };
+};
+
+export type EmployeesStackParamList = {
+  EmployeeList: undefined;
+  EmployeeDetail: { employeeId: string; employeeName: string };
+  AddEmployee: undefined;
+};
+
+export type ShiftsOwnerStackParamList = {
+  ShiftList: undefined;
+  ShiftDetail: { shiftId: string };
 };
