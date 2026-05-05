@@ -58,8 +58,8 @@ export default function HRScreen() {
     </TouchableOpacity>
   );
 
-  return (
-    <ScreenLayout title="Xodimlar (HR)" rightAction={addButton}>
+  const listHeader = (
+    <>
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{allEmployees.length}</Text>
@@ -87,30 +87,33 @@ export default function HRScreen() {
         ))}
       </View>
 
-      {employees.isLoading ? (
-        <LoadingSpinner />
-      ) : (
-        <FlatList<Employee>
-          data={filtered}
-          keyExtractor={(e) => e.id}
-          renderItem={({ item }) => (
-            <HREmployeeRow
-              employee={item}
-              onToggleStatus={handleToggle}
-              onPress={() =>
-                navigation.navigate('EmployeeDetail', {
-                  employeeId: item.id,
-                  employeeName: item.fullName,
-                })
-              }
-            />
-          )}
-          refreshing={employees.isFetching}
-          onRefresh={() => { void employees.refetch(); }}
-          ListEmptyComponent={<EmptyState message="Xodimlar topilmadi" />}
-        />
-      )}
+      {employees.isLoading && <LoadingSpinner />}
+    </>
+  );
 
+  return (
+    <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false}>
+      <FlatList<Employee>
+        data={employees.isLoading ? [] : filtered}
+        keyExtractor={(e) => e.id}
+        ListHeaderComponent={listHeader}
+        renderItem={({ item }) => (
+          <HREmployeeRow
+            employee={item}
+            onToggleStatus={handleToggle}
+            onPress={() =>
+              navigation.navigate('EmployeeDetail', {
+                employeeId: item.id,
+                employeeName: item.fullName,
+              })
+            }
+          />
+        )}
+        refreshing={employees.isFetching}
+        onRefresh={() => { void employees.refetch(); }}
+        ListEmptyComponent={employees.isLoading ? null : <EmptyState message="Xodimlar topilmadi" />}
+        style={styles.list}
+      />
       <HRInviteSheet
         visible={showInvite}
         onClose={() => setShowInvite(false)}
@@ -127,6 +130,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 8, padding: 12,
     backgroundColor: Colors.bgSurface, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
+  list: { flex: 1 },
   statCard: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: Radii.md, backgroundColor: Colors.bgSubtle },
   statGreen: { backgroundColor: Colors.successLight },
   statRed: { backgroundColor: Colors.dangerLight },
