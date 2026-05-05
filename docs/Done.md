@@ -13,6 +13,16 @@
 
 ---
 
+## T-446 | 2026-05-05 | [MOBILE] | Vazifalar (Tasks) boshqaruvi
+
+- **Yechim:** `TasksScreen.tsx` (238 qator) + `TaskCard.tsx` (96 qator, React.memo) yaratildi — status filter pills (Barchasi/Kutilmoqda/Jarayonda/Bajarildi), FlatList, status cycling (PENDING→IN_PROGRESS→DONE), create modal, delete confirm. `tasks.api.ts` yaratildi (list/create/update/remove). MoreMenu BIZNES_GROUP da "Vazifalar" (roleLevel≥3). Navigation yangilandi.
+- **Fayllar:** `apps/mobile/src/screens/Tasks/TasksScreen.tsx`, `apps/mobile/src/screens/Tasks/TaskCard.tsx`, `apps/mobile/src/api/tasks.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
+
+## T-445 | 2026-05-05 | [MOBILE] | Billing/Obuna boshqaruvi
+
+- **Yechim:** `BillingScreen.tsx` (214 qator) yaratildi — joriy obuna holati (status badge, tarif nomi, muddat), foydalanish progress bars (filiallar/mahsulotlar/xodimlar), mavjud tariflar ro'yxati. `billing.api.ts` yaratildi (getSubscription/getPlans/getUsage). Settings da OWNER uchun "Obuna va tarif" bo'limi. Navigation yangilandi.
+- **Fayllar:** `apps/mobile/src/screens/Billing/BillingScreen.tsx`, `apps/mobile/src/api/billing.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/Settings/index.tsx`
+
 ## T-444 | 2026-05-05 | [MOBILE] | Hisobot eksport (CSV/Excel)
 
 - **Yechim:** `ExportScreen.tsx` (203 qator) + `ExportCard.tsx` (91 qator, React.memo) yaratildi — 6 eksport turi (sales/order-items/products/inventory/customers/debts), period pills (7/30/90 kun), FlatList, `Share.share()` orqali CSV yuborish. `reports.api.ts` ga `ExportType` va `exportDownload()` (arraybuffer→TextDecoder) qo'shildi. `ReportsHubScreen` da OWNER/ADMIN uchun "Eksport (CSV)" kartasi. Navigation va TabNavigator yangilandi. CLAUDE_MOBILE.md audit: backBtn 40→48dp tuzatildi.

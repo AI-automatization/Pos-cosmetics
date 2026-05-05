@@ -266,30 +266,6 @@
 
 ---
 
-## T-445 | P3 | [MOBILE] | Billing/Obuna boshqaruvi — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER (faqat)
-- **Fayl:** `apps/mobile/src/screens/Settings/` (kengaytirish)
-- **Muammo:** Web da `/settings/billing` orqali OWNER obuna holatini ko'ra oladi. Mobileda `Ko'proq → Settings` da billing bo'limi yo'q.
-- **Kutilgan:** Settings da obuna holati, joriy plan, muddati. `GET /billing/subscription` API.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/settings/billing/`, T-380
-
----
-
-## T-446 | P3 | [MOBILE] | Task boshqaruvi — mobileda yo'q
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Rol:** OWNER, ADMIN, MANAGER
-- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
-- **Muammo:** Web da `/tasks` orqali ichki vazifalar yaratish va kuzatish mumkin. Mobileda yo'q.
-- **Kutilgan:** `Ko'proq` menyusida "Vazifalar" — CRUD, status, mas'ul belgilash.
-- **Bog'liq:** Web: `apps/web/src/app/(admin)/tasks/`
-
----
-
 ---
 
 ---
