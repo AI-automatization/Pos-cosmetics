@@ -16,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { Receipt } from '../../api/inventory.api';
 import { useKirimData } from './useKirimData';
-import ShiftGuard from '../../components/common/ShiftGuard';
 import { useAuthStore } from '../../store/auth.store';
 import NewReceiptSheet from './NewReceiptSheet';
 import { DetailSheet } from './KirimDetailSheet';
@@ -170,8 +169,7 @@ export default function KirimScreen() {
   };
 
   return (
-    <ShiftGuard>
-      <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Kirimlar</Text>
           <TouchableOpacity
@@ -234,7 +232,6 @@ export default function KirimScreen() {
           transferMutation={transfer}
         />
       </SafeAreaView>
-    </ShiftGuard>
   );
 }
 
