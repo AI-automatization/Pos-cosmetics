@@ -127,7 +127,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
+      <div className="relative z-10 w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-lg font-bold text-gray-900">
             {product ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot qo\'shish'}
