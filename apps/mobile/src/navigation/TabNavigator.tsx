@@ -47,6 +47,8 @@ import StockOutScreen from '../screens/StockOut';
 import StockTransferScreen from '../screens/StockTransfer';
 import ExpiryScreen from '../screens/Expiry';
 import StockMovementsScreen from '../screens/StockMovements';
+import SalesOrdersScreen from '../screens/SalesOrders';
+import SalesReturnsScreen from '../screens/SalesReturns';
 import { getRoleLevel } from '../utils/roles';
 
 // ─── Colors ───────────────────────────────────────────────
@@ -134,6 +136,8 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="TransferScreen" component={StockTransferScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="ExpiryScreen" component={ExpiryScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="StockMovementsScreen" component={StockMovementsScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SalesOrdersScreen" component={SalesOrdersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SalesReturnsScreen" component={SalesReturnsScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
   );
 }

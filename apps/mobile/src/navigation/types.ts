@@ -85,6 +85,8 @@ export type MoreStackParamList = {
   TransferScreen: undefined;
   ExpiryScreen: undefined;
   StockMovementsScreen: undefined;
+  SalesOrdersScreen: undefined;
+  SalesReturnsScreen: undefined;
 };
 
 export type RootStackParamList = {
@@ -137,4 +139,9 @@ export type EmployeesStackParamList = {
 export type ShiftsOwnerStackParamList = {
   ShiftList: undefined;
   ShiftDetail: { shiftId: string };
+};
+
+export type SalesOrdersStackParamList = {
+  SalesOrderList: undefined;
+  SalesOrderDetail: { orderId: string; orderNumber: number };
 };

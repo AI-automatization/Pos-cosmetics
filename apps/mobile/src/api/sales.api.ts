@@ -126,4 +126,11 @@ export const salesApi = {
     const { data } = await api.post<Order>('/sales/orders', payload);
     return data;
   },
+
+  returnOrder: async (
+    orderId: string,
+    body: { items: { productId: string; quantity: number }[]; reason: string },
+  ): Promise<void> => {
+    await api.post(`/sales/orders/${orderId}/return`, body);
+  },
 };

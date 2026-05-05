@@ -143,8 +143,6 @@ const WAREHOUSE_GROUP: MenuGroup = {
     },
     {
       icon: 'swap-horizontal-outline' as const,
-      iconBg: '#EFF6FF',
-      iconColor: '#2563EB',
       title: "O'tkazma",
       subtitle: "Filiallar orasida tovar ko'chirish",
       screen: 'TransferScreen' as keyof MoreStackParamList,
@@ -238,7 +236,17 @@ export default function MoreMenuScreen(): React.JSX.Element {
           : INVENTAR_GROUP.items,
       },
       ...(user?.role === 'WAREHOUSE' ? [WAREHOUSE_GROUP] : []),
-      BIZNES_GROUP,
+      {
+        ...BIZNES_GROUP,
+        items: roleLevel >= 3
+          ? [
+              ...BIZNES_GROUP.items.slice(0, 4),
+              { icon: 'receipt-outline' as const, title: 'Buyurtmalar', subtitle: 'Sotuv tarixi', screen: 'SalesOrdersScreen' as keyof MoreStackParamList },
+              { icon: 'return-down-back-outline' as const, title: 'Qaytarish', subtitle: 'Mahsulot qaytarish', screen: 'SalesReturnsScreen' as keyof MoreStackParamList },
+              ...BIZNES_GROUP.items.slice(4),
+            ]
+          : BIZNES_GROUP.items,
+      },
       ...(roleLevel >= 3 ? [{
         ...BOSHQARUV_GROUP,
         items: roleLevel >= 4
