@@ -54,7 +54,7 @@ function getTypeLabel(type: PromotionType): string {
 
 function getTypeIcon(type: PromotionType): keyof typeof Ionicons.glyphMap {
   switch (type) {
-    case 'PERCENT': return 'percent-outline';
+    case 'PERCENT': return 'pricetag-outline';
     case 'FIXED': return 'cash-outline';
     case 'BUY_X_GET_Y': return 'gift-outline';
     case 'BUNDLE': return 'layers-outline';
