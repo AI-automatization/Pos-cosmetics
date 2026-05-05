@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 interface ImageUploadProps {
   value: string;
   onChange: (url: string) => void;
+  className?: string;
 }
 
-export function ImageUpload({ value, onChange }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -41,7 +42,7 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
   );
 
   return (
-    <div className="col-span-2">
+    <div className={cn('col-span-2', className)}>
       <label className="mb-1 block text-sm font-medium text-gray-700">Rasm</label>
 
       {value ? (

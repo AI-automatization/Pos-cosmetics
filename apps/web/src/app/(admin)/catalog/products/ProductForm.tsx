@@ -85,10 +85,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
     ((product as unknown as Record<string, unknown>)?.imageUrl as string) ?? '',
   );
 
-  // Custom unit state
-  const [unitMode, setUnitMode] = useState<'existing' | 'custom'>(
-    product?.unitId ? 'existing' : 'existing',
-  );
+  const [unitMode, setUnitMode] = useState<'existing' | 'custom'>('existing');
   const [customUnitName, setCustomUnitName] = useState('');
   const [customUnitShort, setCustomUnitShort] = useState('');
   const [isCreatingUnit, setIsCreatingUnit] = useState(false);
@@ -141,9 +138,11 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="max-h-[82vh] overflow-y-auto p-6">
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Nomi" error={errors.name?.message} required className="col-span-2">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-5">
+          <div className="grid grid-cols-3 gap-3">
+
+            {/* Row 1: Name full width */}
+            <Field label="Nomi" error={errors.name?.message} required className="col-span-3">
               <input
                 {...register('name')}
                 placeholder="Masalan: Nivea krem 100ml"
@@ -151,11 +150,46 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               />
             </Field>
 
-            {/* SKU — optional with toggle */}
-            <div className="col-span-2">
+            {/* Row 2: Category | Supplier | SKU */}
+            <Field label="Kategoriya" error={errors.categoryId?.message}>
+              <Controller
+                control={control}
+                name="categoryId"
+                render={({ field }) => (
+                  <SearchableDropdown
+                    options={categoryOptions}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    placeholder="Kategoriya..."
+                    searchPlaceholder="Qidirish..."
+                    required
+                  />
+                )}
+              />
+            </Field>
+
+            <Field label="Yetkazib beruvchi">
+              <Controller
+                control={control}
+                name="supplierId"
+                render={({ field }) => (
+                  <SearchableDropdown
+                    options={supplierOptions}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    placeholder="Kontragent..."
+                    searchPlaceholder="Nomi..."
+                    clearable
+                  />
+                )}
+              />
+            </Field>
+
+            <div>
               {showSku ? (
                 <Field label="SKU" error={errors.sku?.message}>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     <input {...register('sku')} placeholder="NIV-001" className={`${inputCls} flex-1`} />
                     {!product && (
                       <button
@@ -167,7 +201,6 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                       </button>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-gray-400">Ixtiyoriy — bo&apos;sh qolsa avtomatik yaratiladi</p>
                 </Field>
               ) : (
                 <div>
@@ -175,51 +208,31 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                   <button
                     type="button"
                     onClick={() => setShowSku(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-3.5 py-2.5 text-sm text-gray-500 transition-colors hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-300 px-3 py-2.5 text-sm text-gray-500 transition-colors hover:border-blue-400 hover:text-blue-600"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     SKU qo&apos;shish
                   </button>
-                  <p className="mt-1 text-xs text-gray-400">Ixtiyoriy — avtomatik generatsiya qilinadi</p>
                 </div>
               )}
             </div>
 
-            {/* Barcodes */}
+            {/* Row 3: Barcode (span-2) | Unit (span-1) */}
             <BarcodeFields
               register={register}
               fields={fields}
               append={append}
               remove={remove}
               setValue={(name, value) => setValue(name, value)}
+              className="col-span-2"
             />
 
-            {/* Category */}
-            <Field label="Kategoriya" error={errors.categoryId?.message} className="col-span-2">
-              <Controller
-                control={control}
-                name="categoryId"
-                render={({ field }) => (
-                  <SearchableDropdown
-                    options={categoryOptions}
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    placeholder="Kategoriya tanlang..."
-                    searchPlaceholder="Kategoriya qidirish..."
-                    required
-                  />
-                )}
-              />
-            </Field>
-
-            {/* Unit — o'lchov birligi */}
-            <div className="col-span-2">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 O&apos;lchov birligi
-                <span className="ml-1 text-xs font-normal text-gray-400">(ixtiyoriy)</span>
+                <span className="ml-1 text-xs font-normal text-gray-400">(ixt.)</span>
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1">
                 {units.map((u) => (
                   <button
                     key={u.id}
@@ -229,17 +242,15 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                       setUnitMode('existing');
                     }}
                     className={cn(
-                      'rounded-xl border px-4 py-2 text-sm font-medium transition',
+                      'rounded-lg border px-2 py-1 text-xs font-medium transition',
                       selectedUnitId === u.id && unitMode === 'existing'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
                     )}
                   >
-                    {u.name}
-                    <span className="ml-1 text-xs text-gray-400">({u.shortName})</span>
+                    {u.shortName}
                   </button>
                 ))}
-                {/* Boshqa */}
                 <button
                   type="button"
                   onClick={() => {
@@ -247,80 +258,60 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                     setUnitMode('custom');
                   }}
                   className={cn(
-                    'rounded-xl border px-4 py-2 text-sm font-medium transition',
+                    'rounded-lg border px-2 py-1 text-xs font-medium transition',
                     unitMode === 'custom'
                       ? 'border-orange-400 bg-orange-50 text-orange-700'
-                      : 'border-dashed border-gray-300 text-gray-500 hover:border-orange-300 hover:text-orange-600',
+                      : 'border-dashed border-gray-300 text-gray-500 hover:border-orange-300',
                   )}
                 >
                   + Boshqa
                 </button>
               </div>
-
-              {/* Custom unit inputs */}
-              {unitMode === 'custom' && (
-                <div className="mt-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">
-                      Nomi <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={customUnitName}
-                      onChange={(e) => setCustomUnitName(e.target.value)}
-                      placeholder="Masalan: Kilogram"
-                      className={inputCls}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">
-                      Qisqa nom <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={customUnitShort}
-                      onChange={(e) => setCustomUnitShort(e.target.value)}
-                      placeholder="Masalan: kg"
-                      className={inputCls}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Supplier */}
-            <div className="col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Yetkazib beruvchi
-                <span className="ml-1 text-xs font-normal text-gray-400">(ixtiyoriy)</span>
-              </label>
-              <Controller
-                control={control}
-                name="supplierId"
-                render={({ field }) => (
-                  <SearchableDropdown
-                    options={supplierOptions}
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    placeholder="Kontragent tanlang..."
-                    searchPlaceholder="Nomi yoki kompaniya..."
-                    clearable
+            {/* Custom unit row — full width, only when needed */}
+            {unitMode === 'custom' && (
+              <div className="col-span-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                    Nomi <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={customUnitName}
+                    onChange={(e) => setCustomUnitName(e.target.value)}
+                    placeholder="Kilogram"
+                    className={inputCls}
                   />
-                )}
-              />
-            </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                    Qisqa nom <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={customUnitShort}
+                    onChange={(e) => setCustomUnitShort(e.target.value)}
+                    placeholder="kg"
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+            )}
 
+            {/* Row 4: Description (span-2) | Image (span-1) */}
             <Field label="Tavsif" error={errors.description?.message} className="col-span-2">
               <textarea
                 {...register('description')}
-                rows={3}
+                rows={2}
                 placeholder="Mahsulot haqida qisqacha ma'lumot..."
                 className={`${inputCls} resize-none`}
               />
             </Field>
 
-            <ImageUpload value={imageUrl} onChange={setImageUrl} />
+            <ImageUpload value={imageUrl} onChange={setImageUrl} className="col-span-1" />
 
+            {/* Row 5: Cost | Sell | Margin */}
             <Field label="Kelish narxi (so'm)" error={errors.costPrice?.message} required>
               <input
                 {...register('costPrice')}
@@ -341,21 +332,14 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               />
             </Field>
 
-            <MarginBadge costPrice={Number(costPrice)} sellPrice={Number(sellPrice)} />
+            <MarginBadge
+              costPrice={Number(costPrice)}
+              sellPrice={Number(sellPrice)}
+              className="col-span-1 self-end"
+            />
 
-            {!product && (
-              <Field label="Boshlang'ich zaxira (dona)" error={errors.initialStock?.message} className="col-span-2">
-                <input
-                  {...register('initialStock')}
-                  type="number"
-                  min={0}
-                  placeholder="Masalan: 10"
-                  className={inputCls}
-                />
-              </Field>
-            )}
-
-            <Field label="Minimal zaxira" error={errors.minStockLevel?.message} className="col-span-2">
+            {/* Row 6: Min stock | Initial stock */}
+            <Field label="Minimal zaxira" error={errors.minStockLevel?.message}>
               <input
                 {...register('minStockLevel')}
                 type="number"
@@ -364,9 +348,21 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               />
             </Field>
 
+            {!product && (
+              <Field label="Boshlang'ich zaxira (dona)" error={errors.initialStock?.message} className="col-span-2">
+                <input
+                  {...register('initialStock')}
+                  type="number"
+                  min={0}
+                  placeholder="10"
+                  className={inputCls}
+                />
+              </Field>
+            )}
+
           </div>
 
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="mt-4 flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
