@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-04-30 (T-379, T-397, T-398, T-399, T-400, T-402, T-403, T-404, T-405 Done.md ga ko'chirildi)
+# Yangilangan: 2026-05-05 (T-433..T-446 qo'shildi — web/mobile parity gap tasklar)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -272,6 +272,289 @@
 
 ---
 
+## T-433 | P2 | [MOBILE] | Stock Out (Chiqim) ekrani — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
+- **Muammo:** Web da `/inventory/stock-in` va `/inventory/stock-out` mavjud. Mobileda faqat `Kirim` (stock in) ekrani bor, `Stock Out` (chiqim, inventardan chiqarish) ekrani yo'q.
+- **Kutilgan:** Mahsulotdan miqdor chiqarish imkoniyati. `POST /inventory/movements` (type: OUT) API chaqiruvi.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/stock-out/`
+
+---
+
+## T-434 | P2 | [MOBILE] | Stock Transfer ekrani — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
+- **Muammo:** Web da `/inventory/transfer` orqali filiallar/omborlar o'rtasida stock ko'chirish mumkin. Mobileda bu imkoniyat yo'q.
+- **Kutilgan:** Ombordan ombor/filialga mahsulot ko'chirish ekrani. `POST /inventory/transfers` API.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/transfer/`
+
+---
+
+## T-435 | P2 | [MOBILE] | Muddati o'tish (Expiry) boshqaruvi — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER, WAREHOUSE
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
+- **Muammo:** Web da `/inventory/expiry` orqali muddati tugaydigan mahsulotlar kuzatiladi. Kosmetika POS uchun muhim feature. Mobileda yo'q.
+- **Kutilgan:** Muddati yaqinlashgan va o'tgan mahsulotlar ro'yxati. `GET /inventory/expiry` API.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/expiry/`
+
+---
+
+## T-436 | P2 | [MOBILE] | Stock harakatlari tarixi — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
+- **Muammo:** Web da `/inventory/movements` orqali har bir mahsulot bo'yicha kirim/chiqim tarixi ko'rinadi. Mobileda bu history screen yo'q.
+- **Kutilgan:** Filtrlash (sana, tur, mahsulot) bilan stock movement log. `GET /inventory/movements` API.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/inventory/movements/`
+
+---
+
+## T-437 | P2 | [MOBILE] | Buyurtmalar (Sales Orders) admin ko'rinishi — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen yoki `Sales/` kengaytirish)
+- **Muammo:** Web da `/sales/orders` orqali OWNER/ADMIN barcha buyurtmalarni ko'ra oladi. Mobileda `Savdo` tab faqat yangi sotuv yaratish uchun (POS), o'tgan buyurtmalar tarixi yo'q.
+- **Kutilgan:** `Ko'proq` menyusida "Buyurtmalar" — filtrli orders list + detail. `GET /sales/orders` API.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/sales/orders/`
+
+---
+
+## T-438 | P2 | [MOBILE] | Qaytarish (Sales Returns) ekrani — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
+- **Muammo:** Web da `/sales/returns` orqali mahsulot qaytarish va refund qayta ishlash mumkin. Mobileda bu imkoniyat yo'q.
+- **Kutilgan:** Sotilgan orderni tanlash → qaytarish miqdori → `POST /sales/orders/:id/return` API.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/sales/returns/`
+
+---
+
+## T-439 | P2 | [MOBILE] | Filial hisobotlari (Branch Reports) — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN
+- **Fayl:** `apps/mobile/src/screens/Finance/` (kengaytirish)
+- **Muammo:** Web da `/reports/branches` orqali OWNER bir nechta filial ko'rsatkichlarini solishtira oladi. Moliya ekranida `ReportsHubScreen` bor, lekin filial kesimida hisobot yo'q.
+- **Kutilgan:** `ReportsHubScreen` yoki alohida screen da filial bo'yicha daromad, xarajat, sotuv taqqoslash.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/reports/branches/`
+
+---
+
+## T-440 | P2 | [MOBILE] | Chegirmalar (Discounts) yaratish — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
+- **Muammo:** Web da `/chegirma` orqali chegirmalar yaratiladi va boshqariladi. Mobileda `Promotions` ekrani bor, lekin `Chegirma` (discount) ekrani yo'q.
+- **Kutilgan:** `Ko'proq` menyusida "Chegirmalar" — list + yaratish. `GET/POST /sales/discounts` API.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/chegirma/`
+
+---
+
+## T-441 | P2 | [MOBILE] | To'liq Warehouse moduli — hisobvaraq va hisobdan chiqarish
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, WAREHOUSE (hisobvaraqlar — barchasi; write-off — faqat OWNER/ADMIN)
+- **Fayl:** `apps/mobile/src/screens/Kirim/` (kengaytirish) yoki yangi `Warehouse/` screen
+- **Muammo:** Web da to'liq warehouse moduli bor: qabul qilish hisobvaraqlari (`/warehouse/invoices`), hisobdan chiqarish (`/warehouse/write-off`). Mobileda faqat `Kirim` (stock in) va `Ombor` (lookup) bor — hisobvaraq detail va write-off yo'q.
+- **Kutilgan:**
+  - Kirim hisobvaraqlari: `GET /inventory/stock-ins` list + `GET /inventory/stock-ins/:id` detail
+  - Hisobdan chiqarish: `POST /inventory/write-off` (mahsulot + sabab)
+- **Bog'liq:** Web: `apps/web/src/app/(warehouse)/warehouse/invoices/`, `/warehouse/write-off/`
+
+---
+
+## T-442 | P2 | [MOBILE] | Manager Dashboard — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** MANAGER (OWNER/ADMIN uchun mavjud Dashboard o'zgarishsiz qoladi)
+- **Fayl:** `apps/mobile/src/screens/Dashboard/` (kengaytirish)
+- **Muammo:** Web da `/(manager)/manager-dashboard` MANAGER roli uchun alohida dashboard. Mobileda MANAGER roli OWNER/ADMIN bilan bir xil dashboard ko'radi — manager-spesifik KPIlar yo'q.
+- **Kutilgan:** MANAGER role login qilganda `Dashboard` ekranida alohida ko'rinish: o'z smena statistikasi, filial KPIlar, smena yopish/ochish tugmasi.
+- **Bog'liq:** Web: `apps/web/src/app/(manager)/manager-dashboard/`
+
+---
+
+## T-443 | P3 | [MOBILE] | Hisobot yaratuvchi (Report Builder) — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN
+- **Fayl:** `apps/mobile/src/screens/Finance/` (yangi screen)
+- **Muammo:** Web da `/reports/builder` orqali custom hisobotlar yaratish mumkin. Mobileda faqat tayyor hisobotlar bor.
+- **Kutilgan:** Soddalashtirilgan hisobot yaratuvchi (sana oralig'i, metrikalar tanlash) mobile uchun.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/reports/builder/`
+
+---
+
+## T-444 | P3 | [MOBILE] | Hisobot eksport (CSV/Excel) — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER
+- **Fayl:** `apps/mobile/src/screens/Finance/` (kengaytirish)
+- **Muammo:** Web da `/reports/export` orqali hisobotlar CSV/Excel formatida yuklab olish mumkin. Mobileda bu imkoniyat yo'q.
+- **Kutilgan:** Hisobot ekranlarida "Eksport" tugmasi — `GET /reports/export?format=csv` API, Share Sheet orqali fayl yuborish.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/reports/export/`
+
+---
+
+## T-445 | P3 | [MOBILE] | Billing/Obuna boshqaruvi — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER (faqat)
+- **Fayl:** `apps/mobile/src/screens/Settings/` (kengaytirish)
+- **Muammo:** Web da `/settings/billing` orqali OWNER obuna holatini ko'ra oladi. Mobileda `Ko'proq → Settings` da billing bo'limi yo'q.
+- **Kutilgan:** Settings da obuna holati, joriy plan, muddati. `GET /billing/subscription` API.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/settings/billing/`, T-380
+
+---
+
+## T-446 | P3 | [MOBILE] | Task boshqaruvi — mobileda yo'q
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Rol:** OWNER, ADMIN, MANAGER
+- **Fayl:** `apps/mobile/src/screens/` (yangi screen)
+- **Muammo:** Web da `/tasks` orqali ichki vazifalar yaratish va kuzatish mumkin. Mobileda yo'q.
+- **Kutilgan:** `Ko'proq` menyusida "Vazifalar" — CRUD, status, mas'ul belgilash.
+- **Bog'liq:** Web: `apps/web/src/app/(admin)/tasks/`
+
+---
+
+## T-432 | P2 | [MOBILE] | Settings — Kassir filialni ko'ra olmasligi kerak
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Settings/index.tsx (272-278-qatorlar)
+- **Muammo:** Settings ekranidagi "Filiallar" (Branches) menu item hech qanday role tekshiruvsiz barcha foydalanuvchilarga ko'rsatilmoqda. CASHIER (level 2), VIEWER (level 1) va WAREHOUSE (level 2) rollari ham bu menuni ko'ra oladi va `BranchesScreen` ga o'tishi mumkin. Shuningdek, `BranchesScreen.tsx` da ham hech qanday role guard yo'q — ekran to'liq ochiq. `utils/roles.ts` da `ADMIN_ROLES = ['OWNER', 'ADMIN']` va `getRoleLevel()` funksiyalari mavjud, lekin Settings ekranida ishlatilmagan.
+- **Kutilgan:** Faqat OWNER (level 5) va ADMIN (level 4) "Filiallar" menu itemini ko'rishi va BranchesScreen ga kirishi kerak. CASHIER / VIEWER / WAREHOUSE / MANAGER rollari bu menudan umuman xabardor bo'lmasligi kerak.
+- **Fix:** `apps/mobile/src/screens/Settings/index.tsx` da `useAuthStore` orqali olingan `user?.role` ni tekshirish. `getRoleLevel` yoki `ADMIN_ROLES` import qilib, Branches `MenuRow` ni shartli render qilish:
+  ```tsx
+  import { getRoleLevel } from '../../utils/roles';
+  // ...
+  const canSeeBranches = getRoleLevel(user?.role) >= 4; // OWNER yoki ADMIN
+  // ...
+  {canSeeBranches && (
+    <>
+      <Divider />
+      <MenuRow
+        icon="business-outline"
+        iconBg="#EEF2FF"
+        iconColor="#6366F1"
+        label={t('settings.branches')}
+        subtitle={branchName}
+        onPress={() => navigation.navigate('BranchesScreen')}
+      />
+    </>
+  )}
+  ```
+  Qo'shimcha mudofaa sifatida `BranchesScreen.tsx` boshida ham role tekshiruv qo'shish tavsiya etiladi (navigation guard).
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
+
+## T-428 | P1 | [MOBILE] | OmborRequestSheet — "Yuborish" tugmasi hech narsa qilmaydi (API chaqiruvi yo'q)
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Ombor/OmborRequestSheet.tsx (106-109-qatorlar)
+- **Muammo:** `handleSubmit` funksiyasi (106-qator) faqat `onClose()` chaqiradi — hech qanday API so'rovi yuborilmaydi. Kod ichida `// API integration is a separate task — just close for now.` izohi qoldirilgan. Backend da `POST /inventory/restock-request` endpointi to'liq tayyor (`RestockRequestDto`: `productId`, `productName`, `currentStock`) va `inventoryApi` da mos funksiya yo'q. Foydalanuvchi "Yuborish" tugmasini bosadi, sheet yopiladi, lekin omborchiga hech narsa kelmaydi.
+- **Kutilgan:** Foydalanuvchi belgilangan (checked) mahsulotlar uchun `POST /inventory/restock-request` ga so'rov yuborilishi kerak. Har bir checked `RequestItem` uchun `{ productId, productName, currentStock: item.stock }` yuborilishi lozim. Muvaffaqiyatli yuborilgandan so'ng foydalanuvchiga toast/alert ko'rsatilishi va sheet yopilishi kerak.
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
+
+## T-429 | P1 | [MOBILE] | InventoryScreen — Faqat low-stock mahsulotlar ko'rinadi, barcha mahsulotlar ko'rsatilishi kerak (low/out-of-stock birinchi)
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Inventory/index.tsx + apps/mobile/src/api/inventory.api.ts
+- **Muammo:** `InventoryScreen` (`apps/mobile/src/screens/Inventory/index.tsx`) `useInventoryData` hook orqali faqat `inventoryApi.getLowStock()` ni chaqiradi. `getLowStock()` esa `GET /inventory/levels?lowStock=true` yuboradi — bu faqat stok darajasi `minStockLevel` dan past bo'lgan mahsulotlarni qaytaradi. Normal stokdagi mahsulotlar umuman ko'rsatilmaydi. Bundan tashqari, `LowStockItem` interfeysi (`stock`, `minStockLevel`, `quantity`, `warehouseId`, `isLow`) bilan backend `GET /inventory/levels` javobi (`totalQty`, `name`, `minStockLevel`) mos kelmaydi — `stock` maydoni yo'q, `productName` o'rniga `name` qaytariladi. Bu sahifada mahsulotlar umuman ko'rsatilmasligiga olib kelishi mumkin.
+- **Kutilgan:** `GET /inventory/items` (yoki `GET /inventory/levels` `lowStock` parametrsiz) orqali BARCHA mahsulotlar yuklanishi kerak. So'ng ular `status` bo'yicha saralanishi: `out_of_stock` (stock=0) va `low` (stock <= minStockLevel) mahsulotlar ro'yxat boshida, `normal` mahsulotlar oxirida ko'rinishi kerak.
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
+
+## T-425 | P1 | [MOBILE] | Nasiya — nasiyaApi.pay() signature mismatch: payment method UI ga bog'lanmagan
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/api/nasiya.api.ts (105-qator), apps/mobile/src/screens/Nasiya/PayModal.tsx (74-qator)
+- **Muammo:** `PayModal` "To'lov usuli" tanlashni (CASH / CARD / TRANSFER) `nasiyaApi.pay(debt.id, parsed, method)` — uchinchi argument sifatida uzatadi. Lekin `nasiyaApi.pay` funksiyasi `pay(id, amount, notes?)` deb aniqlangan — uchinchi parametr `notes`, ya'ni foydalanuvchi tanlagan `method` qiymati (`'CARD'`, `'TRANSFER'`) `notes` maydoni sifatida yuboriladi. Bundan tashqari, funksiya ichida `method: 'CASH'` qattiq (hardcoded) yozilgan, shuning uchun foydalanuvchi qaysi to'lov usulini tanlashidan qat'iy nazar, backend har doim `method=CASH` qabul qiladi va `notes` maydoni ifloslangan.
+  ```typescript
+  // HOZIRGI (noto'g'ri) — nasiya.api.ts 105-qator:
+  pay: async (id: string, amount: number, notes?: string): Promise<void> => {
+    await api.post(`/nasiya/${id}/pay`, { amount, method: 'CASH', notes });
+    //                 method hardcoded CASH ↑   ↑ notes ga 'CARD'/'TRANSFER' kelib tushadi
+  };
+  // PayModal 74-qator:
+  await nasiyaApi.pay(debt.id, parsed, method); // method='CARD' → notes='CARD' deb yuboriladi
+  ```
+- **Kutilgan:** `nasiyaApi.pay(id, amount, method, notes?)` — funksiya imzosi `method` ni alohida parametr sifatida qabul qilishi va backend ga to'g'ri yuborishi kerak. Foydalanuvchi tanlagan to'lov usuli (CASH / CARD / TRANSFER) backend `DebtPayment.method` maydonida saqlanishi lozim.
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
+
+## T-426 | P1 | [MOBILE] | Nasiya — PayModal amount parse: `parseInt` bilan katta summa noto'g'ri o'qilishi
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Nasiya/PayModal.tsx (60-61-qatorlar)
+- **Muammo:** `handleConfirm` da to'lov summasi quyidagicha parse qilinadi:
+  ```typescript
+  const parsed = parseInt(amount.replace(/\s/g, ''), 10);
+  if (!parsed || parsed <= 0) { ... }
+  ```
+  `parseInt` vergul (`,`) yoki nuqta (`.`) belgisini uchratganda u belgigacha bo'lgan qismni qaytaradi va qolganini o'tkazib yuboradi. Masalan, iOS klaviaturasida foydalanuvchi `1,000,000` kiritsa, `parseInt('1,000,000', 10)` → `1` qaytaradi. Yoki foydalanuvchi `150000.50` kiritsa, `parseInt` → `150000` qaytaradi (bu holda ma'qul), lekin backend `Decimal` qabul qilganda bu noto'g'ri. Asosiy xavf: katta summalarda bo'lim belgisi bilan yozilganda summa kesib tashlanadi va foydalanuvchi bilmasdan noto'g'ri summa to'laydi. Bundan tashqari, `!parsed` tekshiruvi `0` qiymatini ham xato deb qaytaradi (bu to'g'ri), lekin `NaN` holini alohida ushlamaydi.
+- **Kutilgan:** `Number(amount.replace(/[\s,]/g, ''))` ishlatilishi va `isNaN` bilan tekshiruv qo'yilishi: `if (isNaN(parsed) || parsed <= 0)`. Bu bilan `'1,000,000'` → `1000000` to'g'ri parse qilinadi.
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
+
+## T-427 | P2 | [MOBILE] | Nasiya — PayModal muvaffaqiyatli to'lovda Alert → onClose tartib xatosi (iOS modal konflikti)
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Nasiya/PayModal.tsx (75-77-qatorlar)
+- **Muammo:** `handleConfirm` to'lov muvaffaqiyatli bo'lganda quyidagi tartibda ishlaydi:
+  ```typescript
+  Alert.alert('', "To'lov muvaffaqiyatli amalga oshirildi"); // 75
+  onSuccess();  // 76 — refetchAll() — API refresh darhol boshlanadi
+  onClose();    // 77 — modal setPayVisible(false) — Alert ni kutmasdan
+  ```
+  `Alert.alert` React Native da asinxron (fire-and-forget) — Alert tugmachasi bosilishini kutmaydi. iOS da ikkita `Modal` bir vaqtda render bo'lishi (PayModal + Alert) Z-index konfliktiga olib keladi va ba'zi hollarda ekran muzlashi mumkin. `onSuccess()` Alert ko'rsatilayotgan paytdayoq ishga tushadi, shuning uchun list refresh animatsiyasi Alert bilan ustma-ust keladi. To'g'ri tartib: foydalanuvchi Alert ni tasdiqlagan callback ichida `onSuccess()` va `onClose()` chaqirilishi kerak.
+- **Kutilgan:**
+  ```typescript
+  Alert.alert('', "To'lov muvaffaqiyatli amalga oshirildi", [
+    { text: 'OK', onPress: () => { onSuccess(); onClose(); } }
+  ]);
+  ```
+  Bu iOS va Android da ham to'g'ri ishlaydi: foydalanuvchi "OK" bosgach modal yopiladi va list yangilanadi.
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
+
 # ══════════════════════════════════════════════════════════════
 # STATISTIKA
 # ══════════════════════════════════════════════════════════════
@@ -280,7 +563,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **17** | **3** | **4** | **5** | **5** |
+| **31** | **3** | **9** | **13** | **6** |
 
 ### Kategoriya bo'yicha
 
@@ -288,9 +571,9 @@
 |-----------|----|----|----|----|------|
 | [BACKEND] | 1 | 2 | 5 | 4 | **12** |
 | [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
-| [MOBILE] | 0 | 0 | 0 | 0 | **0** |
+| [MOBILE] | 0 | 5 | 8 | 4 | **17** |
 | [SECURITY] | 2 | 1 | 0 | 0 | **3** |
-| [IKKALASI] | 0 | 0 | 0 | 1 | **1** |
+| [IKKALASI] | 0 | 1 | 0 | 1 | **2** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
 
 ### Mas'uliyat taqsimoti
@@ -298,11 +581,11 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 3 | 3 | 5 | 0 | **11** |
-| **Abdulaziz** (Mobile) | 0 | 0 | 0 | 0 | **0** |
-| **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
+| **Abdulaziz** (Mobile) | 0 | 5 | 9 | 4 | **18** |
+| **Belgilanmagan** | 0 | 0 | 0 | 2 | **2** |
 | **Ibrat + Abdulaziz** | 0 | 1 | 0 | 0 | **1** |
 
-> Yangilandi: 2026-04-30 — T-379, T-397, T-398, T-399, T-400, T-402, T-403, T-404, T-405 Done.md ga ko'chirildi
+> Yangilandi: 2026-05-05 — T-433..T-446 qo'shildi (web da bor, mobileda yo'q featurelar)
 
 ---
 
@@ -349,3 +632,52 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 ---
 
 *docs/Tasks.md | RAOS Kosmetika POS | v3.0 | 2026-04-03 (tozalandi)*
+
+
+---
+
+## T-421 | P1 | [IKKALASI] | ExpensesScreen — Backend response key mismatch: `items` vs `data`
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz (mobile fix) + Ibrat (backend confirm)
+- **Fayl:** apps/mobile/src/api/expenses.api.ts, apps/api/src/finance/finance.service.ts
+- **Muammo:** Backend `financeService.getExpenses()` `{ items, total, page, limit }` qaytaradi (kalit: `items`). Lekin `expenses.api.ts` `getExpenses()` response ni `{ data: ..., total, page, limit }` deb kutadi (kalit: `data`). `ExpensesScreen.tsx` `data?.data` o'qiydi — bu har doim `undefined` bo'ladi. Natija: ro'yxat hech qachon yuklanmaydi, ekran bo'sh ko'rinadi va foydalanuvchi xarajat qo'sha olmaydi.
+- **Kutilgan:** Backend `{ data: Expense[], total, page, limit }` qaytarishi yoki `expenses.api.ts` `data.items` o'qishi kerak.
+- **Topildi:** Manual Code Review — 2026-05-05
+- **Fix:** Applied 2026-05-05 — `PaginatedExpenses.data` → `items`, `api.get<{items:...}>`, `data.items.map(...)`, `ExpensesScreen` `data?.data` → `data?.items`
+
+---
+
+## T-422 | P1 | [MOBILE] | client.ts — CONFIG.API_URL default port noto'g'ri (3003 vs 3000)
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/config/index.ts
+- **Muammo:** `apps/mobile/src/config/index.ts` da `CONFIG.API_URL` default qiymati `http://localhost:3003/api/v1` (port 3003). Backend haqiqatda `:3000` da ishlaydi. `apps/mobile/src/config/constants.ts` da esa to'g'ri `http://10.0.2.2:3000/api/v1` yozilgan. `client.ts` `CONFIG` dan import qiladi — bu `index.ts` dan keladi. Natija: iOS simulator yoki real qurilmada `EXPO_PUBLIC_API_URL` env o'zgaruvchisi set qilinmagan bo'lsa, barcha API chaqiruvlar noto'g'ri portga ketadi va 404/ECONNREFUSED qaytaradi.
+- **Kutilgan:** `CONFIG.API_URL` default porti `3000` bo'lishi kerak.
+- **Topildi:** Manual Code Review — 2026-05-05
+- **Fix:** Applied 2026-05-05 — `'http://localhost:3003/api/v1'` → `'http://localhost:3000/api/v1'` in `apps/mobile/src/config/index.ts`
+
+---
+
+## T-423 | P1 | [IKKALASI] | PaymentsHistoryScreen — Backend `/sales/orders` `from`/`to` sana filtrini qabul qilmaydi
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Ibrat (backend fix) + Abdulaziz (mobile)
+- **Fayl:** apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx, apps/api/src/sales/sales.controller.ts, apps/api/src/sales/sales.service.ts
+- **Muammo:** `PaymentsHistoryScreen` `salesApi.getOrders({ from, to, limit: 200 })` chaqiradi. Lekin backend `GET /sales/orders` controlleri faqat `page`, `limit`, `shiftId` parametrlarini qabul qiladi; `from` va `to` parametrlari yo'q. `sales.service.ts` `getOrders()` ham `where` shartida sana filtri yo'q. Natija: davr filtri tugmalari (bugun/7 kun/30 kun/90 kun) hech qanday ta'sir qilmaydi — har doim barcha orderlar qaytariladi.
+- **Kutilgan:** Backend `from` va `to` query parametrlarini qabul qilib, `order.createdAt` bo'yicha filtrlashi kerak.
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
+
+## T-424 | P2 | [MOBILE] | PaymentsHistoryScreen — To'lov usuli filtri (Naqd/Karta/Nasiya/Click/Payme) ishlamaydi
+
+- **Sana:** 2026-05-05
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx
+- **Muammo:** Ekranda 6 ta to'lov usuli filtri ko'rsatiladi (Barchasi, Naqd, Karta, Nasiya, Click, Payme). Tugmalar bosiladi va `method` state o'zgaradi, lekin `filtered` massivni hisoblashda bu filtr hech qachon qo'llanilmaydi — kodda `// method filter — placeholder: Order type has no paymentMethod field yet` deb izohlangan (175-177 qatorlar). Natija: barcha to'lov usuli tugmalari dekorativ, funksionalligi yo'q.
+- **Kutilgan:** T-423 fix bo'lgandan so'ng `order.paymentMethod` bo'yicha filtr qo'llanishi kerak. Hozircha tugmalar disabled yoki "tez orada" label bilan ko'rsatilishi kerak.
+- **Topildi:** Manual Code Review — 2026-05-05
+
+---
