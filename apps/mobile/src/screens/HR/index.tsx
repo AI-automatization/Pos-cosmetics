@@ -7,7 +7,8 @@ import ScreenLayout from '../../components/layout/ScreenLayout';
 import HREmployeeRow from './HREmployeeRow';
 import HRInviteSheet from './HRInviteSheet';
 import EmptyState from '../../components/common/EmptyState';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import SkeletonList from '../../components/common/SkeletonList';
+import ErrorView from '../../components/common/ErrorView';
 import { useHRData } from './useHRData';
 import { Employee, EmployeeStatus, CreateEmployeeDto } from '../../api/employees.api';
 import { EmployeesStackParamList } from '../../navigation/types';
@@ -87,14 +88,29 @@ export default function HRScreen() {
         ))}
       </View>
 
-      {employees.isLoading && <LoadingSpinner />}
     </>
   );
+
+  if (employees.isLoading) {
+    return (
+      <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false}>
+        <SkeletonList count={6} itemHeight={72} />
+      </ScreenLayout>
+    );
+  }
+
+  if (employees.isError) {
+    return (
+      <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false}>
+        <ErrorView error={employees.error} onRetry={() => { void employees.refetch(); }} />
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false}>
       <FlatList<Employee>
-        data={employees.isLoading ? [] : filtered}
+        data={filtered}
         keyExtractor={(e) => e.id}
         ListHeaderComponent={listHeader}
         renderItem={({ item }) => (
