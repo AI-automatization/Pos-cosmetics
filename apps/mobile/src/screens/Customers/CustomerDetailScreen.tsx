@@ -288,11 +288,28 @@ export default function CustomerDetailScreen() {
                   valueColor={customer.debtBalance > 0 ? C.red : C.green}
                 />
                 <View style={styles.divider} />
-                <InfoRow
-                  icon="shield-checkmark-outline"
-                  label="Nasiya limiti"
-                  value={fmt(customer.debtLimit)}
-                />
+                <View style={infoStyles.row}>
+                  <View style={infoStyles.iconWrap}>
+                    <Ionicons name="shield-checkmark-outline" size={16} color={C.primary} />
+                  </View>
+                  <View style={infoStyles.body}>
+                    <Text style={infoStyles.label}>Nasiya limiti</Text>
+                    <Text style={infoStyles.value}>{fmt(customer.debtLimit)}</Text>
+                    {customer.debtLimit > 0 && (
+                      <View style={styles.progressBarContainer}>
+                        <View
+                          style={[
+                            styles.progressBarFill,
+                            {
+                              width: `${Math.min(100, (customer.debtBalance / customer.debtLimit) * 100)}%`,
+                              backgroundColor: customer.debtBalance > customer.debtLimit ? '#ef4444' : '#3b82f6',
+                            },
+                          ]}
+                        />
+                      </View>
+                    )}
+                  </View>
+                </View>
               </View>
 
               {/* Notes */}
@@ -412,4 +429,17 @@ const styles = StyleSheet.create({
   // Notes
   notesWrap: { paddingVertical: 14 },
   notesText: { fontSize: 14, color: C.text, lineHeight: 22 },
+
+  // Progress bar
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginTop: 6,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
 });

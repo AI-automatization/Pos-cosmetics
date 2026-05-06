@@ -126,7 +126,7 @@ export const nasiyaApi = {
     );
     const customerId = match
       ? match.id
-      : (await customersApi.create(body.customerName, body.phone)).id;
+      : (await customersApi.create({ name: body.customerName, phone: body.phone })).id;
 
     // 2. Create debt with customerId
     const { data } = await api.post<DebtRecord>('/nasiya', {

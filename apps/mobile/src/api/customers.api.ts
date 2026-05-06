@@ -21,6 +21,16 @@ export interface CustomerStats {
   debtBalance: number;
 }
 
+export interface CreateCustomerDto {
+  name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  gender?: 'MALE' | 'FEMALE';
+  debtLimit?: number;
+  notes?: string;
+}
+
 export interface UpdateCustomerDto {
   name?: string;
   phone?: string;
@@ -41,11 +51,8 @@ export const customersApi = {
     return Array.isArray(data) ? data : [];
   },
 
-  create: async (name: string, phone?: string): Promise<Customer> => {
-    const { data } = await api.post<Customer>('/customers', {
-      name,
-      ...(phone ? { phone } : {}),
-    });
+  create: async (dto: CreateCustomerDto): Promise<Customer> => {
+    const { data } = await api.post<Customer>('/customers', dto);
     return data;
   },
 
