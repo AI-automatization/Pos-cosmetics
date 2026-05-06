@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-05 (T-433..T-446 qo'shildi — web/mobile parity gap tasklar)
+# Yangilangan: 2026-05-06 (T-447..T-457 qo'shildi — web→mobile parity gap tasklar)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -218,9 +218,130 @@
 
 ---
 
+## T-449 | P2 | [MOBILE] | Mijozlar — Nasiya limiti (debtLimit) formada va profilida ko'rsatish
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Customers/CustomersScreen.tsx`, `CustomerDetailScreen.tsx`
+- **Muammo:** Web da CreateCustomerModal da "Nasiya limiti (so'm)" field bor. Customer detail da qarz limit progress bar bor. Mobile da CustomersScreen/CustomerDetailScreen da bu yo'q.
+- **Kutilgan:** Customer yaratish/tahrirlash formada debtLimit fieldi. Profil sahifada qarz limit progress bar.
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-450 | P2 | [MOBILE] | Mijoz profili — Faol qarzlar ro'yxati + To'lash modal
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`
+- **Muammo:** Web da `/customers/[id]` da debtlar ro'yxati, DebtAgeBadge (CURRENT/30/60/90+), PayDebtModal bor. Mobile da CustomerDetail da qarz detallari yo'q.
+- **Kutilgan:** Qarzlar ro'yxati (summa, sana, aging badge) + to'lash modal (qisman/to'liq)
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-452 | P2 | [MOBILE] | Yetkazib beruvchilar — CRUD (Create/Update/Delete)
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Catalog/SuppliersScreen.tsx`
+- **Muammo:** Web da SupplierModal bilan to'liq CRUD (nom, kompaniya, telefon, manzil). Mobile da faqat ro'yxat view.
+- **Kutilgan:** Supplier yaratish, tahrirlash, o'chirish (swipe yoki menu orqali). BottomSheet forma.
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P3 (KELAJAK, 6+ oy)
 # ══════════════════════════════════════════════════════════════
+
+---
+
+## T-447 | P3 | [MOBILE] | PaymentsHistoryScreen — Stat kartalar (Naqd/Karta/Nasiya jami)
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
+- **Muammo:** Web da 3 ta stat card bor (METHOD_LABEL bo'yicha guruhlangan jami summalar). Mobile da faqat ro'yxat bor, stat kartalar yo'q.
+- **Kutilgan:** Ekran tepasida stat kartalar: Naqd, Karta, Nasiya — har birining jami summasi
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-448 | P3 | [MOBILE] | PaymentsHistoryScreen — Order detail modal (bosilganda)
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
+- **Muammo:** Web da row bosilganda OrderDetailModal ochiladi (items, discount, tax, notes). Mobile da SaleDetail bor lekin PaymentsHistory dan bog'lanmagan.
+- **Kutilgan:** To'lov qatoriga bosilganda order detallari ochiladi (BottomSheet yoki navigate)
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-451 | P3 | [MOBILE] | Kategoriyalar — Ierarhik (tree) view
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Catalog/CategoriesScreen.tsx`
+- **Muammo:** Web da buildTree() + recursive CategoryRow (depth indentation: depth*20px). Mobile da flat list (parent-child aloqasi ko'rinmaydi).
+- **Kutilgan:** Kategoriyalar daraxt ko'rinishida — parent ostida childlar indentatsiya bilan
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-453 | P3 | [MOBILE] | Etiketka chop — Bluetooth/AirPrint printer support
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** yangi `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`
+- **Muammo:** Web da LabelPrintModal (30x20, 40x30, 58x40 mm, nusxa soni, barcode, narx). Mobile da printer integratsiya yo'q.
+- **Kutilgan:** Bluetooth/AirPrint printer topish, label size tanlash, chop etish
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-454 | P3 | [MOBILE] | Warehouse — Nakladnoy/Invoice ko'rish va detail
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** yangi `apps/mobile/src/screens/Ombor/InvoicesScreen.tsx`
+- **Muammo:** Web da `/warehouse/invoices` (list + `[id]/page.tsx` detail). Mobile da warehouse role uchun invoice ko'rish yo'q.
+- **Kutilgan:** Invoice ro'yxati + detail sahifasi (mahsulotlar, summa, sana, status)
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-455 | P3 | [MOBILE] | Dashboard — Oylik moliyaviy xulosa karta
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Dashboard/DashboardScreen.tsx`
+- **Muammo:** Web da oylik summary (daromad, tannarx, xarajatlar, sof foyda). Mobile DashboardScreen da bu yo'q.
+- **Kutilgan:** Dashboard da oylik moliyaviy xulosa karta (4 ta ko'rsatkich)
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-456 | P3 | [MOBILE] | Dashboard — Filiallar daromadi (30 kunlik trend)
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Dashboard/DashboardScreen.tsx`
+- **Muammo:** Web da branch revenue bar chart (30 kun). Mobile da filial trend ko'rinmaydi.
+- **Kutilgan:** Dashboard da filial bo'yicha daromad grafigi (30 kunlik bar chart)
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
+
+---
+
+## T-457 | P3 | [MOBILE] | Dashboard — Real-time savdo badge/push notification
+
+- **Sana:** 2026-05-06
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Dashboard/DashboardScreen.tsx`
+- **Muammo:** Web da yangi savdo bo'lganda badge yangilanadi. Mobile da push notification yoki badge yo'q.
+- **Kutilgan:** Yangi savdo bo'lganda push notification + dashboard da badge counter
+- **Topildi:** Web → Mobile parity audit — 2026-05-06
 
 ---
 
@@ -280,7 +401,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **17** | **3** | **4** | **7** | **6** |
+| **28** | **3** | **4** | **10** | **14** |
 
 ### Kategoriya bo'yicha
 
@@ -288,7 +409,7 @@
 |-----------|----|----|----|----|------|
 | [BACKEND] | 1 | 2 | 5 | 4 | **12** |
 | [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
-| [MOBILE] | 0 | 0 | 2 | 4 | **6** |
+| [MOBILE] | 0 | 0 | 5 | 12 | **17** |
 | [SECURITY] | 2 | 1 | 0 | 0 | **3** |
 | [IKKALASI] | 0 | 1 | 0 | 1 | **2** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
@@ -298,11 +419,11 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 3 | 3 | 5 | 0 | **11** |
-| **Abdulaziz** (Mobile) | 0 | 0 | 2 | 4 | **6** |
+| **Abdulaziz** (Mobile) | 0 | 0 | 5 | 12 | **17** |
 | **Belgilanmagan** | 0 | 0 | 0 | 2 | **2** |
 | **Ibrat + Abdulaziz** | 0 | 1 | 0 | 0 | **1** |
 
-> Yangilandi: 2026-05-05 — T-420..T-422, T-425..T-429, T-432..T-436, T-441 Done.md ga ko'chirildi
+> Yangilandi: 2026-05-06 — T-447..T-457 qo'shildi (web→mobile parity gap)
 
 ---
 
