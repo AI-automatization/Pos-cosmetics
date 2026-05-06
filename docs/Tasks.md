@@ -236,14 +236,6 @@
 
 ---
 
-## T-455 | P3 | [MOBILE] | Dashboard — Oylik moliyaviy xulosa karta
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/DashboardScreen.tsx`
-- **Muammo:** Web da oylik summary (daromad, tannarx, xarajatlar, sof foyda). Mobile DashboardScreen da bu yo'q.
-- **Kutilgan:** Dashboard da oylik moliyaviy xulosa karta (4 ta ko'rsatkich)
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
 
 ---
 

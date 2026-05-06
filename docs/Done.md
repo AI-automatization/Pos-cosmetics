@@ -3,6 +3,13 @@
 
 ---
 
+## T-455 | 2026-05-06 | [MOBILE] | Dashboard — Oylik moliyaviy xulosa karta
+
+- **Yechim:** `MonthlyProfitCard.tsx` yangi komponent (Daromad/Tannarx/Xarajatlar/Sof foyda breakdown, sof foyda manfiy bo'lsa qizil + ogohlantirish). `reports.api.ts` ga `getProfitReport(from, to)` → `GET /reports/profit` qo'shildi. `useDashboardData.ts` ga oylik profit query (30 kunlik). `Dashboard/index.tsx` ga `isOwnerAdmin` uchun `MonthlyProfitCard` qo'shildi.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/MonthlyProfitCard.tsx`, `apps/mobile/src/api/reports.api.ts`, `apps/mobile/src/screens/Dashboard/useDashboardData.ts`, `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
 ## T-454 | 2026-05-06 | [MOBILE] | Warehouse — Nakladnoy/Invoice ko'rish va detail
 
 - **Yechim:** `InvoicesScreen.tsx` (ro'yxat: FlatList, status badge PENDING/RECEIVED/CANCELLED, pull-to-refresh) va `InvoiceDetailSheet.tsx` (bottom sheet modal: items, supplier, summa, "Tasdiqlash" button PENDING uchun) yaratildi. `inventory.api.ts` ga `listInvoices`, `getInvoice`, `approveInvoice` methodlari qo'shildi. `TabNavigator.tsx` da `OmborTabStack` ga `InvoicesScreen` qo'shildi, `OmborHeader.tsx` da document-text icon tugma qo'shildi.

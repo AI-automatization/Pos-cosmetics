@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { SalesSummary, DailyRevenue, TopProduct } from '@raos/types';
+import type { ProfitReport } from '../../api/reports.api';
 import { reportsApi, salesApi, inventoryApi, nasiyaApi } from '../../api';
 import { todayISO, daysAgoISO } from '../../utils/date';
 import { CONFIG } from '../../config';
@@ -95,6 +96,19 @@ export function useDashboardData() {
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
   });
 
+  // Oylik profit (30 kun)
+  const thirtyDaysAgoDate = new Date();
+  thirtyDaysAgoDate.setDate(thirtyDaysAgoDate.getDate() - 30);
+  const thirtyDaysAgoStr = thirtyDaysAgoDate.toISOString().split('T')[0] ?? today;
+  const todayStr = today;
+
+  const { data: monthlyProfit, isLoading: isMonthlyLoading } = useQuery<ProfitReport>({
+    queryKey: ['dashboard-monthly-profit', thirtyDaysAgoStr, todayStr],
+    queryFn:  () => reportsApi.getProfitReport(thirtyDaysAgoStr, todayStr),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+
   // Derive summary from overdue list
   const nasiyaSummary = {
     ...nasiyaOverdue,
@@ -138,6 +152,8 @@ export function useDashboardData() {
     currentShift,
     lowStock,
     nasiyaSummary,
+    monthlyProfit,
+    isMonthlyLoading,
     isLoading,
     isRefreshing,
     refetchAll,

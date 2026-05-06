@@ -19,6 +19,7 @@ import type { DashboardStackParamList, TabParamList } from '../../navigation/typ
 import { alertsApi } from '../../api/alerts.api';
 import { useDashboardData } from './useDashboardData';
 import ActiveShiftCard from './ActiveShiftCard';
+import MonthlyProfitCard from './MonthlyProfitCard';
 import RevenueCard from './RevenueCard';
 import WeeklyTrendChart from './WeeklyTrendChart';
 import TopProductsCard from './TopProductsCard';
@@ -80,6 +81,8 @@ export default function DashboardScreen() {
     topProducts,
     currentShift,
     nasiyaSummary,
+    monthlyProfit,
+    isMonthlyLoading,
     isLoading,
     isRefreshing,
     refetchAll,
@@ -260,6 +263,20 @@ export default function DashboardScreen() {
         {isManager && (
           <View style={styles.section}>
             <ManagerKPICard />
+          </View>
+        )}
+
+        {/* Monthly profit — faqat OWNER/ADMIN uchun */}
+        {isOwnerAdmin && (
+          <View style={styles.section}>
+            <MonthlyProfitCard
+              revenue={monthlyProfit?.revenue ?? 0}
+              cogs={monthlyProfit?.cogs ?? 0}
+              grossProfit={monthlyProfit?.grossProfit ?? 0}
+              totalExpenses={monthlyProfit?.totalExpenses ?? 0}
+              netProfit={monthlyProfit?.netProfit ?? 0}
+              loading={isMonthlyLoading}
+            />
           </View>
         )}
 
