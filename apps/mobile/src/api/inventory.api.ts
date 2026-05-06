@@ -166,6 +166,40 @@ export interface CreateTransferResponse {
 
 export type StockItem = LowStockItem;
 
+export interface InvoiceListItem {
+  id: string;
+  invoiceNumber: string | null;
+  status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
+  createdAt: string;
+  totalCost: number;
+  itemsCount: number;
+  supplier: { id: string; name: string } | null;
+  createdBy: { firstName: string; lastName: string } | null;
+}
+
+export interface InvoiceDetailItem {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  purchasePrice: number;
+  totalCost: number;
+  batchNumber: string | null;
+  expiryDate: string | null;
+}
+
+export interface InvoiceDetail extends InvoiceListItem {
+  note: string | null;
+  items: InvoiceDetailItem[];
+}
+
+export interface InvoiceListResponse {
+  invoices: InvoiceListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export const inventoryApi = {
   getStock: async (branchId?: string): Promise<StockListResponse> => {
     const { data } = await api.get<StockListResponse>('/inventory/levels', {
@@ -396,6 +430,26 @@ export const inventoryApi = {
     if (Array.isArray(res.data)) {
       return { items: res.data, total: res.data.length, page: 1, limit: res.data.length };
     }
+    return res.data;
+  },
+
+  listInvoices: async (params?: {
+    page?: number;
+    limit?: number;
+    from?: string;
+    to?: string;
+  }): Promise<InvoiceListResponse> => {
+    const res = await api.get('/warehouse/invoices', { params });
+    return res.data;
+  },
+
+  getInvoice: async (id: string): Promise<InvoiceDetail> => {
+    const res = await api.get(`/warehouse/invoices/${id}`);
+    return res.data;
+  },
+
+  approveInvoice: async (id: string): Promise<InvoiceDetail> => {
+    const res = await api.patch(`/warehouse/invoices/${id}/approve`);
     return res.data;
   },
 };

@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MoreStackParamList } from './types';
+import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MoreStackParamList, OmborTabStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
 
 // Navigators
@@ -49,6 +49,7 @@ import ShiftsOwnerScreen from '../screens/ShiftsOwner';
 import StockOutScreen from '../screens/StockOut';
 import StockTransferScreen from '../screens/StockTransfer';
 import ExpiryScreen from '../screens/Expiry';
+import InvoicesScreen from '../screens/Ombor/InvoicesScreen';
 import StockMovementsScreen from '../screens/StockMovements';
 import SalesOrdersScreen from '../screens/SalesOrders';
 import SalesReturnsScreen from '../screens/SalesReturns';
@@ -165,11 +166,16 @@ function KirimTabNavigator(): React.JSX.Element {
 }
 
 // ─── Ombor Tab Stack (WAREHOUSE role: replaces Katalog tab) ─
-const OmborTabStack = createNativeStackNavigator();
+const OmborTabStack = createNativeStackNavigator<OmborTabStackParamList>();
 function OmborTabNavigator(): React.JSX.Element {
   return (
     <OmborTabStack.Navigator screenOptions={{ headerShown: false }}>
       <OmborTabStack.Screen name="OmborMain" component={OmborScreen} />
+      <OmborTabStack.Screen
+        name="InvoicesScreen"
+        component={InvoicesScreen}
+        options={{ title: 'Nakladnoylar' }}
+      />
     </OmborTabStack.Navigator>
   );
 }

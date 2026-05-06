@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { OmborTabStackParamList } from '../../navigation/types';
 import { useOmborData } from './useOmborData';
 import OmborRequestSheet from './OmborRequestSheet';
 import { C } from './OmborColors';
@@ -19,7 +22,10 @@ import OmborProductCard from './OmborProductCard';
 import OmborEmptyState from './OmborEmptyState';
 import OmborListHeader from './OmborListHeader';
 
+type OmborNav = NativeStackNavigationProp<OmborTabStackParamList, 'OmborMain'>;
+
 export default function OmborScreen() {
+  const navigation = useNavigation<OmborNav>();
   const [search, setSearch]                           = useState('');
   const [activeTab, setActiveTab]                     = useState<FilterTab>('ALL');
   const [requestSheetVisible, setRequestSheetVisible] = useState(false);
@@ -47,7 +53,7 @@ export default function OmborScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <OmborHeader />
+        <OmborHeader onInvoicesPress={() => navigation.navigate('InvoicesScreen')} />
         <View style={styles.centerFill}>
           <ActivityIndicator size="large" color={C.primary} />
         </View>
@@ -58,7 +64,7 @@ export default function OmborScreen() {
   if (isError) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <OmborHeader />
+        <OmborHeader onInvoicesPress={() => navigation.navigate('InvoicesScreen')} />
         <View style={styles.centerFill}>
           <Ionicons name="alert-circle-outline" size={48} color={C.muted} />
           <Text style={styles.errorText}>Ma'lumot yuklanmadi</Text>
@@ -76,7 +82,7 @@ export default function OmborScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-        <OmborHeader />
+        <OmborHeader onInvoicesPress={() => navigation.navigate('InvoicesScreen')} />
 
         <FlatList
           data={filtered}

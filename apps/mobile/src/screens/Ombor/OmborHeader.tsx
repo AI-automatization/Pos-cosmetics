@@ -7,9 +7,10 @@ import { C } from './OmborColors';
 interface Props {
   onScanPress?: () => void;
   onFilterPress?: () => void;
+  onInvoicesPress?: () => void;
 }
 
-export default function OmborHeader({ onScanPress, onFilterPress }: Props) {
+export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPress }: Props) {
   return (
     <View style={styles.header}>
       <View>
@@ -22,6 +23,9 @@ export default function OmborHeader({ onScanPress, onFilterPress }: Props) {
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn} onPress={onFilterPress} activeOpacity={0.75}>
           <Ionicons name="options-outline" size={20} color={C.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconBtn} onPress={onInvoicesPress} activeOpacity={0.75}>
+          <Ionicons name="document-text-outline" size={20} color={C.primary} />
         </TouchableOpacity>
       </View>
     </View>

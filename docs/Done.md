@@ -3,6 +3,13 @@
 
 ---
 
+## T-454 | 2026-05-06 | [MOBILE] | Warehouse — Nakladnoy/Invoice ko'rish va detail
+
+- **Yechim:** `InvoicesScreen.tsx` (ro'yxat: FlatList, status badge PENDING/RECEIVED/CANCELLED, pull-to-refresh) va `InvoiceDetailSheet.tsx` (bottom sheet modal: items, supplier, summa, "Tasdiqlash" button PENDING uchun) yaratildi. `inventory.api.ts` ga `listInvoices`, `getInvoice`, `approveInvoice` methodlari qo'shildi. `TabNavigator.tsx` da `OmborTabStack` ga `InvoicesScreen` qo'shildi, `OmborHeader.tsx` da document-text icon tugma qo'shildi.
+- **Fayl:** `apps/mobile/src/screens/Ombor/InvoicesScreen.tsx`, `apps/mobile/src/screens/Ombor/InvoiceDetailSheet.tsx`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/Ombor/OmborHeader.tsx`, `apps/mobile/src/screens/Ombor/index.tsx`
+
+---
+
 ## T-453 | 2026-05-06 | [MOBILE] | Etiketka chop — Bluetooth/AirPrint printer support
 
 - **Yechim:** `LabelPrintSheet.tsx` yangi komponent (30×20/40×30/58×40 mm o'lcham, nusxa soni, preview, expo-print → Share fallback). `ProductsScreen.tsx` 3-dot menu ga "Etiketka chop" qo'shildi. i18n kalitlari (uz/ru/en) qo'shildi.

@@ -234,15 +234,6 @@
 
 ---
 
-## T-454 | P3 | [MOBILE] | Warehouse — Nakladnoy/Invoice ko'rish va detail
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** yangi `apps/mobile/src/screens/Ombor/InvoicesScreen.tsx`
-- **Muammo:** Web da `/warehouse/invoices` (list + `[id]/page.tsx` detail). Mobile da warehouse role uchun invoice ko'rish yo'q.
-- **Kutilgan:** Invoice ro'yxati + detail sahifasi (mahsulotlar, summa, sana, status)
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
-
 ---
 
 ## T-455 | P3 | [MOBILE] | Dashboard — Oylik moliyaviy xulosa karta

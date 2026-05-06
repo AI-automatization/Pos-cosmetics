@@ -151,3 +151,8 @@ export type SalesOrdersStackParamList = {
   SalesOrderList: undefined;
   SalesOrderDetail: { orderId: string; orderNumber: number };
 };
+
+export type OmborTabStackParamList = {
+  OmborMain: undefined;
+  InvoicesScreen: undefined;
+};
