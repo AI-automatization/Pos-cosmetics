@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api/sales.api';
 import SearchBar from '../../components/common/SearchBar';
 import ErrorView from '@/components/common/ErrorView';
+import { OrderDetailSheet } from './OrderDetailSheet';
 import type { OrderStatus } from '@raos/types';
 
 // ─── Colors ────────────────────────────────────────────
@@ -186,9 +187,10 @@ function StatCard({
 
 // ─── PaymentsHistoryScreen ─────────────────────────────
 export default function PaymentsHistoryScreen() {
-  const [period, setPeriod]     = useState<PeriodKey>('30d');
-  const [method, setMethod]     = useState<MethodKey>('Barchasi');
-  const [search, setSearch]     = useState('');
+  const [period, setPeriod]         = useState<PeriodKey>('30d');
+  const [method, setMethod]         = useState<MethodKey>('Barchasi');
+  const [search, setSearch]         = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const { from, to } = useMemo(() => getPeriodDates(period), [period]);
 
@@ -375,13 +377,18 @@ export default function PaymentsHistoryScreen() {
           data={filtered}
           keyExtractor={(o) => o.id}
           renderItem={({ item }) => (
-            <PaymentCard
-              orderNumber={item.orderNumber}
-              status={item.status}
-              total={item.total}
-              createdAt={item.createdAt}
-              customerId={item.customerId}
-            />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setSelectedOrderId(item.id)}
+            >
+              <PaymentCard
+                orderNumber={item.orderNumber}
+                status={item.status}
+                total={item.total}
+                createdAt={item.createdAt}
+                customerId={item.customerId}
+              />
+            </TouchableOpacity>
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -397,6 +404,11 @@ export default function PaymentsHistoryScreen() {
           }
         />
       )}
+
+      <OrderDetailSheet
+        orderId={selectedOrderId}
+        onClose={() => setSelectedOrderId(null)}
+      />
     </SafeAreaView>
   );
 }

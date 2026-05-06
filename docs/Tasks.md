@@ -215,14 +215,7 @@
 
 ---
 
-## T-448 | P3 | [MOBILE] | PaymentsHistoryScreen — Order detail modal (bosilganda)
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
-- **Muammo:** Web da row bosilganda OrderDetailModal ochiladi (items, discount, tax, notes). Mobile da SaleDetail bor lekin PaymentsHistory dan bog'lanmagan.
-- **Kutilgan:** To'lov qatoriga bosilganda order detallari ochiladi (BottomSheet yoki navigate)
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
+*(T-448 — Done.md ga ko'chirildi 2026-05-06)*
 
 ---
 

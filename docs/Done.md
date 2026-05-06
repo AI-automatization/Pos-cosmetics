@@ -3,6 +3,13 @@
 
 ---
 
+## T-448 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — Order detail modal
+
+- **Yechim:** `OrderDetailSheet.tsx` yangi komponent yaratildi (items, subtotal/chegirma/soliq/jami, notes, status badge, API: `salesApi.getOrderById`). `PaymentsHistoryScreen.tsx` da `PaymentCard` `TouchableOpacity` ga o'raldi, `selectedOrderId` state va `OrderDetailSheet` integratsiya qilindi.
+- **Fayl:** `apps/mobile/src/screens/Finance/OrderDetailSheet.tsx`, `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
+
+---
+
 ## T-447 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — Stat kartalar (Naqd/Karta/Nasiya)
 
 - **Yechim:** `sales.api.ts` ga `OrderWithMethod` type qo'shildi (`Order & { paymentMethod?: string | null }`). `PaymentsHistoryScreen.tsx` ga `StatCard` komponenti, `statCards` useMemo (NAQD/CASH→Naqd, KARTA/CARD/TERMINAL→Karta, NASIYA/DEBT→Nasiya) va 3 ta stat karta render qo'shildi. T-423 hal bo'lguncha kartalar 0 ko'rsatadi.
