@@ -1,6 +1,12 @@
 import type { Order, Shift, OpenShiftPayload, CloseShiftPayload, CreateOrderPayload } from '@raos/types';
 import api from './client';
 
+/**
+ * T-447: packages/types dagi Order da paymentMethod yo'q.
+ * packages/types zonasiga tegmasdan, mobile-lokal intersection type yaratildi.
+ */
+export type OrderWithMethod = Order & { paymentMethod?: string | null };
+
 export interface ShiftDetail extends Shift {
   totalRevenue?: number;
   totalOrders?: number;
@@ -57,7 +63,7 @@ export interface OrdersFilter {
 }
 
 export interface PaginatedOrders {
-  data: Order[];
+  data: OrderWithMethod[];
   total: number;
   page: number;
   limit: number;
@@ -71,8 +77,8 @@ export const salesApi = {
     return data;
   },
 
-  getOrderById: async (orderId: string): Promise<Order> => {
-    const { data } = await api.get<Order>(`/sales/orders/${orderId}`);
+  getOrderById: async (orderId: string): Promise<OrderWithMethod> => {
+    const { data } = await api.get<OrderWithMethod>(`/sales/orders/${orderId}`);
     return data;
   },
 
@@ -122,8 +128,8 @@ export const salesApi = {
     return data;
   },
 
-  createOrder: async (payload: CreateOrderPayload): Promise<Order> => {
-    const { data } = await api.post<Order>('/sales/orders', payload);
+  createOrder: async (payload: CreateOrderPayload): Promise<OrderWithMethod> => {
+    const { data } = await api.post<OrderWithMethod>('/sales/orders', payload);
     return data;
   },
 

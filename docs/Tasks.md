@@ -211,14 +211,7 @@
 
 ---
 
-## T-447 | P3 | [MOBILE] | PaymentsHistoryScreen — Stat kartalar (Naqd/Karta/Nasiya jami)
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
-- **Muammo:** Web da 3 ta stat card bor (METHOD_LABEL bo'yicha guruhlangan jami summalar). Mobile da faqat ro'yxat bor, stat kartalar yo'q.
-- **Kutilgan:** Ekran tepasida stat kartalar: Naqd, Karta, Nasiya — har birining jami summasi
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
+*(T-447 — Done.md ga ko'chirildi 2026-05-06)*
 
 ---
 

@@ -149,6 +149,41 @@ function PaymentCard({
   );
 }
 
+// ─── OrderWithMethod type ──────────────────────────────
+type OrderWithMethod = { paymentMethod?: string | null } & {
+  id: string;
+  orderNumber: number;
+  status: OrderStatus;
+  total: number;
+  createdAt: Date | string;
+  customerId: string | null;
+};
+
+// ─── StatCard ──────────────────────────────────────────
+function StatCard({
+  label,
+  sum,
+  count,
+  color,
+  bg,
+}: {
+  readonly label: string;
+  readonly sum: number;
+  readonly count: number;
+  readonly color: string;
+  readonly bg: string;
+}) {
+  return (
+    <View style={[styles.statCard, { backgroundColor: bg }]}>
+      <Text style={[styles.statLabel, { color }]}>{label}</Text>
+      <Text style={[styles.statSum, { color }]}>
+        {sum.toLocaleString('uz-UZ')} so'm
+      </Text>
+      <Text style={styles.statCount}>{count} ta</Text>
+    </View>
+  );
+}
+
 // ─── PaymentsHistoryScreen ─────────────────────────────
 export default function PaymentsHistoryScreen() {
   const [period, setPeriod]     = useState<PeriodKey>('30d');
@@ -175,6 +210,44 @@ export default function PaymentsHistoryScreen() {
     // method filter — disabled until T-423 adds paymentMethod to Order API response
     return list;
   }, [orders, search, method]);
+
+  // Stat cards — payment method bo'yicha
+  const statCards = useMemo(() => {
+    const cash = filtered.filter((o) =>
+      ['NAQD', 'CASH'].includes((o as OrderWithMethod).paymentMethod ?? ''),
+    );
+    const card = filtered.filter((o) =>
+      ['KARTA', 'CARD', 'TERMINAL'].includes(
+        (o as OrderWithMethod).paymentMethod ?? '',
+      ),
+    );
+    const debt = filtered.filter((o) =>
+      ['NASIYA', 'DEBT'].includes((o as OrderWithMethod).paymentMethod ?? ''),
+    );
+    return [
+      {
+        label: 'Naqd',
+        sum: cash.reduce((s, o) => s + o.total, 0),
+        count: cash.length,
+        color: '#16A34A',
+        bg: '#F0FDF4',
+      },
+      {
+        label: 'Karta',
+        sum: card.reduce((s, o) => s + o.total, 0),
+        count: card.length,
+        color: '#7C3AED',
+        bg: '#F5F3FF',
+      },
+      {
+        label: 'Nasiya',
+        sum: debt.reduce((s, o) => s + o.total, 0),
+        count: debt.length,
+        color: '#D97706',
+        bg: '#FFFBEB',
+      },
+    ];
+  }, [filtered]);
 
   // Summary stats
   const totalCompleted = useMemo(
@@ -264,6 +337,15 @@ export default function PaymentsHistoryScreen() {
           );
         })}
       </ScrollView>
+
+      {/* Stat cards */}
+      {!isLoading && (
+        <View style={styles.statRow}>
+          {statCards.map((c) => (
+            <StatCard key={c.label} {...c} />
+          ))}
+        </View>
+      )}
 
       {/* Summary strip */}
       {!isLoading && filtered.length > 0 && (
@@ -404,4 +486,31 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingVertical: 60, gap: 8 },
   emptyTitle: { fontSize: 15, color: C.muted, fontWeight: '600' },
   emptySub: { fontSize: 12, color: C.muted },
+
+  statRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    marginTop: 12,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 12,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  statSum: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  statCount: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 2,
+  },
 });

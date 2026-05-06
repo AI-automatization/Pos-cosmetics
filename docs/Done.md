@@ -3,6 +3,13 @@
 
 ---
 
+## T-447 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — Stat kartalar (Naqd/Karta/Nasiya)
+
+- **Yechim:** `sales.api.ts` ga `OrderWithMethod` type qo'shildi (`Order & { paymentMethod?: string | null }`). `PaymentsHistoryScreen.tsx` ga `StatCard` komponenti, `statCards` useMemo (NAQD/CASH→Naqd, KARTA/CARD/TERMINAL→Karta, NASIYA/DEBT→Nasiya) va 3 ta stat karta render qo'shildi. T-423 hal bo'lguncha kartalar 0 ko'rsatadi.
+- **Fayl:** `apps/mobile/src/api/sales.api.ts`, `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
+
+---
+
 ## T-452 | 2026-05-06 | [MOBILE] | Yetkazib beruvchilar — CRUD (Create/Update/Delete)
 
 - **Yechim:** Audit natijasida `SuppliersScreen.tsx` da CRUD allaqachon to'liq implement qilingan — BottomSheet forma (name, phone, company, address), 3-dot menu (tahrirlash/o'chirish), delete confirmation dialog, real-time search. Yangi kod yozilmadi.
