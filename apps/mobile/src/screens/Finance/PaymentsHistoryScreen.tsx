@@ -15,7 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api/sales.api';
 import SearchBar from '../../components/common/SearchBar';
 import ErrorView from '@/components/common/ErrorView';
-import { OrderDetailSheet } from './OrderDetailSheet';
+import OrderDetailSheet from './OrderDetailSheet';
 import type { OrderStatus } from '@raos/types';
 
 // ─── Colors ────────────────────────────────────────────
