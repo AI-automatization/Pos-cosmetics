@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { shiftApi } from '@/api/shift.api';
 import { extractErrorMessage } from '@/lib/utils';
@@ -52,6 +53,13 @@ export function useCloseShift(onSuccess?: () => void) {
       onSuccess?.();
     },
     onError: (err: unknown) => {
+      // Shift allaqachon yopilgan yoki topilmadi — store ni tozala
+      if (err instanceof AxiosError && (err.response?.status === 404 || err.response?.status === 400)) {
+        closeShift();
+        toast.warning('Smena allaqachon yopilgan. Yangi smena oching.');
+        onSuccess?.();
+        return;
+      }
       toast.error(extractErrorMessage(err));
     },
   });

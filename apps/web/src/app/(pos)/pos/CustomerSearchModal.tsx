@@ -53,7 +53,7 @@ function CustomerCard({
       <div className="mb-3 flex items-start justify-between">
         <div>
           <p className="font-semibold text-gray-900">{customer.name}</p>
-          <p className="text-sm text-gray-500">+{customer.phone}</p>
+          <p className="text-sm text-gray-500">{customer.phone ? `+${customer.phone}` : '—'}</p>
         </div>
         {hasOverdue && !isBlocked && (
           <span className="flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
@@ -160,7 +160,8 @@ export function CustomerSearchModal({ onSelect, onClose }: CustomerSearchModalPr
   };
 
   const onCreateSubmit = (data: CreateForm) => {
-    createCustomer.mutate({ name: data.name, phone: cleanPhone });
+    const fullPhone = cleanPhone.startsWith('998') ? `+${cleanPhone}` : `+998${cleanPhone}`;
+    createCustomer.mutate({ name: data.name, phone: fullPhone });
   };
 
   return (

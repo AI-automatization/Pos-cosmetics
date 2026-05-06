@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Copy, Store } from 'lucide-react';
+import { CheckCircle, Copy, Store, Mail, MailX } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TenantResult {
@@ -11,23 +11,25 @@ interface TenantResult {
   ownerPhone: string;
   password: string | null;
   planName: string;
+  emailSent: boolean;
 }
 
 interface ResultScreenProps {
   result: TenantResult;
 }
 
+const LOGIN_URL = 'https://web-production-5b0b7.up.railway.app/login';
+
 // Success screen after tenant creation — shows credentials with copy buttons
 export function ResultScreen({ result }: ResultScreenProps) {
   const router = useRouter();
-  const loginUrl = `https://raos.uz/${result.slug}`;
 
   const copy = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => toast.success(`${label} скопировано`));
   };
 
   const credentials = [
-    { label: 'URL входа', value: loginUrl },
+    { label: 'URL входа', value: LOGIN_URL },
     { label: 'Slug', value: result.slug },
     { label: 'Email', value: result.ownerEmail },
     { label: 'Телефон', value: result.ownerPhone },
@@ -41,10 +43,26 @@ export function ResultScreen({ result }: ResultScreenProps) {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
-        <h2 className="text-xl font-bold text-green-800">Тенант успешно создан!</h2>
+        <h2 className="text-xl font-bold text-green-800">Магазин успешно создан!</h2>
         <p className="text-sm text-green-600">
           {result.tenantName} &mdash; тариф {result.planName}
         </p>
+      </div>
+
+      {/* Email status */}
+      <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
+        result.emailSent
+          ? 'border-blue-200 bg-blue-50 text-blue-700'
+          : 'border-yellow-200 bg-yellow-50 text-yellow-700'
+      }`}>
+        {result.emailSent ? (
+          <Mail className="h-4 w-4 shrink-0" />
+        ) : (
+          <MailX className="h-4 w-4 shrink-0" />
+        )}
+        {result.emailSent
+          ? `Данные для входа отправлены на ${result.ownerEmail}`
+          : 'Email не отправлен — SMTP не настроен. Скопируйте данные вручную.'}
       </div>
 
       {/* Credentials card */}
@@ -69,14 +87,6 @@ export function ResultScreen({ result }: ResultScreenProps) {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* QR code placeholder */}
-      <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-8">
-        <div className="flex h-28 w-28 items-center justify-center rounded-lg bg-gray-200">
-          <Store className="h-10 w-10 text-gray-400" />
-        </div>
-        <p className="text-xs text-gray-400">QR код (в следующей версии)</p>
       </div>
 
       {/* Actions */}

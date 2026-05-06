@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
@@ -10,6 +11,7 @@ import {
   ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PaymentMethod } from '@prisma/client';
 
 export class ReturnItemDto {
   @ApiProperty()
@@ -43,4 +45,12 @@ export class CreateReturnDto {
   @IsOptional()
   @IsString()
   reason?: string;
+
+  @ApiPropertyOptional({
+    enum: PaymentMethod,
+    description: 'Refund method — POS uses CASH (auto-approve) or TERMINAL (pending)',
+  })
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  refundMethod?: PaymentMethod;
 }

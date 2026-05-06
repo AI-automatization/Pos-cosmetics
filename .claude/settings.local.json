@@ -41,7 +41,14 @@
       "Skill(update-config)",
       "mcp__playwright__browser_type",
       "Bash(node_modules/.bin/eslint apps/mobile/src/)",
-      "Bash(NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1 PORT=3004 npx next dev --port 3004)"
+      "Bash(NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1 PORT=3004 npx next dev --port 3004)",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_run_code",
+      "Bash(PGPASSWORD=raos_secret psql:*)",
+      "Bash(findstr \"LISTEN\")",
+      "Bash(findstr -E \"3000 3001\")",
+      "Bash(powershell.exe:*)",
+      "mcp__plugin_playwright_playwright__browser_fill_form"
     ]
   },
   "enableAllProjectMcpServers": true,

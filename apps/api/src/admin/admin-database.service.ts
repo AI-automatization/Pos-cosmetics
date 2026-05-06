@@ -396,16 +396,23 @@ export class AdminDatabaseService {
     const isDml = upperSql.startsWith('INSERT') || upperSql.startsWith('UPDATE') || upperSql.startsWith('DELETE');
     const isDdl = upperSql.startsWith('DROP') || upperSql.startsWith('ALTER') || upperSql.startsWith('TRUNCATE') || upperSql.startsWith('CREATE');
 
-    const start = Date.now();
-    let type: 'SELECT' | 'DML' | 'DDL' = 'SELECT';
-
+    // T-387: DDL taqiqlangan — DROP, ALTER, TRUNCATE, CREATE
     if (isDdl) {
-      type = 'DDL';
-    } else if (isDml) {
-      type = 'DML';
+      this.logger.error(`SQL CONSOLE BLOCKED [DDL]: ${trimmed.slice(0, 200)}`);
+      throw new BadRequestException(
+        'DDL операции (DROP, ALTER, TRUNCATE, CREATE) тақиқланган. Фақат SELECT ва DML (INSERT/UPDATE/DELETE) рухсат этилган.',
+      );
     }
 
-    this.logger.warn(`SQL CONSOLE [${type}]: ${trimmed.slice(0, 200)}`);
+    const start = Date.now();
+    const type: 'SELECT' | 'DML' = isDml ? 'DML' : 'SELECT';
+
+    // T-387: Audit log — har SQL query logga yoziladi
+    this.logger.warn(`SQL CONSOLE [${type}]: ${trimmed.slice(0, 500)}`, {
+      sqlType: type,
+      sqlLength: trimmed.length,
+      timestamp: new Date().toISOString(),
+    });
 
     try {
       if (isSelect) {
@@ -421,8 +428,14 @@ export class AdminDatabaseService {
         };
       }
 
-      // DML/DDL
+      // DML only (DDL blocked above)
       const result = await this.prisma.$executeRawUnsafe(trimmed);
+
+      this.logger.warn(`SQL CONSOLE DML EXECUTED: ${trimmed.slice(0, 500)}`, {
+        affectedRows: result,
+        executionTimeMs: Date.now() - start,
+      });
+
       return {
         rows: [],
         columns: [],
@@ -433,6 +446,7 @@ export class AdminDatabaseService {
       };
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Unknown SQL error';
+      this.logger.error(`SQL CONSOLE ERROR: ${msg}`, { sql: trimmed.slice(0, 300) });
       throw new BadRequestException(`SQL ошибка: ${msg}`);
     }
   }

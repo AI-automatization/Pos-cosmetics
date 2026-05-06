@@ -30,6 +30,7 @@ export interface ShiftTotals {
   revenue: number;
   cashRevenue: number;
   cardRevenue: number;
+  cashReturned: number;
 }
 
 // API DTOs

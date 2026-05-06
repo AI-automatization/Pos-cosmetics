@@ -314,10 +314,7 @@ export default function OrdersPage() {
 
   return (
     <>
-    <PageLayout
-      title="Buyurtmalar"
-      subtitle={`Jami: ${total} ta buyurtma`}
-    >
+    <PageLayout>
       {/* Status filter tabs */}
       <div className="mb-4 flex gap-2">
         {STATUS_FILTERS.map((f) => (

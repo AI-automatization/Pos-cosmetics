@@ -3,7 +3,7 @@ import type { CreateOrderDto, Order } from '@/types/sales';
 
 export const salesApi = {
   async createOrder(dto: CreateOrderDto): Promise<Order> {
-    // Map frontend DTO → backend CreateOrderDto
+    // 1. Map frontend DTO → backend CreateOrderDto
     const backendDto = {
       shiftId: dto.shiftId || undefined,
       customerId: dto.customerId,
@@ -14,7 +14,6 @@ export const salesApi = {
         productId: item.productId,
         quantity: item.quantity,
         unitPrice: item.sellPrice,
-        // lineDiscount is a percentage; convert to fixed amount for backend
         discountAmount:
           item.lineDiscount > 0
             ? Math.round(item.sellPrice * item.quantity * (item.lineDiscount / 100))
@@ -24,29 +23,69 @@ export const salesApi = {
 
     const order = await apiClient.post<Order>('/sales/orders', backendDto).then((r) => r.data);
 
-    // Create and settle payment intents for POS flow
-    if (dto.payments.length > 0) {
-      // Map frontend payment methods to backend PaymentMethod enum
-      const methodMap: Record<string, string> = {
-        CASH: 'CASH',
-        CARD: 'TERMINAL',
-        NASIYA: 'DEBT',
-        BONUS: 'CASH',
-      };
-      const paymentsPayload = dto.payments
-        .filter((p) => p.amount > 0)
-        .map((p) => ({
-          orderId: order.id,
-          method: methodMap[p.method] ?? p.method,
-          amount: p.amount,
-        }));
-      if (paymentsPayload.length === 0) return order;
-      const intents = await apiClient
-        .post<{ id: string }[]>('/payments/split', {
-          payments: paymentsPayload,
+    if (dto.payments.length === 0) return order;
+
+    // 2. Separate payment types
+    const bonusPayment = dto.payments.find((p) => p.method === 'BONUS' && p.amount > 0);
+    const nasiyaPayment = dto.payments.find((p) => p.method === 'NASIYA' && p.amount > 0);
+    const regularPayments = dto.payments.filter(
+      (p) => p.method !== 'BONUS' && p.method !== 'NASIYA' && p.amount > 0,
+    );
+
+    // 3. Bonus → redeem loyalty points
+    if (bonusPayment && dto.customerId && dto.bonusPoints && dto.bonusPoints > 0) {
+      await apiClient
+        .post('/loyalty/redeem', {
+          customerId: dto.customerId,
+          points: dto.bonusPoints,
         })
+        .catch(() => {
+          // Loyalty redeem failure should not block the sale
+        });
+    }
+
+    // 4. Nasiya → create debt record
+    if (nasiyaPayment && dto.customerId) {
+      await apiClient
+        .post('/nasiya', {
+          customerId: dto.customerId,
+          orderId: order.id,
+          totalAmount: nasiyaPayment.amount,
+        })
+        .catch(() => {
+          // Debt creation failure should not block the sale
+        });
+    }
+
+    // 5. Regular payments (CASH, CARD) + NASIYA as DEBT intent → /payments/split
+    const methodMap: Record<string, string> = {
+      CASH: 'CASH',
+      CARD: 'TERMINAL',
+      NASIYA: 'DEBT',
+    };
+
+    const paymentsPayload = [
+      ...regularPayments.map((p) => ({
+        orderId: order.id,
+        method: methodMap[p.method] ?? p.method,
+        amount: p.amount,
+      })),
+      // Nasiya also creates a DEBT payment intent for tracking
+      ...(nasiyaPayment
+        ? [{ orderId: order.id, method: 'DEBT', amount: nasiyaPayment.amount }]
+        : []),
+      // Bonus payment as a separate tracking intent (CASH type — bonus discount applied)
+      ...(bonusPayment
+        ? [{ orderId: order.id, method: 'CASH', amount: bonusPayment.amount, meta: { type: 'BONUS_REDEEM' } }]
+        : []),
+    ].filter((p) => p.amount > 0);
+
+    if (paymentsPayload.length > 0) {
+      const intents = await apiClient
+        .post<{ id: string }[]>('/payments/split', { payments: paymentsPayload })
         .then((r) => r.data);
-      // Settle all intents so analytics/reports see SETTLED revenue
+
+      // Settle all intents
       await Promise.allSettled(
         intents.map((intent) => apiClient.patch(`/payments/${intent.id}/settle`)),
       );

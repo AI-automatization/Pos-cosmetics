@@ -92,7 +92,7 @@ export default function FounderDatabasePage() {
     const other = tables.filter(
       (t) => !categorized.has(t.name) && (!search || t.name.includes(search)),
     );
-    if (other.length > 0) groups['Boshqa'] = other;
+    if (other.length > 0) groups['Прочее'] = other;
 
     return groups;
   }, [tables, tableSearch]);

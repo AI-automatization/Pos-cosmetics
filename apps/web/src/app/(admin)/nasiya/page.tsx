@@ -595,7 +595,7 @@ export default function NasiyaPage() {
                       {formatPrice(debt.remainingAmount)}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {new Date(debt.dueDate).toLocaleDateString('uz-UZ')}
+                      {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('uz-UZ') : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <DebtStatusBadge status={debt.status} />

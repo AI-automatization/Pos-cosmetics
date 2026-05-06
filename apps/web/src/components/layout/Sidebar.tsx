@@ -63,7 +63,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Asosiy',
     items: [
-      { label: 'Dashboard', tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ALL },
+      { label: 'Dashboard', tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: NO_CASHIER },
       { label: 'POS Kassa', tKey: 'nav.pos', href: '/pos', icon: Monitor, roles: ['CASHIER'] },
     ],
   },
@@ -73,7 +73,7 @@ const NAV_SECTIONS: NavSection[] = [
       {
         label: 'Katalog', tKey: 'nav.catalog',
         icon: Package,
-        roles: ['ADMIN', 'MANAGER', 'VIEWER'],
+        roles: ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'],
         children: [
           { label: 'Mahsulotlar', tKey: 'nav.products', href: '/catalog/products' },
           { label: 'Kategoriyalar', tKey: 'nav.categories', href: '/catalog/categories' },
@@ -135,7 +135,6 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { label: 'Foyda va zarar', tKey: 'nav.pnl', href: '/finance/pnl' },
           { label: 'Xarajatlar', tKey: 'nav.expenses', href: '/finance/expenses' },
-          { label: 'Valyuta kurslari', tKey: 'nav.exchangeRates', href: '/finance/exchange-rates' },
         ],
       },
       { label: 'Analitika', tKey: 'nav.analytics', href: '/analytics', icon: TrendingUp, roles: NO_CASHIER },

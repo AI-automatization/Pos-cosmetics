@@ -36,42 +36,7 @@
 
 ---
 
-## T-387 | P0 | [SECURITY] | Super Admin hardening
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Muammo:**
-  - SQL console — whitelist/audit yo'q
-  - JWT localStorage da (XSS xavf)
-  - DLQ endpoints JwtAuthGuard yo'q
-  - Login/bootstrap da rate-limit yo'q
-- **Kutilgan:** Deploy oldin barcha xavfsizlik yopilgan bo'lishi SHART
-
----
-
-## T-388 | P0 | [BACKEND] | Fiscal worker — cross-tenant update, retry yo'q
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Fayl:** `apps/worker/` (fiscal processor)
-- **Muammo:**
-  - order.update da tenant_id filter yo'q → cross-tenant update
-  - fiscalStatus=FAILED har retry da o'rnatiladi
-  - Retry/backoff mexanizm yo'q
-  - Idempotency key (jobId) ishlatilmayapti
-- **Kutilgan:** Tenant isolation, retry logika, idempotency
-
----
-
-## T-389 | P0 | [SECURITY] | Cookie namespace collision — super-admin vs web
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Muammo:** session_active, user_role, access_token nomlari bir xil → *.raos.uz da session leak
-- **Kutilgan:** Cookie nomlari prefix bilan ajratilgan (sa_, web_)
+*(T-387, T-388, T-389 — Done.md ga ko'chirildi 2026-04-25)*
 
 ---
 
@@ -81,63 +46,73 @@
 
 ---
 
-## T-390 | P1 | [BACKEND] | Migration 20260421120000 — SKU update bez backup
+*(T-390 — Done.md ga ko'chirildi 2026-04-25)*
 
-- **Sana:** 2026-04-24
+---
+
+*(T-391 — Done.md ga ko'chirildi 2026-04-25)*
+
+---
+
+*(T-392 — Done.md ga ko'chirildi 2026-05-01)*
+
+---
+
+*(T-393 — Done.md ga ko'chirildi 2026-05-01)*
+
+---
+
+*(T-396 — Done.md ga ko'chirildi 2026-05-01)*
+
+---
+
+## T-399 | P1 | [IKKALASI] | Global i18n — 3 til (uz/ru/en) + auto-translate ma'lumotlar
+
+- **Sana:** 2026-05-02
 - **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Muammo:** UPDATE products SET sku backup siz → POS scan buzilishi mumkin
-- **Kutilgan:** Migration da backup/rollback qo'shish
+- **Scope:** Owner/Admin panel, POS (Cashier), Warehouse, Manager, Super Admin
+- **Muammo:** POS UI ~70-80% hardcoded Uzbek. Admin panel ham hardcoded. Foydalanuvchi Ruscha yozsa product nomi ham 3 tilga auto-translate bo'lishi kerak.
+- **Infrastructure:** `apps/web/src/i18n/` mavjud (uz.json, ru.json, en.json) lekin to'liq qo'llanilmagan
+- **3 Faza:**
+  - **Faza 1** — UI Labels: hardcoded stringlar → `t('key')` (POS + Admin)
+  - **Faza 2** — Schema: `Product/Category/Unit` ga `name_uz, name_ru, name_en` qo'shish + migration
+  - **Faza 3** — Auto-translate service: `apps/api/src/common/translate/translate.service.ts` (Google Translate API yoki LibreTranslate)
+- **Kutilgan:** Til tanlanganda butun UI o'zgaradi; product yaratishda auto 3-til tarjima
 
 ---
 
-## T-391 | P1 | [SECURITY] | admin-database: SUPPORT role CSV download — tenant leak
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Muammo:** SUPPORT role barcha tenants CSV yuklay oladi tenantId filtersiz
-- **Kutilgan:** tenantId filter MAJBURIY
+*(T-384 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
 
-## T-392 | P1 | [BACKEND] | shift-alert listener tenantId yo'q + sales.service 707 qator
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Topgan:** AbdulazizYormatov (audit)
-- **Fayl:** `apps/api/src/sales/sales.service.ts`
-- **Muammo:** shift-alert listener tenantId yo'q; sales.service.ts 707 qator — SRP buzilgan
-- **Kutilgan:** tenantId qo'shish; 4 ta fayl ga bo'lish
+*(T-392 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
 
-## T-384 | P1 | [FRONTEND] | Founder Panel — to'liq Ruscha tarjima
-
-- **Sana:** 2026-04-21
-- **Mas'ul:** Ibrat
-- **Fayl:** Barcha `apps/web/src/app/(founder)/` va `apps/web/src/components/layout/FounderSidebar.tsx`
-- **Muammo:** 3 til aralashgan — Sidebar: Ruscha, Kontentlar: O'zbekcha, Sarlavhalar: Inglizcha
-- **Vazifa:**
-  - FounderSidebar.tsx — allaqachon Ruscha (OK)
-  - Overview page — "Founder Overview" → "Обзор", "Jami tenantlar" → "Всего тенантов" va h.k.
-  - Tenants list — "Barchasi/Faol/Nofaol" → "Все/Активные/Неактивные" va h.k.
-  - Tenant detail — tablar "Obzor/Obuna/Foydalanuvchilar" → "Обзор/Подписка/Пользователи"
-  - Tenant new wizard — "Kompaniya/Vladelec/Tarif/Tasdiqlash" → "Компания/Владелец/Тариф/Подтверждение"
-  - Database Manager — "Jadvallar/Hajm/Ulanishlar" → "Таблицы/Размер/Соединения"
-  - Errors page — "Barchasi/Xato topilmadi" → "Все/Ошибок не найдено"
-  - Admin Login — "Parol/Kirish" → "Пароль/Войти"
-  - Sidebar bottomda: "Admin panelga" → "← В админ-панель", "Chiqish" → "Выйти"
-- **Kutilgan:** Butun Founder Panel 100% Ruscha
+*(T-384 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
-
----
-
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
+
+---
+
+*(T-394 — Done.md ga ko'chirildi 2026-05-02)*
+
+---
+
+*(T-395 — Done.md ga ko'chirildi 2026-05-02)*
+
+---
+
+*(T-397 — Done.md ga ko'chirildi 2026-05-02)*
+
+---
+
+
+*(T-398 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
 

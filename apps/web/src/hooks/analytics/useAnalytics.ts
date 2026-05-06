@@ -22,7 +22,7 @@ export function useAnalyticsSalesTrend(
   days = 30,
   branchId?: string,
 ) {
-  const from = daysAgoIso(days);
+  const from = days <= 1 ? todayIso() : daysAgoIso(days);
   const to = todayIso();
   return useQuery({
     queryKey: ['analytics', 'sales-trend', period, days, branchId],

@@ -93,6 +93,13 @@ export class CreateProductDto {
   @IsOptional()
   @IsUUID()
   supplierId?: string;
+
+  @ApiPropertyOptional({ example: 10, description: 'Initial stock quantity (creates IN movement)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  initialStock?: number;
 }
 
 export class UpdateProductDto {
@@ -167,6 +174,16 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   costCurrency?: string;
+
+  @ApiPropertyOptional({ type: [String], description: 'Extra barcodes' })
+  @IsOptional()
+  @IsString({ each: true })
+  extraBarcodes?: string[];
+
+  @ApiPropertyOptional({ description: 'Update default supplier' })
+  @IsOptional()
+  @IsUUID()
+  supplierId?: string;
 }
 
 export class ProductFilterDto {

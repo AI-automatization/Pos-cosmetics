@@ -7,10 +7,12 @@ import { AdminDatabaseService } from './admin-database.service';
 import { AdminAuthController } from './admin-auth.controller';
 import { AdminDatabaseController } from './admin-database.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     PrismaModule,
+    NotificationsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

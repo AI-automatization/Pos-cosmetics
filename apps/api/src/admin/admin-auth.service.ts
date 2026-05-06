@@ -11,6 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminLoginDto, AdminCreateDto } from './dto/admin-login.dto';
+import { EmailNotifyService } from '../notifications/email-notify.service';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -34,6 +35,8 @@ const DEFAULT_UNITS = [
   { name: 'Gram', shortName: 'g' },
 ];
 
+const APP_LOGIN_URL = 'https://web-production-5b0b7.up.railway.app/login';
+
 @Injectable()
 export class AdminAuthService {
   private readonly logger = new Logger(AdminAuthService.name);
@@ -42,6 +45,7 @@ export class AdminAuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly emailNotify: EmailNotifyService,
   ) {}
 
   /**
@@ -500,6 +504,23 @@ export class AdminAuthService {
 
     this.logger.log(`Tenant FULL created: ${result.tenant.slug} | owner: ${result.owner.email}`);
 
+    // Send welcome email with credentials (non-blocking — failure doesn't break creation)
+    const emailSent = await this.emailNotify.sendOwnerWelcome({
+      email: result.owner.email,
+      firstName: result.owner.firstName ?? '',
+      lastName: result.owner.lastName ?? '',
+      password: tempPassword,
+      slug: result.tenant.slug,
+      tenantName: result.tenant.name,
+      loginUrl: APP_LOGIN_URL,
+    });
+
+    if (emailSent) {
+      this.logger.log(`Welcome email sent to ${result.owner.email}`);
+    } else {
+      this.logger.warn(`Welcome email NOT sent to ${result.owner.email} — SMTP not configured?`);
+    }
+
     return {
       tenant: { id: result.tenant.id, name: result.tenant.name, slug: result.tenant.slug },
       owner: {
@@ -516,6 +537,7 @@ export class AdminAuthService {
         planSlug,
         expiresAt: result.subscription.expiresAt,
       } : null,
+      emailSent,
     };
   }
 

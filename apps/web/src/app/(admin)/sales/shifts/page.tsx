@@ -132,8 +132,6 @@ export default function ShiftsPage() {
 
   return (
     <PageLayout
-      title="Smenalar"
-      subtitle={`Jami: ${total} ta smena`}
     >
       {/* Filter tabs */}
       <div className="mb-4 flex flex-wrap items-center gap-2">

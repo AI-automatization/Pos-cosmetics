@@ -7,6 +7,7 @@ import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useTransfers, useTransferAction } from '@/hooks/inventory/useInventory';
+import { CreateTransferModal } from './CreateTransferModal';
 import { cn } from '@/lib/utils';
 import type { TransferStatus, StockTransfer } from '@/types/inventory';
 
@@ -126,6 +127,7 @@ function getNextActions(status: TransferStatus): { action: 'approve' | 'ship' | 
 
 export default function TransferPage() {
   const [statusFilter, setStatusFilter] = useState<TransferStatus | 'ALL'>('ALL');
+  const [showCreate, setShowCreate] = useState(false);
   const { data, isLoading, isError, refetch } = useTransfers(
     statusFilter === 'ALL' ? undefined : { status: statusFilter },
   );
@@ -134,12 +136,13 @@ export default function TransferPage() {
   const transfers = data?.items ?? [];
 
   return (
+    <>
+    {showCreate && <CreateTransferModal onClose={() => { setShowCreate(false); refetch(); }} />}
     <PageLayout
-      title="Tovar ko'chirish"
-      subtitle={`Jami: ${data?.total ?? 0}`}
       actions={
         <button
           type="button"
+          onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
@@ -192,5 +195,6 @@ export default function TransferPage() {
         </div>
       )}
     </PageLayout>
+    </>
   );
 }

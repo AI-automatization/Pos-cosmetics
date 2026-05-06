@@ -19,8 +19,8 @@ export function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmLabel = 'Tasdiqlash',
-  cancelLabel = 'Bekor qilish',
+  confirmLabel = 'Подтвердить',
+  cancelLabel = 'Отмена',
   variant = 'danger',
   isPending = false,
   onConfirm,
@@ -76,7 +76,7 @@ export function ConfirmDialog({
                 : 'bg-yellow-500 hover:bg-yellow-600',
             )}
           >
-            {isPending ? 'Kutilmoqda...' : confirmLabel}
+            {isPending ? 'Загрузка...' : confirmLabel}
           </button>
         </div>
       </div>

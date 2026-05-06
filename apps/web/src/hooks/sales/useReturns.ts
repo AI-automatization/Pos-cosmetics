@@ -14,12 +14,21 @@ export function useOrdersForReturns(params: { page?: number; limit?: number } = 
   });
 }
 
+export function useListReturns(params: { page?: number; limit?: number; status?: string } = {}) {
+  return useQuery({
+    queryKey: ['returns', params],
+    queryFn: () => returnsApi.listReturns(params),
+    staleTime: 30_000,
+  });
+}
+
 export function useCreateReturn() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (dto: CreateReturnDto) => returnsApi.createReturn(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['orders'] });
+      qc.invalidateQueries({ queryKey: ['returns'] });
       toast.success("Qaytarish so'rovi yuborildi!");
     },
     onError: () => toast.error('Xato yuz berdi'),
@@ -31,6 +40,7 @@ export function useApproveReturn() {
   return useMutation({
     mutationFn: (id: string) => returnsApi.approveReturn(id),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['returns'] });
       qc.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Qaytarish tasdiqlandi!');
     },

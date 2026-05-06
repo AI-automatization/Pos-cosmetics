@@ -23,8 +23,8 @@ export class ShiftAlertListener {
     const { tenantId, shiftId } = event;
 
     try {
-      const shift = await this.prisma.shift.findUnique({
-        where: { id: shiftId },
+      const shift = await this.prisma.shift.findFirst({
+        where: { id: shiftId, tenantId },
         include: {
           user: { select: { firstName: true, lastName: true } },
           branch: { select: { name: true } },

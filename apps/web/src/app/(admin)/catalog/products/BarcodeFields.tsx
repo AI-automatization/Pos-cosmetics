@@ -14,13 +14,14 @@ interface BarcodeFieldsProps {
   append: UseFieldArrayReturn<ProductFormData, 'extraBarcodes'>['append'];
   remove: UseFieldArrayReturn<ProductFormData, 'extraBarcodes'>['remove'];
   setValue: (name: `extraBarcodes.${number}.value`, value: string) => void;
+  className?: string;
 }
 
-export function BarcodeFields({ register, fields, append, remove, setValue }: BarcodeFieldsProps) {
+export function BarcodeFields({ register, fields, append, remove, setValue, className }: BarcodeFieldsProps) {
   const [scanIndex, setScanIndex] = useState<number | null>(null);
 
   return (
-    <div className="col-span-2">
+    <div className={cn('col-span-2', className)}>
       <div className="mb-1 flex items-center justify-between">
         <label className="text-sm font-medium text-gray-700">
           Barcode(lar)

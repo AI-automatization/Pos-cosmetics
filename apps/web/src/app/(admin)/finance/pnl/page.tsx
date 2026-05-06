@@ -130,7 +130,7 @@ export default function PnlPage() {
       : '0.0';
 
   return (
-    <PageLayout title="Foyda va zarar (P&L)" subtitle={`${from} — ${to}`}>
+    <PageLayout>
       {/* Period filter */}
       <div className="mb-6 flex flex-wrap items-center gap-2">
         {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (

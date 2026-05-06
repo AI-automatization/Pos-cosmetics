@@ -201,3 +201,35 @@ export function useTransferAction() {
     onError: (err) => toast.error(extractErrorMessage(err)),
   });
 }
+
+// ─── Invoices ────────────────────────────────────────────────────────────────
+
+export function useInvoices(params: { page?: number; limit?: number; from?: string; to?: string } = {}) {
+  return useQuery({
+    queryKey: ['invoices', params],
+    queryFn: () => inventoryApi.listInvoices(params),
+    staleTime: 30_000,
+  });
+}
+
+export function useInvoice(id: string | null) {
+  return useQuery({
+    queryKey: ['invoice', id],
+    queryFn: () => inventoryApi.getInvoice(id!),
+    enabled: !!id,
+    staleTime: 30_000,
+  });
+}
+
+export function useApproveInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => inventoryApi.approveInvoice(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invoices'] });
+      qc.invalidateQueries({ queryKey: ['invoice'] });
+      toast.success('Nakладная tasdiqlandi');
+    },
+    onError: (err) => toast.error(extractErrorMessage(err)),
+  });
+}

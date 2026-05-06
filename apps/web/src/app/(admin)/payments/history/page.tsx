@@ -11,8 +11,6 @@ import {
   Clock,
   Loader2,
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { useMobileSidebar } from '@/components/layout/mobile-sidebar-context';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { formatPrice, cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -25,10 +23,15 @@ interface OrderWithCustomer extends Order {
 }
 
 const METHOD_LABEL: Record<string, string> = {
+  // Backend-computed keys (Uzbek)
+  NAQD: 'Naqd',
+  KARTA: 'Karta',
+  NASIYA: 'Nasiya',
+  ARALASH: 'Aralash',
+  // PaymentIntent method keys (English)
   CASH: 'Naqd',
   CARD: 'Karta',
   TERMINAL: 'Karta',
-  NASIYA: 'Nasiya',
   DEBT: 'Nasiya',
   TRANSFER: "Bank o'tkazma",
   CLICK: 'Click',
@@ -36,10 +39,15 @@ const METHOD_LABEL: Record<string, string> = {
 };
 
 const METHOD_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
+  // Backend-computed keys (Uzbek)
+  NAQD: Banknote,
+  KARTA: CreditCard,
+  NASIYA: Clock,
+  ARALASH: ArrowUpRight,
+  // PaymentIntent method keys (English)
   CASH: Banknote,
   CARD: CreditCard,
   TERMINAL: CreditCard,
-  NASIYA: Clock,
   DEBT: Clock,
   TRANSFER: ArrowUpRight,
   CLICK: Smartphone,
@@ -267,7 +275,6 @@ function useOrdersQuery(page: number) {
 }
 
 export default function PaymentsHistoryPage() {
-  const { toggle } = useMobileSidebar();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(30);
@@ -281,9 +288,12 @@ export default function PaymentsHistoryPage() {
   // Compute stats from current page orders
   const stats = useMemo(() => {
     if (!orders.length) return null;
-    const cash = orders.filter((o) => o.paymentMethod === 'CASH');
+    const cash = orders.filter((o) => o.paymentMethod === 'NAQD' || o.paymentMethod === 'CASH');
     const card = orders.filter(
-      (o) => o.paymentMethod === 'CARD' || o.paymentMethod === ('TERMINAL' as Order['paymentMethod']),
+      (o) =>
+        o.paymentMethod === 'KARTA' ||
+        o.paymentMethod === 'CARD' ||
+        o.paymentMethod === ('TERMINAL' as Order['paymentMethod']),
     );
     const debt = orders.filter(
       (o) =>
@@ -318,12 +328,6 @@ export default function PaymentsHistoryPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Header
-        title="To'lovlar tarixi"
-        subtitle={`Jami: ${total} ta buyurtma`}
-        onMenuToggle={toggle}
-      />
-
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {/* Stats cards */}
         {stats && (

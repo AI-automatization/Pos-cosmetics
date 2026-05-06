@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  ParseIntPipe,
   Patch,
 } from '@nestjs/common';
 import {
@@ -111,6 +112,17 @@ export class SalesController {
     return this.salesService.getShiftSummary(tenantId, { branchId, fromDate, toDate });
   }
 
+  // ─── GET /shifts/:id/available-cash (MUST be before /:id) ────
+  @Get('shifts/:id/available-cash')
+  @ApiOperation({ summary: 'Get available cash for refund in current shift (POS)' })
+  @ApiParam({ name: 'id', type: String })
+  getShiftAvailableCash(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.salesService.getShiftAvailableCash(tenantId, id);
+  }
+
   // ─── T-223: GET /shifts/:id ────────────────────────────────────
   @Get('shifts/:id')
   @ApiOperation({ summary: 'T-223: Shift details by ID with payment breakdown' })
@@ -148,6 +160,17 @@ export class SalesController {
     @Query('shiftId') shiftId?: string,
   ) {
     return this.salesService.getOrders(tenantId, { page, limit, shiftId });
+  }
+
+  // ─── GET /orders/by-number/:num (MUST be before /:id) ────────
+  @Get('orders/by-number/:orderNumber')
+  @ApiOperation({ summary: 'Get order by orderNumber — POS return lookup' })
+  @ApiParam({ name: 'orderNumber', type: Number })
+  getOrderByNumber(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('orderNumber', ParseIntPipe) orderNumber: number,
+  ) {
+    return this.salesService.getOrderByNumber(tenantId, orderNumber);
   }
 
   @Get('orders/:id')

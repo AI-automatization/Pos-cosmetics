@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { UserPlus, Shield, CheckCircle, XCircle, Building2 } from 'lucide-react';
-import { useUsers, useUpdateUser } from '@/hooks/settings/useUsers';
+import { UserPlus, Shield, CheckCircle, XCircle, Building2, KeyRound, Eye, EyeOff, X } from 'lucide-react';
+import { useUsers, useUpdateUser, useResetPassword } from '@/hooks/settings/useUsers';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
@@ -10,6 +10,83 @@ import { UserModal } from '@/components/settings/UserModal';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
+
+function ResetPasswordModal({
+  user,
+  onClose,
+}: {
+  user: User;
+  onClose: () => void;
+}) {
+  const [newPassword, setNewPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+  const { mutate: resetPassword, isPending } = useResetPassword();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) return;
+    resetPassword({ id: user.id, newPassword }, { onSuccess: onClose });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Parolni yangilash</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {user.firstName} {user.lastName}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Yangi parol <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showPwd ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={6}
+                required
+                placeholder="Kamida 6 belgi"
+                className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={newPassword.length < 6 || isPending}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 function RoleBadge({ role, isActive = true }: { role: UserRole; isActive?: boolean }) {
   const colors: Record<UserRole, string> = {
@@ -30,6 +107,7 @@ function RoleBadge({ role, isActive = true }: { role: UserRole; isActive?: boole
 export default function UsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | undefined>();
+  const [resetPwdUser, setResetPwdUser] = useState<User | undefined>();
   const [search, setSearch] = useState('');
   const { data: users, isLoading, isError, refetch } = useUsers();
   const { mutate: updateUser } = useUpdateUser();
@@ -146,6 +224,14 @@ export default function UsersPage() {
                     >
                       Tahrirlash
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setResetPwdUser(user)}
+                      title="Parolni yangilash"
+                      className="rounded-md border border-blue-200 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" />
+                    </button>
                     {user.role !== 'OWNER' && (
                       <button
                         type="button"
@@ -172,6 +258,13 @@ export default function UsersPage() {
         <UserModal
           user={editUser}
           onClose={() => { setShowModal(false); setEditUser(undefined); }}
+        />
+      )}
+
+      {resetPwdUser && (
+        <ResetPasswordModal
+          user={resetPwdUser}
+          onClose={() => setResetPwdUser(undefined)}
         />
       )}
     </div>

@@ -46,8 +46,6 @@ export default function SuppliersPage() {
 
   return (
     <PageLayout
-      title="Yetkazib beruvchilar"
-      subtitle={`Jami: ${suppliers.length} ta`}
       actions={
         canEdit ? (
           <button

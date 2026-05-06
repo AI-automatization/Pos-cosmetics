@@ -6,6 +6,7 @@ export const apiClient = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
+  timeout: 15000, // 15s — prevents infinite hang when network is blocked
 });
 
 // Request: JWT qo'shish

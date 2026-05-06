@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils';
 interface MarginBadgeProps {
   costPrice: number;
   sellPrice: number;
+  className?: string;
 }
 
-export function MarginBadge({ costPrice, sellPrice }: MarginBadgeProps) {
+export function MarginBadge({ costPrice, sellPrice, className }: MarginBadgeProps) {
   if (!sellPrice || sellPrice <= 0) return null;
   const margin = ((sellPrice - costPrice) / sellPrice) * 100;
   const profit = sellPrice - costPrice;
@@ -23,6 +24,7 @@ export function MarginBadge({ costPrice, sellPrice }: MarginBadgeProps) {
           : isLow
             ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
             : 'border-green-200 bg-green-50 text-green-700',
+        className,
       )}
     >
       <span>

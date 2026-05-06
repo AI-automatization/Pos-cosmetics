@@ -16,7 +16,7 @@ export function usePromotions() {
   });
 }
 
-/** Returns { productId → discountPercent } for all active BUNDLE promotions */
+/** Returns { productId → discountPercent } for active BUNDLE and product-specific PERCENT promotions */
 export function usePromoMap(): Record<string, number> {
   const { data: promotions = [] } = usePromotions();
   return useMemo(() => {
@@ -32,6 +32,13 @@ export function usePromoMap(): Record<string, number> {
         const rules = p.rules as { productIds: string[]; discount: number };
         if (Array.isArray(rules.productIds) && typeof rules.discount === 'number') {
           rules.productIds.forEach((pid) => { map[pid] = rules.discount; });
+        }
+      }
+      // Product-specific PERCENT promotion (rules.productId set)
+      if (p.type === 'PERCENT') {
+        const rules = p.rules as { percent: number; productId?: string };
+        if (rules.productId && typeof rules.percent === 'number' && rules.percent > 0) {
+          map[rules.productId] = rules.percent;
         }
       }
     });

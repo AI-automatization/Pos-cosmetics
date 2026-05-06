@@ -53,4 +53,21 @@ export const ordersApi = {
       } as Order;
     });
   },
+
+  getByOrderNumber(orderNumber: number) {
+    return apiClient.get<Order>(`/sales/orders/by-number/${orderNumber}`).then((r) => {
+      const raw = r.data as unknown as RawOrder;
+      return {
+        ...raw,
+        cashierName: raw.user
+          ? `${raw.user.firstName ?? ''} ${raw.user.lastName ?? ''}`.trim() || null
+          : (raw.cashierName ?? null),
+        paymentMethod:
+          raw.paymentMethod ??
+          (raw.paymentIntents?.[0]?.method as Order['paymentMethod']) ??
+          null,
+        customerName: raw.customer?.name ?? raw.customerName ?? null,
+      } as Order;
+    });
+  },
 };

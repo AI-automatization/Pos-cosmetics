@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Banknote,
   CreditCard,
@@ -10,15 +10,19 @@ import {
   UserCircle,
   AlertTriangle,
   ChevronRight,
+  ChevronDown,
   Star,
   CheckCircle2,
+  Keyboard,
 } from 'lucide-react';
 import { useLoyaltyAccount, useLoyaltyConfig, pointsToMoney } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
+import { useGlobalPromo } from '@/hooks/promotions/usePromotions';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import { CustomerSearchModal } from './CustomerSearchModal';
 import type { Order } from '@/types/sales';
 import type { PaymentMethod, DiscountType } from '@/types/sales';
@@ -64,6 +68,8 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const { data: user } = useCurrentUser();
   const isCashier = user?.role === 'CASHIER';
+  const globalPromo = useGlobalPromo();
+  const { t } = useTranslation();
 
   const { subtotal, discountAmount, total, change } = totals();
   const { mutate: completeSale, isPending, canComplete } = useCompleteSale(
@@ -72,6 +78,10 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
+  const [showHotkeys, setShowHotkeys] = useState(false);
+  // Ref so we can read latest globalPromo inside effect without adding it to deps
+  const globalPromoRef = useRef(globalPromo);
+  globalPromoRef.current = globalPromo;
 
   const discountVal = parseFloat(discountInput) || 0;
   const discountPct = discountType === 'percent'
@@ -80,11 +90,30 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const overLimit = isCashier && discountPct > 5;
   const [showCustomerModal, setShowCustomerModal] = useState(false);
 
-  // Sync local state when store resets after clearCart()
+  // Sync local state when store resets after clearCart().
+  // Also auto-applies an active global PERCENT/FIXED promo when discount is 0.
   useEffect(() => {
+    const promo = globalPromoRef.current;
+    if (promo && orderDiscount === 0) {
+      const rules = promo.rules as Record<string, number>;
+      if (promo.type === 'PERCENT' && (rules.percent ?? 0) > 0) {
+        const pct = rules.percent;
+        setDiscountInput(String(pct));
+        setDiscountType('percent');
+        setOrderDiscount(pct, 'percent');
+        return;
+      }
+      if (promo.type === 'FIXED' && (rules.amount ?? 0) > 0) {
+        const amt = rules.amount;
+        setDiscountInput(String(amt));
+        setDiscountType('fixed');
+        setOrderDiscount(amt, 'fixed');
+        return;
+      }
+    }
     setDiscountInput(String(orderDiscount));
     setDiscountType(orderDiscountType);
-  }, [orderDiscount, orderDiscountType]);
+  }, [orderDiscount, orderDiscountType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDiscountApply = () => {
     const val = parseFloat(discountInput) || 0;
@@ -92,45 +121,59 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   };
 
   const METHODS: { key: PaymentMethod; label: string; icon: React.ReactNode; shortcut: string }[] = [
-    { key: 'cash', label: 'Naqd', icon: <Banknote className="h-4 w-4" />, shortcut: 'F5' },
-    { key: 'card', label: 'Karta', icon: <CreditCard className="h-4 w-4" />, shortcut: 'F6' },
-    { key: 'split', label: 'Aralash', icon: <SplitSquareVertical className="h-4 w-4" />, shortcut: 'F7' },
-    { key: 'nasiya', label: 'Nasiya', icon: <UserCircle className="h-4 w-4" />, shortcut: 'F8' },
-    { key: 'bonus', label: 'Bonuslar', icon: <Star className="h-4 w-4" />, shortcut: 'F9' },
+    { key: 'cash', label: t('pos.cashShort'), icon: <Banknote className="h-4 w-4" />, shortcut: 'F5' },
+    { key: 'card', label: t('pos.card'), icon: <CreditCard className="h-4 w-4" />, shortcut: 'F6' },
+    { key: 'split', label: t('pos.mixed'), icon: <SplitSquareVertical className="h-4 w-4" />, shortcut: 'F7' },
+    { key: 'nasiya', label: t('pos.nasiya'), icon: <UserCircle className="h-4 w-4" />, shortcut: 'F8' },
+    { key: 'bonus', label: t('pos.bonuses'), icon: <Star className="h-4 w-4" />, shortcut: 'F9' },
   ];
 
   if (items.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-        <p className="text-sm text-gray-400">Savatcha bo'sh</p>
+        <p className="text-sm text-gray-400">{t('pos.emptyCart')}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Totals */}
       <div className="shrink-0 space-y-1 border-b border-gray-100 p-4">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>Jami ({items.reduce((s, i) => s + i.quantity, 0)} ta)</span>
+          <span>{t('pos.total')} ({items.reduce((s, i) => s + i.quantity, 0)} ta)</span>
           <span>{formatPrice(subtotal)}</span>
         </div>
         {discountAmount > 0 && (
           <div className="flex items-center justify-between text-sm text-green-600">
-            <span>Chegirma</span>
+            <span>{t('pos.discount')}</span>
             <span>− {formatPrice(discountAmount)}</span>
           </div>
         )}
         <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-lg font-bold text-gray-900">
-          <span>TO'LOV</span>
+          <span>{t('pos.payment')}</span>
           <span className="text-blue-600">{formatPrice(total)}</span>
         </div>
       </div>
 
       {/* Discount */}
       <div className="shrink-0 border-b border-gray-100 p-3">
+        {/* Active global promotion banner */}
+        {globalPromo && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5">
+            <Tag className="h-3.5 w-3.5 shrink-0 text-red-600" />
+            <span className="min-w-0 flex-1 truncate text-xs font-semibold text-red-700">
+              {globalPromo.name}
+            </span>
+            <span className="shrink-0 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+              {globalPromo.type === 'PERCENT'
+                ? `−${(globalPromo.rules as { percent: number }).percent ?? 0}%`
+                : `−${formatPrice((globalPromo.rules as { amount: number }).amount ?? 0)}`}
+            </span>
+          </div>
+        )}
         <p className="mb-2 flex items-center gap-1 text-xs font-medium text-gray-500">
-          <Tag className="h-3 w-3" /> Chegirma
+          <Tag className="h-3 w-3" /> {t('pos.discount')}
         </p>
         <div className="flex gap-2">
           <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
@@ -172,16 +215,16 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         {isCashier && (
           <p className={cn('mt-1.5 text-xs', overLimit ? 'font-medium text-red-600' : 'text-amber-600')}>
             {overLimit
-              ? '⚠️ Chegirma limitdan oshib ketdi (max 5%)'
-              : '⚠️ Kassir uchun maksimal chegirma: 5%'}
+              ? `⚠️ ${t('pos.discountLimitExceeded')}`
+              : `⚠️ ${t('pos.maxDiscountWarning')}`}
           </p>
         )}
       </div>
 
       {/* Payment method — 2×2 grid */}
       <div className="shrink-0 border-b border-gray-100 p-3">
-        <p className="mb-2 text-xs font-medium text-gray-500">To'lov turi</p>
-        <div className="grid grid-cols-2 gap-1.5">
+        <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.paymentType')}</p>
+        <div className="grid grid-cols-5 gap-1">
           {METHODS.map((m) => (
             <button
               key={m.key}
@@ -191,7 +234,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                 if (m.key !== 'nasiya' && m.key !== 'bonus') setSelectedCustomer(null);
               }}
               className={cn(
-                'flex flex-col items-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition',
+                'flex flex-col items-center gap-0.5 rounded-lg border py-1.5 px-1 text-[10px] font-medium transition',
                 paymentMethod === m.key
                   ? m.key === 'nasiya'
                     ? 'border-orange-400 bg-orange-50 text-orange-700'
@@ -202,23 +245,30 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
               )}
             >
               {m.icon}
-              <span>{m.label}</span>
-              <span className="text-gray-400">{m.shortcut}</span>
+              <span className="truncate w-full text-center">{m.label}</span>
+              <span className="text-gray-400 text-[9px]">{m.shortcut}</span>
             </button>
           ))}
         </div>
       </div>
 
+      {/* Scrollable payment details area */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+
       {/* Cash input — cash only mode */}
       {paymentMethod === 'cash' && (
         <div className="shrink-0 border-b border-gray-100 p-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">Mijoz berdi</p>
+          <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.customerPaid')}</p>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={cashAmount || ''}
-            onChange={(e) => setCashAmount(parseFloat(e.target.value) || 0)}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\s/g, '').replace(',', '.');
+              if (/^\d*\.?\d*$/.test(raw)) setCashAmount(parseFloat(raw) || 0);
+            }}
             placeholder={formatPrice(total)}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-base font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+            className="w-full rounded-xl border border-gray-200 px-4 py-4 text-right text-xl font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
           />
           <div className="mt-2 flex flex-wrap gap-1">
             {QUICK_CASH.filter((v) => v >= total * 0.5).slice(0, 4).map((v) => (
@@ -229,13 +279,13 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             ))}
             <button type="button" onClick={() => setCashAmount(total)}
               className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100">
-              Teng
+              {t('pos.exact')}
             </button>
           </div>
           {change > 0 && (
             <div className="mt-2 rounded-lg bg-green-50 px-3 py-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-green-700">Qaytim:</span>
+                <span className="text-green-700">{t('pos.change')}:</span>
                 <span className="font-bold text-green-700">{formatPrice(change)}</span>
               </div>
             </div>
@@ -252,13 +302,13 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           <div className="shrink-0 overflow-y-auto border-b border-gray-100">
             {/* Toggle chips */}
             <div className="border-b border-gray-100 p-3">
-              <p className="mb-2 text-xs font-medium text-gray-500">To&apos;lov usullarini tanlang</p>
+              <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.selectPaymentMethods')}</p>
               <div className="grid grid-cols-4 gap-1.5">
                 {([
-                  { key: 'cash' as const, label: 'Naqd', color: 'blue' },
-                  { key: 'card' as const, label: 'Karta', color: 'blue' },
-                  { key: 'bonus' as const, label: 'Bonus', color: 'violet' },
-                  { key: 'nasiya' as const, label: 'Nasiya', color: 'orange' },
+                  { key: 'cash' as const, label: t('pos.cashShort'), color: 'blue' },
+                  { key: 'card' as const, label: t('pos.card'), color: 'blue' },
+                  { key: 'bonus' as const, label: t('pos.bonuses'), color: 'violet' },
+                  { key: 'nasiya' as const, label: t('pos.nasiya'), color: 'orange' },
                 ] as { key: keyof typeof splitEnabled; label: string; color: string }[]).map((t) => (
                   <button
                     key={t.key}
@@ -306,14 +356,14 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                       </div>
                     </div>
                     <button type="button" onClick={() => setShowCustomerModal(true)}
-                      className="text-xs text-blue-600 hover:underline">O&apos;zgartirish</button>
+                      className="text-xs text-blue-600 hover:underline">{t('pos.changeCustomer')}</button>
                   </div>
                 ) : (
                   <button type="button" onClick={() => setShowCustomerModal(true)}
                     className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-2.5 transition hover:border-blue-300 hover:bg-blue-50">
                     <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
                       <UserCircle className="h-4 w-4" />
-                      Xaridorni tanlang (Nasiya/Bonus uchun)
+                      {t('pos.selectCustomerForNasiyaBonus')}
                     </div>
                     <ChevronRight className="h-4 w-4 text-gray-400" />
                   </button>
@@ -324,7 +374,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             {/* Cash input */}
             {splitEnabled.cash && (
               <div className="border-b border-gray-100 p-3">
-                <p className="mb-1.5 text-xs font-medium text-gray-500">Naqd miqdori</p>
+                <p className="mb-1.5 text-xs font-medium text-gray-500">{t('pos.cashAmount')}</p>
                 <input type="number" value={cashAmount || ''} onChange={(e) => setCashAmount(parseFloat(e.target.value) || 0)}
                   placeholder={formatPrice(Math.max(0, remaining + cashAmount))}
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-blue-400" />
@@ -342,7 +392,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             {/* Card input */}
             {splitEnabled.card && (
               <div className="border-b border-gray-100 p-3">
-                <p className="mb-1.5 text-xs font-medium text-gray-500">Karta miqdori</p>
+                <p className="mb-1.5 text-xs font-medium text-gray-500">{t('pos.cardAmount')}</p>
                 <input type="number" value={cardAmount || ''} onChange={(e) => setCardAmount(parseFloat(e.target.value) || 0)}
                   placeholder={formatPrice(Math.max(0, remaining + cardAmount))}
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-blue-400" />
@@ -353,7 +403,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             {splitEnabled.bonus && selectedCustomer && (
               <div className="border-b border-gray-100 p-3">
                 <p className="mb-1.5 text-xs font-medium text-gray-500">
-                  Bonuslar{loyaltyAccount ? ` (mavjud: ${loyaltyAccount.points} ball)` : ''}
+                  {t('pos.bonuses')}{loyaltyAccount ? ` (mavjud: ${loyaltyAccount.points} ball)` : ''}
                 </p>
                 <input type="number" value={bonusPoints || ''} min={0}
                   max={loyaltyAccount?.points ?? 0}
@@ -371,7 +421,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             {/* Nasiya input */}
             {splitEnabled.nasiya && selectedCustomer && (
               <div className="border-b border-gray-100 p-3">
-                <p className="mb-1.5 text-xs font-medium text-gray-500">Nasiya miqdori</p>
+                <p className="mb-1.5 text-xs font-medium text-gray-500">{t('pos.nasiyaAmount')}</p>
                 <input type="number" value={splitNasiyaAmount || ''} onChange={(e) => setSplitNasiyaAmount(parseFloat(e.target.value) || 0)}
                   placeholder={formatPrice(Math.max(0, remaining + splitNasiyaAmount))}
                   className="w-full rounded-xl border border-orange-200 px-3 py-2 text-right text-sm font-bold text-gray-900 outline-none focus:border-orange-400" />
@@ -390,7 +440,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
               remaining === 0 ? 'text-green-700' : remaining > 0 ? 'text-red-600' : 'text-yellow-700',
             )}>
               {remaining === 0 ? (
-                <><CheckCircle2 className="h-4 w-4" /> To&apos;liq qoplandi</>
+                <><CheckCircle2 className="h-4 w-4" /> {t('pos.fullyCovered')}</>
               ) : remaining > 0 ? (
                 <><AlertTriangle className="h-4 w-4" /> {formatPrice(remaining)} yetishmaydi</>
               ) : (
@@ -420,25 +470,25 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                   onClick={() => setShowCustomerModal(true)}
                   className="text-xs text-blue-600 hover:underline"
                 >
-                  O'zgartirish
+                  {t('pos.changeCustomer')}
                 </button>
               </div>
               <div className="flex gap-2 text-xs">
                 <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
-                  <p className="text-gray-500">Joriy qarz</p>
+                  <p className="text-gray-500">{t('pos.currentDebt')}</p>
                   <p className={cn('font-bold', selectedCustomer.debtBalance > 0 ? 'text-red-600' : 'text-green-600')}>
                     {formatPrice(selectedCustomer.debtBalance)}
                   </p>
                 </div>
                 <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
-                  <p className="text-gray-500">Yangi qarz</p>
+                  <p className="text-gray-500">{t('pos.newDebt')}</p>
                   <p className="font-bold text-orange-700">{formatPrice(total)}</p>
                 </div>
               </div>
               {selectedCustomer.hasOverdue && (
                 <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-yellow-100 px-2 py-1.5 text-xs text-yellow-700">
                   <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                  <span>Muddati o'tgan qarz: {formatPrice(selectedCustomer.overdueAmount)}</span>
+                  <span>{t('pos.overdueDebt')}: {formatPrice(selectedCustomer.overdueAmount)}</span>
                 </div>
               )}
             </div>
@@ -451,7 +501,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             >
               <div className="flex items-center gap-2 text-sm font-medium text-orange-700">
                 <UserCircle className="h-5 w-5" />
-                Xaridorni tanlang
+                {t('pos.selectCustomer')}
               </div>
               <ChevronRight className="h-4 w-4 text-orange-400" />
             </button>
@@ -470,7 +520,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
             >
               <div className="flex items-center gap-2 text-sm font-medium text-violet-700">
                 <Star className="h-5 w-5" />
-                Xaridorni tanlang
+                {t('pos.selectCustomer')}
               </div>
               <ChevronRight className="h-4 w-4 text-violet-400" />
             </button>
@@ -489,14 +539,14 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                   onClick={() => setShowCustomerModal(true)}
                   className="text-xs text-blue-600 hover:underline"
                 >
-                  O'zgartirish
+                  {t('pos.changeCustomer')}
                 </button>
               </div>
               {loyaltyAccount ? (
                 <>
                   <div className="mb-2 flex gap-2 text-xs">
                     <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
-                      <p className="text-gray-500">Mavjud bonuslar</p>
+                      <p className="text-gray-500">{t('pos.availablePoints')}</p>
                       <p className="font-bold text-violet-700">
                         {loyaltyAccount.points} ball
                       </p>
@@ -505,7 +555,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                       </p>
                     </div>
                     <div className="flex-1 rounded-lg bg-white/80 px-2 py-1.5">
-                      <p className="text-gray-500">Sarflash</p>
+                      <p className="text-gray-500">{t('pos.spendPoints')}</p>
                       <p className="font-bold text-violet-700">
                         {bonusPoints} ball
                       </p>
@@ -547,7 +597,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                 </>
               ) : (
                 <div className="rounded-lg bg-white/80 px-3 py-2 text-xs text-gray-400 text-center">
-                  Bonus hisobi topilmadi
+                  {t('pos.noBonusAccount')}
                 </div>
               )}
             </div>
@@ -555,8 +605,47 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       )}
 
+      </div>{/* end scrollable area */}
+
+      {/* Hotkeys reference panel */}
+      <div className="shrink-0 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={() => setShowHotkeys((v) => !v)}
+          className="flex w-full items-center justify-between px-3 py-2 text-xs text-gray-400 hover:text-gray-600 transition"
+        >
+          <span className="flex items-center gap-1.5">
+            <Keyboard className="h-3.5 w-3.5" />
+            Klaviatura yorliqlari
+          </span>
+          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', showHotkeys && 'rotate-180')} />
+        </button>
+        {showHotkeys && (
+          <div className="grid grid-cols-3 gap-1 px-3 pb-3">
+            {[
+              { key: 'F1', label: 'Qidirish' },
+              { key: 'F4', label: 'Qaytarish' },
+              { key: 'F5', label: 'Naqd' },
+              { key: 'F6', label: 'Karta' },
+              { key: 'F7', label: 'Aralash' },
+              { key: 'F8', label: 'Nasiya' },
+              { key: 'F10', label: 'Yakunlash' },
+              { key: 'Esc', label: 'Bekor' },
+              { key: 'Ctrl+T', label: 'Yangi savat' },
+            ].map((hk) => (
+              <div key={hk.key} className="flex items-center gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5">
+                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-[9px] font-bold text-gray-700 whitespace-nowrap leading-none">
+                  {hk.key}
+                </kbd>
+                <span className="text-[10px] text-gray-500 truncate leading-none">{hk.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Complete button */}
-      <div className="mt-auto shrink-0 p-3">
+      <div className="shrink-0 border-t border-gray-100 p-3">
         <button
           type="button"
           onClick={() => completeSale()}
@@ -573,15 +662,15 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           )}
         >
           {isPending ? (
-            'Saqlanmoqda...'
+            t('common.saving')
           ) : (
             <>
               <Check className="h-5 w-5" />
               {paymentMethod === 'nasiya'
-                ? 'Nasiyaga berish'
+                ? t('pos.giveNasiya')
                 : paymentMethod === 'bonus'
-                ? 'Bonuslar bilan to\'lash'
-                : 'Sotuv yakunlash'}
+                ? t('pos.payWithBonus')
+                : t('pos.completeSale')}
               <span className={cn(
                 'ml-1 rounded px-1.5 py-0.5 text-xs font-normal',
                 paymentMethod === 'nasiya'

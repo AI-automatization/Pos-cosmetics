@@ -24,7 +24,14 @@ export function useCreateUser() {
       qc.invalidateQueries({ queryKey: [USERS_KEY] });
       toast.success("Foydalanuvchi qo'shildi!");
     },
-    onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
+    onError: (err: unknown) => {
+      const msg = extractErrorMessage(err);
+      if (msg.toLowerCase().includes('already exists')) {
+        toast.error("Bu email allaqachon ro'yxatdan o'tgan. Boshqa email kiriting.");
+      } else {
+        toast.error(msg || 'Xato yuz berdi');
+      }
+    },
   });
 }
 
@@ -36,6 +43,15 @@ export function useUpdateUser() {
       qc.invalidateQueries({ queryKey: [USERS_KEY] });
       toast.success("Foydalanuvchi yangilandi!");
     },
+    onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>
+      usersApi.resetPassword(id, newPassword),
+    onSuccess: () => toast.success('Parol muvaffaqiyatli yangilandi!'),
     onError: (err: unknown) => toast.error(extractErrorMessage(err) || 'Xato yuz berdi'),
   });
 }

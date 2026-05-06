@@ -141,8 +141,6 @@ export default function BillingPage() {
 
   return (
     <PageLayout
-      title="Hisob va tarif"
-      subtitle="Obuna holati va foydalanish statistikasi"
     >
       {isLoading && <LoadingSkeleton variant="table" rows={4} />}
 

@@ -154,8 +154,6 @@ export default function CategoriesPage() {
 
   return (
     <PageLayout
-      title="Kategoriyalar"
-      subtitle={`Jami: ${categories.length} ta kategoriya`}
       actions={
         canEdit ? (
           <button

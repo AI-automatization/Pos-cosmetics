@@ -13,6 +13,7 @@ import { SearchableDropdown, type DropdownOption } from '@/components/ui/Searcha
 import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
 import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface ItemRow extends InvoiceItem {
   _key: number;
@@ -21,6 +22,14 @@ interface ItemRow extends InvoiceItem {
 
 let _keyCounter = 0;
 const nextKey = () => ++_keyCounter;
+
+let _batchCounter = 0;
+function nextBatchNumber(): string {
+  _batchCounter++;
+  const d = new Date();
+  const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  return `P-${date}-${String(_batchCounter).padStart(3, '0')}`;
+}
 
 export default function StockInPage() {
   const router = useRouter();
@@ -41,7 +50,7 @@ export default function StockInPage() {
   const [submitted, setSubmitted] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
-  const [supplierForm, setSupplierForm] = useState({ name: '', phone: '', company: '', address: '' });
+  const [supplierForm, setSupplierForm] = useState({ name: '', phone: '+998', company: '', address: '' });
   const [supplierProductIds, setSupplierProductIds] = useState<string[]>([]);
   const [supplierProductSearch, setSupplierProductSearch] = useState('');
 
@@ -49,7 +58,7 @@ export default function StockInPage() {
   const [editProductModal, setEditProductModal] = useState<Product | null>(null);
 
   const [items, setItems] = useState<ItemRow[]>([
-    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 },
+    { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, batchNumber: nextBatchNumber() },
   ]);
 
   const { data: supplierDetail } = useSupplier(supplierId || null);
@@ -64,7 +73,7 @@ export default function StockInPage() {
       .filter((ps) => ps.product.isActive)
       .map((ps) => {
         const p = allProducts.find((x) => x.id === ps.product.id);
-        return { _key: nextKey(), productId: ps.product.id, productName: ps.product.name, quantity: 1, purchasePrice: p?.costPrice ?? 0 };
+        return { _key: nextKey(), productId: ps.product.id, productName: ps.product.name, quantity: 1, purchasePrice: p?.costPrice ?? 0, batchNumber: nextBatchNumber() };
       });
     if (newRows.length > 0) {
       setItems(newRows);
@@ -86,7 +95,7 @@ export default function StockInPage() {
   );
 
   const addRow = () =>
-    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0 }]);
+    setItems((prev) => [...prev, { _key: nextKey(), productId: '', quantity: 1, purchasePrice: 0, batchNumber: nextBatchNumber() }]);
 
   const removeRow = (key: number) =>
     setItems((prev) => prev.filter((r) => r._key !== key));
@@ -156,10 +165,15 @@ export default function StockInPage() {
 
   const handleCreateSupplier = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supplierForm.name.trim()) {
+      toast.error('Kontragent nomini kiriting');
+      return;
+    }
     createSupplier(
-      { name: supplierForm.name, phone: supplierForm.phone, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
+      { name: supplierForm.name.trim(), phone: supplierForm.phone || undefined, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
       {
         onSuccess: async (newSupplier) => {
+          toast.success('Kontragent yaratildi');
           // Link selected products to new supplier (fire-and-forget, best-effort)
           if (supplierProductIds.length > 0) {
             const { suppliersApi } = await import('@/api/suppliers.api');
@@ -167,7 +181,7 @@ export default function StockInPage() {
           }
           setSupplierId(newSupplier.id);
           setShowSupplierModal(false);
-          setSupplierForm({ name: '', phone: '', company: '', address: '' });
+          setSupplierForm({ name: '', phone: '+998', company: '', address: '' });
           setSupplierProductIds([]);
           setSupplierProductSearch('');
         },
@@ -178,6 +192,25 @@ export default function StockInPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+
+    const noProduct = items.filter((r) => !r.productId);
+    if (noProduct.length === items.length) {
+      toast.error('Kamida bitta mahsulot tanlang');
+      return;
+    }
+
+    const invalidQty = items.filter((r) => r.productId && r.quantity <= 0);
+    if (invalidQty.length > 0) {
+      toast.error('Miqdor 0 dan katta bo\'lishi kerak');
+      return;
+    }
+
+    const invalidPrice = items.filter((r) => r.productId && r.purchasePrice < 0);
+    if (invalidPrice.length > 0) {
+      toast.error('Narx manfiy bo\'lishi mumkin emas');
+      return;
+    }
+
     const valid = items.filter((r) => r.productId && r.quantity > 0 && r.purchasePrice >= 0);
     if (valid.length === 0) return;
 
@@ -186,7 +219,11 @@ export default function StockInPage() {
       note: note || undefined,
       supplierId: supplierId || undefined,
       items: valid.map(({ productId, quantity, purchasePrice, warehouseId, batchNumber, expiryDate }) => ({
-        productId, quantity, purchasePrice, warehouseId, batchNumber,
+        productId,
+        quantity: Math.max(1, Math.round(quantity)),
+        purchasePrice: Math.max(0, purchasePrice),
+        warehouseId: warehouseId || undefined,
+        batchNumber: batchNumber?.trim() || undefined,
         expiryDate: expiryDate || undefined,
       })),
     };
@@ -275,17 +312,17 @@ export default function StockInPage() {
 
             {/* Note */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Izoh</label>
-              <div className="relative">
-                <StickyNote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Qo'shimcha izoh..."
-                  className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-3.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                <StickyNote className="h-4 w-4 text-gray-400" />
+                Izoh
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Qo'shimcha izoh..."
+                rows={3}
+                className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
+              />
             </div>
           </div>
 
@@ -312,6 +349,7 @@ export default function StockInPage() {
                           productName: ps.product.name,
                           quantity: 1,
                           purchasePrice: p?.costPrice ?? 0,
+                          batchNumber: nextBatchNumber(),
                         };
                       });
                     setItems((prev) => {
@@ -433,8 +471,9 @@ export default function StockInPage() {
                         <input
                           type="number"
                           min={1}
-                          value={row.quantity}
-                          onChange={(e) => updateRow(row._key, { quantity: Number(e.target.value) })}
+                          value={row.quantity || ''}
+                          placeholder="0"
+                          onChange={(e) => updateRow(row._key, { quantity: e.target.value === '' ? 0 : Number(e.target.value) })}
                           className={cn(
                             'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
                             qtyInvalid ? 'border-red-400' : 'border-gray-300',
@@ -445,8 +484,9 @@ export default function StockInPage() {
                         <input
                           type="number"
                           min={0}
-                          value={row.purchasePrice}
-                          onChange={(e) => updateRow(row._key, { purchasePrice: Number(e.target.value) })}
+                          value={row.purchasePrice || ''}
+                          placeholder="0"
+                          onChange={(e) => updateRow(row._key, { purchasePrice: e.target.value === '' ? 0 : Number(e.target.value) })}
                           className={cn(
                             'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
                             priceInvalid ? 'border-red-400' : 'border-gray-300',

@@ -130,4 +130,52 @@ export const inventoryApi = {
   getTesters(params: { from?: string; to?: string } = {}) {
     return apiClient.get<{ items: unknown[]; totalCost: number; count: number }>('/inventory/testers', { params }).then((r) => r.data);
   },
+
+  // ─── Invoices (Nakладные) ───
+
+  listInvoices(params: { page?: number; limit?: number; supplierId?: string; from?: string; to?: string } = {}) {
+    return apiClient
+      .get<{ items: InvoiceListItem[]; total: number }>('/warehouse/invoices', { params })
+      .then((r) => {
+        const d = r.data;
+        if (Array.isArray(d)) return { items: d as InvoiceListItem[], total: (d as InvoiceListItem[]).length };
+        return { items: d?.items ?? [], total: d?.total ?? 0 };
+      });
+  },
+
+  getInvoice(id: string) {
+    return apiClient.get<InvoiceDetail>(`/warehouse/invoices/${id}`).then((r) => r.data);
+  },
+
+  approveInvoice(id: string) {
+    return apiClient.patch<InvoiceDetail>(`/warehouse/invoices/${id}/approve`).then((r) => r.data);
+  },
 };
+
+// ─── Invoice types ───────────────────────────────────────────────────────────
+
+export interface InvoiceListItem {
+  id: string;
+  invoiceNumber: string | null;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+  totalAmount: number;
+  itemsCount: number;
+  supplier: { id: string; name: string } | null;
+  createdBy: { firstName: string; lastName: string } | null;
+}
+
+export interface InvoiceDetail extends InvoiceListItem {
+  notes: string | null;
+  items: InvoiceItem[];
+}
+
+export interface InvoiceItem {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  costPrice: number;
+  batchNumber: string | null;
+  expiryDate: string | null;
+}

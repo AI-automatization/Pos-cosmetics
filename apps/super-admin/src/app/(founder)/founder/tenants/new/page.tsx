@@ -77,10 +77,15 @@ export default function NewTenantPage() {
 
   const createMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) =>
-      apiClient.post<{ tenant: { slug: string }; owner: { email: string }; generatedPassword?: string }>('/admin/tenants/create', payload),
+      apiClient.post<{
+        tenant: { slug: string };
+        owner: { email: string; tempPassword?: string };
+        emailSent?: boolean;
+      }>('/admin/tenants/create', payload),
     onSuccess: (res) => {
       const d = res.data;
-      const pwd = ownerData?.autoPassword ? (d.generatedPassword ?? null) : (ownerData?.password ?? null);
+      // tempPassword is always returned by backend (auto or manual)
+      const pwd = d.owner?.tempPassword ?? null;
       setResult({
         tenantName: companyData?.name ?? '',
         slug: d.tenant?.slug ?? companyData?.slug ?? '',
@@ -88,8 +93,9 @@ export default function NewTenantPage() {
         ownerPhone: ownerData?.phone ?? '',
         password: pwd,
         planName: PLANS.find((p) => p.id === planData?.planId)?.name ?? '',
+        emailSent: d.emailSent ?? false,
       });
-      toast.success('Тенант создан!');
+      toast.success(d.emailSent ? 'Магазин создан! Данные отправлены на email.' : 'Магазин создан!');
     },
     onError: () => {
       toast.error('Произошла ошибка. Попробуйте снова.');
