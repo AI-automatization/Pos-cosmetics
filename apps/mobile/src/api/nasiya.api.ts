@@ -92,6 +92,13 @@ export const nasiyaApi = {
     return data;
   },
 
+  getByCustomer: async (customerId: string): Promise<DebtRecord[]> => {
+    const res = await api.get<DebtRecord[]>('/nasiya', {
+      params: { customerId, status: 'ACTIVE' },
+    });
+    return res.data;
+  },
+
   getOverdue: async (): Promise<DebtRecord[]> => {
     const { data } = await api.get<DebtRecord[]>('/nasiya/overdue');
     return data;

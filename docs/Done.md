@@ -3,6 +3,13 @@
 
 ---
 
+## T-450 | 2026-05-06 | [MOBILE] | Mijoz profili — Faol qarzlar ro'yxati + To'lash modal
+
+- **Yechim:** `nasiya.api.ts` ga `getByCustomer(customerId)` qo'shildi. `useCustomerDebts.ts` hook yaratildi. `DebtPaySheet.tsx` yangi komponent (amount, 50%/to'liq, CASH/CARD/TRANSFER, note, CARD→TERMINAL mapping). `CustomerDetailScreen.tsx` ga "FAOL QARZLAR" seksiyasi + aging badge (joriy/0-30/31-60/61-90/90+) + DebtPaySheet integratsiya.
+- **Fayl:** `apps/mobile/src/api/nasiya.api.ts`, `apps/mobile/src/hooks/customers/useCustomerDebts.ts`, `apps/mobile/src/screens/Customers/DebtPaySheet.tsx`, `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`
+
+---
+
 ## T-449 | 2026-05-06 | [MOBILE] | Mijozlar — Nasiya limiti (debtLimit) va progress bar
 
 - **Yechim:** Commit `3bb5355` — `customers.api.ts` da `CreateCustomerDto` qo'shildi (`debtLimit` field bilan), `create()` metodi yangilandi. `nasiya.api.ts` yangi DTO pattern bilan moslashtirildi. `CustomerDetailScreen.tsx` da nasiya limiti progress bar qo'shildi (ko'k = limit ichida, qizil = oshgan).

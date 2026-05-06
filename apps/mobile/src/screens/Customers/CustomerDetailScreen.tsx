@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MoreStackParamList } from '@/navigation/types';
 import { customersApi } from '@/api/customers.api';
 import ErrorView from '@/components/common/ErrorView';
+import { DebtPaySheet } from './DebtPaySheet';
+import { useCustomerDebts } from '../../hooks/customers/useCustomerDebts';
+import type { DebtRecord } from '../../api/nasiya.api';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -50,6 +54,156 @@ function genderLabel(gender: 'MALE' | 'FEMALE' | null): string {
   if (gender === 'FEMALE') return 'Ayol';
   return '—';
 }
+
+function fmtDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleDateString('ru-RU');
+}
+
+// ─── Aging badge ───────────────────────────────────────
+type AgeBucket = 'joriy' | '0-30' | '31-60' | '61-90' | '90+';
+
+const AGE_STYLE: Record<AgeBucket, { label: string; color: string; bg: string }> = {
+  'joriy':  { label: 'Joriy',      color: '#16A34A', bg: '#F0FDF4' },
+  '0-30':   { label: '0–30 kun',   color: '#CA8A04', bg: '#FEFCE8' },
+  '31-60':  { label: '31–60 kun',  color: '#D97706', bg: '#FFFBEB' },
+  '61-90':  { label: '61–90 kun',  color: '#DC2626', bg: '#FEF2F2' },
+  '90+':    { label: '90+ kun',    color: '#7F1D1D', bg: '#FEE2E2' },
+};
+
+function getAgeBucket(dueDate?: string | null): AgeBucket {
+  if (!dueDate) return 'joriy';
+  const days = Math.floor((Date.now() - new Date(dueDate).getTime()) / 86_400_000);
+  if (days <= 0)  return 'joriy';
+  if (days <= 30) return '0-30';
+  if (days <= 60) return '31-60';
+  if (days <= 90) return '61-90';
+  return '90+';
+}
+
+interface AgeBadgeProps {
+  readonly dueDate?: string | null;
+}
+
+function AgeBadge({ dueDate }: AgeBadgeProps) {
+  const bucket = getAgeBucket(dueDate);
+  const style  = AGE_STYLE[bucket];
+  return (
+    <View style={[ageBadgeStyles.wrap, { backgroundColor: style.bg }]}>
+      <Text style={[ageBadgeStyles.text, { color: style.color }]}>{style.label}</Text>
+    </View>
+  );
+}
+
+const ageBadgeStyles = StyleSheet.create({
+  wrap: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  text: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+});
+
+// ─── DebtItem ──────────────────────────────────────────
+interface DebtItemProps {
+  readonly debt: DebtRecord;
+  readonly onPay: (debt: DebtRecord) => void;
+}
+
+function DebtItem({ debt, onPay }: DebtItemProps) {
+  return (
+    <View style={debtItemStyles.card}>
+      <View style={debtItemStyles.topRow}>
+        <AgeBadge dueDate={debt.dueDate} />
+        <View style={debtItemStyles.remainingWrap}>
+          <Text style={debtItemStyles.remainingLabel}>Qolgan: </Text>
+          <Text style={debtItemStyles.remainingValue}>{fmt(Number(debt.remaining))}</Text>
+        </View>
+        <TouchableOpacity
+          style={debtItemStyles.payBtn}
+          onPress={() => onPay(debt)}
+          activeOpacity={0.75}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={debtItemStyles.payBtnText}>To'lash</Text>
+          <Ionicons name="chevron-forward" size={12} color="#2563EB" />
+        </TouchableOpacity>
+      </View>
+      <View style={debtItemStyles.bottomRow}>
+        <Text style={debtItemStyles.meta}>Jami: {fmt(Number(debt.totalAmount))}</Text>
+        <Text style={debtItemStyles.metaDot}> · </Text>
+        <Text style={debtItemStyles.meta}>Muddat: {fmtDate(debt.dueDate)}</Text>
+      </View>
+    </View>
+  );
+}
+
+const debtItemStyles = StyleSheet.create({
+  card: {
+    backgroundColor: C.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 8,
+    gap: 6,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  remainingWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  remainingLabel: {
+    fontSize: 13,
+    color: C.muted,
+    fontWeight: '500',
+  },
+  remainingValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: C.red,
+  },
+  payBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    minWidth: 48,
+    minHeight: 48 / 2,
+  },
+  payBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563EB',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  meta: {
+    fontSize: 12,
+    color: C.muted,
+  },
+  metaDot: {
+    fontSize: 12,
+    color: C.muted,
+  },
+});
 
 // ─── InfoRow ───────────────────────────────────────────
 interface InfoRowProps {
@@ -143,6 +297,8 @@ export default function CustomerDetailScreen() {
   const navigation = useNavigation<Nav>();
   const { customerId, customerName } = route.params;
 
+  const [payingDebt, setPayingDebt] = useState<DebtRecord | null>(null);
+
   const {
     data: customer,
     isLoading: loadingCustomer,
@@ -164,6 +320,9 @@ export default function CustomerDetailScreen() {
     queryFn: () => customersApi.getStats(customerId),
     staleTime: 60_000,
   });
+
+  const { data: debts = [] } = useCustomerDebts(customerId);
+  const activeDebts = debts.filter((d) => Number(d.remaining) > 0);
 
   const isLoading = loadingCustomer || loadingStats;
   const anyError  = errorCustomer ?? errorStats;
@@ -312,6 +471,26 @@ export default function CustomerDetailScreen() {
                 </View>
               </View>
 
+              {/* Active debts */}
+              <Text style={styles.sectionLabel}>FAOL QARZLAR</Text>
+              {activeDebts.length === 0 ? (
+                <View style={styles.emptyDebtsWrap}>
+                  <Ionicons name="checkmark-circle-outline" size={20} color={C.green} />
+                  <Text style={styles.emptyDebtsText}>Qarz yo'q</Text>
+                </View>
+              ) : (
+                <View style={styles.debtsWrap}>
+                  <FlatList
+                    data={activeDebts}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                      <DebtItem debt={item} onPay={setPayingDebt} />
+                    )}
+                    scrollEnabled={false}
+                  />
+                </View>
+              )}
+
               {/* Notes */}
               {customer.notes ? (
                 <>
@@ -326,6 +505,18 @@ export default function CustomerDetailScreen() {
             </>
           )}
         </ScrollView>
+      )}
+
+      {payingDebt && (
+        <DebtPaySheet
+          debt={{
+            id: payingDebt.id,
+            totalAmount: Number(payingDebt.totalAmount),
+            remaining: Number(payingDebt.remaining),
+            orderNumber: payingDebt.orderId,
+          }}
+          onClose={() => setPayingDebt(null)}
+        />
       )}
     </SafeAreaView>
   );
@@ -429,6 +620,26 @@ const styles = StyleSheet.create({
   // Notes
   notesWrap: { paddingVertical: 14 },
   notesText: { fontSize: 14, color: C.text, lineHeight: 22 },
+
+  // Active debts section
+  debtsWrap: {
+    marginHorizontal: 16,
+  },
+  emptyDebtsWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    backgroundColor: C.greenBg,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  emptyDebtsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.green,
+  },
 
   // Progress bar
   progressBarContainer: {

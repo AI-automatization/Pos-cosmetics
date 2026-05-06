@@ -197,14 +197,7 @@
 
 ---
 
-## T-450 | P2 | [MOBILE] | Mijoz profili — Faol qarzlar ro'yxati + To'lash modal
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`
-- **Muammo:** Web da `/customers/[id]` da debtlar ro'yxati, DebtAgeBadge (CURRENT/30/60/90+), PayDebtModal bor. Mobile da CustomerDetail da qarz detallari yo'q.
-- **Kutilgan:** Qarzlar ro'yxati (summa, sana, aging badge) + to'lash modal (qisman/to'liq)
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
+*(T-450 — Done.md ga ko'chirildi 2026-05-06)*
 
 ---
 
