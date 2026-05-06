@@ -303,4 +303,23 @@ export default {
     bucket90plus: "90+ days",
     emptyCustomers: "No debtors found",
   },
+  catalog: {
+    labelPrint: {
+      title: "Print Label",
+      sizeLabel: "SIZE",
+      copiesLabel: "COPIES",
+      printButton: "Print ({{count}})",
+      cancel: "Cancel",
+      shareTitle: "Label",
+    },
+    label: {
+      name: "Name",
+      sku: "SKU",
+      barcode: "Barcode",
+      price: "Price",
+      sheetTitle: "Print Label",
+      share: "Share",
+      shareTitle: "Label",
+    },
+  },
 } as const;

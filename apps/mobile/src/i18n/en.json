@@ -339,5 +339,24 @@
     "sectionWork": "Work Information",
     "sectionCredentials": "Login Credentials",
     "sectionAccess": "Access Permissions"
+  },
+  "catalog": {
+    "label": {
+      "sheetTitle": "Print Label",
+      "name": "Name",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "price": "Price",
+      "shareTitle": "Share label",
+      "share": "Share"
+    },
+    "labelPrint": {
+      "title": "Print Label",
+      "sizeLabel": "SIZE",
+      "copiesLabel": "COPIES",
+      "shareTitle": "Share label",
+      "cancel": "Cancel",
+      "printButton": "Print ({{count}})"
+    }
   }
 }

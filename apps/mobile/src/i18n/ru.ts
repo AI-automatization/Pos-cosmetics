@@ -303,4 +303,23 @@ export default {
     bucket90plus: "90+ дней",
     emptyCustomers: "Должников нет",
   },
+  catalog: {
+    labelPrint: {
+      title: "Печать этикетки",
+      sizeLabel: "РАЗМЕР",
+      copiesLabel: "КОЛ-ВО КОПИЙ",
+      printButton: "Печать ({{count}} шт.)",
+      cancel: "Отмена",
+      shareTitle: "Этикетка",
+    },
+    label: {
+      name: "Название",
+      sku: "Артикул",
+      barcode: "Штрихкод",
+      price: "Цена",
+      sheetTitle: "Печать этикетки",
+      share: "Поделиться",
+      shareTitle: "Этикетка",
+    },
+  },
 } as const;

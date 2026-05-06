@@ -303,4 +303,23 @@ export default {
     bucket90plus: "90+ kun",
     emptyCustomers: "Qarzdor mijozlar yo'q",
   },
+  catalog: {
+    labelPrint: {
+      title: "Etiketka chop etish",
+      sizeLabel: "O'LCHAM",
+      copiesLabel: "NUSXA SONI",
+      printButton: "Chop etish ({{count}} ta)",
+      cancel: "Bekor",
+      shareTitle: "Etiketka",
+    },
+    label: {
+      name: "Nomi",
+      sku: "SKU",
+      barcode: "Barkod",
+      price: "Narx",
+      sheetTitle: "Etiketka chop etish",
+      share: "Ulashish",
+      shareTitle: "Etiketka",
+    },
+  },
 } as const;

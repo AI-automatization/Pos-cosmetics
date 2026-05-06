@@ -20,6 +20,7 @@ import SearchBar from '../../components/common/SearchBar';
 import { useAuthStore } from '../../store/auth.store';
 import type { CatalogStackParamList } from '../../navigation/types';
 import { canEditCatalog } from '@/utils/roles';
+import { LabelPrintSheet } from './LabelPrintSheet';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -64,11 +65,13 @@ function ProductListCard({
   product,
   onEdit,
   onDelete,
+  onPrint,
   canEdit,
 }: {
   product: CatalogProduct;
   onEdit: (p: CatalogProduct) => void;
   onDelete: (p: CatalogProduct) => void;
+  onPrint: (p: CatalogProduct) => void;
   canEdit: boolean;
 }) {
   const status = stockStatus(product.stockQuantity, product.minStockLevel);
@@ -83,6 +86,7 @@ function ProductListCard({
     if (canEdit) {
       actions.push({ text: 'Tahrirlash', onPress: () => onEdit(product) });
     }
+    actions.push({ text: 'Etiketka chop', onPress: () => onPrint(product) });
     actions.push({ text: "O'chirish", style: 'destructive', onPress: () => onDelete(product) });
     actions.push({ text: 'Bekor qilish', style: 'cancel' });
     Alert.alert(product.name, undefined, actions);
@@ -133,6 +137,7 @@ export default function ProductsScreen() {
   const [search, setSearch]           = useState('');
   const [categoryId, setCategoryId]   = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('ALL');
+  const [printProduct, setPrintProduct] = useState<CatalogProduct | null>(null);
 
   const navigation = useNavigation<CatalogNavProp>();
   const queryClient = useQueryClient();
@@ -179,6 +184,10 @@ export default function ProductsScreen() {
 
   const handleEdit = (p: CatalogProduct) => {
     navigation.navigate('ProductForm', { productId: p.id });
+  };
+
+  const handlePrint = (p: CatalogProduct) => {
+    setPrintProduct(p);
   };
 
   const handleDelete = (p: CatalogProduct) => {
@@ -293,6 +302,7 @@ export default function ProductsScreen() {
               product={item}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onPrint={handlePrint}
               canEdit={canEdit}
             />
           )}
@@ -318,6 +328,12 @@ export default function ProductsScreen() {
           <Ionicons name="add" size={28} color="#FFFFFF" />
         </TouchableOpacity>
       )}
+
+      {/* Etiketka chop sheet */}
+      <LabelPrintSheet
+        product={printProduct}
+        onClose={() => setPrintProduct(null)}
+      />
     </SafeAreaView>
   );
 }

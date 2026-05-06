@@ -3,6 +3,14 @@
 
 ---
 
+## T-453 | 2026-05-06 | [MOBILE] | Etiketka chop — Bluetooth/AirPrint printer support
+
+- **Yechim:** `LabelPrintSheet.tsx` yangi komponent (30×20/40×30/58×40 mm o'lcham, nusxa soni, preview, expo-print → Share fallback). `ProductsScreen.tsx` 3-dot menu ga "Etiketka chop" qo'shildi. i18n kalitlari (uz/ru/en) qo'shildi.
+- **Eslatma:** Real AirPrint uchun `expo-print` kerak: `pnpm --filter mobile add expo-print`
+- **Fayl:** `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`, `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`, `apps/mobile/src/i18n/`
+
+---
+
 ## T-451 | 2026-05-06 | [MOBILE] | Kategoriyalar — Ierarhik (tree) view + CRUD
 
 - **Yechim:** Tree view (`buildTree()` + `CategoryRow` indentation) allaqachon mavjud edi. `catalog.api.ts` ga `createCategory`, `updateCategory`, `deleteCategory` endpointlari qo'shildi. `CategoriesScreen.tsx` da mock `setTimeout` → real `useMutation` (create/update/delete) bilan almashtirildi, `handleDelete` Alert confirm + real API, `CategoryFormSheet` loading prop ulandi.

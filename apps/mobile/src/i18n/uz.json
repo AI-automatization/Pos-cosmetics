@@ -357,5 +357,24 @@
     "sectionWork": "Ish ma'lumotlari",
     "sectionCredentials": "Kirish ma'lumotlari",
     "sectionAccess": "Kirish ruxsatlari"
+  },
+  "catalog": {
+    "label": {
+      "sheetTitle": "Etiketka chop",
+      "name": "Nomi",
+      "sku": "SKU",
+      "barcode": "Shtrix-kod",
+      "price": "Narx",
+      "shareTitle": "Etiketka ulashish",
+      "share": "Ulashish"
+    },
+    "labelPrint": {
+      "title": "Etiketka chop",
+      "sizeLabel": "O'LCHAM",
+      "copiesLabel": "NUSXA SONI",
+      "shareTitle": "Etiketka ulashish",
+      "cancel": "Bekor qilish",
+      "printButton": "Chop etish ({{count}} ta)"
+    }
   }
 }

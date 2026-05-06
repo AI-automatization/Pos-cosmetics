@@ -339,5 +339,24 @@
     "sectionWork": "Рабочие данные",
     "sectionCredentials": "Данные для входа",
     "sectionAccess": "Права доступа"
+  },
+  "catalog": {
+    "label": {
+      "sheetTitle": "Печать этикетки",
+      "name": "Название",
+      "sku": "Артикул",
+      "barcode": "Штрих-код",
+      "price": "Цена",
+      "shareTitle": "Поделиться этикеткой",
+      "share": "Поделиться"
+    },
+    "labelPrint": {
+      "title": "Печать этикетки",
+      "sizeLabel": "РАЗМЕР",
+      "copiesLabel": "КОЛ-ВО",
+      "shareTitle": "Поделиться этикеткой",
+      "cancel": "Отмена",
+      "printButton": "Печать ({{count}} шт)"
+    }
   }
 }
