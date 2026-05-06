@@ -20,6 +20,7 @@ import { alertsApi } from '../../api/alerts.api';
 import { useDashboardData } from './useDashboardData';
 import ActiveShiftCard from './ActiveShiftCard';
 import MonthlyProfitCard from './MonthlyProfitCard';
+import BranchRevenueCard from './BranchRevenueCard';
 import RevenueCard from './RevenueCard';
 import WeeklyTrendChart from './WeeklyTrendChart';
 import TopProductsCard from './TopProductsCard';
@@ -83,6 +84,8 @@ export default function DashboardScreen() {
     nasiyaSummary,
     monthlyProfit,
     isMonthlyLoading,
+    branchRevenue,
+    isBranchRevenueLoading,
     isLoading,
     isRefreshing,
     refetchAll,
@@ -276,6 +279,21 @@ export default function DashboardScreen() {
               totalExpenses={monthlyProfit?.totalExpenses ?? 0}
               netProfit={monthlyProfit?.netProfit ?? 0}
               loading={isMonthlyLoading}
+            />
+          </View>
+        )}
+
+        {/* Branch revenue — faqat OWNER/ADMIN uchun */}
+        {isOwnerAdmin && (
+          <View style={styles.section}>
+            <BranchRevenueCard
+              branches={(branchRevenue ?? []).map((b) => ({
+                branchId:   b.branchId,
+                branchName: b.branchName,
+                revenue:    b.revenue,
+                orders:     b.orders,
+              }))}
+              loading={isBranchRevenueLoading}
             />
           </View>
         )}

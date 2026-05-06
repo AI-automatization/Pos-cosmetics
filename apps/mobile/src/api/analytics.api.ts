@@ -43,8 +43,10 @@ export interface BranchComparisonItem {
 
 export interface SalesTrendPoint {
   date: string;
+  period: string;
   revenue: number;
   orders: number;
+  avgBasket: number;
 }
 
 export const analyticsApi = {
@@ -74,10 +76,13 @@ export const analyticsApi = {
     return data;
   },
 
-  getSalesTrend: async (period?: string): Promise<SalesTrendPoint[]> => {
-    const { data } = await api.get<SalesTrendPoint[]>('/analytics/sales-trend', {
-      params: { period },
-    });
-    return data;
+  getSalesTrend: async (params: {
+    period?: string;
+    from?: string;
+    to?: string;
+    branchId?: string;
+  }): Promise<SalesTrendPoint[]> => {
+    const res = await api.get('/analytics/sales-trend', { params });
+    return Array.isArray(res.data) ? res.data : [];
   },
 };

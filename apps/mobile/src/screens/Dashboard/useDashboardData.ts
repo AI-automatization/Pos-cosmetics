@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import type { SalesSummary, DailyRevenue, TopProduct } from '@raos/types';
 import type { ProfitReport } from '../../api/reports.api';
 import { reportsApi, salesApi, inventoryApi, nasiyaApi } from '../../api';
+import { analyticsApi } from '../../api/analytics.api';
+import type { BranchRevenue } from '../../api/analytics.api';
 import { todayISO, daysAgoISO } from '../../utils/date';
 import { CONFIG } from '../../config';
 
@@ -109,6 +111,14 @@ export function useDashboardData() {
     retry: false,
   });
 
+  // Branch daromadi (getBranchComparison)
+  const { data: branchRevenue, isLoading: isBranchRevenueLoading } = useQuery<BranchRevenue[]>({
+    queryKey: ['dashboard-branch-revenue'],
+    queryFn: () => analyticsApi.getBranchComparison(),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+
   // Derive summary from overdue list
   const nasiyaSummary = {
     ...nasiyaOverdue,
@@ -154,6 +164,8 @@ export function useDashboardData() {
     nasiyaSummary,
     monthlyProfit,
     isMonthlyLoading,
+    branchRevenue,
+    isBranchRevenueLoading,
     isLoading,
     isRefreshing,
     refetchAll,

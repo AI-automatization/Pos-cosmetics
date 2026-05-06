@@ -3,6 +3,13 @@
 
 ---
 
+## T-456 | 2026-05-06 | [MOBILE] | Dashboard — Filiallar daromadi (30 kunlik trend)
+
+- **Yechim:** `BranchRevenueCard.tsx` yangi komponent (filial ro'yxati + progress bar, % of max revenue, compact fmt 1M/500K). `analytics.api.ts` ga `getSalesTrend(params)` method + `SalesTrendPoint` type qo'shildi. `useDashboardData.ts` ga `branchRevenue` query (`getBranchComparison()`). `Dashboard/index.tsx` da `isOwnerAdmin` uchun `BranchRevenueCard` qo'shildi.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/BranchRevenueCard.tsx`, `apps/mobile/src/api/analytics.api.ts`, `apps/mobile/src/screens/Dashboard/useDashboardData.ts`, `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
 ## T-455 | 2026-05-06 | [MOBILE] | Dashboard — Oylik moliyaviy xulosa karta
 
 - **Yechim:** `MonthlyProfitCard.tsx` yangi komponent (Daromad/Tannarx/Xarajatlar/Sof foyda breakdown, sof foyda manfiy bo'lsa qizil + ogohlantirish). `reports.api.ts` ga `getProfitReport(from, to)` → `GET /reports/profit` qo'shildi. `useDashboardData.ts` ga oylik profit query (30 kunlik). `Dashboard/index.tsx` ga `isOwnerAdmin` uchun `MonthlyProfitCard` qo'shildi.

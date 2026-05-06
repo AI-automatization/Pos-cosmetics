@@ -239,14 +239,6 @@
 
 ---
 
-## T-456 | P3 | [MOBILE] | Dashboard — Filiallar daromadi (30 kunlik trend)
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/DashboardScreen.tsx`
-- **Muammo:** Web da branch revenue bar chart (30 kun). Mobile da filial trend ko'rinmaydi.
-- **Kutilgan:** Dashboard da filial bo'yicha daromad grafigi (30 kunlik bar chart)
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
 
 ---
 
