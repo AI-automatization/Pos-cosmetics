@@ -60,8 +60,15 @@ export default function AnalyticsScreen(): React.JSX.Element {
 
   const { data = [], isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['analytics-branches', period],
-    queryFn: () => analyticsApi.getRevenueByBranch(period),
+    queryFn: async () => {
+      try {
+        return await analyticsApi.getRevenueByBranch(period);
+      } catch {
+        return [] as BranchRevenueItem[];
+      }
+    },
     staleTime: 60_000,
+    retry: false,
   });
 
   const maxRevenue  = data.reduce((mx, b) => Math.max(mx, b.revenue), 0);

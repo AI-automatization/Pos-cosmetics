@@ -70,10 +70,10 @@ export const analyticsApi = {
   },
 
   getRevenueByBranch: async (period?: string): Promise<BranchRevenueItem[]> => {
-    const { data } = await api.get<BranchRevenueItem[]>('/analytics/branches/revenue', {
+    const { data } = await api.get<BranchRevenueItem[]>('/analytics/revenue-by-branch', {
       params: { period },
     });
-    return data;
+    return Array.isArray(data) ? data : [];
   },
 
   getSalesTrend: async (params: {
