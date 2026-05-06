@@ -15,7 +15,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { analyticsApi } from '../../api/analytics.api';
 import type { BranchRevenueItem, BranchRevenue } from '../../api/analytics.api';
-import ErrorView from '@/components/common/ErrorView';
 import type { FinanceStackParamList } from '../../navigation/types';
 
 // ─── Colors ────────────────────────────────────────────
@@ -104,29 +103,38 @@ export default function BranchReportsScreen() {
   const {
     data: branchRevenue = [],
     isLoading: isLoadingRevenue,
-    error: errorRevenue,
     refetch: refetchRevenue,
   } = useQuery({
     queryKey: ['analytics', 'branch-revenue', period],
-    queryFn: () => analyticsApi.getRevenueByBranch(period),
+    queryFn: async () => {
+      try {
+        return await analyticsApi.getRevenueByBranch(period);
+      } catch {
+        return [] as BranchRevenueItem[];
+      }
+    },
     staleTime: 30_000,
-    refetchInterval: 60_000,
+    retry: false,
   });
 
   const {
     data: branchComparison = [],
     isLoading: isLoadingComparison,
-    error: errorComparison,
     refetch: refetchComparison,
   } = useQuery({
     queryKey: ['analytics', 'branch-comparison'],
-    queryFn: () => analyticsApi.getBranchComparison(),
+    queryFn: async () => {
+      try {
+        return await analyticsApi.getBranchComparison();
+      } catch {
+        return [] as BranchRevenue[];
+      }
+    },
     staleTime: 30_000,
-    refetchInterval: 60_000,
+    retry: false,
   });
 
   const isLoading = isLoadingRevenue || isLoadingComparison;
-  const error = errorRevenue ?? errorComparison;
 
   const handleRefresh = useCallback(() => {
     void refetchRevenue();
@@ -154,25 +162,6 @@ export default function BranchReportsScreen() {
   );
 
   const keyExtractor = useCallback((item: BranchRevenueItem) => item.branchId, []);
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.75}
-          >
-            <Ionicons name="arrow-back" size={20} color={C.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Filial hisobotlari</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <ErrorView error={error} onRetry={handleRefresh} />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
