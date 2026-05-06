@@ -201,14 +201,7 @@
 
 ---
 
-## T-452 | P2 | [MOBILE] | Yetkazib beruvchilar — CRUD (Create/Update/Delete)
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Catalog/SuppliersScreen.tsx`
-- **Muammo:** Web da SupplierModal bilan to'liq CRUD (nom, kompaniya, telefon, manzil). Mobile da faqat ro'yxat view.
-- **Kutilgan:** Supplier yaratish, tahrirlash, o'chirish (swipe yoki menu orqali). BottomSheet forma.
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
+*(T-452 — Done.md ga ko'chirildi 2026-05-06)*
 
 ---
 

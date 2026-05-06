@@ -3,6 +3,13 @@
 
 ---
 
+## T-452 | 2026-05-06 | [MOBILE] | Yetkazib beruvchilar — CRUD (Create/Update/Delete)
+
+- **Yechim:** Audit natijasida `SuppliersScreen.tsx` da CRUD allaqachon to'liq implement qilingan — BottomSheet forma (name, phone, company, address), 3-dot menu (tahrirlash/o'chirish), delete confirmation dialog, real-time search. Yangi kod yozilmadi.
+- **Fayl:** `apps/mobile/src/screens/Catalog/SuppliersScreen.tsx`, `apps/mobile/src/api/catalog.api.ts`
+
+---
+
 ## T-450 | 2026-05-06 | [MOBILE] | Mijoz profili — Faol qarzlar ro'yxati + To'lash modal
 
 - **Yechim:** `nasiya.api.ts` ga `getByCustomer(customerId)` qo'shildi. `useCustomerDebts.ts` hook yaratildi. `DebtPaySheet.tsx` yangi komponent (amount, 50%/to'liq, CASH/CARD/TRANSFER, note, CARD→TERMINAL mapping). `CustomerDetailScreen.tsx` ga "FAOL QARZLAR" seksiyasi + aging badge (joriy/0-30/31-60/61-90/90+) + DebtPaySheet integratsiya.
