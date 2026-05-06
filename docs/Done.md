@@ -3,6 +3,13 @@
 
 ---
 
+## T-449 | 2026-05-06 | [MOBILE] | Mijozlar — Nasiya limiti (debtLimit) va progress bar
+
+- **Yechim:** Commit `3bb5355` — `customers.api.ts` da `CreateCustomerDto` qo'shildi (`debtLimit` field bilan), `create()` metodi yangilandi. `nasiya.api.ts` yangi DTO pattern bilan moslashtirildi. `CustomerDetailScreen.tsx` da nasiya limiti progress bar qo'shildi (ko'k = limit ichida, qizil = oshgan).
+- **Fayl:** `apps/mobile/src/api/customers.api.ts`, `apps/mobile/src/api/nasiya.api.ts`, `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`
+
+---
+
 ## T-414 | 2026-05-03 | [FRONTEND] | Izoh → textarea (warehouse + admin stock-in)
 
 - **Yechim:** Commit `7ac7160` — `StockInModal.tsx` va `warehouse/stock-in/page.tsx` da Izoh `<input type="text">` → `<textarea rows={3} resize-none>`. StickyNote icon absolute positioning dan label inline ga o'tkazildi.

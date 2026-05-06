@@ -193,14 +193,7 @@
 
 ---
 
-## T-449 | P2 | [MOBILE] | Mijozlar — Nasiya limiti (debtLimit) formada va profilida ko'rsatish
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Customers/CustomersScreen.tsx`, `CustomerDetailScreen.tsx`
-- **Muammo:** Web da CreateCustomerModal da "Nasiya limiti (so'm)" field bor. Customer detail da qarz limit progress bar bor. Mobile da CustomersScreen/CustomerDetailScreen da bu yo'q.
-- **Kutilgan:** Customer yaratish/tahrirlash formada debtLimit fieldi. Profil sahifada qarz limit progress bar.
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
+*(T-449 — Done.md ga ko'chirildi 2026-05-06)*
 
 ---
 
