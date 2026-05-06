@@ -172,10 +172,9 @@ export default function PaymentsHistoryScreen() {
       const q = search.replace(/^#/, '').trim();
       list = list.filter((o) => String(o.orderNumber).includes(q));
     }
-    // method filter — placeholder: Order type has no paymentMethod field yet
-    // When API adds it: list = list.filter(o => o.paymentMethod === method)
+    // method filter — disabled until T-423 adds paymentMethod to Order API response
     return list;
-  }, [orders, search]);
+  }, [orders, search, method]);
 
   // Summary stats
   const totalCompleted = useMemo(
@@ -241,12 +240,17 @@ export default function PaymentsHistoryScreen() {
       >
         {METHODS.map((m) => {
           const active = m.key === method;
+          const isDisabled = m.key !== 'Barchasi';
           return (
             <TouchableOpacity
               key={m.key}
-              style={[styles.methodPill, active && styles.methodPillActive]}
-              onPress={() => setMethod(m.key)}
-              activeOpacity={0.75}
+              style={[
+                styles.methodPill,
+                active && styles.methodPillActive,
+                isDisabled && styles.methodPillDisabled,
+              ]}
+              onPress={() => !isDisabled && setMethod(m.key)}
+              activeOpacity={isDisabled ? 1 : 0.75}
             >
               <Ionicons
                 name={m.icon}
@@ -354,6 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.white,
   },
   methodPillActive: { backgroundColor: '#111827', borderColor: '#111827' },
+  methodPillDisabled: { opacity: 0.35 },
   methodPillText: { fontSize: 12, fontWeight: '600', color: C.muted },
   methodPillTextActive: { color: C.white },
 

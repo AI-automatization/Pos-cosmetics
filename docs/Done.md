@@ -13,6 +13,11 @@
 
 ---
 
+## T-424 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — To'lov usuli filtri disabled
+
+- **Yechim:** Naqd/Karta/Nasiya/Click/Payme tugmalari `disabled` qilindi (`opacity: 0.35`, `onPress` bloklanди) — T-423 `paymentMethod` API da paydo bo'lguncha. `useMemo` deps ga `method` qo'shildi.
+- **Fayllar:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
+
 ## T-446 | 2026-05-05 | [MOBILE] | Vazifalar (Tasks) boshqaruvi
 
 - **Yechim:** `TasksScreen.tsx` (238 qator) + `TaskCard.tsx` (96 qator, React.memo) yaratildi — status filter pills (Barchasi/Kutilmoqda/Jarayonda/Bajarildi), FlatList, status cycling (PENDING→IN_PROGRESS→DONE), create modal, delete confirm. `tasks.api.ts` yaratildi (list/create/update/remove). MoreMenu BIZNES_GROUP da "Vazifalar" (roleLevel≥3). Navigation yangilandi.

@@ -366,13 +366,3 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-## T-424 | P2 | [MOBILE] | PaymentsHistoryScreen — To'lov usuli filtri (Naqd/Karta/Nasiya/Click/Payme) ishlamaydi
-
-- **Sana:** 2026-05-05
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx
-- **Muammo:** Ekranda 6 ta to'lov usuli filtri ko'rsatiladi (Barchasi, Naqd, Karta, Nasiya, Click, Payme). Tugmalar bosiladi va `method` state o'zgaradi, lekin `filtered` massivni hisoblashda bu filtr hech qachon qo'llanilmaydi — kodda `// method filter — placeholder: Order type has no paymentMethod field yet` deb izohlangan (175-177 qatorlar). Natija: barcha to'lov usuli tugmalari dekorativ, funksionalligi yo'q.
-- **Kutilgan:** T-423 fix bo'lgandan so'ng `order.paymentMethod` bo'yicha filtr qo'llanishi kerak. Hozircha tugmalar disabled yoki "tez orada" label bilan ko'rsatilishi kerak.
-- **Topildi:** Manual Code Review — 2026-05-05
-
----
