@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { DashboardStackParamList, TabParamList } from '../../navigation/types';
+import { useQuery } from '@tanstack/react-query';
 import { alertsApi } from '../../api/alerts.api';
 import { useDashboardData } from './useDashboardData';
 import ActiveShiftCard from './ActiveShiftCard';
@@ -99,21 +100,22 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(false);
   const [openSheetVisible, setOpenSheetVisible] = useState(false);
   const [closeSheetVisible, setCloseSheetVisible] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  // Badge — React Query bilan auto-refresh (30 soniya)
+  const { data: activeAlerts, refetch: refetchAlerts } = useQuery({
+    queryKey: ['alerts-active'],
+    queryFn:  () => alertsApi.getActive(),
+    refetchInterval: 30_000,
+    staleTime:       20_000,
+    retry:           false,
+  });
+  const unreadCount = (activeAlerts ?? []).filter((a) => !a.isRead).length;
 
-  useEffect(() => {
-    let cancelled = false;
-    alertsApi.getActive().then((alerts) => {
-      if (!cancelled) {
-        setUnreadCount(alerts.filter((a) => !a.isRead).length);
-      }
-    }).catch(() => {
-      // Silent fail — badge siz ishlashda davom etadi
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Screen focus bo'lganda ham refresh
+  useFocusEffect(
+    React.useCallback(() => {
+      void refetchAlerts();
+    }, [refetchAlerts]),
+  );
 
   const shift = currentShift.data ?? null;
   const summary = todaySummary.data;

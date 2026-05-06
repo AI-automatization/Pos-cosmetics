@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
 
 Notifications.setNotificationHandler({
@@ -13,6 +14,7 @@ Notifications.setNotificationHandler({
 });
 
 export function useNotifications() {
+  const queryClient = useQueryClient();
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
@@ -21,7 +23,8 @@ export function useNotifications() {
 
     notificationListener.current = Notifications.addNotificationReceivedListener(
       (_notification) => {
-        // In-app notification — handled by notification handler above
+        // Notification kelganda dashboard badge query ni invalidate qil
+        queryClient.invalidateQueries({ queryKey: ['alerts-active'] });
       },
     );
 

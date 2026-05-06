@@ -242,14 +242,6 @@
 
 ---
 
-## T-457 | P3 | [MOBILE] | Dashboard — Real-time savdo badge/push notification
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/DashboardScreen.tsx`
-- **Muammo:** Web da yangi savdo bo'lganda badge yangilanadi. Mobile da push notification yoki badge yo'q.
-- **Kutilgan:** Yangi savdo bo'lganda push notification + dashboard da badge counter
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
 
 ---
 

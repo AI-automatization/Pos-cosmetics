@@ -3,6 +3,13 @@
 
 ---
 
+## T-457 | 2026-05-06 | [MOBILE] | Dashboard — Real-time savdo badge/push notification
+
+- **Yechim:** Dashboard bell badge `useState+useEffect` (bir martali) → React Query `['alerts-active']` + `refetchInterval: 30_000` (30 soniyada bir) + `useFocusEffect` (screen fokusida). `useNotifications.ts` da `addNotificationReceivedListener` → `queryClient.invalidateQueries(['alerts-active'])` — push notification kelganda badge darhol yangilanadi.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`, `apps/mobile/src/hooks/useNotifications.ts`
+
+---
+
 ## T-456 | 2026-05-06 | [MOBILE] | Dashboard — Filiallar daromadi (30 kunlik trend)
 
 - **Yechim:** `BranchRevenueCard.tsx` yangi komponent (filial ro'yxati + progress bar, % of max revenue, compact fmt 1M/500K). `analytics.api.ts` ga `getSalesTrend(params)` method + `SalesTrendPoint` type qo'shildi. `useDashboardData.ts` ga `branchRevenue` query (`getBranchComparison()`). `Dashboard/index.tsx` da `isOwnerAdmin` uchun `BranchRevenueCard` qo'shildi.
