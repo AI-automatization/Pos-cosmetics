@@ -219,14 +219,7 @@
 
 ---
 
-## T-451 | P3 | [MOBILE] | Kategoriyalar — Ierarhik (tree) view
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Catalog/CategoriesScreen.tsx`
-- **Muammo:** Web da buildTree() + recursive CategoryRow (depth indentation: depth*20px). Mobile da flat list (parent-child aloqasi ko'rinmaydi).
-- **Kutilgan:** Kategoriyalar daraxt ko'rinishida — parent ostida childlar indentatsiya bilan
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
+*(T-451 — Done.md ga ko'chirildi 2026-05-06)*
 
 ---
 

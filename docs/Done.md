@@ -3,6 +3,13 @@
 
 ---
 
+## T-451 | 2026-05-06 | [MOBILE] | Kategoriyalar — Ierarhik (tree) view + CRUD
+
+- **Yechim:** Tree view (`buildTree()` + `CategoryRow` indentation) allaqachon mavjud edi. `catalog.api.ts` ga `createCategory`, `updateCategory`, `deleteCategory` endpointlari qo'shildi. `CategoriesScreen.tsx` da mock `setTimeout` → real `useMutation` (create/update/delete) bilan almashtirildi, `handleDelete` Alert confirm + real API, `CategoryFormSheet` loading prop ulandi.
+- **Fayl:** `apps/mobile/src/api/catalog.api.ts`, `apps/mobile/src/screens/Catalog/CategoriesScreen.tsx`
+
+---
+
 ## T-448 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — Order detail modal
 
 - **Yechim:** `OrderDetailSheet.tsx` yangi komponent yaratildi (items, subtotal/chegirma/soliq/jami, notes, status badge, API: `salesApi.getOrderById`). `PaymentsHistoryScreen.tsx` da `PaymentCard` `TouchableOpacity` ga o'raldi, `selectedOrderId` state va `OrderDetailSheet` integratsiya qilindi.

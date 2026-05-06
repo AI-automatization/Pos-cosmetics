@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { catalogApi, type CatalogCategory } from '../../api/catalog.api';
 
 // ─── Colors ────────────────────────────────────────────
@@ -49,20 +49,25 @@ function buildTree(categories: CatalogCategory[]): TreeNode[] {
 }
 
 // ─── CategoryFormSheet ─────────────────────────────────
+interface CategoryFormSheetProps {
+  visible: boolean;
+  categories: CatalogCategory[];
+  editCategory: CatalogCategory | null;
+  loading: boolean;
+  onClose: () => void;
+  onSave: (name: string, parentId: string | null) => void;
+}
+
 function CategoryFormSheet({
   visible,
   categories,
   editCategory,
+  loading,
   onClose,
-}: {
-  visible: boolean;
-  categories: CatalogCategory[];
-  editCategory: CatalogCategory | null;
-  onClose: () => void;
-}) {
-  const [name, setName]       = useState(editCategory?.name ?? '');
+  onSave,
+}: CategoryFormSheetProps) {
+  const [name, setName]         = useState(editCategory?.name ?? '');
   const [parentId, setParentId] = useState<string | null>(editCategory?.parentId ?? null);
-  const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
     if (visible) {
@@ -84,15 +89,7 @@ function CategoryFormSheet({
 
   const handleSave = () => {
     if (!name.trim()) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert(
-        'Muvaffaqiyat',
-        `"${name}" ${editCategory ? 'yangilandi' : 'qo\'shildi'}`,
-        [{ text: 'OK', onPress: onClose }],
-      );
-    }, 600);
+    onSave(name.trim(), parentId);
   };
 
   return (
@@ -164,7 +161,7 @@ function CategoryRow({
   category: TreeNode;
   isChild: boolean;
   onEdit: (c: CatalogCategory) => void;
-  onDelete: (c: CatalogCategory) => void;
+  onDelete: (c: TreeNode) => void;
 }) {
   const childCount = category.children.length;
 
@@ -174,16 +171,7 @@ function CategoryRow({
       {
         text: "O'chirish",
         style: 'destructive',
-        onPress: () => {
-          Alert.alert(
-            "O'chirishni tasdiqlang",
-            `"${category.name}" o'chirilsinmi?${childCount > 0 ? `\n${childCount} ta sub-kategoriya ham o'chadi.` : ''}`,
-            [
-              { text: 'Bekor', style: 'cancel' },
-              { text: "O'chirish", style: 'destructive', onPress: () => onDelete(category) },
-            ],
-          );
-        },
+        onPress: () => onDelete(category),
       },
       { text: 'Bekor qilish', style: 'cancel' },
     ]);
@@ -219,14 +207,55 @@ interface FlatItem {
 }
 
 // ─── CategoriesScreen ──────────────────────────────────
+const QUERY_KEY = ['catalog-categories'];
+
 export default function CategoriesScreen() {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [editCategory, setEditCategory] = useState<CatalogCategory | null>(null);
 
-  const { data: categories = [], isLoading, refetch } = useQuery({
-    queryKey: ['catalog-categories'],
+  const queryClient = useQueryClient();
+
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: QUERY_KEY,
     queryFn: catalogApi.getCategories,
     staleTime: 5 * 60_000,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (dto: { name: string; parentId?: string | null }) =>
+      catalogApi.createCategory(dto),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      setSheetVisible(false);
+    },
+    onError: (e: unknown) => {
+      const msg = e instanceof Error ? e.message : 'Xatolik yuz berdi';
+      Alert.alert('Xatolik', msg);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: { name: string; parentId?: string | null } }) =>
+      catalogApi.updateCategory(id, dto),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      setSheetVisible(false);
+    },
+    onError: (e: unknown) => {
+      const msg = e instanceof Error ? e.message : 'Xatolik yuz berdi';
+      Alert.alert('Xatolik', msg);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => catalogApi.deleteCategory(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    },
+    onError: (e: unknown) => {
+      const msg = e instanceof Error ? e.message : 'Xatolik yuz berdi';
+      Alert.alert('Xatolik', msg);
+    },
   });
 
   const tree = useMemo(() => buildTree(categories), [categories]);
@@ -248,8 +277,27 @@ export default function CategoriesScreen() {
     setSheetVisible(true);
   };
 
-  const handleDelete = (_c: CatalogCategory) => {
-    void refetch();
+  const handleDelete = (category: TreeNode) => {
+    Alert.alert(
+      "O'chirish",
+      `"${category.name}" kategoriyasini o'chirishni tasdiqlaysizmi?`,
+      [
+        { text: 'Bekor', style: 'cancel' },
+        {
+          text: "O'chirish",
+          style: 'destructive',
+          onPress: () => deleteMutation.mutate(category.id),
+        },
+      ],
+    );
+  };
+
+  const handleSave = (name: string, parentId: string | null) => {
+    if (editCategory) {
+      updateMutation.mutate({ id: editCategory.id, dto: { name, parentId } });
+    } else {
+      createMutation.mutate({ name, parentId });
+    }
   };
 
   const handleAdd = () => {
@@ -303,7 +351,9 @@ export default function CategoriesScreen() {
         visible={sheetVisible}
         categories={categories}
         editCategory={editCategory}
+        loading={createMutation.isPending || updateMutation.isPending}
         onClose={() => setSheetVisible(false)}
+        onSave={handleSave}
       />
     </SafeAreaView>
   );

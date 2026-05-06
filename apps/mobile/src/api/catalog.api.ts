@@ -106,6 +106,29 @@ export const catalogApi = {
     return Array.isArray(data) ? data : [];
   },
 
+  createCategory: async (dto: {
+    name: string;
+    parentId?: string | null;
+  }): Promise<CatalogCategory> => {
+    const { data } = await api.post<CatalogCategory>('/catalog/categories', dto);
+    return data;
+  },
+
+  updateCategory: async (
+    id: string,
+    dto: { name?: string; parentId?: string | null },
+  ): Promise<CatalogCategory> => {
+    const { data } = await api.patch<CatalogCategory>(
+      `/catalog/categories/${id}`,
+      dto,
+    );
+    return data;
+  },
+
+  deleteCategory: async (id: string): Promise<void> => {
+    await api.delete(`/catalog/categories/${id}`);
+  },
+
   getProductById: async (id: string): Promise<CatalogProduct> => {
     const { data } = await api.get<CatalogProduct>(`/catalog/products/${id}`);
     return data;
