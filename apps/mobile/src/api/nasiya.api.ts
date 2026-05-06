@@ -93,10 +93,12 @@ export const nasiyaApi = {
   },
 
   getByCustomer: async (customerId: string): Promise<DebtRecord[]> => {
-    const res = await api.get<DebtRecord[]>('/nasiya', {
-      params: { customerId, status: 'ACTIVE' },
+    const res = await api.get('/nasiya', {
+      params: { customerId, limit: 100 },
     });
-    return res.data;
+    if (Array.isArray(res.data)) return res.data as DebtRecord[];
+    if (res.data?.items && Array.isArray(res.data.items)) return res.data.items as DebtRecord[];
+    return [];
   },
 
   getOverdue: async (): Promise<DebtRecord[]> => {
@@ -110,7 +112,7 @@ export const nasiyaApi = {
   },
 
   pay: async (id: string, amount: number, method?: string, notes?: string): Promise<void> => {
-    await api.post(`/nasiya/${id}/pay`, { amount, method: method ?? 'CASH', notes });
+    await api.post(`/nasiya/${id}/pay`, { amount, paymentMethod: method ?? 'CASH', note: notes });
   },
 
   sendReminder: async (id: string): Promise<void> => {
