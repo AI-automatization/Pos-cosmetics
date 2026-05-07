@@ -31,7 +31,7 @@ const C = {
 
 // ─── Tree node ─────────────────────────────────────────
 interface TreeNode extends CatalogCategory {
-  children: CatalogCategory[];
+  children: TreeNode[];
 }
 
 function buildTree(categories: CatalogCategory[]): TreeNode[] {
@@ -154,16 +154,17 @@ function CategoryFormSheet({
 // ─── CategoryRow ───────────────────────────────────────
 function CategoryRow({
   category,
-  isChild,
+  depth,
   onEdit,
   onDelete,
 }: {
   category: TreeNode;
-  isChild: boolean;
+  depth: number;
   onEdit: (c: CatalogCategory) => void;
   onDelete: (c: TreeNode) => void;
 }) {
   const childCount = category.children.length;
+  const paddingLeft = 16 + depth * 20;
 
   const handleMenu = () => {
     Alert.alert(category.name, undefined, [
@@ -178,9 +179,11 @@ function CategoryRow({
   };
 
   return (
-    <View style={[styles.row, isChild && styles.rowChild]}>
-      {isChild && <View style={styles.indentLine} />}
-      <View style={[styles.folderIcon, isChild && styles.folderIconChild]}>
+    <View style={[styles.row, depth > 0 && styles.rowChild, { paddingLeft }]}>
+      {depth > 0 && (
+        <View style={[styles.indentLine, { left: paddingLeft - 12 }]} />
+      )}
+      <View style={[styles.folderIcon, depth > 0 && styles.folderIconChild]}>
         <Ionicons
           name={childCount > 0 ? 'folder' : 'folder-outline'}
           size={20}
@@ -203,7 +206,7 @@ function CategoryRow({
 // ─── Flat list item type ───────────────────────────────
 interface FlatItem {
   node: TreeNode;
-  isChild: boolean;
+  depth: number;
 }
 
 // ─── CategoriesScreen ──────────────────────────────────
@@ -260,15 +263,16 @@ export default function CategoriesScreen() {
 
   const tree = useMemo(() => buildTree(categories), [categories]);
 
-  // Flatten tree: root → children → next root → ...
+  // Flatten tree: unlimited depth, recursive
   const flatItems = useMemo<FlatItem[]>(() => {
     const result: FlatItem[] = [];
-    tree.forEach((root) => {
-      result.push({ node: root, isChild: false });
-      root.children.forEach((child) =>
-        result.push({ node: { ...child, children: [] }, isChild: true }),
-      );
-    });
+    function flatten(nodes: TreeNode[], depth: number): void {
+      nodes.forEach((node) => {
+        result.push({ node, depth });
+        if (node.children.length > 0) flatten(node.children, depth + 1);
+      });
+    }
+    flatten(tree, 0);
     return result;
   }, [tree]);
 
@@ -326,8 +330,8 @@ export default function CategoriesScreen() {
           keyExtractor={(item) => item.node.id}
           renderItem={({ item }) => (
             <CategoryRow
-              category={item.node as TreeNode}
-              isChild={item.isChild}
+              category={item.node}
+              depth={item.depth}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
