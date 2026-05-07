@@ -209,17 +209,56 @@ export const inventoryApi = {
   },
 
   getLowStock: async (branchId?: string): Promise<LowStockItem[]> => {
-    const { data } = await api.get<StockListResponse>('/inventory/levels', {
+    const { data } = await api.get<unknown>('/inventory/levels', {
       params: { lowStock: true, branchId },
     });
-    return data.data ?? [];
+    const raw = Array.isArray(data)
+      ? data
+      : ((data as any)?.data ?? (data as any)?.items ?? []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return raw.map((item: any): LowStockItem => {
+      const qty = item.totalQty ?? item.stock ?? item.quantity ?? 0;
+      const threshold = item.minStockLevel ?? 5;
+      return {
+        productId: item.productId,
+        productName: item.name ?? item.productName ?? '',
+        sku: item.sku ?? '',
+        warehouseId: item.warehouseId,
+        warehouseName: item.warehouseName ?? '',
+        stock: qty,
+        quantity: qty,
+        minStockLevel: threshold,
+        threshold,
+        isLow: qty <= threshold,
+      };
+    });
   },
 
   getStockLevels: async (search?: string): Promise<LowStockItem[]> => {
-    const { data } = await api.get<StockListResponse>('/inventory/levels', {
+    const { data } = await api.get<unknown>('/inventory/levels', {
       params: search ? { search } : undefined,
     });
-    return data.data ?? [];
+    // Backend returns a plain array: [{ productId, warehouseId, totalQty, name, sku, minStockLevel, warehouseName }]
+    const raw = Array.isArray(data)
+      ? data
+      : ((data as any)?.data ?? (data as any)?.items ?? []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return raw.map((item: any): LowStockItem => {
+      const qty = item.totalQty ?? item.stock ?? item.quantity ?? 0;
+      const threshold = item.minStockLevel ?? 5;
+      return {
+        productId: item.productId,
+        productName: item.name ?? item.productName ?? '',
+        sku: item.sku ?? '',
+        warehouseId: item.warehouseId,
+        warehouseName: item.warehouseName ?? '',
+        stock: qty,
+        quantity: qty,
+        minStockLevel: threshold,
+        threshold,
+        isLow: qty <= threshold,
+      };
+    });
   },
 
   getProductStock: async (productId: string): Promise<ProductStockLevel[]> => {
