@@ -81,15 +81,23 @@ function duration(openedAt: Date | string, closedAt: Date | string | null): stri
 }
 
 function cashierName(shift: ShiftDetail): string {
-  if (shift.user) return `${shift.user.firstName} ${shift.user.lastName}`;
+  if (shift.user) return `${shift.user.firstName} ${shift.user.lastName}`.trim();
+  const cn = (shift as any).cashierName as string | undefined;
+  if (cn && cn.trim()) return cn.trim();
   return 'Kassir';
 }
 
 // ─── ShiftCard ─────────────────────────────────────────
 function ShiftCard({ shift, index }: { shift: ShiftDetail; index: number }) {
-  const isOpen   = shift.status === 'OPEN';
+  const isOpen   = shift.status?.toUpperCase() === 'OPEN';
   const dur      = duration(shift.openedAt, shift.closedAt);
   const cashier  = cashierName(shift);
+
+  // Backend returns paymentBreakdown:{cash,card,...} — prefer direct fields if set
+  const pb: any = (shift as any).paymentBreakdown ?? {};
+  const cashAmt  = shift.cashAmount  ?? pb.cash  ?? pb.CASH  ?? 0;
+  const cardAmt  = shift.cardAmount  ?? pb.card  ?? pb.CARD  ?? pb.terminal ?? 0;
+  const nasiyaAmt = shift.nasiyaAmount ?? pb.nasiya ?? pb.NASIYA ?? pb.credit ?? 0;
 
   return (
     <View style={styles.card}>
@@ -131,9 +139,9 @@ function ShiftCard({ shift, index }: { shift: ShiftDetail; index: number }) {
       {/* Stats grid */}
       <View style={styles.statsGrid}>
         <StatCell label="Buyurtmalar" value={shift.totalOrders ? `${shift.totalOrders} ta` : '—'} />
-        <StatCell label="Naqd" value={fmtShort(shift.cashAmount)} color={C.green} />
-        <StatCell label="Karta" value={fmtShort(shift.cardAmount)} color={C.primary} />
-        <StatCell label="Nasiya" value={fmtShort(shift.nasiyaAmount)} color={C.orange} />
+        <StatCell label="Naqd" value={fmtShort(cashAmt || undefined)} color={C.green} />
+        <StatCell label="Karta" value={fmtShort(cardAmt || undefined)} color={C.primary} />
+        <StatCell label="Nasiya" value={fmtShort(nasiyaAmt || undefined)} color={C.orange} />
       </View>
 
       <View style={styles.divider} />
@@ -170,7 +178,14 @@ export default function ShiftReportsScreen({ onClose }: Props) {
     staleTime: 3 * 60_000,
   });
 
-  const allShifts = data?.items ?? [];
+  // Backend may return { items:[...] } or { data:[...] } or plain array
+  const allShifts: ShiftDetail[] = (() => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data as ShiftDetail[];
+    if (Array.isArray((data as any).items)) return (data as any).items as ShiftDetail[];
+    if (Array.isArray((data as any).data))  return (data as any).data  as ShiftDetail[];
+    return [];
+  })();
 
   const filtered = useMemo(() => {
     const cutoff = periodStart(period);
@@ -206,7 +221,7 @@ export default function ShiftReportsScreen({ onClose }: Props) {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.pillsScroll}
-        contentContainerStyle={styles.pillsRow}
+        contentContainerStyle={styles.pillsContent}
       >
         {PERIODS.map((p) => {
           const active = p.key === period;
@@ -287,10 +302,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: C.text },
 
-  pillsScroll: { flexGrow: 0, backgroundColor: C.white },
-  pillsRow: {
-    paddingHorizontal: 16, paddingVertical: 10, gap: 8,
+  pillsScroll: {
+    flexGrow: 0, backgroundColor: C.white,
     borderBottomWidth: 1, borderBottomColor: C.border,
+  },
+  pillsContent: {
+    paddingHorizontal: 16, paddingVertical: 10, gap: 8,
   },
   pill: {
     paddingHorizontal: 14, paddingVertical: 7,
