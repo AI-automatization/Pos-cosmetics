@@ -60,6 +60,13 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
 function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const { data: order, isLoading } = useOrder(orderId);
+  const { t } = useTranslation();
+  const PAYMENT_LABELS: Record<string, string> = {
+    CASH: t('payments.cash'), NAQD: t('payments.cash'),
+    CARD: t('payments.card'), KARTA: t('payments.card'), TERMINAL: t('payments.card'),
+    NASIYA: t('payments.debt'), DEBT: t('payments.debt'),
+    ARALASH: t('payments.mixed'),
+  };
 
   return (
     <div
