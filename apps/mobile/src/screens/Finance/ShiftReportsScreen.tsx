@@ -8,8 +8,9 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { salesApi, type ShiftDetail } from '../../api/sales.api';
 import ErrorView from '@/components/common/ErrorView';
@@ -71,7 +72,7 @@ function formatTime(d: Date | string): string {
 }
 
 function duration(openedAt: Date | string, closedAt: Date | string | null): string {
-  if (!closedAt) return 'Ochiq';
+  if (!closedAt) return '';  // ochiq smenada davomiylik ko'rsatilmaydi
   const open  = typeof openedAt  === 'string' ? new Date(openedAt)  : openedAt;
   const close = typeof closedAt  === 'string' ? new Date(closedAt)  : closedAt;
   const mins  = Math.round((close.getTime() - open.getTime()) / 60_000);
@@ -170,6 +171,8 @@ interface Props {
 }
 
 export default function ShiftReportsScreen({ onClose }: Props) {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const [period, setPeriod] = useState<PeriodKey>('30d');
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -199,19 +202,19 @@ export default function ShiftReportsScreen({ onClose }: Props) {
   // Summary
   const totalRevenue = filtered.reduce((s, x) => s + (x.totalRevenue ?? 0), 0);
   const totalOrders  = filtered.reduce((s, x) => s + (x.totalOrders  ?? 0), 0);
-  const closedCount  = filtered.filter((s) => s.status === 'CLOSED').length;
+  const closedCount  = filtered.filter((s) => s.status?.toUpperCase() === 'CLOSED').length;
 
   if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;
 
+  const handleBack = onClose ?? (() => navigation.goBack());
+
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        {onClose ? (
-          <TouchableOpacity style={styles.headerBtn} onPress={onClose} activeOpacity={0.75}>
-            <Ionicons name="arrow-back" size={20} color={C.text} />
-          </TouchableOpacity>
-        ) : <View style={styles.headerBtn} />}
+        <TouchableOpacity style={styles.headerBtn} onPress={handleBack} activeOpacity={0.75}>
+          <Ionicons name="arrow-back" size={20} color={C.text} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Smena hisobotlari</Text>
         <View style={{ width: 36 }} />
       </View>
@@ -282,7 +285,7 @@ export default function ShiftReportsScreen({ onClose }: Props) {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
