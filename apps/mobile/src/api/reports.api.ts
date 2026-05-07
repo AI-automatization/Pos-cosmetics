@@ -77,7 +77,7 @@ export const reportsApi = {
       cogs:               d.cogs               ?? 0,
       grossProfit:        d.grossProfit        ?? 0,
       totalExpenses:      d.totalExpenses      ?? 0,
-      netProfit:          d.netProfit          ?? 0,
+      netProfit:          d.netProfit          ?? d.grossProfit ?? 0,
       expensesByCategory: Array.isArray(d.expensesByCategory) ? d.expensesByCategory : [],
     };
   },

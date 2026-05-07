@@ -57,9 +57,16 @@ export const analyticsApi = {
     return data;
   },
 
-  getBranchComparison: async (): Promise<BranchRevenue[]> => {
-    const { data } = await api.get<BranchRevenue[]>('/analytics/branches/comparison');
-    return data;
+  getBranchComparison: async (): Promise<BranchComparisonItem[]> => {
+    const res = await api.get('/analytics/branch-comparison');
+    const raw = Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.items ?? []);
+    return raw.map((b: any) => ({
+      branchId:      b.branchId      ?? b.id      ?? '',
+      branchName:    b.branchName    ?? b.name    ?? '',
+      revenue:       b.revenue       ?? 0,
+      orders:        b.orders        ?? b.orderCount ?? 0,
+      avgOrderValue: b.avgOrderValue ?? 0,
+    }));
   },
 
   getInsights: async (branchId?: string): Promise<InsightItem[]> => {

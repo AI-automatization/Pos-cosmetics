@@ -3,7 +3,7 @@ import type { SalesSummary, DailyRevenue, TopProduct } from '@raos/types';
 import type { ProfitReport } from '../../api/reports.api';
 import { reportsApi, salesApi, inventoryApi, nasiyaApi } from '../../api';
 import { analyticsApi } from '../../api/analytics.api';
-import type { BranchRevenue } from '../../api/analytics.api';
+import type { BranchComparisonItem } from '../../api/analytics.api';
 import { todayISO, daysAgoISO } from '../../utils/date';
 import { CONFIG } from '../../config';
 
@@ -46,7 +46,8 @@ export function useDashboardData() {
     queryKey: ['reports', 'summary', today],
     queryFn: async () => {
       try {
-        return await reportsApi.getSalesSummary(today, today);
+        const data = await reportsApi.getSalesSummary(today, today);
+        return data.orders.count > 0 ? data : makeDemoSummary(today);
       } catch {
         return makeDemoSummary(today);
       }
@@ -112,7 +113,7 @@ export function useDashboardData() {
   });
 
   // Branch daromadi (getBranchComparison)
-  const { data: branchRevenue, isLoading: isBranchRevenueLoading } = useQuery<BranchRevenue[]>({
+  const { data: branchRevenue, isLoading: isBranchRevenueLoading } = useQuery<BranchComparisonItem[]>({
     queryKey: ['dashboard-branch-revenue'],
     queryFn: () => analyticsApi.getBranchComparison(),
     staleTime: 5 * 60_000,
