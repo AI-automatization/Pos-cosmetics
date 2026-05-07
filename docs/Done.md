@@ -46,10 +46,11 @@
 
 ---
 
-## T-451 | 2026-05-06 | [MOBILE] | Kategoriyalar — Ierarhik (tree) view + CRUD
+## T-451 | 2026-05-07 | [MOBILE] | Kategoriyalar — Unlimited depth ierarhik tree view
 
-- **Yechim:** Tree view (`buildTree()` + `CategoryRow` indentation) allaqachon mavjud edi. `catalog.api.ts` ga `createCategory`, `updateCategory`, `deleteCategory` endpointlari qo'shildi. `CategoriesScreen.tsx` da mock `setTimeout` → real `useMutation` (create/update/delete) bilan almashtirildi, `handleDelete` Alert confirm + real API, `CategoryFormSheet` loading prop ulandi.
-- **Fayl:** `apps/mobile/src/api/catalog.api.ts`, `apps/mobile/src/screens/Catalog/CategoriesScreen.tsx`
+- **Yechim (2026-05-07 — unlimited depth):** `TreeNode.children: CatalogCategory[]` → `TreeNode[]` (recursive). `FlatItem.isChild: boolean` → `depth: number`. `flatItems` useMemo recursive flatten (cheksiz chuqurlik). `CategoryRow` dinamik `paddingLeft = 16 + depth * 20` — har level 20px indent. Web parity.
+- **Yechim (2026-05-06 — CRUD):** `createCategory`, `updateCategory`, `deleteCategory` real API. `useMutation` + Alert confirm.
+- **Fayl:** `apps/mobile/src/screens/Catalog/CategoriesScreen.tsx`, `apps/mobile/src/api/catalog.api.ts`
 
 ---
 
