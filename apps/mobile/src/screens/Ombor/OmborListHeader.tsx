@@ -21,6 +21,7 @@ interface OmborListHeaderProps {
   readonly resultCount: number;
   readonly onSearchChange: (text: string) => void;
   readonly onTabChange:    (tab: FilterTab) => void;
+  readonly inputRef?: React.RefObject<TextInput>;
 }
 
 export default function OmborListHeader({
@@ -30,6 +31,7 @@ export default function OmborListHeader({
   resultCount,
   onSearchChange,
   onTabChange,
+  inputRef,
 }: OmborListHeaderProps) {
   return (
     <>
@@ -38,6 +40,7 @@ export default function OmborListHeader({
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={16} color={C.muted} />
         <TextInput
+          ref={inputRef}
           style={styles.searchInput}
           placeholder="Mahsulot yoki ombor nomi..."
           placeholderTextColor={C.muted}

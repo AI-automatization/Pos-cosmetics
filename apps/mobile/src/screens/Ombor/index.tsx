@@ -1,5 +1,5 @@
-// Ombor screen — stock levels with stats, search, filter tabs and request sheet
-import React, { useState, useMemo } from 'react';
+// Ombor screen — stock levels with stats, search, filter tabs
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,9 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  TextInput,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +17,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { OmborTabStackParamList } from '../../navigation/types';
 import { useOmborData } from './useOmborData';
-import OmborRequestSheet from './OmborRequestSheet';
 import { C } from './OmborColors';
 import { getStatus, type FilterTab } from './OmborTypes';
 import OmborHeader from './OmborHeader';
@@ -26,14 +28,21 @@ type OmborNav = NativeStackNavigationProp<OmborTabStackParamList, 'OmborMain'>;
 
 export default function OmborScreen() {
   const navigation = useNavigation<OmborNav>();
-  const [search, setSearch]                           = useState('');
-  const [activeTab, setActiveTab]                     = useState<FilterTab>('ALL');
-  const [requestSheetVisible, setRequestSheetVisible] = useState(false);
+  const [search, setSearch]                 = useState('');
+  const [activeTab, setActiveTab]           = useState<FilterTab>('ALL');
+  const [activeWarehouse, setActiveWarehouse] = useState<string | null>(null);
+  const [showWarehouseModal, setShowWarehouseModal] = useState(false);
+  const searchRef = useRef<TextInput>(null);
 
   const { stockLevels } = useOmborData();
   const { data, isLoading, isError, refetch } = stockLevels;
 
   const allItems = data ?? [];
+
+  const warehouses = useMemo(
+    () => [...new Set(allItems.map((i) => i.warehouseName))].sort(),
+    [allItems],
+  );
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -46,14 +55,24 @@ export default function OmborScreen() {
         activeTab === 'ALL' ||
         (activeTab === 'KAM'    && status === 'KAM')    ||
         (activeTab === 'TUGADI' && status === 'TUGADI');
-      return matchSearch && matchTab;
+      const matchWarehouse =
+        activeWarehouse === null || item.warehouseName === activeWarehouse;
+      return matchSearch && matchTab && matchWarehouse;
     });
-  }, [search, activeTab, allItems]);
+  }, [search, activeTab, activeWarehouse, allItems]);
+
+  const headerComponent = (
+    <OmborHeader
+      onScanPress={() => searchRef.current?.focus()}
+      onFilterPress={() => setShowWarehouseModal(true)}
+      onInvoicesPress={() => navigation.navigate('InvoicesScreen')}
+    />
+  );
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <OmborHeader onInvoicesPress={() => navigation.navigate('InvoicesScreen')} />
+        {headerComponent}
         <View style={styles.centerFill}>
           <ActivityIndicator size="large" color={C.primary} />
         </View>
@@ -64,7 +83,7 @@ export default function OmborScreen() {
   if (isError) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <OmborHeader onInvoicesPress={() => navigation.navigate('InvoicesScreen')} />
+        {headerComponent}
         <View style={styles.centerFill}>
           <Ionicons name="alert-circle-outline" size={48} color={C.muted} />
           <Text style={styles.errorText}>Ma'lumot yuklanmadi</Text>
@@ -82,45 +101,71 @@ export default function OmborScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-        <OmborHeader onInvoicesPress={() => navigation.navigate('InvoicesScreen')} />
+      {headerComponent}
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => `${item.productId}-${item.warehouseId}`}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <OmborListHeader
-              allItems={allItems}
-              search={search}
-              activeTab={activeTab}
-              resultCount={filtered.length}
-              onSearchChange={setSearch}
-              onTabChange={setActiveTab}
-            />
-          }
-          renderItem={({ item }) => <OmborProductCard item={item} />}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={<OmborEmptyState />}
-        />
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => `${item.productId}-${item.warehouseId}`}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <OmborListHeader
+            allItems={allItems}
+            search={search}
+            activeTab={activeTab}
+            resultCount={filtered.length}
+            onSearchChange={setSearch}
+            onTabChange={setActiveTab}
+            inputRef={searchRef}
+          />
+        }
+        renderItem={({ item }) => <OmborProductCard item={item} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={<OmborEmptyState />}
+      />
 
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={styles.requestBtn}
-            onPress={() => setRequestSheetVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="clipboard-outline" size={20} color={C.white} />
-            <Text style={styles.requestBtnText}>Katta omborga so'rov yuborish</Text>
-          </TouchableOpacity>
-        </View>
-
-        <OmborRequestSheet
-          visible={requestSheetVisible}
-          onClose={() => setRequestSheetVisible(false)}
-          items={allItems}
-        />
-      </SafeAreaView>
+      {/* Ombor filter modal */}
+      <Modal
+        visible={showWarehouseModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowWarehouseModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowWarehouseModal(false)}
+        >
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Ombor tanlash</Text>
+            <ScrollView>
+              <TouchableOpacity
+                style={[styles.warehouseRow, activeWarehouse === null && styles.warehouseRowActive]}
+                onPress={() => { setActiveWarehouse(null); setShowWarehouseModal(false); }}
+              >
+                <Text style={[styles.warehouseLabel, activeWarehouse === null && styles.warehouseLabelActive]}>
+                  Barcha omborlar
+                </Text>
+                {activeWarehouse === null && <Ionicons name="checkmark" size={18} color={C.primary} />}
+              </TouchableOpacity>
+              {warehouses.map((wh) => (
+                <TouchableOpacity
+                  key={wh}
+                  style={[styles.warehouseRow, activeWarehouse === wh && styles.warehouseRowActive]}
+                  onPress={() => { setActiveWarehouse(wh); setShowWarehouseModal(false); }}
+                >
+                  <Text style={[styles.warehouseLabel, activeWarehouse === wh && styles.warehouseLabelActive]}>
+                    {wh}
+                  </Text>
+                  {activeWarehouse === wh && <Ionicons name="checkmark" size={18} color={C.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
@@ -131,7 +176,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingTop: 14,
-    paddingBottom: 100,
+    paddingBottom: 24,
   },
   separator: {
     height: 10,
@@ -157,25 +202,54 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: C.white,
   },
-  bottomBar: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
     backgroundColor: C.white,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 32,
+    maxHeight: '60%',
   },
-  requestBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: C.primary,
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: C.border,
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 4,
   },
-  requestBtnText: {
+  modalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: C.white,
+    color: C.text,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  warehouseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  warehouseRowActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  warehouseLabel: {
+    fontSize: 14,
+    color: C.text,
+  },
+  warehouseLabelActive: {
+    color: C.primary,
+    fontWeight: '600',
   },
 });
