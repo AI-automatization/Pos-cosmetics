@@ -30,7 +30,6 @@
           "color": "#6366F1"
         }
       ],
-      "@config-plugins/detox"
     ],
     "extra": {
       "eas": {
