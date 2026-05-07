@@ -267,6 +267,7 @@ export default function ShiftReportsScreen({ onClose }: Props) {
         <ActivityIndicator size="large" color={C.primary} style={styles.loader} />
       ) : (
         <FlatList
+          key={period}
           data={filtered}
           keyExtractor={(s) => s.id}
           renderItem={({ item, index }) => (
@@ -306,13 +307,14 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: C.text },
 
   pillsScroll: {
-    flexGrow: 0, backgroundColor: C.white,
+    flexGrow: 0, flexShrink: 0, backgroundColor: C.white,
     borderBottomWidth: 1, borderBottomColor: C.border,
   },
   pillsContent: {
-    paddingHorizontal: 16, paddingVertical: 10, gap: 8,
+    flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10, gap: 8,
   },
   pill: {
+    flexShrink: 0,
     paddingHorizontal: 14, paddingVertical: 7,
     borderRadius: 20, borderWidth: 1.5, borderColor: C.border,
     backgroundColor: C.white,

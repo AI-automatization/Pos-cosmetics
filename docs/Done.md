@@ -3,6 +3,21 @@
 
 ---
 
+## T-459 | 2026-05-07 | [MOBILE] | ShiftReportsScreen — FlatList filter o'zgarganda scroll pozitsiyasi reset bo'lmasdi
+
+- **Yechim:** `FlatList` ga `key={period}` qo'shildi — period o'zgarganda list remount bo'lib yuqoridan boshlanadi
+- **Fayl:** `apps/mobile/src/screens/Finance/ShiftReportsScreen.tsx`
+
+---
+
+## T-458 | 2026-05-07 | [MOBILE] | ShiftReportsScreen — Filter pills text qisqarib ketadi (data yuklanganda)
+
+- **Sabab:** `pillsScroll` da `flexShrink: 1` default — summary strip paydo bo'lganda layout recalculation pills ni squeeze qilardi
+- **Yechim:** `pillsScroll` ga `flexShrink: 0`, `pillsContent` ga `flexDirection: 'row'`, `pill` ga `flexShrink: 0` qo'shildi
+- **Fayl:** `apps/mobile/src/screens/Finance/ShiftReportsScreen.tsx`
+
+---
+
 ## T-453 | 2026-05-07 | [MOBILE] | Etiketka chop — AirPrint/Share printer support
 
 - **Yechim:** `LabelPrintSheet.tsx` bottom sheet modal yaratildi. 3 ta label o'lcham (30×20, 40×30, 58×40 mm), nusxa soni (1–99), live preview (mahsulot nomi, SKU, barcode `||| ||| ` ko'rinishida, narx). `expo-print` mavjud bo'lsa → native AirPrint/Android print dialog; yo'q bo'lsa → `Share.share()` fallback. `ProductsScreen.tsx` da context menu "Etiketka chop" orqali integratsiya.
