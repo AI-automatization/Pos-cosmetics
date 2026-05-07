@@ -18,6 +18,7 @@ import { useDebts, usePayDebt } from '@/hooks/customers/useDebts';
 import { useCustomersList } from '@/hooks/customers/useDebts';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Debt, PayDebtDto } from '@/types/debt';
 
 type PayMethod = 'CASH' | 'CARD' | 'TRANSFER';
@@ -45,6 +46,7 @@ function PayDebtModal({
   debt: Debt;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState(debt.remainingAmount);
   const [method, setMethod] = useState<PayMethod>('CASH');
   const [note, setNote] = useState('');
@@ -82,7 +84,7 @@ function PayDebtModal({
         <div className="p-5">
           {/* Remaining */}
           <div className="mb-4 rounded-xl bg-orange-50 px-4 py-3">
-            <p className="text-xs text-orange-600">Qolgan qarz</p>
+            <p className="text-xs text-orange-600">{t('nasiya.remainingDebt')}</p>
             <p className="text-xl font-bold text-orange-700">{formatPrice(debt.remainingAmount)}</p>
           </div>
 
@@ -112,14 +114,14 @@ function PayDebtModal({
                 onClick={() => setAmount(debt.remainingAmount)}
                 className="flex-1 rounded-lg border border-blue-200 bg-blue-50 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
               >
-                To'liq ({formatPrice(debt.remainingAmount)})
+                {t('nasiya.fullyPaid')} ({formatPrice(debt.remainingAmount)})
               </button>
             </div>
           </div>
 
           {/* Method */}
           <div className="mb-4">
-            <p className="mb-2 text-sm font-medium text-gray-700">To'lov turi</p>
+            <p className="mb-2 text-sm font-medium text-gray-700">{t('payments.method')}</p>
             <div className="flex gap-2">
               {METHODS.map((m) => (
                 <button
@@ -169,6 +171,7 @@ function PayDebtModal({
 }
 
 export default function CustomerProfilePage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [payingDebt, setPayingDebt] = useState<Debt | null>(null);
 
@@ -299,7 +302,7 @@ export default function CustomerProfilePage() {
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">
-            Faol qarzlar
+            {t('nasiya.activeDebts')}
             {activeDebts.length > 0 && (
               <span className="ml-2 text-sm font-normal text-gray-500">
                 ({activeDebts.length} ta · jami {formatPrice(totalRemaining)})
@@ -363,7 +366,7 @@ export default function CustomerProfilePage() {
                         onClick={() => setPayingDebt(debt)}
                         className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-green-700"
                       >
-                        To'lash
+                        {t('nasiya.payDebt')}
                       </button>
                     </td>
                   </tr>

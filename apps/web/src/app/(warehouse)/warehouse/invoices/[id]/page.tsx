@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { ArrowLeft, FileText, Calendar, User, Package, Hash } from 'lucide-react';
 import { useWarehouseInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
 import { formatPrice, formatDateTime } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslation();
   const { id } = use(params);
   const { data: invoice, isLoading } = useWarehouseInvoice(id);
 
@@ -25,9 +27,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       <div className="flex h-full items-center justify-center p-6">
         <div className="text-center">
           <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300" />
-          <p className="text-lg font-semibold text-gray-700">Nakladnoy topilmadi</p>
+          <p className="text-lg font-semibold text-gray-700">{t('warehouse.invoiceNotFound')}</p>
           <Link href="/warehouse/invoices" className="mt-3 inline-block text-sm text-amber-600 hover:text-amber-700">
-            Orqaga qaytish
+            {t('common.goBack')}
           </Link>
         </div>
       </div>
@@ -48,9 +50,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">
-            Nakladnoy {invoice.invoiceNumber ? `#${invoice.invoiceNumber}` : ''}
+            {t('warehouse.invoiceTitle')} {invoice.invoiceNumber ? `#${invoice.invoiceNumber}` : ''}
           </h1>
-          <p className="text-sm text-gray-500">Batafsil ma&apos;lumot</p>
+          <p className="text-sm text-gray-500">{t('warehouse.invoiceDetail')}</p>
         </div>
       </div>
 
@@ -62,7 +64,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <Hash className="h-4 w-4 text-blue-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Raqam</p>
+              <p className="text-xs text-gray-500">{t('warehouse.invoiceNumber')}</p>
               <p className="font-semibold text-gray-900">{invoice.invoiceNumber || '—'}</p>
             </div>
           </div>
@@ -72,7 +74,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <Calendar className="h-4 w-4 text-green-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Sana</p>
+              <p className="text-xs text-gray-500">{t('warehouse.date')}</p>
               <p className="font-semibold text-gray-900">{formatDateTime(invoice.createdAt)}</p>
             </div>
           </div>
@@ -82,7 +84,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <User className="h-4 w-4 text-purple-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Kontragent</p>
+              <p className="text-xs text-gray-500">{t('warehouse.counterparty')}</p>
               <p className="font-semibold text-gray-900">{invoice.supplier?.name || invoice.supplierId || '—'}</p>
               {invoice.supplier?.company && (
                 <p className="text-xs text-gray-400">{invoice.supplier.company}</p>
@@ -95,7 +97,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <Package className="h-4 w-4 text-amber-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Jami summa</p>
+              <p className="text-xs text-gray-500">{t('warehouse.totalAmount')}</p>
               <p className="text-lg font-bold text-gray-900">{formatPrice(totalCost)}</p>
             </div>
           </div>
@@ -103,7 +105,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
         {invoice.note && (
           <div className="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-600">
-            <span className="font-medium text-gray-700">Izoh:</span> {invoice.note}
+            <span className="font-medium text-gray-700">{t('warehouse.note')}:</span> {invoice.note}
           </div>
         )}
       </div>
@@ -113,7 +115,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-gray-400" />
-            <h2 className="text-sm font-semibold text-gray-700">Tovarlar</h2>
+            <h2 className="text-sm font-semibold text-gray-700">{t('warehouse.goods')}</h2>
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
               {invoice.items.length}
             </span>
@@ -124,11 +126,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <thead className="bg-gray-50/80">
             <tr className="text-xs text-gray-500 uppercase tracking-wider">
               <th className="px-5 py-3 text-left">#</th>
-              <th className="px-5 py-3 text-left">Mahsulot</th>
-              <th className="px-5 py-3 text-right">Miqdor</th>
-              <th className="px-5 py-3 text-right">Narx</th>
-              <th className="px-5 py-3 text-left">Partiya</th>
-              <th className="px-5 py-3 text-right">Jami</th>
+              <th className="px-5 py-3 text-left">{t('warehouse.product')}</th>
+              <th className="px-5 py-3 text-right">{t('warehouse.quantity')}</th>
+              <th className="px-5 py-3 text-right">{t('warehouse.price')}</th>
+              <th className="px-5 py-3 text-left">{t('warehouse.batch')}</th>
+              <th className="px-5 py-3 text-right">{t('warehouse.total')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -151,7 +153,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <tfoot className="border-t-2 border-gray-200 bg-gray-50/80">
             <tr>
               <td colSpan={5} className="px-5 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                Jami summa:
+                {t('warehouse.totalAmount')}:
               </td>
               <td className="px-5 py-3 text-right">
                 <span className="text-lg font-bold text-gray-900">{formatPrice(totalCost)}</span>

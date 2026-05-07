@@ -8,6 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useBarcodeScanner } from '@/hooks/pos/useBarcodeScanner';
 import { usePromoMap } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Product } from '@/types/catalog';
 import { BundleDetailModal } from './BundleDetailModal';
 
@@ -94,6 +95,7 @@ function ProductCard({
 }
 
 export function ProductSearch({ search, onSearchChange, searchRef }: ProductSearchProps) {
+  const { t } = useTranslation();
   // useShallow: prevents new object reference on every render → stops Zustand tearing-detection re-renders
   const { addItem, setLineDiscount } = usePOSStore(
     useShallow((s) => ({ addItem: s.addItem, setLineDiscount: s.setLineDiscount })),
@@ -185,7 +187,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="F1 — Nom, SKU yoki barcode..."
+            placeholder={t('pos.searchPlaceholder')}
             className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-10 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
           />
           <Barcode className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-300" />
@@ -195,13 +197,13 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
       {/* Product grid */}
       <div className="flex-1 overflow-y-auto px-3 pb-3">
         {isFetching && (
-          <div className="py-4 text-center text-xs text-gray-400">Qidirilmoqda...</div>
+          <div className="py-4 text-center text-xs text-gray-400">{t('pos.searching')}</div>
         )}
 
         {!isFetching && data?.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Search className="mb-2 h-8 w-8 text-gray-200" />
-            <p className="text-sm text-gray-400">Mahsulot topilmadi</p>
+            <p className="text-sm text-gray-400">{t('pos.productNotFound')}</p>
           </div>
         )}
 

@@ -22,6 +22,7 @@ import {
   useAnalyticsCashierPerf,
   useAnalyticsHeatmap,
 } from '@/hooks/analytics/useAnalytics';
+import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Constants ─── */
 
@@ -38,16 +39,6 @@ const ABC_COLORS: Record<'A' | 'B' | 'C', string> = {
 };
 
 type Tab = 'trend' | 'products' | 'margin' | 'cashiers' | 'heatmap' | 'deadstock' | 'abc';
-
-const TABS: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { key: 'trend', label: 'Sotuv trendi', icon: TrendingUp },
-  { key: 'products', label: 'Top mahsulotlar', icon: BarChart3 },
-  { key: 'margin', label: 'Marja', icon: DollarSign },
-  { key: 'abc', label: 'ABC tahlil', icon: Layers },
-  { key: 'cashiers', label: 'Kassirlar', icon: Users },
-  { key: 'heatmap', label: 'Soatlik', icon: Activity },
-  { key: 'deadstock', label: 'Harakatsiz', icon: AlertTriangle },
-];
 
 /* ─── Custom Tooltip ─── */
 
@@ -125,6 +116,18 @@ function EmptyState({ label }: { label: string }) {
 /* ─── Page ─── */
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
+
+  const TABS: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { key: 'trend', label: t('analytics.trend'), icon: TrendingUp },
+    { key: 'products', label: t('analytics.products'), icon: BarChart3 },
+    { key: 'margin', label: t('analytics.margin'), icon: DollarSign },
+    { key: 'abc', label: t('analytics.abc'), icon: Layers },
+    { key: 'cashiers', label: t('analytics.cashiers'), icon: Users },
+    { key: 'heatmap', label: t('analytics.heatmap'), icon: Activity },
+    { key: 'deadstock', label: t('analytics.deadstock'), icon: AlertTriangle },
+  ];
+
   const [tab, setTab] = useState<Tab>('trend');
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [days, setDays] = useState(30);
@@ -240,10 +243,10 @@ export default function AnalyticsPage() {
         {/* ── KPI Cards ── */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
-            { label: 'Umumiy daromad', value: formatPrice(totalRevenue), sub: `${days} kun`, icon: TrendingUp, gradient: 'from-indigo-500 to-blue-600' },
-            { label: 'Buyurtmalar', value: totalOrders.toLocaleString(), sub: 'ta', icon: ShoppingCart, gradient: 'from-violet-500 to-purple-600' },
-            { label: "O'rtacha chek", value: formatPrice(avgCheck), sub: 'buyurtma', icon: DollarSign, gradient: 'from-emerald-500 to-teal-600' },
-            { label: "O'rtacha savatcha", value: formatPrice(avgBasket), sub: 'buyurtma', icon: Package, gradient: 'from-amber-500 to-orange-600' },
+            { label: t('analytics.totalRevenue'), value: formatPrice(totalRevenue), sub: `${days} kun`, icon: TrendingUp, gradient: 'from-indigo-500 to-blue-600' },
+            { label: t('analytics.totalOrders'), value: totalOrders.toLocaleString(), sub: 'ta', icon: ShoppingCart, gradient: 'from-violet-500 to-purple-600' },
+            { label: t('analytics.avgCheck'), value: formatPrice(avgCheck), sub: 'buyurtma', icon: DollarSign, gradient: 'from-emerald-500 to-teal-600' },
+            { label: t('analytics.avgBasket'), value: formatPrice(avgBasket), sub: 'buyurtma', icon: Package, gradient: 'from-amber-500 to-orange-600' },
           ].map(({ label, value, sub, icon: Icon, gradient }) => (
             <div key={label} className="group relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:shadow-md">
               <div className={cn('absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gradient-to-br opacity-10 transition group-hover:opacity-20', gradient)} />
@@ -287,7 +290,7 @@ export default function AnalyticsPage() {
           {tab === 'trend' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-gray-900">Sotuv trendi</h2>
+                <h2 className="text-base font-semibold text-gray-900">{t('analytics.trend')}</h2>
                 <div className="flex rounded-lg bg-gray-100 p-0.5">
                   {(['daily', 'weekly', 'monthly'] as const).map((p) => (
                     <button
@@ -361,7 +364,7 @@ export default function AnalyticsPage() {
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-gray-900">
-                  Top mahsulotlar
+                  {t('analytics.products')}
                   <span className="ml-2 text-xs font-normal text-gray-400">({filteredProducts.length} ta)</span>
                 </h2>
                 <div className="relative">
@@ -465,7 +468,7 @@ export default function AnalyticsPage() {
           {/* === MARGIN === */}
           {tab === 'margin' && (
             <div className="space-y-4">
-              <h2 className="text-base font-semibold text-gray-900">Marja tahlili</h2>
+              <h2 className="text-base font-semibold text-gray-900">{t('analytics.margin')}</h2>
               {loadingMargin ? (
                 <LoadingSkeleton variant="table" rows={6} />
               ) : marginData.length === 0 ? (
@@ -532,7 +535,7 @@ export default function AnalyticsPage() {
           {/* === ABC === */}
           {tab === 'abc' && (
             <div className="space-y-5">
-              <h2 className="text-base font-semibold text-gray-900">ABC tahlil</h2>
+              <h2 className="text-base font-semibold text-gray-900">{t('analytics.abc')}</h2>
               {loadingAbc ? (
                 <LoadingSkeleton variant="table" rows={4} />
               ) : abcData.length === 0 ? (
@@ -619,7 +622,7 @@ export default function AnalyticsPage() {
           {tab === 'cashiers' && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-base font-semibold text-gray-900">Kassirlar samaradorligi</h2>
+                <h2 className="text-base font-semibold text-gray-900">{t('analytics.cashiers')}</h2>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                   <input
@@ -693,7 +696,7 @@ export default function AnalyticsPage() {
           {/* === HEATMAP === */}
           {tab === 'heatmap' && (
             <div className="space-y-4">
-              <h2 className="text-base font-semibold text-gray-900">Soatlik faoliyat xaritasi</h2>
+              <h2 className="text-base font-semibold text-gray-900">{t('analytics.heatmap')}</h2>
               {loadingHeatmap ? (
                 <LoadingSkeleton variant="line" className="h-56" />
               ) : heatmap.length === 0 ? (
@@ -750,7 +753,7 @@ export default function AnalyticsPage() {
           {tab === 'deadstock' && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-base font-semibold text-gray-900">Harakatsiz tovarlar</h2>
+                <h2 className="text-base font-semibold text-gray-900">{t('analytics.deadstock')}</h2>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                   <input

@@ -17,6 +17,7 @@ import { useBranches } from '@/hooks/settings/useBranches';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { CustomerWithDebt } from '@/types/debt';
 import type { CustomerGender } from '@/types/customer';
 
@@ -64,6 +65,7 @@ interface CustomerForm {
 }
 
 function CreateCustomerModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const { mutate: createCustomer, isPending } = useCreateCustomer();
   const { data: branches = [] } = useBranches();
 
@@ -275,14 +277,14 @@ function CreateCustomerModal({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
             >
-              Bekor
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
               className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
             >
-              {isPending ? 'Saqlanmoqda...' : "Qo'shish"}
+              {isPending ? t('common.saving') : t('common.add')}
             </button>
           </div>
         </form>
@@ -292,6 +294,7 @@ function CreateCustomerModal({ onClose }: { onClose: () => void }) {
 }
 
 export default function CustomersPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [sortField, setSortField] = useState<string | null>(null);
@@ -388,28 +391,28 @@ export default function CustomersPage() {
         <div className="grid grid-cols-4 gap-4">
           {[
             {
-              label: 'Jami nasiya',
+              label: t('nasiya.totalDebt'),
               value: formatPrice(summary.totalDebt),
               sub: `${summary.totalCustomers} ta mijoz`,
               color: 'text-orange-600',
               bg: 'bg-orange-50',
             },
             {
-              label: "Muddati o'tgan",
+              label: t('nasiya.overdue'),
               value: formatPrice(summary.overdueDebt),
               sub: `${summary.overdueCustomers} ta mijoz`,
               color: 'text-red-600',
               bg: 'bg-red-50',
             },
             {
-              label: "Bu oy yig'ilgan",
+              label: t('nasiya.collectedThisMonth'),
               value: formatPrice(summary.collectedThisMonth),
-              sub: "Jami to'lovlar",
+              sub: t('payments.total'),
               color: 'text-green-600',
               bg: 'bg-green-50',
             },
             {
-              label: 'Nasiya mijozlar',
+              label: t('customers.totalCustomers'),
               value: summary.totalCustomers.toString(),
               sub: `${summary.overdueCustomers} ta muddati o'tgan mijoz`,
               color: 'text-blue-600',
@@ -439,18 +442,18 @@ export default function CustomersPage() {
         <table className="w-full text-sm">
           <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Mijoz</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Telefon</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Filial</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{t('customers.title')}</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{t('customers.phone')}</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{t('common.branch')}</th>
               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <SortHeader field="debtBalance" label="Jami qarz" />
+                <SortHeader field="debtBalance" label={t('customers.totalDebt')} />
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Limit</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Holat</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">{t('customers.debtLimit')}</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">{t('common.status')}</th>
               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <SortHeader field="lastVisitAt" label="So'nggi tashrif" />
+                <SortHeader field="lastVisitAt" label={t('customers.lastVisit')} />
               </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Amal</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">{t('common.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">

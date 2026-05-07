@@ -17,21 +17,23 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLogout } from '@/hooks/auth/useAuth';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const NAV = [
-  { label: 'Dashboard', href: '/warehouse', icon: LayoutDashboard, exact: true },
-  { label: 'Nakladnoylar', href: '/warehouse/invoices', icon: PackagePlus, alsoActive: ['/warehouse/stock-in'] },
-  { label: 'Hisobdan chiqarish', href: '/warehouse/write-off', icon: PackageMinus },
-  { label: 'Inventar', href: '/warehouse/inventory', icon: Package },
-  { label: "Muddati o'tayotganlar", href: '/warehouse/expiry', icon: AlertTriangle },
-  { label: 'Kam qolganlar', href: '/warehouse/low-stock', icon: TrendingDown },
-  { label: 'Harakatlar tarixi', href: '/warehouse/history', icon: History },
-  { label: 'Yetkazib beruvchilar', href: '/warehouse/suppliers', icon: Truck },
+  { tKey: 'nav.dashboard', href: '/warehouse', icon: LayoutDashboard, exact: true },
+  { tKey: 'warehouse.invoices', href: '/warehouse/invoices', icon: PackagePlus, alsoActive: ['/warehouse/stock-in'] },
+  { tKey: 'warehouse.writeOff', href: '/warehouse/write-off', icon: PackageMinus },
+  { tKey: 'nav.inventory', href: '/warehouse/inventory', icon: Package },
+  { tKey: 'warehouse.expiry', href: '/warehouse/expiry', icon: AlertTriangle },
+  { tKey: 'warehouse.lowStock', href: '/warehouse/low-stock', icon: TrendingDown },
+  { tKey: 'warehouse.history', href: '/warehouse/history', icon: History },
+  { tKey: 'nav.suppliers', href: '/warehouse/suppliers', icon: Truck },
 ];
 
 export function WarehouseSidebar() {
   const pathname = usePathname();
   const { mutate: logout, isPending } = useLogout();
+  const { t } = useTranslation();
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
@@ -42,7 +44,7 @@ export function WarehouseSidebar() {
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">RAOS</p>
-          <p className="text-xs text-gray-400">Ombor paneli</p>
+          <p className="text-xs text-gray-400">{t('nav.warehousePanel')}</p>
         </div>
       </div>
 
@@ -65,7 +67,7 @@ export function WarehouseSidebar() {
                 )}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1">{t(item.tKey)}</span>
                 {active && <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
               </Link>
             );
@@ -81,7 +83,7 @@ export function WarehouseSidebar() {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          <span>{isPending ? 'Chiqilmoqda...' : 'Chiqish'}</span>
+          <span>{isPending ? t('auth.loggingOut') : t('auth.logout')}</span>
         </button>
       </div>
     </aside>

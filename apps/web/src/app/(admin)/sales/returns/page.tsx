@@ -10,6 +10,7 @@ import {
 } from '@/hooks/sales/useReturns';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import {
   REFUND_METHOD_LABELS,
   RETURN_STATUS_LABELS,
@@ -193,6 +194,7 @@ function StatusBadge({ status }: { status: ReturnStatus }) {
 type HistoryFilter = 'ALL' | 'PENDING' | 'APPROVED';
 
 function ReturnsHistoryTab() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<HistoryFilter>('ALL');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -205,9 +207,9 @@ function ReturnsHistoryTab() {
   const total = data?.total ?? 0;
 
   const FILTER_TABS: { key: HistoryFilter; label: string }[] = [
-    { key: 'ALL', label: 'Barchasi' },
-    { key: 'PENDING', label: 'Kutilmoqda' },
-    { key: 'APPROVED', label: 'Tasdiqlangan' },
+    { key: 'ALL', label: t('common.all') },
+    { key: 'PENDING', label: t('common.pending') },
+    { key: 'APPROVED', label: t('common.approved') },
   ];
 
   return (

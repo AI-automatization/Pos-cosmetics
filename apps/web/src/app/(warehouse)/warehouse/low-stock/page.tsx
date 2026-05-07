@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { TrendingDown, Search, AlertTriangle, RefreshCw, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const PAGE_SIZE = 20;
 type SortCol = 'name' | 'stock' | 'min';
@@ -17,6 +18,7 @@ function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol; s
 }
 
 export default function LowStockPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [sortCol, setSortCol] = useState<SortCol>('stock');
@@ -71,15 +73,15 @@ export default function LowStockPage() {
       {/* Sarlavha */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kam qolgan tovarlar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Minimal zaxiradan kam yoki tugagan mahsulotlar</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.lowStockTitle')}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t('warehouse.lowStockSubtitle')}</p>
         </div>
         <button
           onClick={() => void refetch()}
           className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition"
         >
           <RefreshCw className="h-4 w-4" />
-          Yangilash
+          {t('common.refresh')}
         </button>
       </div>
 
@@ -89,18 +91,18 @@ export default function LowStockPage() {
           {outCount > 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm">
               <AlertTriangle className="h-4 w-4 text-red-500" />
-              <span className="text-red-700 font-medium">{outCount} ta mahsulot tugagan</span>
+              <span className="text-red-700 font-medium">{outCount} {t('warehouse.productsOutOfStock')}</span>
             </div>
           )}
           {lowCount > 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-2 text-sm">
               <TrendingDown className="h-4 w-4 text-orange-500" />
-              <span className="text-orange-700 font-medium">{lowCount} ta kam qoldi</span>
+              <span className="text-orange-700 font-medium">{lowCount} {t('warehouse.productsLowStock')}</span>
             </div>
           )}
           {outCount === 0 && lowCount === 0 && !isLoading && (
             <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm">
-              <span className="text-green-700 font-medium">Barcha tovarlar yetarli ✓</span>
+              <span className="text-green-700 font-medium">{t('warehouse.allProductsSufficient')}</span>
             </div>
           )}
         </div>
@@ -112,7 +114,7 @@ export default function LowStockPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Nomi yoki SKU..."
+          placeholder={t('warehouse.nameOrSkuPlaceholder')}
           className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
       </div>
@@ -129,7 +131,7 @@ export default function LowStockPage() {
           <div className="py-16 flex flex-col items-center gap-2 text-gray-400">
             <TrendingDown className="h-10 w-10 text-gray-300" />
             <p className="text-sm">
-              {search ? "Qidiruv bo'yicha hech narsa topilmadi" : 'Hamma tovarlar yetarli miqdorda ✓'}
+              {search ? t('common.noSearchResults') : t('warehouse.allProductsSufficient')}
             </p>
           </div>
         ) : (
@@ -142,23 +144,23 @@ export default function LowStockPage() {
                       className="px-4 py-3 text-left cursor-pointer select-none hover:text-gray-700"
                       onClick={() => handleSort('name')}
                     >
-                      Mahsulot <SortIcon col="name" sortCol={sortCol} sortDir={sortDir} />
+                      {t('warehouse.product')} <SortIcon col="name" sortCol={sortCol} sortDir={sortDir} />
                     </th>
                     <th className="px-4 py-3 text-left">SKU</th>
-                    <th className="px-4 py-3 text-left">Kategoriya</th>
+                    <th className="px-4 py-3 text-left">{t('warehouse.category')}</th>
                     <th
                       className="px-4 py-3 text-right cursor-pointer select-none hover:text-gray-700"
                       onClick={() => handleSort('min')}
                     >
-                      Min. zaxira <SortIcon col="min" sortCol={sortCol} sortDir={sortDir} />
+                      {t('warehouse.minStock')} <SortIcon col="min" sortCol={sortCol} sortDir={sortDir} />
                     </th>
                     <th
                       className="px-4 py-3 text-right cursor-pointer select-none hover:text-gray-700"
                       onClick={() => handleSort('stock')}
                     >
-                      Hozirgi miqdor <SortIcon col="stock" sortCol={sortCol} sortDir={sortDir} />
+                      {t('warehouse.currentQty')} <SortIcon col="stock" sortCol={sortCol} sortDir={sortDir} />
                     </th>
-                    <th className="px-4 py-3 text-right">Holat</th>
+                    <th className="px-4 py-3 text-right">{t('warehouse.status')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -171,11 +173,11 @@ export default function LowStockPage() {
                         <td className="px-4 py-3 text-gray-400">{p.sku ?? '—'}</td>
                         <td className="px-4 py-3 text-gray-600">{p.category?.name ?? '—'}</td>
                         <td className="px-4 py-3 text-right text-gray-500">
-                          {p.minStockLevel > 0 ? `${p.minStockLevel} ${p.unit?.shortName ?? 'dona'}` : '—'}
+                          {p.minStockLevel > 0 ? `${p.minStockLevel} ${p.unit?.shortName ?? t('warehouse.unit')}` : '—'}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold tabular-nums">
                           <span className={cn(isOut ? 'text-red-600' : 'text-orange-600')}>
-                            {Math.max(0, stock)} {p.unit?.shortName ?? 'dona'}
+                            {Math.max(0, stock)} {p.unit?.shortName ?? t('warehouse.unit')}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -186,9 +188,9 @@ export default function LowStockPage() {
                             )}
                           >
                             {isOut ? (
-                              <><AlertTriangle className="h-3 w-3" /> Tugagan</>
+                              <><AlertTriangle className="h-3 w-3" /> {t('warehouse.stockOut')}</>
                             ) : (
-                              <><TrendingDown className="h-3 w-3" /> Kam qoldi</>
+                              <><TrendingDown className="h-3 w-3" /> {t('warehouse.lowRemaining')}</>
                             )}
                           </span>
                         </td>

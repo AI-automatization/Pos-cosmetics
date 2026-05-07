@@ -9,6 +9,7 @@ import {
   useUpdateSupplier,
 } from '@/hooks/catalog/useSuppliers';
 import type { Supplier, CreateSupplierDto, UpdateSupplierDto } from '@/types/supplier';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function isValidUzPhone(val: string | undefined) {
   if (!val || val.trim() === '' || val === '+998') return true; // optional
@@ -35,6 +36,7 @@ interface SupplierModalProps {
 export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
   const { mutate: create, isPending: creating } = useCreateSupplier();
   const { mutate: update, isPending: updating } = useUpdateSupplier();
+  const { t } = useTranslation();
   const isPending = creating || updating;
 
   const { register, handleSubmit, formState: { errors } } = useForm<SupplierForm>({
@@ -66,7 +68,7 @@ export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
       <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-base font-semibold text-gray-900">
-            {supplier ? 'Yetkazib beruvchini tahrirlash' : "Yetkazib beruvchi qo'shish"}
+            {supplier ? t('suppliers.editSupplier') : t('suppliers.addSupplier')}
           </h2>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:text-gray-600">
             <X className="h-5 w-5" />
@@ -76,18 +78,18 @@ export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-5">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Nomi <span className="text-red-500">*</span>
+              {t('suppliers.name')} <span className="text-red-500">*</span>
             </label>
             <input
               {...register('name')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Yetkazib beruvchi nomi"
+              placeholder={t('suppliers.namePlaceholder')}
             />
             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Telefon</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('suppliers.phone')}</label>
             <input
               {...register('phone')}
               type="tel"
@@ -101,7 +103,7 @@ export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Kompaniya</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('suppliers.company')}</label>
             <input
               {...register('company')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -110,7 +112,7 @@ export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Manzil</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('suppliers.address')}</label>
             <input
               {...register('address')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -124,14 +126,14 @@ export function SupplierModal({ supplier, onClose }: SupplierModalProps) {
               onClick={onClose}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
-              {isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+              {isPending ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>

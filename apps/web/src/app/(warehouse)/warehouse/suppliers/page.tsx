@@ -9,10 +9,12 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
 import type { Supplier } from '@/types/supplier';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const PAGE_SIZE = 12;
 
 export default function WarehouseSuppliersPage() {
+  const { t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
   const canEdit = !currentUser?.role || ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE'].includes(currentUser.role);
 
@@ -51,16 +53,16 @@ export default function WarehouseSuppliersPage() {
       {/* Sarlavha */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Yetkazib beruvchilar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Barcha yetkazib beruvchilar ro&apos;yxati</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('nav.suppliers')}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t('warehouse.suppliersSubtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             <Truck className="h-4 w-4 text-gray-400" />
-            <span className="text-gray-600">Jami:</span>
+            <span className="text-gray-600">{t('warehouse.total')}:</span>
             <span className="font-semibold text-gray-900">{suppliers.length}</span>
             <span className="text-gray-400 mx-1">|</span>
-            <span className="text-green-600 font-semibold">{activeCount} faol</span>
+            <span className="text-green-600 font-semibold">{activeCount} {t('warehouse.active')}</span>
           </div>
           {canEdit && (
             <button
@@ -69,7 +71,7 @@ export default function WarehouseSuppliersPage() {
               className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
             >
               <Plus className="h-4 w-4" />
-              Qo&apos;shish
+              {t('common.add')}
             </button>
           )}
         </div>
@@ -82,7 +84,7 @@ export default function WarehouseSuppliersPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Nomi, kompaniya yoki telefon..."
+            placeholder={t('warehouse.supplierSearchFullPlaceholder')}
             className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
         </div>
@@ -98,7 +100,7 @@ export default function WarehouseSuppliersPage() {
                   : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
               )}
             >
-              {f === 'all' ? 'Barchasi' : f === 'active' ? 'Faol' : 'Faol emas'}
+              {f === 'all' ? t('common.all') : f === 'active' ? t('warehouse.active') : t('warehouse.inactive')}
             </button>
           ))}
         </div>
@@ -116,8 +118,8 @@ export default function WarehouseSuppliersPage() {
           <Truck className="h-10 w-10 text-gray-300" />
           <p className="text-sm">
             {search || filterActive !== 'all'
-              ? "Qidiruv bo'yicha hech narsa topilmadi"
-              : "Yetkazib beruvchilar hali qo'shilmagan"}
+              ? t('common.noSearchResults')
+              : t('warehouse.noSuppliersYet')}
           </p>
           {!search && filterActive === 'all' && (
             <button
@@ -125,7 +127,7 @@ export default function WarehouseSuppliersPage() {
               onClick={() => setShowModal(true)}
               className="mt-1 text-xs text-amber-600 hover:underline"
             >
-              + Birinchi yetkazib beruvchini qo&apos;shing
+              {t('warehouse.addFirstSupplier')}
             </button>
           )}
         </div>
@@ -179,14 +181,14 @@ export default function WarehouseSuppliersPage() {
                     </div>
                   )}
                   {!supplier.phone && !supplier.address && (
-                    <p className="text-xs text-gray-400">Kontakt ma&apos;lumoti yo&apos;q</p>
+                    <p className="text-xs text-gray-400">{t('warehouse.noContactInfo')}</p>
                   )}
                 </div>
 
                 {/* Holat + actions */}
                 <div className="pt-1 border-t border-gray-100 flex items-center justify-between">
                   <span className={cn('text-xs font-medium', supplier.isActive ? 'text-green-600' : 'text-gray-400')}>
-                    {supplier.isActive ? 'Faol' : 'Faol emas'}
+                    {supplier.isActive ? t('warehouse.active') : t('warehouse.inactive')}
                   </span>
                   {canEdit && (
                     <div className="flex items-center gap-1">
@@ -194,7 +196,7 @@ export default function WarehouseSuppliersPage() {
                         type="button"
                         onClick={() => setEditSupplier(supplier)}
                         className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
-                        title="Tahrirlash"
+                        title={t('common.edit')}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
@@ -203,7 +205,7 @@ export default function WarehouseSuppliersPage() {
                           type="button"
                           onClick={() => setDeactivateTarget(supplier)}
                           className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-red-500 transition"
-                          title="Faolsizlashtirish"
+                          title={t('warehouse.deactivate')}
                         >
                           <PowerOff className="h-3.5 w-3.5" />
                         </button>
@@ -243,10 +245,10 @@ export default function WarehouseSuppliersPage() {
       )}
       <ConfirmDialog
         isOpen={!!deactivateTarget}
-        title="Yetkazib beruvchini faolsizlashtirish"
-        message={`"${deactivateTarget?.name}" ni faolsizlashtirishni tasdiqlaysizmi? Ma'lumotlar saqlanib qoladi, kerak bo'lsa qayta faollashtirish mumkin.`}
-        confirmLabel="Faolsizlashtirish"
-        cancelLabel="Bekor qilish"
+        title={t('warehouse.deactivateSupplierTitle')}
+        message={`"${deactivateTarget?.name}" ${t('warehouse.deactivateSupplierMessage')}`}
+        confirmLabel={t('warehouse.deactivate')}
+        cancelLabel={t('common.cancel')}
         variant="danger"
         isPending={isDeactivating}
         onConfirm={() => {

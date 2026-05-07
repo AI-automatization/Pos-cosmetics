@@ -10,6 +10,7 @@ import { UserModal } from '@/components/settings/UserModal';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function ResetPasswordModal({
   user,
@@ -18,6 +19,7 @@ function ResetPasswordModal({
   user: User;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const { mutate: resetPassword, isPending } = useResetPassword();
@@ -33,7 +35,7 @@ function ResetPasswordModal({
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Parolni yangilash</h3>
+            <h3 className="text-base font-semibold text-gray-900">{t('settings.updatePassword')}</h3>
             <p className="text-xs text-gray-500 mt-0.5">
               {user.firstName} {user.lastName}
             </p>
@@ -45,7 +47,7 @@ function ResetPasswordModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Yangi parol <span className="text-red-500">*</span>
+              {t('settings.newPassword')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -54,7 +56,7 @@ function ResetPasswordModal({
                 onChange={(e) => setNewPassword(e.target.value)}
                 minLength={6}
                 required
-                placeholder="Kamida 6 belgi"
+                placeholder={t('settings.minChars')}
                 className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
               <button
@@ -72,14 +74,14 @@ function ResetPasswordModal({
               onClick={onClose}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={newPassword.length < 6 || isPending}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+              {isPending ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>
@@ -105,6 +107,7 @@ function RoleBadge({ role, isActive = true }: { role: UserRole; isActive?: boole
 }
 
 export default function UsersPage() {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | undefined>();
   const [resetPwdUser, setResetPwdUser] = useState<User | undefined>();
@@ -126,8 +129,8 @@ export default function UsersPage() {
     <div className="flex flex-col gap-6 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Foydalanuvchilar</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Yuklanmoqda...</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('settings.users')}</h1>
+          <p className="mt-0.5 text-sm text-gray-500">{t('common.loading')}</p>
         </div>
       </div>
       <LoadingSkeleton variant="table" rows={5} />
@@ -148,8 +151,8 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Foydalanuvchilar</h1>
-          <p className="mt-0.5 text-sm text-gray-500">{active} faol / {total} jami</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('settings.users')}</h1>
+          <p className="mt-0.5 text-sm text-gray-500">{active} {t('common.active').toLowerCase()} / {total} {t('common.total').toLowerCase()}</p>
         </div>
         <button
           type="button"
@@ -157,7 +160,7 @@ export default function UsersPage() {
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           <UserPlus className="h-4 w-4" />
-          Foydalanuvchi qo&apos;shish
+          {t('settings.addUser')}
         </button>
       </div>
 
@@ -182,7 +185,7 @@ export default function UsersPage() {
         <table className="w-full text-sm">
           <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
             <tr>
-              {['Ism', 'Email', 'Rol', 'Filial', "So'nggi kirish", 'Status', 'Amal'].map((h) => (
+              {[t('common.name'), t('common.email'), t('common.role'), t('common.branch'), t('common.lastLogin'), t('common.status'), t('common.actions')].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
               ))}
             </tr>
@@ -212,8 +215,8 @@ export default function UsersPage() {
                 </td>
                 <td className="px-4 py-3">
                   {user.isActive
-                    ? <span className="flex items-center gap-1 text-green-600"><CheckCircle className="h-4 w-4" /> Faol</span>
-                    : <span className="flex items-center gap-1 text-gray-400"><XCircle className="h-4 w-4" /> Nofaol</span>}
+                    ? <span className="flex items-center gap-1 text-green-600"><CheckCircle className="h-4 w-4" /> {t('common.active')}</span>
+                    : <span className="flex items-center gap-1 text-gray-400"><XCircle className="h-4 w-4" /> {t('common.inactive')}</span>}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -222,12 +225,12 @@ export default function UsersPage() {
                       onClick={() => { setEditUser(user); setShowModal(true); }}
                       className="rounded-md border border-gray-200 px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50"
                     >
-                      Tahrirlash
+                      {t('common.edit')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setResetPwdUser(user)}
-                      title="Parolni yangilash"
+                      title={t('settings.updatePassword')}
                       className="rounded-md border border-blue-200 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50"
                     >
                       <KeyRound className="h-3.5 w-3.5" />
@@ -243,7 +246,7 @@ export default function UsersPage() {
                             : 'border-green-200 text-green-600 hover:bg-green-50',
                         )}
                       >
-                        {user.isActive ? "O'chirish" : 'Yoqish'}
+                        {user.isActive ? t('settings.disable') : t('settings.enable')}
                       </button>
                     )}
                   </div>

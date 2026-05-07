@@ -54,7 +54,7 @@ export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
           className="flex items-center gap-1.5 text-gray-400 transition hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-xs">Admin</span>
+          <span className="text-xs">{t('pos.adminBack')}</span>
         </Link>
 
         <div className="h-4 w-px bg-gray-700" />

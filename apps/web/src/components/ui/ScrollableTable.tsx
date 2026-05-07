@@ -2,6 +2,7 @@
 
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface PaginationConfig {
   page: number;
@@ -28,6 +29,7 @@ interface ScrollableTableProps {
 const PAGE_SIZES = [10, 20, 50, 100];
 
 function Pagination({ page, pageSize, total, onPageChange, onPageSizeChange }: PaginationConfig) {
+  const { t } = useTranslation();
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
@@ -43,12 +45,12 @@ function Pagination({ page, pageSize, total, onPageChange, onPageSizeChange }: P
   return (
     <div className="flex flex-col gap-2 border-t border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-gray-500">
-        {total === 0 ? "Ma'lumot topilmadi" : `${start}–${end} / ${total} ta`}
+        {total === 0 ? t('common.noData') : `${start}–${end} / ${total} ta`}
       </p>
       <div className="flex items-center gap-2">
         {/* Page size selector */}
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-400">Ko'rsatish:</span>
+          <span className="text-xs text-gray-400">{t('common.show')}:</span>
           <select
             value={pageSize}
             onChange={(e) => {

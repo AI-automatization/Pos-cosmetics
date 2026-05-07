@@ -18,13 +18,14 @@ interface HeaderProps {
 function NotificationBell() {
   const { data: unreadCount = 0 } = useUnreadCount();
   const { mutate: markAllRead } = useMarkAllRead();
+  const { t } = useTranslation();
 
   return (
     <button
       type="button"
       onClick={() => { if (unreadCount > 0) markAllRead(); }}
       className="relative rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-      aria-label="Bildirishnomalar"
+      aria-label={t('common.notifications')}
     >
       <Bell className="h-5 w-5" />
       {unreadCount > 0 && (
@@ -39,6 +40,7 @@ function NotificationBell() {
 function UserMenu() {
   const { data: user } = useCurrentUser();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -96,7 +98,7 @@ function UserMenu() {
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
             >
               <LogOut className="w-4 h-4" />
-              {isLoggingOut ? 'Chiqilmoqda...' : 'Chiqish'}
+              {isLoggingOut ? t('auth.loggingOut') : t('auth.logout')}
             </button>
           </div>
         </div>
@@ -106,7 +108,7 @@ function UserMenu() {
 }
 
 function LanguageSwitcher() {
-  const { locale, setLocale } = useTranslation();
+  const { locale, setLocale, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -124,7 +126,7 @@ function LanguageSwitcher() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-        aria-label="Tilni tanlash"
+        aria-label={t('common.selectLanguage')}
       >
         <Globe className="h-4 w-4" />
         <span className="text-xs font-medium uppercase">{locale}</span>

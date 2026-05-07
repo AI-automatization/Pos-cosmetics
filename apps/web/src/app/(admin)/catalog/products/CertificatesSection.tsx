@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { ShieldCheck, Plus, Trash2, AlertTriangle, ExternalLink } from 'lucide-react';
 import { catalogApi } from '@/api/catalog.api';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { ProductCertificate, CreateCertificateDto } from '@/types/catalog';
 
 interface CertificatesSectionProps {
@@ -176,6 +177,7 @@ function CertForm({
   productId: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const { mutate: create, isPending } = useCreateCertificate(productId);
   const [form, setForm] = useState<CreateCertificateDto>({
     certNumber: '',
@@ -201,7 +203,7 @@ function CertForm({
     <div className="mt-3 rounded-lg border border-emerald-200 bg-white p-3">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Sertifikat raqami *</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('products.certNumber')} *</label>
           <input
             value={form.certNumber}
             onChange={(e) => setForm((f) => ({ ...f, certNumber: e.target.value }))}
@@ -210,7 +212,7 @@ function CertForm({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Bergan organ *</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('products.certIssuingAuthority')} *</label>
           <input
             value={form.issuingAuthority}
             onChange={(e) => setForm((f) => ({ ...f, issuingAuthority: e.target.value }))}
@@ -219,7 +221,7 @@ function CertForm({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Berilgan sana *</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('products.certIssuedAt')} *</label>
           <input
             type="date"
             value={form.issuedAt}
@@ -228,7 +230,7 @@ function CertForm({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Amal qilish muddati</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('products.certExpiry')}</label>
           <input
             type="date"
             value={form.expiresAt}
@@ -237,7 +239,7 @@ function CertForm({
           />
         </div>
         <div className="col-span-2">
-          <label className="mb-1 block text-xs font-medium text-gray-600">Fayl URL (ixtiyoriy)</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('products.certFileOptional')}</label>
           <input
             value={form.fileUrl}
             onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
@@ -252,7 +254,7 @@ function CertForm({
           onClick={onClose}
           className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100"
         >
-          Bekor qilish
+          {t('common.cancel')}
         </button>
         <button
           type="button"
@@ -260,7 +262,7 @@ function CertForm({
           disabled={!canSubmit || isPending}
           className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50"
         >
-          {isPending ? 'Saqlanmoqda...' : "Qo'shish"}
+          {isPending ? t('common.saving') : t('common.add')}
         </button>
       </div>
     </div>

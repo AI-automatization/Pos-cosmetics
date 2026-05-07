@@ -2,6 +2,7 @@
 
 import { PackageOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface EmptyStateProps {
   icon?: React.ComponentType<{ className?: string }>;
@@ -16,17 +17,18 @@ interface EmptyStateProps {
 
 export function EmptyState({
   icon: Icon = PackageOpen,
-  title = "Hali ma'lumot yo'q",
+  title,
   description,
   action,
   className,
 }: EmptyStateProps) {
+  const { t } = useTranslation();
   return (
     <div className={cn('flex flex-col items-center justify-center py-16 text-center', className)}>
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
         <Icon className="h-7 w-7 text-gray-400" />
       </div>
-      <h3 className="mt-4 text-sm font-semibold text-gray-900">{title}</h3>
+      <h3 className="mt-4 text-sm font-semibold text-gray-900">{title ?? t('common.noDataYet')}</h3>
       {description && (
         <p className="mt-1 max-w-sm text-sm text-gray-500">{description}</p>
       )}

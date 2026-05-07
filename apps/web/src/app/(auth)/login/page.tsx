@@ -4,20 +4,22 @@ import { useState } from 'react';
 import { ShoppingBag, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useLogin } from '@/hooks/auth/useAuth';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { t } = useTranslation();
 
   const { mutate: login, isPending } = useLogin();
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!email.trim()) errs.email = 'Email kiritilmadi';
-    else if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = 'Email formati noto\'g\'ri';
-    if (!password) errs.password = 'Parol kiritilmadi';
+    if (!email.trim()) errs.email = t('validation.emailRequired');
+    else if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = t('validation.emailInvalid');
+    if (!password) errs.password = t('validation.passwordRequired');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -42,7 +44,7 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-sm">
-          <h2 className="mb-6 text-lg font-semibold text-white">Tizimga kirish</h2>
+          <h2 className="mb-6 text-lg font-semibold text-white">{t('auth.signIn')}</h2>
 
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
             {/* Email */}
@@ -94,7 +96,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition"
                   tabIndex={-1}
-                  aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko\'rsatish'}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -118,10 +120,10 @@ export default function LoginPage() {
               {isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Tekshirilmoqda...
+                  {t('auth.verifying')}
                 </>
               ) : (
-                'Kirish'
+                t('auth.login')
               )}
             </button>
           </form>

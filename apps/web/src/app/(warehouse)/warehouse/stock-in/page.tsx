@@ -14,6 +14,7 @@ import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
 import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface ItemRow extends InvoiceItem {
   _key: number;
@@ -32,6 +33,7 @@ function nextBatchNumber(): string {
 }
 
 export default function StockInPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { mutate: createInvoice, isPending } = useCreateInvoice();
   const { data: productsData } = useProducts({ limit: 500 });
@@ -166,14 +168,14 @@ export default function StockInPage() {
   const handleCreateSupplier = (e: React.FormEvent) => {
     e.preventDefault();
     if (!supplierForm.name.trim()) {
-      toast.error('Kontragent nomini kiriting');
+      toast.error(t('warehouse.supplierNameRequired'));
       return;
     }
     createSupplier(
       { name: supplierForm.name.trim(), phone: supplierForm.phone || undefined, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
       {
         onSuccess: async (newSupplier) => {
-          toast.success('Kontragent yaratildi');
+          toast.success(t('warehouse.supplierCreated'));
           // Link selected products to new supplier (fire-and-forget, best-effort)
           if (supplierProductIds.length > 0) {
             const { suppliersApi } = await import('@/api/suppliers.api');
@@ -195,19 +197,19 @@ export default function StockInPage() {
 
     const noProduct = items.filter((r) => !r.productId);
     if (noProduct.length === items.length) {
-      toast.error('Kamida bitta mahsulot tanlang');
+      toast.error(t('warehouse.selectAtLeastOneProduct'));
       return;
     }
 
     const invalidQty = items.filter((r) => r.productId && r.quantity <= 0);
     if (invalidQty.length > 0) {
-      toast.error('Miqdor 0 dan katta bo\'lishi kerak');
+      toast.error(t('warehouse.qtyMustBePositive'));
       return;
     }
 
     const invalidPrice = items.filter((r) => r.productId && r.purchasePrice < 0);
     if (invalidPrice.length > 0) {
-      toast.error('Narx manfiy bo\'lishi mumkin emas');
+      toast.error(t('warehouse.priceCannotBeNegative'));
       return;
     }
 
@@ -239,8 +241,8 @@ export default function StockInPage() {
           <Package className="h-5 w-5 text-amber-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tovar qabul qilish</h1>
-          <p className="text-sm text-gray-500">Yangi nakladnoy yaratish</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.stockInTitle')}</h1>
+          <p className="text-sm text-gray-500">{t('warehouse.stockInSubtitle')}</p>
         </div>
       </div>
 
@@ -249,13 +251,13 @@ export default function StockInPage() {
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="h-4 w-4 text-gray-400" />
-            <h2 className="text-sm font-semibold text-gray-700">Nakladnoy ma&apos;lumotlari</h2>
+            <h2 className="text-sm font-semibold text-gray-700">{t('warehouse.invoiceMeta')}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Invoice number — optional toggle */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nakladnoy raqami</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.invoiceNumberLabel')}</label>
               {showInvoiceNumber ? (
                 <div className="flex gap-2">
                   <input
@@ -281,22 +283,22 @@ export default function StockInPage() {
                   className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-3.5 py-2.5 text-sm text-gray-500 transition-colors hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50/50"
                 >
                   <Hash className="h-3.5 w-3.5" />
-                  Raqam qo&apos;shish
+                  {t('warehouse.addNumber')}
                 </button>
               )}
-              <p className="mt-1 text-xs text-gray-400">Ixtiyoriy — bo&apos;sh qolsa avtomatik yaratiladi</p>
+              <p className="mt-1 text-xs text-gray-400">{t('warehouse.invoiceNumberHint')}</p>
             </div>
 
             {/* Supplier — SearchableDropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Yetkazib beruvchi</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('nav.suppliers')}</label>
               <div className="flex gap-2">
                 <SearchableDropdown
                   options={supplierOptions}
                   value={supplierId}
                   onChange={setSupplierId}
-                  placeholder="Kontragent tanlang..."
-                  searchPlaceholder="Nomi yoki kompaniya..."
+                  placeholder={t('warehouse.supplierPlaceholder')}
+                  searchPlaceholder={t('warehouse.supplierSearchPlaceholder')}
                   className="flex-1"
                 />
                 <button
@@ -305,7 +307,7 @@ export default function StockInPage() {
                   className="flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-700 transition hover:bg-amber-100 whitespace-nowrap"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Yangi
+                  {t('common.new')}
                 </button>
               </div>
             </div>
@@ -314,12 +316,12 @@ export default function StockInPage() {
             <div>
               <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
                 <StickyNote className="h-4 w-4 text-gray-400" />
-                Izoh
+                {t('warehouse.note')}
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Qo'shimcha izoh..."
+                placeholder={t('warehouse.additionalNote')}
                 rows={3}
                 className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
               />
@@ -332,7 +334,7 @@ export default function StockInPage() {
               <div className="flex items-center gap-2 text-sm text-amber-800">
                 <Package className="h-4 w-4 shrink-0 text-amber-600" />
                 <span>
-                  Bu kontragentda <strong>{supplierProducts.length}</strong> ta mahsulot bor
+                  {t('warehouse.supplierHasProducts', { count: supplierProducts.length })}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -360,7 +362,7 @@ export default function StockInPage() {
                   }}
                   className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-700"
                 >
-                  Qo&apos;shish
+                  {t('common.add')}
                 </button>
                 <button
                   type="button"
@@ -379,7 +381,7 @@ export default function StockInPage() {
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Package className="h-4 w-4 text-gray-400" />
-              <h2 className="text-sm font-semibold text-gray-700">Tovarlar</h2>
+              <h2 className="text-sm font-semibold text-gray-700">{t('warehouse.goods')}</h2>
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                 {items.length}
               </span>
@@ -390,7 +392,7 @@ export default function StockInPage() {
               className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
             >
               <Plus className="h-4 w-4" />
-              Qator qo&apos;shish
+              {t('warehouse.addRow')}
             </button>
           </div>
 
@@ -398,11 +400,11 @@ export default function StockInPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50/80 sticky top-0 z-10">
                 <tr className="text-xs text-gray-500 uppercase tracking-wider">
-                  <th className="px-4 py-3 text-left min-w-[280px]">Tovar</th>
-                  <th className="px-4 py-3 text-right w-24">Miqdor</th>
-                  <th className="px-4 py-3 text-right w-36">Narx (UZS)</th>
-                  <th className="px-4 py-3 text-left w-28">Partiya</th>
-                  <th className="px-4 py-3 text-right w-32">Jami</th>
+                  <th className="px-4 py-3 text-left min-w-[280px]">{t('warehouse.good')}</th>
+                  <th className="px-4 py-3 text-right w-24">{t('warehouse.quantity')}</th>
+                  <th className="px-4 py-3 text-right w-36">{t('warehouse.priceUzs')}</th>
+                  <th className="px-4 py-3 text-left w-28">{t('warehouse.batch')}</th>
+                  <th className="px-4 py-3 text-right w-32">{t('warehouse.total')}</th>
                   <th className="px-4 py-3 w-12" />
                 </tr>
               </thead>
@@ -436,14 +438,14 @@ export default function StockInPage() {
                               ...(p?.costPrice != null && { purchasePrice: p.costPrice }),
                             });
                           }}
-                          placeholder="Mahsulot tanlang..."
-                          searchPlaceholder="Nomi yoki barcode..."
-                          emptyMessage="Topilmadi"
+                          placeholder={t('warehouse.selectProduct')}
+                          searchPlaceholder={t('warehouse.productSearchPlaceholder')}
+                          emptyMessage={t('common.notFound')}
                           clearable={false}
                           className={rowInvalid ? 'ring-2 ring-red-400 rounded-xl' : ''}
                         />
                         {rowInvalid && (
-                          <p className="mt-1 text-xs text-red-500">Mahsulot tanlanishi shart</p>
+                          <p className="mt-1 text-xs text-red-500">{t('warehouse.productRequired')}</p>
                         )}
                         {!row.productId && !rowInvalid && (
                           <button
@@ -451,7 +453,7 @@ export default function StockInPage() {
                             onClick={() => setProductModal({ rowKey: row._key })}
                             className="mt-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
                           >
-                            + Yangi mahsulot yaratish
+                            {t('warehouse.createNewProduct')}
                           </button>
                         )}
                         {row.productId && (
@@ -463,7 +465,7 @@ export default function StockInPage() {
                             }}
                             className="mt-1 flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 font-medium"
                           >
-                            <Pencil className="h-3 w-3" /> Tahrirlash
+                            <Pencil className="h-3 w-3" /> {t('common.edit')}
                           </button>
                         )}
                       </td>
@@ -492,7 +494,7 @@ export default function StockInPage() {
                             priceInvalid ? 'border-red-400' : 'border-gray-300',
                           )}
                         />
-                        {priceInvalid && <p className="mt-1 text-xs text-red-500">Narx manfiy bo&apos;lishi mumkin emas</p>}
+                        {priceInvalid && <p className="mt-1 text-xs text-red-500">{t('warehouse.priceCannotBeNegative')}</p>}
                       </td>
                       <td className="px-4 py-3">
                         <input
@@ -526,7 +528,7 @@ export default function StockInPage() {
             </div>
             {/* Total row — outside scroll area */}
             <div className="flex items-center justify-end gap-4 border-t-2 border-gray-200 bg-gray-50/80 px-4 py-3">
-              <span className="text-sm font-semibold uppercase tracking-wider text-gray-600">Jami summa:</span>
+              <span className="text-sm font-semibold uppercase tracking-wider text-gray-600">{t('warehouse.totalAmount')}:</span>
               <span className="text-lg font-bold text-gray-900">{totalCost.toLocaleString('uz-UZ')}</span>
               <span className="text-xs text-gray-500">UZS</span>
             </div>
@@ -537,7 +539,7 @@ export default function StockInPage() {
         {/* Submit bar */}
         <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-500">
-            {items.filter((r) => r.productId).length} ta tovar tanlangan
+            {items.filter((r) => r.productId).length} {t('warehouse.goodsSelected')}
           </p>
           <div className="flex gap-3">
             <button
@@ -545,7 +547,7 @@ export default function StockInPage() {
               onClick={() => router.back()}
               className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -557,7 +559,7 @@ export default function StockInPage() {
               )}
             >
               <Save className="h-4 w-4" />
-              {isPending ? 'Saqlanmoqda...' : 'Nakladnoyni saqlash'}
+              {isPending ? t('common.saving') : t('warehouse.saveInvoice')}
             </button>
           </div>
         </div>
@@ -591,7 +593,7 @@ export default function StockInPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-md mx-4 rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-gray-900">Yangi kontragent</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('warehouse.newSupplier')}</h3>
               <button
                 type="button"
                 onClick={() => setShowSupplierModal(false)}
@@ -602,7 +604,7 @@ export default function StockInPage() {
             </div>
             <form onSubmit={handleCreateSupplier} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nomi *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.supplierName')} *</label>
                 <input
                   type="text"
                   required
@@ -612,7 +614,7 @@ export default function StockInPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefon *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.phone')} *</label>
                 <input
                   type="text"
                   required
@@ -624,7 +626,7 @@ export default function StockInPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Kompaniya</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.company')}</label>
                   <input
                     type="text"
                     value={supplierForm.company}
@@ -633,7 +635,7 @@ export default function StockInPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Manzil</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.address')}</label>
                   <input
                     type="text"
                     value={supplierForm.address}
@@ -645,14 +647,14 @@ export default function StockInPage() {
               {/* Products section */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Mahsulotlar <span className="text-xs font-normal text-gray-400">(ixtiyoriy)</span>
+                  {t('warehouse.goods')} <span className="text-xs font-normal text-gray-400">({t('common.optional')})</span>
                 </label>
                 <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     value={supplierProductSearch}
                     onChange={(e) => setSupplierProductSearch(e.target.value)}
-                    placeholder="Mahsulot qidirish..."
+                    placeholder={t('warehouse.productSearchPlaceholder')}
                     className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
                   />
                 </div>
@@ -695,14 +697,14 @@ export default function StockInPage() {
                   onClick={() => setShowSupplierModal(false)}
                   className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
-                  Bekor
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingSupplier}
                   className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:opacity-50"
                 >
-                  {isCreatingSupplier ? 'Saqlanmoqda...' : 'Saqlash'}
+                  {isCreatingSupplier ? t('common.saving') : t('common.save')}
                 </button>
               </div>
             </form>

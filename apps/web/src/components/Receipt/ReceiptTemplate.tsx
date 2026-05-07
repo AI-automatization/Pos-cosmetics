@@ -1,7 +1,10 @@
+'use client';
+
 // Pure receipt template — rendered inside #receipt-print-area
 // Styled for both screen preview and @media print (80mm thermal)
 
 import type { Order } from '@/types/sales';
+import { useTranslation } from '@/i18n/i18n-context';
 
 // Shop config — will come from tenant settings (T-059 later)
 const SHOP_CONFIG = {
@@ -30,6 +33,7 @@ interface ReceiptTemplateProps {
 }
 
 export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
+  const { t } = useTranslation();
   const orderNum = order.orderNumber ?? `#${(order.id ?? '').slice(0, 8).toUpperCase()}`;
 
   return (
@@ -47,11 +51,11 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
       {/* Order info */}
       <div className="receipt-small">
         <div className="receipt-row">
-          <span>Chek №:</span>
+          <span>{t('receipt.orderNumber')}:</span>
           <span className="receipt-bold receipt-row-right">{orderNum}</span>
         </div>
         <div className="receipt-row">
-          <span>Sana:</span>
+          <span>{t('receipt.date')}:</span>
           <span className="receipt-row-right">{fmtDate(order.createdAt)}</span>
         </div>
       </div>
@@ -82,24 +86,24 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
       {/* Totals */}
       <div className="receipt-small">
         <div className="receipt-row">
-          <span>Jami (chegirmadan oldin):</span>
+          <span>{t('receipt.subtotal')}:</span>
           <span className="receipt-row-right">{fmt(order.subtotal)}</span>
         </div>
         {order.discountAmount > 0 && (
           <div className="receipt-row">
-            <span>Chegirma:</span>
+            <span>{t('receipt.discount')}:</span>
             <span className="receipt-row-right">- {fmt(order.discountAmount)}</span>
           </div>
         )}
         {/* Tax placeholder — T-078 NDS impl after */}
         <div className="receipt-row">
-          <span>QQS (12%):</span>
+          <span>{t('receipt.vat')} (12%):</span>
           <span className="receipt-row-right">{fmt(order.total * 0.12 / 1.12)}</span>
         </div>
       </div>
 
       <div className="receipt-total-row">
-        <span>JAMI:</span>
+        <span>{t('receipt.total')}:</span>
         <span>{fmt(order.total)}</span>
       </div>
 
@@ -109,13 +113,13 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
       <div className="receipt-small">
         {(order.payments ?? []).map((p, i) => (
           <div key={i} className="receipt-row">
-            <span>{p.method === 'CASH' ? 'Naqd pul:' : 'Bank kartasi:'}</span>
+            <span>{p.method === 'CASH' ? t('receipt.cash') : t('receipt.card')}:</span>
             <span className="receipt-row-right">{fmt(p.amount)}</span>
           </div>
         ))}
         {change > 0 && (
           <div className="receipt-row receipt-bold">
-            <span>Qaytim:</span>
+            <span>{t('receipt.change')}:</span>
             <span className="receipt-row-right">{fmt(change)}</span>
           </div>
         )}
@@ -125,12 +129,10 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
 
       {/* Fiscal status — placeholder until T-081 REGOS */}
       <div className="receipt-fiscal">
-        <div className="receipt-bold">FISKAL HOLAT</div>
-        <div>⏳ KUTILMOQDA</div>
+        <div className="receipt-bold">{t('receipt.fiscalStatus')}</div>
+        <div>⏳ {t('receipt.fiscalPending')}</div>
         <div className="receipt-small" style={{ marginTop: '1mm' }}>
-          Fiskal integratsiya ishga tushirilganda
-          <br />
-          bu yerda QR-kod va fiskal raqam bo'ladi
+          {t('receipt.fiscalNote')}
         </div>
       </div>
 
@@ -138,8 +140,8 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
 
       {/* Footer */}
       <div className="receipt-center receipt-small">
-        <div className="receipt-bold">Xarid uchun rahmat!</div>
-        <div>Yana tashrif buyuring 🙏</div>
+        <div className="receipt-bold">{t('receipt.thankYou')}</div>
+        <div>{t('receipt.visitAgain')}</div>
         <div style={{ marginTop: '2mm' }}>RAOS · raos.uz</div>
       </div>
     </div>

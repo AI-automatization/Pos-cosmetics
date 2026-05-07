@@ -11,13 +11,14 @@ import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_ORDER } from '@/types/user';
+import { useTranslation } from '@/i18n/i18n-context';
 
-const ROLE_OPTIONS: { value: UserRole; label: string; sub: string }[] = [
-  { value: 'ADMIN',     label: 'Admin',     sub: "Hamma narsaga kirish" },
-  { value: 'MANAGER',   label: 'Menejer',   sub: "Hisobot, kassa, inventar" },
-  { value: 'WAREHOUSE', label: 'Omborchi',  sub: "Faqat ombor" },
-  { value: 'CASHIER',   label: 'Kassir',    sub: "Faqat kassa, savdo" },
-  { value: 'VIEWER',    label: "Ko'ruvchi", sub: "Faqat ko'rish, o'zgartira olmaydi" },
+const ROLE_KEYS: { value: UserRole; labelKey: string; subKey: string }[] = [
+  { value: 'ADMIN',     labelKey: 'roles.admin',     subKey: 'roles.adminDesc' },
+  { value: 'MANAGER',   labelKey: 'roles.manager',   subKey: 'roles.managerDesc' },
+  { value: 'WAREHOUSE', labelKey: 'roles.warehouse',  subKey: 'roles.warehouseDesc' },
+  { value: 'CASHIER',   labelKey: 'roles.cashier',    subKey: 'roles.cashierDesc' },
+  { value: 'VIEWER',    labelKey: 'roles.viewer',     subKey: 'roles.viewerDesc' },
 ];
 
 const userSchema = z.object({
@@ -47,6 +48,7 @@ function generatePassword(): string {
 function CredentialsBox({ creds, onClose }: { creds: CredentialsInfo; onClose: () => void }) {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPass,  setCopiedPass]  = useState(false);
+  const { t } = useTranslation();
 
   const copy = (text: string, setDone: (v: boolean) => void) => {
     void navigator.clipboard.writeText(text).then(() => {
@@ -59,12 +61,12 @@ function CredentialsBox({ creds, onClose }: { creds: CredentialsInfo; onClose: (
     <div className="rounded-xl border border-green-200 bg-green-50 p-4">
       <div className="mb-3 flex items-center gap-2">
         <CheckCheck className="h-4 w-4 text-green-600" />
-        <p className="text-sm font-semibold text-green-700">Xodim qo&apos;shildi! Loginni saqlang:</p>
+        <p className="text-sm font-semibold text-green-700">{t('users.employeeAdded')}</p>
       </div>
       <div className="flex flex-col gap-2">
         {[
-          { label: 'Email', value: creds.email, copied: copiedEmail, onCopy: () => copy(creds.email, setCopiedEmail) },
-          { label: 'Parol', value: creds.password, copied: copiedPass, onCopy: () => copy(creds.password, setCopiedPass) },
+          { label: t('users.emailField'), value: creds.email, copied: copiedEmail, onCopy: () => copy(creds.email, setCopiedEmail) },
+          { label: t('users.passwordField'), value: creds.password, copied: copiedPass, onCopy: () => copy(creds.password, setCopiedPass) },
         ].map(({ label, value, copied, onCopy }) => (
           <div key={label} className="flex items-center gap-2 rounded-lg border border-green-200 bg-white px-3 py-2">
             <span className="w-12 shrink-0 text-xs font-medium text-gray-500">{label}:</span>
@@ -73,7 +75,7 @@ function CredentialsBox({ creds, onClose }: { creds: CredentialsInfo; onClose: (
               type="button"
               onClick={onCopy}
               className="rounded p-1 text-gray-400 transition hover:text-green-600"
-              title="Nusxa olish"
+              title={t('common.copy')}
             >
               {copied ? <CheckCheck className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
@@ -81,14 +83,14 @@ function CredentialsBox({ creds, onClose }: { creds: CredentialsInfo; onClose: (
         ))}
       </div>
       <p className="mt-2 text-xs text-green-600">
-        Diqqat: bu parolni keyinchalik ko&apos;rib bo&apos;lmaydi.
+        {t('users.passwordWarning')}
       </p>
       <button
         type="button"
         onClick={onClose}
         className="mt-3 w-full rounded-lg bg-green-600 py-2 text-sm font-medium text-white transition hover:bg-green-700"
       >
-        Tushunarli, yopish
+        {t('common.understood')}
       </button>
     </div>
   );
@@ -98,7 +100,13 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
   const { mutate: createUser, isPending: creating } = useCreateUser();
   const { mutate: updateUser, isPending: updating } = useUpdateUser();
   const { data: branches = [] } = useBranches();
+  const { t } = useTranslation();
   const isPending = creating || updating;
+  const roleOptions = ROLE_KEYS.map((r) => ({
+    value: r.value,
+    label: t(r.labelKey),
+    sublabel: t(r.subKey),
+  }));
 
   const [showPassword,       setShowPassword]       = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<CredentialsInfo | null>(null);
@@ -146,7 +154,7 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
       <div className="relative z-10 w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <h2 className="text-base font-semibold text-gray-900">
-            {user ? 'Xodimni tahrirlash' : "Yangi xodim qo'shish"}
+            {user ? t('users.editEmployee') : t('users.addEmployee')}
           </h2>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
             <X className="h-5 w-5" />
@@ -161,7 +169,7 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
               {/* Name */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Ism</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">{t('users.firstName')}</label>
                   <input
                     {...register('firstName')}
                     placeholder="Ali"
@@ -173,7 +181,7 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
                   {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName.message}</p>}
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Familiya</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">{t('users.lastName')}</label>
                   <input
                     {...register('lastName')}
                     placeholder="Karimov"
@@ -188,7 +196,7 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
 
               {/* Email */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Email (login uchun)</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('users.emailLogin')}</label>
                 <input
                   {...register('email')}
                   type="email"
@@ -207,21 +215,21 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
               {!user && (
                 <div>
                   <div className="mb-1 flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700">Parol</label>
+                    <label className="text-sm font-medium text-gray-700">{t('users.password')}</label>
                     <button
                       type="button"
                       onClick={handleGenerate}
                       className="flex items-center gap-1 text-xs font-medium text-blue-600 transition hover:text-blue-700"
                     >
                       <RefreshCw className="h-3 w-3" />
-                      Tasodifiy parol
+                      {t('users.randomPassword')}
                     </button>
                   </div>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       {...register('password')}
-                      placeholder="Kamida 8 belgi"
+                      placeholder={t('users.passwordPlaceholder')}
                       className={cn(
                         'w-full rounded-lg border px-3 py-2 pr-10 text-sm outline-none focus:ring-2 focus:ring-blue-100',
                         errors.password ? 'border-red-400' : 'border-gray-300 focus:border-blue-400',
@@ -241,16 +249,12 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
 
               {/* Role */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Rol</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('users.role')}</label>
                 <SearchableDropdown
-                  options={ROLE_OPTIONS.filter((r) => r.value !== 'OWNER').map((r) => ({
-                    value: r.value,
-                    label: r.label,
-                    sublabel: r.sub,
-                  }))}
+                  options={roleOptions.filter((r) => r.value !== 'OWNER')}
                   value={roleValue}
                   onChange={(val) => { if (val) setValue('role', val as UserRole); }}
-                  placeholder="Rolni tanlang"
+                  placeholder={t('users.selectRole')}
                   searchable={false}
                   clearable={false}
                 />
@@ -259,7 +263,7 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
               {/* Branch */}
               {lockBranchId && initialBranchId ? (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Filial</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">{t('users.branch')}</label>
                   <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
                     {branches.find((b) => b.id === initialBranchId)?.name ?? initialBranchId}
                   </div>
@@ -267,13 +271,13 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
               ) : (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Filial <span className="font-normal text-gray-400">(ixtiyoriy)</span>
+                    {t('users.branch')} <span className="font-normal text-gray-400">({t('common.optional')})</span>
                   </label>
                   <SearchableDropdown
                     options={branches.filter((b) => b.isActive).map((b) => ({ value: b.id, label: b.name }))}
                     value={branchValue}
                     onChange={(val) => setValue('branchId', val || undefined)}
-                    placeholder="— Filial tanlang —"
+                    placeholder={t('users.selectBranch')}
                     searchable={branches.length > 4}
                     clearable
                   />
@@ -286,14 +290,14 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
                   onClick={onClose}
                   className="flex-1 rounded-lg border border-gray-300 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  Bekor
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
                   className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
                 >
-                  {isPending ? 'Saqlanmoqda...' : user ? 'Saqlash' : "Qo'shish"}
+                  {isPending ? t('common.saving') : user ? t('common.save') : t('common.add')}
                 </button>
               </div>
             </form>

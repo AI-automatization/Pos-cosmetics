@@ -71,7 +71,7 @@ function CartTabBar({
               type="button"
               onClick={() => onRemove(cart.id)}
               className="ml-0.5 rounded p-0.5 text-gray-400 hover:text-red-500 transition"
-              title="Savatni yopish"
+              title={t('pos.closeCart')}
             >
               <X className="h-3 w-3" />
             </button>
@@ -82,7 +82,7 @@ function CartTabBar({
         type="button"
         onClick={onAdd}
         className="flex shrink-0 items-center gap-1 rounded-lg border border-dashed border-gray-300 px-2.5 py-1.5 text-xs text-gray-400 hover:border-blue-400 hover:text-blue-600 transition"
-        title="Yangi savat"
+        title={t('pos.newCart')}
       >
         <Plus className="h-3 w-3" />
       </button>
@@ -101,10 +101,11 @@ function TabBar({
   onChange: (t: TabId) => void;
   cartCount: number;
 }) {
+  const { t } = useTranslation();
   const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: 'products', label: 'Mahsulotlar', icon: Search },
-    { id: 'cart',     label: 'Savat',       icon: ShoppingCart },
-    { id: 'payment',  label: "To'lov",      icon: CreditCard },
+    { id: 'products', label: t('nav.products'), icon: Search },
+    { id: 'cart',     label: t('pos.cart'),     icon: ShoppingCart },
+    { id: 'payment',  label: t('pos.payment'),  icon: CreditCard },
   ];
 
   return (
@@ -147,6 +148,7 @@ export default function POSPage() {
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('products');
   const searchRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   const store = usePOSStore();
   const activeCart = store.carts[store.activeCartId];
@@ -234,7 +236,7 @@ export default function POSPage() {
       {showRecovery && (
         <div className="flex shrink-0 items-center justify-between bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm">
           <span className="text-amber-800">
-            ⚡ Tugatilmagan savdo topildi — <strong>{items.length} ta mahsulot</strong> savatda qolgan.
+            ⚡ {t('pos.cartRecoveryBanner', { count: items.length })}
           </span>
           <div className="flex gap-2">
             <button
@@ -242,14 +244,14 @@ export default function POSPage() {
               onClick={() => setShowRecovery(false)}
               className="rounded-md bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700"
             >
-              Davom etish
+              {t('pos.continueCart')}
             </button>
             <button
               type="button"
               onClick={() => { store.clearCart(); setShowRecovery(false); }}
               className="rounded-md border border-amber-300 px-3 py-1 text-xs text-amber-700 hover:bg-amber-100"
             >
-              Tozalash
+              {t('pos.clearCart')}
             </button>
           </div>
         </div>
@@ -258,14 +260,14 @@ export default function POSPage() {
       {/* Keyboard shortcut hint bar — desktop only */}
       <div className="hidden shrink-0 items-center gap-4 bg-gray-800 px-4 py-1.5 text-xs text-gray-400 lg:flex">
         {[
-          ['F1', 'Qidirish'],
-          ['F4', 'Qaytarish'],
-          ['F5', 'Naqd'],
-          ['F6', 'Karta'],
-          ['F7', 'Aralash'],
-          ['F8', 'Nasiya'],
-          ['F10', 'Yakunlash'],
-          ['Esc', 'Bekor'],
+          ['F1', t('pos.kbSearch')],
+          ['F4', t('pos.kbReturn')],
+          ['F5', t('pos.kbCash')],
+          ['F6', t('pos.kbCard')],
+          ['F7', t('pos.kbMixed')],
+          ['F8', t('pos.kbNasiya')],
+          ['F10', t('pos.kbComplete')],
+          ['Esc', t('pos.kbCancel')],
         ].map(([key, label]) => (
           <span key={key}>
             <kbd className="rounded bg-gray-700 px-1.5 py-0.5 font-mono text-gray-300">

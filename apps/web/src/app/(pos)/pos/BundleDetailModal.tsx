@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Package, X, ShoppingCart } from 'lucide-react';
 import { catalogApi } from '@/api/catalog.api';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Product } from '@/types/catalog';
 
 interface BundleDetailModalProps {
@@ -13,6 +14,7 @@ interface BundleDetailModalProps {
 }
 
 export function BundleDetailModal({ product, onConfirm, onClose }: BundleDetailModalProps) {
+  const { t } = useTranslation();
   const { data: components = [], isLoading } = useQuery({
     queryKey: ['bundle-components', product.id],
     queryFn: () => catalogApi.getBundleComponents(product.id),
@@ -38,7 +40,7 @@ export function BundleDetailModal({ product, onConfirm, onClose }: BundleDetailM
             <Package className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-sm font-semibold text-gray-900">{product.name}</p>
-              <p className="text-xs text-blue-600">To&apos;plam mahsulot</p>
+              <p className="text-xs text-blue-600">{t('pos.bundleProduct')}</p>
             </div>
           </div>
           <button
@@ -52,7 +54,7 @@ export function BundleDetailModal({ product, onConfirm, onClose }: BundleDetailM
 
         {/* Components list */}
         <div className="px-4 py-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">Tarkib:</p>
+          <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.bundleContents')}:</p>
 
           {isLoading ? (
             <div className="flex flex-col gap-2">
@@ -61,7 +63,7 @@ export function BundleDetailModal({ product, onConfirm, onClose }: BundleDetailM
               ))}
             </div>
           ) : components.length === 0 ? (
-            <p className="py-3 text-center text-xs text-gray-400">Tarkib aniqlanmagan</p>
+            <p className="py-3 text-center text-xs text-gray-400">{t('pos.bundleNoContents')}</p>
           ) : (
             <div className="flex flex-col gap-1.5">
               {components.map((item) => (
@@ -95,18 +97,18 @@ export function BundleDetailModal({ product, onConfirm, onClose }: BundleDetailM
         <div className="border-t border-gray-100 px-4 py-3">
           {componentTotal > 0 && (
             <div className="mb-2 flex items-center justify-between text-xs text-gray-500">
-              <span>Alohida narxi:</span>
+              <span>{t('pos.bundleSeparatePrice')}:</span>
               <span className="line-through">{formatPrice(componentTotal)}</span>
             </div>
           )}
           {savings > 0 && (
             <div className="mb-2 flex items-center justify-between text-xs text-green-600">
-              <span>Tejash ({discountPercent}%):</span>
+              <span>{t('pos.bundleSavings')} ({discountPercent}%):</span>
               <span>-{formatPrice(savings)}</span>
             </div>
           )}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-900">To&apos;plam narxi:</span>
+            <span className="text-sm font-semibold text-gray-900">{t('pos.bundlePrice')}:</span>
             <span className="text-lg font-bold text-blue-600">{formatPrice(bundlePrice)}</span>
           </div>
         </div>
@@ -118,7 +120,7 @@ export function BundleDetailModal({ product, onConfirm, onClose }: BundleDetailM
             onClick={onClose}
             className="flex-1 rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Bekor qilish
+            {t('pos.kbCancel')}
           </button>
           <button
             type="button"
@@ -126,7 +128,7 @@ export function BundleDetailModal({ product, onConfirm, onClose }: BundleDetailM
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             <ShoppingCart className="h-4 w-4" />
-            Savatga qo&apos;sh
+            {t('pos.addToCart')}
           </button>
         </div>
       </div>

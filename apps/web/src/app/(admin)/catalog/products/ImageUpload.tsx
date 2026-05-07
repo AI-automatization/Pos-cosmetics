@@ -3,6 +3,7 @@
 import { X, Upload, ImageIcon } from 'lucide-react';
 import { useState, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface ImageUploadProps {
   value: string;
@@ -11,6 +12,7 @@ interface ImageUploadProps {
 }
 
 export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
+  const { t } = useTranslation();
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -82,8 +84,8 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
               ) : (
                 <ImageIcon className="h-8 w-8" />
               )}
-              <span>Rasm tashlang yoki bosing</span>
-              <span className="text-xs text-gray-300">PNG, JPG — max 5MB</span>
+              <span>{t('products.imageDrop')}</span>
+              <span className="text-xs text-gray-300">{t('products.imageHint')}</span>
             </>
           )}
         </div>

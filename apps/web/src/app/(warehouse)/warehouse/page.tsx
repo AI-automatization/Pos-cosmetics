@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWarehouseDashboard, useWarehouseAlerts } from '@/hooks/warehouse/useWarehouseInvoices';
 import { notificationsApi } from '@/api/notifications.api';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function playBeep() {
   try {
@@ -50,16 +51,27 @@ function StatCard({
   );
 }
 
-const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  IN:           { label: 'Kirim',             color: 'text-green-600 bg-green-50' },
-  OUT:          { label: 'Chiqim',            color: 'text-red-600 bg-red-50' },
-  WRITE_OFF:    { label: 'Spisanie',          color: 'text-orange-600 bg-orange-50' },
-  TRANSFER_IN:  { label: 'Transfer (kirim)',  color: 'text-blue-600 bg-blue-50' },
-  TRANSFER_OUT: { label: 'Transfer (chiqim)', color: 'text-purple-600 bg-purple-50' },
-  ADJUSTMENT:   { label: 'Tuzatish',          color: 'text-gray-600 bg-gray-100' },
+const TYPE_LABEL_COLORS: Record<string, string> = {
+  IN:           'text-green-600 bg-green-50',
+  OUT:          'text-red-600 bg-red-50',
+  WRITE_OFF:    'text-orange-600 bg-orange-50',
+  TRANSFER_IN:  'text-blue-600 bg-blue-50',
+  TRANSFER_OUT: 'text-purple-600 bg-purple-50',
+  ADJUSTMENT:   'text-gray-600 bg-gray-100',
 };
 
 export default function WarehouseDashboardPage() {
+  const { t } = useTranslation();
+
+  const TYPE_LABELS: Record<string, { label: string; color: string }> = {
+    IN:           { label: t('warehouse.typeIn'),           color: TYPE_LABEL_COLORS.IN },
+    OUT:          { label: t('warehouse.typeOut'),          color: TYPE_LABEL_COLORS.OUT },
+    WRITE_OFF:    { label: t('warehouse.typeWriteOff'),     color: TYPE_LABEL_COLORS.WRITE_OFF },
+    TRANSFER_IN:  { label: t('warehouse.typeTransferIn'),   color: TYPE_LABEL_COLORS.TRANSFER_IN },
+    TRANSFER_OUT: { label: t('warehouse.typeTransferOut'),  color: TYPE_LABEL_COLORS.TRANSFER_OUT },
+    ADJUSTMENT:   { label: t('warehouse.typeAdjustment'),   color: TYPE_LABEL_COLORS.ADJUSTMENT },
+  };
+
   const { data, isLoading, refetch } = useWarehouseDashboard();
   const { data: alerts } = useWarehouseAlerts();
   const queryClient = useQueryClient();
@@ -106,27 +118,27 @@ export default function WarehouseDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ombor dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Zaxira holati va bugungi harakatlar</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.dashboardTitle')}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t('warehouse.dashboardSubtitle')}</p>
         </div>
         <button
           onClick={() => void refetch()}
           className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
         >
           <RefreshCw className="h-4 w-4" />
-          Yangilash
+          {t('common.refresh')}
         </button>
       </div>
 
       {/* Quick Navigation */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { href: '/warehouse/invoices',  icon: FileText,    label: 'Nakladnoylar',        color: 'bg-blue-50 text-blue-600',   border: 'hover:border-blue-300' },
-          { href: '/warehouse/stock-in',  icon: PackagePlus, label: 'Kirim qilish',        color: 'bg-green-50 text-green-600', border: 'hover:border-green-300' },
-          { href: '/warehouse/inventory', icon: LayoutList,  label: 'Inventar',            color: 'bg-amber-50 text-amber-600', border: 'hover:border-amber-300' },
-          { href: '/warehouse/low-stock', icon: TrendingDown,label: 'Kam qolgan',          color: 'bg-red-50 text-red-600',     border: 'hover:border-red-300' },
-          { href: '/warehouse/expiry',    icon: CalendarX,   label: "Muddati o'tayotgan",  color: 'bg-orange-50 text-orange-600', border: 'hover:border-orange-300' },
-          { href: '/warehouse/suppliers', icon: Truck,       label: 'Yetkazib beruvchilar', color: 'bg-purple-50 text-purple-600', border: 'hover:border-purple-300' },
+          { href: '/warehouse/invoices',  icon: FileText,    label: t('warehouse.invoices'),        color: 'bg-blue-50 text-blue-600',   border: 'hover:border-blue-300' },
+          { href: '/warehouse/stock-in',  icon: PackagePlus, label: t('warehouse.stockIn'),        color: 'bg-green-50 text-green-600', border: 'hover:border-green-300' },
+          { href: '/warehouse/inventory', icon: LayoutList,  label: t('inventory.title'),            color: 'bg-amber-50 text-amber-600', border: 'hover:border-amber-300' },
+          { href: '/warehouse/low-stock', icon: TrendingDown,label: t('inventory.lowStock'),          color: 'bg-red-50 text-red-600',     border: 'hover:border-red-300' },
+          { href: '/warehouse/expiry',    icon: CalendarX,   label: t('inventory.expiringSoon'),  color: 'bg-orange-50 text-orange-600', border: 'hover:border-orange-300' },
+          { href: '/warehouse/suppliers', icon: Truck,       label: t('nav.suppliers'), color: 'bg-purple-50 text-purple-600', border: 'hover:border-purple-300' },
         ].map(({ href, icon: Icon, label, color, border }) => (
           <Link
             key={href}
@@ -144,17 +156,17 @@ export default function WarehouseDashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Package}       label="Jami mahsulotlar"     value={stats?.totalProducts ?? 0} color="bg-amber-500" />
-        <StatCard icon={TrendingDown}  label="Kam zaxira"            value={stats?.lowStockCount ?? 0} color="bg-red-500" />
-        <StatCard icon={AlertTriangle} label="Muddati yaqin"         value={stats?.expiryCount ?? 0}  color="bg-orange-500" />
-        <StatCard icon={ArrowUpDown}   label="Bugungi harakatlar"    value={(stats?.todayMovementsIn ?? 0) + (stats?.todayMovementsOut ?? 0)} color="bg-blue-500" />
+        <StatCard icon={Package}       label={t('warehouse.totalProducts')}     value={stats?.totalProducts ?? 0} color="bg-amber-500" />
+        <StatCard icon={TrendingDown}  label={t('inventory.lowStock')}            value={stats?.lowStockCount ?? 0} color="bg-red-500" />
+        <StatCard icon={AlertTriangle} label={t('warehouse.expirySoon')}         value={stats?.expiryCount ?? 0}  color="bg-orange-500" />
+        <StatCard icon={ArrowUpDown}   label={t('warehouse.todayMovements')}    value={(stats?.todayMovementsIn ?? 0) + (stats?.todayMovementsOut ?? 0)} color="bg-blue-500" />
       </div>
 
       {/* Alert banner */}
       {(alerts?.expired ?? 0) > 0 && (
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
           <AlertTriangle className="h-5 w-5 shrink-0" />
-          <span><strong>{alerts!.expired}</strong> ta mahsulotning muddati o'tib ketgan!</span>
+          <span><strong>{alerts!.expired}</strong> {t('warehouse.expiredAlert')}</span>
         </div>
       )}
 
@@ -163,17 +175,17 @@ export default function WarehouseDashboardPage() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
             <TrendingDown className="h-4 w-4 text-red-500" />
-            <h2 className="text-sm font-semibold text-gray-900">Kam zaxira mahsulotlar</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{t('warehouse.lowStockProducts')}</h2>
           </div>
           {(data?.lowStockItems.length ?? 0) === 0 ? (
-            <p className="px-4 py-6 text-sm text-gray-400 text-center">Hamma yaxshi ✓</p>
+            <p className="px-4 py-6 text-sm text-gray-400 text-center">{t('warehouse.allGood')}</p>
           ) : (
             <ul className="divide-y divide-gray-50">
               {data!.lowStockItems.map((item) => (
                 <li key={item.productId} className="px-4 py-2.5 flex items-center justify-between text-sm">
                   <span className="text-gray-800 truncate">{item.name}</span>
                   <span className={cn('font-semibold ml-2 shrink-0', item.totalQty <= 0 ? 'text-red-600' : 'text-orange-500')}>
-                    {item.totalQty <= 0 ? 'Tugagan' : `${item.totalQty} dona`}
+                    {item.totalQty <= 0 ? t('warehouse.stockOut') : `${item.totalQty} ${t('warehouse.unit')}`}
                   </span>
                 </li>
               ))}
@@ -185,10 +197,10 @@ export default function WarehouseDashboardPage() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
             <ArrowUpDown className="h-4 w-4 text-blue-500" />
-            <h2 className="text-sm font-semibold text-gray-900">Bugungi harakatlar</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{t('warehouse.todayMovements')}</h2>
           </div>
           {(data?.recentMovements.length ?? 0) === 0 ? (
-            <p className="px-4 py-6 text-sm text-gray-400 text-center">Bugun harakatlar yo'q</p>
+            <p className="px-4 py-6 text-sm text-gray-400 text-center">{t('warehouse.noMovementsToday')}</p>
           ) : (
             <ul className="divide-y divide-gray-50 max-h-64 overflow-y-auto">
               {data!.recentMovements.map((m) => {
@@ -201,7 +213,7 @@ export default function WarehouseDashboardPage() {
                       </span>
                       <span className="text-gray-700 truncate">{m.product?.name ?? '—'}</span>
                     </div>
-                    <span className="font-medium text-gray-900 ml-2 shrink-0">{Number(m.quantity)} dona</span>
+                    <span className="font-medium text-gray-900 ml-2 shrink-0">{Number(m.quantity)} {t('warehouse.unit')}</span>
                   </li>
                 );
               })}
@@ -217,7 +229,7 @@ export default function WarehouseDashboardPage() {
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-blue-600" />
               <h2 className="text-sm font-semibold text-blue-900">
-                Kassirdan zaproslar
+                {t('warehouse.restockRequests')}
                 <span className="ml-2 rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
                   {restockRequests.length}
                 </span>
@@ -230,7 +242,7 @@ export default function WarehouseDashboardPage() {
               className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
             >
               <CheckCheck className="h-3.5 w-3.5" />
-              Barchasini o&apos;qildi
+              {t('warehouse.markAllRead')}
             </button>
           </div>
           <ul className="divide-y divide-blue-50">
@@ -248,7 +260,7 @@ export default function WarehouseDashboardPage() {
                   onClick={() => markRead(req.id)}
                   className="shrink-0 rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-500 hover:bg-gray-50"
                 >
-                  O&apos;qildi
+                  {t('warehouse.markRead')}
                 </button>
               </li>
             ))}
@@ -261,7 +273,7 @@ export default function WarehouseDashboardPage() {
         <div className="bg-white rounded-xl border border-orange-200 overflow-hidden">
           <div className="px-4 py-3 border-b border-orange-100 flex items-center gap-2 bg-orange-50">
             <AlertTriangle className="h-4 w-4 text-orange-500" />
-            <h2 className="text-sm font-semibold text-orange-800">30 kun ichida muddati o'tuvchi mahsulotlar</h2>
+            <h2 className="text-sm font-semibold text-orange-800">{t('warehouse.expiringIn30Days')}</h2>
           </div>
           <ul className="divide-y divide-orange-50">
             {data!.expiryItems.map((item) => (

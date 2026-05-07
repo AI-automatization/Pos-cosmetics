@@ -15,11 +15,12 @@ import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 import type { Task, TaskStatus } from '@/api/tasks.api';
+import { useTranslation } from '@/i18n/i18n-context';
 
-const STATUS_CONFIG: Record<TaskStatus, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; next: TaskStatus | null }> = {
-  PENDING: { label: 'Kutilmoqda', icon: Circle, color: 'text-gray-500 bg-gray-100', next: 'IN_PROGRESS' },
-  IN_PROGRESS: { label: 'Jarayonda', icon: Clock, color: 'text-blue-600 bg-blue-100', next: 'DONE' },
-  DONE: { label: 'Bajarildi', icon: CheckCircle2, color: 'text-green-600 bg-green-100', next: null },
+const STATUS_CONFIG: Record<TaskStatus, { icon: React.ComponentType<{ className?: string }>; color: string; next: TaskStatus | null }> = {
+  PENDING: { icon: Circle, color: 'text-gray-500 bg-gray-100', next: 'IN_PROGRESS' },
+  IN_PROGRESS: { icon: Clock, color: 'text-blue-600 bg-blue-100', next: 'DONE' },
+  DONE: { icon: CheckCircle2, color: 'text-green-600 bg-green-100', next: null },
 };
 
 const taskSchema = z.object({
@@ -31,6 +32,12 @@ const taskSchema = z.object({
 type TaskForm = z.infer<typeof taskSchema>;
 
 function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string }) {
+  const { t } = useTranslation();
+  const STATUS_LABELS: Record<TaskStatus, string> = {
+    PENDING: t('tasks.pending'),
+    IN_PROGRESS: t('tasks.inProgress'),
+    DONE: t('tasks.done'),
+  };
   const { mutate: update } = useUpdateTask();
   const { mutate: remove } = useDeleteTask();
   const cfg = STATUS_CONFIG[task.status];
@@ -50,7 +57,7 @@ function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string })
             }}
             disabled={!cfg.next}
             className="mt-0.5 shrink-0"
-            title={cfg.next ? `${STATUS_CONFIG[cfg.next].label}ga o'tkazish` : undefined}
+            title={cfg.next ? `${STATUS_LABELS[cfg.next]}ga o'tkazish` : undefined}
           >
             <Icon className={cn('h-4.5 w-4.5', task.status === 'DONE' ? 'text-green-500' : task.status === 'IN_PROGRESS' ? 'text-blue-500' : 'text-gray-400')} />
           </button>
@@ -75,7 +82,7 @@ function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string })
       <div className="flex items-center gap-3 pt-1">
         <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', cfg.color)}>
           <Icon className="h-3 w-3" />
-          {cfg.label}
+          {STATUS_LABELS[task.status]}
         </span>
         {assigneeName && (
           <span className="text-xs text-gray-400">{assigneeName}</span>
@@ -94,7 +101,7 @@ function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string })
             onClick={() => update({ id: task.id, dto: { status: cfg.next! } })}
             className="ml-auto flex items-center gap-0.5 text-xs text-blue-500 hover:text-blue-700"
           >
-            {STATUS_CONFIG[cfg.next].label}ga o&apos;tkazish
+            {STATUS_LABELS[cfg.next!]}ga o&apos;tkazish
             <ChevronRight className="h-3 w-3" />
           </button>
         )}
@@ -104,6 +111,12 @@ function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string })
 }
 
 export default function TasksPage() {
+  const { t } = useTranslation();
+  const STATUS_LABELS: Record<TaskStatus, string> = {
+    PENDING: t('tasks.pending'),
+    IN_PROGRESS: t('tasks.inProgress'),
+    DONE: t('tasks.done'),
+  };
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<TaskStatus | 'ALL'>('ALL');
   const [branchFilter, setBranchFilter] = useState('');
@@ -160,8 +173,8 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Topshiriqlar</h1>
-          <p className="mt-0.5 text-sm text-gray-500">{tasks.length} ta topshiriq</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nav.tasks')}</h1>
+          <p className="mt-0.5 text-sm text-gray-500">{tasks.length} {t('tasks.count')}</p>
         </div>
         <button
           type="button"
@@ -169,19 +182,19 @@ export default function TasksPage() {
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {showForm ? 'Yopish' : "Topshiriq qo'shish"}
+          {showForm ? t('common.close') : t('tasks.add')}
         </button>
       </div>
 
       {/* Create form */}
       {showForm && (
         <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
-          <h3 className="mb-3 text-sm font-semibold text-gray-900">Yangi topshiriq</h3>
+          <h3 className="mb-3 text-sm font-semibold text-gray-900">{t('tasks.new')}</h3>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
             <div>
               <input
                 {...register('title')}
-                placeholder="Topshiriq sarlavhasi *"
+                placeholder={`${t('tasks.titlePlaceholder')} *`}
                 className={cn(
                   'w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200',
                   errors.title ? 'border-red-400' : 'border-gray-300 focus:border-blue-400',
@@ -191,13 +204,13 @@ export default function TasksPage() {
             </div>
             <textarea
               {...register('description')}
-              placeholder="Qo'shimcha izoh (ixtiyoriy)"
+              placeholder={t('tasks.descriptionPlaceholder')}
               rows={2}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200 resize-none"
             />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Xodimga tayinlash</label>
+                <label className="mb-1 block text-xs font-medium text-gray-600">{t('tasks.assignee')}</label>
                 <SearchableDropdown
                   options={users.map((u) => ({
                     value: u.id,
@@ -211,7 +224,7 @@ export default function TasksPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Muddat</label>
+                <label className="mb-1 block text-xs font-medium text-gray-600">{t('tasks.dueDate')}</label>
                 <input
                   type="date"
                   {...register('dueDate')}
@@ -225,14 +238,14 @@ export default function TasksPage() {
                 onClick={() => { reset(); setShowForm(false); }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                Bekor
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={isPending}
                 className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
               >
-                {isPending ? 'Saqlanmoqda...' : "Qo'shish"}
+                {isPending ? t('common.saving') : t('common.add')}
               </button>
             </div>
           </form>
@@ -260,7 +273,7 @@ export default function TasksPage() {
       {/* Status filters */}
       <div className="flex gap-2 flex-wrap">
         {(['ALL', 'PENDING', 'IN_PROGRESS', 'DONE'] as const).map((s) => {
-          const label = s === 'ALL' ? 'Barchasi' : STATUS_CONFIG[s].label;
+          const label = s === 'ALL' ? t('common.all') : STATUS_LABELS[s];
           const count = counts[s];
           return (
             <button
@@ -293,7 +306,7 @@ export default function TasksPage() {
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 py-16">
           <ClipboardList className="mb-3 h-10 w-10 text-gray-300" />
           <p className="text-sm font-medium text-gray-500">
-            {filter === 'ALL' ? "Topshiriqlar yo'q" : `${STATUS_CONFIG[filter as TaskStatus].label} topshiriq yo'q`}
+            {filter === 'ALL' ? t('tasks.empty') : `${STATUS_LABELS[filter as TaskStatus]} topshiriq yo'q`}
           </p>
           {filter === 'ALL' && (
             <button
@@ -301,7 +314,7 @@ export default function TasksPage() {
               onClick={() => setShowForm(true)}
               className="mt-2 text-xs text-blue-600 hover:underline"
             >
-              + Birinchi topshiriqni qo&apos;shing
+              {t('tasks.addFirst')}
             </button>
           )}
         </div>

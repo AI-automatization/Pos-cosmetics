@@ -75,7 +75,7 @@ function CartItemRow({ item }: { item: CartItem }) {
             onClick={() => {
               const max = item.currentStock ?? Infinity;
               if (item.quantity >= max) {
-                toast.warning(`Zaxirada faqat ${max} ta bor`);
+                toast.warning(t('pos.stockLimitWarning', { max }));
                 return;
               }
               updateQuantity(item.productId, item.quantity + 1);

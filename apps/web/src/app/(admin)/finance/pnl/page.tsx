@@ -7,6 +7,7 @@ import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useProfitReport } from '@/hooks/finance/useFinance';
 import { cn, formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import {
   EXPENSE_CATEGORY_LABELS,
   EXPENSE_CATEGORY_COLORS,
@@ -17,14 +18,6 @@ import {
 /* ─── Period helpers ─── */
 
 type Period = '7d' | '30d' | '90d' | '365d' | 'custom';
-
-const PERIOD_LABELS: Record<Period, string> = {
-  '7d': 'Hafta',
-  '30d': 'Oy',
-  '90d': '3 oy',
-  '365d': 'Yil',
-  custom: 'Maxsus',
-};
 
 function getDateRange(period: Period, customFrom?: string, customTo?: string) {
   if (period === 'custom' && customFrom && customTo) {
@@ -113,6 +106,14 @@ function ExpenseBreakdown({ items }: { items: ExpenseSummary[] }) {
 /* ─── Main Page ─── */
 
 export default function PnlPage() {
+  const { t } = useTranslation();
+  const PERIOD_LABELS: Record<Period, string> = {
+    '7d': t('reports.days7'),
+    '30d': t('reports.days30'),
+    '90d': t('pnl.threeMonths'),
+    '365d': t('reports.days365'),
+    custom: t('pnl.custom'),
+  };
   const [period, setPeriod] = useState<Period>('30d');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
@@ -178,32 +179,32 @@ export default function PnlPage() {
           {/* KPI Cards */}
           <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
             <KpiCard
-              label="Tushum"
+              label={t('pnl.revenue')}
               value={data.revenue}
               icon={DollarSign}
               color="bg-blue-500"
             />
             <KpiCard
-              label="Tannarx (COGS)"
+              label={t('pnl.cogs')}
               value={data.cogs}
               icon={ShoppingCart}
               color="bg-orange-500"
             />
             <KpiCard
-              label="Yalpi foyda"
+              label={t('pnl.grossProfit')}
               value={data.grossProfit}
               icon={TrendingUp}
               color="bg-emerald-500"
               subtitle={`Margin: ${grossMargin}%`}
             />
             <KpiCard
-              label="Xarajatlar"
+              label={t('finance.expenses')}
               value={data.totalExpenses}
               icon={Receipt}
               color="bg-purple-500"
             />
             <KpiCard
-              label="Sof foyda"
+              label={t('pnl.netProfit')}
               value={data.netProfit}
               icon={data.netProfit >= 0 ? TrendingUp : TrendingDown}
               color={data.netProfit >= 0 ? 'bg-green-600' : 'bg-red-500'}
@@ -216,14 +217,14 @@ export default function PnlPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <h3 className="mb-4 text-sm font-semibold text-gray-900">P&L Xulosa</h3>
               <div className="flex flex-col gap-3">
-                <Row label="Tushum (Revenue)" value={data.revenue} />
-                <Row label="Tannarx (COGS)" value={-data.cogs} negative />
+                <Row label={t('pnl.revenue')} value={data.revenue} />
+                <Row label={t('pnl.cogs')} value={-data.cogs} negative />
                 <Divider />
-                <Row label="Yalpi foyda" value={data.grossProfit} bold />
-                <Row label="Xarajatlar" value={-data.totalExpenses} negative />
+                <Row label={t('pnl.grossProfit')} value={data.grossProfit} bold />
+                <Row label={t('finance.expenses')} value={-data.totalExpenses} negative />
                 <Divider />
                 <Row
-                  label="Sof foyda"
+                  label={t('pnl.netProfit')}
                   value={data.netProfit}
                   bold
                   highlight={data.netProfit >= 0 ? 'green' : 'red'}
@@ -233,7 +234,7 @@ export default function PnlPage() {
 
             {/* Expense breakdown */}
             <div className="rounded-xl border border-gray-200 bg-white p-6">
-              <h3 className="mb-4 text-sm font-semibold text-gray-900">Xarajatlar taqsimoti</h3>
+              <h3 className="mb-4 text-sm font-semibold text-gray-900">{t('pnl.expenseBreakdown')}</h3>
               <ExpenseBreakdown items={data.expensesByCategory} />
             </div>
           </div>

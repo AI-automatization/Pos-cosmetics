@@ -5,6 +5,7 @@ import { Printer, X, CheckCircle, ToggleLeft, ToggleRight } from 'lucide-react';
 import { ReceiptTemplate } from '@/components/Receipt/ReceiptTemplate';
 import { useReceiptPrint, useAutoTriggerPrint } from '@/components/Receipt/useReceiptPrint';
 import { openCashDrawer } from '@/lib/cashDrawer';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Order } from '@/types/sales';
 
 interface ReceiptPreviewProps {
@@ -15,6 +16,7 @@ interface ReceiptPreviewProps {
 
 export function ReceiptPreview({ order, change = 0, onClose }: ReceiptPreviewProps) {
   const { autoPrint, toggleAutoPrint, print, openDrawerOnCash, enabled } = useReceiptPrint();
+  const { t } = useTranslation();
 
   // Auto-print on mount if setting is enabled
   useAutoTriggerPrint(autoPrint && enabled);
@@ -44,7 +46,7 @@ export function ReceiptPreview({ order, change = 0, onClose }: ReceiptPreviewPro
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="font-semibold text-gray-900">Sotuv yakunlandi!</span>
+              <span className="font-semibold text-gray-900">{t('pos.saleComplete')}</span>
             </div>
             <button
               type="button"
@@ -64,22 +66,22 @@ export function ReceiptPreview({ order, change = 0, onClose }: ReceiptPreviewPro
 
           {/* Auto-print toggle */}
           <div className="flex items-center justify-between border-t border-gray-100 px-5 py-3">
-            <span className="text-sm text-gray-600">Avtomatik chop etish</span>
+            <span className="text-sm text-gray-600">{t('pos.autoPrint')}</span>
             <button
               type="button"
               onClick={toggleAutoPrint}
               className="flex items-center gap-1.5 text-sm transition"
-              aria-label="Avtomatik chop etishni yoqish/o'chirish"
+              aria-label={t('pos.autoPrint')}
             >
               {autoPrint ? (
                 <>
                   <ToggleRight className="h-6 w-6 text-blue-600" />
-                  <span className="font-medium text-blue-600">Yoqiq</span>
+                  <span className="font-medium text-blue-600">{t('pos.autoPrintOn')}</span>
                 </>
               ) : (
                 <>
                   <ToggleLeft className="h-6 w-6 text-gray-400" />
-                  <span className="text-gray-400">O'chiq</span>
+                  <span className="text-gray-400">{t('pos.autoPrintOff')}</span>
                 </>
               )}
             </button>
@@ -93,14 +95,14 @@ export function ReceiptPreview({ order, change = 0, onClose }: ReceiptPreviewPro
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-semibold text-white transition hover:bg-gray-700 active:scale-95"
             >
               <Printer className="h-4 w-4" />
-              Chop etish
+              {t('pos.printReceipt')}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              Yopish
+              {t('common.close')}
             </button>
           </div>
         </div>

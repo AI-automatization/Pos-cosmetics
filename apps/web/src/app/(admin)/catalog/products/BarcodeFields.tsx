@@ -6,6 +6,7 @@ import { X, Plus, Barcode, ScanLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { inputCls } from './FormField';
 import { BarcodeScanner } from '@/components/ui/BarcodeScanner';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { ProductFormData } from './ProductForm';
 
 interface BarcodeFieldsProps {
@@ -18,6 +19,7 @@ interface BarcodeFieldsProps {
 }
 
 export function BarcodeFields({ register, fields, append, remove, setValue, className }: BarcodeFieldsProps) {
+  const { t } = useTranslation();
   const [scanIndex, setScanIndex] = useState<number | null>(null);
 
   return (
@@ -43,7 +45,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, clas
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2.5 text-sm text-gray-400 transition hover:border-blue-400 hover:text-blue-500"
         >
           <Barcode className="h-4 w-4" />
-          Barcode qo&apos;shish
+          {t('products.addBarcode')}
         </button>
       ) : (
         <div className="flex flex-col gap-2">
@@ -57,7 +59,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, clas
               <button
                 type="button"
                 onClick={() => setScanIndex(index)}
-                title="Kamera bilan skanerlash"
+                title={t('products.scanWithCamera')}
                 className="rounded-lg border border-gray-300 p-2 text-gray-500 transition hover:bg-gray-50 hover:border-gray-400"
               >
                 <ScanLine className="h-4 w-4" />

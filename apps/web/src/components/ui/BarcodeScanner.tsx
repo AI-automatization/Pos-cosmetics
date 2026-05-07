@@ -5,6 +5,7 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 import { NotFoundException } from '@zxing/library';
 import { X, Camera, Loader2 } from 'lucide-react';
 import type { IScannerControls } from '@zxing/browser';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -16,6 +17,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const controlsRef = useRef<IScannerControls | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
 
   const stableOnScan = useCallback(onScan, []);
 
@@ -30,7 +32,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           stableOnScan(result.getText());
         }
         if (err && !(err instanceof NotFoundException)) {
-          setError(err.message ?? 'Skanerlashda xatolik');
+          setError(err.message ?? t('errors.scanError'));
         }
       })
       .then((controls) => {
@@ -38,7 +40,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         setIsLoading(false);
       })
       .catch((e: Error) => {
-        setError(e?.message ?? 'Kamera ochilmadi. Brauzer ruxsatini tekshiring.');
+        setError(e?.message ?? t('errors.cameraPermission'));
         setIsLoading(false);
       });
 
@@ -54,7 +56,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <Camera className="h-4 w-4 text-gray-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Barcode skanerlash</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('products.barcodeScanner')}</h3>
           </div>
           <button
             type="button"
@@ -85,7 +87,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         )}
 
         <p className="px-5 py-3 text-xs text-center text-gray-400">
-          Barcode kameraga to&apos;g&apos;ri ushlang
+          {t('products.barcodeScanHint')}
         </p>
       </div>
     </div>
