@@ -1,5 +1,12 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-06
+# Yangilangan: 2026-05-07
+
+---
+
+## T-453 | 2026-05-07 | [MOBILE] | Etiketka chop — AirPrint/Share printer support
+
+- **Yechim:** `LabelPrintSheet.tsx` bottom sheet modal yaratildi. 3 ta label o'lcham (30×20, 40×30, 58×40 mm), nusxa soni (1–99), live preview (mahsulot nomi, SKU, barcode `||| ||| ` ko'rinishida, narx). `expo-print` mavjud bo'lsa → native AirPrint/Android print dialog; yo'q bo'lsa → `Share.share()` fallback. `ProductsScreen.tsx` da context menu "Etiketka chop" orqali integratsiya.
+- **Fayl:** `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`
 
 ---
 

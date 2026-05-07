@@ -223,14 +223,7 @@
 
 ---
 
-## T-453 | P3 | [MOBILE] | Etiketka chop — Bluetooth/AirPrint printer support
-
-- **Sana:** 2026-05-06
-- **Mas'ul:** Abdulaziz
-- **Fayl:** yangi `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`
-- **Muammo:** Web da LabelPrintModal (30x20, 40x30, 58x40 mm, nusxa soni, barcode, narx). Mobile da printer integratsiya yo'q.
-- **Kutilgan:** Bluetooth/AirPrint printer topish, label size tanlash, chop etish
-- **Topildi:** Web → Mobile parity audit — 2026-05-06
+*(T-453 — Done.md ga ko'chirildi 2026-05-07)*
 
 ---
 
