@@ -24,6 +24,14 @@ logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+logi.txt
+
+# Debug / temp files
+test-register.json
+test-login.json
+debug-login.mjs
+cookies.txt
+POLAT_PROGRESS.txt
 
 # Claude Code (local only)
 .claude/settings.local.json
