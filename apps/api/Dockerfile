@@ -10,7 +10,7 @@ COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
 
 # Install all deps (dev + prod) — needed for prisma generate + nest build
-RUN pnpm install --no-frozen-lockfile --filter api...
+RUN pnpm install --frozen-lockfile --filter api...
 
 # Copy source
 COPY apps/api/ ./apps/api/
@@ -75,5 +75,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:3000/api/v1/health/live || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-# Migration failure should NOT block app startup (Railway may run migrations separately)
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy || echo '[startup] Migration skipped'; node dist/main"]
+# Migration runs at startup — failure is logged but non-fatal (Railway may run migrations separately)
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && echo '[startup] Migration OK' || echo '[startup] WARNING: Migration failed — check DB'; node dist/main"]

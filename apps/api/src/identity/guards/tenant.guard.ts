@@ -8,8 +8,12 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../../common/decorators';
 import { PrismaService } from '../../prisma/prisma.service';
 
+const TENANT_CACHE_TTL = 60_000; // 60 seconds
+
 @Injectable()
 export class TenantGuard implements CanActivate {
+  private cache = new Map<string, { isActive: boolean; expiresAt: number }>();
+
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
@@ -36,15 +40,37 @@ export class TenantGuard implements CanActivate {
       return false;
     }
 
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { id: user.tenantId },
-      select: { isActive: true },
-    });
+    const isActive = await this.isTenantActive(user.tenantId);
 
-    if (!tenant?.isActive) {
+    if (!isActive) {
       throw new ForbiddenException('Tenant is deactivated');
     }
 
     return true;
+  }
+
+  private async isTenantActive(tenantId: string): Promise<boolean> {
+    const cached = this.cache.get(tenantId);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.isActive;
+    }
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { isActive: true },
+    });
+
+    const isActive = tenant?.isActive ?? false;
+    this.cache.set(tenantId, { isActive, expiresAt: Date.now() + TENANT_CACHE_TTL });
+
+    // Prevent memory leak — clean stale entries periodically
+    if (this.cache.size > 1000) {
+      const now = Date.now();
+      for (const [key, val] of this.cache) {
+        if (val.expiresAt < now) this.cache.delete(key);
+      }
+    }
+
+    return isActive;
   }
 }

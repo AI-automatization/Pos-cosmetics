@@ -70,7 +70,7 @@ jobs:
       - name: Build web app
         run: pnpm --filter web build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api-production-c5b6.up.railway.app' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api.raos.uz' }}
 
   build-super-admin:
     name: "Build Super Admin"
@@ -95,7 +95,7 @@ jobs:
       - name: Build super-admin app
         run: pnpm --filter super-admin build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api-production-c5b6.up.railway.app' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api.raos.uz' }}
 
 # Deploy: Railway auto-deploys on push to main via GitHub integration
 # NEVER use "railway up" — see DEPLOY.md
