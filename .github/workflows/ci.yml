@@ -47,6 +47,32 @@ jobs:
       - name: TypeCheck Super Admin
         run: pnpm --filter super-admin exec tsc --noEmit
 
+  test:
+    name: "Unit Tests"
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter api exec prisma generate
+
+      - name: Run API tests
+        run: pnpm --filter api test --passWithNoTests
+
   build-web:
     name: "Build Web (Admin Panel)"
     needs: lint
