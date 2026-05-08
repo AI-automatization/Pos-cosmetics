@@ -3,11 +3,12 @@
 import { Clock, ShoppingBag, User, ArrowLeft, LogOut, Archive, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { usePOSStore } from '@/store/pos.store';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
 import { openCashDrawer, isCashDrawerEnabled } from '@/lib/cashDrawer';
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/i18n-context';
+import { LOCALES, type Locale } from '@/i18n';
 
 function useShiftClock(openedAt: Date | string | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
@@ -39,6 +40,52 @@ function useShiftClock(openedAt: Date | string | null) {
 interface ShiftBarProps {
   onCloseShift: () => void;
   onOpenReturn?: () => void;
+}
+
+function POSLanguageSwitcher() {
+  const { locale, setLocale } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const current = LOCALES.find((l) => l.value === locale) ?? LOCALES[0];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 rounded-lg border border-gray-700 px-2 py-1 text-xs font-medium text-gray-300 transition hover:border-gray-500 hover:bg-gray-800 hover:text-white"
+      >
+        <span>{current.flag}</span>
+        <span className="uppercase">{current.value}</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 bottom-full z-50 mb-1 w-36 rounded-lg border border-gray-700 bg-gray-800 py-1 shadow-xl">
+          {LOCALES.map((l) => (
+            <button
+              key={l.value}
+              type="button"
+              onClick={() => { setLocale(l.value as Locale); setOpen(false); }}
+              className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition ${
+                locale === l.value ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
+            >
+              <span>{l.flag}</span>
+              <span>{l.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
@@ -78,6 +125,8 @@ export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
       <div className="flex items-center gap-3">
         {/* Sync status */}
         <SyncStatusBar />
+
+        <POSLanguageSwitcher />
 
         <div className="h-4 w-px bg-gray-700" />
 
