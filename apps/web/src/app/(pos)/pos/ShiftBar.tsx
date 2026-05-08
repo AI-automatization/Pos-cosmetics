@@ -68,7 +68,7 @@ function POSLanguageSwitcher() {
         <span className="uppercase">{current.value}</span>
       </button>
       {open && (
-        <div className="absolute right-0 bottom-full z-50 mb-1 w-36 rounded-lg border border-gray-700 bg-gray-800 py-1 shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-1 w-36 rounded-lg border border-gray-700 bg-gray-800 py-1 shadow-xl">
           {LOCALES.map((l) => (
             <button
               key={l.value}
