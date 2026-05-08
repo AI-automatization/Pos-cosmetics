@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { authApi, type LoginPayload } from '@/api/auth.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { getAccessToken, setAccessToken, clearAccessToken } from '@/api/token';
 
 const SESSION_COOKIE = 'session_active';
 const ROLE_COOKIE = 'user_role';
@@ -24,15 +25,27 @@ function clearSessionCookie() {
 }
 
 export function useCurrentUser() {
-  const hasToken =
-    typeof window !== 'undefined' && !!localStorage.getItem('access_token');
+  const hasSession =
+    typeof window !== 'undefined' &&
+    document.cookie.includes('session_active=1');
 
   const query = useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: authApi.me,
+    queryFn: async () => {
+      // Если токен в памяти потерян (перезагрузка) — refresh через httpOnly cookie
+      if (!getAccessToken()) {
+        try {
+          const res = await authApi.refresh();
+          setAccessToken(res.accessToken);
+        } catch {
+          return null;
+        }
+      }
+      return authApi.me();
+    },
     retry: false,
     staleTime: 5 * 60_000,
-    enabled: hasToken,
+    enabled: hasSession,
   });
 
   // Ensure role cookie always matches the actual user role (fixes stale CASHIER cookie bug)
@@ -52,8 +65,8 @@ export function useLogin() {
   return useMutation({
     mutationFn: async (payload: LoginPayload) => {
       const tokens = await authApi.login(payload);
-      localStorage.setItem('access_token', tokens.accessToken);
-      // refreshToken httpOnly cookie da saqlanadi (T-347) — localStorage ga kerak emas
+      setAccessToken(tokens.accessToken);
+      // refreshToken httpOnly cookie da saqlanadi (T-347)
       setSessionCookie();
       return tokens;
     },
@@ -61,7 +74,7 @@ export function useLogin() {
       try {
         const user = await authApi.me();
         queryClient.setQueryData(['auth', 'me'], user);
-        localStorage.setItem('user_id', user.id);
+        // user_id больше не нужен в localStorage
         setSessionCookie(user.role); // set role cookie for middleware routing
 
         if (user.role === 'WAREHOUSE') {
@@ -99,8 +112,7 @@ export function useLogout() {
       try {
         await authApi.logout();
       } finally {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user_id');
+        clearAccessToken();
         clearSessionCookie();
         queryClient.clear();
       }
@@ -109,9 +121,7 @@ export function useLogout() {
       router.push('/login');
     },
     onError: () => {
-      // Even on error, clear local state and redirect
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user_id');
+      clearAccessToken();
       clearSessionCookie();
       router.push('/login');
     },

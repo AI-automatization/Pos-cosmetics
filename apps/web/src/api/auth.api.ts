@@ -33,6 +33,12 @@ export const authApi = {
     return data;
   },
 
+  refresh: async (): Promise<AuthTokens> => {
+    // httpOnly cookie автоматически отправляется (withCredentials: true)
+    const { data } = await apiClient.post<AuthTokens>('/auth/refresh', {});
+    return data;
+  },
+
   logout: async (): Promise<void> => {
     await apiClient.post('/auth/logout');
   },
