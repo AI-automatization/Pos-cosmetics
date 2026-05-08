@@ -5,6 +5,9 @@
 
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 API="${BASE_URL}/api/v1"
+TEST_EMAIL="${TEST_EMAIL:-owner@kosmetika.uz}"
+TEST_PASSWORD="${TEST_PASSWORD:?Set TEST_PASSWORD env variable}"
+TEST_SLUG="${TEST_SLUG:-kosmetika-demo}"
 PASS=0
 FAIL=0
 SKIP=0
@@ -40,7 +43,7 @@ echo ""
 echo "── 1. AUTH ──"
 RESP=$(curl -s -w "\n%{http_code}" -X POST "$API/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"owner@kosmetika.uz","password":"Demo1234!","slug":"kosmetika-demo"}' 2>/dev/null)
+  -d "{\"email\":\"${TEST_EMAIL}\",\"password\":\"${TEST_PASSWORD}\",\"slug\":\"${TEST_SLUG}\"}" 2>/dev/null)
 CODE=$(echo "$RESP" | tail -1)
 TOKEN=$(echo "$RESP" | head -1 | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))" 2>/dev/null)
 check "POST /auth/login" "$CODE"

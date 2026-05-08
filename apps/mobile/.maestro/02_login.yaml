@@ -15,13 +15,13 @@ name: "Login - To'liq login flow (slug + email + parol)"
 # Email input
 - tapOn:
     text: "email@misol.com"
-- inputText: "owner@raos.uz"
-- assertVisible: "owner@raos.uz"
+- inputText: "${TEST_EMAIL}"
+- assertVisible: "${TEST_EMAIL}"
 
 # Password input
 - tapOn:
     text: "Parol kiriting"
-- inputText: "Demo1234!"
+- inputText: "${TEST_PASSWORD}"
 
 # Kirish tugmasi
 - tapOn: "Kirish"

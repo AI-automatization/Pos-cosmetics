@@ -79,3 +79,13 @@ apps/mobile/js_errors.txt
 
 # Playwright MCP
 .playwright-mcp/
+
+# Security — never commit credentials/cookies
+cookies.txt
+*.cookie
+test-login.json
+debug-login*.mjs
+audit-*.mjs
+warehouse-audit*.mjs
+e2e-sprint*.mjs
+e2e-verify*.mjs

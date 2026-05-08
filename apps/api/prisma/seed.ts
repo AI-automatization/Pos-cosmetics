@@ -3,13 +3,13 @@
  *
  * Ishlatish:
  *   cd apps/api
- *   npx ts-node prisma/seed.ts
+ *   SEED_PASSWORD=YourPass123! npx ts-node prisma/seed.ts
  *
  * Yoki:
  *   pnpm --filter api prisma:seed
  *
  * Tenant slug: kosmetika-demo
- * Barcha accountlar paroli: Demo1234!
+ * Parol: SEED_PASSWORD env orqali beriladi
  */
 
 import {
@@ -29,8 +29,12 @@ const prisma = new PrismaClient();
 
 const TENANT_SLUG = 'kosmetika-demo';
 const TENANT_NAME = 'Kosmetika Savdosi';
-const PASSWORD = 'Demo1234!';
+const PASSWORD = process.env.SEED_PASSWORD ?? 'ChangeMeNow!';
 const BCRYPT_ROUNDS = 12;
+
+if (!process.env.SEED_PASSWORD) {
+  console.warn('⚠️  SEED_PASSWORD env o\'rnatilmagan — default parol ishlatilmoqda. Production uchun SEED_PASSWORD ni .env da belgilang!');
+}
 
 // ─── Products ────────────────────────────────────────────────────
 // initialQty: fixed stock quantity (used for low-stock demo items).
@@ -484,18 +488,13 @@ async function main() {
   console.log('🎉 Seed muvaffaqiyatli yakunlandi!');
   console.log('='.repeat(60));
   console.log(`\nTenant slug : ${TENANT_SLUG}`);
-  console.log(`Parol       : ${PASSWORD}`);
+  console.log(`Parol       : [SEED_PASSWORD env dan]`);
   console.log(`${'─'.repeat(60)}`);
   console.log(`👑 OWNER    | owner@kosmetika.uz`);
   for (const c of CASHIERS) {
     console.log(`💰 CASHIER  | ${c.email}`);
   }
   console.log(`${'─'.repeat(60)}`);
-  console.log('\n📱 Mobile app (mobile-owner) login:');
-  console.log(`  Tenant slug : ${TENANT_SLUG}`);
-  console.log(`  Email       : owner@kosmetika.uz`);
-  console.log(`  Parol       : ${PASSWORD}`);
-  console.log('');
 }
 
 main()
