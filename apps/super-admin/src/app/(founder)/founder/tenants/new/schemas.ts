@@ -19,6 +19,8 @@ export const BUSINESS_TYPES: Record<string, string> = {
   PHARMACY: 'Аптека',
   FASHION: 'Одежда',
   ELECTRONICS: 'Электроника',
+  AUTO_PARTS: 'Автозапчасти',
+  RESTAURANT: 'Ресторан / Фастфуд',
   OTHER: 'Другое',
 };
 
@@ -38,7 +40,7 @@ export const companySchema = z.object({
   slug: z.string().min(3, 'Минимум 3 символа').max(30).regex(/^[a-z0-9-]+$/, 'Только строчные буквы, цифры, дефис'),
   phone: z.string().regex(/^\+998\d{9}$/, 'Формат: +998XXXXXXXXX'),
   city: z.string().min(2, 'Укажите город'),
-  businessType: z.enum(['COSMETICS', 'GROCERY', 'PHARMACY', 'FASHION', 'ELECTRONICS', 'OTHER']),
+  businessType: z.enum(['COSMETICS', 'GROCERY', 'PHARMACY', 'FASHION', 'ELECTRONICS', 'AUTO_PARTS', 'RESTAURANT', 'OTHER']),
   customBusinessType: z.string().optional(),
   legalName: z.string().optional(),
   inn: z.string().optional(),

@@ -18,7 +18,7 @@ interface ResultScreenProps {
   result: TenantResult;
 }
 
-const LOGIN_URL = 'https://web-production-5b0b7.up.railway.app/login';
+const LOGIN_URL = 'https://raos.uz/login';
 
 // Success screen after tenant creation — shows credentials with copy buttons
 export function ResultScreen({ result }: ResultScreenProps) {
