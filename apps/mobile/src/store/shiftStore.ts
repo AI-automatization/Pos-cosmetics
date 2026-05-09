@@ -25,8 +25,20 @@ export const useShiftStore = create<ShiftState>((set, get) => ({
   },
 
   closeShift: async (closingCash = 0) => {
+    // Avval API dan yangi holatni olib kelamiz (stale shiftId dan himoya)
+    try {
+      const current = await salesApi.getCurrentShift();
+      if (current && current.id) {
+        set({ shiftId: current.id, isShiftOpen: true });
+      }
+    } catch {
+      // Offline — mavjud shiftId bilan davom etamiz
+    }
+
     const { shiftId } = get();
-    if (!shiftId) return;
+    if (!shiftId) {
+      throw new Error('Faol smena topilmadi. Iltimos, avval smena oching.');
+    }
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('Ulanish vaqti tugadi. Internetni tekshiring.')), 15_000),
     );

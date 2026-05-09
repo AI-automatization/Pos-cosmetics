@@ -34,7 +34,8 @@ function statusLabel(status: ServiceStatus['status']) {
   return 'Xato';
 }
 
-function ServiceCard({ name, svc }: { name: string; svc: ServiceStatus }) {
+function ServiceCard({ name, svc }: { name: string; svc: ServiceStatus | undefined }) {
+  if (!svc) return null;
   const col = statusColor(svc.status);
   return (
     <View style={s.serviceCard}>
@@ -62,7 +63,7 @@ function ErrorRow({ err }: { err: SystemError }) {
       </View>
       <View style={{ flex: 1 }}>
         <Text style={s.errMsg} numberOfLines={2}>{err.message}</Text>
-        <Text style={s.errMeta}>{err.service} · {new Date(err.occurredAt).toLocaleDateString('uz-UZ')}</Text>
+        <Text style={s.errMeta}>{err.service} · {err.occurredAt ? new Date(err.occurredAt).toLocaleDateString('uz-UZ') : '—'}</Text>
       </View>
     </View>
   );

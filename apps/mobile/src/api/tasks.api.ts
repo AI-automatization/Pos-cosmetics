@@ -37,8 +37,10 @@ export interface UpdateTaskDto {
 
 // ─── API ───────────────────────────────────────────────────
 export const tasksApi = {
-  list: (params?: { page?: number; limit?: number }): Promise<Task[]> =>
-    api.get<Task[]>('/tasks', { params }).then(r => r.data),
+  list: async (params?: { page?: number; limit?: number }): Promise<Task[]> => {
+    const { data } = await api.get('/tasks', { params });
+    return Array.isArray(data) ? data : (data?.items ?? []);
+  },
 
   create: (dto: CreateTaskDto): Promise<Task> =>
     api.post<Task>('/tasks', dto).then(r => r.data),

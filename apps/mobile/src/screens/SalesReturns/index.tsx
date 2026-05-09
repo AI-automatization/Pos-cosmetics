@@ -12,8 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Order } from '@raos/types';
 import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api/sales.api';
-import type { SaleDetail } from '../../api/sales.api';
+import type { OrderWithMethod } from '../../api/sales.api';
 import type { Sale } from '../Sales/SalesTypes';
+import { orderToSale } from '../Sales/SalesTypes';
 import ReturnScreen from '../Sales/ReturnScreen';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorView from '../../components/common/ErrorView';
@@ -76,7 +77,7 @@ const OrderRow = React.memo(function OrderRow({ item, onPress }: OrderRowProps) 
 // ─── Main screen ────────────────────────────────────────────
 export default function SalesReturnsScreen() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [saleDetail, setSaleDetail]       = useState<SaleDetail | null>(null);
+  const [saleDetail, setSaleDetail]       = useState<OrderWithMethod | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   // ─── Orders query: faqat COMPLETED holatdagilar ──────────
@@ -94,7 +95,7 @@ export default function SalesReturnsScreen() {
   const handleSelectOrder = useCallback(async (order: Order) => {
     setDetailLoading(true);
     try {
-      const detail = await salesApi.getById(order.id);
+      const detail = await salesApi.getOrderById(order.id);
       setSaleDetail(detail);
       setSelectedOrder(order);
     } catch {
@@ -120,39 +121,30 @@ export default function SalesReturnsScreen() {
       if (!selectedOrder || !saleDetail) return;
 
       const items = selectedIndexes.map((idx) => ({
-        productId: saleDetail.items[idx]!.productId,
-        quantity:  qtys[idx] ?? 1,
+        orderItemId: saleDetail.items[idx]!.id,
+        productId:   saleDetail.items[idx]!.productId,
+        quantity:    qtys[idx] ?? 1,
       }));
 
-      await salesApi.returnOrder(selectedOrder.id, { items, reason });
-
-      Alert.alert('Muvaffaqiyatli', 'Qaytarish amalga oshirildi', [
-        { text: 'OK', onPress: handleClose },
-      ]);
-
-      void ordersQuery.refetch();
+      try {
+        await salesApi.returnOrder(selectedOrder.id, { items, reason });
+        Alert.alert('Muvaffaqiyatli', 'Qaytarish amalga oshirildi', [
+          { text: 'OK', onPress: handleClose },
+        ]);
+        void ordersQuery.refetch();
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Noma'lum xatolik";
+        Alert.alert('Xatolik', `Qaytarishni amalga oshirib bo'lmadi: ${msg}`);
+      }
     },
     [selectedOrder, saleDetail, ordersQuery, handleClose],
   );
 
-  // ─── SaleDetail → Sale (ReturnScreen uchun) ──────────────
+  // ─── OrderWithMethod → Sale (ReturnScreen uchun) ─────────
   const sale = useMemo<Sale | null>(() => {
-    if (!selectedOrder || !saleDetail) return null;
-    return {
-      id:       saleDetail.id,
-      num:      selectedOrder.orderNumber,
-      time:     saleDetail.createdAt,
-      items:    saleDetail.items.length,
-      amount:   saleDetail.total,
-      status:   'COMPLETED',
-      payments: [],
-      products: saleDetail.items.map((i) => ({
-        name:  i.productName,
-        qty:   i.quantity,
-        price: i.price,
-      })),
-    };
-  }, [selectedOrder, saleDetail]);
+    if (!saleDetail) return null;
+    return orderToSale(saleDetail);
+  }, [saleDetail]);
 
   // ─── FlatList renderItem ──────────────────────────────────
   const renderItem = useCallback(

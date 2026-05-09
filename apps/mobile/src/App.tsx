@@ -22,16 +22,15 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const loadFromStorage = useAuthStore((s) => s.loadFromStorage);
   const [ready, setReady] = useState(false);
 
   useNotifications();
 
   useEffect(() => {
-    loadFromStorage()
+    useAuthStore.getState().loadFromStorage()
       .then(() => useShiftStore.getState().syncWithApi())
       .finally(() => setReady(true));
-  }, [loadFromStorage]);
+  }, []);
 
   if (!ready) {
     return (

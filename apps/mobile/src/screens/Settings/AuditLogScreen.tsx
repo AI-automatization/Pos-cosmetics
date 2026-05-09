@@ -45,7 +45,9 @@ const ACTION_FILTER_LABELS: Record<ActionFilter, string> = {
 // ─── Helpers ──────────────────────────────────────────
 
 function formatDate(iso: string): string {
+  if (!iso) return '—';
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
   return (
     d.toLocaleDateString('uz-UZ', {
       day: '2-digit',
@@ -64,7 +66,7 @@ interface ActionBadgeProps {
 }
 
 function ActionBadge({ action }: ActionBadgeProps) {
-  const cfg = ACTION_CONFIG[action];
+  const cfg = ACTION_CONFIG[action] ?? { label: action, text: '#6B7280', bg: '#F3F4F6' };
   return (
     <View style={[badgeStyles.badge, { backgroundColor: cfg.bg }]}>
       <Text style={[badgeStyles.label, { color: cfg.text }]}>{cfg.label}</Text>

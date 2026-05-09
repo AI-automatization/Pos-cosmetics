@@ -22,6 +22,12 @@ import QuickFillButtons from './QuickFillButtons';
 
 type PayMethod = 'CASH' | 'CARD' | 'TRANSFER';
 
+const METHOD_MAP: Record<PayMethod, string> = {
+  CASH:     'CASH',
+  CARD:     'TERMINAL',
+  TRANSFER: 'TRANSFER',
+};
+
 interface PayMethodOption {
   readonly key: PayMethod;
   readonly label: string;
@@ -71,7 +77,7 @@ export default function PayModal({ debt, visible, onClose, onSuccess }: Props) {
     }
     setLoading(true);
     try {
-      await nasiyaApi.pay(debt.id, parsed, method);
+      await nasiyaApi.pay(debt.id, parsed, METHOD_MAP[method]);
       Alert.alert(
         '',
         "To'lov muvaffaqiyatli amalga oshirildi",

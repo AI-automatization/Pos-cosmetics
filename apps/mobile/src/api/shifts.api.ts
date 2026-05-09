@@ -43,9 +43,50 @@ export interface ShiftsParams {
   limit?: number;
 }
 
+interface BackendShift {
+  id: string;
+  branchId: string;
+  branchName: string;
+  cashierId: string;
+  cashierName: string;
+  openedAt: string;
+  closedAt: string | null;
+  status: 'open' | 'closed';
+  totalRevenue: number;
+  totalOrders: number;
+  avgOrderValue: number;
+  totalRefunds: number;
+  totalVoids: number;
+  totalDiscounts: number;
+  openingCash?: number;
+  closingCash?: number | null;
+  expectedCash?: number | null;
+  paymentBreakdown?: Record<string, number>;
+}
+
+function mapPaymentBreakdown(pb?: Record<string, number>): PaymentBreakdown[] {
+  if (!pb) return [];
+  const entries = Object.entries(pb).filter(([, v]) => v > 0);
+  const total = entries.reduce((sum, [, v]) => sum + v, 0);
+  return entries.map(([method, amount]) => ({
+    method: method as PaymentBreakdown['method'],
+    amount,
+    percentage: total > 0 ? (amount / total) * 100 : 0,
+  }));
+}
+
+function mapShift(raw: BackendShift): Shift {
+  return {
+    ...raw,
+    paymentBreakdown: mapPaymentBreakdown(
+      raw.paymentBreakdown as Record<string, number> | undefined,
+    ),
+  };
+}
+
 export const shiftsApi = {
   async getShifts(params: ShiftsParams): Promise<PaginatedResponse<Shift>> {
-    const { data } = await apiClient.get<PaginatedResponse<Shift>>(ENDPOINTS.SHIFTS, {
+    const { data } = await apiClient.get<PaginatedResponse<BackendShift>>(ENDPOINTS.SHIFTS, {
       params: {
         branch_id: params.branchId ?? undefined,
         from_date: params.fromDate,
@@ -56,12 +97,15 @@ export const shiftsApi = {
         limit: params.limit ?? 20,
       },
     });
-    return data;
+    return {
+      ...data,
+      items: (data.items ?? []).map(mapShift),
+    };
   },
 
   async getShiftById(id: string): Promise<Shift> {
-    const { data } = await apiClient.get<Shift>(`${ENDPOINTS.SHIFTS}/${id}`);
-    return data;
+    const { data } = await apiClient.get<BackendShift>(`${ENDPOINTS.SHIFTS}/${id}`);
+    return mapShift(data);
   },
 
   async getShiftSummary(params: ShiftsParams): Promise<ShiftSummary> {

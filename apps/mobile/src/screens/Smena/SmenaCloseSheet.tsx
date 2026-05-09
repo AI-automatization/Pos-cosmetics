@@ -40,12 +40,12 @@ export default function SmenaCloseSheet({ visible, loading, shift, onClose, onCo
 
   useEffect(() => {
     if (visible && shift) {
-      setActualCash(String(shift.cashAmount ?? 0));
+      setActualCash(String(Number(shift.cashAmount ?? 0)));
     }
   }, [visible, shift]);
 
   const actualNum = parseFloat(actualCash.replace(/\s/g, '')) || 0;
-  const expectedCash = shift ? shift.openingCash + (shift.cashAmount ?? 0) - (shift.expenses ?? 0) : 0;
+  const expectedCash = shift ? Number(shift.openingCash ?? 0) + Number(shift.cashAmount ?? 0) - Number(shift.expenses ?? 0) : 0;
   const diff = actualNum - expectedCash;
   const diffColor = diff >= 0 ? C.green : C.red;
 

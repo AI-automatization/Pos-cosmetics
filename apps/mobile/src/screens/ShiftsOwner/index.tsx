@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ShiftsOwnerStackParamList } from '../../navigation/types';
 import ScreenLayout from '../../components/layout/ScreenLayout';
 import ShiftList from './ShiftList';
@@ -15,8 +17,13 @@ const Stack = createNativeStackNavigator<ShiftsOwnerStackParamList>();
 
 function ShiftListScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<ShiftsOwnerStackParamList, 'ShiftList'>>();
   const [statusFilter, setStatusFilter] = React.useState<'open' | 'closed' | undefined>(undefined);
   const { shifts } = useShifts(statusFilter);
+
+  const handlePressShift = React.useCallback((shiftId: string) => {
+    navigation.navigate('ShiftDetail', { shiftId });
+  }, [navigation]);
 
   const renderContent = () => {
     if (shifts.isLoading) {
@@ -43,13 +50,13 @@ function ShiftListScreen() {
         data={displayData}
         isRefreshing={shifts.isFetching}
         onRefresh={() => { void shifts.refetch(); }}
-        onPressShift={() => undefined}
+        onPressShift={handlePressShift}
       />
     );
   };
 
   return (
-    <ScreenLayout title={t('shifts.title')}>
+    <ScreenLayout title={t('shifts.title')} scrollable={false}>
       <View style={styles.filters}>
         {([undefined, 'open', 'closed'] as const).map((s) => (
           <TouchableOpacity

@@ -77,10 +77,19 @@ export const analyticsApi = {
   },
 
   getRevenueByBranch: async (period?: string): Promise<BranchRevenueItem[]> => {
-    const { data } = await api.get<BranchRevenueItem[]>('/analytics/revenue-by-branch', {
-      params: { period },
-    });
-    return Array.isArray(data) ? data : [];
+    try {
+      const res = await api.get('/analytics/revenue-by-branch', { params: { period } });
+      const raw = Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.items ?? []);
+      return raw.map((b: any) => ({
+        branchId:   b.branchId   ?? b.id   ?? '',
+        branchName: b.branchName ?? b.name ?? '',
+        revenue:    b.revenue    ?? b.totalRevenue ?? b.total ?? b.sales ?? 0,
+        orders:     b.orders     ?? b.orderCount   ?? b.count ?? 0,
+        stockValue: b.stockValue ?? b.stock        ?? 0,
+      }));
+    } catch {
+      return [];
+    }
   },
 
   getSalesTrend: async (params: {

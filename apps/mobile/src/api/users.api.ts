@@ -52,10 +52,18 @@ function mapUser(u: UserApiResponse, fallback?: CreateUserBody): AppUser {
 
 // ─── usersApi ─────────────────────────────────────────
 
+interface PaginatedUsersResponse {
+  data: UserApiResponse[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
 export const usersApi = {
   getAll: async (): Promise<AppUser[]> => {
-    const { data } = await api.get<UserApiResponse[]>('/users');
-    return data.map((u) => mapUser(u));
+    const { data: res } = await api.get<PaginatedUsersResponse | UserApiResponse[]>('/users', {
+      params: { limit: 200 },
+    });
+    const items = Array.isArray(res) ? res : (res as PaginatedUsersResponse).data ?? [];
+    return items.map((u) => mapUser(u));
   },
 
   create: async (body: CreateUserBody): Promise<AppUser> => {

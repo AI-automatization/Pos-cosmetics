@@ -49,6 +49,7 @@ export default function SalesOrderList({
 const styles = StyleSheet.create({
   content: {
     paddingVertical: 8,
+    paddingBottom: 80,
     flexGrow: 1,
   },
 });

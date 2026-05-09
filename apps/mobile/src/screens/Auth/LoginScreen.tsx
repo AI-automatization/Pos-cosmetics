@@ -62,17 +62,24 @@ export default function LoginScreen({ navigation }: Props) {
 
   const handleLogin = async () => {
     if (!slug.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Xatolik', 'Barcha maydonlarni to\'ldiring');
+      Alert.alert('Xatolik', "Barcha maydonlarni to'ldiring");
       return;
     }
     setLoading(true);
+    let tokenStored = false;
     try {
       const res = await authApi.login({ slug: slug.trim(), email: email.trim(), password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
       await SecureStore.setItemAsync('tenant_slug', slug.trim());
+      tokenStored = true;
       const me = await authApi.me();
       await setUser(me, res.accessToken, res.refreshToken);
     } catch (err) {
+      // Agar token saqlangan bo'lsa lekin me() muvaffaqiyatsiz bo'lsa — eski state bilan
+      // aralash holat qoldirmaslik uchun access_token o'chirib tashla
+      if (tokenStored) {
+        await SecureStore.deleteItemAsync('access_token');
+      }
       const msg = extractErrorMessage(err);
       Alert.alert('Xatolik', msg);
     } finally {
@@ -86,7 +93,6 @@ export default function LoginScreen({ navigation }: Props) {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets={true}
         >
           {/* ── Logo ── */}
           <View style={styles.logoArea}>

@@ -82,9 +82,9 @@ export default function SmenaScreen() {
               : cashierName,
           openedAt: formatTime(shiftDetail.openedAt),
           closedAt: shiftDetail.closedAt ? formatTime(shiftDetail.closedAt) : null,
-          openingCash: shiftDetail.openingCash,
-          closingCash: shiftDetail.closingCash ?? null,
-          totalRevenue: shiftDetail.totalRevenue ?? 0,
+          openingCash: Number(shiftDetail.openingCash ?? 0),
+          closingCash: shiftDetail.closedAt ? Number(shiftDetail.closingCash ?? 0) : null,
+          totalRevenue: Number(shiftDetail.totalRevenue ?? 0),
           totalOrders: shiftDetail.totalOrders ?? 0,
           cashAmount: shiftDetail.cashAmount ?? 0,
           cardAmount: shiftDetail.cardAmount ?? 0,
@@ -95,7 +95,7 @@ export default function SmenaScreen() {
 
   // Yopilgan smenalar tarixi
   const historyShifts: ShiftRecord[] = (shiftsData?.items ?? [])
-    .filter((s) => s.status === 'CLOSED')
+    .filter((s) => s.status?.toUpperCase() === 'CLOSED')
     .slice(0, 3)
     .map((s) => ({
       id: s.id,
@@ -156,8 +156,20 @@ export default function SmenaScreen() {
       await closeShift(actualCash);
       setCloseSheetVisible(false);
       void refetchDetail();
-    } catch {
-      Alert.alert('Xatolik', 'Smena yopishda xatolik yuz berdi');
+    } catch (err: unknown) {
+      let msg = 'Smena yopishda xatolik yuz berdi';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const resp = (err as { response?: { data?: { message?: string | string[] }; status?: number } }).response;
+        const serverMsg = resp?.data?.message;
+        if (serverMsg) {
+          msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
+        } else if (resp?.status) {
+          msg = `Xatolik ${resp.status}: ${msg}`;
+        }
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      Alert.alert('Xatolik', msg);
     } finally {
       setLoading(false);
     }
@@ -199,7 +211,7 @@ export default function SmenaScreen() {
                 </View>
                 <View style={styles.shiftCashBox}>
                   <Text style={styles.shiftCashLabel}>Ochilish naqdi</Text>
-                  <Text style={styles.shiftCashValue}>{fmt(shiftDetail.openingCash)}</Text>
+                  <Text style={styles.shiftCashValue}>{fmt(Number(shiftDetail.openingCash ?? 0))}</Text>
                 </View>
               </View>
             </View>

@@ -144,10 +144,14 @@ export default function SavdoScreen() {
       setCart([]);
       return;
     }
+    if (!shiftId) {
+      Alert.alert('Xatolik', 'Smena ochilmagan. Avval smena oching.');
+      return;
+    }
     setOrderLoading(true);
     try {
       await salesApi.createOrder({
-        shiftId: shiftId ?? undefined,
+        shiftId,
         items: cart.map((i) => ({
           productId: i.product.id,
           quantity:  i.qty,

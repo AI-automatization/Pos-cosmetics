@@ -30,6 +30,16 @@ interface AuditLogApiResponse {
   createdAt?: string;
   oldValue?: Record<string, unknown>;
   newValue?: Record<string, unknown>;
+  oldData?: Record<string, unknown>;   // backend field name alias
+  newData?: Record<string, unknown>;   // backend field name alias
+}
+
+interface PaginatedAuditResponse {
+  items: AuditLogApiResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 // ─── Mapper ───────────────────────────────────────────────
@@ -45,8 +55,8 @@ function mapAuditLog(raw: unknown): AuditLog {
     userName: r.userName ?? '',
     branchName: r.branchName,
     createdAt: r.createdAt ?? '',
-    oldValue: r.oldValue,
-    newValue: r.newValue,
+    oldValue: r.oldValue ?? r.oldData,
+    newValue: r.newValue ?? r.newData,
   };
 }
 
@@ -54,11 +64,12 @@ function mapAuditLog(raw: unknown): AuditLog {
 
 export const auditApi = {
   getAll: async (action?: string): Promise<AuditLog[]> => {
-    const params: Record<string, string> = {};
+    const params: Record<string, string | number> = { limit: 100 };
     if (action != null && action.length > 0) {
       params.action = action;
     }
-    const { data } = await api.get<AuditLogApiResponse[]>('/audit-logs', { params });
-    return data.map((r) => mapAuditLog(r));
+    const { data: res } = await api.get<PaginatedAuditResponse | AuditLogApiResponse[]>('/audit-logs', { params });
+    const items = Array.isArray(res) ? res : (res as PaginatedAuditResponse).items ?? [];
+    return items.map((r) => mapAuditLog(r));
   },
 };

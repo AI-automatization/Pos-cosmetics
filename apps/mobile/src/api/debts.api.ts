@@ -43,6 +43,46 @@ export interface DebtCustomersParams {
   limit?: number;
 }
 
+// ─── Backend response shape ─────────────────────────────
+interface BackendCustomerDebt {
+  customerId: string;
+  customerName: string;
+  phone?: string | null;
+  totalDebt: number;
+  overdueAmount: number;
+  lastPaymentDate?: string | null;
+  daysPastDue?: number;
+}
+
+interface BackendCustomersResponse {
+  customers: BackendCustomerDebt[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// ─── Mapper ──────────────────────────────────────────────
+function mapCustomerDebt(raw: BackendCustomerDebt): CustomerDebt {
+  const days = raw.daysPastDue ?? 0;
+  let agingBucket: AgingBucketKey = '0_30';
+  if (days > 90) agingBucket = '90_plus';
+  else if (days > 60) agingBucket = '61_90';
+  else if (days > 30) agingBucket = '31_60';
+
+  return {
+    customerId: raw.customerId,
+    customerName: raw.customerName,
+    phone: raw.phone ?? '',
+    branchName: '',
+    totalDebt: Number(raw.totalDebt ?? 0),
+    overdueAmount: Number(raw.overdueAmount ?? 0),
+    daysSinceLastPayment: days,
+    agingBucket,
+    lastPurchaseDate: raw.lastPaymentDate ?? '',
+  };
+}
+
+// ─── API ─────────────────────────────────────────────────
 export const debtsApi = {
   async getSummary(branchId?: string | null): Promise<DebtSummary> {
     const { data } = await apiClient.get<DebtSummary>(ENDPOINTS.DEBTS_SUMMARY, {
@@ -59,7 +99,7 @@ export const debtsApi = {
   },
 
   async getCustomers(params: DebtCustomersParams): Promise<PaginatedResponse<CustomerDebt>> {
-    const { data } = await apiClient.get<PaginatedResponse<CustomerDebt>>(ENDPOINTS.DEBTS_CUSTOMERS, {
+    const { data } = await apiClient.get<BackendCustomersResponse>(ENDPOINTS.DEBTS_CUSTOMERS, {
       params: {
         branch_id: params.branchId ?? undefined,
         aging_bucket: params.agingBucket,
@@ -68,11 +108,17 @@ export const debtsApi = {
         limit: params.limit ?? 20,
       },
     });
-    return data;
+    const list = data.customers ?? (data as unknown as { items: BackendCustomerDebt[] }).items ?? [];
+    return {
+      items: list.map(mapCustomerDebt),
+      total: data.total ?? 0,
+      page: data.page ?? 1,
+      limit: data.limit ?? 20,
+    };
   },
 
   async getCustomerById(id: string): Promise<CustomerDebt> {
-    const { data } = await apiClient.get<CustomerDebt>(`${ENDPOINTS.DEBTS_CUSTOMERS}/${id}`);
-    return data;
+    const { data } = await apiClient.get<BackendCustomerDebt>(`${ENDPOINTS.DEBTS_CUSTOMERS}/${id}`);
+    return mapCustomerDebt(data);
   },
 };

@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,6 +43,7 @@ const FILTERS: Array<{ key: FilterStatus; label: string }> = [
 export default function TasksScreen() {
   const navigation = useNavigation();
   const qc = useQueryClient();
+  const insets = useSafeAreaInsets();
 
   const [filter,  setFilter]  = useState<FilterStatus>('ALL');
   const [showAdd, setShowAdd] = useState(false);
@@ -149,7 +150,7 @@ export default function TasksScreen() {
           style={styles.overlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { paddingBottom: 20 + insets.bottom }]}>
             <Text style={styles.sheetTitle}>Yangi topshiriq</Text>
             <TextInput
               style={styles.input}

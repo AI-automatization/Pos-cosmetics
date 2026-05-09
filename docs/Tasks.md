@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-06 (T-447..T-457 qo'shildi — web→mobile parity gap tasklar)
+# Yangilangan: 2026-05-08 (statistika qayta hisoblandi — T-447..T-457 va boshqalar Done.md ga o'tdi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -294,29 +294,25 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **28** | **3** | **4** | **10** | **14** |
+| **12** | **0** | **2** | **5** | **5** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 1 | 2 | 5 | 4 | **12** |
-| [FRONTEND] | 0 | 1 | 0 | 0 | **1** |
-| [MOBILE] | 0 | 0 | 5 | 12 | **17** |
-| [SECURITY] | 2 | 1 | 0 | 0 | **3** |
-| [IKKALASI] | 0 | 1 | 0 | 1 | **2** |
+| [BACKEND] | 0 | 0 | 4 | 4 | **8** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
+| [IKKALASI] | 0 | 2 | 0 | 1 | **3** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 3 | 3 | 5 | 0 | **11** |
-| **Abdulaziz** (Mobile) | 0 | 0 | 5 | 12 | **17** |
-| **Belgilanmagan** | 0 | 0 | 0 | 2 | **2** |
+| **Ibrat** (Full-Stack) | 0 | 1 | 5 | 4 | **10** |
 | **Ibrat + Abdulaziz** | 0 | 1 | 0 | 0 | **1** |
+| **Belgilanmagan** | 0 | 0 | 0 | 1 | **1** |
 
-> Yangilandi: 2026-05-06 — T-447..T-457 qo'shildi (web→mobile parity gap)
+> Yangilandi: 2026-05-08 — T-447..T-457 va boshqalar Done.md ga o'tdi; [MOBILE] P2/P3 tasklar bajarildi
 
 ---
 
@@ -366,6 +362,42 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 
 ---
+
+## T-458 | P1 | [BACKEND] | Audit jurnali — auditService.log() hech qayerda chaqirilmaydi, jadval bo'sh
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Ibrat (backend)
+- **Fayl:** apps/api/src/audit/audit.service.ts, apps/api/src/identity/identity.service.ts, apps/api/src/sales/sales.service.ts, apps/api/src/catalog/catalog.service.ts, prisma/seed.ts
+- **Muammo:** `AuditService.log()` metodi yozilgan va eksport qilingan, lekin hech qayerda chaqirilmaydi. Faqat bir joy: `AdminAuthService.impersonateTenant()` to'g'ridan-to'g'ri Prisma orqali yozadi. Natija: `audit_log` jadvali to'liq bo'sh — mobile Audit jurnali ekrani har doim "Yozuv topilmadi" ko'rsatadi.
+- **Kutilgan:** Kamida quyidagi operatsiyalar audit log yozishi kerak:
+  - `identity.service.ts` — login, user yaratish/o'chirish, rol o'zgartirish
+  - `sales.service.ts` — order yaratish, return
+  - `catalog.service.ts` — mahsulot yaratish/o'chirish/tahrirlash
+  - `prisma/seed.ts` — demo uchun kamida 20-30 ta audit log record
+- **Topildi:** Mobile Audit jurnali ekrani bo'sh — 2026-05-09
+
+---
+
+## T-459 | P1 | [BACKEND] | Order yaratishda shiftId auto-assign — shift statistikasi 0 ko'rsatadi
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Ibrat (backend)
+- **Fayl:** apps/api/src/sales/order.service.ts
+- **Muammo:** `createOrder()` da `shiftId` faqat DTO dan olinadi (`dto.shiftId`). Agar mobile `shiftId` yubormasa (app crash, store yo'qolishi), order `shiftId: null` bilan yaratiladi. Natija: `getShiftById()` da shift statistikasi (totalRevenue, totalOrders, avgOrderValue, totalRefunds, totalDiscounts) 0 ko'rsatadi chunki orderlar shift ga bog'lanmagan.
+- **Kutilgan:** `order.service.ts` → `createOrder()` da fallback qo'shish:
+  ```typescript
+  let resolvedShiftId = dto.shiftId;
+  if (!resolvedShiftId) {
+    const currentShift = await tx.shift.findFirst({
+      where: { tenantId, userId, status: 'OPEN' },
+      select: { id: true },
+    });
+    resolvedShiftId = currentShift?.id;
+  }
+  ```
+  Shunda `shiftId` yuborilmagan bo'lsa ham, foydalanuvchining ochiq smenasi avtomatik topiladi.
+- **Mobile fix:** `apps/mobile/src/screens/Savdo/index.tsx` da `shiftId` bo'lmasa order yaratish bloklandi (Alert ko'rsatiladi). Lekin backend fallback ham kerak xavfsizlik uchun.
+- **Topildi:** ShiftsOwner detail ekrani barcha statistikalar 0 — 2026-05-09
 
 ---
 

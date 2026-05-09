@@ -16,6 +16,7 @@ interface EmployeeActionButtonsProps {
   readonly isGrantPending: boolean;
   readonly isFirePending: boolean;
   readonly isDeletePending: boolean;
+  readonly isOwnerAdmin?: boolean;
 }
 
 export default function EmployeeActionButtons({
@@ -28,6 +29,7 @@ export default function EmployeeActionButtons({
   isGrantPending,
   isFirePending,
   isDeletePending,
+  isOwnerAdmin = false,
 }: EmployeeActionButtonsProps) {
   const { t } = useTranslation();
 
@@ -59,7 +61,7 @@ export default function EmployeeActionButtons({
         </TouchableOpacity>
       )}
 
-      {!isFired && (
+      {isOwnerAdmin && !isFired && (
         <TouchableOpacity
           style={[styles.actionBtn, styles.actionBtnDanger]}
           onPress={onFire}
@@ -72,16 +74,18 @@ export default function EmployeeActionButtons({
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity
-        style={[styles.actionBtn, styles.actionBtnDelete]}
-        onPress={onDelete}
-        disabled={isDeletePending}
-      >
-        <Ionicons name="trash-outline" size={18} color={Colors.textWhite} />
-        <Text style={[styles.actionBtnText, { color: Colors.textWhite }]}>
-          {t('employees.deleteTitle')}
-        </Text>
-      </TouchableOpacity>
+      {isOwnerAdmin && (
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnDelete]}
+          onPress={onDelete}
+          disabled={isDeletePending}
+        >
+          <Ionicons name="trash-outline" size={18} color={Colors.textWhite} />
+          <Text style={[styles.actionBtnText, { color: Colors.textWhite }]}>
+            {t('employees.deleteTitle')}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

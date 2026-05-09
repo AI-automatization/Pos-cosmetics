@@ -29,6 +29,8 @@ import {
   EmployeeSuspiciousCard,
   EmployeeActionButtons,
 } from './components/detail';
+import { useAuthStore } from '../../store/auth.store';
+import { getRoleLevel } from '../../utils/roles';
 
 type Route = RouteProp<EmployeesStackParamList, 'EmployeeDetail'>;
 type Nav = NativeStackNavigationProp<EmployeesStackParamList, 'EmployeeDetail'>;
@@ -72,6 +74,9 @@ export default function EmployeeDetailScreen() {
   const revokePosAccess = useRevokePosAccess();
   const grantPosAccess = useGrantPosAccess();
   const deleteEmployee = useDeleteEmployee();
+
+  const { user } = useAuthStore();
+  const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
 
   const emp = profile.data ?? MOCK_PROFILE;
   const perf = performance.data;
@@ -118,7 +123,16 @@ export default function EmployeeDetailScreen() {
           { id: employeeId, status: 'fired' },
           {
             onSuccess: () => Alert.alert(t('common.done'), t('employees.fired')),
-            onError: () => Alert.alert(t('common.error'), t('common.serverError')),
+            onError: (err: unknown) => {
+              const status = (err as any)?.response?.status;
+              if (status === 403) {
+                Alert.alert(t('common.error'), t('common.forbidden'));
+              } else if (status === 404) {
+                Alert.alert(t('common.error'), t('employees.notFound'));
+              } else {
+                Alert.alert(t('common.error'), t('common.serverError'));
+              }
+            },
           },
         );
       },
@@ -135,7 +149,16 @@ export default function EmployeeDetailScreen() {
             Alert.alert(t('common.done'), t('employees.deleted'));
             navigation.goBack();
           },
-          onError: () => Alert.alert(t('common.error'), t('common.serverError')),
+          onError: (err: unknown) => {
+            const status = (err as any)?.response?.status;
+            if (status === 403) {
+              Alert.alert(t('common.error'), t('common.forbidden'));
+            } else if (status === 404) {
+              Alert.alert(t('common.error'), t('employees.notFound'));
+            } else {
+              Alert.alert(t('common.error'), t('common.serverError'));
+            }
+          },
         });
       },
     );
@@ -186,6 +209,7 @@ export default function EmployeeDetailScreen() {
           isGrantPending={grantPosAccess.isPending}
           isFirePending={updateStatus.isPending}
           isDeletePending={deleteEmployee.isPending}
+          isOwnerAdmin={isOwnerAdmin}
         />
 
         <View style={styles.bottomSpacer} />

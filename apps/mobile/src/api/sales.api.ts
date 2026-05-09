@@ -19,21 +19,26 @@ export interface ShiftDetail extends Shift {
 }
 
 export interface SaleItem {
+  id: string;
+  orderId: string;
   productId: string;
   productName: string;
-  quantity: number;
-  price: number;
-  total: number;
+  quantity: number | string;   // backend sends as string
+  unitPrice: number | string;  // backend field name (not "price")
+  total: number | string;
 }
 
 export interface SaleDetail {
   id: string;
-  branchName: string;
-  cashierName: string;
-  paymentMethod: string;
-  total: number;
-  currency: string;
+  orderNumber: number;
+  status: string;
+  subtotal: number | string;
+  discountAmount: number | string;
+  taxAmount: number | string;
+  total: number | string;
+  notes: string | null;
   createdAt: string;
+  paymentMethod?: string | null;
   items: SaleItem[];
 }
 
@@ -69,12 +74,52 @@ export interface PaginatedOrders {
   limit: number;
 }
 
+// Backend shift response type (different shape than ShiftDetail)
+interface BackendShiftResponse {
+  id: string;
+  branchId?: string;
+  branchName?: string;
+  cashierId?: string;
+  cashierName?: string;
+  openedAt: string;
+  closedAt?: string | null;
+  status?: string;
+  openingCash?: number;
+  closingCash?: number | null;
+  totalRevenue?: number;
+  totalOrders?: number;
+  expectedCash?: number | null;
+  paymentBreakdown?: Record<string, number>;
+  [key: string]: unknown;
+}
+
+function mapShiftDetail(raw: BackendShiftResponse): ShiftDetail {
+  const pb = raw.paymentBreakdown ?? {};
+  const nameParts = (raw.cashierName ?? '').split(' ');
+  return {
+    ...raw,
+    cashAmount: pb.cash ?? pb.naqd ?? 0,
+    cardAmount: (pb.card ?? 0) + (pb.terminal ?? 0),
+    nasiyaAmount: pb.nasiya ?? pb.debt ?? 0,
+    expenses: 0,
+    user: raw.cashierName
+      ? { firstName: nameParts[0] ?? '', lastName: nameParts.slice(1).join(' ') }
+      : undefined,
+    status: (raw.status ?? 'OPEN').toUpperCase(),
+  } as ShiftDetail;
+}
+
 export const salesApi = {
   getOrders: async (filter?: OrdersFilter): Promise<PaginatedOrders> => {
-    const { data } = await api.get<PaginatedOrders>('/sales/orders', {
+    const { data: res } = await api.get<{ items?: OrderWithMethod[]; data?: OrderWithMethod[]; total: number; page: number; limit: number }>('/sales/orders', {
       params: filter,
     });
-    return data;
+    return {
+      data: res.items ?? res.data ?? [],
+      total: res.total,
+      page: res.page,
+      limit: res.limit,
+    };
   },
 
   getOrderById: async (orderId: string): Promise<OrderWithMethod> => {
@@ -117,15 +162,18 @@ export const salesApi = {
   },
 
   getShiftById: async (id: string): Promise<ShiftDetail> => {
-    const { data } = await api.get<ShiftDetail>(`/sales/shifts/${id}`);
-    return data;
+    const { data } = await api.get<BackendShiftResponse>(`/sales/shifts/${id}`);
+    return mapShiftDetail(data);
   },
 
   getShifts: async (page = 1, limit = 5): Promise<{ items: ShiftDetail[]; total: number }> => {
-    const { data } = await api.get<{ items: ShiftDetail[]; total: number }>('/sales/shifts', {
+    const { data } = await api.get<{ items: BackendShiftResponse[]; total: number }>('/sales/shifts', {
       params: { page, limit },
     });
-    return data;
+    return {
+      items: (data.items ?? []).map(mapShiftDetail),
+      total: data.total,
+    };
   },
 
   createOrder: async (payload: CreateOrderPayload): Promise<OrderWithMethod> => {
@@ -135,8 +183,8 @@ export const salesApi = {
 
   returnOrder: async (
     orderId: string,
-    body: { items: { productId: string; quantity: number }[]; reason: string },
+    body: { items: { orderItemId: string; productId: string; quantity: number }[]; reason: string },
   ): Promise<void> => {
-    await api.post(`/sales/orders/${orderId}/return`, body);
+    await api.post('/sales/returns', { orderId, ...body });
   },
 };
