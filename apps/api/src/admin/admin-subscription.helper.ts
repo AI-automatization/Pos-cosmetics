@@ -132,6 +132,25 @@ export class AdminSubscriptionHelper {
     });
   }
 
+  async resetTenantUserPassword(tenantId: string, userId: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, tenantId },
+      select: { id: true, email: true },
+    });
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found in tenant ${tenantId}`);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    this.logger.log(`Password reset by Super Admin: userId=${userId} tenantId=${tenantId}`);
+    return { success: true, userId, email: user.email };
+  }
+
   async addOwnerToTenant(
     tenantId: string,
     dto: {

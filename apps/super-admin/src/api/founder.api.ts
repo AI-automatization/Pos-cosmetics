@@ -107,6 +107,23 @@ export const founderApi = {
   getTenantUsers: (id: string) =>
     apiClient.get(`/admin/tenants/${id}/users`).then((r) => r.data),
 
+  getTenantHealth: (id: string): Promise<{
+    tenant: { id: string; name: string; slug: string; isActive: boolean; createdAt: string } | null;
+    health: {
+      isActive: boolean;
+      lastSaleAt: string | null;
+      lastSaleAmount: number | null;
+      hasOpenShift: boolean;
+      openShiftSince: string | null;
+      activeUsers: number;
+      orders24h: number;
+    };
+  }> =>
+    apiClient.get(`/admin/tenants/${id}/health`).then((r) => r.data),
+
+  resetUserPassword: (tenantId: string, userId: string, newPassword: string): Promise<{ success: boolean; userId: string; email: string }> =>
+    apiClient.patch(`/admin/tenants/${tenantId}/users/${userId}/password`, { newPassword }).then((r) => r.data),
+
   getTenantUsage: (id: string) =>
     apiClient.get(`/admin/tenants/${id}/usage`).then((r) => r.data),
 

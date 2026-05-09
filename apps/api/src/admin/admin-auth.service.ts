@@ -246,6 +246,10 @@ export class AdminAuthService {
     return this.subscriptionHelper.getTenantUsers(tenantId);
   }
 
+  resetTenantUserPassword(tenantId: string, userId: string, newPassword: string) {
+    return this.subscriptionHelper.resetTenantUserPassword(tenantId, userId, newPassword);
+  }
+
   addOwnerToTenant(
     tenantId: string,
     dto: {
