@@ -30,7 +30,6 @@ export function ResultScreen({ result }: ResultScreenProps) {
 
   const credentials = [
     { label: 'URL входа', value: LOGIN_URL },
-    { label: 'Slug', value: result.slug },
     { label: 'Email', value: result.ownerEmail },
     { label: 'Телефон', value: result.ownerPhone },
     ...(result.password ? [{ label: 'Пароль', value: result.password }] : []),
