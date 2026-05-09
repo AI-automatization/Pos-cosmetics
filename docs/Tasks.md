@@ -401,6 +401,157 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
+## T-460 | P2 | [MOBILE] | Analytics — ABC tahlil ekrani (mobile)
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
+- **Backend:** `GET /analytics/abc` — tayyor (T-089 da bajarilgan, `ai.controller.ts`)
+- **Muammo:** Web da `/analytics` sahifasida ABC tahlil tabi bor (donut chart + A/B/C guruhlash + mahsulot ro'yxati). Mobile da bu funksiya yo'q.
+- **Kutilgan:** Mobile da ABC tahlil ekrani:
+  - Donut/Pie chart (A/B/C guruhlar bo'yicha revenue ulushi)
+  - A guruh (80% revenue), B guruh (15%), C guruh (5%) — kartochkalar
+  - Har guruh ichida mahsulotlar ro'yxati (nomi, sotilgan soni, revenue)
+  - Branch filter (agar owner)
+- **API:** `analyticsApi.getAbcAnalysis(branchId?)` qo'shish kerak
+
+---
+
+## T-461 | P2 | [MOBILE] | Analytics — Marja tahlili ekrani (mobile)
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
+- **Backend:** `GET /analytics/margins` — tayyor (T-089 da bajarilgan)
+- **Muammo:** Web da marja tahlili tabi bor (top-10 margin % bar chart + jadval: revenue, COGS, gross profit, margin%). Mobile da yo'q.
+- **Kutilgan:** Mobile da Marja ekrani:
+  - Top-10 mahsulot margin % horizontal bar chart
+  - Jadval: mahsulot nomi, sotish narxi, tannarx, foyda, margin%
+  - Sortlash: margin% bo'yicha (yuqoridan pastga)
+  - Branch filter
+
+---
+
+## T-462 | P2 | [MOBILE] | Analytics — Kassir performance ekrani (mobile)
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
+- **Backend:** `GET /analytics/cashier-performance` — tayyor (T-089 da bajarilgan)
+- **Muammo:** Web da kassir performance tabi bor (bar chart + reytingli ro'yxat: buyurtmalar soni, revenue, o'rtacha chek, qaytarishlar). Mobile da yo'q.
+- **Kutilgan:** Mobile da Kassir performance ekrani:
+  - Kassirlar reytingi (ranked list)
+  - Har kassir uchun: buyurtmalar soni, jami revenue, o'rtacha chek, qaytarishlar soni
+  - Bar chart (top 5-10 kassir bo'yicha revenue)
+  - Davr filtri: bugun / hafta / oy
+
+---
+
+## T-463 | P2 | [MOBILE] | Analytics — Dead stock (harakatsiz mahsulotlar) ekrani (mobile)
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
+- **Backend:** `GET /analytics/dead-stock` — tayyor (T-089 da bajarilgan)
+- **Muammo:** Web da dead stock tabi bor (90+ kun sotilmagan mahsulotlar, carrying cost, idle kunlar soni). Mobile da yo'q.
+- **Kutilgan:** Mobile da Dead stock ekrani:
+  - 90+ kun sotilmagan mahsulotlar ro'yxati
+  - Har mahsulot uchun: oxirgi sotilgan sana, idle kunlar soni, joriy stock qiymati
+  - Umumiy "yotgan kapital" summasi (carrying cost)
+  - Sortlash: idle kunlar / stock qiymati bo'yicha
+
+---
+
+## T-464 | P2 | [MOBILE] | Settings — Foydalanuvchi parolini tiklash (mobile)
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Settings/UsersScreen.tsx (kengaytirish)
+- **Backend:** `PATCH /users/:id/reset-password` — tayyor (T-135 da bajarilgan)
+- **Muammo:** Web da owner/admin boshqa foydalanuvchi parolini tiklashi mumkin (reset password modal). Mobile da UsersScreen faqat ro'yxatni ko'rsatadi, parol tiklash yo'q.
+- **Kutilgan:** UsersScreen da har foydalanuvchi uchun "Parol tiklash" tugmasi:
+  - Bottom sheet: yangi parol kiritish (min 6 belgi)
+  - Show/hide toggle
+  - Confirm tugmasi → `PATCH /users/:id/reset-password`
+  - Faqat OWNER va ADMIN roli ko'radi
+  - O'z parolini tiklash taqiqlangan
+
+---
+
+## T-465 | P2 | [MOBILE] | Ombor — Restock request (kassirdan so'rov) ekrani (mobile)
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Ombor/ (yangi) yoki apps/mobile/src/screens/Kirim/ (kengaytirish)
+- **Backend:** Restock request API — tayyor (T-427 da bajarilgan)
+- **Muammo:** Web warehouse dashboard da "Restock requests" bo'limi bor (kassir kam qolgan mahsulot uchun so'rov yuboradi, ombor xodimi real-time ko'radi + beep sound). Mobile da bu funksiya yo'q.
+- **Kutilgan:** Ikki tomonlama:
+  - **Kassir tomoni:** Kam qolgan mahsulot kartochkasida "So'rov yuborish" tugmasi → restock request yaratish
+  - **Ombor tomoni:** Kirim yoki Ombor ekranida "So'rovlar" tabi/badge — yangi so'rovlarni ko'rish, "Qabul qildim" deb belgilash
+  - Push notification: yangi so'rov kelganda ombor xodimiga bildirishnoma
+
+---
+
+## T-466 | P2 | [MOBILE] | StockTransferScreen — tanlangan mahsulot sheet ga uzatilmaydi (UX bug)
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/StockTransfer/index.tsx
+- **Muammo:** Mahsulot kartochkasiga bosganda `onSelect={() => setSheet(true)}` chaqiriladi, lekin tanlangan mahsulot `NewTransferSheet` ga uzatilmaydi. Sheet har doim bo'sh ochiladi — foydalanuvchi mahsulotni qayta qidirishi kerak.
+- **Kutilgan:** `selectedItem` state qo'shish, `onSelect` da set qilish, `NewTransferSheet` ga `selectedItem` prop sifatida uzatish. Sheet ochilganda mahsulot oldindan tanlangan bo'lishi kerak.
+
+---
+
+## T-467 | P2 | [MOBILE] | StockMovementsScreen — pagination yo'q, faqat 50 ta record ko'rinadi
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/StockMovements/index.tsx
+- **Muammo:** `GET /inventory/movements?page=1&limit=50` faqat birinchi sahifani yuklaydi. Load more yoki infinite scroll yo'q. Yuqori hajmli do'konlarda eski harakatlar ko'rinmaydi.
+- **Kutilgan:** `FlatList` da `onEndReached` + `onEndReachedThreshold` bilan infinite scroll qo'shish. `page` state ni oshirib keyingi sahifani yuklash, `items` ga append qilish.
+
+---
+
+## T-468 | P2 | [MOBILE] | InvoicesScreen — search, filter va Cancel tugmasi yo'q
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Ombor/InvoicesScreen.tsx, apps/mobile/src/screens/Ombor/InvoiceDetailSheet.tsx
+- **Muammo:** 3 ta kamchilik:
+  1. Search yo'q — invoice raqami yoki yetkazuvchi nomi bo'yicha qidirish imkoni yo'q
+  2. Filter yo'q — sana bo'yicha filtrlash mumkin emas (API `from`/`to` qo'llab-quvvatlaydi)
+  3. InvoiceDetailSheet da faqat "Qabul qilish" (Approve) tugmasi bor, "Bekor qilish" (Cancel/Reject) tugmasi yo'q (KirimScreen da ikkisi ham bor)
+- **Kutilgan:**
+  - Search bar qo'shish (client-side filter: invoice number, supplier name)
+  - Status filter tabs: ALL / PENDING / RECEIVED / CANCELLED
+  - InvoiceDetailSheet ga "Bekor qilish" tugmasi qo'shish (`PATCH /warehouse/invoices/:id/reject`)
+
+---
+
+## T-469 | P3 | [MOBILE] | LowStockList — rol guard va search yo'q
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Inventory/LowStockList.tsx
+- **Muammo:** 2 ta kamchilik:
+  1. Rol guard yo'q — CASHIER va VIEWER ham kirishi mumkin (boshqa ombor ekranlarida Manager+ guard bor)
+  2. Search yo'q — mahsulot nomi bo'yicha qidirish imkoni yo'q
+- **Kutilgan:**
+  - Rol guard qo'shish: faqat OWNER, ADMIN, MANAGER, WAREHOUSE roli kirishi mumkin
+  - Search bar qo'shish (client-side: product name filter)
+
+---
+
+## T-470 | P3 | [MOBILE] | StockOutScreen — WAREHOUSE roli kirolmaydi
+
+- **Sana:** 2026-05-09
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/StockOut/index.tsx
+- **Muammo:** `ALLOWED_ROLES` ga `WAREHOUSE` kiritilmagan — ombor xodimi hisobdan chiqarish (write-off) qilolmaydi. Lock screen ko'rsatiladi: "Kerakli rol: Manager, Admin, Owner". Lekin amalda ombor xodimi shikastlangan/muddati o'tgan mahsulotlarni chiqarishi kerak.
+- **Kutilgan:** `ALLOWED_ROLES` ga `'WAREHOUSE'` qo'shish. Yoki alohida ruxsat tizimi (masalan, WAREHOUSE faqat o'z omboridagi mahsulotlarni chiqarishi mumkin).
+
+---
+
 ## T-423 | P1 | [IKKALASI] | PaymentsHistoryScreen — Backend `/sales/orders` `from`/`to` sana filtrini qabul qilmaydi
 
 - **Sana:** 2026-05-05
