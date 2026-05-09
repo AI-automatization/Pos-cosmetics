@@ -71,13 +71,12 @@
 - **Sana:** 2026-05-02
 - **Mas'ul:** Ibrat
 - **Scope:** Owner/Admin panel, POS (Cashier), Warehouse, Manager, Super Admin
-- **Muammo:** POS UI ~70-80% hardcoded Uzbek. Admin panel ham hardcoded. Foydalanuvchi Ruscha yozsa product nomi ham 3 tilga auto-translate bo'lishi kerak.
-- **Infrastructure:** `apps/web/src/i18n/` mavjud (uz.json, ru.json, en.json) lekin to'liq qo'llanilmagan
-- **3 Faza:**
-  - **Faza 1** — UI Labels: hardcoded stringlar → `t('key')` (POS + Admin)
+- **Holat:** **Faza 1 BAJARILDI** (2026-05-07) — Faza 2-3 ochiq
+- **Faza 1 natija:** 762 kalit, 31 seksiya, 71 fayl, 3 til (uz/ru/en). Barcha statik UI stringlar `t()` orqali.
+- **Qolgan fazalar:**
   - **Faza 2** — Schema: `Product/Category/Unit` ga `name_uz, name_ru, name_en` qo'shish + migration
   - **Faza 3** — Auto-translate service: `apps/api/src/common/translate/translate.service.ts` (Google Translate API yoki LibreTranslate)
-- **Kutilgan:** Til tanlanganda butun UI o'zgaradi; product yaratishda auto 3-til tarjima
+- **Kutilgan:** Product yaratishda auto 3-til tarjima
 
 ---
 

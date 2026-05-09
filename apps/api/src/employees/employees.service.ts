@@ -1,8 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotifyService } from '../notifications/notify.service';
-import { Prisma, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { EmployeesHelper } from './employees.helper';
+import { EmployeesActivityHelper } from './employees-activity.helper';
 
 @Injectable()
 export class EmployeesService {
@@ -11,6 +13,8 @@ export class EmployeesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notify: NotifyService,
+    private readonly helper: EmployeesHelper,
+    private readonly activityHelper: EmployeesActivityHelper,
   ) {}
 
   // ─── LIST ─────────────────────────────────────────────────────
@@ -34,7 +38,7 @@ export class EmployeesService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return users.map((u) => this.toEmployee(u));
+    return users.map((u) => this.helper.toEmployee(u));
   }
 
   // ─── GET ONE ──────────────────────────────────────────────────
@@ -53,19 +57,22 @@ export class EmployeesService {
       },
     });
     if (!user) throw new NotFoundException('Employee not found');
-    return this.toEmployee(user);
+    return this.helper.toEmployee(user);
   }
 
   // ─── CREATE ───────────────────────────────────────────────────
   // T-329: invite token (7d TTL) avtomatik yaratiladi
-  async create(tenantId: string, dto: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    role?: string;
-    phone?: string;
-  }) {
+  async create(
+    tenantId: string,
+    dto: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+      role?: string;
+      phone?: string;
+    },
+  ) {
     const passwordHash = await bcrypt.hash(dto.password, 12);
     const user = await this.prisma.user.create({
       data: {
@@ -77,18 +84,31 @@ export class EmployeesService {
         role: (dto.role as UserRole) ?? UserRole.CASHIER,
       },
       select: {
-        id: true, firstName: true, lastName: true, email: true,
-        role: true, isActive: true, createdAt: true, botSettings: true,
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        botSettings: true,
       },
     });
 
-    const { inviteLink } = await this.notify.createInviteTokenForUser(user.id, tenantId);
-    return { ...this.toEmployee(user), inviteLink };
+    const { inviteLink } = await this.notify.createInviteTokenForUser(
+      user.id,
+      tenantId,
+    );
+    return { ...this.helper.toEmployee(user), inviteLink };
   }
 
   // ─── UPDATE STATUS ────────────────────────────────────────────
   // T-144: fired status qo'shildi | T-146: fired → sessiyalar o'chiriladi
-  async updateStatus(tenantId: string, id: string, status: 'active' | 'inactive' | 'fired') {
+  async updateStatus(
+    tenantId: string,
+    id: string,
+    status: 'active' | 'inactive' | 'fired',
+  ) {
     const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) throw new NotFoundException('Employee not found');
 
@@ -98,8 +118,14 @@ export class EmployeesService {
       where: { id },
       data: { isActive },
       select: {
-        id: true, firstName: true, lastName: true, email: true,
-        role: true, isActive: true, createdAt: true, botSettings: true,
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        botSettings: true,
       },
     });
 
@@ -114,23 +140,32 @@ export class EmployeesService {
       ]);
     }
 
-    return this.toEmployee(updated);
+    return this.helper.toEmployee(updated);
   }
 
   // ─── UPDATE POS ACCESS ────────────────────────────────────────
   // T-146: POS access olinganda → sessiyalar o'chiriladi
-  async updatePosAccess(tenantId: string, id: string, hasPosAccess: boolean) {
+  async updatePosAccess(
+    tenantId: string,
+    id: string,
+    hasPosAccess: boolean,
+  ) {
     const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) throw new NotFoundException('Employee not found');
 
-    // POS access → role CASHIER (with access) or VIEWER (without)
     const newRole = hasPosAccess ? 'CASHIER' : 'VIEWER';
     const updated = await this.prisma.user.update({
       where: { id },
       data: { role: newRole as UserRole },
       select: {
-        id: true, firstName: true, lastName: true, email: true,
-        role: true, isActive: true, createdAt: true, botSettings: true,
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        botSettings: true,
       },
     });
 
@@ -145,7 +180,7 @@ export class EmployeesService {
       ]);
     }
 
-    return this.toEmployee(updated);
+    return this.helper.toEmployee(updated);
   }
 
   // ─── DELETE (soft) ────────────────────────────────────────────
@@ -156,7 +191,11 @@ export class EmployeesService {
   }
 
   // ─── TRANSFER ─────────────────────────────────────────────────
-  async transferEmployee(tenantId: string, employeeId: string, newBranchId: string) {
+  async transferEmployee(
+    tenantId: string,
+    employeeId: string,
+    newBranchId: string,
+  ) {
     const employee = await this.prisma.user.findFirst({
       where: { id: employeeId, tenantId },
     });
@@ -171,8 +210,14 @@ export class EmployeesService {
       where: { id: employeeId },
       data: { branchId: newBranchId },
       select: {
-        id: true, firstName: true, lastName: true, email: true,
-        role: true, isActive: true, createdAt: true, botSettings: true,
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        botSettings: true,
       },
     });
 
@@ -180,332 +225,46 @@ export class EmployeesService {
       `Employee ${employeeId} transferred to branch ${newBranchId}`,
       { tenantId },
     );
-    return this.toEmployee(updated);
+    return this.helper.toEmployee(updated);
   }
 
-  // ─── PERFORMANCE ──────────────────────────────────────────────
-  async getPerformance(tenantId: string, opts: {
-    branchId?: string;
-    fromDate?: string;
-    toDate?: string;
-    period?: string;
-  }) {
-    const { from, to } = this.resolveDateRange(opts.fromDate, opts.toDate, opts.period);
-    const branchFilter = opts.branchId
-      ? Prisma.sql`AND o.branch_id = ${opts.branchId}`
-      : Prisma.empty;
-
-    const rows = await this.prisma.$queryRaw<{
-      employeeId: string;
-      firstName: string;
-      lastName: string;
-      role: string;
-      branchName: string | null;
-      totalOrders: number;
-      totalRevenue: number;
-      totalDiscountOrders: number;
-      totalRefunds: number;
-      totalRefundAmount: number;
-      totalVoids: number;
-    }[]>`
-      SELECT
-        u.id                                                                              AS "employeeId",
-        u.first_name                                                                      AS "firstName",
-        u.last_name                                                                       AS "lastName",
-        u.role::text                                                                      AS "role",
-        MAX(b.name)                                                                       AS "branchName",
-        COUNT(DISTINCT CASE WHEN o.status::text = 'COMPLETED' THEN o.id END)::int        AS "totalOrders",
-        COALESCE(SUM(CASE WHEN o.status::text = 'COMPLETED' THEN o.total END), 0)::float AS "totalRevenue",
-        COUNT(DISTINCT CASE WHEN o.status::text = 'COMPLETED'
-                             AND o.discount_amount > 0 THEN o.id END)::int               AS "totalDiscountOrders",
-        COUNT(DISTINCT r.id)::int                                                         AS "totalRefunds",
-        COALESCE(SUM(r.total), 0)::float                                                  AS "totalRefundAmount",
-        COUNT(DISTINCT CASE WHEN o.status::text = 'VOIDED' THEN o.id END)::int           AS "totalVoids"
-      FROM users u
-      LEFT JOIN orders o
-        ON o.user_id    = u.id
-       AND o.tenant_id  = ${tenantId}
-       AND o.created_at >= ${from}
-       AND o.created_at <  ${to}
-       ${branchFilter}
-      LEFT JOIN branches b ON b.id = o.branch_id
-      LEFT JOIN returns r
-        ON r.user_id    = u.id
-       AND r.tenant_id  = ${tenantId}
-       AND r.created_at >= ${from}
-       AND r.created_at <  ${to}
-      WHERE u.tenant_id  = ${tenantId}
-        AND u."isActive" = true
-      GROUP BY u.id, u.first_name, u.last_name, u.role
-      ORDER BY "totalOrders" DESC
-    `;
-
-    const employees = rows.map((row) => {
-      const revenue = row.totalRevenue || 1;
-      const refundRatio = row.totalRefundAmount / revenue;
-      const discountRatio = row.totalDiscountOrders / Math.max(row.totalOrders, 1);
-      let suspiciousActivityCount = 0;
-      if (refundRatio > 0.20) suspiciousActivityCount++;
-      if (discountRatio > 0.30) suspiciousActivityCount++;
-      if (row.totalVoids >= 3) suspiciousActivityCount++;
-
-      return {
-        employeeId: row.employeeId,
-        employeeName: `${row.firstName} ${row.lastName}`,
-        role: row.role.toLowerCase(),
-        branchName: row.branchName ?? null,
-        totalOrders: row.totalOrders,
-        totalRevenue: row.totalRevenue,
-        totalRefunds: row.totalRefunds,
-        refundRate: row.totalOrders > 0
-          ? parseFloat((row.totalRefunds / row.totalOrders * 100).toFixed(1))
-          : 0,
-        totalVoids: row.totalVoids,
-        suspiciousActivityCount,
-      };
-    });
-
-    return { employees };
+  // ─── PERFORMANCE (TEAM) ───────────────────────────────────────
+  getPerformance(
+    tenantId: string,
+    opts: {
+      branchId?: string;
+      fromDate?: string;
+      toDate?: string;
+      period?: string;
+    },
+  ) {
+    return this.helper.getPerformance(tenantId, opts);
   }
 
-  // ─── EMPLOYEE PERFORMANCE ─────────────────────────────────────
-  async getEmployeePerformance(tenantId: string, id: string, opts: {
-    fromDate?: string;
-    toDate?: string;
-  }) {
-    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
-    if (!user) throw new NotFoundException('Employee not found');
-
-    const from = opts.fromDate
-      ? new Date(opts.fromDate)
-      : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
-    const to = opts.toDate ? new Date(opts.toDate) : new Date();
-
-    const [orders, returns] = await Promise.all([
-      this.prisma.order.findMany({
-        where: { tenantId, userId: id, status: 'COMPLETED', createdAt: { gte: from, lte: to } },
-        select: { total: true, discountAmount: true },
-      }),
-      this.prisma.return.findMany({
-        where: { tenantId, userId: id, createdAt: { gte: from, lte: to } },
-        select: { id: true },
-      }),
-    ]);
-
-    const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
-    const totalOrders = orders.length;
-    const totalDiscounts = orders.filter((o) => Number(o.discountAmount) > 0).length;
-
-    return {
-      employeeId: id,
-      employeeName: `${user.firstName} ${user.lastName}`,
-      role: user.role.toLowerCase(),
-      branchName: null,
-      totalOrders,
-      totalRevenue,
-      avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
-      totalRefunds: returns.length,
-      refundRate: totalOrders > 0 ? parseFloat((returns.length / totalOrders * 100).toFixed(1)) : 0,
-      totalVoids: 0,
-      totalDiscounts,
-      discountRate: totalOrders > 0 ? parseFloat((totalDiscounts / totalOrders * 100).toFixed(1)) : 0,
-      suspiciousActivityCount: 0,
-      alerts: [],
-    };
+  // ─── PERFORMANCE (SINGLE EMPLOYEE) ───────────────────────────
+  getEmployeePerformance(
+    tenantId: string,
+    id: string,
+    opts: { fromDate?: string; toDate?: string },
+  ) {
+    return this.helper.getEmployeePerformance(tenantId, id, opts);
   }
 
-  // ─── SUSPICIOUS ACTIVITY ──────────────────────────────────────
-  async getSuspiciousActivity(tenantId: string, opts: {
-    branchId?: string;
-    fromDate?: string;
-    toDate?: string;
-    severity?: string;
-  }) {
-    const from = opts.fromDate
-      ? new Date(opts.fromDate)
-      : (() => { const d = new Date(); d.setDate(d.getDate() - 7); return d; })();
-    const to = opts.toDate ? new Date(opts.toDate) : new Date();
-    const dayCount = Math.round((to.getTime() - from.getTime()) / 86400000);
-
-    // Bitta groupBy query — N+1 ni bartaraf etadi
-    const returnGroups = await this.prisma.return.groupBy({
-      by: ['userId'],
-      where: { tenantId, createdAt: { gte: from, lte: to } },
-      _count: { id: true },
-    });
-
-    const suspicious = returnGroups.filter((r) => r._count.id >= 3);
-    if (suspicious.length === 0) return [];
-
-    const userIds = suspicious.map((r) => r.userId).filter((id): id is string => id !== null);
-    const users = await this.prisma.user.findMany({
-      where: { id: { in: userIds }, tenantId },
-      select: { id: true, firstName: true, lastName: true },
-    });
-
-    const userMap = new Map(users.map((u) => [u.id, u]));
-
-    const alerts = suspicious
-      .filter((r) => r.userId !== null && userMap.has(r.userId as string))
-      .map((r) => {
-        const user = userMap.get(r.userId as string)!;
-        const count = r._count.id;
-        return {
-          id: `${r.userId}-rapid-refunds`,
-          employeeId: r.userId as string,
-          employeeName: `${user.firstName} ${user.lastName}`,
-          type: 'RAPID_REFUNDS',
-          description: `${count} ta qaytarish ${dayCount} kun ichida`,
-          occurredAt: to,
-          severity: count >= 5 ? 'high' : 'medium',
-        };
-      });
-
-    if (opts.severity) {
-      return alerts.filter((a) => a.severity === opts.severity);
-    }
-    return alerts;
+  // ─── SUSPICIOUS ACTIVITY (TEAM) ───────────────────────────────
+  getSuspiciousActivity(
+    tenantId: string,
+    opts: {
+      branchId?: string;
+      fromDate?: string;
+      toDate?: string;
+      severity?: string;
+    },
+  ) {
+    return this.activityHelper.getSuspiciousActivity(tenantId, opts);
   }
 
-  async getEmployeeSuspiciousActivity(tenantId: string, id: string, limit = 20) {
-    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
-    if (!user) throw new NotFoundException('Employee not found');
-
-    const from = new Date(); from.setDate(from.getDate() - 30);
-    const safeLimit = Math.min(Math.max(limit, 1), 100);
-
-    // Avg order value for this tenant — refund > 3× avg trigger
-    const avgRows = await this.prisma.$queryRaw<{ avg: number }[]>`
-      SELECT COALESCE(AVG(total), 0)::float AS avg
-      FROM orders
-      WHERE tenant_id = ${tenantId} AND status::text = 'COMPLETED'
-    `;
-    const avgOrderValue = Number(avgRows[0]?.avg ?? 0);
-    const refundThreshold = avgOrderValue * 3;
-
-    const [largeRefunds, highDiscountOrders, voidedOrders] = await Promise.all([
-      // 1. Large refunds (> 3× avg order value)
-      this.prisma.return.findMany({
-        where: {
-          tenantId, userId: id,
-          createdAt: { gte: from },
-          ...(refundThreshold > 0 && { total: { gt: refundThreshold } }),
-        },
-        select: { id: true, total: true, orderId: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
-        take: safeLimit,
-      }),
-      // 2. High discount orders (> 30% of original price)
-      this.prisma.$queryRaw<{ id: string; total: number; discountAmount: number; createdAt: Date }[]>`
-        SELECT id, total::float, discount_amount::float AS "discountAmount", created_at AS "createdAt"
-        FROM orders
-        WHERE tenant_id  = ${tenantId}
-          AND user_id    = ${id}
-          AND status::text = 'COMPLETED'
-          AND created_at >= ${from}
-          AND total > 0
-          AND discount_amount > 0
-          AND discount_amount::float / (total::float + discount_amount::float) > 0.30
-        ORDER BY created_at DESC
-        LIMIT ${safeLimit}
-      `,
-      // 3. Voided orders
-      this.prisma.order.findMany({
-        where: { tenantId, userId: id, status: 'VOIDED', createdAt: { gte: from } },
-        select: { id: true, total: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
-        take: safeLimit,
-      }),
-    ]);
-
-    const activities = [
-      ...largeRefunds.map((r) => ({
-        id: r.id,
-        type: 'LARGE_REFUND' as const,
-        description: `Katta qaytarish: ${Number(r.total).toLocaleString()} so'm (o'rtachadan 3× ko'p)`,
-        orderId: r.orderId ?? undefined,
-        amount: Number(r.total),
-        createdAt: r.createdAt,
-      })),
-      ...highDiscountOrders.map((o) => ({
-        id: o.id,
-        type: 'HIGH_DISCOUNT' as const,
-        description: `Katta chegirma: ${Number(o.discountAmount).toLocaleString()} so'm (>30%)`,
-        orderId: o.id,
-        amount: Number(o.discountAmount),
-        createdAt: o.createdAt,
-      })),
-      ...voidedOrders.map((o) => ({
-        id: o.id,
-        type: 'VOID' as const,
-        description: `Bekor qilingan buyurtma: ${Number(o.total).toLocaleString()} so'm`,
-        orderId: o.id,
-        amount: Number(o.total),
-        createdAt: o.createdAt,
-      })),
-    ]
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, safeLimit);
-
-    return { activities };
-  }
-
-  // ─── HELPERS ──────────────────────────────────────────────────
-  private resolveDateRange(fromDate?: string, toDate?: string, period?: string) {
-    if (fromDate || toDate) {
-      const from = fromDate ? new Date(fromDate) : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
-      const to = toDate ? new Date(toDate) : new Date();
-      return { from, to };
-    }
-    const now = new Date();
-    switch (period) {
-      case 'today': {
-        const from = new Date(now); from.setHours(0, 0, 0, 0);
-        return { from, to: now };
-      }
-      case 'week': {
-        const from = new Date(now); from.setDate(now.getDate() - 6); from.setHours(0, 0, 0, 0);
-        return { from, to: now };
-      }
-      case 'month': {
-        const from = new Date(now); from.setDate(1); from.setHours(0, 0, 0, 0);
-        return { from, to: now };
-      }
-      default: {
-        const from = new Date(now); from.setDate(now.getDate() - 30);
-        return { from, to: now };
-      }
-    }
-  }
-
-  private toEmployee(u: {
-    id: string; firstName: string; lastName: string;
-    email: string; role: string; isActive: boolean;
-    createdAt: Date; botSettings: unknown;
-  }) {
-    const settings = (u.botSettings as Record<string, unknown>) ?? {};
-    return {
-      id: u.id,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      fullName: `${u.firstName} ${u.lastName}`,
-      phone: (settings['phone'] as string) ?? null,
-      email: u.email,
-      dateOfBirth: null,
-      passportId: null,
-      address: null,
-      hireDate: u.createdAt.toISOString().split('T')[0],
-      role: u.role.toLowerCase(),
-      branchId: null,
-      branchName: null,
-      status: u.isActive ? 'active' : 'inactive',
-      login: u.email,
-      photoUrl: null,
-      hasPosAccess: ['CASHIER', 'MANAGER', 'OWNER'].includes(u.role),
-      hasAdminAccess: ['OWNER', 'MANAGER'].includes(u.role),
-      hasReportsAccess: ['OWNER', 'MANAGER'].includes(u.role),
-      emergencyContactName: null,
-      emergencyContactPhone: null,
-    };
+  // ─── SUSPICIOUS ACTIVITY (SINGLE EMPLOYEE) ────────────────────
+  getEmployeeSuspiciousActivity(tenantId: string, id: string, limit = 20) {
+    return this.activityHelper.getEmployeeSuspiciousActivity(tenantId, id, limit);
   }
 }

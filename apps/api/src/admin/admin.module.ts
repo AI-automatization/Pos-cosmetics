@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AdminAuthService } from './admin-auth.service';
+import { AdminTenantHelper } from './admin-tenant.helper';
+import { AdminSubscriptionHelper } from './admin-subscription.helper';
 import { AdminMetricsService } from './admin-metrics.service';
 import { AdminDatabaseService } from './admin-database.service';
 import { AdminAuthController } from './admin-auth.controller';
@@ -23,7 +25,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     }),
   ],
   controllers: [AdminAuthController, AdminDatabaseController],
-  providers: [AdminAuthService, AdminMetricsService, AdminDatabaseService],
+  providers: [AdminAuthService, AdminTenantHelper, AdminSubscriptionHelper, AdminMetricsService, AdminDatabaseService],
   exports: [AdminAuthService, AdminMetricsService, AdminDatabaseService],
 })
 export class AdminModule {}

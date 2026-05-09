@@ -10,19 +10,17 @@ import {
   ChevronUp,
   Eye,
   Search,
-  X,
 } from 'lucide-react';
-import { useDebts, useDebtDetail, useNasiyaSummary, usePayDebt } from '@/hooks/customers/useDebts';
+import { useDebts, useNasiyaSummary } from '@/hooks/customers/useDebts';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
-import type { Debt, DebtPayment, PayDebtDto } from '@/types/debt';
-
+import type { Debt } from '@/types/debt';
+import { QuickPayModal } from './QuickPayModal';
+import { NasiyaDetailModal } from './NasiyaDetailModal';
 
 type FilterTab = 'all' | 'overdue' | 'current';
-
-type PayMethod = 'CASH' | 'CARD' | 'TRANSFER';
 
 function DebtStatusBadge({ status }: { status: Debt['status'] }) {
   const { t } = useTranslation();
@@ -38,320 +36,6 @@ function DebtStatusBadge({ status }: { status: Debt['status'] }) {
     <span className={cn('rounded-full px-2 py-0.5 text-xs', className)}>
       {label}
     </span>
-  );
-}
-
-function QuickPayModal({ debt, onClose }: { debt: Debt; onClose: () => void }) {
-  const { t } = useTranslation();
-  const [amount, setAmount] = useState(debt.remainingAmount);
-  const [method, setMethod] = useState<PayMethod>('CASH');
-  const { mutate: payDebt, isPending } = usePayDebt();
-
-  const METHODS: { key: PayMethod; label: string }[] = [
-    { key: 'CASH', label: t('payments.cash') },
-    { key: 'CARD', label: t('payments.card') },
-    { key: 'TRANSFER', label: t('payments.bankTransfer') },
-  ];
-
-  const handlePay = () => {
-    const dto: PayDebtDto = { amount, method };
-    payDebt({ debtId: debt.id, dto }, { onSuccess: onClose });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} aria-hidden="true" />
-      <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">{t('nasiya.payDebtLabel')}</h2>
-            <p className="text-xs text-gray-400">
-              {debt.customerName} · {debt.orderNumber ?? debt.orderId.slice(0, 8)}
-            </p>
-          </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="p-5">
-          <div className="mb-4 rounded-xl bg-orange-50 px-4 py-3">
-            <p className="text-xs text-orange-600">{t('nasiya.remainingDebt')}</p>
-            <p className="text-xl font-bold text-orange-700">{formatPrice(debt.remainingAmount)}</p>
-          </div>
-
-          <div className="mb-4">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t('common.quantity')}</label>
-            <input
-              type="number"
-              value={amount}
-              min={1}
-              max={debt.remainingAmount}
-              onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-right text-base font-bold outline-none focus:border-blue-400"
-            />
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setAmount(Math.round(debt.remainingAmount / 2))}
-                className="flex-1 rounded-lg border border-gray-200 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
-              >
-                50%
-              </button>
-              <button
-                type="button"
-                onClick={() => setAmount(debt.remainingAmount)}
-                className="flex-1 rounded-lg border border-blue-200 bg-blue-50 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
-              >
-                {t('nasiya.fullyPaid')}
-              </button>
-            </div>
-          </div>
-
-          <div className="mb-5">
-            <p className="mb-2 text-sm font-medium text-gray-700">{t('payments.method')}</p>
-            <div className="flex gap-2">
-              {METHODS.map((m) => (
-                <button
-                  key={m.key}
-                  type="button"
-                  onClick={() => setMethod(m.key)}
-                  className={cn(
-                    'flex-1 rounded-lg border py-2 text-sm font-medium transition',
-                    method === m.key
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50',
-                  )}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handlePay}
-            disabled={isPending || amount <= 0}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
-          >
-            <CheckCircle className="h-4 w-4" />
-            {isPending ? t('common.saving') : `${formatPrice(amount)} ${t('nasiya.pay')}`}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Backend detail shape (includes order items and full payment history)
-interface DebtDetail {
-  id: string;
-  customerId: string;
-  orderId?: string | null;
-  totalAmount: number | string;
-  paidAmount: number | string;
-  remaining: number | string;
-  dueDate?: string | null;
-  status: string;
-  notes?: string | null;
-  createdAt: string;
-  customer?: { id: string; name: string; phone: string };
-  payments: DebtPayment[];
-  order?: {
-    id: string;
-    orderNumber?: string | number | null;
-    total: number | string;
-    createdAt: string;
-    items: {
-      id: string;
-      quantity: number;
-      unitPrice: number | string;
-      productName?: string | null;
-      product?: { name: string } | null;
-    }[];
-  } | null;
-}
-
-// METHOD_LABELS is now built inside NasiyaDetailModal using t() — see below
-
-function NasiyaDetailModal({ debtId, onClose }: { debtId: string; onClose: () => void }) {
-  const { t } = useTranslation();
-  const { data, isLoading } = useDebtDetail(debtId);
-  const detail = data as DebtDetail | undefined;
-
-  const METHOD_LABELS: Record<string, string> = {
-    CASH: t('payments.cash'),
-    CARD: t('payments.card'),
-    TERMINAL: t('payments.card'),
-    TRANSFER: t('payments.bankTransfer'),
-  };
-
-  const overdueDays = detail?.dueDate
-    ? Math.max(0, Math.floor((Date.now() - new Date(detail.dueDate).getTime()) / 86400000))
-    : 0;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
-      <div className="relative z-10 flex w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl max-h-[85vh]">
-        {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4">
-          <h2 className="text-base font-semibold text-gray-900">{t('nasiya.debtDetail')}</h2>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {isLoading ? (
-            <LoadingSkeleton variant="table" rows={4} />
-          ) : detail ? (
-            <>
-              {/* Customer info */}
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{t('nasiya.customer')}</p>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900">{detail.customer?.name ?? '—'}</p>
-                    <p className="mt-0.5 font-mono text-sm text-gray-500">+{detail.customer?.phone ?? '—'}</p>
-                  </div>
-                  <DebtStatusBadge
-                    status={
-                      detail.status === 'OVERDUE' && overdueDays > 90
-                        ? 'OVERDUE_90PLUS'
-                        : detail.status === 'OVERDUE' && overdueDays > 60
-                        ? 'OVERDUE_90'
-                        : detail.status === 'OVERDUE' && overdueDays > 30
-                        ? 'OVERDUE_60'
-                        : detail.status === 'OVERDUE'
-                        ? 'OVERDUE_30'
-                        : 'CURRENT'
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Debt amounts */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-xl border border-gray-100 bg-white p-3 text-center">
-                  <p className="text-xs text-gray-400">{t('nasiya.originalAmount')}</p>
-                  <p className="mt-1 font-bold text-gray-900">{formatPrice(Number(detail.totalAmount))}</p>
-                </div>
-                <div className="rounded-xl border border-green-100 bg-green-50 p-3 text-center">
-                  <p className="text-xs text-green-600">{t('nasiya.paidAmount')}</p>
-                  <p className="mt-1 font-bold text-green-700">{formatPrice(Number(detail.paidAmount))}</p>
-                </div>
-                <div className="rounded-xl border border-orange-100 bg-orange-50 p-3 text-center">
-                  <p className="text-xs text-orange-600">{t('nasiya.remainingDebt')}</p>
-                  <p className="mt-1 font-bold text-orange-700">{formatPrice(Number(detail.remaining))}</p>
-                </div>
-              </div>
-
-              {/* Due date + overdue */}
-              {detail.dueDate && (
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-gray-500">{t('nasiya.dueDate')}</span>
-                  <span className="font-medium text-gray-900">
-                    {new Date(detail.dueDate).toLocaleDateString('uz-UZ')}
-                  </span>
-                  {overdueDays > 0 && (
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-600">
-                      {overdueDays} {t('nasiya.daysLate')}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Order info */}
-              {detail.order && (
-                <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{t('nasiya.order')}</p>
-                  <div className="rounded-xl border border-gray-100 p-4">
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="font-medium text-gray-900">
-                        #{detail.order.orderNumber ?? detail.order.id.slice(0, 8)}
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        {new Date(detail.order.createdAt).toLocaleDateString('uz-UZ')}
-                      </p>
-                    </div>
-                    {detail.order.items.length > 0 && (
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-gray-100 text-left">
-                            <th className="pb-2 font-medium text-gray-500">{t('common.product')}</th>
-                            <th className="pb-2 text-center font-medium text-gray-500">{t('common.quantity')}</th>
-                            <th className="pb-2 text-right font-medium text-gray-500">{t('common.price')}</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {detail.order.items.map((item) => (
-                            <tr key={item.id}>
-                              <td className="py-1.5 text-gray-900">
-                                {item.productName ?? item.product?.name ?? '—'}
-                              </td>
-                              <td className="py-1.5 text-center text-gray-600">{item.quantity}</td>
-                              <td className="py-1.5 text-right text-gray-900">
-                                {formatPrice(Number(item.unitPrice))}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Payment history */}
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  {t('nasiya.paymentHistory')} ({detail.payments.length})
-                </p>
-                {detail.payments.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-gray-200 py-6 text-center text-sm text-gray-400">
-                    {t('nasiya.noPayments')}
-                  </p>
-                ) : (
-                  <div className="rounded-xl border border-gray-100 overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
-                        <tr className="border-b border-gray-100 text-left">
-                          <th className="px-4 py-2 font-medium text-gray-500">{t('common.date')}</th>
-                          <th className="px-4 py-2 text-center font-medium text-gray-500">{t('common.type')}</th>
-                          <th className="px-4 py-2 text-right font-medium text-gray-500">{t('common.quantity')}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {detail.payments.map((p) => (
-                          <tr key={p.id}>
-                            <td className="px-4 py-2 text-gray-600">
-                              {new Date(p.createdAt).toLocaleDateString('uz-UZ')}
-                            </td>
-                            <td className="px-4 py-2 text-center">
-                              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                                {METHOD_LABELS[p.method] ?? p.method}
-                              </span>
-                            </td>
-                            <td className="px-4 py-2 text-right font-semibold text-green-700">
-                              +{formatPrice(p.amount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <p className="py-10 text-center text-sm text-gray-400">{t('common.noData')}</p>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -490,20 +174,20 @@ export default function NasiyaPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 w-fit">
-        {TABS.map((t) => (
+        {TABS.map((tabItem) => (
           <button
-            key={t.key}
+            key={tabItem.key}
             type="button"
-            onClick={() => setTab(t.key)}
+            onClick={() => setTab(tabItem.key)}
             className={cn(
               'rounded-md px-3 py-1.5 text-sm font-medium transition',
-              tab === t.key
+              tab === tabItem.key
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700',
             )}
           >
-            {t.label}
-            {t.key === 'overdue' && summary && summary.overdueCustomers > 0 && (
+            {tabItem.label}
+            {tabItem.key === 'overdue' && summary && summary.overdueCustomers > 0 && (
               <span className="ml-1.5 rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-600">
                 {summary.overdueCustomers}
               </span>

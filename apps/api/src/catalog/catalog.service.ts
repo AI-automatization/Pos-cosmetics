@@ -22,6 +22,7 @@ import {
 import { CatalogCategoryHelper } from './catalog-category.helper';
 import { CatalogProductHelper } from './catalog-product.helper';
 import { CatalogSupplierHelper } from './catalog-supplier.helper';
+import { CatalogVariantPriceHelper } from './catalog-variant-price.helper';
 
 @Injectable()
 export class CatalogService {
@@ -32,6 +33,7 @@ export class CatalogService {
     private readonly categoryHelper: CatalogCategoryHelper,
     private readonly productHelper: CatalogProductHelper,
     private readonly supplierHelper: CatalogSupplierHelper,
+    private readonly variantPriceHelper: CatalogVariantPriceHelper,
   ) {}
 
   // ─── CATEGORIES ───────────────────────────────────────────────
@@ -164,22 +166,40 @@ export class CatalogService {
     return this.productHelper.getBundleComponents(tenantId, bundleId);
   }
 
-  addBundleComponent(tenantId: string, bundleId: string, dto: AddBundleComponentDto) {
+  addBundleComponent(
+    tenantId: string,
+    bundleId: string,
+    dto: AddBundleComponentDto,
+  ) {
     return this.productHelper.addBundleComponent(tenantId, bundleId, dto);
   }
 
-  removeBundleComponent(tenantId: string, bundleId: string, componentId: string) {
-    return this.productHelper.removeBundleComponent(tenantId, bundleId, componentId);
+  removeBundleComponent(
+    tenantId: string,
+    bundleId: string,
+    componentId: string,
+  ) {
+    return this.productHelper.removeBundleComponent(
+      tenantId,
+      bundleId,
+      componentId,
+    );
   }
 
   // ─── VARIANTS ─────────────────────────────────────────────────
 
-  getVariants(tenantId: string, productId: string) {
-    return this.productHelper.getVariants(tenantId, productId);
+  async getVariants(tenantId: string, productId: string) {
+    await this.productHelper.getProductById(tenantId, productId);
+    return this.variantPriceHelper.getVariants(tenantId, productId);
   }
 
-  createVariant(tenantId: string, productId: string, dto: CreateVariantDto) {
-    return this.productHelper.createVariant(tenantId, productId, dto);
+  async createVariant(
+    tenantId: string,
+    productId: string,
+    dto: CreateVariantDto,
+  ) {
+    await this.productHelper.getProductById(tenantId, productId);
+    return this.variantPriceHelper.createVariant(tenantId, productId, dto);
   }
 
   updateVariant(
@@ -188,25 +208,32 @@ export class CatalogService {
     variantId: string,
     dto: UpdateVariantDto,
   ) {
-    return this.productHelper.updateVariant(tenantId, productId, variantId, dto);
+    return this.variantPriceHelper.updateVariant(
+      tenantId,
+      productId,
+      variantId,
+      dto,
+    );
   }
 
   deleteVariant(tenantId: string, productId: string, variantId: string) {
-    return this.productHelper.deleteVariant(tenantId, productId, variantId);
+    return this.variantPriceHelper.deleteVariant(tenantId, productId, variantId);
   }
 
   // ─── PRICE MANAGEMENT ─────────────────────────────────────────
 
-  getProductPrices(tenantId: string, productId: string) {
-    return this.productHelper.getProductPrices(tenantId, productId);
+  async getProductPrices(tenantId: string, productId: string) {
+    await this.productHelper.getProductById(tenantId, productId);
+    return this.variantPriceHelper.getProductPrices(tenantId, productId);
   }
 
-  createProductPrice(
+  async createProductPrice(
     tenantId: string,
     productId: string,
     dto: CreateProductPriceDto,
   ) {
-    return this.productHelper.createProductPrice(tenantId, productId, dto);
+    await this.productHelper.getProductById(tenantId, productId);
+    return this.variantPriceHelper.createProductPrice(tenantId, productId, dto);
   }
 
   updateProductPrice(
@@ -215,11 +242,20 @@ export class CatalogService {
     priceId: string,
     dto: UpdateProductPriceDto,
   ) {
-    return this.productHelper.updateProductPrice(tenantId, productId, priceId, dto);
+    return this.variantPriceHelper.updateProductPrice(
+      tenantId,
+      productId,
+      priceId,
+      dto,
+    );
   }
 
   deleteProductPrice(tenantId: string, productId: string, priceId: string) {
-    return this.productHelper.deleteProductPrice(tenantId, productId, priceId);
+    return this.variantPriceHelper.deleteProductPrice(
+      tenantId,
+      productId,
+      priceId,
+    );
   }
 
   resolvePrice(
@@ -228,28 +264,39 @@ export class CatalogService {
     priceType: string,
     qty: number,
   ) {
-    return this.productHelper.resolvePrice(tenantId, productId, priceType, qty);
+    return this.variantPriceHelper.resolvePrice(
+      tenantId,
+      productId,
+      priceType,
+      qty,
+    );
   }
 
   // ─── CERTIFICATES ─────────────────────────────────────────────
 
-  getCertificates(tenantId: string, productId: string) {
-    return this.productHelper.getCertificates(tenantId, productId);
+  async getCertificates(tenantId: string, productId: string) {
+    await this.productHelper.getProductById(tenantId, productId);
+    return this.variantPriceHelper.getCertificates(tenantId, productId);
   }
 
-  createCertificate(
+  async createCertificate(
     tenantId: string,
     productId: string,
     dto: CreateCertificateDto,
   ) {
-    return this.productHelper.createCertificate(tenantId, productId, dto);
+    await this.productHelper.getProductById(tenantId, productId);
+    return this.variantPriceHelper.createCertificate(tenantId, productId, dto);
   }
 
   deleteCertificate(tenantId: string, productId: string, certId: string) {
-    return this.productHelper.deleteCertificate(tenantId, productId, certId);
+    return this.variantPriceHelper.deleteCertificate(
+      tenantId,
+      productId,
+      certId,
+    );
   }
 
   getExpiringCertificates(tenantId: string, days = 30) {
-    return this.productHelper.getExpiringCertificates(tenantId, days);
+    return this.variantPriceHelper.getExpiringCertificates(tenantId, days);
   }
 }
