@@ -6,9 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
@@ -20,6 +18,7 @@ import {
   USER_UPDATED,
 } from '../events';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 import {
   CreateUserDto,
   LoginDto,
@@ -28,6 +27,10 @@ import {
   UpdateUserDto,
 } from './dto';
 import { JwtPayload } from './strategies/jwt.strategy';
+import { TokenHelper, AuthTokens } from './token.helper';
+import { LockoutHelper } from './lockout.helper';
+
+export { AuthTokens };
 
 const BCRYPT_ROUNDS = 12;
 
@@ -40,20 +43,16 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   VIEWER: 1,
 };
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
 @Injectable()
 export class IdentityService {
   private readonly logger = new Logger(IdentityService.name);
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly tokenHelper: TokenHelper,
+    private readonly lockoutHelper: LockoutHelper,
+    private readonly auditService: AuditService,
   ) {}
 
   async register(dto: RegisterTenantDto): Promise<AuthTokens> {
@@ -72,7 +71,6 @@ export class IdentityService {
         data: {
           name: dto.tenantName,
           slug: dto.slug,
-          // T-079: Soliq ma'lumotlari (ixtiyoriy)
           ...(dto.inn && { inn: dto.inn }),
           ...(dto.legalName && { legalName: dto.legalName }),
           ...(dto.legalAddress && { legalAddress: dto.legalAddress }),
@@ -93,14 +91,14 @@ export class IdentityService {
       return { tenant, user };
     });
 
-    const tokens = await this.generateTokens({
+    const tokens = await this.tokenHelper.generateTokens({
       sub: result.user.id,
       tenantId: result.tenant.id,
       role: UserRole.OWNER,
       branchId: null,
     });
 
-    await this.saveRefreshToken(result.user.id, tokens.refreshToken);
+    await this.tokenHelper.saveRefreshToken(result.user.id, tokens.refreshToken);
 
     this.eventEmitter.emit(TENANT_REGISTERED, {
       eventId: randomUUID(),
@@ -122,69 +120,14 @@ export class IdentityService {
     return tokens;
   }
 
-  // ─── LOGIN LOCKOUT CONSTANTS (T-067) ──────────────────────────
-  private readonly MAX_FAILED_ATTEMPTS = 5;
-  private readonly LOCKOUT_MINUTES = 15;
-
-  private async checkLock(userId: string): Promise<void> {
-    const lock = await this.prisma.userLock.findUnique({ where: { userId } });
-    if (lock && lock.lockedUntil > new Date()) {
-      const remainMin = Math.ceil((lock.lockedUntil.getTime() - Date.now()) / 60000);
-      throw new UnauthorizedException(
-        `Hisob ${remainMin} daqiqa uchun bloklangan. Keyinroq urinib ko'ring.`,
-      );
-    }
-    // Lock muddati o'tgan bo'lsa — o'chiramiz
-    if (lock) {
-      await this.prisma.userLock.delete({ where: { userId } }).catch(() => null);
-    }
-  }
-
-  private async recordAttempt(
-    userId: string | null,
-    email: string,
-    ip: string,
-    success: boolean,
-  ): Promise<void> {
-    try {
-      await this.prisma.loginAttempt.create({
-        data: { userId, email, ip, success },
-      });
-
-      if (!success && userId) {
-        // So'nggi 15 daqiqa ichida muvaffaqiyatsiz urinishlar
-        const since = new Date(Date.now() - this.LOCKOUT_MINUTES * 60 * 1000);
-        const failCount = await this.prisma.loginAttempt.count({
-          where: { userId, success: false, createdAt: { gte: since } },
-        });
-
-        if (failCount >= this.MAX_FAILED_ATTEMPTS) {
-          const lockedUntil = new Date(Date.now() + this.LOCKOUT_MINUTES * 60 * 1000);
-          await this.prisma.userLock.upsert({
-            where: { userId },
-            create: { userId, lockedUntil },
-            update: { lockedUntil, lockedAt: new Date() },
-          });
-          this.logger.warn(`User locked for ${this.LOCKOUT_MINUTES}min: ${email}`);
-        }
-      }
-    } catch {
-      // Attempt log xatoligi asosiy loginni to'xtatmaydi
-    }
-  }
-
   async login(dto: LoginDto): Promise<AuthTokens> {
-    const ip = 'unknown'; // Controller dan uzatilsa kengaytirish mumkin
-
-    // T-145: email YOKI login (username) bilan kirish
+    const ip = 'unknown';
     const loginEmail = dto.email ?? dto.login ?? '';
 
-    // T-372: slug ixtiyoriy — berilsa slug bo'yicha, berilmasa avtomatik aniqlash
     let tenant: { id: string; isActive: boolean; slug: string } | null = null;
     let user: Awaited<ReturnType<typeof this.prisma.user.findUnique>> = null;
 
     if (dto.slug) {
-      // Slug berilgan — oddiy yo'l
       tenant = await this.prisma.tenant.findUnique({
         where: { slug: dto.slug },
         select: { id: true, isActive: true, slug: true },
@@ -198,7 +141,6 @@ export class IdentityService {
         where: { tenantId_email: { tenantId: tenant.id, email: loginEmail } },
       });
     } else {
-      // Slug berilmagan — email bo'yicha avtomatik aniqlash
       const candidates = await this.prisma.user.findMany({
         where: { email: loginEmail, isActive: true },
         include: { tenant: { select: { id: true, isActive: true, slug: true } } },
@@ -207,12 +149,11 @@ export class IdentityService {
       const active = candidates.filter((u) => u.tenant.isActive);
 
       if (active.length === 0) {
-        await this.recordAttempt(null, loginEmail, ip, false);
+        await this.lockoutHelper.recordAttempt(null, loginEmail, ip, false);
         throw new UnauthorizedException('Invalid credentials');
       }
 
       if (active.length > 1) {
-        // Bir nechta tenant — slug talab qilish
         throw new UnauthorizedException('SLUG_REQUIRED');
       }
 
@@ -221,12 +162,11 @@ export class IdentityService {
     }
 
     if (!user || !user.isActive) {
-      await this.recordAttempt(null, loginEmail, ip, false);
+      await this.lockoutHelper.recordAttempt(null, loginEmail, ip, false);
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Lock tekshirish
-    await this.checkLock(user.id);
+    await this.lockoutHelper.checkLock(user.id);
 
     const isPasswordValid = await bcrypt.compare(
       dto.password,
@@ -234,18 +174,16 @@ export class IdentityService {
     );
 
     if (!isPasswordValid) {
-      await this.recordAttempt(user.id, loginEmail, ip, false);
+      await this.lockoutHelper.recordAttempt(user.id, loginEmail, ip, false);
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Muvaffaqiyatli kirish → attempt log
-    await this.recordAttempt(user.id, loginEmail, ip, true);
+    await this.lockoutHelper.recordAttempt(user.id, loginEmail, ip, true);
 
-    // T-145: JWT da hasPosAccess va hasAdminAccess
     const hasPosAccess = ['CASHIER', 'MANAGER', 'OWNER'].includes(user.role);
     const hasAdminAccess = ['OWNER', 'ADMIN', 'MANAGER'].includes(user.role);
 
-    const tokens = await this.generateTokens({
+    const tokens = await this.tokenHelper.generateTokens({
       sub: user.id,
       tenantId: tenant.id,
       role: user.role,
@@ -254,7 +192,7 @@ export class IdentityService {
       hasAdminAccess,
     });
 
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken);
 
     this.eventEmitter.emit(USER_LOGGED_IN, {
       eventId: randomUUID(),
@@ -277,21 +215,25 @@ export class IdentityService {
       select: { id: true, tenantId: true, role: true, isActive: true },
     });
     if (!user.isActive) throw new UnauthorizedException('User inactive');
-    const tokens = await this.generateTokens({
-      sub: user.id, tenantId: user.tenantId, role: user.role,
+    const tokens = await this.tokenHelper.generateTokens({
+      sub: user.id,
+      tenantId: user.tenantId,
+      role: user.role,
       branchId: null,
-    } as Parameters<typeof this.generateTokens>[0]);
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    } as JwtPayload);
+    await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken);
     return tokens;
   }
 
   /** Admin tomonidan foydalanuvchi lockini ochish (T-067) */
   async unlockUser(adminUserId: string, targetUserId: string): Promise<void> {
-    await this.prisma.userLock.delete({ where: { userId: targetUserId } }).catch(() => null);
-    this.logger.log(`User unlocked by admin: target=${targetUserId}, admin=${adminUserId}`);
+    await this.lockoutHelper.unlockUser(adminUserId, targetUserId);
   }
 
-  async refreshTokens(dto: { userId: string; refreshToken: string }): Promise<AuthTokens> {
+  async refreshTokens(dto: {
+    userId: string;
+    refreshToken: string;
+  }): Promise<AuthTokens> {
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userId },
       select: {
@@ -325,26 +267,37 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const tokens = await this.generateTokens({
+    const tokens = await this.tokenHelper.generateTokens({
       sub: user.id,
       tenantId: user.tenantId,
       role: user.role,
       branchId: null,
     });
 
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
   }
 
   async loginWithSession(
     dto: LoginDto,
-    sessionParams: { ip?: string; userAgent?: string; sessionService: { createSession: (p: { userId: string; tenantId: string; ip?: string; userAgent?: string }) => Promise<string> } },
+    sessionParams: {
+      ip?: string;
+      userAgent?: string;
+      sessionService: {
+        createSession: (p: {
+          userId: string;
+          tenantId: string;
+          ip?: string;
+          userAgent?: string;
+        }) => Promise<string>;
+      };
+    },
   ): Promise<AuthTokens> {
     const tokens = await this.login(dto);
-    // Login muvaffaqiyatli bo'lgandan keyin session yaratish
-    // JWT dan userId/tenantId olish uchun tenantni qayta topamiz
-    const tenant = await this.prisma.tenant.findUnique({ where: { slug: dto.slug } });
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { slug: dto.slug },
+    });
     if (tenant) {
       const loginEmail = dto.email ?? dto.login ?? '';
       const user = await this.prisma.user.findUnique({
@@ -463,6 +416,14 @@ export class IdentityService {
 
     this.logger.log(`User created: ${user.email} (role: ${user.role})`);
 
+    void this.auditService.log({
+      tenantId,
+      action: 'USER_CREATED',
+      entityType: 'User',
+      entityId: user.id,
+      newData: { email: user.email, role: user.role },
+    });
+
     return user;
   }
 
@@ -523,6 +484,15 @@ export class IdentityService {
       occurredAt: new Date(),
     });
 
+    void this.auditService.log({
+      tenantId,
+      action: 'USER_UPDATED',
+      entityType: 'User',
+      entityId: id,
+      oldData: { email: user.email, role: user.role },
+      newData: { updatedFields: Object.keys(data) },
+    });
+
     return updated;
   }
 
@@ -562,6 +532,15 @@ export class IdentityService {
     });
 
     this.logger.log(`User deactivated: ${user.email}`);
+
+    void this.auditService.log({
+      tenantId,
+      userId: callerUserId,
+      action: 'USER_DEACTIVATED',
+      entityType: 'User',
+      entityId: id,
+      oldData: { email: user.email, role: user.role },
+    });
   }
 
   async findAllUsers(
@@ -628,36 +607,6 @@ export class IdentityService {
     }
 
     return user;
-  }
-
-  private async generateTokens(payload: JwtPayload): Promise<AuthTokens> {
-    const accessToken = await this.jwtService.signAsync(payload);
-
-    const refreshToken = randomUUID();
-
-    return { accessToken, refreshToken };
-  }
-
-  private async saveRefreshToken(
-    userId: string,
-    rawRefreshToken: string,
-  ): Promise<void> {
-    const refreshExpiresIn =
-      this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
-
-    const days = parseInt(refreshExpiresIn, 10) || 7;
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + days);
-
-    const hashedToken = await bcrypt.hash(rawRefreshToken, BCRYPT_ROUNDS);
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        refreshToken: hashedToken,
-        refreshTokenExp: expiresAt,
-      },
-    });
   }
 
   // ─── T-079: Tenant soliq ma'lumotlari ─────────────────────────
@@ -739,7 +688,6 @@ export class IdentityService {
       throw new NotFoundException('User not found');
     }
 
-    // Allow self-reset; otherwise enforce role hierarchy
     if (targetId !== callerId) {
       this.enforceRoleHierarchy(callerRole, user.role);
     }
@@ -752,6 +700,16 @@ export class IdentityService {
     });
 
     this.logger.log(`Password reset for user ${targetId} by ${callerId}`);
+
+    void this.auditService.log({
+      tenantId,
+      userId: callerId,
+      action: 'PASSWORD_RESET',
+      entityType: 'User',
+      entityId: targetId,
+      newData: { resetBy: callerId, selfReset: targetId === callerId },
+    });
+
     return { message: 'Password updated successfully' };
   }
 

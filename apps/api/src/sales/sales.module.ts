@@ -5,8 +5,10 @@ import { OrderService } from './order.service';
 import { ReturnService } from './return.service';
 import { SalesController } from './sales.controller';
 import { ShiftsController } from './shifts.controller';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
+  imports: [AuditModule],
   controllers: [SalesController, ShiftsController],
   providers: [SalesService, ShiftService, OrderService, ReturnService],
   exports: [SalesService],

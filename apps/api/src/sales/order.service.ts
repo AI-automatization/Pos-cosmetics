@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AuditService } from '../audit/audit.service';
 import { CreateOrderDto, DiscountTypeEnum } from './dto';
 import { OrderStatus, UserRole } from '@prisma/client';
 
@@ -25,6 +26,7 @@ export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly auditService: AuditService,
   ) {}
 
   async createOrder(tenantId: string, userId: string, dto: CreateOrderDto, userRole?: UserRole) {
@@ -49,11 +51,23 @@ export class OrderService {
         }
       }
 
+      // T-459: Auto-assign shiftId from user's open shift if not provided
+      let resolvedShiftId = dto.shiftId;
+      if (!resolvedShiftId) {
+        const openShift = await tx.shift.findFirst({
+          where: { tenantId, userId, status: 'OPEN' },
+          select: { id: true, branchId: true },
+        });
+        if (openShift) {
+          resolvedShiftId = openShift.id;
+        }
+      }
+
       // Auto-resolve branchId from shift if not provided in DTO
       let resolvedBranchId = dto.branchId;
-      if (!resolvedBranchId && dto.shiftId) {
+      if (!resolvedBranchId && resolvedShiftId) {
         const shift = await tx.shift.findUnique({
-          where: { id: dto.shiftId },
+          where: { id: resolvedShiftId },
           select: { branchId: true },
         });
         resolvedBranchId = shift?.branchId ?? undefined;
@@ -118,7 +132,7 @@ export class OrderService {
         data: {
           tenantId,
           userId,
-          shiftId: dto.shiftId,
+          shiftId: resolvedShiftId,
           branchId: resolvedBranchId,
           customerId: dto.customerId,
           orderNumber,
@@ -152,22 +166,43 @@ export class OrderService {
         total,
       });
 
+      void this.auditService.log({
+        tenantId,
+        userId,
+        action: 'ORDER_CREATED',
+        entityType: 'Order',
+        entityId: order.id,
+        newData: { orderNumber, total, itemsCount: dto.items.length },
+      });
+
       return order;
     });
   }
 
   async getOrders(
     tenantId: string,
-    opts: { page?: number; limit?: number; shiftId?: string },
+    opts: { page?: number; limit?: number; shiftId?: string; from?: string; to?: string },
   ) {
     const page = opts.page ?? 1;
     const limit = opts.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const where = {
+    const where: Record<string, unknown> = {
       tenantId,
       ...(opts.shiftId && { shiftId: opts.shiftId }),
     };
+
+    // T-423: Date filter
+    if (opts.from || opts.to) {
+      const createdAt: Record<string, Date> = {};
+      if (opts.from) createdAt.gte = new Date(opts.from);
+      if (opts.to) {
+        const toDate = new Date(opts.to);
+        toDate.setHours(23, 59, 59, 999);
+        createdAt.lte = toDate;
+      }
+      where.createdAt = createdAt;
+    }
 
     const [total, orders] = await this.prisma.$transaction([
       this.prisma.order.count({ where }),
