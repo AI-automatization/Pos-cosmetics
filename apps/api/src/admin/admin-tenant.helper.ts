@@ -31,7 +31,7 @@ const DEFAULT_UNITS = [
   { name: 'Gram', shortName: 'g' },
 ];
 
-const APP_LOGIN_URL = 'https://web-production-5b0b7.up.railway.app/login';
+const APP_LOGIN_URL = process.env.APP_LOGIN_URL ?? 'https://raos.uz/login';
 
 @Injectable()
 export class AdminTenantHelper {
