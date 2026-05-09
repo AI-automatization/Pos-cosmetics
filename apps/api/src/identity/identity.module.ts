@@ -12,6 +12,7 @@ import { IdentityService } from './identity.service';
 import { TokenHelper } from './token.helper';
 import { LockoutHelper } from './lockout.helper';
 import { UserManagementHelper } from './user-management.helper';
+import { TenantInfoHelper } from './tenant-info.helper';
 import { PinService } from './pin.service';
 import { SessionService } from './session.service';
 import { ApiKeyService } from './api-key.service';
@@ -43,6 +44,7 @@ import { AuditModule } from '../audit/audit.module';
     TokenHelper,
     LockoutHelper,
     UserManagementHelper,
+    TenantInfoHelper,
     TenantSettingsService,
     PinService,
     SessionService,

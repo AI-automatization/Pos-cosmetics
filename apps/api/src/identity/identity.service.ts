@@ -23,6 +23,7 @@ import { JwtPayload } from './strategies/jwt.strategy';
 import { TokenHelper, AuthTokens } from './token.helper';
 import { LockoutHelper } from './lockout.helper';
 import { UserManagementHelper } from './user-management.helper';
+import { TenantInfoHelper } from './tenant-info.helper';
 
 export { AuthTokens };
 
@@ -39,6 +40,7 @@ export class IdentityService {
     private readonly lockoutHelper: LockoutHelper,
     private readonly auditService: AuditService,
     private readonly userManagement: UserManagementHelper,
+    private readonly tenantInfo: TenantInfoHelper,
   ) {}
 
   async register(dto: RegisterTenantDto): Promise<AuthTokens> {
@@ -382,64 +384,15 @@ export class IdentityService {
 
   // ─── T-079: Tenant soliq ma'lumotlari ─────────────────────────
 
-  async getTenantInfo(tenantId: string) {
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenantId },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        isActive: true,
-        inn: true,
-        stir: true,
-        oked: true,
-        legalName: true,
-        legalAddress: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    if (!tenant) {
-      throw new NotFoundException('Tenant not found');
-    }
-
-    return tenant;
+  getTenantInfo(tenantId: string) {
+    return this.tenantInfo.getTenantInfo(tenantId);
   }
 
-  async updateTenantInfo(tenantId: string, dto: UpdateTenantInfoDto) {
-    const tenant = await this.prisma.tenant.update({
-      where: { id: tenantId },
-      data: {
-        ...(dto.name && { name: dto.name }),
-        ...(dto.inn !== undefined && { inn: dto.inn }),
-        ...(dto.stir !== undefined && { stir: dto.stir }),
-        ...(dto.oked !== undefined && { oked: dto.oked }),
-        ...(dto.legalName !== undefined && { legalName: dto.legalName }),
-        ...(dto.legalAddress !== undefined && { legalAddress: dto.legalAddress }),
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        inn: true,
-        stir: true,
-        oked: true,
-        legalName: true,
-        legalAddress: true,
-        updatedAt: true,
-      },
-    });
-
-    this.logger.log(`Tenant info updated: ${tenantId}`);
-    return tenant;
+  updateTenantInfo(tenantId: string, dto: UpdateTenantInfoDto) {
+    return this.tenantInfo.updateTenantInfo(tenantId, dto);
   }
 
-  async getBranches(tenantId: string) {
-    return this.prisma.branch.findMany({
-      where: { tenantId, isActive: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, address: true, isActive: true },
-    });
+  getBranches(tenantId: string) {
+    return this.tenantInfo.getBranches(tenantId);
   }
 }
