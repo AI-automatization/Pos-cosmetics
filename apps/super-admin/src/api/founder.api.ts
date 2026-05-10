@@ -28,6 +28,7 @@ type AdminTenant = {
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;
+  _count?: { users?: number; orders?: number };
 };
 
 export const founderApi = {
@@ -65,7 +66,7 @@ export const founderApi = {
           name: t.name,
           slug: t.slug,
           status: (t.isActive ? 'ACTIVE' : 'INACTIVE') as TenantSummary['status'],
-          salesToday: 0,
+          salesToday: t._count?.orders ?? 0,
           revenueToday: 0,
           errorsLast24h: 0,
           lastActivityAt: t.updatedAt ?? t.createdAt,
