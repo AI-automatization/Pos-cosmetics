@@ -244,6 +244,9 @@ export class AdminTenantHelper {
         data: {
           name: dto.tenantName,
           slug: dto.slug,
+          phone: dto.phone,
+          city: dto.city,
+          businessType: dto.businessType,
           inn: dto.inn,
           stir: dto.stir,
           oked: dto.oked,

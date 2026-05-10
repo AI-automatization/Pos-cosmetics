@@ -16,6 +16,9 @@ model Tenant {
   name         String
   slug         String   @unique
   isActive     Boolean  @default(true)
+  phone        String?  // Kontakt telefon
+  city         String?  // Shahar
+  businessType String?  @map("business_type") // COSMETICS, GROCERY, PHARMACY, etc.
   // T-079: Soliq ma'lumotlari
   inn          String? // INN: 9 (yuridik) yoki 14 (jismoniy) raqam
   stir         String? // STIR (soliq to'lovchi identifikator raqami)
