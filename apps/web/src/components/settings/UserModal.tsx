@@ -25,6 +25,7 @@ const userSchema = z.object({
   firstName: z.string().min(1, 'Ism kiritilishi shart'),
   lastName:  z.string().min(1, 'Familiya kiritilishi shart'),
   email:     z.string().email("Noto'g'ri email format"),
+  phone:     z.string().regex(/^\+998\d{9}$/, 'Format: +998XXXXXXXXX (13 belgi)').or(z.literal('')).optional(),
   password:  z.string().min(8, 'Parol kamida 8 belgi').optional().or(z.literal('')),
   role:      z.enum(['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER', 'VIEWER'] as const),
   branchId:  z.string().optional(),
@@ -117,6 +118,7 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
       firstName: user?.firstName ?? '',
       lastName:  user?.lastName  ?? '',
       email:     user?.email     ?? '',
+      phone:     user?.phone     ?? '',
       role:      (user?.role ?? 'CASHIER') as UserRole,
       password:  '',
       branchId:  user?.branchId ?? initialBranchId ?? '',
@@ -209,6 +211,24 @@ export function UserModal({ user, initialBranchId, lockBranchId, onClose }: User
                   )}
                 />
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t('users.phone') || 'Telefon'} <span className="font-normal text-gray-400">({t('common.optional')})</span>
+                </label>
+                <input
+                  {...register('phone')}
+                  type="tel"
+                  placeholder="+998901234567"
+                  maxLength={13}
+                  className={cn(
+                    'w-full rounded-lg border px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-blue-100',
+                    errors.phone ? 'border-red-400' : 'border-gray-300 focus:border-blue-400',
+                  )}
+                />
+                {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
               </div>
 
               {/* Password (create only) */}

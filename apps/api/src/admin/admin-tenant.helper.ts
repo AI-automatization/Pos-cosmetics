@@ -231,6 +231,14 @@ export class AdminTenantHelper {
       throw new ConflictException(`Slug "${dto.slug}" allaqachon band`);
     }
 
+    // Email uniqueness: prevent same email in multiple active tenants (causes SLUG_REQUIRED on login)
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email: dto.ownerEmail, isActive: true, tenant: { isActive: true } },
+    });
+    if (existingUser) {
+      throw new ConflictException(`Email "${dto.ownerEmail}" уже используется в другом магазине`);
+    }
+
     const tempPassword = dto.ownerPassword || randomBytes(6).toString('hex');
     const passwordHash = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
 
