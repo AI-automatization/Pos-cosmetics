@@ -54,7 +54,7 @@ export const ownerSchema = z.object({
   lastName: z.string().min(2, 'Минимум 2 символа'),
   email: z.string().email('Некорректный email'),
   phone: z.string().regex(/^\+998\d{9}$/, 'Формат: +998XXXXXXXXX').or(z.literal('')).optional(),
-  password: z.string().min(8, 'Минимум 8 символов').optional(),
+  password: z.string().optional(),
   autoPassword: z.boolean(),
 }).refine((d) => d.autoPassword || (d.password && d.password.length >= 8), {
   message: 'Пароль минимум 8 символов или выберите автоматический',

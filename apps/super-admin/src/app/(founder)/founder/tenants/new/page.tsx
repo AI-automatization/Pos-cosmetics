@@ -97,8 +97,11 @@ export default function NewTenantPage() {
       });
       toast.success(d.emailSent ? 'Магазин создан! Данные отправлены на email.' : 'Магазин создан!');
     },
-    onError: () => {
-      toast.error('Произошла ошибка. Попробуйте снова.');
+    onError: (err: unknown) => {
+      const axiosErr = err as { response?: { data?: { message?: string }; status?: number } };
+      const msg = axiosErr?.response?.data?.message || 'Произошла ошибка. Попробуйте снова.';
+      const status = axiosErr?.response?.status;
+      toast.error(status === 403 ? `Нет доступа: ${msg}` : msg);
     },
   });
 

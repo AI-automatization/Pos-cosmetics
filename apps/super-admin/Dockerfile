@@ -15,9 +15,9 @@ RUN mkdir -p ./apps/super-admin/public
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# NEXT_PUBLIC_* vars are baked into the JS bundle at build time.
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# NOTE: NEXT_PUBLIC_API_URL intentionally NOT set at build time.
+# Client uses relative URLs (/api/v1/...) which Next.js rewrites proxy to the API.
+# This avoids CORS issues — browser never makes cross-origin requests.
 
 RUN pnpm --filter super-admin build
 
