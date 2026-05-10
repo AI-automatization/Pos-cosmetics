@@ -19,6 +19,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Client uses relative URLs (/api/v1/...) which Next.js rewrites proxy to the API.
 # This avoids CORS issues — browser never makes cross-origin requests.
 
+# Server-side rewrite destination (bypasses Cloudflare via Railway internal network)
+ARG INTERNAL_API_URL
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
+
 RUN pnpm --filter super-admin build
 
 # ─── Stage 2: runner ──────────────────────────────────────────
