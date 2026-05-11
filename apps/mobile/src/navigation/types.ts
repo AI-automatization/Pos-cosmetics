@@ -152,6 +152,12 @@ export type SalesOrdersStackParamList = {
   SalesOrderDetail: { orderId: string; orderNumber: number };
 };
 
+export type AnalyticsStackParamList = {
+  AnalyticsMain: undefined;
+  AbcAnalysis: undefined;
+  MarginAnalysis: undefined;
+};
+
 export type OmborTabStackParamList = {
   OmborMain: undefined;
   InvoicesScreen: undefined;

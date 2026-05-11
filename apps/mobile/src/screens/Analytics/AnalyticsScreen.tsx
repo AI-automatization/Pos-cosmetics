@@ -10,8 +10,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi, type BranchRevenueItem } from '../../api/analytics.api';
+import type { AnalyticsStackParamList } from '../../navigation/types';
 
 const C = {
   bg: '#F9FAFB', white: '#FFFFFF', text: '#111827', muted: '#9CA3AF',
@@ -55,7 +58,10 @@ function BranchCard({ item, maxRevenue, rank }: {
   );
 }
 
+type Nav = NativeStackNavigationProp<AnalyticsStackParamList>;
+
 export default function AnalyticsScreen(): React.JSX.Element {
+  const navigation = useNavigation<Nav>();
   const [period, setPeriod] = useState<Period>('month');
 
   const { data = [], isLoading, isError, refetch, isFetching } = useQuery({
@@ -146,6 +152,39 @@ export default function AnalyticsScreen(): React.JSX.Element {
                 ))
             )}
           </View>
+
+          {/* ── Tahlil vositalari ─────────────────────── */}
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Tahlil vositalari</Text>
+            <TouchableOpacity
+              style={s.toolCard}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('AbcAnalysis')}
+            >
+              <View style={[s.toolIcon, { backgroundColor: '#DCFCE7' }]}>
+                <Ionicons name="pie-chart" size={20} color="#16A34A" />
+              </View>
+              <View style={s.toolInfo}>
+                <Text style={s.toolTitle}>ABC Tahlil</Text>
+                <Text style={s.toolDesc}>Mahsulotlarni daromad bo'yicha A/B/C guruhlash</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={C.muted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.toolCard}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('MarginAnalysis')}
+            >
+              <View style={[s.toolIcon, { backgroundColor: '#FEF9C3' }]}>
+                <Ionicons name="trending-up" size={20} color="#CA8A04" />
+              </View>
+              <View style={s.toolInfo}>
+                <Text style={s.toolTitle}>Marja Tahlili</Text>
+                <Text style={s.toolDesc}>Mahsulotlar bo'yicha foyda va marja foizi</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={C.muted} />
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       )}
     </SafeAreaView>
@@ -207,4 +246,16 @@ const s = StyleSheet.create({
   barFill: { height: 6, borderRadius: 3 },
   branchMeta: { flexDirection: 'row', justifyContent: 'space-between' },
   metaText: { fontSize: 12, color: C.muted, fontWeight: '500' },
+  toolCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: C.white, borderRadius: 14,
+    borderWidth: 1, borderColor: C.border, padding: 14, marginBottom: 10,
+  },
+  toolIcon: {
+    width: 40, height: 40, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  toolInfo: { flex: 1 },
+  toolTitle: { fontSize: 14, fontWeight: '700', color: C.text },
+  toolDesc: { fontSize: 12, color: C.muted, marginTop: 2 },
 });

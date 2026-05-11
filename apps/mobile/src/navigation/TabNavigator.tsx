@@ -41,7 +41,7 @@ import ExchangeRatesScreen from '../screens/Finance/ExchangeRatesScreen';
 import BranchReportsScreen from '../screens/Finance/BranchReportsScreen';
 import ReportBuilderScreen from '../screens/Finance/ReportBuilderScreen';
 import ExportScreen from '../screens/Finance/ExportScreen';
-import AnalyticsScreen from '../screens/Analytics/AnalyticsScreen';
+import AnalyticsNavigator from './AnalyticsNavigator';
 import SystemHealthScreen from '../screens/SystemHealth/SystemHealthScreen';
 import EmployeesNavigator from './EmployeesNavigator';
 import DebtsScreen from '../screens/Debts';
@@ -231,7 +231,7 @@ export default function TabNavigator(): React.JSX.Element {
       {isOwnerAdmin && (
         <Tab.Screen
           name="Analytics"
-          component={AnalyticsScreen}
+          component={AnalyticsNavigator}
           options={{
             tabBarLabel: 'Analitika',
             tabBarIcon: ({ focused, color }) =>

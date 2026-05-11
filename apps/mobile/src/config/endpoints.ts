@@ -15,6 +15,7 @@ export const ENDPOINTS = {
   ANALYTICS_TOP_PRODUCTS: '/analytics/top-products',
   ANALYTICS_EMPLOYEE_PERFORMANCE: '/analytics/employee-performance',
   ANALYTICS_REVENUE_BY_BRANCH: '/analytics/revenue-by-branch',
+  ANALYTICS_ABC: '/analytics/abc',
 
   // Inventory
   INVENTORY_STOCK: '/inventory/stock',
