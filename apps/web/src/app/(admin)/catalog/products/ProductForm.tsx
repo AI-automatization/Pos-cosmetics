@@ -129,8 +129,8 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative z-10 w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-lg font-bold text-gray-900">
             {product ? t('products.editProduct') : t('products.addProduct')}
           </h2>
@@ -143,7 +143,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-5">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 overflow-y-auto p-5">
           <div className="grid grid-cols-3 gap-3">
 
             {/* Row 1: Name full width */}
