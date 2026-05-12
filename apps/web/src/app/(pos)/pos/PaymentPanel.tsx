@@ -36,7 +36,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const store = usePOSStore();
   const cart = store.carts[store.activeCartId];
   const { items, paymentMethod, cashAmount, cardAmount, orderDiscount, orderDiscountType, selectedCustomer, bonusPoints, splitNasiyaAmount } = cart;
-  const { setPaymentMethod, setCashAmount, setCardAmount, setOrderDiscount, setSelectedCustomer, setBonusPoints, setSplitNasiyaAmount, totals } = store;
+  const { setPaymentMethod, setCashAmount, setCardAmount, setCardType, setOrderDiscount, setSelectedCustomer, setBonusPoints, setSplitNasiyaAmount, totals } = store;
 
   // Reset bonus/nasiya amounts when leaving their payment methods
   useEffect(() => {
@@ -61,7 +61,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
-  const [cardType, setCardType] = useState<'terminal' | 'payme' | 'click'>('terminal');
+  const cardType = cart.cardType ?? 'terminal';
   // Ref so we can read latest globalPromo inside effect without adding it to deps
   const globalPromoRef = useRef(globalPromo);
   globalPromoRef.current = globalPromo;

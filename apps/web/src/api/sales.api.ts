@@ -61,6 +61,9 @@ export const salesApi = {
     const methodMap: Record<string, string> = {
       CASH: 'CASH',
       CARD: 'TERMINAL',
+      TERMINAL: 'TERMINAL',
+      PAYME: 'PAYME',
+      CLICK: 'CLICK',
       NASIYA: 'DEBT',
     };
 
