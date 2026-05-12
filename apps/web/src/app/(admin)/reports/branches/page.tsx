@@ -121,7 +121,7 @@ export default function BranchReportsPage() {
     return (
       <div className="h-full overflow-y-auto p-6">
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          Ma'lumot yuklashda xatolik yuz berdi
+          {t('reports.loadError')}
         </div>
       </div>
     );
@@ -182,7 +182,7 @@ export default function BranchReportsPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
         <SummaryCard label={t('reports.totalRevenue')} value={formatPrice(totalRevenue)} note={t('reports.allBranches')} />
-        <SummaryCard label={t('reports.orders')} value={`${totalOrders} ta`} note={`${PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? ''}`} />
+        <SummaryCard label={t('reports.orders')} value={`${totalOrders} ${t('common.unit')}`} note={`${PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? ''}`} />
         <SummaryCard
           label={t('reports.avgGrowth')}
           value={`${avgGrowth >= 0 ? '+' : ''}${avgGrowth.toFixed(1)}%`}
@@ -286,7 +286,7 @@ export default function BranchReportsPage() {
       {/* Stock Transfers — placeholder */}
       <div className="rounded-xl border border-gray-200 bg-white px-4 py-6 text-center">
         <GitCompare className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-        <p className="text-sm text-gray-400">Filiallar arasi ko'chirma — T-114 backend tayyor bo'lgach ko'rinadi</p>
+        <p className="text-sm text-gray-400">{t('reports.transferPlaceholder')}</p>
       </div>
     </div>
   );

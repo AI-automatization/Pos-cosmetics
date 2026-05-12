@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ChartTooltip } from './AnalyticsShared';
 import { EmptyState } from './AnalyticsShared';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface TrendDataPoint {
   period?: string;
@@ -24,10 +25,11 @@ interface Props {
 }
 
 export function AnalyticsTrendTab({ period, onPeriodChange, trend, isLoading }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">Sotuv trendi</h2>
+        <h2 className="text-base font-semibold text-gray-900">{t('analytics.trendTitle')}</h2>
         <div className="flex rounded-lg bg-gray-100 p-0.5">
           {(['daily', 'weekly', 'monthly'] as const).map((p) => (
             <button
@@ -39,7 +41,7 @@ export function AnalyticsTrendTab({ period, onPeriodChange, trend, isLoading }: 
                 period === p ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700',
               )}
             >
-              {p === 'daily' ? 'Kunlik' : p === 'weekly' ? 'Haftalik' : 'Oylik'}
+              {p === 'daily' ? t('analytics.daily') : p === 'weekly' ? t('analytics.weekly') : t('analytics.monthly')}
             </button>
           ))}
         </div>
@@ -47,7 +49,7 @@ export function AnalyticsTrendTab({ period, onPeriodChange, trend, isLoading }: 
       {isLoading ? (
         <LoadingSkeleton variant="line" className="h-72" />
       ) : trend.length === 0 ? (
-        <EmptyState label="Ma'lumotlar topilmadi" />
+        <EmptyState label={t('analytics.noData')} />
       ) : (
         <ResponsiveContainer width="100%" height={340}>
           <AreaChart
@@ -88,8 +90,8 @@ export function AnalyticsTrendTab({ period, onPeriodChange, trend, isLoading }: 
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
-            <Area type="monotone" dataKey="revenue" name="Daromad" stroke="#6366f1" strokeWidth={2.5} fill="url(#gradRevenue)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
-            <Area type="monotone" dataKey="avgBasket" name="O'rt. chek" stroke="#8b5cf6" strokeWidth={1.5} fill="url(#gradBasket)" dot={false} strokeDasharray="5 3" />
+            <Area type="monotone" dataKey="revenue" name={t('analytics.revenue')} stroke="#6366f1" strokeWidth={2.5} fill="url(#gradRevenue)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
+            <Area type="monotone" dataKey="avgBasket" name={t('analytics.avgCheckShort')} stroke="#8b5cf6" strokeWidth={1.5} fill="url(#gradBasket)" dot={false} strokeDasharray="5 3" />
           </AreaChart>
         </ResponsiveContainer>
       )}

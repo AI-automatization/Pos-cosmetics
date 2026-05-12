@@ -5,13 +5,14 @@ import { Download, FileText, Package, Users, BarChart2, Wallet } from 'lucide-re
 import { reportsApi } from '@/api/reports.api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 type ExportType = 'sales' | 'order-items' | 'products' | 'inventory' | 'customers' | 'debts';
 
 interface ExportItem {
   key: ExportType;
-  label: string;
-  description: string;
+  labelKey: string;
+  descKey: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   bg: string;
@@ -20,48 +21,48 @@ interface ExportItem {
 const EXPORT_ITEMS: ExportItem[] = [
   {
     key: 'sales',
-    label: 'Sotuvlar',
-    description: "Barcha buyurtmalar ro'yxati",
+    labelKey: 'reports.sales',
+    descKey: 'reports.salesDesc',
     icon: BarChart2,
     color: 'text-blue-600',
     bg: 'bg-blue-50',
   },
   {
     key: 'order-items',
-    label: 'Buyurtma elementlari',
-    description: 'Har bir mahsulot pozitsiyasi',
+    labelKey: 'reports.orderItems',
+    descKey: 'reports.orderItemsDesc',
     icon: FileText,
     color: 'text-violet-600',
     bg: 'bg-violet-50',
   },
   {
     key: 'products',
-    label: 'Mahsulotlar',
-    description: "Katalog to'liq eksport",
+    labelKey: 'reports.products',
+    descKey: 'reports.productsDesc',
     icon: Package,
     color: 'text-green-600',
     bg: 'bg-green-50',
   },
   {
     key: 'inventory',
-    label: 'Inventar',
-    description: 'Zaxira va harakatlar',
+    labelKey: 'reports.inventory',
+    descKey: 'reports.inventoryDesc',
     icon: Package,
     color: 'text-amber-600',
     bg: 'bg-amber-50',
   },
   {
     key: 'customers',
-    label: 'Xaridorlar',
-    description: 'Xaridorlar bazasi',
+    labelKey: 'reports.customers',
+    descKey: 'reports.customersDesc',
     icon: Users,
     color: 'text-pink-600',
     bg: 'bg-pink-50',
   },
   {
     key: 'debts',
-    label: 'Nasiyalar',
-    description: "Barcha qarzlar tarixi",
+    labelKey: 'reports.debts',
+    descKey: 'reports.debtsDesc',
     icon: Wallet,
     color: 'text-red-600',
     bg: 'bg-red-50',
@@ -69,6 +70,7 @@ const EXPORT_ITEMS: ExportItem[] = [
 ];
 
 export default function ExportPage() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState<ExportType | null>(null);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -80,9 +82,9 @@ export default function ExportPage() {
     if (to) params.to = to;
     try {
       await reportsApi.exportDownload(key, params);
-      toast.success(`${key} eksport qilindi!`);
+      toast.success(t('reports.exportSuccess', { type: key }));
     } catch {
-      toast.error('Eksport xatosi');
+      toast.error(t('reports.exportError'));
     } finally {
       setLoading(null);
     }
@@ -91,14 +93,14 @@ export default function ExportPage() {
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Ma&apos;lumotlarni eksport qilish</h1>
-        <p className="mt-0.5 text-sm text-gray-500">CSV formatida yuklab olish</p>
+        <h1 className="text-xl font-semibold text-gray-900">{t('reports.exportTitle')}</h1>
+        <p className="mt-0.5 text-sm text-gray-500">{t('reports.exportSubtitle')}</p>
       </div>
 
       {/* Date filter */}
       <div className="flex flex-wrap items-end gap-4 rounded-xl border border-gray-200 bg-white p-4">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Boshlanish sanasi</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('reports.startDate')}</label>
           <input
             type="date"
             value={from}
@@ -107,7 +109,7 @@ export default function ExportPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Tugash sanasi</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('reports.endDate')}</label>
           <input
             type="date"
             value={to}
@@ -115,7 +117,7 @@ export default function ExportPage() {
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
         </div>
-        <p className="pb-2 text-xs text-gray-400">Sana tanlanmasa — barcha ma&apos;lumotlar</p>
+        <p className="pb-2 text-xs text-gray-400">{t('reports.allDataHint')}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -129,8 +131,8 @@ export default function ExportPage() {
                 <item.icon className={cn('h-5 w-5', item.color)} />
               </div>
               <div>
-                <p className="font-semibold text-gray-900">{item.label}</p>
-                <p className="text-xs text-gray-500">{item.description}</p>
+                <p className="font-semibold text-gray-900">{t(item.labelKey)}</p>
+                <p className="text-xs text-gray-500">{t(item.descKey)}</p>
               </div>
             </div>
             <button
@@ -143,7 +145,7 @@ export default function ExportPage() {
               )}
             >
               <Download className="h-4 w-4" />
-              {loading === item.key ? 'Yuklanmoqda...' : 'CSV yuklab olish'}
+              {loading === item.key ? t('common.loading') : t('reports.csvDownload')}
             </button>
           </div>
         ))}

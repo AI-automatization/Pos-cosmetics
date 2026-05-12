@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export interface TopProduct {
   productId: string;
@@ -15,12 +16,13 @@ interface TopProductsListProps {
 }
 
 export function TopProductsList({ products }: TopProductsListProps) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-700">Top mahsulotlar</h2>
+        <h2 className="text-sm font-semibold text-gray-700">{t('dashboard.topProducts')}</h2>
         <Link href="/reports/top-products" className="text-xs text-blue-600 hover:text-blue-700">
-          Barchasi →
+          {t('dashboard.viewAll')}
         </Link>
       </div>
       <div className="flex flex-col gap-3">
@@ -31,7 +33,7 @@ export function TopProductsList({ products }: TopProductsListProps) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium text-gray-800">{p.productName}</p>
-              <p className="text-xs text-gray-400">{p.quantity} ta</p>
+              <p className="text-xs text-gray-400">{p.quantity} {t('common.unit')}</p>
             </div>
             <span className="shrink-0 text-xs font-semibold text-gray-700">
               {formatPrice(p.revenue)}
@@ -48,12 +50,13 @@ interface TopProductsGridProps {
 }
 
 export function TopProductsGrid({ products }: TopProductsGridProps) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-700">Top mahsulotlar (haftalik)</h2>
+        <h2 className="text-sm font-semibold text-gray-700">{t('dashboard.topProductsWeekly')}</h2>
         <Link href="/reports/top-products" className="text-xs text-blue-600 hover:text-blue-700">
-          Barchasi →
+          {t('dashboard.viewAll')}
         </Link>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -64,7 +67,7 @@ export function TopProductsGrid({ products }: TopProductsGridProps) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium text-gray-800">{p.productName}</p>
-              <p className="text-xs text-gray-400">{p.quantity} ta · {formatPrice(p.revenue)}</p>
+              <p className="text-xs text-gray-400">{p.quantity} {t('common.unit')} · {formatPrice(p.revenue)}</p>
             </div>
           </div>
         ))}

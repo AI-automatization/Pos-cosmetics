@@ -9,6 +9,7 @@ import {
 import { formatPrice, cn } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ChartTooltip, CHART_COLORS, EmptyState } from './AnalyticsShared';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface TopProduct {
   productId: string;
@@ -26,6 +27,7 @@ interface Props {
 const PRODUCTS_PER_PAGE = 10;
 
 export function AnalyticsProductsTab({ topProducts, isLoading }: Props) {
+  const { t } = useTranslation();
   const [productsSearch, setProductsSearch] = useState('');
   const [productsPage, setProductsPage] = useState(0);
 
@@ -44,7 +46,7 @@ export function AnalyticsProductsTab({ topProducts, isLoading }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-gray-900">
-          Top mahsulotlar
+          {t('analytics.topProductsTitle')}
           <span className="ml-2 text-xs font-normal text-gray-400">({filteredProducts.length} ta)</span>
         </h2>
         <div className="relative">
@@ -62,7 +64,7 @@ export function AnalyticsProductsTab({ topProducts, isLoading }: Props) {
       {isLoading ? (
         <LoadingSkeleton variant="table" rows={6} />
       ) : filteredProducts.length === 0 ? (
-        <EmptyState label="Ma'lumotlar topilmadi" />
+        <EmptyState label={t('analytics.noData')} />
       ) : (
         <>
           <ResponsiveContainer width="100%" height={Math.min(400, pagedProducts.length * 40 + 40)}>
@@ -80,7 +82,7 @@ export function AnalyticsProductsTab({ topProducts, isLoading }: Props) {
               />
               <YAxis type="category" dataKey="productName" tick={{ fontSize: 12, fill: '#475569' }} width={150} tickLine={false} axisLine={false} />
               <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="revenue" name="Daromad" radius={[0, 8, 8, 0]} barSize={24}>
+              <Bar dataKey="revenue" name={t('analytics.revenue')} radius={[0, 8, 8, 0]} barSize={24}>
                 {pagedProducts.map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                 ))}
@@ -92,9 +94,15 @@ export function AnalyticsProductsTab({ topProducts, isLoading }: Props) {
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  {['#', 'Mahsulot', 'Sotildi', 'Daromad', 'Marja'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      {h}
+                  {[
+                    { key: 'rank', label: t('analytics.colRank') },
+                    { key: 'product', label: t('analytics.colProduct') },
+                    { key: 'sold', label: t('analytics.colSold') },
+                    { key: 'revenue', label: t('analytics.colRevenue') },
+                    { key: 'margin', label: t('analytics.colMargin') },
+                  ].map((h) => (
+                    <th key={h.key} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      {h.label}
                     </th>
                   ))}
                 </tr>

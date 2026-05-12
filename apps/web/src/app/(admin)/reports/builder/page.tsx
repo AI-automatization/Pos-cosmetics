@@ -7,51 +7,40 @@ import { reportsApi } from '@/api/reports.api';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Config ─── */
 
 type Dimension = 'product' | 'category' | 'branch' | 'cashier' | 'date';
 type Metric = 'revenue' | 'quantity' | 'orders' | 'margin';
 
-interface DimensionOption {
-  value: Dimension;
-  label: string;
-}
 
-interface MetricOption {
-  value: Metric;
-  label: string;
-}
+type ExportType = 'sales' | 'order-items' | 'products' | 'inventory' | 'customers' | 'debts';
 
-const DIMENSIONS: DimensionOption[] = [
-  { value: 'product', label: 'Mahsulot' },
-  { value: 'category', label: 'Kategoriya' },
-  { value: 'branch', label: 'Filial' },
-  { value: 'cashier', label: 'Kassir' },
-  { value: 'date', label: 'Sana' },
+const DIMENSION_KEYS: { value: Dimension; key: string }[] = [
+  { value: 'product', key: 'common.product' },
+  { value: 'category', key: 'common.category' },
+  { value: 'branch', key: 'common.branch' },
+  { value: 'cashier', key: 'reports.cashier' },
+  { value: 'date', key: 'common.date' },
 ];
 
-const METRICS: MetricOption[] = [
-  { value: 'revenue', label: 'Daromad' },
-  { value: 'quantity', label: 'Soni' },
-  { value: 'orders', label: 'Buyurtmalar' },
-  { value: 'margin', label: 'Marja' },
+const METRIC_KEYS: { value: Metric; key: string }[] = [
+  { value: 'revenue', key: 'reports.revenue' },
+  { value: 'quantity', key: 'reports.quantity' },
+  { value: 'orders', key: 'reports.orders' },
+  { value: 'margin', key: 'analytics.margin' },
 ];
 
-const EXPORT_TYPES = [
-  { value: 'sales', label: 'Sotuvlar' },
-  { value: 'order-items', label: 'Buyurtma qatorlari' },
-  { value: 'products', label: 'Mahsulotlar' },
-  { value: 'inventory', label: 'Inventar' },
-  { value: 'customers', label: 'Mijozlar' },
-  { value: 'debts', label: 'Qarzlar' },
-] as const;
+const EXPORT_TYPE_KEYS: { value: ExportType; key: string }[] = [
+  { value: 'sales', key: 'reports.sales' },
+  { value: 'order-items', key: 'reports.orderItems' },
+  { value: 'products', key: 'reports.products' },
+  { value: 'inventory', key: 'reports.inventory' },
+  { value: 'customers', key: 'reports.customers' },
+  { value: 'debts', key: 'reports.debts' },
+];
 
-type ExportType = (typeof EXPORT_TYPES)[number]['value'];
-
-function fmtPrice(amount: number) {
-  return new Intl.NumberFormat('uz-UZ').format(Math.round(amount)) + " so'm";
-}
 
 function getDefaultDates() {
   const to = new Date().toISOString().slice(0, 10);
@@ -62,6 +51,7 @@ function getDefaultDates() {
 /* ─── Page ─── */
 
 export default function ReportBuilderPage() {
+  const { t, fmtPrice: tFmtPrice } = useTranslation();
   const defaults = getDefaultDates();
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
@@ -160,8 +150,8 @@ export default function ReportBuilderPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Hisobot yaratish</h1>
-          <p className="mt-0.5 text-sm text-gray-500">O&apos;lcham va metrikalarni tanlang</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('reports.builderTitle')}</h1>
+          <p className="mt-0.5 text-sm text-gray-500">{t('reports.builderSubtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -170,7 +160,7 @@ export default function ReportBuilderPage() {
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
             <RotateCcw className="h-4 w-4" />
-            Tozalash
+            {t('reports.reset')}
           </button>
           <button
             type="button"
@@ -178,7 +168,7 @@ export default function ReportBuilderPage() {
             className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
           >
             <Play className="h-4 w-4" />
-            Ishga tushirish
+            {t('reports.run')}
           </button>
         </div>
       </div>
@@ -187,7 +177,7 @@ export default function ReportBuilderPage() {
       <div className="grid gap-4 rounded-xl border border-gray-200 bg-white p-5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Date range */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-500">Boshlanish</label>
+          <label className="mb-1.5 block text-xs font-medium text-gray-500">{t('reports.startDate')}</label>
           <input
             type="date"
             value={from}
@@ -196,7 +186,7 @@ export default function ReportBuilderPage() {
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-500">Tugash</label>
+          <label className="mb-1.5 block text-xs font-medium text-gray-500">{t('reports.endDate')}</label>
           <input
             type="date"
             value={to}
@@ -207,9 +197,9 @@ export default function ReportBuilderPage() {
 
         {/* Dimension */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-500">O&apos;lcham</label>
+          <label className="mb-1.5 block text-xs font-medium text-gray-500">{t('reports.dimension')}</label>
           <div className="flex flex-wrap gap-1">
-            {DIMENSIONS.map((d) => (
+            {DIMENSION_KEYS.map((d) => (
               <button
                 key={d.value}
                 type="button"
@@ -221,7 +211,7 @@ export default function ReportBuilderPage() {
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
                 )}
               >
-                {d.label}
+                {t(d.key)}
               </button>
             ))}
           </div>
@@ -229,9 +219,9 @@ export default function ReportBuilderPage() {
 
         {/* Metrics */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-500">Metrikalar</label>
+          <label className="mb-1.5 block text-xs font-medium text-gray-500">{t('reports.metrics')}</label>
           <div className="flex flex-wrap gap-1">
-            {METRICS.map((m) => (
+            {METRIC_KEYS.map((m) => (
               <button
                 key={m.value}
                 type="button"
@@ -243,7 +233,7 @@ export default function ReportBuilderPage() {
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
                 )}
               >
-                {m.label}
+                {t(m.key)}
               </button>
             ))}
           </div>
@@ -254,16 +244,16 @@ export default function ReportBuilderPage() {
       {!executed ? (
         <EmptyState
           icon={BarChart3}
-          title="Hisobotni ishga tushiring"
-          description="O'lcham va metrikalarni tanlab, 'Ishga tushirish' tugmasini bosing"
+          title={t('reports.runReport')}
+          description={t('reports.runReportDesc')}
         />
       ) : isLoading ? (
         <LoadingSkeleton variant="table" rows={8} />
       ) : tableData.length === 0 ? (
         <EmptyState
           icon={Table2}
-          title="Ma'lumot topilmadi"
-          description="Tanlangan davr uchun natijalar yo'q. Sanalarni o'zgartiring."
+          title={t('common.noData')}
+          description={t('reports.noDataDesc')}
         />
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -271,19 +261,19 @@ export default function ReportBuilderPage() {
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  {DIMENSIONS.find((d) => d.value === selectedDimension)?.label}
+                  {t(DIMENSION_KEYS.find((d) => d.value === selectedDimension)?.key ?? 'common.name')}
                 </th>
                 {selectedMetrics.includes('revenue') && (
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">Daromad</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.revenue')}</th>
                 )}
                 {selectedMetrics.includes('quantity') && (
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">Soni</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.quantity')}</th>
                 )}
                 {selectedMetrics.includes('orders') && (
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">Buyurtmalar</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">{t('reports.orders')}</th>
                 )}
                 {selectedMetrics.includes('margin') && (
-                  <th className="px-4 py-3 text-right font-medium text-gray-600">Marja</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-600">{t('analytics.margin')}</th>
                 )}
               </tr>
             </thead>
@@ -293,7 +283,7 @@ export default function ReportBuilderPage() {
                   <td className="px-4 py-3 font-medium text-gray-900">{row.label}</td>
                   {selectedMetrics.includes('revenue') && (
                     <td className="px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
-                      {fmtPrice(row.revenue)}
+                      {tFmtPrice(row.revenue)}
                     </td>
                   )}
                   {selectedMetrics.includes('quantity') && (
@@ -312,10 +302,10 @@ export default function ReportBuilderPage() {
             </tbody>
             <tfoot className="border-t border-gray-200 bg-gray-50">
               <tr className="font-semibold text-gray-900">
-                <td className="px-4 py-3">Jami</td>
+                <td className="px-4 py-3">{t('common.total')}</td>
                 {selectedMetrics.includes('revenue') && (
                   <td className="px-4 py-3 text-right tabular-nums">
-                    {fmtPrice(tableData.reduce((s, r) => s + r.revenue, 0))}
+                    {tFmtPrice(tableData.reduce((s, r) => s + r.revenue, 0))}
                   </td>
                 )}
                 {selectedMetrics.includes('quantity') && (
@@ -337,9 +327,9 @@ export default function ReportBuilderPage() {
 
       {/* Export */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">CSV eksport</h2>
+        <h2 className="mb-3 text-sm font-semibold text-gray-900">{t('reports.csvExport')}</h2>
         <div className="flex flex-wrap gap-2">
-          {EXPORT_TYPES.map((et) => (
+          {EXPORT_TYPE_KEYS.map((et) => (
             <button
               key={et.value}
               type="button"
@@ -348,7 +338,7 @@ export default function ReportBuilderPage() {
               className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
             >
               <Download className="h-3.5 w-3.5" />
-              {exporting === et.value ? 'Yuklanmoqda...' : et.label}
+              {exporting === et.value ? t('common.loading') : t(et.key)}
             </button>
           ))}
         </div>

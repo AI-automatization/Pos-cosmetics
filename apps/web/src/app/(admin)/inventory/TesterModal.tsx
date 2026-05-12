@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { inventoryApi } from '@/api/inventory.api';
 import { cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface TesterModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface TesterModalProps {
 }
 
 export function TesterModal({ isOpen, onClose }: TesterModalProps) {
+  const { t } = useTranslation();
   const { data: productsData } = useProducts({ limit: 500 });
   const products = productsData?.items ?? [];
 
@@ -74,8 +76,8 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
               <FlaskConical className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Tester ochish</h2>
-              <p className="text-sm text-gray-500">Tester/namuna sifatida chiqarish</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('inventory.openTester')}</h2>
+              <p className="text-sm text-gray-500">{t('inventory.testerDesc')}</p>
             </div>
           </div>
           <button
@@ -94,7 +96,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
             {/* Product */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-700">
-                Mahsulot <span className="text-red-500">*</span>
+                {t('common.product')} <span className="text-red-500">*</span>
               </label>
               <SearchableDropdown
                 options={products.map((p) => ({
@@ -104,7 +106,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
                 }))}
                 value={productId}
                 onChange={(val) => setProductId(val)}
-                placeholder="Mahsulot tanlang..."
+                placeholder={t('inventory.selectProduct')}
                 searchPlaceholder="Nomi yoki barcode..."
                 clearable={false}
                 required
@@ -115,13 +117,13 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
             {warehouses.length > 1 && (
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-700">
-                  Ombor <span className="text-red-500">*</span>
+                  {t('inventory.warehouse')} <span className="text-red-500">*</span>
                 </label>
                 <SearchableDropdown
                   options={warehouses.map((w) => ({ value: w.id, label: w.name }))}
                   value={warehouseId}
                   onChange={(val) => setWarehouseId(val)}
-                  placeholder="Ombor tanlang..."
+                  placeholder={t('inventory.selectWarehouse')}
                   clearable={false}
                   required
                 />
@@ -132,7 +134,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-700">
-                  Miqdor <span className="text-red-500">*</span>
+                  {t('common.quantity')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -146,7 +148,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-700">
-                  Tan narxi (so&apos;m) <span className="text-red-500">*</span>
+                  {t('inventory.costPrice')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -164,25 +166,25 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
             {quantity > 0 && costPrice > 0 && (
               <div className="rounded-lg bg-purple-50 px-4 py-3 text-sm">
                 <span className="text-purple-700">
-                  Jami xarajat:{' '}
+                  {t('inventory.totalCost')}{' '}
                   <span className="font-semibold">
                     {(quantity * costPrice).toLocaleString('uz-UZ')} so&apos;m
                   </span>
                 </span>
                 <p className="mt-0.5 text-xs text-purple-500">
-                  Bu summa xarajatlar jurnalida TESTER kategoriyasida saqlanadi
+                  {t('inventory.testerCostNote')}
                 </p>
               </div>
             )}
 
             {/* Note */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-700">Izoh (ixtiyoriy)</label>
+              <label className="text-sm font-medium text-gray-700">{t('inventory.noteOptional')}</label>
               <input
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Masalan: Mijoz uchun namuna..."
+                placeholder={t('inventory.testerNotePlaceholder')}
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
               />
             </div>
@@ -195,7 +197,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
               onClick={onClose}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -206,7 +208,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
               )}
             >
               <Save className="h-4 w-4" />
-              {isPending ? 'Saqlanmoqda...' : 'Testerni saqlash'}
+              {isPending ? t('common.saving') : t('inventory.saveTester')}
             </button>
           </div>
         </form>

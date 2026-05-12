@@ -6,15 +6,8 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { useSubscription, useBillingPlans, useUsageStats, useUpgradePlan } from '@/hooks/settings/useBilling';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { SubscriptionStatus, BillingPlan } from '@/types/billing';
-
-const STATUS_CONFIG: Record<SubscriptionStatus, { label: string; className: string }> = {
-  TRIAL: { label: 'Sinov davri', className: 'bg-blue-100 text-blue-700' },
-  ACTIVE: { label: 'Faol', className: 'bg-green-100 text-green-700' },
-  PAST_DUE: { label: "To'lov kechikdi", className: 'bg-orange-100 text-orange-700' },
-  CANCELLED: { label: 'Bekor qilingan', className: 'bg-gray-100 text-gray-600' },
-  EXPIRED: { label: 'Muddati o\'tgan', className: 'bg-red-100 text-red-700' },
-};
 
 function UsageBar({ label, used, max, icon: Icon }: {
   label: string;
@@ -51,11 +44,25 @@ function PlanCard({
   isCurrentPlan,
   onUpgrade,
   isUpgrading,
+  currentPlanLabel,
+  perMonthLabel,
+  branchesLabel,
+  productsLabel,
+  usersLabel,
+  selectLabel,
+  loadingLabel,
 }: {
   plan: BillingPlan;
   isCurrentPlan: boolean;
   onUpgrade: () => void;
   isUpgrading: boolean;
+  currentPlanLabel: string;
+  perMonthLabel: string;
+  branchesLabel: string;
+  productsLabel: string;
+  usersLabel: string;
+  selectLabel: string;
+  loadingLabel: string;
 }) {
   return (
     <div
@@ -68,7 +75,7 @@ function PlanCard({
     >
       {isCurrentPlan && (
         <span className="absolute right-4 top-4 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">
-          Joriy tarif
+          {currentPlanLabel}
         </span>
       )}
 
@@ -81,21 +88,21 @@ function PlanCard({
         <span className="text-2xl font-bold text-gray-900">
           {formatPrice(plan.priceMonthly)}
         </span>
-        <span className="text-sm text-gray-500">/oy</span>
+        <span className="text-sm text-gray-500">{perMonthLabel}</span>
       </div>
 
       <ul className="mt-4 flex flex-1 flex-col gap-2">
         <li className="flex items-center gap-2 text-sm text-gray-600">
           <GitBranch className="h-4 w-4 text-blue-500" />
-          {plan.maxBranches} ta filial
+          {plan.maxBranches} {branchesLabel}
         </li>
         <li className="flex items-center gap-2 text-sm text-gray-600">
           <Package className="h-4 w-4 text-blue-500" />
-          {plan.maxProducts.toLocaleString()} ta mahsulot
+          {plan.maxProducts.toLocaleString()} {productsLabel}
         </li>
         <li className="flex items-center gap-2 text-sm text-gray-600">
           <Users className="h-4 w-4 text-blue-500" />
-          {plan.maxUsers} ta foydalanuvchi
+          {plan.maxUsers} {usersLabel}
         </li>
         {plan.features.slice(0, 3).map((f) => (
           <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
@@ -116,14 +123,23 @@ function PlanCard({
             : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60',
         )}
       >
-        {isCurrentPlan ? 'Joriy tarif' : isUpgrading ? 'Yuklanmoqda...' : 'Tanlash'}
+        {isCurrentPlan ? currentPlanLabel : isUpgrading ? loadingLabel : selectLabel}
       </button>
     </div>
   );
 }
 
 export default function BillingPage() {
+  const { t } = useTranslation();
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
+
+  const STATUS_CONFIG: Record<SubscriptionStatus, { label: string; className: string }> = {
+    TRIAL: { label: t('billing.trialPeriod'), className: 'bg-blue-100 text-blue-700' },
+    ACTIVE: { label: t('billing.active'), className: 'bg-green-100 text-green-700' },
+    PAST_DUE: { label: t('billing.paymentOverdue'), className: 'bg-orange-100 text-orange-700' },
+    CANCELLED: { label: t('billing.cancelled'), className: 'bg-gray-100 text-gray-600' },
+    EXPIRED: { label: t('billing.expired'), className: 'bg-red-100 text-red-700' },
+  };
 
   const { data: subscription, isLoading: subLoading } = useSubscription();
   const { data: plans = [], isLoading: plansLoading } = useBillingPlans();
@@ -154,7 +170,7 @@ export default function BillingPage() {
                   <CreditCard className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Joriy tarif</p>
+                  <p className="text-sm text-gray-500">{t('billing.currentPlan')}</p>
                   <p className="text-lg font-semibold text-gray-900">{subscription.plan.name}</p>
                 </div>
               </div>
@@ -176,7 +192,7 @@ export default function BillingPage() {
                 {subscription.trialEndsAt && subscription.status === 'TRIAL' && (
                   <div className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm text-blue-700">
                     <AlertCircle className="h-4 w-4" />
-                    Sinov:{' '}
+                    {t('billing.trialPeriod')}:{' '}
                     {new Date(subscription.trialEndsAt).toLocaleDateString('uz-UZ')} gacha
                   </div>
                 )}
@@ -196,9 +212,9 @@ export default function BillingPage() {
                 Foydalanish
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <UsageBar label="Filiallar" used={usage.branches.used} max={usage.branches.max} icon={GitBranch} />
-                <UsageBar label="Mahsulotlar" used={usage.products.used} max={usage.products.max} icon={Package} />
-                <UsageBar label="Foydalanuvchilar" used={usage.users.used} max={usage.users.max} icon={Users} />
+                <UsageBar label={t('billing.branchesLabel')} used={usage.branches.used} max={usage.branches.max} icon={GitBranch} />
+                <UsageBar label={t('billing.productsLabel')} used={usage.products.used} max={usage.products.max} icon={Package} />
+                <UsageBar label={t('billing.usersLabel')} used={usage.users.used} max={usage.users.max} icon={Users} />
               </div>
             </div>
           )}
@@ -218,6 +234,13 @@ export default function BillingPage() {
                       isCurrentPlan={subscription?.planId === plan.id}
                       onUpgrade={() => handleUpgrade(plan.slug)}
                       isUpgrading={upgrading && upgradeTarget === plan.slug}
+                      currentPlanLabel={t('billing.currentPlan')}
+                      perMonthLabel={t('billing.perMonth')}
+                      branchesLabel={t('billing.branches')}
+                      productsLabel={t('billing.products')}
+                      usersLabel={t('billing.users')}
+                      selectLabel="Tanlash"
+                      loadingLabel={t('common.loading')}
                     />
                   ))}
               </div>

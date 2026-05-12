@@ -7,6 +7,7 @@ import {
 import { formatPrice, cn } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { CHART_COLORS, EmptyState } from './AnalyticsShared';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface MarginItem {
   productId: string;
@@ -24,13 +25,14 @@ interface Props {
 }
 
 export function AnalyticsMarginTab({ marginData, isLoading }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
-      <h2 className="text-base font-semibold text-gray-900">Marja tahlili</h2>
+      <h2 className="text-base font-semibold text-gray-900">{t('analytics.marginTitle')}</h2>
       {isLoading ? (
         <LoadingSkeleton variant="table" rows={6} />
       ) : marginData.length === 0 ? (
-        <EmptyState label="Ma'lumotlar topilmadi" />
+        <EmptyState label={t('analytics.noData')} />
       ) : (
         <>
           <ResponsiveContainer width="100%" height={280}>
@@ -41,10 +43,10 @@ export function AnalyticsMarginTab({ marginData, isLoading }: Props) {
               <Tooltip
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
                 formatter={(v, name) =>
-                  name === 'Marja %' ? `${Number(v).toFixed(1)}%` : formatPrice(Number(v))
+                  name === `${t('analytics.colMargin')} %` ? `${Number(v).toFixed(1)}%` : formatPrice(Number(v))
                 }
               />
-              <Bar dataKey="marginPct" name="Marja %" radius={[8, 8, 0, 0]} barSize={32}>
+              <Bar dataKey="marginPct" name={`${t('analytics.colMargin')} %`} radius={[8, 8, 0, 0]} barSize={32}>
                 {marginData.slice(0, 10).map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                 ))}
@@ -56,8 +58,15 @@ export function AnalyticsMarginTab({ marginData, isLoading }: Props) {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-gray-50">
                 <tr>
-                  {['Mahsulot', 'Kategoriya', 'Daromad', 'Tannarx', 'Foyda', 'Marja'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{h}</th>
+                  {[
+                    { key: 'product', label: t('analytics.colProduct') },
+                    { key: 'category', label: t('analytics.colCategory') },
+                    { key: 'revenue', label: t('analytics.colRevenue') },
+                    { key: 'cost', label: t('analytics.colCost') },
+                    { key: 'profit', label: t('analytics.colProfit') },
+                    { key: 'margin', label: t('analytics.colMargin') },
+                  ].map((h) => (
+                    <th key={h.key} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{h.label}</th>
                   ))}
                 </tr>
               </thead>

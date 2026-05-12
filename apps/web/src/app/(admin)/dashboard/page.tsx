@@ -20,6 +20,7 @@ import { TopProductsList, TopProductsGrid } from './TopProductsList';
 import { LowStockBanner } from './LowStockBanner';
 import { DemoContent } from './DemoContent';
 import { useRealtimeEvents } from '@/hooks/realtime/useRealtimeEvents';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Branch } from '@/api/branches.api';
 
 // Code-split chart component — recharts bundle loaded only when dashboard data is ready
@@ -50,6 +51,7 @@ function daysAgoIso(n: number): string {
 
 // Per-branch revenue row — each branch fetches its own 30-day trend
 function BranchRevenueRow({ branch, maxRevenue }: { branch: Branch; maxRevenue: number }) {
+  const { t } = useTranslation();
   const { data: trend, isLoading } = useAnalyticsSalesTrend('daily', 30, branch.id);
 
   const revenue = trend
@@ -63,7 +65,7 @@ function BranchRevenueRow({ branch, maxRevenue }: { branch: Branch; maxRevenue: 
       <div className="flex items-center gap-3 py-2">
         <span className="w-32 text-sm text-gray-500 truncate">{branch.name}</span>
         <div className="flex-1 h-2 bg-gray-100 rounded-full animate-pulse" />
-        <span className="w-28 text-right text-sm text-gray-400">Yuklanmoqda…</span>
+        <span className="w-28 text-right text-sm text-gray-400">{t('common.loading')}</span>
       </div>
     );
   }
@@ -87,6 +89,7 @@ function BranchRevenueRow({ branch, maxRevenue }: { branch: Branch; maxRevenue: 
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useDashboard();
   const [todayStr, setTodayStr] = useState('');
   const { connected, newSaleCount, lastSale, clearNewSaleCount } = useRealtimeEvents();
@@ -113,7 +116,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
-        <h1 className="text-xl font-semibold text-gray-900">Bosh sahifa</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
         <div className="grid grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <LoadingSkeleton key={i} variant="card" rows={1} />
@@ -127,12 +130,10 @@ export default function DashboardPage() {
   if (isError || !data) {
     return (
       <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
-        <h1 className="text-xl font-semibold text-gray-900">Bosh sahifa</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 text-sm text-yellow-700">
-          <p className="font-medium">Backend hali tayyor emas</p>
-          <p className="mt-1 text-yellow-600">
-            Reports API bajarilgach bu yerda real ma&apos;lumotlar ko&apos;rinadi.
-          </p>
+          <p className="font-medium">{t('dashboard.backendNotReady')}</p>
+          <p className="mt-1 text-yellow-600">{t('dashboard.backendNotReadyDesc')}</p>
         </div>
         <DemoContent />
       </div>
@@ -143,7 +144,7 @@ export default function DashboardPage() {
   if (!today || !weeklyRevenue || !topProducts) {
     return (
       <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
-        <h1 className="text-xl font-semibold text-gray-900">Bosh sahifa</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
         <DemoContent />
       </div>
     );
@@ -153,14 +154,14 @@ export default function DashboardPage() {
     <div className="h-full flex flex-col gap-6 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">Bosh sahifa</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
           {/* Real-time ulanish holati */}
           <span
             className={[
               'inline-flex h-2 w-2 rounded-full',
               connected ? 'bg-green-400' : 'bg-gray-300',
             ].join(' ')}
-            title={connected ? 'Real-time ulangan' : 'Ulanmagan'}
+            title={connected ? t('dashboard.realtimeConnected') : t('dashboard.realtimeDisconnected')}
           />
         </div>
         <div className="flex items-center gap-3">
@@ -170,13 +171,13 @@ export default function DashboardPage() {
               type="button"
               onClick={clearNewSaleCount}
               className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 ring-1 ring-green-200 transition hover:bg-green-100"
-              title={lastSale ? `Oxirgi savdo: ${formatPrice(lastSale.total)}` : undefined}
+              title={lastSale ? `${t('dashboard.todaySales')}: ${formatPrice(lastSale.total)}` : undefined}
             >
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
               </span>
-              {newSaleCount} yangi savdo
+              {t('dashboard.newSale', { count: newSaleCount })}
             </button>
           )}
           <p className="text-sm text-gray-400">{todayStr}</p>
@@ -191,10 +192,10 @@ export default function DashboardPage() {
           className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md sm:col-span-1"
         >
           <StatCard
-            title="Sof foyda (30 kun)"
-            tooltip="Daromad − Tannarx − Xarajatlar. Haqiqiy sof foyda."
+            title={t('dashboard.netProfit30d')}
+            tooltip={t('dashboard.netProfitTooltip')}
             value={isProfitLoading ? '…' : profitReport ? formatPrice(profitReport.netProfit) : profit ? formatPrice(profit.grossProfit) : '—'}
-            sub={profitReport ? `Daromad: ${formatPrice(profitReport.revenue)}` : 'Ma\'lumot yo\'q'}
+            sub={profitReport ? `${t('dashboard.revenue')}: ${formatPrice(profitReport.revenue)}` : t('common.noData')}
             icon={TrendingUp}
             accent={profitReport && profitReport.netProfit >= 0 ? 'green' : 'red'}
           />
@@ -204,10 +205,10 @@ export default function DashboardPage() {
           className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md"
         >
           <StatCard
-            title="Bugungi buyurtmalar"
-            tooltip="Bugun yakunlangan buyurtmalar soni"
-            value={`${today.ordersCount} ta`}
-            sub={today.ordersCount === 0 ? "Bugun savdo yo'q" : `${formatPrice(today.totalRevenue)}`}
+            title={t('dashboard.todayOrders')}
+            tooltip={t('dashboard.todayOrdersTooltip')}
+            value={`${today.ordersCount} ${t('common.unit')}`}
+            sub={today.ordersCount === 0 ? t('dashboard.noSalesToday') : `${formatPrice(today.totalRevenue)}`}
             icon={ShoppingCart}
             accent="blue"
           />
@@ -217,10 +218,10 @@ export default function DashboardPage() {
           className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md"
         >
           <StatCard
-            title="Kam zaxira"
-            tooltip="Minimal zaxira darajasidan past mahsulotlar soni"
-            value={`${lowStockCount} ta`}
-            sub="Mahsulot kam yoki tugagan"
+            title={t('dashboard.lowStockItems')}
+            tooltip={t('dashboard.lowStockTooltip')}
+            value={`${lowStockCount} ${t('common.unit')}`}
+            sub={t('dashboard.lowStockSub')}
             icon={PackageCheck}
             accent={lowStockCount > 0 ? 'yellow' : 'green'}
           />
@@ -232,14 +233,14 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-gray-700">
-              Filiallar daromadi
-              <span className="ml-1.5 text-xs font-normal text-gray-400">(30 kun)</span>
+              {t('dashboard.branchRevenue')}
+              <span className="ml-1.5 text-xs font-normal text-gray-400">({t('reports.days30')})</span>
             </h2>
             <Link
               href="/analytics"
               className="text-xs text-blue-600 hover:underline"
             >
-              Batafsil →
+              {t('dashboard.details')}
             </Link>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white px-5 py-3">
@@ -254,7 +255,7 @@ export default function DashboardPage() {
               ))}
             {branches.filter((b) => b.isActive).length === 0 && (
               <p className="py-4 text-center text-sm text-gray-400">
-                Faol filiallar mavjud emas
+                {t('dashboard.noBranches')}
               </p>
             )}
           </div>

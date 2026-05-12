@@ -9,6 +9,7 @@ import {
 import { formatPrice } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ChartTooltip, CashierAvatar, CHART_COLORS, EmptyState } from './AnalyticsShared';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface CashierPerf {
   userId: string;
@@ -25,12 +26,13 @@ interface Props {
 }
 
 export function AnalyticsCashiersTab({ cashiers, isLoading }: Props) {
+  const { t } = useTranslation();
   const [cashiersSearch, setCashiersSearch] = useState('');
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-gray-900">Kassirlar samaradorligi</h2>
+        <h2 className="text-base font-semibold text-gray-900">{t('analytics.cashiersTitle')}</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <input
@@ -46,7 +48,7 @@ export function AnalyticsCashiersTab({ cashiers, isLoading }: Props) {
       {isLoading ? (
         <LoadingSkeleton variant="table" rows={4} />
       ) : cashiers.length === 0 ? (
-        <EmptyState label="Ma'lumotlar topilmadi" />
+        <EmptyState label={t('analytics.noData')} />
       ) : (
         <>
           <ResponsiveContainer width="100%" height={240}>
@@ -63,7 +65,7 @@ export function AnalyticsCashiersTab({ cashiers, isLoading }: Props) {
                 axisLine={false}
               />
               <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="revenue" name="Daromad" radius={[8, 8, 0, 0]} barSize={28}>
+              <Bar dataKey="revenue" name={t('analytics.revenue')} radius={[8, 8, 0, 0]} barSize={28}>
                 {cashiers.map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                 ))}
@@ -84,7 +86,7 @@ export function AnalyticsCashiersTab({ cashiers, isLoading }: Props) {
                   <CashierAvatar name={c.name} rank={idx + 1} />
                   <div className="min-w-[140px] flex-1">
                     <p className="text-sm font-bold text-gray-900">{c.name ?? '—'}</p>
-                    <p className="text-xs text-gray-400">{c.ordersCount} buyurtma</p>
+                    <p className="text-xs text-gray-400">{t('analytics.ordersCount', { count: c.ordersCount })}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-gray-900">{formatPrice(c.revenue)}</p>

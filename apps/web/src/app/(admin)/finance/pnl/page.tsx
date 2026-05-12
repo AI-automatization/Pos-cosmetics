@@ -61,13 +61,14 @@ function KpiCard({ label, value, icon: Icon, color, subtitle }: KpiCardProps) {
 /* ─── Expense Breakdown ─── */
 
 function ExpenseBreakdown({ items }: { items: ExpenseSummary[] }) {
+  const { t } = useTranslation();
   const total = items.reduce((s, i) => s + i.total, 0) || 1;
 
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center py-8 text-center text-sm text-gray-400">
         <PieChart className="mb-2 h-8 w-8" />
-        Bu davrda xarajat mavjud emas
+        {t('pnl.noExpenses')}
       </div>
     );
   }
@@ -195,7 +196,7 @@ export default function PnlPage() {
               value={data.grossProfit}
               icon={TrendingUp}
               color="bg-emerald-500"
-              subtitle={`Margin: ${grossMargin}%`}
+              subtitle={`${t('pnl.margin')}: ${grossMargin}%`}
             />
             <KpiCard
               label={t('finance.expenses')}
@@ -215,7 +216,7 @@ export default function PnlPage() {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* P&L waterfall */}
             <div className="rounded-xl border border-gray-200 bg-white p-6">
-              <h3 className="mb-4 text-sm font-semibold text-gray-900">P&L Xulosa</h3>
+              <h3 className="mb-4 text-sm font-semibold text-gray-900">{t('pnl.summary')}</h3>
               <div className="flex flex-col gap-3">
                 <Row label={t('pnl.revenue')} value={data.revenue} />
                 <Row label={t('pnl.cogs')} value={-data.cogs} negative />

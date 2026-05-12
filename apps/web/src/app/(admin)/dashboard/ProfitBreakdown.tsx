@@ -44,20 +44,20 @@ export function ProfitBreakdown({ profit }: ProfitBreakdownProps) {
         <Row
           label={t('pnl.revenue')}
           value={profit.revenue}
-          tooltip="Barcha buyurtmalar jami summasi (chegirmadan oldin)"
+          tooltip={t('pnl.revenueTooltip')}
           color="text-gray-900"
         />
         <Row
           label={t('pnl.cogs')}
           value={-profit.cogs}
-          tooltip="Sotilgan mahsulotlarning kelish narxi summasi"
+          tooltip={t('pnl.cogsTooltip')}
           color="text-red-600"
           prefix="−"
         />
         <Row
           label={t('pnl.returns')}
           value={-profit.returns}
-          tooltip="Tasdiqlangan qaytarishlar summasi"
+          tooltip={t('pnl.returnsTooltip')}
           color="text-orange-600"
           prefix="−"
         />
@@ -84,7 +84,7 @@ export function ProfitBreakdown({ profit }: ProfitBreakdownProps) {
           </div>
         </div>
         <p className="text-xs text-gray-400">
-          * Sof foyda uchun xarajatlarni ham hisobga olish kerak
+          {t('pnl.netProfitNote')}
         </p>
       </div>
     </div>

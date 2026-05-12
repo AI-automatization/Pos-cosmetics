@@ -10,6 +10,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface WeeklyEntry {
   date: string;
@@ -42,10 +43,11 @@ interface WeeklyRevenueChartProps {
 }
 
 export function WeeklyRevenueChart({ data }: WeeklyRevenueChartProps) {
+  const { t } = useTranslation();
   return (
     <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-5">
       <h2 className="mb-4 text-sm font-semibold text-gray-700">
-        Haftalik savdo (so&apos;m)
+        {t('dashboard.weeklyRevenueCurrency')}
       </h2>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart

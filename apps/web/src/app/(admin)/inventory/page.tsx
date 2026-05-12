@@ -13,13 +13,15 @@ import { ProductStockDrawer } from './ProductStockDrawer';
 import { InvoiceDetailDrawer } from './InvoiceDetailDrawer';
 import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { cn, formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { StockLevel, StockStatus } from '@/types/inventory';
 
 function StatusBadge({ status }: { status: StockStatus }) {
+  const { t } = useTranslation();
   const config: Record<string, { label: string; className: string }> = {
-    OK: { label: 'OK', className: 'bg-green-100 text-green-700' },
-    LOW: { label: 'Kam', className: 'bg-yellow-100 text-yellow-700' },
-    OUT: { label: 'Tugagan', className: 'bg-red-100 text-red-700' },
+    OK: { label: t('inventory.statusOk'), className: 'bg-green-100 text-green-700' },
+    LOW: { label: t('inventory.statusLow'), className: 'bg-yellow-100 text-yellow-700' },
+    OUT: { label: t('inventory.statusOut'), className: 'bg-red-100 text-red-700' },
   };
   const item = config[status] ?? { label: status, className: 'bg-gray-100 text-gray-600' };
   return (
@@ -61,6 +63,7 @@ export default function InventoryPage() {
   const [selectedProduct, setSelectedProduct] = useState<StockLevel | null>(null);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
 
+  const { t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
   const isOwner = currentUser?.role === 'OWNER';
 
@@ -73,9 +76,9 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Zaxira holati</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('inventory.stockStatus')}</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            {stock ? `${stock.length} ta mahsulot` : 'Yuklanmoqda...'}
+            {stock ? t('inventory.productCount', { count: stock.length }) : t('common.loading')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -84,7 +87,7 @@ export default function InventoryPage() {
             className="flex items-center gap-1.5 rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm font-medium text-yellow-700 transition hover:bg-yellow-100"
           >
             <AlertTriangle className="h-4 w-4" />
-            Kam zaxira
+            {t('inventory.lowStock')}
           </a>
           <button
             type="button"
@@ -92,7 +95,7 @@ export default function InventoryPage() {
             className="flex items-center gap-1.5 rounded-lg border border-purple-300 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 transition hover:bg-purple-100"
           >
             <FlaskConical className="h-4 w-4" />
-            Tester
+            {t('inventory.tester')}
           </button>
           {!isOwner && (
             <button
@@ -101,7 +104,7 @@ export default function InventoryPage() {
               className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
               <ArrowUpFromLine className="h-4 w-4" />
-              Chiqim
+              {t('inventory.stockOut')}
             </button>
           )}
           {!isOwner && (
@@ -111,7 +114,7 @@ export default function InventoryPage() {
               className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
             >
               <ArrowDownToLine className="h-4 w-4" />
-              Kirim
+              {t('inventory.stockIn')}
             </button>
           )}
         </div>
@@ -129,7 +132,7 @@ export default function InventoryPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700',
           )}
         >
-          Zaxira holati
+          {t('inventory.stockStatus')}
         </button>
         <button
           type="button"
@@ -141,7 +144,7 @@ export default function InventoryPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700',
           )}
         >
-          Harakatlar tarixi
+          {t('inventory.movementHistory')}
           {movements && movements.length > 0 && (
             <span className="ml-1.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
               {movements.length}
@@ -158,7 +161,7 @@ export default function InventoryPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700',
           )}
         >
-          Nakладные
+          {t('inventory.invoices')}
           {invoicesData && invoicesData.total > 0 && (
             <span className="ml-1.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700">
               {invoicesData.total}
@@ -175,19 +178,19 @@ export default function InventoryPage() {
           <ScrollableTable
             searchValue={search}
             onSearchChange={setSearch}
-            searchPlaceholder="Mahsulot nomi, barcode yoki SKU..."
+            searchPlaceholder={t('inventory.searchPlaceholder')}
             totalCount={stock?.length}
             isLoading={isLoading}
           >
             <table className="w-full text-sm">
               <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Mahsulot</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Barcode</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Kategoriya</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Zaxira</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Min</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Holat</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{t('inventory.colProduct')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{t('inventory.colBarcode')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{t('inventory.colCategory')}</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">{t('inventory.colStock')}</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">{t('inventory.colMin')}</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">{t('inventory.colStatus')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -196,7 +199,7 @@ export default function InventoryPage() {
                     <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
                       <div className="flex flex-col items-center gap-2">
                         <PackageOpen className="h-10 w-10 opacity-40" />
-                        <p className="text-sm">{search ? "Qidiruv bo'yicha natija topilmadi" : "Mahsulotlar yo'q"}</p>
+                        <p className="text-sm">{search ? t('common.noSearchResults') : t('common.noData')}</p>
                       </div>
                     </td>
                   </tr>
@@ -246,7 +249,7 @@ export default function InventoryPage() {
           ) : !movements || movements.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center text-gray-400">
               <PackageOpen className="h-12 w-12 opacity-40" />
-              <p className="text-sm">Harakatlar tarixi yo&apos;q</p>
+              <p className="text-sm">{t('inventory.noMovements')}</p>
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -254,15 +257,15 @@ export default function InventoryPage() {
               <table className="w-full text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Sana</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Tur</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Miqdor</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Yetkazib beruvchi</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">{t('inventory.colDate')}</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">{t('inventory.colType')}</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">{t('inventory.colProduct')}</th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-600">{t('inventory.colQuantity')}</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">{t('inventory.supplier')}</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">
                       <div className="flex items-center gap-1">
                         <User className="h-3.5 w-3.5" />
-                        Kim kiritgan
+                        {t('inventory.enteredBy')}
                       </div>
                     </th>
                   </tr>
@@ -287,7 +290,7 @@ export default function InventoryPage() {
                                 : 'bg-red-100 text-red-700',
                             )}
                           >
-                            {isIn ? 'Kirim' : 'Chiqim'}
+                            {isIn ? t('inventory.stockIn') : t('inventory.stockOut')}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-700">{m.productName}</td>
@@ -329,7 +332,7 @@ export default function InventoryPage() {
           {!invLoading && (!invoicesData || invoicesData.items.length === 0) && (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
               <FileText className="h-10 w-10 text-gray-200" />
-              <p className="text-sm text-gray-400">Nakладные topilmadi</p>
+              <p className="text-sm text-gray-400">{t('inventory.noInvoices')}</p>
             </div>
           )}
           {invoicesData && invoicesData.items.length > 0 && (
@@ -337,7 +340,7 @@ export default function InventoryPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    {['Sana', 'Hujjat #', 'Yetkazib beruvchi', 'Mahsulotlar', 'Jami summa', 'Holat', ''].map((h) => (
+                    {[t('inventory.colDate'), t('inventory.documentNumber'), t('inventory.supplier'), t('inventory.colProduct'), t('inventory.totalAmount'), t('inventory.colStatus'), ''].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                         {h}
                       </th>
@@ -352,9 +355,9 @@ export default function InventoryPage() {
                       REJECTED: 'bg-red-50 text-red-700',
                     };
                     const statusLabels: Record<string, string> = {
-                      PENDING: 'Kutilmoqda',
-                      APPROVED: 'Tasdiqlangan',
-                      REJECTED: 'Rad etilgan',
+                      PENDING: t('common.pending'),
+                      APPROVED: t('common.approved'),
+                      REJECTED: t('inventory.rejected'),
                     };
                     return (
                       <tr key={inv.id} className="hover:bg-gray-50 transition">
@@ -378,7 +381,7 @@ export default function InventoryPage() {
                             onClick={() => setSelectedInvoiceId(inv.id)}
                             className="text-xs text-blue-600 hover:underline"
                           >
-                            Ko&apos;rish
+                            {t('common.show')}
                           </button>
                         </td>
                       </tr>

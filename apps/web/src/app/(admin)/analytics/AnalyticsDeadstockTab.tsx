@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Search, Package, AlertTriangle } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface DeadStockItem {
   productId: string;
@@ -21,12 +22,13 @@ interface Props {
 }
 
 export function AnalyticsDeadstockTab({ deadStock, isLoading }: Props) {
+  const { t } = useTranslation();
   const [deadstockSearch, setDeadstockSearch] = useState('');
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-gray-900">O'lik tovarlar</h2>
+        <h2 className="text-base font-semibold text-gray-900">{t('analytics.deadstockTitle')}</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <input
@@ -46,7 +48,7 @@ export function AnalyticsDeadstockTab({ deadStock, isLoading }: Props) {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
             <Package className="h-8 w-8 text-emerald-400" />
           </div>
-          <p className="text-sm font-semibold text-emerald-600">Barcha tovarlar faol!</p>
+          <p className="text-sm font-semibold text-emerald-600">{t('analytics.allProductsActive')}</p>
         </div>
       ) : (
         <>
@@ -54,7 +56,7 @@ export function AnalyticsDeadstockTab({ deadStock, isLoading }: Props) {
             <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
             <div>
               <p className="text-sm font-semibold text-amber-800">
-                {deadStock.length} ta mahsulot 90+ kun sotilmagan
+                {t('analytics.deadstockAlert', { count: deadStock.length })}
               </p>
               <p className="text-xs text-amber-600">
                 Umumiy zarar: {formatPrice(deadStock.reduce((s, d) => s + d.carryingCost, 0))}
@@ -66,8 +68,15 @@ export function AnalyticsDeadstockTab({ deadStock, isLoading }: Props) {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-gray-50">
                 <tr>
-                  {['Mahsulot', 'SKU', 'Zaxira', "So'nggi sotuv", 'Dam olgan', 'Zarar'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{h}</th>
+                  {[
+                    { key: 'product', label: t('analytics.colProduct') },
+                    { key: 'sku', label: t('analytics.colSku') },
+                    { key: 'stock', label: t('analytics.colStock') },
+                    { key: 'lastSale', label: t('analytics.colLastSale') },
+                    { key: 'idleDays', label: t('analytics.colIdleDays') },
+                    { key: 'loss', label: t('analytics.colLoss') },
+                  ].map((h) => (
+                    <th key={h.key} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{h.label}</th>
                   ))}
                 </tr>
               </thead>
