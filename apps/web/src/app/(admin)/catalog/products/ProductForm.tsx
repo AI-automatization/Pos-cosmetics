@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { X, Plus, Loader2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import type { Category, Product } from '@/types/catalog';
-import { Field, inputCls } from './FormField';
+import { Field, inputCls, inputErrorCls } from './FormField';
 import { MarginBadge } from './MarginBadge';
 import { ImageUpload } from './ImageUpload';
 import { BarcodeFields } from './BarcodeFields';
@@ -18,19 +18,22 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 
 const productSchema = z.object({
-  name: z.string().min(1, 'Nom kiritilishi shart').max(200),
+  name: z.string().min(1, 'Mahsulot nomi kiritilishi shart').max(200, 'Nom 200 belgidan oshmasligi kerak'),
   extraBarcodes: z.array(z.object({ value: z.string() })).optional(),
-  sku: z.string().max(100).optional(),
-  categoryId: z.string().optional(),
+  sku: z.string().max(100, 'SKU 100 belgidan oshmasligi kerak').optional(),
+  categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
   supplierId: z.string().optional(),
   unitId: z.string().optional(),
   description: z.string().max(2000).optional(),
-  costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
-  sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
-  minStockLevel: z.coerce.number().min(0),
-  initialStock: z.coerce.number().min(0).optional(),
+  costPrice: z.coerce.number().min(0, 'Kelish narxi manfiy bo\'lishi mumkin emas'),
+  sellPrice: z.coerce.number().min(1, 'Sotuv narxi kiritilishi shart'),
+  minStockLevel: z.coerce.number().min(0, 'Manfiy bo\'lishi mumkin emas'),
+  initialStock: z.coerce.number().min(0, 'Manfiy bo\'lishi mumkin emas').optional(),
   expiryTracking: z.boolean().optional(),
   expiryDate: z.string().optional(),
+}).refine((data) => data.sellPrice >= data.costPrice, {
+  message: 'Sotuv narxi kelish narxidan kam bo\'lishi mumkin emas',
+  path: ['sellPrice'],
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
@@ -148,12 +151,12 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               <input
                 {...register('name')}
                 placeholder="Masalan: Nivea krem 100ml"
-                className={inputCls}
+                className={errors.name ? inputErrorCls : inputCls}
               />
             </Field>
 
             {/* Row 2: Category | Supplier | SKU */}
-            <Field label="Kategoriya" error={errors.categoryId?.message}>
+            <Field label="Kategoriya" error={errors.categoryId?.message} required>
               <Controller
                 control={control}
                 name="categoryId"
@@ -320,7 +323,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                 type="number"
                 min={0}
                 step={100}
-                className={inputCls}
+                className={errors.costPrice ? inputErrorCls : inputCls}
               />
             </Field>
 
@@ -330,7 +333,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                 type="number"
                 min={0}
                 step={100}
-                className={inputCls}
+                className={errors.sellPrice ? inputErrorCls : inputCls}
               />
             </Field>
 
