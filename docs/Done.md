@@ -1,5 +1,90 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-03
+# Yangilangan: 2026-05-12
+
+---
+
+## T-425 | 2026-05-12 | [SECURITY] | 5 ta kritik/yuqori xavfsizlik muammolari yopildi
+
+- **Yechim:** Commit `936b4c8`
+  1. SQL Console — production da faqat SELECT (DML bloklangan)
+  2. createRow — parameterized queries + column name schema validation
+  3. Swagger — production da yashirilgan (NODE_ENV=production)
+  4. Upload IDOR — tenant isolation (key.startsWith(tenantId/))
+  5. CORS — wildcard `*` production da bloklangan
+- **Fayl:** `admin-database.service.ts`, `main.ts`, `upload.controller.ts`
+
+---
+
+## T-424 | 2026-05-12 | [FRONTEND] | POS — Card payment TERMINAL/PAYME/CLICK routing
+
+- **Yechim:** Commit `e11e59d`, `7fa472e`
+  - POS `cardType` store ga qo'shildi (terminal/payme/click)
+  - `useCompleteSale` to'g'ri PaymentMethod yuboradi
+  - `sales.api.ts` methodMap kengaytirildi
+  - UI: Terminal/Payme/Click tanlash paneli
+  - Kassir chegirmasi 5% ga cheklandi (cap on apply)
+- **Fayl:** `PaymentPanel.tsx`, `pos.store.ts`, `useCompleteSale.ts`, `sales.api.ts`
+
+---
+
+## T-423 | 2026-05-12 | [FRONTEND+BACKEND] | Warehouse — Invoice Edit + Write-off custom reason
+
+- **Yechim:** Commit `acfc140`
+  - Invoice detail: "Tahrirlash" tugmasi + inline editing (raqam, izoh)
+  - Backend: `PATCH /warehouse/invoices/:id` metadata update endpoint
+  - Write-off: "Boshqa" tanlanganda qo'shimcha input ochiladi
+  - warehouse.expiry/lowStock translation keys qo'shildi (uz/ru/en)
+- **Fayl:** `invoices/[id]/page.tsx`, `write-off/page.tsx`, `warehouse-invoice.controller.ts`, `warehouse-invoice.service.ts`
+
+---
+
+## T-422 | 2026-05-12 | [FRONTEND] | Product form validation
+
+- **Yechim:** Commit `8359fe3`
+  - name: required, max 200
+  - categoryId: required (edi optional)
+  - sellPrice: >= 1 va >= costPrice
+  - Xato bo'lsa qizil ramka (inputErrorCls)
+- **Fayl:** `ProductForm.tsx`, `FormField.tsx`
+
+---
+
+## T-421 | 2026-05-12 | [FRONTEND] | React #418 hydration + userId localStorage fallback
+
+- **Yechim:** Commit `05650a2`
+  - `<html>` va `<body>` ga `suppressHydrationWarning` qo'shildi
+  - userId localStorage fallback — cookie + localStorage dual storage
+- **Fayl:** `layout.tsx`, `token.ts`, `client.ts`, `useAuth.ts`
+
+---
+
+## T-420 | 2026-05-12 | [FRONTEND] | Reports — duplikat "Отчёты" sidebar + scroll
+
+- **Yechim:** Commit `aeedfa7`, `9a6914a`
+  - Sidebar: "Umumiy" child olib tashlandi (tKey parent bilan bir xil edi)
+  - Barcha 7 report page ga `h-full overflow-y-auto` qo'shildi
+  - Branches early-return states ga scroll qo'shildi
+- **Fayl:** `Sidebar.tsx`, `reports/page.tsx`, `builder/page.tsx`, `export/page.tsx`, `branches/page.tsx`
+
+---
+
+## T-419 | 2026-05-12 | [FRONTEND] | Auth — F5 da login ga redirect bug
+
+- **Yechim:** Commit `b202822`
+  - Interceptor: token null bo'lsa refresh sinab ko'radi (edi darhol redirect qilardi)
+  - authApi.refresh() userId yuboradi (backend @IsUUID required)
+  - Login da user_id cookie saqlanadi (7 kun)
+- **Fayl:** `client.ts`, `auth.api.ts`, `token.ts`, `useAuth.ts`
+
+---
+
+## T-418 | 2026-05-12 | [FRONTEND] | i18n — barcha hardcoded stringlarni t() ga o'tkazish
+
+- **Yechim:** Commit `b6e8784`, `4126319`
+  - ~350 ta yangi translation key (uz/ru/en)
+  - Dashboard, inventory, catalog, onboarding, realestate, billing, workers, not-found
+  - Orders, returns, shifts, promotions, audit-log
+- **Fayl:** 30+ component fayl, `uz.json`, `ru.json`, `en.json`
 
 ---
 
