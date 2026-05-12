@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAccessToken, setAccessToken, clearAccessToken } from './token';
+import { getAccessToken, setAccessToken, clearAccessToken, getUserIdFromCookie } from './token';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 
@@ -25,6 +25,7 @@ function clearAuthAndRedirect() {
   clearAccessToken();
   document.cookie = 'session_active=; path=/; max-age=0';
   document.cookie = 'user_role=; path=/; max-age=0';
+  document.cookie = 'user_id=; path=/; max-age=0';
   window.location.href = '/login';
 }
 
@@ -32,26 +33,20 @@ function clearAuthAndRedirect() {
 apiClient.interceptors.response.use(
   (res) => res,
   async (err) => {
+    const isRefreshCall = err.config?.url?.includes('/auth/refresh');
+
+    // 401 на refresh endpoint — сессия истекла, не зацикливаем
+    if (err.response?.status === 401 && isRefreshCall) {
+      return Promise.reject(err);
+    }
+
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
-
-      const currentToken = getAccessToken();
-
-      // Нет токена и нет cookie — сразу на логин
-      if (!currentToken) {
-        clearAuthAndRedirect();
-        return Promise.reject(err);
-      }
-
-      let userId: string | null = null;
-      try {
-        userId = JSON.parse(atob(currentToken.split('.')[1]))?.sub ?? null;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_e) { /* ignore */ }
 
       try {
         // refreshToken автоматически отправляется как httpOnly cookie (withCredentials: true)
         if (!refreshPromise) {
+          const userId = getUserIdFromCookie();
           refreshPromise = apiClient
             .post<{ accessToken: string }>('/auth/refresh', { userId })
             .then((r) => {
@@ -65,6 +60,7 @@ apiClient.interceptors.response.use(
         return apiClient(err.config);
       } catch {
         clearAuthAndRedirect();
+        return Promise.reject(err);
       }
     }
 

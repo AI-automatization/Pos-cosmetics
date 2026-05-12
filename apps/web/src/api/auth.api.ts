@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { getUserIdFromCookie } from './token';
 
 export interface LoginPayload {
   email: string;
@@ -35,7 +36,8 @@ export const authApi = {
 
   refresh: async (): Promise<AuthTokens> => {
     // httpOnly cookie автоматически отправляется (withCredentials: true)
-    const { data } = await apiClient.post<AuthTokens>('/auth/refresh', {});
+    const userId = getUserIdFromCookie();
+    const { data } = await apiClient.post<AuthTokens>('/auth/refresh', { userId });
     return data;
   },
 

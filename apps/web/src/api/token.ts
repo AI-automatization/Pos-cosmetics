@@ -17,3 +17,10 @@ export function setAccessToken(token: string | null): void {
 export function clearAccessToken(): void {
   accessToken = null;
 }
+
+/** Читает userId из cookie для refresh (бэкенд требует userId) */
+export function getUserIdFromCookie(): string | null {
+  if (typeof window === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)user_id=([^;]+)/);
+  return match?.[1] ?? null;
+}

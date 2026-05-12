@@ -10,18 +10,23 @@ import { getAccessToken, setAccessToken, clearAccessToken } from '@/api/token';
 
 const SESSION_COOKIE = 'session_active';
 const ROLE_COOKIE = 'user_role';
+const USERID_COOKIE = 'user_id';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
-function setSessionCookie(role?: string) {
+function setSessionCookie(role?: string, userId?: string) {
   document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
   if (role) {
     document.cookie = `${ROLE_COOKIE}=${role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  }
+  if (userId) {
+    document.cookie = `${USERID_COOKIE}=${userId}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
   }
 }
 
 function clearSessionCookie() {
   document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
   document.cookie = `${ROLE_COOKIE}=; path=/; max-age=0`;
+  document.cookie = `${USERID_COOKIE}=; path=/; max-age=0`;
 }
 
 export function useCurrentUser() {
@@ -74,8 +79,7 @@ export function useLogin() {
       try {
         const user = await authApi.me();
         queryClient.setQueryData(['auth', 'me'], user);
-        // user_id больше не нужен в localStorage
-        setSessionCookie(user.role); // set role cookie for middleware routing
+        setSessionCookie(user.role, user.id); // set role + userId cookies for middleware & refresh
 
         if (user.role === 'WAREHOUSE') {
           router.push('/warehouse');
