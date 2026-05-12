@@ -183,7 +183,7 @@ export default function BillingPage() {
                 )}
                 {subscription.expiresAt && (
                   <div className="text-right">
-                    <p className="text-xs text-gray-400">Tugash sanasi</p>
+                    <p className="text-xs text-gray-400">{t('billing.expiryDate')}</p>
                     <p className="text-sm font-medium text-gray-700">
                       {new Date(subscription.expiresAt).toLocaleDateString('uz-UZ')}
                     </p>
@@ -193,14 +193,14 @@ export default function BillingPage() {
                   <div className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm text-blue-700">
                     <AlertCircle className="h-4 w-4" />
                     {t('billing.trialPeriod')}:{' '}
-                    {new Date(subscription.trialEndsAt).toLocaleDateString('uz-UZ')} gacha
+                    {new Date(subscription.trialEndsAt).toLocaleDateString('uz-UZ')} {t('billing.until')}
                   </div>
                 )}
               </div>
             </div>
           ) : (
             <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-700">
-              Faol obuna topilmadi. Quyidan tarif tanlang.
+              {t('billing.noSubscription')}
             </div>
           )}
 
@@ -209,7 +209,7 @@ export default function BillingPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-700">
                 <Zap className="h-4 w-4 text-blue-500" />
-                Foydalanish
+                {t('billing.usage')}
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <UsageBar label={t('billing.branchesLabel')} used={usage.branches.used} max={usage.branches.max} icon={GitBranch} />
@@ -222,7 +222,7 @@ export default function BillingPage() {
           {/* Plans */}
           {plans.length > 0 && (
             <div>
-              <h2 className="mb-4 text-sm font-semibold text-gray-700">Tariflar</h2>
+              <h2 className="mb-4 text-sm font-semibold text-gray-700">{t('billing.plans')}</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {plans
                   .filter((p) => p.isActive)
@@ -239,7 +239,7 @@ export default function BillingPage() {
                       branchesLabel={t('billing.branches')}
                       productsLabel={t('billing.products')}
                       usersLabel={t('billing.users')}
-                      selectLabel="Tanlash"
+                      selectLabel={t('billing.selectPlan')}
                       loadingLabel={t('common.loading')}
                     />
                   ))}

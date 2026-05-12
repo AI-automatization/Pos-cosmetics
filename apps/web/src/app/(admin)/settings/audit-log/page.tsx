@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Shield, Loader2, ChevronLeft, ChevronRight } fr
 import { cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { apiClient } from '@/api/client';
+import { useTranslation } from '@/i18n/i18n-context';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -33,15 +34,17 @@ interface AuditLogsResponse {
 
 type ActionFilter = 'ALL' | string;
 
-const ACTION_OPTIONS = [
-  { value: 'ALL', label: 'Barcha amallar' },
-  { value: 'CREATE', label: 'CREATE' },
-  { value: 'UPDATE', label: 'UPDATE' },
-  { value: 'DELETE', label: 'DELETE' },
-  { value: 'LOGIN', label: 'LOGIN' },
-  { value: 'LOGOUT', label: 'LOGOUT' },
-  { value: 'APPROVE', label: 'APPROVE' },
-];
+function getActionOptions(t: (key: string) => string) {
+  return [
+    { value: 'ALL', label: t('audit.allActions') },
+    { value: 'CREATE', label: 'CREATE' },
+    { value: 'UPDATE', label: 'UPDATE' },
+    { value: 'DELETE', label: 'DELETE' },
+    { value: 'LOGIN', label: 'LOGIN' },
+    { value: 'LOGOUT', label: 'LOGOUT' },
+    { value: 'APPROVE', label: 'APPROVE' },
+  ];
+}
 
 const ACTION_COLORS: Record<string, string> = {
   CREATE:  'bg-green-100 text-green-700',
@@ -72,7 +75,7 @@ function useAuditLogs(params: { action?: string; page: number; limit: number }) 
 
 // ─── Row component ───��──────────────────────────────────────────────────────
 
-function AuditRow({ log }: { log: AuditLogItem }) {
+function AuditRow({ log, t }: { log: AuditLogItem; t: (key: string) => string }) {
   const [expanded, setExpanded] = useState(false);
   const hasDiff = log.oldData || log.newData;
   const colorClass = ACTION_COLORS[log.action] ?? 'bg-gray-100 text-gray-600';
@@ -113,7 +116,7 @@ function AuditRow({ log }: { log: AuditLogItem }) {
             <div className="grid grid-cols-2 gap-4 pt-1">
               {log.oldData && (
                 <div>
-                  <p className="mb-1 text-xs font-semibold text-red-600">Oldingi</p>
+                  <p className="mb-1 text-xs font-semibold text-red-600">{t('audit.previous')}</p>
                   <pre className="rounded-lg border border-red-100 bg-red-50 p-2 text-xs text-red-800 overflow-x-auto max-h-48">
                     {JSON.stringify(log.oldData, null, 2)}
                   </pre>
@@ -121,7 +124,7 @@ function AuditRow({ log }: { log: AuditLogItem }) {
               )}
               {log.newData && (
                 <div>
-                  <p className="mb-1 text-xs font-semibold text-green-600">Yangi</p>
+                  <p className="mb-1 text-xs font-semibold text-green-600">{t('common.new')}</p>
                   <pre className="rounded-lg border border-green-100 bg-green-50 p-2 text-xs text-green-800 overflow-x-auto max-h-48">
                     {JSON.stringify(log.newData, null, 2)}
                   </pre>
@@ -138,9 +141,11 @@ function AuditRow({ log }: { log: AuditLogItem }) {
 // ─── Page ────────────────────────────────────��──────────────────────────────
 
 export default function AuditLogPage() {
+  const { t } = useTranslation();
   const [actionFilter, setActionFilter] = useState<ActionFilter>('ALL');
   const [page, setPage] = useState(1);
   const LIMIT = 30;
+  const ACTION_OPTIONS = getActionOptions(t);
 
   const { data, isLoading, error } = useAuditLogs({
     action: actionFilter !== 'ALL' ? actionFilter : undefined,
@@ -157,10 +162,10 @@ export default function AuditLogPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Audit log</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('settings.auditLog')}</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            Barcha muhim operatsiyalar tarixi
-            {total > 0 && <span className="ml-1">({total} ta yozuv)</span>}
+            {t('audit.subtitle')}
+            {total > 0 && <span className="ml-1">({total} {t('audit.entriesCount')})</span>}
           </p>
         </div>
         <SearchableDropdown
@@ -184,14 +189,14 @@ export default function AuditLogPage() {
       {error && (
         <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <Shield className="h-4 w-4 shrink-0" />
-          Ma'lumot yuklashda xatolik yuz berdi
+          {t('errors.loadFailed')}
         </div>
       )}
 
       {/* Empty state */}
       {!isLoading && !error && items.length === 0 && (
         <div className="rounded-xl border border-gray-200 bg-white px-6 py-12 text-center text-gray-400">
-          Audit log yozuvlari topilmadi
+          {t('audit.noEntries')}
         </div>
       )}
 
@@ -201,14 +206,14 @@ export default function AuditLogPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
-                {['Vaqt', 'Foydalanuvchi', 'Amal', 'Entity', 'Entity ID', ''].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
+                {[t('audit.time'), t('audit.user'), t('audit.action'), t('audit.entity'), t('audit.entityId'), ''].map((h, i) => (
+                  <th key={h || i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {items.map((log) => (
-                <AuditRow key={log.id} log={log} />
+                <AuditRow key={log.id} log={log} t={t} />
               ))}
             </tbody>
           </table>

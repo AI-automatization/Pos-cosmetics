@@ -1156,7 +1156,25 @@
     "users": "пользователей",
     "branchesLabel": "Филиалы",
     "productsLabel": "Товары",
-    "usersLabel": "Пользователи"
+    "usersLabel": "Пользователи",
+    "expiryDate": "Дата окончания",
+    "until": "до",
+    "noSubscription": "Активная подписка не найдена. Выберите тариф ниже.",
+    "usage": "Использование",
+    "plans": "Тарифы",
+    "selectPlan": "Выбрать"
+  },
+  "audit": {
+    "allActions": "Все действия",
+    "previous": "Прежнее",
+    "subtitle": "История всех важных операций",
+    "entriesCount": "записей",
+    "noEntries": "Записи аудита не найдены",
+    "time": "Время",
+    "user": "Пользователь",
+    "action": "Действие",
+    "entity": "Объект",
+    "entityId": "ID объекта"
   },
   "onboarding": {
     "title": "Пошаговая настройка",

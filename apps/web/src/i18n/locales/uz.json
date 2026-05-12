@@ -1156,7 +1156,25 @@
     "users": "ta foydalanuvchi",
     "branchesLabel": "Filiallar",
     "productsLabel": "Mahsulotlar",
-    "usersLabel": "Foydalanuvchilar"
+    "usersLabel": "Foydalanuvchilar",
+    "expiryDate": "Tugash sanasi",
+    "until": "gacha",
+    "noSubscription": "Faol obuna topilmadi. Quyidan tarif tanlang.",
+    "usage": "Foydalanish",
+    "plans": "Tariflar",
+    "selectPlan": "Tanlash"
+  },
+  "audit": {
+    "allActions": "Barcha amallar",
+    "previous": "Oldingi",
+    "subtitle": "Barcha muhim operatsiyalar tarixi",
+    "entriesCount": "ta yozuv",
+    "noEntries": "Audit log yozuvlari topilmadi",
+    "time": "Vaqt",
+    "user": "Foydalanuvchi",
+    "action": "Amal",
+    "entity": "Entity",
+    "entityId": "Entity ID"
   },
   "onboarding": {
     "title": "Bosqichma-bosqich sozlash",

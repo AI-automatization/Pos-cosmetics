@@ -36,6 +36,15 @@ export interface CreatePromotionDto {
 
 export type UpdatePromotionDto = Partial<Omit<CreatePromotionDto, 'type'>>;
 
+// i18n key map — resolve with t() inside components
+export const PROMO_TYPE_LABEL_KEYS: Record<PromotionType, string> = {
+  PERCENT: 'promotions.percentDiscount',
+  FIXED: 'promotions.fixedDiscount',
+  BUY_X_GET_Y: 'promotions.buyXGetY',
+  BUNDLE: 'promotions.bundleDiscount',
+};
+
+// @deprecated — use PROMO_TYPE_LABEL_KEYS with t() instead
 export const PROMO_TYPE_LABELS: Record<PromotionType, string> = {
   PERCENT: 'Foiz chegirma',
   FIXED: "Belgilangan chegirma",

@@ -1156,7 +1156,25 @@
     "users": "users",
     "branchesLabel": "Branches",
     "productsLabel": "Products",
-    "usersLabel": "Users"
+    "usersLabel": "Users",
+    "expiryDate": "Expiry Date",
+    "until": "until",
+    "noSubscription": "No active subscription. Select a plan below.",
+    "usage": "Usage",
+    "plans": "Plans",
+    "selectPlan": "Select"
+  },
+  "audit": {
+    "allActions": "All actions",
+    "previous": "Previous",
+    "subtitle": "History of all important operations",
+    "entriesCount": "entries",
+    "noEntries": "No audit log entries found",
+    "time": "Time",
+    "user": "User",
+    "action": "Action",
+    "entity": "Entity",
+    "entityId": "Entity ID"
   },
   "onboarding": {
     "title": "Step-by-step Setup",

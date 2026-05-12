@@ -8,8 +8,9 @@ import {
 } from '@/hooks/promotions/usePromotions';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Promotion, PromotionType, CreatePromotionDto } from '@/types/promotion';
-import { PROMO_TYPE_LABELS } from '@/types/promotion';
+import { PROMO_TYPE_LABEL_KEYS } from '@/types/promotion';
 import { useProducts } from '@/hooks/catalog/useProducts';
 
 /* ─── Helpers ─── */
@@ -72,25 +73,26 @@ function RulesForm({
   onChange: (rules: Record<string, unknown>) => void;
   products: ProductOption[];
 }) {
+  const { t } = useTranslation();
   const num = (key: string) => Number(rules[key] ?? 0);
   const set = (key: string, val: unknown) => onChange({ ...rules, [key]: val });
 
   const inputCls = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition';
-  const productOptions = [{ value: '', label: 'Barcha mahsulotlar' }, ...products];
+  const productOptions = [{ value: '', label: t('promotions.allProducts') }, ...products];
 
   if (type === 'PERCENT') {
     return (
       <div className="space-y-3">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Foiz (%)</label>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.percent')}</label>
           <input type="number" min={1} max={100} value={num('percent') || ''} onChange={(e) => set('percent', Number(e.target.value))} className={inputCls} placeholder="10" />
         </div>
         <div>
           <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-gray-600">
             <Package2 className="h-3.5 w-3.5" />
-            Qaysi mahsulotga <span className="font-normal text-gray-400">(ixtiyoriy)</span>
+            {t('promotions.forProduct')} <span className="font-normal text-gray-400">({t('promotions.forProductOptional')})</span>
           </label>
-          <SearchableDropdown options={productOptions} value={(rules.productId as string) ?? ''} onChange={(val) => set('productId', val || undefined)} placeholder="Barcha mahsulotlar" searchable clearable />
+          <SearchableDropdown options={productOptions} value={(rules.productId as string) ?? ''} onChange={(val) => set('productId', val || undefined)} placeholder={t('promotions.allProducts')} searchable clearable />
         </div>
       </div>
     );
@@ -99,15 +101,15 @@ function RulesForm({
     return (
       <div className="space-y-3">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Miqdor (so&apos;m)</label>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.amount')}</label>
           <input type="number" min={0} value={num('amount') || ''} onChange={(e) => set('amount', Number(e.target.value))} className={inputCls} placeholder="5000" />
         </div>
         <div>
           <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-gray-600">
             <Package2 className="h-3.5 w-3.5" />
-            Qaysi mahsulotga <span className="font-normal text-gray-400">(ixtiyoriy)</span>
+            {t('promotions.forProduct')} <span className="font-normal text-gray-400">({t('promotions.forProductOptional')})</span>
           </label>
-          <SearchableDropdown options={productOptions} value={(rules.productId as string) ?? ''} onChange={(val) => set('productId', val || undefined)} placeholder="Barcha mahsulotlar" searchable clearable />
+          <SearchableDropdown options={productOptions} value={(rules.productId as string) ?? ''} onChange={(val) => set('productId', val || undefined)} placeholder={t('promotions.allProducts')} searchable clearable />
         </div>
       </div>
     );
@@ -116,11 +118,11 @@ function RulesForm({
     return (
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Sotib olish soni</label>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.buyCount')}</label>
           <input type="number" min={1} value={num('buyQty') || ''} onChange={(e) => set('buyQty', Number(e.target.value))} className={inputCls} placeholder="2" />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-gray-600">Bepul soni</label>
+          <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.freeCount')}</label>
           <input type="number" min={1} value={num('getQty') || ''} onChange={(e) => set('getQty', Number(e.target.value))} className={inputCls} placeholder="1" />
         </div>
       </div>
@@ -129,7 +131,7 @@ function RulesForm({
   if (type === 'BUNDLE') {
     return (
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-gray-600">Paket chegirmasi (%)</label>
+        <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.bundlePercent')}</label>
         <input type="number" min={1} max={100} value={num('discount') || ''} onChange={(e) => set('discount', Number(e.target.value))} className={inputCls} placeholder="15" />
       </div>
     );
@@ -145,6 +147,7 @@ export interface PromotionModalProps {
 }
 
 export function PromotionModal({ initial, onClose }: PromotionModalProps) {
+  const { t } = useTranslation();
   const isEdit = Boolean(initial);
   const [form, setForm] = useState<CreatePromotionDto>(
     initial
@@ -197,10 +200,10 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
             </div>
             <div>
               <h3 className="text-base font-bold text-white">
-                {isEdit ? 'Aksiyani tahrirlash' : 'Yangi aksiya yaratish'}
+                {isEdit ? t('promotions.editPromo') : t('promotions.createPromo')}
               </h3>
               <p className="text-xs text-white/70">
-                {isEdit ? 'Mavjud aksiyani yangilash' : "Chegirma yoki aksiya qo'shing"}
+                {isEdit ? t('promotions.editSubtitle') : t('promotions.createSubtitle')}
               </p>
             </div>
           </div>
@@ -217,21 +220,21 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
           <div className="flex flex-col gap-4 p-6">
             {/* Name */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-gray-600">Aksiya nomi</label>
-              <input required value={form.name} onChange={(e) => setField('name', e.target.value)} className={inputCls} placeholder="Masalan: Bahor chegirmasi" />
+              <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.name')}</label>
+              <input required value={form.name} onChange={(e) => setField('name', e.target.value)} className={inputCls} placeholder={t('promotions.namePlaceholder')} />
             </div>
 
             {/* Type */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-gray-600">Aksiya turi</label>
+              <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.type')}</label>
               <SearchableDropdown
-                options={(Object.keys(PROMO_TYPE_LABELS) as PromotionType[]).map((t) => ({
-                  value: t,
-                  label: PROMO_TYPE_LABELS[t],
+                options={(Object.keys(PROMO_TYPE_LABEL_KEYS) as PromotionType[]).map((tp) => ({
+                  value: tp,
+                  label: t(PROMO_TYPE_LABEL_KEYS[tp]),
                 }))}
                 value={form.type}
                 onChange={(val) => handleTypeChange(val as PromotionType)}
-                placeholder="Turni tanlang"
+                placeholder={t('promotions.selectType')}
                 searchable={false}
                 clearable={false}
                 disabled={isEdit}
@@ -249,11 +252,11 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-gray-600">Boshlanish</label>
+                <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.startDate')}</label>
                 <input type="date" required value={form.validFrom} onChange={(e) => setField('validFrom', e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-gray-600">Tugash (ixtiyoriy)</label>
+                <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.endDate')}</label>
                 <input type="date" value={form.validTo ?? ''} onChange={(e) => setField('validTo', e.target.value)} className={inputCls} />
               </div>
             </div>
@@ -267,8 +270,8 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <div>
-                <p className="text-sm font-semibold text-gray-800">Faol holat</p>
-                <p className="text-xs text-gray-400">Aksiya darhol boshlanadi</p>
+                <p className="text-sm font-semibold text-gray-800">{t('promotions.activeState')}</p>
+                <p className="text-xs text-gray-400">{t('promotions.activeDesc')}</p>
               </div>
             </label>
           </div>
@@ -279,7 +282,7 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
               type="button" onClick={onClose}
               className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit" disabled={isPending}
@@ -291,7 +294,7 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
                 'bg-amber-600 hover:bg-amber-700',
               )}
             >
-              {isPending ? 'Saqlanmoqda...' : isEdit ? 'Saqlash' : "Qo'shish"}
+              {isPending ? t('common.saving') : isEdit ? t('common.save') : t('common.add')}
             </button>
           </div>
         </form>

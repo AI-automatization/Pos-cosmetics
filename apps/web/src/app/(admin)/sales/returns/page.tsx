@@ -12,8 +12,8 @@ import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { formatPrice, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import {
-  REFUND_METHOD_LABELS,
-  RETURN_STATUS_LABELS,
+  REFUND_METHOD_KEYS,
+  RETURN_STATUS_KEYS,
   type RefundMethod,
   type ReturnStatus,
 } from '@/types/returns';
@@ -37,6 +37,7 @@ interface BackendOrder extends Omit<Order, 'items'> {
 /* ─── Return Modal ────────────────────────────────────────────────────────── */
 
 function ReturnModal({ order, onClose }: { order: BackendOrder; onClose: () => void }) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState('');
   const [selected, setSelected] = useState<Record<string, { qty: number; max: number }>>({});
   const { mutate: createReturn, isPending } = useCreateReturn();
@@ -78,7 +79,7 @@ function ReturnModal({ order, onClose }: { order: BackendOrder; onClose: () => v
       <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-gray-900">Qaytarish — #{order.orderNumber}</h2>
+            <h2 className="font-semibold text-gray-900">{t('returns.returnTitle')} — #{order.orderNumber}</h2>
             <p className="text-xs text-gray-500">
               {formatPrice(Number(order.total))} •{' '}
               {new Date(order.createdAt).toLocaleString('uz-UZ')}
@@ -132,19 +133,19 @@ function ReturnModal({ order, onClose }: { order: BackendOrder; onClose: () => v
         </div>
 
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700">Sabab (ixtiyoriy)</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">{t('returns.reasonOptional')}</label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={2}
-            placeholder="Qaytarish sababi..."
+            placeholder={t('returns.reasonPlaceholder')}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400"
           />
         </div>
 
         {Object.keys(selected).length > 0 && (
           <div className="mb-4 rounded-lg bg-gray-50 px-3 py-2 text-sm flex justify-between">
-            <span className="text-gray-600">Qaytarish summasi:</span>
+            <span className="text-gray-600">{t('returns.returnTotal')}:</span>
             <span className="font-semibold text-gray-900">{formatPrice(total)}</span>
           </div>
         )}
@@ -155,7 +156,7 @@ function ReturnModal({ order, onClose }: { order: BackendOrder; onClose: () => v
           disabled={isPending || Object.keys(selected).length === 0}
           className="w-full rounded-xl bg-orange-600 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:opacity-60"
         >
-          {isPending ? 'Yuklanmoqda...' : "Qaytarish so'rovini yuborish"}
+          {isPending ? t('common.loading') : t('returns.submitReturn')}
         </button>
       </div>
     </div>
@@ -165,11 +166,12 @@ function ReturnModal({ order, onClose }: { order: BackendOrder; onClose: () => v
 /* ─── Status badge ────────────────────────────────────────────────────────── */
 
 function StatusBadge({ status }: { status: ReturnStatus }) {
+  const { t } = useTranslation();
   if (status === 'APPROVED') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
         <CheckCircle className="h-3 w-3" />
-        {RETURN_STATUS_LABELS.APPROVED}
+        {t(RETURN_STATUS_KEYS.APPROVED)}
       </span>
     );
   }
@@ -177,14 +179,14 @@ function StatusBadge({ status }: { status: ReturnStatus }) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
         <Clock className="h-3 w-3" />
-        {RETURN_STATUS_LABELS.PENDING}
+        {t(RETURN_STATUS_KEYS.PENDING)}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
       <AlertCircle className="h-3 w-3" />
-      {RETURN_STATUS_LABELS.REJECTED}
+      {t(RETURN_STATUS_KEYS.REJECTED)}
     </span>
   );
 }
@@ -245,7 +247,7 @@ function ReturnsHistoryTab() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {['#', 'Buyurtma', 'Kassir', 'Mahsulotlar', 'Summa', 'Usul', 'Holat', 'Sana', 'Amal'].map((h) => (
+              {['#', t('nav.orders'), t('reports.cashier'), t('nav.products'), t('common.total'), t('returns.method'), t('common.status'), t('common.date'), t('common.actions')].map((h) => (
                 <th
                   key={h}
                   className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
@@ -260,7 +262,7 @@ function ReturnsHistoryTab() {
               <tr>
                 <td colSpan={9} className="py-12 text-center text-gray-400">
                   <RotateCcw className="mx-auto mb-2 h-8 w-8 text-gray-200" />
-                  Qaytarish topilmadi
+                  {t('returns.noReturns')}
                 </td>
               </tr>
             ) : (
@@ -284,14 +286,14 @@ function ReturnsHistoryTab() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">{cashier}</td>
                     <td className="px-4 py-3 text-gray-600 max-w-[180px]">
-                      <span title={productNames}>{displayProducts || `${ret.items.length} ta`}</span>
+                      <span title={productNames}>{displayProducts || `${ret.items.length} ${t('common.unit')}`}</span>
                     </td>
                     <td className="px-4 py-3 font-semibold text-orange-700 tabular-nums">
                       {formatPrice(Number(ret.total))}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {ret.refundMethod
-                        ? REFUND_METHOD_LABELS[ret.refundMethod as RefundMethod]
+                        ? t(REFUND_METHOD_KEYS[ret.refundMethod as RefundMethod])
                         : '—'}
                     </td>
                     <td className="px-4 py-3">
@@ -308,7 +310,7 @@ function ReturnsHistoryTab() {
                           disabled={isApproving}
                           className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
                         >
-                          Tasdiqlash
+                          {t('common.confirm')}
                         </button>
                       )}
                     </td>
@@ -328,6 +330,7 @@ function ReturnsHistoryTab() {
 type OrderFilter = 'ALL' | 'COMPLETED' | 'RETURNED';
 
 function OrdersTab() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<OrderFilter>('ALL');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -343,9 +346,9 @@ function OrdersTab() {
     .filter((o) => !search || String(o.orderNumber).includes(search));
 
   const ORDER_TABS: { key: OrderFilter; label: string }[] = [
-    { key: 'ALL', label: 'Barchasi' },
-    { key: 'COMPLETED', label: 'Qaytarish mumkin' },
-    { key: 'RETURNED', label: 'Qaytarilgan' },
+    { key: 'ALL', label: t('common.all') },
+    { key: 'COMPLETED', label: t('returns.returnable') },
+    { key: 'RETURNED', label: t('returns.returned') },
   ];
 
   return (
@@ -370,7 +373,7 @@ function OrdersTab() {
       <ScrollableTable
         searchValue={search}
         onSearchChange={(v) => { setSearch(v); setPage(1); }}
-        searchPlaceholder="Buyurtma №..."
+        searchPlaceholder={`${t('orders.orderNumber')}...`}
         totalCount={total}
         isLoading={isLoading}
         pagination={total > pageSize ? {
@@ -384,7 +387,7 @@ function OrdersTab() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {['Buyurtma №', 'Kassir', 'Mahsulotlar', 'Summa', 'Sana', 'Holat', 'Amal'].map((h) => (
+              {[t('orders.orderNumber'), t('reports.cashier'), t('nav.products'), t('common.total'), t('common.date'), t('common.status'), t('common.actions')].map((h) => (
                 <th
                   key={h}
                   className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
@@ -399,7 +402,7 @@ function OrdersTab() {
               <tr>
                 <td colSpan={7} className="py-12 text-center text-gray-400">
                   <RotateCcw className="mx-auto mb-2 h-8 w-8 text-gray-200" />
-                  Buyurtma topilmadi
+                  {t('returns.noOrders')}
                 </td>
               </tr>
             ) : (
@@ -411,7 +414,7 @@ function OrdersTab() {
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono font-medium text-gray-900">#{order.orderNumber}</td>
                     <td className="px-4 py-3 text-gray-600">{cashierName || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{order.items.length} ta</td>
+                    <td className="px-4 py-3 text-gray-600">{order.items.length} {t('common.unit')}</td>
                     <td className="px-4 py-3 font-semibold text-gray-900">
                       {formatPrice(Number(order.total))}
                     </td>
@@ -421,11 +424,11 @@ function OrdersTab() {
                     <td className="px-4 py-3">
                       {order.status === 'RETURNED' ? (
                         <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                          <CheckCircle className="h-3 w-3" /> Qaytarilgan
+                          <CheckCircle className="h-3 w-3" /> {t('returns.returned')}
                         </span>
                       ) : order.status === 'COMPLETED' ? (
                         <span className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                          <Clock className="h-3 w-3" /> Yakunlangan
+                          <Clock className="h-3 w-3" /> {t('orders.completedStatus')}
                         </span>
                       ) : (
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
@@ -440,7 +443,7 @@ function OrdersTab() {
                           onClick={() => setReturnOrder(order)}
                           className="rounded-md bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700 flex items-center gap-1"
                         >
-                          <RotateCcw className="h-3 w-3" /> Qaytarish
+                          <RotateCcw className="h-3 w-3" /> {t('returns.returnTitle')}
                         </button>
                       )}
                     </td>
@@ -462,18 +465,19 @@ function OrdersTab() {
 type MainTab = 'orders' | 'history';
 
 export default function ReturnsPage() {
+  const { t } = useTranslation();
   const [mainTab, setMainTab] = useState<MainTab>('history');
 
   const MAIN_TABS: { key: MainTab; label: string }[] = [
-    { key: 'history', label: 'Qaytarish tarixi' },
-    { key: 'orders', label: 'Buyurtmalar' },
+    { key: 'history', label: t('returns.history') },
+    { key: 'orders', label: t('nav.orders') },
   ];
 
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Qaytarishlar</h1>
-        <p className="mt-0.5 text-sm text-gray-500">Qaytarish tarixi va buyurtmalardan qaytarish</p>
+        <h1 className="text-xl font-semibold text-gray-900">{t('nav.returns')}</h1>
+        <p className="mt-0.5 text-sm text-gray-500">{t('returns.subtitle')}</p>
       </div>
 
       {/* Main tabs */}
