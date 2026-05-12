@@ -89,7 +89,7 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Ma&apos;lumotlarni eksport qilish</h1>
         <p className="mt-0.5 text-sm text-gray-500">CSV formatida yuklab olish</p>
