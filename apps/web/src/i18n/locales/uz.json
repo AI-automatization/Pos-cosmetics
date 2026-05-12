@@ -613,14 +613,26 @@
     "password": "Parol",
     "passwordField": "Parol",
     "passwordPlaceholder": "Kamida 8 belgi",
-    "randomPassword": "Tasodifiy parol"
+    "randomPassword": "Tasodifiy parol",
+    "phone": "Telefon"
   },
   "roles": {
     "admin": "Hamma narsaga kirish",
     "manager": "Hisobot, kassa, inventar",
     "warehouse": "Faqat ombor",
     "cashier": "Faqat kassa, savdo",
-    "viewer": "Faqat ko'rish, o'zgartira olmaydi"
+    "viewer": "Faqat ko'rish, o'zgartira olmaydi",
+    "owner": "Egasi",
+    "adminLabel": "Admin",
+    "managerLabel": "Menejer",
+    "warehouseLabel": "Omborchi",
+    "cashierLabel": "Kassir",
+    "viewerLabel": "Ko'ruvchi",
+    "adminDesc": "Hamma narsaga kirish",
+    "managerDesc": "Hisobot, kassa, inventar",
+    "warehouseDesc": "Faqat ombor",
+    "cashierDesc": "Faqat kassa, savdo",
+    "viewerDesc": "Faqat ko'rish, o'zgartira olmaydi"
   },
   "sync": {
     "onlineSynced": "Online · Synced",
@@ -1087,6 +1099,19 @@
     "rulesBuyXGetY": "{buyQty} olsang {getQty} bepul",
     "rulesBundle": "{discount}% paket chegirma"
   },
+  "branches": {
+    "subtitle": "Do'kon filiallarini va xodimlarini boshqarish",
+    "addBranch": "Filial qo'shish",
+    "editBranch": "Filialni tahrirlash",
+    "newBranch": "Yangi filial",
+    "branchName": "Filial nomi",
+    "address": "Manzil",
+    "empty": "Hali filial yo'q",
+    "emptyHint": "Yuqoridagi tugmani bosib yangi filial qo'shing",
+    "deleteTitle": "Filialni o'chirish",
+    "deleteWarning": "Bu amalni qaytarib bo'lmaydi",
+    "deleteConfirm": "\"{name}\" filialni o'chirmoqchimisiz? Filialdagi xodimlar va mijozlar bog'liqligini yo'qotadi."
+  },
   "workers": {
     "title": "Xodimlar",
     "subtitle": "{active} faol / {total} jami",
@@ -1108,7 +1133,12 @@
     "inProgress": "Jarayonda",
     "done": "Bajarildi",
     "empty": "Topshiriqlar yo'q",
-    "addFirst": "+ Birinchi topshiriqni qo'shing"
+    "addFirst": "+ Birinchi topshiriqni qo'shing",
+    "titleRequired": "Sarlavha kiritilishi shart",
+    "moveTo": "{status}ga o'tkazish",
+    "selectAssignee": "— Tanlang —",
+    "allBranches": "Barcha filiallar",
+    "noTasksWithStatus": "{status} topshiriq yo'q"
   },
   "realestate": {
     "title": "Ko'chmas mulk",
@@ -1206,6 +1236,7 @@
     "testPrint": "Test chek",
     "printing": "Chiqarilmoqda...",
     "saved": "Saqlandi!",
+    "save": "Saqlash",
     "basicSettings": "Asosiy sozlamalar",
     "enablePrinter": "Printerni yoqish",
     "enablePrinterDesc": "Chek chiqarish funksiyasi",
@@ -1218,19 +1249,25 @@
     "connection": "Ulanish",
     "printerModel": "Printer modeli",
     "selectModel": "— Tanlang —",
+    "otherModel": "Boshqa...",
     "connectionType": "Ulanish turi",
     "browserPrint": "Browser Print (window.print)",
+    "browserPrintDesc": "Oddiy, hamma brauzerlarda ishlaydi",
     "usbPrint": "USB (WebUSB API)",
+    "usbPrintDesc": "Tauri desktop ilovada to'liq ishlaydi",
     "networkPrint": "Network (TCP/IP)",
+    "networkPrintDesc": "Tarmoq orqali, IP va port kerak",
     "ipAddress": "IP manzil",
     "port": "Port",
     "headerFooter": "Chek sarlavhasi va footer",
     "storeName": "Do'kon nomi",
+    "storeNamePlaceholder": "Do'konim",
     "inn": "INN/STIR",
     "address": "Manzil",
+    "addressPlaceholder": "Toshkent sh., Chilonzor t.",
     "footerText": "Footer matni",
     "defaultFooter": "Xaridingiz uchun rahmat!",
     "supportedPrinters": "Qo'llab-quvvatlanadigan printerlar",
-    "mvpNote": "MVP rejimida Browser Print (window.print) ishlatiladi..."
+    "mvpNote": "MVP rejimida Browser Print (window.print) ishlatiladi. Tauri desktop ilovada ESC/POS binary commands orqali to'liq ishlaydi."
   }
 }

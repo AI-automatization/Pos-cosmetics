@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<TaskStatus, { icon: React.ComponentType<{ className?
 };
 
 const taskSchema = z.object({
-  title: z.string().min(1, 'Sarlavha kiritilishi shart'),
+  title: z.string().min(1, 'titleRequired'),
   description: z.string().optional(),
   assigneeId: z.string().optional(),
   dueDate: z.string().optional(),
@@ -57,7 +57,7 @@ function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string })
             }}
             disabled={!cfg.next}
             className="mt-0.5 shrink-0"
-            title={cfg.next ? `${STATUS_LABELS[cfg.next]}ga o'tkazish` : undefined}
+            title={cfg.next ? t('tasks.moveTo', { status: STATUS_LABELS[cfg.next] }) : undefined}
           >
             <Icon className={cn('h-4.5 w-4.5', task.status === 'DONE' ? 'text-green-500' : task.status === 'IN_PROGRESS' ? 'text-blue-500' : 'text-gray-400')} />
           </button>
@@ -101,7 +101,7 @@ function TaskCard({ task, assigneeName }: { task: Task; assigneeName?: string })
             onClick={() => update({ id: task.id, dto: { status: cfg.next! } })}
             className="ml-auto flex items-center gap-0.5 text-xs text-blue-500 hover:text-blue-700"
           >
-            {STATUS_LABELS[cfg.next!]}ga o&apos;tkazish
+            {t('tasks.moveTo', { status: STATUS_LABELS[cfg.next!] })}
             <ChevronRight className="h-3 w-3" />
           </button>
         )}
@@ -200,7 +200,7 @@ export default function TasksPage() {
                   errors.title ? 'border-red-400' : 'border-gray-300 focus:border-blue-400',
                 )}
               />
-              {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title.message}</p>}
+              {errors.title && <p className="mt-1 text-xs text-red-500">{t('tasks.titleRequired')}</p>}
             </div>
             <textarea
               {...register('description')}
@@ -218,7 +218,7 @@ export default function TasksPage() {
                   }))}
                   value={assigneeId}
                   onChange={(val) => setValue('assigneeId', val || undefined)}
-                  placeholder="— Tanlang —"
+                  placeholder={t('tasks.selectAssignee')}
                   searchable={users.length > 4}
                   clearable
                 />
@@ -257,12 +257,12 @@ export default function TasksPage() {
         {branches.length > 0 && (
           <SearchableDropdown
             options={[
-              { value: '', label: 'Barcha filiallar' },
+              { value: '', label: t('tasks.allBranches') },
               ...branches.map((b) => ({ value: b.id, label: b.name })),
             ]}
             value={branchFilter}
             onChange={(val) => setBranchFilter(val)}
-            placeholder="Barcha filiallar"
+            placeholder={t('tasks.allBranches')}
             searchable={branches.length > 4}
             clearable={false}
             className="w-48"
@@ -306,7 +306,7 @@ export default function TasksPage() {
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 py-16">
           <ClipboardList className="mb-3 h-10 w-10 text-gray-300" />
           <p className="text-sm font-medium text-gray-500">
-            {filter === 'ALL' ? t('tasks.empty') : `${STATUS_LABELS[filter as TaskStatus]} topshiriq yo'q`}
+            {filter === 'ALL' ? t('tasks.empty') : t('tasks.noTasksWithStatus', { status: STATUS_LABELS[filter as TaskStatus] })}
           </p>
           {filter === 'ALL' && (
             <button

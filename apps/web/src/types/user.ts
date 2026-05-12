@@ -35,6 +35,17 @@ export type UpdateUserDto = {
   isActive?: boolean;
 };
 
+// i18n key map for role labels — use with t()
+export const ROLE_LABEL_KEYS: Record<UserRole, string> = {
+  OWNER: 'roles.owner',
+  ADMIN: 'roles.adminLabel',
+  MANAGER: 'roles.managerLabel',
+  WAREHOUSE: 'roles.warehouseLabel',
+  CASHIER: 'roles.cashierLabel',
+  VIEWER: 'roles.viewerLabel',
+};
+
+/** @deprecated Use ROLE_LABEL_KEYS with t() instead */
 export const ROLE_LABELS: Record<UserRole, string> = {
   OWNER: 'Egasi',
   ADMIN: 'Admin',

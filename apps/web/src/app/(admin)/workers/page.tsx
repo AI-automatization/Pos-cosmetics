@@ -15,7 +15,7 @@ import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { UserModal } from '@/components/settings/UserModal';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
-import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
+import { ROLE_LABEL_KEYS, ROLE_ORDER } from '@/types/user';
 
 /* ─── Role badge ─── */
 const ROLE_COLORS: Record<UserRole, string> = {
@@ -28,9 +28,10 @@ const ROLE_COLORS: Record<UserRole, string> = {
 };
 
 function RoleBadge({ role, isActive = true }: { role: UserRole; isActive?: boolean }) {
+  const { t } = useTranslation();
   return (
     <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', isActive ? ROLE_COLORS[role] : 'bg-gray-100 text-gray-400')}>
-      {ROLE_LABELS[role]}
+      {t(ROLE_LABEL_KEYS[role])}
     </span>
   );
 }
@@ -142,7 +143,7 @@ export default function WorkersPage() {
           <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-100 bg-white px-4 py-3">
             {stats.byRole.map(({ role, count }) => (
               <span key={role} className={cn('rounded-full px-2 py-0.5 text-xs font-medium', ROLE_COLORS[role])}>
-                {ROLE_LABELS[role]} {count}
+                {t(ROLE_LABEL_KEYS[role])} {count}
               </span>
             ))}
           </div>
@@ -171,7 +172,7 @@ export default function WorkersPage() {
         {/* Role filter */}
         <div className="w-40">
           <SearchableDropdown
-            options={ROLE_ORDER.filter((r) => r !== 'OWNER').map((r) => ({ value: r, label: ROLE_LABELS[r] }))}
+            options={ROLE_ORDER.filter((r) => r !== 'OWNER').map((r) => ({ value: r, label: t(ROLE_LABEL_KEYS[r]) }))}
             value={roleFilter}
             onChange={(val) => setRoleFilter(val)}
             placeholder={t('workers.allRoles')}
@@ -210,6 +211,7 @@ export default function WorkersPage() {
         searchPlaceholder={t('workers.searchPlaceholder')}
         totalCount={filtered.length}
         isLoading={false}
+        maxHeight="calc(100vh - 480px)"
       >
         <table className="w-full text-sm">
           <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">

@@ -613,14 +613,26 @@
     "password": "Password",
     "passwordField": "Password",
     "passwordPlaceholder": "At least 8 characters",
-    "randomPassword": "Random password"
+    "randomPassword": "Random password",
+    "phone": "Phone"
   },
   "roles": {
     "admin": "Full access",
     "manager": "Reports, POS, inventory",
     "warehouse": "Warehouse only",
     "cashier": "POS and sales only",
-    "viewer": "View only, no changes"
+    "viewer": "View only, no changes",
+    "owner": "Owner",
+    "adminLabel": "Admin",
+    "managerLabel": "Manager",
+    "warehouseLabel": "Warehouse",
+    "cashierLabel": "Cashier",
+    "viewerLabel": "Viewer",
+    "adminDesc": "Full access",
+    "managerDesc": "Reports, POS, inventory",
+    "warehouseDesc": "Warehouse only",
+    "cashierDesc": "POS and sales only",
+    "viewerDesc": "View only, no changes"
   },
   "sync": {
     "onlineSynced": "Online · Synced",
@@ -1087,6 +1099,19 @@
     "rulesBuyXGetY": "Buy {buyQty} get {getQty} free",
     "rulesBundle": "{discount}% bundle discount"
   },
+  "branches": {
+    "subtitle": "Manage store branches and employees",
+    "addBranch": "Add Branch",
+    "editBranch": "Edit Branch",
+    "newBranch": "New Branch",
+    "branchName": "Branch Name",
+    "address": "Address",
+    "empty": "No branches yet",
+    "emptyHint": "Click the button above to add a branch",
+    "deleteTitle": "Delete Branch",
+    "deleteWarning": "This action cannot be undone",
+    "deleteConfirm": "Delete branch \"{name}\"? Employee and customer associations will be lost."
+  },
   "workers": {
     "title": "Employees",
     "subtitle": "{active} active / {total} total",
@@ -1108,7 +1133,12 @@
     "inProgress": "In Progress",
     "done": "Done",
     "empty": "No tasks",
-    "addFirst": "+ Add first task"
+    "addFirst": "+ Add first task",
+    "titleRequired": "Title is required",
+    "moveTo": "Move to {status}",
+    "selectAssignee": "— Select —",
+    "allBranches": "All branches",
+    "noTasksWithStatus": "No {status} tasks"
   },
   "realestate": {
     "title": "Real Estate",
@@ -1206,6 +1236,7 @@
     "testPrint": "Test Print",
     "printing": "Printing...",
     "saved": "Saved!",
+    "save": "Save",
     "basicSettings": "Basic Settings",
     "enablePrinter": "Enable Printer",
     "enablePrinterDesc": "Receipt printing function",
@@ -1218,19 +1249,25 @@
     "connection": "Connection",
     "printerModel": "Printer Model",
     "selectModel": "— Select —",
+    "otherModel": "Other...",
     "connectionType": "Connection Type",
     "browserPrint": "Browser Print (window.print)",
+    "browserPrintDesc": "Simple, works in all browsers",
     "usbPrint": "USB (WebUSB API)",
+    "usbPrintDesc": "Fully works in Tauri desktop app",
     "networkPrint": "Network (TCP/IP)",
+    "networkPrintDesc": "Via network, requires IP and port",
     "ipAddress": "IP Address",
     "port": "Port",
     "headerFooter": "Receipt Header & Footer",
     "storeName": "Store Name",
+    "storeNamePlaceholder": "My Store",
     "inn": "TIN",
     "address": "Address",
+    "addressPlaceholder": "City, street",
     "footerText": "Footer Text",
     "defaultFooter": "Thank you for your purchase!",
     "supportedPrinters": "Supported Printers",
-    "mvpNote": "MVP mode uses Browser Print (window.print)..."
+    "mvpNote": "In MVP mode, Browser Print (window.print) is used. In Tauri desktop app, ESC/POS binary commands provide full support."
   }
 }

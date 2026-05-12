@@ -613,14 +613,26 @@
     "password": "Пароль",
     "passwordField": "Пароль",
     "passwordPlaceholder": "Минимум 8 символов",
-    "randomPassword": "Случайный пароль"
+    "randomPassword": "Случайный пароль",
+    "phone": "Телефон"
   },
   "roles": {
     "admin": "Полный доступ",
     "manager": "Отчёты, касса, склад",
     "warehouse": "Только склад",
     "cashier": "Только касса, продажи",
-    "viewer": "Только просмотр"
+    "viewer": "Только просмотр",
+    "owner": "Владелец",
+    "adminLabel": "Админ",
+    "managerLabel": "Менеджер",
+    "warehouseLabel": "Складовщик",
+    "cashierLabel": "Кассир",
+    "viewerLabel": "Наблюдатель",
+    "adminDesc": "Полный доступ",
+    "managerDesc": "Отчёты, касса, склад",
+    "warehouseDesc": "Только склад",
+    "cashierDesc": "Только касса, продажи",
+    "viewerDesc": "Только просмотр"
   },
   "sync": {
     "onlineSynced": "Онлайн · Синхронизировано",
@@ -1087,6 +1099,19 @@
     "rulesBuyXGetY": "Купи {buyQty} — {getQty} бесплатно",
     "rulesBundle": "{discount}% скидка на комплект"
   },
+  "branches": {
+    "subtitle": "Управление филиалами и сотрудниками",
+    "addBranch": "Добавить филиал",
+    "editBranch": "Редактировать филиал",
+    "newBranch": "Новый филиал",
+    "branchName": "Название филиала",
+    "address": "Адрес",
+    "empty": "Филиалов пока нет",
+    "emptyHint": "Нажмите кнопку выше, чтобы добавить филиал",
+    "deleteTitle": "Удалить филиал",
+    "deleteWarning": "Это действие нельзя отменить",
+    "deleteConfirm": "Удалить филиал \"{name}\"? Связи сотрудников и клиентов будут потеряны."
+  },
   "workers": {
     "title": "Сотрудники",
     "subtitle": "{active} акт. / {total} всего",
@@ -1108,7 +1133,12 @@
     "inProgress": "В процессе",
     "done": "Выполнено",
     "empty": "Нет задач",
-    "addFirst": "+ Добавьте первую задачу"
+    "addFirst": "+ Добавьте первую задачу",
+    "titleRequired": "Заголовок обязателен",
+    "moveTo": "Перевести в {status}",
+    "selectAssignee": "— Выберите —",
+    "allBranches": "Все филиалы",
+    "noTasksWithStatus": "Нет задач «{status}»"
   },
   "realestate": {
     "title": "Недвижимость",
@@ -1206,6 +1236,7 @@
     "testPrint": "Тест печати",
     "printing": "Печать...",
     "saved": "Сохранено!",
+    "save": "Сохранить",
     "basicSettings": "Основные настройки",
     "enablePrinter": "Включить принтер",
     "enablePrinterDesc": "Функция печати чеков",
@@ -1218,19 +1249,25 @@
     "connection": "Подключение",
     "printerModel": "Модель принтера",
     "selectModel": "— Выберите —",
+    "otherModel": "Другой...",
     "connectionType": "Тип подключения",
     "browserPrint": "Browser Print (window.print)",
+    "browserPrintDesc": "Простой способ, работает во всех браузерах",
     "usbPrint": "USB (WebUSB API)",
+    "usbPrintDesc": "Полноценно работает в Tauri десктоп-приложении",
     "networkPrint": "Network (TCP/IP)",
+    "networkPrintDesc": "Через сеть, требуется IP и порт",
     "ipAddress": "IP адрес",
     "port": "Порт",
     "headerFooter": "Заголовок и подвал чека",
     "storeName": "Название магазина",
+    "storeNamePlaceholder": "Мой магазин",
     "inn": "ИНН/СТИР",
     "address": "Адрес",
+    "addressPlaceholder": "Город, улица",
     "footerText": "Текст подвала",
     "defaultFooter": "Спасибо за покупку!",
     "supportedPrinters": "Поддерживаемые принтеры",
-    "mvpNote": "В режиме MVP используется Browser Print (window.print)..."
+    "mvpNote": "В режиме MVP используется Browser Print (window.print). В Tauri десктоп-приложении полноценная поддержка через ESC/POS."
   }
 }
