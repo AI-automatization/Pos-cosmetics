@@ -264,7 +264,7 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **19** | **0** | **4** | **10** | **5** |
+| **14** | **0** | **4** | **5** | **5** |
 
 ### Kategoriya bo'yicha
 
@@ -272,7 +272,6 @@
 |-----------|----|----|----|----|------|
 | [BACKEND] | 0 | 3 | 4 | 4 | **11** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
-| [MOBILE] | 0 | 0 | 5 | 0 | **5** |
 | [IKKALASI] | 0 | 1 | 0 | 1 | **2** |
 
 ### Mas'uliyat taqsimoti
@@ -280,10 +279,9 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 0 | 4 | 3 | 0 | **7** |
-| **Abdulaziz** (Mobile) | 0 | 0 | 5 | 0 | **5** |
 | **Belgilanmagan** | 0 | 0 | 1 | 5 | **6** |
 
-> Yangilandi: 2026-05-12 — T-465..T-470 Done.md ga o'tdi; T-423 mobile qismi bajarildi (backend ochiq)
+> Yangilandi: 2026-05-12 — T-460..T-470 Done.md ga o'tdi; mobile ochiq task: **0**
 
 ---
 
@@ -372,80 +370,7 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-## T-460 | P2 | [MOBILE] | Analytics — ABC tahlil ekrani (mobile)
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
-- **Backend:** `GET /analytics/abc` — tayyor (T-089 da bajarilgan, `ai.controller.ts`)
-- **Muammo:** Web da `/analytics` sahifasida ABC tahlil tabi bor (donut chart + A/B/C guruhlash + mahsulot ro'yxati). Mobile da bu funksiya yo'q.
-- **Kutilgan:** Mobile da ABC tahlil ekrani:
-  - Donut/Pie chart (A/B/C guruhlar bo'yicha revenue ulushi)
-  - A guruh (80% revenue), B guruh (15%), C guruh (5%) — kartochkalar
-  - Har guruh ichida mahsulotlar ro'yxati (nomi, sotilgan soni, revenue)
-  - Branch filter (agar owner)
-- **API:** `analyticsApi.getAbcAnalysis(branchId?)` qo'shish kerak
-
----
-
-## T-461 | P2 | [MOBILE] | Analytics — Marja tahlili ekrani (mobile)
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
-- **Backend:** `GET /analytics/margins` — tayyor (T-089 da bajarilgan)
-- **Muammo:** Web da marja tahlili tabi bor (top-10 margin % bar chart + jadval: revenue, COGS, gross profit, margin%). Mobile da yo'q.
-- **Kutilgan:** Mobile da Marja ekrani:
-  - Top-10 mahsulot margin % horizontal bar chart
-  - Jadval: mahsulot nomi, sotish narxi, tannarx, foyda, margin%
-  - Sortlash: margin% bo'yicha (yuqoridan pastga)
-  - Branch filter
-
----
-
-## T-462 | P2 | [MOBILE] | Analytics — Kassir performance ekrani (mobile)
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
-- **Backend:** `GET /analytics/cashier-performance` — tayyor (T-089 da bajarilgan)
-- **Muammo:** Web da kassir performance tabi bor (bar chart + reytingli ro'yxat: buyurtmalar soni, revenue, o'rtacha chek, qaytarishlar). Mobile da yo'q.
-- **Kutilgan:** Mobile da Kassir performance ekrani:
-  - Kassirlar reytingi (ranked list)
-  - Har kassir uchun: buyurtmalar soni, jami revenue, o'rtacha chek, qaytarishlar soni
-  - Bar chart (top 5-10 kassir bo'yicha revenue)
-  - Davr filtri: bugun / hafta / oy
-
----
-
-## T-463 | P2 | [MOBILE] | Analytics — Dead stock (harakatsiz mahsulotlar) ekrani (mobile)
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Analytics/ (yangi)
-- **Backend:** `GET /analytics/dead-stock` — tayyor (T-089 da bajarilgan)
-- **Muammo:** Web da dead stock tabi bor (90+ kun sotilmagan mahsulotlar, carrying cost, idle kunlar soni). Mobile da yo'q.
-- **Kutilgan:** Mobile da Dead stock ekrani:
-  - 90+ kun sotilmagan mahsulotlar ro'yxati
-  - Har mahsulot uchun: oxirgi sotilgan sana, idle kunlar soni, joriy stock qiymati
-  - Umumiy "yotgan kapital" summasi (carrying cost)
-  - Sortlash: idle kunlar / stock qiymati bo'yicha
-
----
-
-## T-464 | P2 | [MOBILE] | Settings — Foydalanuvchi parolini tiklash (mobile)
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Settings/UsersScreen.tsx (kengaytirish)
-- **Backend:** `PATCH /users/:id/reset-password` — tayyor (T-135 da bajarilgan)
-- **Muammo:** Web da owner/admin boshqa foydalanuvchi parolini tiklashi mumkin (reset password modal). Mobile da UsersScreen faqat ro'yxatni ko'rsatadi, parol tiklash yo'q.
-- **Kutilgan:** UsersScreen da har foydalanuvchi uchun "Parol tiklash" tugmasi:
-  - Bottom sheet: yangi parol kiritish (min 6 belgi)
-  - Show/hide toggle
-  - Confirm tugmasi → `PATCH /users/:id/reset-password`
-  - Faqat OWNER va ADMIN roli ko'radi
-  - O'z parolini tiklash taqiqlangan
+*(T-460, T-461, T-462, T-463, T-464 — Done.md ga ko'chirildi 2026-05-12)*
 
 ---
 

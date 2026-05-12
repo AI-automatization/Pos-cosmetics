@@ -3,6 +3,41 @@
 
 ---
 
+## T-464 | 2026-05-12 | [MOBILE] | Settings — Foydalanuvchi parolini tiklash
+
+- **Yechim:** UsersScreen da PasswordResetSheet modal + UserCard da "Parol tiklash" action. `usersApi.resetPassword(id, newPassword)` → `POST /users/:id/reset-password`. Faqat OWNER/ADMIN ko'radi, o'z parolini tiklash taqiqlangan. Min 6 belgi validatsiya, show/hide toggle.
+- **Fayl:** `apps/mobile/src/screens/Settings/UsersScreen.tsx`, `apps/mobile/src/screens/Settings/UserCard.tsx`, `apps/mobile/src/api/users.api.ts`
+
+---
+
+## T-463 | 2026-05-12 | [MOBILE] | Analytics — Dead stock (harakatsiz mahsulotlar) ekrani
+
+- **Yechim:** DeadStockScreen.tsx — 30/90/180 kun threshold selector, search (nomi/SKU), sort (zarar/kunlar/zaxira), summary kartalar, color-coded idle badges. `analyticsApi.getDeadStock(days)` → `GET /analytics/dead-stock`.
+- **Fayl:** `apps/mobile/src/screens/Analytics/DeadStockScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
+
+---
+
+## T-462 | 2026-05-12 | [MOBILE] | Analytics — Kassir performance ekrani
+
+- **Yechim:** CashierPerformanceScreen.tsx — ranked list (medal badges top 3), revenue bar, 7/30/90 kun davr, search. Per-kassir: orders, avgBasket, returns, shifts. `analyticsApi.getCashierPerformance()` → `GET /analytics/cashier-performance`.
+- **Fayl:** `apps/mobile/src/screens/Analytics/CashierPerformanceScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
+
+---
+
+## T-461 | 2026-05-12 | [MOBILE] | Analytics — Marja tahlili ekrani
+
+- **Yechim:** MarginAnalysisScreen.tsx — margin% bo'yicha sorted list, 7/30/90 kun davr, sort (margin%/profit/revenue), color-coded badges (green ≥30%, amber ≥15%, red <15%). Summary: avg margin, total profit, total revenue. `analyticsApi.getMarginAnalysis()` → `GET /analytics/margin`.
+- **Fayl:** `apps/mobile/src/screens/Analytics/MarginAnalysisScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
+
+---
+
+## T-460 | 2026-05-12 | [MOBILE] | Analytics — ABC tahlil ekrani
+
+- **Yechim:** AbcAnalysisScreen.tsx — A/B/C guruhlar (expandable cards), revenue share %, product ranking, 7/30/90 kun davr. `analyticsApi.getAbcAnalysis()` → `GET /analytics/abc`. mapAbcGroups() helper.
+- **Fayl:** `apps/mobile/src/screens/Analytics/AbcAnalysisScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
+
+---
+
 ## T-423 (mobile) | 2026-05-12 | [MOBILE] | PaymentsHistoryScreen — client-side sana + method filtri
 
 - **Yechim:** Backend hali `from`/`to` qo'llab-quvvatlamaydi (T-423 backend qismi Ibrat uchun ochiq). Mobile da client-side workaround: `filtered` useMemo da `createdAt` bo'yicha `from`/`to` orasini tekshirish. Method filter (Naqd/Karta/Nasiya/Click/Payme) faollashtirildi — `paymentMethod` field bo'yicha client-side filtrlash. Limit 200→500.
