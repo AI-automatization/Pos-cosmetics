@@ -51,7 +51,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
   if (!product) {
     return {
       costPrice: 0, sellPrice: 0, minStockLevel: 0, initialStock: 0,
-      extraBarcodes: [], description: '', name: '', sku: '', categoryId: '',
+      extraBarcodes: [{ value: '' }], description: '', name: '', sku: '', categoryId: '',
       supplierId: initialSupplierId ?? '', unitId: '',
     };
   }
