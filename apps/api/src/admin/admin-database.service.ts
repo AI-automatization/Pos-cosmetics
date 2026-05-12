@@ -235,23 +235,32 @@ export class AdminDatabaseService {
       throw new BadRequestException('Нет данных для создания');
     }
 
-    // Строим INSERT — enum-колонки кастятся через ::type_name
+    // SECURITY: Column names MUST exist in schema (prevents SQL injection via crafted keys)
+    const VALID_COL_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    for (const k of keys) {
+      if (!colMap.has(k)) {
+        throw new BadRequestException(`Столбец "${k}" не существует в таблице "${tableName}"`);
+      }
+      if (!VALID_COL_RE.test(k)) {
+        throw new BadRequestException(`Недопустимое имя столбца: "${k}"`);
+      }
+    }
+
+    // Строим parameterized INSERT — $1, $2, ... вместо string interpolation
     const colsSql = keys.map((k) => `"${k}"`).join(', ');
-    const valuesSql = keys.map((k, i) => {
+    const paramValues: unknown[] = [];
+    const placeholders = keys.map((k, i) => {
       const v = values[i];
       const col = colMap.get(k);
-      if (v === null || v === undefined) return 'NULL';
-      if (v instanceof Date) return `'${v.toISOString()}'`;
-      if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
-      if (typeof v === 'number') return String(v);
-      const escaped = `'${String(v).replace(/'/g, "''")}'`;
+      paramValues.push(v);
+      const placeholder = `$${i + 1}`;
       // PostgreSQL enum cast
-      if (col?.udtName) return `${escaped}::"${col.udtName}"`;
-      return escaped;
+      if (col?.udtName && typeof v === 'string') return `${placeholder}::"${col.udtName}"`;
+      return placeholder;
     }).join(', ');
-    const insertSql = `INSERT INTO "${tableName}" (${colsSql}) VALUES (${valuesSql})`;
+    const insertSql = `INSERT INTO "${tableName}" (${colsSql}) VALUES (${placeholders})`;
 
-    await this.prisma.$executeRawUnsafe(insertSql);
+    await this.prisma.$executeRawUnsafe(insertSql, ...paramValues);
 
     // Читаем обратно
     const id = processed.id;
@@ -395,6 +404,15 @@ export class AdminDatabaseService {
     const isSelect = upperSql.startsWith('SELECT') || upperSql.startsWith('EXPLAIN') || upperSql.startsWith('WITH');
     const isDml = upperSql.startsWith('INSERT') || upperSql.startsWith('UPDATE') || upperSql.startsWith('DELETE');
     const isDdl = upperSql.startsWith('DROP') || upperSql.startsWith('ALTER') || upperSql.startsWith('TRUNCATE') || upperSql.startsWith('CREATE');
+
+    // SECURITY: Production da faqat SELECT ruxsat etiladi
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction && !isSelect) {
+      this.logger.error(`SQL CONSOLE BLOCKED [PROD]: ${trimmed.slice(0, 200)}`);
+      throw new BadRequestException(
+        'Production muhitda faqat SELECT so\'rovlari ruxsat etiladi.',
+      );
+    }
 
     // T-387: DDL taqiqlangan — DROP, ALTER, TRUNCATE, CREATE
     if (isDdl) {

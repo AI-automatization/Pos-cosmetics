@@ -17,6 +17,7 @@ import {
   Query,
   Body,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
@@ -80,17 +81,29 @@ export class UploadController {
   @ApiQuery({ name: 'key', description: 'Storage key returned from upload endpoint' })
   @ApiQuery({ name: 'expiresIn', required: false, type: Number, description: 'Seconds (default 3600)' })
   presign(
+    @CurrentUser('tenantId') tenantId: string,
     @Query('key') key: string,
     @Query('expiresIn') expiresIn?: string,
   ) {
     if (!key) throw new BadRequestException('key majburiy');
+    // SECURITY: tenant isolation — faqat o'z fayllariga ruxsat
+    if (!key.startsWith(`${tenantId}/`)) {
+      throw new ForbiddenException('Boshqa tenant fayllariga ruxsat yo\'q');
+    }
     return this.uploadService.presignGet(key, expiresIn ? parseInt(expiresIn, 10) : 3600);
   }
 
   @Delete()
   @ApiOperation({ summary: 'T-129: Delete uploaded file by key' })
-  async deleteFile(@Body('key') key: string) {
+  async deleteFile(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body('key') key: string,
+  ) {
     if (!key) throw new BadRequestException('key majburiy');
+    // SECURITY: tenant isolation — faqat o'z fayllarini o'chirish
+    if (!key.startsWith(`${tenantId}/`)) {
+      throw new ForbiddenException('Boshqa tenant fayllarini o\'chirish taqiqlangan');
+    }
     await this.uploadService.deleteOne(key);
     return { success: true };
   }
