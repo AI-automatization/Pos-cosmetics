@@ -46,31 +46,22 @@ export default function LoginScreen({ navigation }: Props) {
   const { isAvailable: biometricAvailable } = useBiometricAuth();
   const setUser = useAuthStore((s) => s.setUser);
 
-  const [slug, setSlug] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // SecureStore dan oldingi slugni yuklash
-  React.useEffect(() => {
-    SecureStore.getItemAsync('tenant_slug').then((s) => {
-      if (s) setSlug(s);
-    });
-  }, []);
-
   const handleLogin = async () => {
-    if (!slug.trim() || !email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       Alert.alert('Xatolik', "Barcha maydonlarni to'ldiring");
       return;
     }
     setLoading(true);
     let tokenStored = false;
     try {
-      const res = await authApi.login({ slug: slug.trim(), email: email.trim(), password });
+      const res = await authApi.login({ email: email.trim(), password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
-      await SecureStore.setItemAsync('tenant_slug', slug.trim());
       tokenStored = true;
       const me = await authApi.me();
       await setUser(me, res.accessToken, res.refreshToken);
@@ -81,7 +72,14 @@ export default function LoginScreen({ navigation }: Props) {
         await SecureStore.deleteItemAsync('access_token');
       }
       const msg = extractErrorMessage(err);
-      Alert.alert('Xatolik', msg);
+      if (msg === 'SLUG_REQUIRED') {
+        Alert.alert(
+          'Xatolik',
+          "Bir nechta tashkilotda ro'yxatdan o'tgansiz. Slug kerak.",
+        );
+      } else {
+        Alert.alert('Xatolik', msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -106,26 +104,8 @@ export default function LoginScreen({ navigation }: Props) {
           {/* ── Form ── */}
           <View style={styles.form}>
 
-            {/* Tenant Slug */}
-            <Text style={styles.label}>Tashkilot kodi (slug)</Text>
-            <View style={[styles.inputWrapper, focusedField === 'slug' && styles.inputWrapperFocused]}>
-              <Feather name="briefcase" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={slug}
-                onChangeText={setSlug}
-                placeholder="kosmetika-demo"
-                placeholderTextColor={COLORS.textMuted}
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                onFocus={() => setFocusedField('slug')}
-                onBlur={() => setFocusedField(null)}
-              />
-            </View>
-
             {/* Email */}
-            <Text style={[styles.label, styles.labelMarginTop]}>Elektron pochta</Text>
+            <Text style={styles.label}>Elektron pochta</Text>
             <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputWrapperFocused]}>
               <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
@@ -250,12 +230,10 @@ export default function LoginScreen({ navigation }: Props) {
               onPress={async () => {
                 setLoading(true);
                 try {
-                  const demoSlug = 'kosmetika-demo';
                   const demoEmail = 'owner@raos.uz';
                   const demoPass = 'Demo1234!';
-                  const res = await authApi.login({ slug: demoSlug, email: demoEmail, password: demoPass });
+                  const res = await authApi.login({ email: demoEmail, password: demoPass });
                   await SecureStore.setItemAsync('access_token', res.accessToken);
-                  await SecureStore.setItemAsync('tenant_slug', demoSlug);
                   const me = await authApi.me();
                   await setUser(me, res.accessToken, res.refreshToken);
                 } catch (err) {
@@ -334,9 +312,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.label,
     marginBottom: 8,
-  },
-  labelMarginTop: {
-    marginTop: 16,
   },
   labelRow: {
     flexDirection: 'row',

@@ -25,7 +25,6 @@ export default {
     biometricAction: "Sign in with biometrics",
     biometricCancel: "Cancel",
     biometricFallback: "Sign in with password",
-    tenantSlug: "Shop code (slug)",
   },
   dashboard: {
     title: "Dashboard",

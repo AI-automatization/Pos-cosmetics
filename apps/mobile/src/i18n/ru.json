@@ -15,8 +15,6 @@
   "auth": {
     "login": "Войти",
     "logout": "Выйти",
-    "slug": "Код магазина",
-    "slugPlaceholder": "raos-demo",
     "email": "Email",
     "password": "Пароль",
     "emailPlaceholder": "email@example.com",

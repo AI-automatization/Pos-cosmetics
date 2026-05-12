@@ -15,8 +15,6 @@
   "auth": {
     "login": "Kirish",
     "logout": "Chiqish",
-    "slug": "Do'kon kodi",
-    "slugPlaceholder": "raos-demo",
     "email": "Email",
     "password": "Parol",
     "emailPlaceholder": "email@misol.com",

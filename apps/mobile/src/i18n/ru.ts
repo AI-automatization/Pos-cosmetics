@@ -25,7 +25,6 @@ export default {
     biometricAction: "Войти по биометрии",
     biometricCancel: "Отмена",
     biometricFallback: "Войти с паролем",
-    tenantSlug: "Код магазина (slug)",
   },
   dashboard: {
     title: "Панель",

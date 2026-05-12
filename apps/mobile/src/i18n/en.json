@@ -15,8 +15,6 @@
   "auth": {
     "login": "Login",
     "logout": "Logout",
-    "slug": "Store code",
-    "slugPlaceholder": "raos-demo",
     "email": "Email",
     "password": "Password",
     "emailPlaceholder": "email@example.com",

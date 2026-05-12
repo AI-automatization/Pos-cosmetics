@@ -25,7 +25,6 @@ export default {
     biometricAction: "Biometrik bilan kirish",
     biometricCancel: "Bekor qilish",
     biometricFallback: "Parol bilan kirish",
-    tenantSlug: "Do'kon kodi (slug)",
   },
   dashboard: {
     title: "Dashboard",
