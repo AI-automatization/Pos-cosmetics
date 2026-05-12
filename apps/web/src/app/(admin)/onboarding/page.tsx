@@ -54,7 +54,7 @@ export default function OnboardingPage() {
     if (nextStep) setCurrent(nextStep.id);
   };
 
-  const handleAction = (step: typeof STEP_META[0]) => {
+  const handleAction = (step: (typeof STEP_META)[number]) => {
     markDone(step.id);
     router.push(step.action);
   };
