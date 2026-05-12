@@ -75,7 +75,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
 
 export function ProductForm({ product, categories, isPending, onSubmit, onClose, initialSupplierId }: ProductFormProps) {
   const { t } = useTranslation();
-  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
+  const { register, control, handleSubmit, watch, setValue, getValues, formState: { errors } } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
     defaultValues: buildDefaultValues(product, initialSupplierId),
   });
@@ -229,6 +229,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               append={append}
               remove={remove}
               setValue={(name, value) => setValue(name, value)}
+              getValues={getValues}
               className="col-span-2"
             />
 
