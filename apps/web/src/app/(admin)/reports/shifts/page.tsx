@@ -81,7 +81,7 @@ export default function ShiftReportsPage() {
         <LoadingSkeleton variant="table" rows={5} />
       ) : isError ? (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-          Backend API (T-024) hali tayyor emas
+          {t('reports.apiNotReady')}
         </div>
       ) : !data || data.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-400">
@@ -115,7 +115,7 @@ export default function ShiftReportsPage() {
                     <p className="text-sm font-bold text-gray-900">
                       {formatPrice(shift.totalRevenue)}
                     </p>
-                    <p className="text-xs text-gray-400">{shift.ordersCount} ta savdo</p>
+                    <p className="text-xs text-gray-400">{shift.ordersCount} {t('shifts.salesCount')}</p>
                   </div>
                   <div
                     className={cn(

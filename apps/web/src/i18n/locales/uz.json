@@ -237,7 +237,9 @@
     "imageHint": "PNG, JPG — max 5MB",
     "initialStock": "Boshlang'ich zaxira (dona)",
     "outOfStock": "(tugagan)",
-    "lowStock": "(kam)"
+    "lowStock": "(kam)",
+    "deleteTitle": "Mahsulotni o'chirish",
+    "deleteConfirm": "\"{name}\" mahsulotini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi."
   },
   "pos": {
     "title": "Kassa",
@@ -478,7 +480,13 @@
     "purchaseHistory": "Xaridlar tarixi",
     "debtHistory": "Nasiya tarixi",
     "makePayment": "To'lov qilish",
-    "debtLimit": "Limit"
+    "debtLimit": "Limit",
+    "statusBlocked": "Bloklangan",
+    "statusInDebt": "Nasiyada",
+    "statusClean": "Toza",
+    "searchPlaceholder": "Ism yoki telefon...",
+    "empty": "Mijozlar yo'q",
+    "overdueCount": "ta muddati o'tgan mijoz"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -589,7 +597,8 @@
     "debts": "Nasiyalar",
     "debtsDesc": "Barcha qarzlar tarixi",
     "salesDesc": "Barcha buyurtmalar ro'yxati",
-    "quantity": "Soni"
+    "quantity": "Soni",
+    "apiNotReady": "Backend API hali tayyor emas"
   },
   "users": {
     "addUser": "Yangi xodim qo'shish",
@@ -875,7 +884,11 @@
     "parentCategory": "Ota kategoriya",
     "topLevel": "— Yuqori daraja —",
     "productsCount": "Mahsulotlar ({count} ta)",
-    "subcategories": "Ichki kategoriyalar"
+    "subcategories": "Ichki kategoriyalar",
+    "subcategoriesCount": "{count} ta ichki kategoriya",
+    "searchPlaceholder": "Kategoriya qidirish...",
+    "deleteTitle": "Kategoriyani o'chirish",
+    "deleteConfirm": "\"{name}\" kategoriyasini o'chirmoqchimisiz?"
   },
   "orders": {
     "completed": "Yakunlandi",
@@ -1058,7 +1071,36 @@
     "closed": "Yopildi",
     "searchPlaceholder": "Kassir bo'yicha qidirish...",
     "noShifts": "Smenalar mavjud emas",
-    "totalRevenue": "Jami daromad"
+    "totalRevenue": "Jami daromad",
+    "salesCount": "ta savdo"
+  },
+  "discounts": {
+    "subtitle": "Mahsulotlarga chegirma qo'shing va boshqaring",
+    "addNew": "Yangi chegirma",
+    "activeLabel": "Faol chegirmalar",
+    "activeSubtitle": "Hozirda aktiv chegirmalar",
+    "todaySaved": "Bugun tejaldi",
+    "viaDiscounts": "Chegirmalar orqali",
+    "totalUsed": "Jami ishlatildi",
+    "forAll": "Barcha chegirmalar uchun",
+    "searchPlaceholder": "Mahsulot qidiring...",
+    "noDiscounts": "Chegirmalar topilmadi",
+    "typePercent": "Foiz",
+    "typeFixed": "So'm",
+    "colProduct": "Mahsulot",
+    "colType": "Chegirma turi",
+    "colAmount": "Miqdor",
+    "colStart": "Boshlanish",
+    "colEnd": "Tugash",
+    "colStatus": "Status",
+    "colActions": "Amallar",
+    "statusActive": "Faol",
+    "statusCompleted": "Yakunlangan",
+    "statusPending": "Kutilmoqda",
+    "allStatuses": "Hammasi",
+    "allTypes": "Hammasi",
+    "typePercentLabel": "Foiz (%)",
+    "typeFixedLabel": "Miqdor (So'm)"
   },
   "promotions": {
     "title": "Aksiyalar",

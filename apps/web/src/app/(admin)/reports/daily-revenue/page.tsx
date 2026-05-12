@@ -131,7 +131,7 @@ export default function DailyRevenuePage() {
         <LoadingSkeleton variant="table" rows={6} />
       ) : isError ? (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-          Backend API (T-024) hali tayyor emas
+          {t('reports.apiNotReady')}
         </div>
       ) : (
         <>
@@ -139,7 +139,7 @@ export default function DailyRevenuePage() {
           <div className="grid grid-cols-3 gap-4">
             {[
               { label: t('reports.totalSales'), value: formatPrice(totalRevenue) },
-              { label: t('reports.totalOrders'), value: `${totalOrders} ta` },
+              { label: t('reports.totalOrders'), value: `${totalOrders} ${t('common.unit')}` },
               { label: t('reports.avgPerDay'), value: formatPrice(avgPerDay) },
             ].map(({ label, value }) => (
               <div

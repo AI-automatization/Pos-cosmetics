@@ -237,7 +237,9 @@
     "imageHint": "PNG, JPG — макс. 5МБ",
     "initialStock": "Начальный запас (шт.)",
     "outOfStock": "(нет в наличии)",
-    "lowStock": "(мало)"
+    "lowStock": "(мало)",
+    "deleteTitle": "Удалить товар",
+    "deleteConfirm": "Удалить товар \"{name}\"? Это действие необратимо."
   },
   "pos": {
     "title": "Касса",
@@ -478,7 +480,13 @@
     "purchaseHistory": "История покупок",
     "debtHistory": "История долгов",
     "makePayment": "Произвести оплату",
-    "debtLimit": "Лимит"
+    "debtLimit": "Лимит",
+    "statusBlocked": "Заблокирован",
+    "statusInDebt": "В долгу",
+    "statusClean": "Чист",
+    "searchPlaceholder": "Имя или телефон...",
+    "empty": "Нет клиентов",
+    "overdueCount": "просроченных клиентов"
   },
   "settings": {
     "title": "Настройки",
@@ -589,7 +597,8 @@
     "debts": "Долги",
     "debtsDesc": "Вся история задолженностей",
     "salesDesc": "Список всех заказов",
-    "quantity": "Кол-во"
+    "quantity": "Кол-во",
+    "apiNotReady": "API бэкенда ещё не готов"
   },
   "users": {
     "addUser": "Добавить сотрудника",
@@ -875,7 +884,11 @@
     "parentCategory": "Родительская категория",
     "topLevel": "— Верхний уровень —",
     "productsCount": "Товаров ({count} шт.)",
-    "subcategories": "Подкатегории"
+    "subcategories": "Подкатегории",
+    "subcategoriesCount": "{count} подкатегорий",
+    "searchPlaceholder": "Поиск категории...",
+    "deleteTitle": "Удалить категорию",
+    "deleteConfirm": "Удалить категорию \"{name}\"?"
   },
   "orders": {
     "completed": "Завершено",
@@ -1058,7 +1071,36 @@
     "closed": "Закрыта",
     "searchPlaceholder": "Поиск по кассиру...",
     "noShifts": "Нет смен",
-    "totalRevenue": "Общая выручка"
+    "totalRevenue": "Общая выручка",
+    "salesCount": "продаж"
+  },
+  "discounts": {
+    "subtitle": "Добавляйте и управляйте скидками на товары",
+    "addNew": "Новая скидка",
+    "activeLabel": "Активные скидки",
+    "activeSubtitle": "Текущие активные скидки",
+    "todaySaved": "Сэкономлено сегодня",
+    "viaDiscounts": "Через скидки",
+    "totalUsed": "Всего использовано",
+    "forAll": "Для всех скидок",
+    "searchPlaceholder": "Поиск товара...",
+    "noDiscounts": "Скидки не найдены",
+    "typePercent": "Процент",
+    "typeFixed": "Сум",
+    "colProduct": "Товар",
+    "colType": "Тип скидки",
+    "colAmount": "Сумма",
+    "colStart": "Начало",
+    "colEnd": "Конец",
+    "colStatus": "Статус",
+    "colActions": "Действия",
+    "statusActive": "Активная",
+    "statusCompleted": "Завершена",
+    "statusPending": "Ожидание",
+    "allStatuses": "Все",
+    "allTypes": "Все",
+    "typePercentLabel": "Процент (%)",
+    "typeFixedLabel": "Сумма (Сум)"
   },
   "promotions": {
     "title": "Акции",

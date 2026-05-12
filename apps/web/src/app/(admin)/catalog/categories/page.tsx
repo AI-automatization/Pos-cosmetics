@@ -59,7 +59,7 @@ function CategoryRow({ category, depth, onEdit, onDelete }: CategoryRowProps) {
           </div>
         </td>
         <td className="px-4 py-3 text-sm text-gray-500">
-          {hasChildren ? `${category.children!.length} ta ichki kategoriya` : '—'}
+          {hasChildren ? t('catalog.subcategoriesCount', { count: category.children!.length }) : '—'}
         </td>
         {(onEdit || onDelete) && (
           <td className="px-4 py-3">
@@ -177,12 +177,12 @@ export default function CategoriesPage() {
       {!isLoading && !isError && (
         <>
           {categories.length === 0 ? (
-            <EmptyState icon={FolderX} title={t('catalog.noCategories')} description="Birinchi kategoriyani qo'shing" />
+            <EmptyState icon={FolderX} title={t('catalog.noCategories')} description={t('catalog.addFirstCategory')} />
           ) : (
             <ScrollableTable
               searchValue={search}
               onSearchChange={setSearch}
-              searchPlaceholder="Kategoriya qidirish..."
+              searchPlaceholder={t('catalog.searchPlaceholder')}
               totalCount={filtered.length}
               isLoading={isLoading}
             >
@@ -231,8 +231,8 @@ export default function CategoriesPage() {
 
       <ConfirmDialog
         isOpen={!!deletingCategory}
-        title="Kategoriyani o'chirish"
-        message={`"${deletingCategory?.name}" kategoriyasini o'chirmoqchimisiz?`}
+        title={t('catalog.deleteTitle')}
+        message={t('catalog.deleteConfirm', { name: deletingCategory?.name ?? '' })}
         confirmLabel={t('common.delete')}
         isPending={deleteCategory.isPending}
         onConfirm={handleDeleteConfirm}

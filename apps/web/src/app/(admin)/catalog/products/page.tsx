@@ -105,7 +105,7 @@ export default function ProductsPage() {
               className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
               <Printer className="h-4 w-4" />
-              Yorliqlar
+              {t('products.printLabels')}
             </button>
           )}
           {canEdit && (
@@ -115,7 +115,7 @@ export default function ProductsPage() {
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
             >
               <Plus className="h-4 w-4" />
-              Mahsulot qo&apos;shish
+              {t('products.addProduct')}
             </button>
           )}
         </>
@@ -173,9 +173,9 @@ export default function ProductsPage() {
       {/* Delete Confirm */}
       <ConfirmDialog
         isOpen={!!deletingProduct}
-        title="Mahsulotni o'chirish"
-        message={`"${deletingProduct?.name}" mahsulotini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
-        confirmLabel="O'chirish"
+        title={t('products.deleteTitle')}
+        message={t('products.deleteConfirm', { name: deletingProduct?.name ?? '' })}
+        confirmLabel={t('common.delete')}
         isPending={deleteProduct.isPending}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeletingProduct(null)}

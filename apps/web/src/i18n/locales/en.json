@@ -237,7 +237,9 @@
     "imageHint": "PNG, JPG — max 5MB",
     "initialStock": "Initial stock (pcs)",
     "outOfStock": "(out of stock)",
-    "lowStock": "(low)"
+    "lowStock": "(low)",
+    "deleteTitle": "Delete Product",
+    "deleteConfirm": "Delete product \"{name}\"? This cannot be undone."
   },
   "pos": {
     "title": "POS",
@@ -478,7 +480,13 @@
     "purchaseHistory": "Purchase History",
     "debtHistory": "Debt History",
     "makePayment": "Make Payment",
-    "debtLimit": "Limit"
+    "debtLimit": "Limit",
+    "statusBlocked": "Blocked",
+    "statusInDebt": "In Debt",
+    "statusClean": "Clean",
+    "searchPlaceholder": "Name or phone...",
+    "empty": "No customers",
+    "overdueCount": "overdue customers"
   },
   "settings": {
     "title": "Settings",
@@ -589,7 +597,8 @@
     "debts": "Debts",
     "debtsDesc": "All debt history",
     "salesDesc": "All orders list",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "apiNotReady": "Backend API not ready yet"
   },
   "users": {
     "addUser": "Add Employee",
@@ -875,7 +884,11 @@
     "parentCategory": "Parent Category",
     "topLevel": "— Top level —",
     "productsCount": "Products ({count})",
-    "subcategories": "Subcategories"
+    "subcategories": "Subcategories",
+    "subcategoriesCount": "{count} subcategories",
+    "searchPlaceholder": "Search category...",
+    "deleteTitle": "Delete Category",
+    "deleteConfirm": "Delete category \"{name}\"?"
   },
   "orders": {
     "completed": "Completed",
@@ -1058,7 +1071,36 @@
     "closed": "Closed",
     "searchPlaceholder": "Search by cashier...",
     "noShifts": "No shifts",
-    "totalRevenue": "Total Revenue"
+    "totalRevenue": "Total Revenue",
+    "salesCount": "sales"
+  },
+  "discounts": {
+    "subtitle": "Add and manage product discounts",
+    "addNew": "New Discount",
+    "activeLabel": "Active Discounts",
+    "activeSubtitle": "Currently active discounts",
+    "todaySaved": "Saved Today",
+    "viaDiscounts": "Via discounts",
+    "totalUsed": "Total Used",
+    "forAll": "For all discounts",
+    "searchPlaceholder": "Search product...",
+    "noDiscounts": "No discounts found",
+    "typePercent": "Percent",
+    "typeFixed": "UZS",
+    "colProduct": "Product",
+    "colType": "Discount Type",
+    "colAmount": "Amount",
+    "colStart": "Start",
+    "colEnd": "End",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "statusActive": "Active",
+    "statusCompleted": "Completed",
+    "statusPending": "Pending",
+    "allStatuses": "All",
+    "allTypes": "All",
+    "typePercentLabel": "Percent (%)",
+    "typeFixedLabel": "Amount (UZS)"
   },
   "promotions": {
     "title": "Promotions",

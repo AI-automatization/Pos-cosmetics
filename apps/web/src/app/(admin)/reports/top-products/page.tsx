@@ -95,7 +95,7 @@ export default function TopProductsPage() {
         <LoadingSkeleton variant="table" rows={8} />
       ) : isError ? (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-          Backend API (T-024) hali tayyor emas
+          {t('reports.apiNotReady')}
         </div>
       ) : !data || data.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-400">
@@ -128,7 +128,7 @@ export default function TopProductsPage() {
                         {p.productName}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-gray-700">
-                        {p.quantity} ta
+                        {p.quantity} {t('common.unit')}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-gray-500">
                         {p.ordersCount}
