@@ -143,7 +143,6 @@ const NAV_SECTIONS: NavSection[] = [
         icon: BarChart2,
         roles: NO_CASHIER,
         children: [
-          { label: 'Umumiy', tKey: 'nav.reports', href: '/reports' },
           { label: 'Kunlik daromad', tKey: 'nav.dailyRevenue', href: '/reports/daily-revenue' },
           { label: 'Top mahsulotlar', tKey: 'nav.topProducts', href: '/reports/top-products' },
           { label: 'Smenalar', tKey: 'nav.shiftReports', href: '/reports/shifts' },
