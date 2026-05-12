@@ -26,12 +26,7 @@ const REPORT_LINKS = [
 
 export default function ReportsIndexPage() {
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">Hisobotlar</h1>
-        <p className="mt-0.5 text-sm text-gray-500">Savdo va moliya tahlili</p>
-      </div>
-
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div className="grid grid-cols-3 gap-4">
         {REPORT_LINKS.map(({ href, icon: Icon, title, desc }) => (
           <Link

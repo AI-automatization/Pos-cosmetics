@@ -2,6 +2,7 @@
 
 import { Scale, Unplug, Plug } from 'lucide-react';
 import { useWeightScale } from '@/hooks/pos/useWeightScale';
+import { useTranslation } from '@/i18n/i18n-context';
 import { cn } from '@/lib/utils';
 
 interface WeightScaleWidgetProps {
@@ -9,6 +10,7 @@ interface WeightScaleWidgetProps {
 }
 
 export function WeightScaleWidget({ onWeightConfirm }: WeightScaleWidgetProps) {
+  const { t } = useTranslation();
   const { weight, unit, connected, error, isSupported, connect, disconnect } = useWeightScale();
 
   if (!isSupported) return null;
@@ -31,13 +33,13 @@ export function WeightScaleWidget({ onWeightConfirm }: WeightScaleWidgetProps) {
               onClick={() => onWeightConfirm(weight, unit)}
               className="rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-blue-700"
             >
-              Qo&apos;shish
+              {t('pos.addToCart')}
             </button>
           )}
           <button
             type="button"
             onClick={disconnect}
-            title="Uzish"
+            title={t('pos.scaleDisconnect')}
             className="ml-auto rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
           >
             <Unplug className="h-3.5 w-3.5" />
@@ -54,7 +56,7 @@ export function WeightScaleWidget({ onWeightConfirm }: WeightScaleWidgetProps) {
             )}
           >
             <Plug className="h-3.5 w-3.5" />
-            Tarozi ulash
+            {t('pos.scaleConnect')}
           </button>
           {error && (
             <span className="text-xs text-red-500 truncate max-w-[150px]" title={error}>

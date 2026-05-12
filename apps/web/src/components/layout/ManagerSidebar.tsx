@@ -14,19 +14,21 @@ import {
   BriefcaseBusiness,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const NAV = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, exact: true },
-  { label: 'Katalog', href: '/catalog/products', icon: Package },
-  { label: 'Inventar', href: '/inventory', icon: Boxes },
-  { label: 'Savdo', href: '/sales/orders', icon: ShoppingCart },
-  { label: 'Nasiya', href: '/nasiya', icon: CreditCard },
-  { label: 'Xodimlar', href: '/workers', icon: Users },
-  { label: 'Hisobotlar', href: '/reports', icon: BarChart2 },
+  { tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, exact: true },
+  { tKey: 'nav.catalog', href: '/catalog/products', icon: Package },
+  { tKey: 'nav.inventory', href: '/inventory', icon: Boxes },
+  { tKey: 'nav.sales', href: '/sales/orders', icon: ShoppingCart },
+  { tKey: 'nav.nasiya', href: '/nasiya', icon: CreditCard },
+  { tKey: 'nav.workers', href: '/workers', icon: Users },
+  { tKey: 'nav.reports', href: '/reports', icon: BarChart2 },
 ];
 
 export function ManagerSidebar() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   return (
     <aside className="flex h-full w-56 shrink-0 flex-col border-r border-gray-200 bg-white">
@@ -37,7 +39,7 @@ export function ManagerSidebar() {
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">RAOS</p>
-          <p className="text-xs text-gray-400">Manager paneli</p>
+          <p className="text-xs text-gray-400">{t('nav.managerPanel')}</p>
         </div>
       </div>
 
@@ -60,7 +62,7 @@ export function ManagerSidebar() {
                 )}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1">{t(item.tKey)}</span>
                 {active && <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
               </Link>
             );

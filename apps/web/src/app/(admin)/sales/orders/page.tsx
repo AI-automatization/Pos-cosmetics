@@ -9,43 +9,43 @@ import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { useOrders, useOrder } from '@/hooks/sales/useOrders';
 import { formatPrice, formatDateTime, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { OrderStatus, PaymentMethod } from '@/types/order';
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
-  COMPLETED: { label: 'Bajarildi', icon: CheckCircle, className: 'bg-green-100 text-green-700' },
-  RETURNED: { label: 'Qaytarildi', icon: RotateCcw, className: 'bg-yellow-100 text-yellow-700' },
-  VOIDED: { label: 'Bekor qilindi', icon: XCircle, className: 'bg-red-100 text-red-700' },
+const STATUS_CONFIG: Record<OrderStatus, { icon: React.ComponentType<{ className?: string }>; className: string }> = {
+  COMPLETED: { icon: CheckCircle, className: 'bg-green-100 text-green-700' },
+  RETURNED: { icon: RotateCcw, className: 'bg-yellow-100 text-yellow-700' },
+  VOIDED: { icon: XCircle, className: 'bg-red-100 text-red-700' },
 };
 
-const PAYMENT_LABELS: Record<string, string> = {
-  CASH: 'Naqd',
-  NAQD: 'Naqd',
-  CARD: 'Karta',
-  KARTA: 'Karta',
-  TERMINAL: 'Karta',
-  NASIYA: 'Nasiya',
-  DEBT: 'Nasiya',
-  ARALASH: 'Aralash',
+const PAYMENT_METHOD_KEYS: Record<string, string> = {
+  CASH: 'payments.cash',
+  NAQD: 'payments.cash',
+  CARD: 'payments.card',
+  KARTA: 'payments.card',
+  TERMINAL: 'payments.card',
+  NASIYA: 'payments.debt',
+  DEBT: 'payments.debt',
+  ARALASH: 'payments.mixed',
 };
 
 function StatusBadge({ status }: { status: OrderStatus }) {
+  const { t } = useTranslation();
+  const STATUS_LABELS: Record<OrderStatus, string> = {
+    COMPLETED: t('orders.completed'),
+    RETURNED: t('orders.returned'),
+    VOIDED: t('orders.cancelled'),
+  };
   const config = STATUS_CONFIG[status];
   if (!config) return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">{status}</span>;
-  const { label, icon: Icon, className } = config;
+  const { icon: Icon, className } = config;
   return (
     <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', className)}>
       <Icon className="h-3 w-3" />
-      {label}
+      {STATUS_LABELS[status]}
     </span>
   );
 }
-
-const STATUS_FILTERS: Array<{ value: OrderStatus | 'ALL'; label: string }> = [
-  { value: 'ALL', label: 'Barchasi' },
-  { value: 'COMPLETED', label: 'Bajarildi' },
-  { value: 'RETURNED', label: 'Qaytarildi' },
-  { value: 'VOIDED', label: 'Bekor qilindi' },
-];
 
 const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   CASH: Banknote,
@@ -60,6 +60,13 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
 function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const { data: order, isLoading } = useOrder(orderId);
+  const { t } = useTranslation();
+  const PAYMENT_LABELS: Record<string, string> = {
+    CASH: t('payments.cash'), NAQD: t('payments.cash'),
+    CARD: t('payments.card'), KARTA: t('payments.card'), TERMINAL: t('payments.card'),
+    NASIYA: t('payments.debt'), DEBT: t('payments.debt'),
+    ARALASH: t('payments.mixed'),
+  };
 
   return (
     <div
@@ -242,6 +249,23 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
 }
 
 export default function OrdersPage() {
+  const { t } = useTranslation();
+  const STATUS_FILTERS: Array<{ value: OrderStatus | 'ALL'; label: string }> = [
+    { value: 'ALL', label: t('common.all') },
+    { value: 'COMPLETED', label: t('orders.completed') },
+    { value: 'RETURNED', label: t('orders.returned') },
+    { value: 'VOIDED', label: t('orders.cancelled') },
+  ];
+  const PAYMENT_LABELS: Record<string, string> = {
+    CASH: t('payments.cash'),
+    NAQD: t('payments.cash'),
+    CARD: t('payments.card'),
+    KARTA: t('payments.card'),
+    TERMINAL: t('payments.card'),
+    NASIYA: t('payments.debt'),
+    DEBT: t('payments.debt'),
+    ARALASH: t('payments.mixed'),
+  };
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');

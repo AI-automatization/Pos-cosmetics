@@ -9,6 +9,10 @@ import { IdentityInfoController } from './identity-info.controller';
 import { TenantSettingsController } from './tenant-settings.controller';
 import { TenantSettingsService } from './tenant-settings.service';
 import { IdentityService } from './identity.service';
+import { TokenHelper } from './token.helper';
+import { LockoutHelper } from './lockout.helper';
+import { UserManagementHelper } from './user-management.helper';
+import { TenantInfoHelper } from './tenant-info.helper';
 import { PinService } from './pin.service';
 import { SessionService } from './session.service';
 import { ApiKeyService } from './api-key.service';
@@ -17,9 +21,11 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { TenantGuard } from './guards/tenant.guard';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
+    AuditModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -35,6 +41,10 @@ import { TenantGuard } from './guards/tenant.guard';
   controllers: [AuthController, UsersController, IdentityInfoController, TenantSettingsController],
   providers: [
     IdentityService,
+    TokenHelper,
+    LockoutHelper,
+    UserManagementHelper,
+    TenantInfoHelper,
     TenantSettingsService,
     PinService,
     SessionService,

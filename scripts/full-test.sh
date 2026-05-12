@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
-BASE="https://api-production-c5b6.up.railway.app/api/v1"
+# Usage: ADMIN_EMAIL=... ADMIN_PASSWORD=... TEST_EMAIL=... TEST_PASSWORD=... TEST_SLUG=... bash scripts/full-test.sh
+BASE="${BASE_URL:-https://api-production-c5b6.up.railway.app}/api/v1"
 PASS=0; FAIL=0
+
+: "${ADMIN_EMAIL:?Set ADMIN_EMAIL env}"
+: "${ADMIN_PASSWORD:?Set ADMIN_PASSWORD env}"
+: "${TEST_EMAIL:?Set TEST_EMAIL env}"
+: "${TEST_PASSWORD:?Set TEST_PASSWORD env}"
+: "${TEST_SLUG:?Set TEST_SLUG env}"
 
 ok()  { echo "  ✅ $1"; PASS=$((PASS+1)); }
 fail(){ echo "  ❌ $1 → ${2:0:100}"; FAIL=$((FAIL+1)); }
@@ -15,12 +22,12 @@ echo "╚═══════════════════════�
 
 ADMIN_TOKEN=$(curl -sk -X POST "$BASE/admin/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@raos.uz","password":"Admin123456!"}' \
+  -d "{\"email\":\"${ADMIN_EMAIL}\",\"password\":\"${ADMIN_PASSWORD}\"}" \
   | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
 
 USER_TOKEN=$(curl -sk -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"testowner@beautyshop.uz","password":"Test12345!","slug":"test-beauty-shop"}' \
+  -d "{\"email\":\"${TEST_EMAIL}\",\"password\":\"${TEST_PASSWORD}\",\"slug\":\"${TEST_SLUG}\"}" \
   | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
 
 echo ""

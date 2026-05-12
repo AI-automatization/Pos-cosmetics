@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import {
   ShoppingBag,
   TrendingUp,
@@ -7,6 +8,7 @@ import {
   Clock,
   Users,
   Store,
+  Activity,
 } from 'lucide-react';
 import {
   BarChart,
@@ -18,6 +20,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { formatPrice, cn } from '@/lib/utils';
+import { founderApi } from '@/api/founder.api';
 import type { TenantSummary, RevenuePoint } from '@/types/founder';
 
 interface OverviewTabProps {
@@ -34,9 +37,25 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
       orders: p.orders,
     })) ?? [];
 
-  // Time since last activity
+  // Fetch real health data from backend
+  const { data: healthData } = useQuery({
+    queryKey: ['founder', 'tenant-health', tenant.id],
+    queryFn: () => founderApi.getTenantHealth(tenant.id),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  const health = healthData?.health;
+
+  // Real sales/revenue from health endpoint, fallback to tenant fields
+  const salesToday = health?.orders24h ?? tenant.salesToday;
+  const revenueToday = health?.lastSaleAmount ?? tenant.revenueToday;
+  const activeUsers = health?.activeUsers ?? 0;
+
+  // Time since last activity — prefer lastSaleAt from health, then tenant.lastActivityAt
+  const lastActivitySource = health?.lastSaleAt ?? tenant.lastActivityAt;
   const lastActivityMinutes = Math.round(
-    (Date.now() - new Date(tenant.lastActivityAt).getTime()) / 60_000,
+    (Date.now() - new Date(lastActivitySource).getTime()) / 60_000,
   );
   const activityText =
     lastActivityMinutes < 1
@@ -55,15 +74,15 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           {
-            label: 'Продажи (сегодня)',
-            value: tenant.salesToday.toString(),
+            label: 'Заказов (24ч)',
+            value: salesToday.toString(),
             icon: ShoppingBag,
             color: 'text-blue-600',
             bg: 'bg-blue-50',
           },
           {
-            label: 'Выручка (сегодня)',
-            value: formatPrice(tenant.revenueToday),
+            label: 'Последняя продажа',
+            value: revenueToday > 0 ? formatPrice(revenueToday) : '—',
             icon: TrendingUp,
             color: 'text-emerald-600',
             bg: 'bg-emerald-50',
@@ -93,13 +112,13 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400">
           Показатели
         </h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
             <Clock className={cn('h-5 w-5', isRecentlyActive ? 'text-green-500' : 'text-amber-500')} />
             <div>
-              <p className="text-xs text-gray-500">Последняя активность</p>
+              <p className="text-xs text-gray-500">Последняя продажа</p>
               <p className={cn('text-sm font-medium', isRecentlyActive ? 'text-green-700' : 'text-amber-700')}>
-                {activityText}
+                {health?.lastSaleAt ? activityText : '—'}
               </p>
             </div>
           </div>
@@ -122,9 +141,19 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
           <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
             <Users className="h-5 w-5 text-blue-500" />
             <div>
-              <p className="text-xs text-gray-500">Создан</p>
+              <p className="text-xs text-gray-500">Активных пользователей</p>
               <p className="text-sm font-medium text-gray-700">
-                {new Date(tenant.createdAt).toLocaleDateString('ru-RU')}
+                {activeUsers > 0 ? activeUsers : '—'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+            <Activity className={cn('h-5 w-5', health?.hasOpenShift ? 'text-green-500' : 'text-gray-400')} />
+            <div>
+              <p className="text-xs text-gray-500">Смена</p>
+              <p className={cn('text-sm font-medium', health?.hasOpenShift ? 'text-green-700' : 'text-gray-500')}>
+                {health?.hasOpenShift ? 'Открыта' : 'Закрыта'}
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, type Socket } from 'socket.io-client';
+import { getAccessToken } from '@/api/token';
 
 // Backend: apps/api/src/realtime/realtime.gateway.ts
 // Namespace: /realtime
@@ -80,7 +81,7 @@ export function useRealtimeEvents(): UseRealtimeEventsReturn {
     mountedRef.current = true;
 
     const token = typeof window !== 'undefined'
-      ? localStorage.getItem('access_token')
+      ? getAccessToken()
       : null;
 
     if (!token) return;

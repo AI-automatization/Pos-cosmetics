@@ -459,6 +459,30 @@ export class AdminAuthController {
     return this.adminAuthService.getTenantUsers(tenantId);
   }
 
+  // ─── RESET TENANT USER PASSWORD ───────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @ApiBearerAuth()
+  @Patch('tenants/:tenantId/users/:userId/password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Tenant user parolini reset qilish (Super Admin)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['newPassword'],
+      properties: {
+        newPassword: { type: 'string', example: 'NewSecure123!' },
+      },
+    },
+  })
+  resetTenantUserPassword(
+    @Param('tenantId') tenantId: string,
+    @Param('userId') userId: string,
+    @Body() body: { newPassword: string },
+  ) {
+    return this.adminAuthService.resetTenantUserPassword(tenantId, userId, body.newPassword);
+  }
+
   // ─── ADD OWNER TO TENANT ───────────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard, SuperAdminGuard)

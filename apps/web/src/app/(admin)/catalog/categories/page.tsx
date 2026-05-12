@@ -16,6 +16,7 @@ import {
   useDeleteCategory,
 } from '@/hooks/catalog/useCategories';
 import { useCanEdit } from '@/hooks/auth/useAuth';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Category, CreateCategoryDto, UpdateCategoryDto } from '@/types/catalog';
 
 function buildTree(categories: Category[]): Category[] {
@@ -41,6 +42,7 @@ interface CategoryRowProps {
 }
 
 function CategoryRow({ category, depth, onEdit, onDelete }: CategoryRowProps) {
+  const { t } = useTranslation();
   const hasChildren = (category.children?.length ?? 0) > 0;
 
   return (
@@ -67,7 +69,7 @@ function CategoryRow({ category, depth, onEdit, onDelete }: CategoryRowProps) {
                   type="button"
                   onClick={() => onEdit(category)}
                   className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
-                  aria-label="Tahrirlash"
+                  aria-label={t('common.edit')}
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
@@ -77,7 +79,7 @@ function CategoryRow({ category, depth, onEdit, onDelete }: CategoryRowProps) {
                   type="button"
                   onClick={() => onDelete(category)}
                   className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                  aria-label="O'chirish"
+                  aria-label={t('common.delete')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -101,6 +103,7 @@ function CategoryRow({ category, depth, onEdit, onDelete }: CategoryRowProps) {
 }
 
 export default function CategoriesPage() {
+  const { t } = useTranslation();
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
@@ -162,7 +165,7 @@ export default function CategoriesPage() {
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" />
-            Kategoriya qo&apos;shish
+            {t('catalog.addCategory')}
           </button>
         ) : undefined
       }
@@ -174,7 +177,7 @@ export default function CategoriesPage() {
       {!isLoading && !isError && (
         <>
           {categories.length === 0 ? (
-            <EmptyState icon={FolderX} title="Kategoriyalar mavjud emas" description="Birinchi kategoriyani qo'shing" />
+            <EmptyState icon={FolderX} title={t('catalog.noCategories')} description="Birinchi kategoriyani qo'shing" />
           ) : (
             <ScrollableTable
               searchValue={search}
@@ -187,14 +190,14 @@ export default function CategoriesPage() {
                 <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      Kategoriya nomi
+                      {t('common.name')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      Ichki kategoriyalar
+                      {t('catalog.subcategories')}
                     </th>
                     {canEdit && (
                       <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                        Amallar
+                        {t('common.actions')}
                       </th>
                     )}
                   </tr>
@@ -230,7 +233,7 @@ export default function CategoriesPage() {
         isOpen={!!deletingCategory}
         title="Kategoriyani o'chirish"
         message={`"${deletingCategory?.name}" kategoriyasini o'chirmoqchimisiz?`}
-        confirmLabel="O'chirish"
+        confirmLabel={t('common.delete')}
         isPending={deleteCategory.isPending}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeletingCategory(null)}

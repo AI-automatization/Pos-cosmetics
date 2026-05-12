@@ -2,6 +2,7 @@
 
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -19,13 +20,14 @@ export function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmLabel = 'Tasdiqlash',
-  cancelLabel = 'Bekor qilish',
+  confirmLabel,
+  cancelLabel,
   variant = 'danger',
   isPending = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -63,7 +65,7 @@ export function ConfirmDialog({
             disabled={isPending}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
           >
-            {cancelLabel}
+            {cancelLabel ?? t('common.cancel')}
           </button>
           <button
             type="button"
@@ -76,7 +78,7 @@ export function ConfirmDialog({
                 : 'bg-yellow-500 hover:bg-yellow-600',
             )}
           >
-            {isPending ? 'Kutilmoqda...' : confirmLabel}
+            {isPending ? t('common.waiting') : (confirmLabel ?? t('common.confirm'))}
           </button>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import { useExpenses, useCreateExpense, useDeleteExpense, useProfitReport } from '@/hooks/finance/useFinance';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { ExpenseCategory } from '@/types/finance';
 import { EXPENSE_CATEGORY_LABELS, EXPENSE_CATEGORY_COLORS } from '@/types/finance';
 
@@ -24,6 +25,7 @@ const expenseSchema = z.object({
 type ExpenseForm = z.infer<typeof expenseSchema>;
 
 function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; todayDate: string }) {
+  const { t } = useTranslation();
   const { mutate: create, isPending } = useCreateExpense();
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ExpenseForm>({
     resolver: zodResolver(expenseSchema),
@@ -40,14 +42,14 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       <div className="relative z-10 w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-          <h2 className="text-base font-semibold text-gray-900">Xarajat qo'shish</h2>
+          <h2 className="text-base font-semibold text-gray-900">{t('finance.addExpense')}</h2>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
             <X className="h-5 w-5" />
           </button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-5">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Kategoriya</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('common.category')}</label>
             <SearchableDropdown
               options={(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => ({
                 value: cat,
@@ -62,7 +64,7 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Tavsif</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('common.description')}</label>
             <input
               {...register('description')}
               placeholder="Xarajat haqida qisqacha..."
@@ -71,7 +73,7 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
             {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>}
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Summa (so'm)</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('finance.amount')}</label>
             <input
               {...register('amount')}
               type="number"
@@ -82,7 +84,7 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
             {errors.amount && <p className="mt-1 text-xs text-red-500">{errors.amount.message}</p>}
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Sana</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('common.date')}</label>
             <input
               {...register('date')}
               type="date"
@@ -92,10 +94,10 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
           </div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-gray-300 py-2 text-sm text-gray-700 hover:bg-gray-50">
-              Bekor
+              {t('common.cancel')}
             </button>
             <button type="submit" disabled={isPending} className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
-              {isPending ? 'Saqlanmoqda...' : 'Qo\'shish'}
+              {isPending ? t('common.saving') : t('common.add')}
             </button>
           </div>
         </form>
@@ -114,6 +116,7 @@ function CategoryDot({ category }: { category: ExpenseCategory }) {
 }
 
 export default function ExpensesPage() {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | 'ALL'>('ALL');
   const { dateFrom: monthAgo, dateTo: today } = useMemo(() => {
@@ -154,7 +157,7 @@ export default function ExpensesPage() {
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           <PlusCircle className="h-4 w-4" />
-          Xarajat qo'shish
+          {t('finance.addExpense')}
         </button>
       </div>
 
@@ -162,10 +165,10 @@ export default function ExpensesPage() {
       {profit && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Daromad', value: profit.revenue, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Yalpi foyda', value: profit.grossProfit, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
-            { label: 'Xarajatlar', value: profit.totalExpenses, icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50' },
-            { label: 'Sof foyda', value: profit.netProfit, icon: TrendingUp, color: profit.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600', bg: profit.netProfit >= 0 ? 'bg-emerald-50' : 'bg-red-50' },
+            { label: t('pnl.revenue'), value: profit.revenue, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: t('pnl.grossProfit'), value: profit.grossProfit, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+            { label: t('finance.expenses'), value: profit.totalExpenses, icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50' },
+            { label: t('pnl.netProfit'), value: profit.netProfit, icon: TrendingUp, color: profit.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600', bg: profit.netProfit >= 0 ? 'bg-emerald-50' : 'bg-red-50' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="rounded-xl border border-gray-200 bg-white p-4">
               <div className={cn('mb-2 inline-flex rounded-lg p-2', bg)}>

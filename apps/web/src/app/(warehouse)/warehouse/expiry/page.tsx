@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { AlertTriangle, Clock, RefreshCw, CalendarX, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import { useWarehouseAlerts } from '@/hooks/warehouse/useWarehouseInvoices';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const PAGE_SIZE = 15;
 
@@ -16,6 +17,7 @@ function daysUntil(dateStr: string): number {
 }
 
 export default function ExpiryPage() {
+  const { t } = useTranslation();
   const { data, isLoading, refetch } = useWarehouseAlerts();
   const [search, setSearch] = useState('');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -60,8 +62,8 @@ export default function ExpiryPage() {
       {/* Sarlavha */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Muddati o&apos;tayotgan tovarlar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Muddati o&apos;tgan yoki yaqin tovarlar</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.expiryTitle')}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t('warehouse.expirySubtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -77,7 +79,7 @@ export default function ExpiryPage() {
             className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition"
           >
             <RefreshCw className="h-4 w-4" />
-            Yangilash
+            {t('common.refresh')}
           </button>
         </div>
       </div>
@@ -88,7 +90,7 @@ export default function ExpiryPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Mahsulot nomi..."
+          placeholder={t('warehouse.productNamePlaceholder')}
           className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
       </div>
@@ -99,18 +101,18 @@ export default function ExpiryPage() {
           {(data?.expired ?? 0) > 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm">
               <CalendarX className="h-4 w-4 text-red-500" />
-              <span className="text-red-700 font-medium">{data!.expired} ta mahsulot muddati o&apos;tib ketgan!</span>
+              <span className="text-red-700 font-medium">{data!.expired} {t('warehouse.expiredProducts')}</span>
             </div>
           )}
           {(data?.soonExpiring ?? 0) > 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-2 text-sm">
               <Clock className="h-4 w-4 text-orange-500" />
-              <span className="text-orange-700 font-medium">{data!.soonExpiring} ta mahsulot 30 kun ichida muddati tugaydi</span>
+              <span className="text-orange-700 font-medium">{data!.soonExpiring} {t('warehouse.soonExpiringProducts')}</span>
             </div>
           )}
           {(data?.expired ?? 0) === 0 && (data?.soonExpiring ?? 0) === 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm">
-              <span className="text-green-700 font-medium">Muddati o&apos;tayotgan tovar yo&apos;q ✓</span>
+              <span className="text-green-700 font-medium">{t('warehouse.noExpiryProducts')}</span>
             </div>
           )}
         </div>
@@ -126,7 +128,7 @@ export default function ExpiryPage() {
         <div className="bg-white border border-gray-200 rounded-xl py-16 flex flex-col items-center gap-2 text-gray-400">
           <AlertTriangle className="h-10 w-10 text-gray-300" />
           <p className="text-sm">
-            {search ? "Qidiruv bo'yicha hech narsa topilmadi" : "Muddati o'tayotgan tovar yo'q"}
+            {search ? t('common.noSearchResults') : t('warehouse.noExpiryItems')}
           </p>
         </div>
       ) : (
@@ -136,15 +138,15 @@ export default function ExpiryPage() {
             <div className="bg-white border border-red-200 rounded-xl overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-red-100 bg-red-50">
                 <CalendarX className="h-4 w-4 text-red-600" />
-                <h2 className="text-sm font-semibold text-red-800">Muddati o&apos;tib ketgan ({expiredItems.length} ta)</h2>
+                <h2 className="text-sm font-semibold text-red-800">{t('warehouse.expiredSection')} ({expiredItems.length} ta)</h2>
               </div>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                    <th className="px-4 py-3 text-left">Mahsulot</th>
-                    <th className="px-4 py-3 text-left">Partiya №</th>
-                    <th className="px-4 py-3 text-left">Muddati</th>
-                    <th className="px-4 py-3 text-right">Qancha kechikdi</th>
+                    <th className="px-4 py-3 text-left">{t('warehouse.product')}</th>
+                    <th className="px-4 py-3 text-left">{t('warehouse.batchNumber')}</th>
+                    <th className="px-4 py-3 text-left">{t('warehouse.expiryDate')}</th>
+                    <th className="px-4 py-3 text-right">{t('warehouse.daysOverdue')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -161,7 +163,7 @@ export default function ExpiryPage() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
-                            {Math.abs(days)} kun
+                            {Math.abs(days)} {t('warehouse.days')}
                           </span>
                         </td>
                       </tr>
@@ -177,15 +179,15 @@ export default function ExpiryPage() {
             <div className="bg-white border border-orange-200 rounded-xl overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-orange-100 bg-orange-50">
                 <Clock className="h-4 w-4 text-orange-600" />
-                <h2 className="text-sm font-semibold text-orange-800">30 kun ichida muddati tugaydi ({soonItems.length} ta)</h2>
+                <h2 className="text-sm font-semibold text-orange-800">{t('warehouse.soonExpirySection')} ({soonItems.length} ta)</h2>
               </div>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                    <th className="px-4 py-3 text-left">Mahsulot</th>
-                    <th className="px-4 py-3 text-left">Partiya №</th>
-                    <th className="px-4 py-3 text-left">Muddati</th>
-                    <th className="px-4 py-3 text-right">Qancha qoldi</th>
+                    <th className="px-4 py-3 text-left">{t('warehouse.product')}</th>
+                    <th className="px-4 py-3 text-left">{t('warehouse.batchNumber')}</th>
+                    <th className="px-4 py-3 text-left">{t('warehouse.expiryDate')}</th>
+                    <th className="px-4 py-3 text-right">{t('warehouse.daysLeft')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -207,7 +209,7 @@ export default function ExpiryPage() {
                               days <= 7 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700',
                             )}
                           >
-                            {days} kun
+                            {days} {t('warehouse.days')}
                           </span>
                         </td>
                       </tr>

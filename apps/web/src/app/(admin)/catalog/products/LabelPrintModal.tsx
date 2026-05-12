@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Printer } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Product } from '@/types/catalog';
 
 interface LabelPrintModalProps {
@@ -84,6 +85,7 @@ function buildPrintHtml(
 }
 
 export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
+  const { t } = useTranslation();
   const [copies, setCopies] = useState<Record<string, number>>(
     Object.fromEntries(products.map((p) => [p.id, 1])),
   );
@@ -115,7 +117,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
 
         {/* Label size selector */}
         <div className="border-b border-gray-100 px-6 py-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">Yorliq o&apos;lchami</p>
+          <p className="mb-2 text-xs font-medium text-gray-500">{t('products.labelSize')}</p>
           <div className="flex gap-2">
             {LABEL_SIZES.map((s) => (
               <button
@@ -147,7 +149,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
                 </p>
               </div>
               <div className="ml-4 flex items-center gap-2">
-                <label className="text-xs text-gray-500">Nusxa:</label>
+                <label className="text-xs text-gray-500">{t('products.copies')}</label>
                 <input
                   type="number"
                   min={1}
@@ -210,7 +212,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
             onClick={onClose}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Bekor qilish
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -218,7 +220,7 @@ export function LabelPrintModal({ products, onClose }: LabelPrintModalProps) {
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             <Printer className="h-4 w-4" />
-            Chop etish ({totalLabels} ta)
+            {t('products.printCount', { count: totalLabels })}
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { useSyncStore } from '@/store/sync.store';
 import { salesApi } from '@/api/sales.api';
 import { cn } from '@/lib/utils';
 import type { CreateOrderDto } from '@/types/sales';
+import { useTranslation } from '@/i18n/i18n-context';
 
 /** Sync pending offline orders to server when connection is restored */
 async function syncPendingOrders() {
@@ -85,7 +86,7 @@ const STATUS_CONFIG = {
   'online-synced': {
     dot: 'bg-emerald-500',
     dotPing: 'bg-emerald-400',
-    text: 'Online · Synced',
+    tKey: 'sync.onlineSynced',
     textColor: 'text-emerald-400',
     bg: 'bg-emerald-950/60',
     border: 'border-emerald-900',
@@ -96,7 +97,7 @@ const STATUS_CONFIG = {
   'online-syncing': {
     dot: 'bg-blue-500',
     dotPing: 'bg-blue-400',
-    text: 'Syncing',
+    tKey: 'sync.syncing',
     textColor: 'text-blue-400',
     bg: 'bg-blue-950/60',
     border: 'border-blue-900',
@@ -107,7 +108,7 @@ const STATUS_CONFIG = {
   offline: {
     dot: 'bg-red-500',
     dotPing: 'bg-red-400',
-    text: 'Offline',
+    tKey: 'sync.offline',
     textColor: 'text-red-400',
     bg: 'bg-red-950/60',
     border: 'border-red-900',
@@ -118,7 +119,7 @@ const STATUS_CONFIG = {
   slow: {
     dot: 'bg-yellow-500',
     dotPing: 'bg-yellow-400',
-    text: 'Sekin ulanish',
+    tKey: 'sync.slowConnection',
     textColor: 'text-yellow-400',
     bg: 'bg-yellow-950/60',
     border: 'border-yellow-900',
@@ -132,12 +133,14 @@ export function SyncStatusBar() {
   useSyncMonitor();
 
   const { state, pendingCount, pendingItems, pendingOrders, lastSyncAt, latencyMs } = useSyncStore();
+  const { t } = useTranslation();
   const [showQueue, setShowQueue] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const cfg = STATUS_CONFIG[state];
   const Icon = cfg.icon;
   const totalPending = pendingCount + pendingOrders.length;
+  const cfgText = t(cfg.tKey);
 
   // Close popup on outside click
   useEffect(() => {
@@ -152,10 +155,10 @@ export function SyncStatusBar() {
 
   const label =
     state === 'online-syncing'
-      ? `Syncing (${totalPending} pending)`
+      ? `${cfgText} (${totalPending} pending)`
       : state === 'offline'
-      ? `Offline — ${totalPending} unsynced`
-      : cfg.text;
+      ? `${cfgText} — ${totalPending} unsynced`
+      : cfgText;
 
   return (
     <div ref={panelRef} className="relative">
@@ -202,7 +205,7 @@ export function SyncStatusBar() {
           <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
             <div className="flex items-center gap-2">
               <Icon className={cn('h-4 w-4', cfg.iconColor)} />
-              <span className="text-sm font-semibold text-gray-200">{cfg.text}</span>
+              <span className="text-sm font-semibold text-gray-200">{cfgText}</span>
             </div>
             <button
               type="button"

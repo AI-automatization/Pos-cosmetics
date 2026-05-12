@@ -10,6 +10,11 @@ export const QUEUE_NAMES = {
   STOCK_SNAPSHOT: 'stock-snapshot',
   DATA_EXPORT: 'data-export',
   SYNC_PROCESS: 'sync-process',
+  // AI Orchestration queues
+  AI_WORKFLOW: 'ai-workflow',
+  AI_AGENT: 'ai-agent',
+  AI_HEALING: 'ai-healing',
+  AI_MEMORY: 'ai-memory',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -47,6 +52,36 @@ export interface SyncProcessJob {
   tenantId: string;
   deviceId: string;
   idempotencyKey: string;
+}
+
+// ─── AI Orchestration job payloads ────────────────────────────────────────
+export interface AiWorkflowJob {
+  tenantId: string;
+  workflowId: string;
+  agentType: string;
+  input: Record<string, unknown>;
+  attempt?: number;
+}
+
+export interface AiAgentJob {
+  tenantId: string;
+  workflowId: string;
+  taskId: string;
+  agentType: string;
+  input: Record<string, unknown>;
+}
+
+export interface AiHealingJob {
+  tenantId: string;
+  incidentId: string;
+  workflowId?: string;
+  errorContext: Record<string, unknown>;
+}
+
+export interface AiMemoryJob {
+  tenantId: string;
+  action: 'consolidate' | 'compress' | 'prune';
+  scope?: string;
 }
 
 @Injectable()
@@ -132,6 +167,46 @@ export class QueueService implements OnModuleDestroy {
       backoff: { type: 'exponential', delay: 1000 },
       removeOnComplete: 500,
       removeOnFail: 200,
+    });
+  }
+
+  // ─── AI Orchestration job methods ─────────────────────────────────────
+
+  async addAiWorkflowJob(data: AiWorkflowJob) {
+    return this.getQueue(QUEUE_NAMES.AI_WORKFLOW).add('execute-workflow', data, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
+      removeOnComplete: 200,
+      removeOnFail: 100,
+    });
+  }
+
+  async addAiAgentJob(data: AiAgentJob) {
+    return this.getQueue(QUEUE_NAMES.AI_AGENT).add('execute-agent', data, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 3000 },
+      removeOnComplete: 500,
+      removeOnFail: 200,
+    });
+  }
+
+  async addAiHealingJob(data: AiHealingJob) {
+    // priority=1 — highest priority (healer runs before all others)
+    return this.getQueue(QUEUE_NAMES.AI_HEALING).add('heal-workflow', data, {
+      priority: 1,
+      attempts: 2,
+      backoff: { type: 'fixed', delay: 2000 },
+      removeOnComplete: 100,
+      removeOnFail: 100,
+    });
+  }
+
+  async addAiMemoryJob(data: AiMemoryJob) {
+    return this.getQueue(QUEUE_NAMES.AI_MEMORY).add('process-memory', data, {
+      attempts: 2,
+      backoff: { type: 'fixed', delay: 5000 },
+      removeOnComplete: 50,
+      removeOnFail: 50,
     });
   }
 

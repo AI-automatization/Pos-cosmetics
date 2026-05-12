@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 export const inputCls =
   'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
 
+export const inputErrorCls =
+  'w-full rounded-lg border border-red-400 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500/20';
+
 export interface FieldProps {
   label: string;
   error?: string;

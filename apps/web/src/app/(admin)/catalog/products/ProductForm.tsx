@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { X, Plus, Loader2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import type { Category, Product } from '@/types/catalog';
-import { Field, inputCls } from './FormField';
+import { Field, inputCls, inputErrorCls } from './FormField';
 import { MarginBadge } from './MarginBadge';
 import { ImageUpload } from './ImageUpload';
 import { BarcodeFields } from './BarcodeFields';
@@ -15,21 +15,25 @@ import { useSuppliers } from '@/hooks/catalog/useSuppliers';
 import { useUnits } from '@/hooks/catalog/useProducts';
 import { catalogApi } from '@/api/catalog.api';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const productSchema = z.object({
-  name: z.string().min(1, 'Nom kiritilishi shart').max(200),
+  name: z.string().min(1, 'Mahsulot nomi kiritilishi shart').max(200, 'Nom 200 belgidan oshmasligi kerak'),
   extraBarcodes: z.array(z.object({ value: z.string() })).optional(),
-  sku: z.string().max(100).optional(),
-  categoryId: z.string().optional(),
+  sku: z.string().max(100, 'SKU 100 belgidan oshmasligi kerak').optional(),
+  categoryId: z.string().min(1, 'Kategoriya tanlanishi shart'),
   supplierId: z.string().optional(),
   unitId: z.string().optional(),
   description: z.string().max(2000).optional(),
-  costPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
-  sellPrice: z.coerce.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
-  minStockLevel: z.coerce.number().min(0),
-  initialStock: z.coerce.number().min(0).optional(),
+  costPrice: z.coerce.number().min(0, 'Kelish narxi manfiy bo\'lishi mumkin emas'),
+  sellPrice: z.coerce.number().min(1, 'Sotuv narxi kiritilishi shart'),
+  minStockLevel: z.coerce.number().min(0, 'Manfiy bo\'lishi mumkin emas'),
+  initialStock: z.coerce.number().min(0, 'Manfiy bo\'lishi mumkin emas').optional(),
   expiryTracking: z.boolean().optional(),
   expiryDate: z.string().optional(),
+}).refine((data) => data.sellPrice >= data.costPrice, {
+  message: 'Sotuv narxi kelish narxidan kam bo\'lishi mumkin emas',
+  path: ['sellPrice'],
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
@@ -70,6 +74,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
 }
 
 export function ProductForm({ product, categories, isPending, onSubmit, onClose, initialSupplierId }: ProductFormProps) {
+  const { t } = useTranslation();
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
     defaultValues: buildDefaultValues(product, initialSupplierId),
@@ -127,7 +132,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
       <div className="relative z-10 w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-lg font-bold text-gray-900">
-            {product ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot qo\'shish'}
+            {product ? t('products.editProduct') : t('products.addProduct')}
           </h2>
           <button
             type="button"
@@ -146,12 +151,12 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               <input
                 {...register('name')}
                 placeholder="Masalan: Nivea krem 100ml"
-                className={inputCls}
+                className={errors.name ? inputErrorCls : inputCls}
               />
             </Field>
 
             {/* Row 2: Category | Supplier | SKU */}
-            <Field label="Kategoriya" error={errors.categoryId?.message}>
+            <Field label="Kategoriya" error={errors.categoryId?.message} required>
               <Controller
                 control={control}
                 name="categoryId"
@@ -169,7 +174,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               />
             </Field>
 
-            <Field label="Yetkazib beruvchi">
+            <Field label={t('products.supplier')}>
               <Controller
                 control={control}
                 name="supplierId"
@@ -229,8 +234,8 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                O&apos;lchov birligi
-                <span className="ml-1 text-xs font-normal text-gray-400">(ixt.)</span>
+                {t('products.unit')}
+                <span className="ml-1 text-xs font-normal text-gray-400">({t('common.optional')})</span>
               </label>
               <div className="flex flex-wrap gap-1">
                 {units.map((u) => (
@@ -264,7 +269,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                       : 'border-dashed border-gray-300 text-gray-500 hover:border-orange-300',
                   )}
                 >
-                  + Boshqa
+                  + {t('common.other')}
                 </button>
               </div>
             </div>
@@ -318,7 +323,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                 type="number"
                 min={0}
                 step={100}
-                className={inputCls}
+                className={errors.costPrice ? inputErrorCls : inputCls}
               />
             </Field>
 
@@ -328,7 +333,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                 type="number"
                 min={0}
                 step={100}
-                className={inputCls}
+                className={errors.sellPrice ? inputErrorCls : inputCls}
               />
             </Field>
 
@@ -349,7 +354,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             </Field>
 
             {!product && (
-              <Field label="Boshlang'ich zaxira (dona)" error={errors.initialStock?.message} className="col-span-2">
+              <Field label={t('products.initialStock')} error={errors.initialStock?.message} className="col-span-2">
                 <input
                   {...register('initialStock')}
                   type="number"
@@ -369,7 +374,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               disabled={isPending || isCreatingUnit}
               className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -377,7 +382,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
             >
               {(isPending || isCreatingUnit) && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isPending || isCreatingUnit ? 'Saqlanmoqda...' : product ? 'Saqlash' : 'Qo\'shish'}
+              {isPending || isCreatingUnit ? t('common.saving') : product ? t('common.save') : t('common.add')}
             </button>
           </div>
         </form>

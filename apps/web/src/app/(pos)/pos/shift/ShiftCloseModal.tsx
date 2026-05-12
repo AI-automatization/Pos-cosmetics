@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { LogOut, X } from 'lucide-react';
 import { usePOSStore } from '@/store/pos.store';
 import { useCloseShift } from '@/hooks/pos/useShift';
+import { useTranslation } from '@/i18n/i18n-context';
 import { ShiftReport } from './ShiftReport';
 
 interface ShiftCloseModalProps {
@@ -12,6 +13,7 @@ interface ShiftCloseModalProps {
 }
 
 export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
+  const { t } = useTranslation();
   const { openingCash, salesCount, shiftTotals } = usePOSStore();
   const [closingCash, setClosingCash] = useState(0);
   const [cashEntered, setCashEntered] = useState(false);
@@ -29,7 +31,7 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
       <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="text-base font-semibold text-gray-900">Smenani yopish</h2>
+          <h2 className="text-base font-semibold text-gray-900">{t('pos.closeShift')}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -43,7 +45,7 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
           {/* Closing cash */}
           <div className="mb-4">
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Kassadagi naqd pul (haqiqiy)
+              {t('pos.actualCash')}
             </label>
             <input
               type="number"
@@ -64,12 +66,12 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
           {/* Notes */}
           <div className="mb-4">
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Izoh (ixtiyoriy)
+              {t('pos.notesOptional')}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Smena bo'yicha eslatmalar..."
+              placeholder={t('pos.notesPlaceholder')}
               rows={2}
               className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
@@ -96,14 +98,14 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
               onClick={() => setShowReport(true)}
               className="mb-4 w-full rounded-xl border border-gray-200 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50"
             >
-              Smena hisobotini ko'rish
+              {t('pos.viewShiftReport')}
             </button>
           )}
 
           {/* Validation hint */}
           {!cashEntered && (
             <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              ⚠️ Kassadagi haqiqiy naqd pul summasini kiriting
+              ⚠️ {t('pos.enterActualCashHint')}
             </p>
           )}
 
@@ -115,7 +117,7 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
               disabled={closeShiftMutation.isPending}
               className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
             >
-              Bekor qilish
+              {t('pos.kbCancel')}
             </button>
             <button
               type="button"
@@ -124,7 +126,7 @@ export function ShiftCloseModal({ onClose, onClosed }: ShiftCloseModalProps) {
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <LogOut className="h-4 w-4" />
-              {closeShiftMutation.isPending ? 'Yopilmoqda...' : 'Smenani yopish'}
+              {closeShiftMutation.isPending ? t('pos.closing') : t('pos.closeShift')}
             </button>
           </div>
         </div>

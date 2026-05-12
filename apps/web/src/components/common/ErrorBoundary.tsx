@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface Props {
   children: React.ReactNode;
@@ -34,23 +35,33 @@ class _ErrorBoundaryImpl extends React.Component<Props, State> {
     if (this.state.hasError) {
       if (this.props.fallback) return <>{this.props.fallback}</>;
       return (
-        <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-xl border border-red-200 bg-red-50 p-8 text-center">
-          <p className="text-sm font-semibold text-red-700">Sahifani yuklashda xato yuz berdi</p>
-          <p className="text-xs text-red-500">
-            {this.state.error?.message ?? 'Kutilmagan xato'}
-          </p>
-          <button
-            type="button"
-            onClick={() => this.setState({ hasError: false, error: null })}
-            className="rounded-lg bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700"
-          >
-            Qayta urinish
-          </button>
-        </div>
+        <ErrorFallback
+          error={this.state.error}
+          onReset={() => this.setState({ hasError: false, error: null })}
+        />
       );
     }
     return <>{this.props.children}</>;
   }
+}
+
+function ErrorFallback({ error, onReset }: { error: Error | null; onReset: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-xl border border-red-200 bg-red-50 p-8 text-center">
+      <p className="text-sm font-semibold text-red-700">{t('errors.pageLoadFailed')}</p>
+      <p className="text-xs text-red-500">
+        {error?.message ?? t('errors.unexpected')}
+      </p>
+      <button
+        type="button"
+        onClick={onReset}
+        className="rounded-lg bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700"
+      >
+        {t('common.retry')}
+      </button>
+    </div>
+  );
 }
 
 // Functional wrapper: TypeScript checks this signature (not the class),

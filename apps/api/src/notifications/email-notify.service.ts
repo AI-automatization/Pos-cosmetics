@@ -21,7 +21,7 @@ export class EmailNotifyService {
       this.transporter = nodemailer.createTransport({
         host,
         port: this.config.get<number>('SMTP_PORT', 587),
-        secure: this.config.get<boolean>('SMTP_SECURE', false),
+        secure: this.config.get('SMTP_SECURE') === 'true',
         auth: { user, pass },
       });
     }
@@ -138,10 +138,6 @@ export class EmailNotifyService {
             <tr style="border-top:1px solid #e5e7eb;">
               <td style="padding:14px 20px;font-size:13px;color:#6b7280;">Пароль</td>
               <td style="padding:14px 20px;font-size:15px;font-weight:700;color:#111827;font-family:monospace;letter-spacing:1px;">${opts.password}</td>
-            </tr>
-            <tr style="border-top:1px solid #e5e7eb;">
-              <td style="padding:14px 20px;font-size:13px;color:#6b7280;">Slug (ID магазина)</td>
-              <td style="padding:14px 20px;font-size:13px;font-weight:600;color:#111827;font-family:monospace;">${opts.slug}</td>
             </tr>
           </table>
         </td></tr>

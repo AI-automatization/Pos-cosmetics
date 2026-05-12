@@ -1,5 +1,8 @@
+'use client';
+
 import { TrendingUp, Banknote, CreditCard, ShoppingBag, AlertTriangle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface ShiftReportProps {
   openingCash: number;
@@ -18,6 +21,7 @@ export function ShiftReport({
   cashRevenue,
   cardRevenue,
 }: ShiftReportProps) {
+  const { t } = useTranslation();
   const expectedCash = openingCash + cashRevenue;
   const discrepancy = closingCash - expectedCash;
   const hasDiscrepancy = Math.abs(discrepancy) > 0;
@@ -25,7 +29,7 @@ export function ShiftReport({
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-        Smena hisoboti
+        {t('pos.shiftReport')}
       </h3>
 
       <div className="space-y-2.5">
@@ -33,16 +37,16 @@ export function ShiftReport({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <ShoppingBag className="h-4 w-4 text-gray-400" />
-            Sotuvlar soni
+            {t('pos.salesCount')}
           </div>
-          <span className="font-semibold text-gray-900">{salesCount} ta</span>
+          <span className="font-semibold text-gray-900">{salesCount} {t('pos.unitPcs')}</span>
         </div>
 
         {/* Total revenue */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <TrendingUp className="h-4 w-4 text-gray-400" />
-            Jami tushum
+            {t('pos.totalRevenue')}
           </div>
           <span className="font-bold text-gray-900">{formatPrice(revenue)}</span>
         </div>
@@ -53,7 +57,7 @@ export function ShiftReport({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Banknote className="h-4 w-4 text-green-500" />
-            Naqd savdo
+            {t('pos.cashSales')}
           </div>
           <span className="text-sm text-gray-700">{formatPrice(cashRevenue)}</span>
         </div>
@@ -61,7 +65,7 @@ export function ShiftReport({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <CreditCard className="h-4 w-4 text-blue-500" />
-            Karta savdo
+            {t('pos.cardSales')}
           </div>
           <span className="text-sm text-gray-700">{formatPrice(cardRevenue)}</span>
         </div>
@@ -70,17 +74,17 @@ export function ShiftReport({
 
         {/* Cash reconciliation */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Boshlang'ich kassa</span>
+          <span className="text-sm text-gray-600">{t('pos.initialCash')}</span>
           <span className="text-sm text-gray-700">{formatPrice(openingCash)}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Kutilgan kassa</span>
+          <span className="text-sm text-gray-600">{t('pos.expectedCash')}</span>
           <span className="text-sm font-medium text-gray-900">{formatPrice(expectedCash)}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Haqiqiy kassa</span>
+          <span className="text-sm text-gray-600">{t('pos.actualCash')}</span>
           <span className="text-sm font-medium text-gray-900">{formatPrice(closingCash)}</span>
         </div>
 
@@ -95,7 +99,7 @@ export function ShiftReport({
           >
             <div className="flex items-center gap-1.5 text-sm font-medium">
               <AlertTriangle className="h-4 w-4" />
-              {discrepancy < 0 ? 'Kamomad' : 'Ortiqcha'}
+              {discrepancy < 0 ? t('pos.shortfall') : t('pos.surplus')}
             </div>
             <span className="text-sm font-bold">
               {discrepancy < 0 ? '-' : '+'}{formatPrice(Math.abs(discrepancy))}
@@ -105,7 +109,7 @@ export function ShiftReport({
 
         {!hasDiscrepancy && closingCash > 0 && (
           <div className="rounded-lg bg-green-50 p-2 text-center text-sm font-medium text-green-700">
-            ✓ Kassa balansi to'g'ri
+            ✓ {t('pos.cashBalanceOk')}
           </div>
         )}
       </div>

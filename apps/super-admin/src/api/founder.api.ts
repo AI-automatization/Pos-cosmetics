@@ -28,6 +28,7 @@ type AdminTenant = {
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;
+  _count?: { users?: number; orders?: number };
 };
 
 export const founderApi = {
@@ -65,7 +66,7 @@ export const founderApi = {
           name: t.name,
           slug: t.slug,
           status: (t.isActive ? 'ACTIVE' : 'INACTIVE') as TenantSummary['status'],
-          salesToday: 0,
+          salesToday: t._count?.orders ?? 0,
           revenueToday: 0,
           errorsLast24h: 0,
           lastActivityAt: t.updatedAt ?? t.createdAt,
@@ -106,6 +107,23 @@ export const founderApi = {
 
   getTenantUsers: (id: string) =>
     apiClient.get(`/admin/tenants/${id}/users`).then((r) => r.data),
+
+  getTenantHealth: (id: string): Promise<{
+    tenant: { id: string; name: string; slug: string; isActive: boolean; createdAt: string } | null;
+    health: {
+      isActive: boolean;
+      lastSaleAt: string | null;
+      lastSaleAmount: number | null;
+      hasOpenShift: boolean;
+      openShiftSince: string | null;
+      activeUsers: number;
+      orders24h: number;
+    };
+  }> =>
+    apiClient.get(`/admin/tenants/${id}/health`).then((r) => r.data),
+
+  resetUserPassword: (tenantId: string, userId: string, newPassword: string): Promise<{ success: boolean; userId: string; email: string }> =>
+    apiClient.patch(`/admin/tenants/${tenantId}/users/${userId}/password`, { newPassword }).then((r) => r.data),
 
   getTenantUsage: (id: string) =>
     apiClient.get(`/admin/tenants/${id}/usage`).then((r) => r.data),

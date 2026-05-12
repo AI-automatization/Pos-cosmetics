@@ -65,7 +65,7 @@ export class SalesService {
     return this.orders.getQuickStats(tenantId, branchId);
   }
 
-  getOrders(tenantId: string, opts: { page?: number; limit?: number; shiftId?: string }) {
+  getOrders(tenantId: string, opts: { page?: number; limit?: number; shiftId?: string; from?: string; to?: string }) {
     return this.orders.getOrders(tenantId, opts);
   }
 

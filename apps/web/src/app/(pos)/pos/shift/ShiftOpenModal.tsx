@@ -8,6 +8,7 @@ import { Store, LogIn, LogOut } from 'lucide-react';
 import { useOpenShift } from '@/hooks/pos/useShift';
 import { useLogout } from '@/hooks/auth/useAuth';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const schema = z.object({
   cashierName: z.string().min(1, 'Kassir nomi kiritilishi shart').max(80),
@@ -23,6 +24,7 @@ interface ShiftOpenModalProps {
 }
 
 export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
+  const { t } = useTranslation();
   const [selectedQuick, setSelectedQuick] = useState<number | null>(null);
 
   const {
@@ -58,9 +60,9 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
             <Store className="h-7 w-7 text-white" />
           </div>
           <div className="text-center">
-            <h1 className="text-lg font-bold text-gray-900">Smenani ochish</h1>
+            <h1 className="text-lg font-bold text-gray-900">{t('pos.openShift')}</h1>
             <p className="mt-0.5 text-sm text-gray-500">
-              Kassada ishlashni boshlash uchun smenani oching
+              {t('pos.openShiftSubtitle')}
             </p>
           </div>
         </div>
@@ -70,12 +72,12 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
           {/* Cashier name */}
           <div className="mb-4">
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Kassir ismi <span className="text-red-500">*</span>
+              {t('pos.cashierName')} <span className="text-red-500">*</span>
             </label>
             <input
               {...register('cashierName')}
               autoFocus
-              placeholder="Ismi va familiyasi"
+              placeholder={t('pos.cashierNamePlaceholder')}
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
             {errors.cashierName && (
@@ -86,7 +88,7 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
           {/* Opening cash */}
           <div className="mb-4">
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Kassadagi boshlang'ich naqd pul
+              {t('pos.openingCash')}
             </label>
             <input
               {...register('openingCash')}
@@ -113,7 +115,7 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
                       : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                   }`}
                 >
-                  {amt === 0 ? 'Bo\'sh' : `${(amt / 1000).toFixed(0)}K`}
+                  {amt === 0 ? t('pos.emptyAmount') : `${(amt / 1000).toFixed(0)}K`}
                 </button>
               ))}
             </div>
@@ -134,7 +136,7 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
               className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 py-3.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-60"
             >
               <LogOut className="h-4 w-4" />
-              {loggingOut ? 'Chiqilmoqda...' : 'Chiqish'}
+              {loggingOut ? t('auth.loggingOut') : t('auth.logout')}
             </button>
             <button
               type="submit"
@@ -142,7 +144,7 @@ export function ShiftOpenModal({ onOpened }: ShiftOpenModalProps) {
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 disabled:opacity-60"
             >
               <LogIn className="h-4 w-4" />
-              {openShiftMutation.isPending ? 'Ochilmoqda...' : 'Smenani ochish'}
+              {openShiftMutation.isPending ? t('pos.opening') : t('pos.openShift')}
             </button>
           </div>
         </form>

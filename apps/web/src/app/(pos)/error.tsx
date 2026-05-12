@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export default function PosError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  const { t } = useTranslation();
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -14,13 +16,13 @@ export default function PosError({ error, reset }: { error: Error & { digest?: s
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <h2 className="text-lg font-semibold text-white">Xatolik yuz berdi</h2>
-      <p className="max-w-sm text-sm text-gray-400">{error.message || 'Kutilmagan xatolik.'}</p>
+      <h2 className="text-lg font-semibold text-white">{t('common.error')}</h2>
+      <p className="max-w-sm text-sm text-gray-400">{error.message || t('pos.unexpectedError')}</p>
       <button
         onClick={reset}
         className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
       >
-        Qayta urinish
+        {t('common.retry')}
       </button>
     </div>
   );

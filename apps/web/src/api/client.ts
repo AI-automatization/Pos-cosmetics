@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAccessToken, setAccessToken, clearAccessToken, getUserIdFromCookie } from './token';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 
@@ -6,60 +7,50 @@ export const apiClient = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
-  timeout: 15000, // 15s — prevents infinite hang when network is blocked
+  timeout: 15000,
 });
 
-// Request: JWT qo'shish
+// Request: JWT из памяти (не localStorage)
 apiClient.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('access_token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-  }
+  const token = getAccessToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Shared refresh promise — deduplication: 10 parallel 401 → only 1 refresh POST
+// Shared refresh promise — deduplication
 let refreshPromise: Promise<string> | null = null;
 
-// Clears all auth state and redirects to login.
 function clearAuthAndRedirect() {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('access_token');
+  clearAccessToken();
   document.cookie = 'session_active=; path=/; max-age=0';
   document.cookie = 'user_role=; path=/; max-age=0';
+  document.cookie = 'user_id=; path=/; max-age=0';
   window.location.href = '/login';
 }
 
-// Response: 401 → refresh, 5xx → error report
+// Response: 401 → refresh через httpOnly cookie, 5xx → error report
 apiClient.interceptors.response.use(
   (res) => res,
   async (err) => {
+    const isRefreshCall = err.config?.url?.includes('/auth/refresh');
+
+    // 401 на refresh endpoint — сессия истекла, не зацикливаем
+    if (err.response?.status === 401 && isRefreshCall) {
+      return Promise.reject(err);
+    }
+
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
 
-      // userId ni JWT payload dan olish — faqat sub kerak (signature verify shart emas)
-      const currentToken = localStorage.getItem('access_token');
-
-      // No token at all — skip refresh attempt, clear and redirect immediately
-      if (!currentToken) {
-        clearAuthAndRedirect();
-        return Promise.reject(err);
-      }
-
-      let userId: string | null = null;
       try {
-        userId = JSON.parse(atob(currentToken.split('.')[1]))?.sub ?? null;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_e) { /* ignore parse errors */ }
-
-      try {
-        // refreshToken httpOnly cookie withCredentials: true bilan yuboriladi (T-347)
-        // Single shared promise prevents refresh storms when many requests get 401 simultaneously
+        // refreshToken автоматически отправляется как httpOnly cookie (withCredentials: true)
         if (!refreshPromise) {
+          const userId = getUserIdFromCookie();
           refreshPromise = apiClient
             .post<{ accessToken: string }>('/auth/refresh', { userId })
             .then((r) => {
-              localStorage.setItem('access_token', r.data.accessToken);
+              setAccessToken(r.data.accessToken);
               return r.data.accessToken;
             })
             .finally(() => { refreshPromise = null; });
@@ -69,6 +60,7 @@ apiClient.interceptors.response.use(
         return apiClient(err.config);
       } catch {
         clearAuthAndRedirect();
+        return Promise.reject(err);
       }
     }
 

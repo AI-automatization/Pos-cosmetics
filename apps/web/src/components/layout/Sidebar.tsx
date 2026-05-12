@@ -61,14 +61,14 @@ const ADMIN_ONLY: Role[] = ['OWNER', 'ADMIN'];
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    title: 'Asosiy',
+    title: 'nav.sectionMain',
     items: [
       { label: 'Dashboard', tKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: NO_CASHIER },
       { label: 'POS Kassa', tKey: 'nav.pos', href: '/pos', icon: Monitor, roles: ['CASHIER'] },
     ],
   },
   {
-    title: 'Katalog',
+    title: 'nav.sectionCatalog',
     items: [
       {
         label: 'Katalog', tKey: 'nav.catalog',
@@ -94,7 +94,7 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'Savdo',
+    title: 'nav.sectionSales',
     items: [
       {
         label: 'Sotuv', tKey: 'nav.sales',
@@ -126,7 +126,7 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'Moliya',
+    title: 'nav.sectionFinance',
     items: [
       {
         label: 'Moliya', tKey: 'nav.finance',
@@ -143,7 +143,6 @@ const NAV_SECTIONS: NavSection[] = [
         icon: BarChart2,
         roles: NO_CASHIER,
         children: [
-          { label: 'Umumiy', tKey: 'nav.reports', href: '/reports' },
           { label: 'Kunlik daromad', tKey: 'nav.dailyRevenue', href: '/reports/daily-revenue' },
           { label: 'Top mahsulotlar', tKey: 'nav.topProducts', href: '/reports/top-products' },
           { label: 'Smenalar', tKey: 'nav.shiftReports', href: '/reports/shifts' },
@@ -154,14 +153,14 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'Boshqaruv',
+    title: 'nav.sectionManagement',
     items: [
       { label: 'Topshiriqlar', tKey: 'nav.tasks', href: '/tasks', icon: ClipboardList, roles: ['OWNER', 'ADMIN', 'MANAGER'] },
       { label: 'Filiallar', tKey: 'nav.branches', href: '/settings/branches', icon: Building2, roles: ['OWNER', 'ADMIN'] },
     ],
   },
   {
-    title: 'Sozlamalar',
+    title: 'nav.sectionSettings',
     items: [
       {
         label: 'Sozlamalar', tKey: 'nav.settings',
@@ -222,12 +221,13 @@ function NavSkeleton({ collapsed }: { collapsed: boolean }) {
 }
 
 function SectionLabel({ title, collapsed }: { title: string; collapsed: boolean }) {
+  const { t } = useTranslation();
   if (collapsed) {
     return <div className="mx-3 my-1 border-t border-gray-200" />;
   }
   return (
     <p className="mb-1 mt-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-gray-400 first:mt-0">
-      {title}
+      {t(title)}
     </p>
   );
 }
@@ -348,6 +348,7 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const { data: user, isLoading } = useCurrentUser();
+  const { t } = useTranslation();
   const sections = getNavSections(user?.role);
 
   return (
@@ -364,7 +365,7 @@ function SidebarContent({
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-gray-900 tracking-tight">RAOS</p>
             <p className="text-[11px] text-gray-400 font-medium">
-              {user?.role === 'OWNER' ? 'Owner Panel' : 'Admin Panel'}
+              {user?.role === 'OWNER' ? t('nav.ownerPanel') : t('nav.adminPanel')}
             </p>
           </div>
         )}
@@ -420,7 +421,7 @@ function SidebarContent({
         <button
           type="button"
           onClick={toggle}
-          title={collapsed ? 'Kengaytirish' : 'Yig\'ish'}
+          title={collapsed ? t('nav.expand') : t('nav.collapse')}
           className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
         >
           {collapsed ? (
@@ -428,7 +429,7 @@ function SidebarContent({
           ) : (
             <>
               <PanelLeftClose className="h-4 w-4" />
-              <span className="text-xs">Yig&#39;ish</span>
+              <span className="text-xs">{t('nav.collapse')}</span>
             </>
           )}
         </button>

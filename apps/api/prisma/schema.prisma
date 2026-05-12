@@ -16,6 +16,9 @@ model Tenant {
   name         String
   slug         String   @unique
   isActive     Boolean  @default(true)
+  phone        String?  // Kontakt telefon
+  city         String?  // Shahar
+  businessType String?  @map("business_type") // COSMETICS, GROCERY, PHARMACY, etc.
   // T-079: Soliq ma'lumotlari
   inn          String? // INN: 9 (yuridik) yoki 14 (jismoniy) raqam
   stir         String? // STIR (soliq to'lovchi identifikator raqami)
@@ -1719,4 +1722,220 @@ model RentalPayment {
   @@index([propertyId])
   @@index([tenantId, status])
   @@map("rental_payments")
+}
+
+// ============================================
+// AI ORCHESTRATION MODULE
+// ============================================
+
+enum AiWorkflowStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  HEALING
+  CANCELLED
+}
+
+enum AiTaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  RETRYING
+  SKIPPED
+}
+
+enum AiTokenLedgerType {
+  ALLOCATION
+  CONSUMPTION
+  REFUND
+}
+
+enum AiMemoryScope {
+  WORKSPACE
+  WORKFLOW
+  USER
+  LONG_TERM
+  ENGINEERING
+}
+
+enum AiIncidentSeverity {
+  P0
+  P1
+  P2
+  P3
+}
+
+enum AiHealingStatus {
+  PENDING
+  HEALING
+  RESOLVED
+  FAILED
+  ESCALATED
+}
+
+model AiWorkflow {
+  id             String            @id @default(uuid())
+  tenantId       String            @map("tenant_id")
+  name           String
+  status         AiWorkflowStatus  @default(PENDING)
+  autoMode       Boolean           @default(false) @map("auto_mode")
+  triggeredBy    String?           @map("triggered_by")
+  input          Json
+  output         Json?
+  error          String?
+  modelUsed      String?           @map("model_used")
+  totalTokens    Int               @default(0) @map("total_tokens")
+  checkpointData Json?             @map("checkpoint_data")
+  startedAt      DateTime?         @map("started_at")
+  completedAt    DateTime?         @map("completed_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  tasks       AiTask[]
+  tokenLedger AiTokenLedger[]
+  incidents   AiIncident[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@map("ai_workflows")
+}
+
+model AiTask {
+  id          String        @id @default(uuid())
+  tenantId    String        @map("tenant_id")
+  workflowId  String        @map("workflow_id")
+  agentType   String        @map("agent_type")
+  status      AiTaskStatus  @default(PENDING)
+  input       Json
+  output      Json?
+  error       String?
+  modelUsed   String?       @map("model_used")
+  tokensUsed  Int           @default(0) @map("tokens_used")
+  attempt     Int           @default(1)
+  maxAttempts Int           @default(3) @map("max_attempts")
+  startedAt   DateTime?     @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  workflow AiWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, workflowId])
+  @@index([tenantId, agentType, status])
+  @@map("ai_tasks")
+}
+
+// Immutable token ledger — follows JournalEntry pattern (NO updatedAt)
+model AiTokenLedger {
+  id           String              @id @default(uuid())
+  tenantId     String              @map("tenant_id")
+  workflowId   String?             @map("workflow_id")
+  taskId       String?             @map("task_id")
+  type         AiTokenLedgerType
+  model        String
+  provider     String
+  promptTokens Int                 @map("prompt_tokens")
+  outputTokens Int                 @map("output_tokens")
+  totalTokens  Int                 @map("total_tokens")
+  costUsd      Decimal             @map("cost_usd") @db.Decimal(10, 6)
+  createdAt    DateTime            @default(now()) @map("created_at")
+  // NO updatedAt — immutable
+
+  workflow AiWorkflow? @relation(fields: [workflowId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, workflowId])
+  @@map("ai_token_ledger")
+}
+
+model AiMemory {
+  id           String        @id @default(uuid())
+  tenantId     String        @map("tenant_id")
+  scope        AiMemoryScope
+  key          String
+  content      String
+  summary      String?
+  metadata     Json          @default("{}")
+  relevance    Float         @default(1.0)
+  accessCount  Int           @default(0) @map("access_count")
+  lastAccessed DateTime?     @map("last_accessed")
+  expiresAt    DateTime?     @map("expires_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@unique([tenantId, scope, key])
+  @@index([tenantId, scope])
+  @@index([tenantId, relevance])
+  @@map("ai_memories")
+}
+
+model AiPrompt {
+  id          String   @id @default(uuid())
+  tenantId    String?  @map("tenant_id")
+  name        String
+  version     Int      @default(1)
+  content     String
+  variables   Json     @default("[]")
+  isActive    Boolean  @default(true) @map("is_active")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, name, version])
+  @@index([tenantId, name, isActive])
+  @@map("ai_prompts")
+}
+
+model AiIncident {
+  id            String             @id @default(uuid())
+  tenantId      String             @map("tenant_id")
+  workflowId    String?            @map("workflow_id")
+  severity      AiIncidentSeverity
+  rootCause     String?            @map("root_cause")
+  healingPlan   String?            @map("healing_plan")
+  healingStatus AiHealingStatus    @default(PENDING) @map("healing_status")
+  resolution    String?
+  resolvedAt    DateTime?          @map("resolved_at")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  workflow AiWorkflow? @relation(fields: [workflowId], references: [id])
+
+  @@index([tenantId, healingStatus])
+  @@index([tenantId, createdAt])
+  @@map("ai_incidents")
+}
+
+// Immutable AI governance audit log — follows AuditLog pattern (NO updatedAt)
+model AiAuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  workflowId String?  @map("workflow_id")
+  taskId     String?  @map("task_id")
+  action     String
+  agentType  String?  @map("agent_type")
+  model      String?
+  tokensUsed Int?     @map("tokens_used")
+  userId     String?  @map("user_id")
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+  // NO updatedAt — immutable
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, action])
+  @@map("ai_audit_logs")
+}
+
+model AiProviderHealth {
+  id          String   @id @default(uuid())
+  provider    String
+  model       String
+  isHealthy   Boolean  @default(true) @map("is_healthy")
+  latencyMs   Int?     @map("latency_ms")
+  errorRate   Float    @default(0) @map("error_rate")
+  lastChecked DateTime @default(now()) @map("last_checked")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([provider, model])
+  @@map("ai_provider_health")
 }

@@ -1,7 +1,7 @@
 import path from 'path';
 import type { NextConfig } from 'next';
 
-const RAILWAY_API = 'https://api-production-c5b6.up.railway.app';
+const RAILWAY_API = 'https://api.raos.uz';
 const API_BASE = process.env.INTERNAL_API_URL || RAILWAY_API;
 
 const nextConfig: NextConfig = {

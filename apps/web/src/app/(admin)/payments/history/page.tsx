@@ -17,26 +17,13 @@ import { useQuery } from '@tanstack/react-query';
 import { ordersApi } from '@/api/orders.api';
 import { useOrder } from '@/hooks/sales/useOrders';
 import type { Order, OrderItem } from '@/types/order';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface OrderWithCustomer extends Order {
   customer?: { id: string; name: string; phone: string } | null;
 }
 
-const METHOD_LABEL: Record<string, string> = {
-  // Backend-computed keys (Uzbek)
-  NAQD: 'Naqd',
-  KARTA: 'Karta',
-  NASIYA: 'Nasiya',
-  ARALASH: 'Aralash',
-  // PaymentIntent method keys (English)
-  CASH: 'Naqd',
-  CARD: 'Karta',
-  TERMINAL: 'Karta',
-  DEBT: 'Nasiya',
-  TRANSFER: "Bank o'tkazma",
-  CLICK: 'Click',
-  PAYME: 'Payme',
-};
+// METHOD_LABEL and STATUS_LABEL are now built inside the component using t()
 
 const METHOD_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   // Backend-computed keys (Uzbek)
@@ -58,12 +45,6 @@ const STATUS_STYLE: Record<string, string> = {
   COMPLETED: 'bg-green-100 text-green-700',
   RETURNED: 'bg-orange-100 text-orange-700',
   VOIDED: 'bg-gray-100 text-gray-600',
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  COMPLETED: 'Yakunlandi',
-  RETURNED: 'Qaytarildi',
-  VOIDED: 'Bekor qilindi',
 };
 
 // Stat card colors
@@ -101,7 +82,28 @@ function StatCard({ label, value, sub, icon: Icon, color }: StatCardProps) {
 
 // Payment detail modal — fetches full order by id
 function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
+  const { t } = useTranslation();
   const { data: order, isLoading } = useOrder(orderId);
+
+  const METHOD_LABEL: Record<string, string> = {
+    NAQD: t('payments.cash'),
+    KARTA: t('payments.card'),
+    NASIYA: t('payments.debt'),
+    ARALASH: t('payments.mixed'),
+    CASH: t('payments.cash'),
+    CARD: t('payments.card'),
+    TERMINAL: t('payments.card'),
+    DEBT: t('payments.debt'),
+    TRANSFER: t('payments.bankTransfer'),
+    CLICK: 'Click',
+    PAYME: 'Payme',
+  };
+
+  const STATUS_LABEL: Record<string, string> = {
+    COMPLETED: t('orders.completed'),
+    RETURNED: t('orders.returned'),
+    VOIDED: t('orders.cancelled'),
+  };
 
   const method = order?.paymentMethod ?? 'CASH';
   const MethodIcon = METHOD_ICON[method] ?? CreditCard;
@@ -115,7 +117,7 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900">
-            To&apos;lov tafsiloti
+            {t('payments.detail')}
             {order ? (
               <span className="ml-1.5 font-mono text-blue-600">— #{order.orderNumber}</span>
             ) : null}
@@ -139,7 +141,7 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
               {/* Meta grid */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Sana</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('common.date')}</p>
                   <p className="text-sm font-medium text-gray-800">
                     {new Date(order.createdAt).toLocaleString('uz-UZ', {
                       dateStyle: 'short',
@@ -148,20 +150,20 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Kassir</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('reports.cashier')}</p>
                   <p className="text-sm font-medium text-gray-800 truncate">
                     {order.cashierName ?? '—'}
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">To&apos;lov usuli</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('payments.method')}</p>
                   <span className="flex items-center gap-1 text-sm font-medium text-gray-800">
                     <MethodIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                     {METHOD_LABEL[method] ?? method}
                   </span>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Holat</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('common.status')}</p>
                   <span
                     className={cn(
                       'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
@@ -176,7 +178,7 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
               {/* Customer row */}
               {order.customerName && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-sm text-blue-800">
-                  <span className="text-blue-400">Xaridor:</span>
+                  <span className="text-blue-400">{t('payments.customer')}</span>
                   <span className="font-medium">{order.customerName}</span>
                 </div>
               )}
@@ -185,13 +187,13 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
               {order.items && order.items.length > 0 ? (
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                    Mahsulotlar
+                    {t('nav.products')}
                   </p>
                   <div className="border border-gray-100 rounded-lg overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          {['Mahsulot', 'Miqdor', 'Narx', 'Jami'].map((h) => (
+                          {[t('common.product'), t('common.quantity'), t('common.price'), t('common.total')].map((h) => (
                             <th
                               key={h}
                               className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
@@ -231,18 +233,18 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
               <div className="border-t border-gray-100 pt-3 space-y-1.5">
                 {order.discountAmount > 0 && (
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Chegirma</span>
+                    <span>{t('pos.discount')}</span>
                     <span className="text-orange-600">− {formatPrice(order.discountAmount)}</span>
                   </div>
                 )}
                 {order.taxAmount > 0 && (
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Soliq</span>
+                    <span>{t('payments.tax')}</span>
                     <span>{formatPrice(order.taxAmount)}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-700">Jami summa</span>
+                  <span className="text-sm font-semibold text-gray-700">{t('common.total')}</span>
                   <span className="text-base font-bold text-gray-900">
                     {formatPrice(Number(order.total))}
                   </span>
@@ -252,7 +254,7 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
               {/* Notes */}
               {order.notes && (
                 <div className="bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2 text-sm text-yellow-800">
-                  <span className="font-medium">Izoh: </span>
+                  <span className="font-medium">{t('common.note')}: </span>
                   {order.notes}
                 </div>
               )}
@@ -275,6 +277,30 @@ function useOrdersQuery(page: number) {
 }
 
 export default function PaymentsHistoryPage() {
+  const { t } = useTranslation();
+
+  const METHOD_LABEL: Record<string, string> = {
+    // Backend-computed keys (Uzbek)
+    NAQD: t('payments.cash'),
+    KARTA: t('payments.card'),
+    NASIYA: t('payments.debt'),
+    ARALASH: t('payments.mixed'),
+    // PaymentIntent method keys (English)
+    CASH: t('payments.cash'),
+    CARD: t('payments.card'),
+    TERMINAL: t('payments.card'),
+    DEBT: t('payments.debt'),
+    TRANSFER: t('payments.bankTransfer'),
+    CLICK: 'Click',
+    PAYME: 'Payme',
+  };
+
+  const STATUS_LABEL: Record<string, string> = {
+    COMPLETED: t('orders.completed'),
+    RETURNED: t('orders.returned'),
+    VOIDED: t('orders.cancelled'),
+  };
+
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(30);
@@ -333,27 +359,27 @@ export default function PaymentsHistoryPage() {
         {stats && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
-              label="Jami to'lovlar"
+              label={t('payments.total')}
               value={formatPrice(stats.total)}
               sub={`${stats.totalCount} ta`}
               color="blue"
             />
             <StatCard
-              label="Naqd"
+              label={t('payments.cash')}
               value={formatPrice(stats.cash.sum)}
               sub={`${stats.cash.count} ta`}
               color="green"
               icon={Banknote}
             />
             <StatCard
-              label="Karta"
+              label={t('payments.card')}
               value={formatPrice(stats.card.sum)}
               sub={`${stats.card.count} ta`}
               color="purple"
               icon={CreditCard}
             />
             <StatCard
-              label="Nasiya"
+              label={t('payments.debt')}
               value={formatPrice(stats.debt.sum)}
               sub={`${stats.debt.count} ta`}
               color="orange"
@@ -366,7 +392,7 @@ export default function PaymentsHistoryPage() {
         <ScrollableTable
           searchValue={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Buyurtma № yoki to'lov turi..."
+          searchPlaceholder={t('payments.searchPlaceholder')}
           totalCount={total}
           isLoading={isLoading}
           pagination={
@@ -387,7 +413,7 @@ export default function PaymentsHistoryPage() {
           <table className="w-full text-sm">
             <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
               <tr>
-                {["Sana", "Buyurtma №", "To'lov usuli", "Summa", "Holat", ""].map(
+                {[t('common.date'), t('orders.orderNumber'), t('payments.method'), t('finance.amount'), t('common.status'), ""].map(
                   (h) => (
                     <th
                       key={h}
@@ -404,7 +430,7 @@ export default function PaymentsHistoryPage() {
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-400">
                     <CreditCard className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    To&apos;lovlar topilmadi
+                    {t('payments.noPayments')}
                   </td>
                 </tr>
               ) : (
@@ -445,7 +471,7 @@ export default function PaymentsHistoryPage() {
                         <button
                           onClick={() => setSelectedOrderId(o.id)}
                           className="p-1.5 rounded-lg text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-gray-100 hover:text-blue-600 transition-all"
-                          title="Tafsilotlarni ko'rish"
+                          title={t('payments.detail')}
                         >
                           <Eye className="w-4 h-4" />
                         </button>

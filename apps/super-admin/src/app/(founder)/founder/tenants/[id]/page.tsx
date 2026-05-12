@@ -103,7 +103,7 @@ export default function TenantDetailPage() {
     mutationFn: () => founderApi.impersonateTenant(id),
     onSuccess: (data: { accessToken?: string }) => {
       if (data.accessToken) {
-        const webUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://web-production-5b0b7.up.railway.app';
+        const webUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://raos.uz';
         window.open(`${webUrl}/dashboard?token=${data.accessToken}`, '_blank');
         toast.success('Вход в тенант выполнен (новая вкладка)');
       } else {

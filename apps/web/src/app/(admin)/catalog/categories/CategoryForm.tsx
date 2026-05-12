@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Category } from '@/types/catalog';
 
 const categorySchema = z.object({
@@ -32,6 +33,7 @@ export function CategoryForm({
   onSubmit,
   onClose,
 }: CategoryFormProps) {
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -57,7 +59,7 @@ export function CategoryForm({
       <div className="relative z-10 w-full max-w-md rounded-xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-base font-semibold text-gray-900">
-            {category ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya'}
+            {category ? t('catalog.editCategory') : t('catalog.addCategory')}
           </h2>
           <button
             type="button"
@@ -72,7 +74,7 @@ export function CategoryForm({
           <div className="flex flex-col gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Nomi <span className="text-red-500">*</span>
+                {t('common.name')} <span className="text-red-500">*</span>
               </label>
               <input
                 {...register('name')}
@@ -87,7 +89,7 @@ export function CategoryForm({
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Ota kategoriya
+                {t('catalog.parentCategory')}
               </label>
               <SearchableDropdown
                 options={parentOptions.map((cat) => ({
@@ -96,7 +98,7 @@ export function CategoryForm({
                 }))}
                 value={parentIdValue}
                 onChange={(val) => setValue('parentId', val)}
-                placeholder="— Yuqori daraja —"
+                placeholder={t('catalog.topLevel')}
                 searchable={parentOptions.length >= 6}
                 clearable
               />
@@ -110,14 +112,14 @@ export function CategoryForm({
               disabled={isPending}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
             >
-              {isPending ? 'Saqlanmoqda...' : category ? 'Saqlash' : 'Qo\'shish'}
+              {isPending ? t('common.saving') : category ? t('common.save') : t('common.add')}
             </button>
           </div>
         </form>

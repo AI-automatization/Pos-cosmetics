@@ -836,7 +836,7 @@
 
 - **Yechim:** 12 ta endpoint curl orqali test qilindi. Hammasi 200 OK.
   paymentBreakdown (cash/card/click/payme) ✅, aging buckets ✅, byBranch ✅
-- **Credentials:** `owner@raos.uz` / `Demo1234!` / slug: `kosmetika-demo`
+- **Credentials:** [REDACTED — .env dan oling]
 
 ---
 
@@ -1349,7 +1349,7 @@
 | # | Sana | Kategoriya | Yechim | Fayl(lar) |
 |---|------|-----------|--------|-----------|
 | T-125 | 2026-03-10 | [BACKEND] | Swagger/OpenAPI — `@nestjs/swagger` DocumentBuilder + SwaggerModule.setup allaqachon `apps/api/src/main.ts` da mavjud edi. `/api/docs` interaktiv API dokumentatsiya ishlayapti | `apps/api/src/main.ts` |
-| T-127 | 2026-03-10 | [BACKEND] | Database seed data — `apps/api/prisma/seed.ts` (503 qator) mavjud edi: kosmetika-demo tenant, owner@kosmetika.uz / Demo1234!, 4 filial, kategoriyalar, mahsulotlar, mijozlar. `pnpm --filter api db:seed` ishlaydi | `apps/api/prisma/seed.ts` |
+| T-127 | 2026-03-10 | [BACKEND] | Database seed data — `apps/api/prisma/seed.ts` mavjud: kosmetika-demo tenant, 4 filial, kategoriyalar, mahsulotlar, mijozlar. Parol SEED_PASSWORD env orqali beriladi. `pnpm --filter api db:seed` ishlaydi | `apps/api/prisma/seed.ts` |
 | T-128 | 2026-03-13 | [DEVOPS] | `.gitignore` yangilandi — git conflict tozalandi, test artifacts, mobile logs (`apps/mobile/logs/`), playwright MCP fayllar qo'shildi | `.gitignore` |
 | T-126 | 2026-03-13 | [BACKEND] | Jest test infratuzilmasi — `jest.config.js`, `apps/api/src/identity/test/` va `apps/api/src/catalog/test/` spec fayllar, 6/6 PASS | `apps/api/jest.config.js`, `apps/api/src/identity/test/`, `apps/api/src/catalog/test/` |
 | T-129 | 2026-03-13 | [BACKEND] | File upload service — MinIO S3 integratsiya. `POST /upload`, `POST /upload/bulk`, `GET /upload/presign`, `DELETE /upload` endpointlari | `apps/api/src/upload/upload.service.ts`, `upload.controller.ts`, `upload.module.ts` |
@@ -1804,7 +1804,7 @@
 
 ## T-216 | 2026-03-19 | [BACKEND] | Demo Seed Data — 4 ta filial + owner user + tovarlar + smenalar
 
-- **Yechim:** `apps/api/prisma/seed.ts` 503 qatorda to'liq tayyor: tenant (kosmetika-demo), owner user (owner@kosmetika.uz / Demo1234!), 4 filial (Chilonzor/Yunusabad/Mirzo Ulug'bek/Sergeli), 4 kassir, 10 kosmetika mahsuloti (barcode bilan), stock movements, 10 smena (2 ochiq + 8 yopiq), 6 nasiya mijozi. Idempotent (upsert). `npx prisma db seed` bilan ishlatiladi.
+- **Yechim:** `apps/api/prisma/seed.ts` to'liq tayyor: tenant (kosmetika-demo), owner user, 4 filial (Chilonzor/Yunusabad/Mirzo Ulug'bek/Sergeli), 4 kassir, 10 kosmetika mahsuloti, stock movements, 10 smena, 6 nasiya mijozi. Parol SEED_PASSWORD env orqali. Idempotent (upsert).
 - **Fayllar:** `apps/api/prisma/seed.ts`
 
 ---

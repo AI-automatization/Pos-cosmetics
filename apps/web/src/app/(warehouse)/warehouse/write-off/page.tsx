@@ -8,15 +8,7 @@ import { useProducts } from '@/hooks/catalog/useProducts';
 import { SearchableDropdown, type DropdownOption } from '@/components/ui/SearchableDropdown';
 import type { WriteOffReason } from '@/api/warehouse.api';
 import { cn } from '@/lib/utils';
-
-const REASONS: { value: WriteOffReason; label: string }[] = [
-  { value: 'DAMAGED', label: 'Shikastlangan' },
-  { value: 'EXPIRED', label: 'Muddati o\'tgan' },
-  { value: 'LOST', label: 'Yo\'qolgan' },
-  { value: 'OTHER', label: 'Boshqa' },
-];
-
-const reasonOptions: DropdownOption[] = REASONS.map((r) => ({ value: r.value, label: r.label }));
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface ItemRow { _key: number; productId: string; qty: number }
 
@@ -24,10 +16,20 @@ let _k = 0;
 const nextKey = () => ++_k;
 
 export default function WriteOffPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { mutate: writeOff, isPending } = useWriteOff();
   const { data: productsData } = useProducts({ limit: 500 });
   const products = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])) as { id: string; name: string; barcode?: string | null; sku?: string | null }[];
+
+  const REASONS: { value: WriteOffReason; label: string }[] = [
+    { value: 'DAMAGED', label: t('warehouse.reasonDamaged') },
+    { value: 'EXPIRED', label: t('warehouse.reasonExpired') },
+    { value: 'LOST', label: t('warehouse.reasonLost') },
+    { value: 'OTHER', label: t('warehouse.reasonOther') },
+  ];
+
+  const reasonOptions: DropdownOption[] = REASONS.map((r) => ({ value: r.value, label: r.label }));
 
   const [reason, setReason] = useState<string>('DAMAGED');
   const [note, setNote] = useState('');
@@ -65,8 +67,8 @@ export default function WriteOffPage() {
           <AlertTriangle className="h-5 w-5 text-red-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Hisobdan chiqarish</h1>
-          <p className="text-sm text-gray-500">Shikastlangan, muddati o&apos;tgan yoki yo&apos;qolgan tovarlar</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.writeOffTitle')}</h1>
+          <p className="text-sm text-gray-500">{t('warehouse.writeOffSubtitle')}</p>
         </div>
       </div>
 
@@ -75,26 +77,26 @@ export default function WriteOffPage() {
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Sabab *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.reason')} *</label>
               <SearchableDropdown
                 options={reasonOptions}
                 value={reason}
                 onChange={setReason}
-                placeholder="Sababni tanlang..."
+                placeholder={t('warehouse.selectReason')}
                 searchable={false}
                 clearable={false}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Izoh</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.note')}</label>
               <div className="relative">
                 <StickyNote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Qo'shimcha izoh..."
+                  placeholder={t('warehouse.additionalNote')}
                   className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-3.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -106,7 +108,7 @@ export default function WriteOffPage() {
         <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-3.5">
           <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
           <div className="text-sm text-red-700">
-            Sabab: <span className="font-bold">{reasonLabel}</span> — Bu amal qaytarib bo&apos;lmaydi!
+            {t('warehouse.reason')}: <span className="font-bold">{reasonLabel}</span> — {t('warehouse.irreversibleWarning')}
           </div>
         </div>
 
@@ -114,7 +116,7 @@ export default function WriteOffPage() {
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-gray-700">Tovarlar</h2>
+              <h2 className="text-sm font-semibold text-gray-700">{t('warehouse.goods')}</h2>
               <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
                 {items.length}
               </span>
@@ -125,15 +127,15 @@ export default function WriteOffPage() {
               className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100"
             >
               <Plus className="h-4 w-4" />
-              Qator qo&apos;shish
+              {t('warehouse.addRow')}
             </button>
           </div>
 
           <table className="w-full text-sm">
             <thead className="bg-gray-50/80 sticky top-0 z-10">
               <tr className="text-xs text-gray-500 uppercase tracking-wider">
-                <th className="px-4 py-3 text-left">Tovar</th>
-                <th className="px-4 py-3 text-right w-32">Miqdor</th>
+                <th className="px-4 py-3 text-left">{t('warehouse.good')}</th>
+                <th className="px-4 py-3 text-right w-32">{t('warehouse.quantity')}</th>
                 <th className="px-4 py-3 w-12" />
               </tr>
             </thead>
@@ -156,13 +158,13 @@ export default function WriteOffPage() {
                         options={productOptions}
                         value={row.productId}
                         onChange={(val) => updateRow(row._key, { productId: val })}
-                        placeholder="Mahsulot tanlang..."
-                        searchPlaceholder="Nomi yoki barcode..."
+                        placeholder={t('warehouse.selectProduct')}
+                        searchPlaceholder={t('warehouse.productSearchPlaceholder')}
                         clearable={false}
                         className={rowInvalid ? 'ring-2 ring-red-400 rounded-xl' : ''}
                       />
                       {rowInvalid && (
-                        <p className="mt-1 text-xs text-red-500">Mahsulot tanlanishi shart</p>
+                        <p className="mt-1 text-xs text-red-500">{t('warehouse.productRequired')}</p>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -198,7 +200,7 @@ export default function WriteOffPage() {
         {/* Submit bar */}
         <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-500">
-            {items.filter((r) => r.productId).length} ta tovar tanlangan
+            {items.filter((r) => r.productId).length} {t('warehouse.goodsSelected')}
           </p>
           <div className="flex gap-3">
             <button
@@ -206,7 +208,7 @@ export default function WriteOffPage() {
               onClick={() => router.back()}
               className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -218,7 +220,7 @@ export default function WriteOffPage() {
               )}
             >
               <AlertTriangle className="h-4 w-4" />
-              {isPending ? 'Amalga oshirilmoqda...' : 'Hisobdan chiqarish'}
+              {isPending ? t('common.processing') : t('warehouse.writeOffTitle')}
             </button>
           </div>
         </div>

@@ -6,6 +6,7 @@ import {
   CUSTOMER_DISPLAY_CHANNEL,
   type CustomerDisplayMessage,
 } from '@/hooks/pos/useCustomerDisplayBroadcast';
+import { useTranslation } from '@/i18n/i18n-context';
 import { formatPrice, cn } from '@/lib/utils';
 import type { CartItem } from '@/types/sales';
 
@@ -25,6 +26,7 @@ interface SaleInfo {
 }
 
 export default function CustomerDisplayPage() {
+  const { t } = useTranslation();
   const [screen, setScreen] = useState<Screen>('idle');
   const [cart, setCart] = useState<CartState>({
     items: [],
@@ -71,16 +73,16 @@ export default function CustomerDisplayPage() {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-6 bg-emerald-950 text-white">
         <CheckCircle className="h-28 w-28 animate-bounce text-emerald-400" />
-        <h1 className="text-5xl font-bold tracking-tight">Rahmat!</h1>
+        <h1 className="text-5xl font-bold tracking-tight">{t('pos.displayThankYou')}</h1>
         <div className="mt-2 text-center">
           <p className="text-2xl text-emerald-300">{formatPrice(saleInfo.total)}</p>
           <p className="mt-1 text-lg text-emerald-500">
-            Chek #{saleInfo.orderNumber}
+            {t('pos.displayReceiptNumber', { number: saleInfo.orderNumber })}
           </p>
         </div>
         {saleInfo.change > 0 && (
           <div className="rounded-2xl border border-emerald-700 bg-emerald-900/60 px-8 py-4 text-center">
-            <p className="text-sm text-emerald-400">Qaytim</p>
+            <p className="text-sm text-emerald-400">{t('pos.change')}</p>
             <p className="text-3xl font-bold text-emerald-300">{formatPrice(saleInfo.change)}</p>
           </div>
         )}
@@ -94,9 +96,9 @@ export default function CustomerDisplayPage() {
         <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-3xl bg-blue-600/20">
           <ShoppingCart className="h-12 w-12 text-blue-400" />
         </div>
-        <h1 className="text-5xl font-bold tracking-tight text-white">Xush kelibsiz!</h1>
-        <p className="text-xl text-gray-400">Do&apos;konimizga xush kelibsiz</p>
-        <div className="mt-8 text-xs text-gray-700">RAOS POS · Mijoz ekrani</div>
+        <h1 className="text-5xl font-bold tracking-tight text-white">{t('pos.displayWelcome')}</h1>
+        <p className="text-xl text-gray-400">{t('pos.displayWelcomeSubtitle')}</p>
+        <div className="mt-8 text-xs text-gray-700">{t('pos.displayBrand')}</div>
       </div>
     );
   }
@@ -108,9 +110,9 @@ export default function CustomerDisplayPage() {
       {/* Header */}
       <div className="shrink-0 bg-blue-700 px-8 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-wide">Savat</h1>
+          <h1 className="text-xl font-bold tracking-wide">{t('pos.cart')}</h1>
           <span className="rounded-full bg-blue-500/50 px-3 py-1 text-sm">
-            {cart.items.reduce((s, i) => s + i.quantity, 0)} ta mahsulot
+            {t('pos.displayItemCount', { count: cart.items.reduce((s, i) => s + i.quantity, 0) })}
           </span>
         </div>
       </div>
@@ -119,7 +121,7 @@ export default function CustomerDisplayPage() {
       {lastItem && (
         <div className="shrink-0 border-b border-blue-900/50 bg-blue-950/40 px-8 py-5">
           <p className="mb-1 text-xs font-medium uppercase tracking-wider text-blue-400">
-            So&apos;nggi skanerlangan
+            {t('pos.displayLastScanned')}
           </p>
           <div className="flex items-center justify-between">
             <div>
@@ -160,7 +162,7 @@ export default function CustomerDisplayPage() {
                   </span>
                   <div>
                     <p className="text-base font-medium text-gray-200">{item.name}</p>
-                    <p className="text-sm text-gray-500">{formatPrice(item.sellPrice)} / dona</p>
+                    <p className="text-sm text-gray-500">{formatPrice(item.sellPrice)} / {t('pos.displayPerUnit')}</p>
                   </div>
                 </div>
                 <p className="text-base font-semibold text-gray-200">{formatPrice(lineTotal)}</p>
@@ -174,12 +176,12 @@ export default function CustomerDisplayPage() {
       <div className="shrink-0 bg-gray-900 px-8 py-5">
         {cart.discountAmount > 0 && (
           <div className="mb-2 flex items-center justify-between text-base text-green-400">
-            <span>Chegirma</span>
+            <span>{t('pos.discount')}</span>
             <span>− {formatPrice(cart.discountAmount)}</span>
           </div>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-gray-300">JAMI TO&apos;LOV</span>
+          <span className="text-2xl font-bold text-gray-300">{t('pos.displayTotalPayment')}</span>
           <span className="text-4xl font-extrabold tracking-tight text-blue-400">
             {formatPrice(cart.total)}
           </span>

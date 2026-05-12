@@ -18,10 +18,12 @@ import {
 } from '@/hooks/catalog/useProducts';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { useCanEdit } from '@/hooks/auth/useAuth';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Product, CreateProductDto, UpdateProductDto } from '@/types/catalog';
 import type { ProductFormData } from './ProductForm';
 
 export default function ProductsPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(1);
@@ -125,13 +127,13 @@ export default function ProductsPage() {
         <ScrollableTable
           searchValue={search}
           onSearchChange={(v) => { setSearch(v); setPage(1); }}
-          searchPlaceholder="Nom, SKU yoki barcode bo'yicha qidirish..."
+          searchPlaceholder={t('products.searchPlaceholder')}
           filters={
             <SearchableDropdown
               options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
               value={categoryFilter}
               onChange={(val) => { setCategoryFilter(val); setPage(1); }}
-              placeholder="Barcha kategoriyalar"
+              placeholder={t('catalog.allCategories')}
               searchable={categories.length >= 6}
               clearable
               className="min-w-[200px]"

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import { useVariants, useCreateVariant, useUpdateVariant, useDeleteVariant } from '@/hooks/catalog/useVariants';
 import type { ProductVariant } from '@/types/catalog';
 
@@ -148,6 +149,7 @@ interface VariantsSectionProps {
 }
 
 export function VariantsSection({ productId }: VariantsSectionProps) {
+  const { t } = useTranslation();
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState<AddFormState>(EMPTY_FORM);
 
@@ -176,7 +178,7 @@ export function VariantsSection({ productId }: VariantsSectionProps) {
   return (
     <div className="col-span-2 border-t border-gray-100 pt-4">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-700">Variantlar</p>
+        <p className="text-sm font-medium text-gray-700">{t('products.variants')}</p>
         {!showAddForm && (
           <button
             type="button"
@@ -204,7 +206,7 @@ export function VariantsSection({ productId }: VariantsSectionProps) {
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2.5 text-sm text-gray-400 transition hover:border-blue-400 hover:text-blue-500"
         >
           <Plus className="h-4 w-4" />
-          Variant qo&apos;shish (rang, hajm, tur...)
+          {t('products.addVariant')}
         </button>
       )}
 
@@ -274,7 +276,7 @@ export function VariantsSection({ productId }: VariantsSectionProps) {
               disabled={createVariant.isPending || !form.name.trim()}
               className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {createVariant.isPending ? 'Saqlanmoqda...' : 'Qo\'shish'}
+              {createVariant.isPending ? t('common.saving') : t('common.add')}
             </button>
           </div>
         </div>

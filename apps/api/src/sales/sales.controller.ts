@@ -149,17 +149,21 @@ export class SalesController {
 
   @Get('orders')
   @Roles('OWNER', 'ADMIN', 'MANAGER')
-  @ApiOperation({ summary: 'List orders (paginated)' })
+  @ApiOperation({ summary: 'List orders (paginated, date filter)' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'shiftId', required: false })
+  @ApiQuery({ name: 'from', required: false, description: 'ISO date (e.g. 2026-05-01)' })
+  @ApiQuery({ name: 'to', required: false, description: 'ISO date (e.g. 2026-05-09)' })
   getOrders(
     @CurrentUser('tenantId') tenantId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('shiftId') shiftId?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
-    return this.salesService.getOrders(tenantId, { page, limit, shiftId });
+    return this.salesService.getOrders(tenantId, { page, limit, shiftId, from, to });
   }
 
   // ─── GET /orders/by-number/:num (MUST be before /:id) ────────

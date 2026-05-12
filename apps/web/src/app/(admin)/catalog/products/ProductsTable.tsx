@@ -2,6 +2,7 @@
 
 import { Pencil, Trash2, AlertCircle, Printer } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Product } from '@/types/catalog';
 
 interface ProductsTableProps {
@@ -12,6 +13,7 @@ interface ProductsTableProps {
 }
 
 function StockBadge({ current, min }: { current: number; min: number }) {
+  const { t } = useTranslation();
   const isLow = current <= min;
   const isEmpty = current === 0;
 
@@ -27,12 +29,13 @@ function StockBadge({ current, min }: { current: number; min: number }) {
       )}
     >
       {(isEmpty || isLow) && <AlertCircle className="h-3 w-3" />}
-      {current} {isEmpty ? '(tugagan)' : isLow ? '(kam)' : ''}
+      {current} {isEmpty ? t('products.outOfStock') : isLow ? t('products.lowStock') : ''}
     </span>
   );
 }
 
 function StatusBadge({ isActive }: { isActive: boolean }) {
+  const { t } = useTranslation();
   return (
     <span
       className={cn(
@@ -40,12 +43,13 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
         isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
       )}
     >
-      {isActive ? 'Faol' : 'Nofaol'}
+      {isActive ? t('common.active') : t('common.inactive')}
     </span>
   );
 }
 
 export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsTableProps) {
+  const { t } = useTranslation();
   const colSpan = 6 + (onEdit || onDelete ? 1 : 0) + (onPrint ? 1 : 0);
 
   return (
@@ -56,7 +60,7 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
             Mahsulot
           </th>
           <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-            SKU / Barcode
+            {t('products.skuBarcode')}
           </th>
           <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
             Kategoriya
@@ -72,7 +76,7 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
           </th>
           {(onEdit || onDelete) && (
             <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Amallar
+              {t('common.actions')}
             </th>
           )}
           {onPrint && (
@@ -121,7 +125,7 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
                         type="button"
                         onClick={() => onEdit(product)}
                         className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
-                        aria-label="Tahrirlash"
+                        aria-label={t('common.edit')}
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -131,7 +135,7 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
                         type="button"
                         onClick={() => onDelete(product)}
                         className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                        aria-label="O'chirish"
+                        aria-label={t('common.delete')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

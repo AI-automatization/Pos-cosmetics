@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, Shield, CheckCircle, XCircle } from 'lucide-react';
+import { UserPlus, Shield, CheckCircle, XCircle, KeyRound, RefreshCw, Eye, EyeOff, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { founderApi } from '@/api/founder.api';
 import { cn, extractErrorMessage } from '@/lib/utils';
@@ -34,10 +34,156 @@ const ROLE_BADGES: Record<string, string> = {
   VIEWER: 'bg-gray-100 text-gray-600',
 };
 
-// Table of tenant users + add owner modal
+// ─── Password Reset Modal ─────────────────────────────────────────────────────
+
+interface ResetPasswordModalProps {
+  user: TenantUser;
+  tenantId: string;
+  onClose: () => void;
+}
+
+function generatePassword(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+  let pw = '';
+  for (let i = 0; i < 12; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  return pw;
+}
+
+function ResetPasswordModal({ user, tenantId, onClose }: ResetPasswordModalProps) {
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const resetMut = useMutation({
+    mutationFn: (newPassword: string) =>
+      founderApi.resetUserPassword(tenantId, user.id, newPassword),
+    onSuccess: (data) => {
+      toast.success(`Пароль обновлён для ${data.email}`);
+      onClose();
+    },
+    onError: (err) => toast.error(extractErrorMessage(err)),
+  });
+
+  const handleGenerate = () => {
+    const pw = generatePassword();
+    setPassword(pw);
+    setShowPassword(true);
+  };
+
+  const handleCopy = () => {
+    if (!password) return;
+    navigator.clipboard.writeText(password).then(() => toast.success('Скопировано'));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.trim().length < 6) {
+      toast.error('Минимум 6 символов');
+      return;
+    }
+    resetMut.mutate(password.trim());
+  };
+
+  const inputCls =
+    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 pr-20';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="relative z-10 w-full max-w-md rounded-2xl bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-gray-200 px-6 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
+            <KeyRound className="h-5 w-5 text-amber-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">Сброс пароля</h2>
+            <p className="text-sm text-gray-500">
+              {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
+            </p>
+          </div>
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700">
+              Новый пароль <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Введите или сгенерируйте пароль"
+                className={inputCls}
+                minLength={6}
+                required
+              />
+              <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="rounded p-1 text-gray-400 hover:text-gray-600"
+                  title={showPassword ? 'Скрыть' : 'Показать'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+                {password && (
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="rounded p-1 text-gray-400 hover:text-gray-600"
+                    title="Скопировать"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGenerate}
+            className="flex items-center gap-2 self-start rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:border-violet-400 hover:text-violet-600"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Сгенерировать пароль
+          </button>
+
+          <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              disabled={!password.trim() || resetMut.isPending}
+              className={cn(
+                'flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white transition',
+                'bg-amber-500 hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50',
+              )}
+            >
+              <KeyRound className="h-4 w-4" />
+              {resetMut.isPending ? 'Сохранение...' : 'Сохранить пароль'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+
+// Table of tenant users + add owner modal + password reset
 export function UsersTab({ tenantId, tenantName }: UsersTabProps) {
   const queryClient = useQueryClient();
   const [showAddOwner, setShowAddOwner] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<TenantUser | null>(null);
 
   const { data: users, isLoading } = useQuery<TenantUser[]>({
     queryKey: ['founder', 'tenant-users', tenantId],
@@ -94,6 +240,7 @@ export function UsersTab({ tenantId, tenantName }: UsersTabProps) {
                 <th className="px-4 py-3">Филиал</th>
                 <th className="px-4 py-3">Статус</th>
                 <th className="px-4 py-3">Последний вход</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -139,6 +286,17 @@ export function UsersTab({ tenantId, tenantName }: UsersTabProps) {
                       ? new Date(user.lastLoginAt).toLocaleString('ru-RU')
                       : '—'}
                   </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => setResetPasswordUser(user)}
+                      title="Сбросить пароль"
+                      className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-500 transition hover:border-amber-300 hover:text-amber-600"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" />
+                      Пароль
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -154,6 +312,15 @@ export function UsersTab({ tenantId, tenantName }: UsersTabProps) {
         isPending={addOwnerMut.isPending}
         tenantName={tenantName}
       />
+
+      {/* Reset password modal */}
+      {resetPasswordUser && (
+        <ResetPasswordModal
+          user={resetPasswordUser}
+          tenantId={tenantId}
+          onClose={() => setResetPasswordUser(null)}
+        />
+      )}
     </div>
   );
 }

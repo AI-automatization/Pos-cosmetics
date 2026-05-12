@@ -6,9 +6,9 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_USER: raos
-      POSTGRES_PASSWORD: raos_secret
-      POSTGRES_DB: raos_dev
+      POSTGRES_USER: ${POSTGRES_USER:-raos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-raos_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-raos_dev}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -39,8 +39,8 @@ services:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: raos_minio
-      MINIO_ROOT_PASSWORD: raos_minio_secret
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-raos_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-raos_minio_secret}
     volumes:
       - miniodata:/data
     command: server /data --console-address ":9001"
@@ -58,20 +58,15 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - DATABASE_URL=postgresql://raos:raos_secret@postgres:5432/raos_dev
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-raos}:${POSTGRES_PASSWORD:-raos_secret}@postgres:5432/${POSTGRES_DB:-raos_dev}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRES_IN=15m
-      - JWT_REFRESH_EXPIRES_IN=7d
       - MINIO_ENDPOINT=minio
-      - MINIO_PORT=9000
-      - MINIO_ACCESS_KEY=raos_minio
-      - MINIO_SECRET_KEY=raos_minio_secret
-      - MINIO_BUCKET=raos-uploads
       - CORS_ORIGIN=http://localhost:3001
       - API_PORT=3000
       - API_PREFIX=api/v1

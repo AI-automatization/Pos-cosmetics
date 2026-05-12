@@ -9,6 +9,7 @@ import { LabelPrintModal } from '@/app/(admin)/catalog/products/LabelPrintModal'
 import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
 import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const PAGE_SIZE = 20;
 type SortCol = 'name' | 'stock' | 'min';
@@ -22,6 +23,7 @@ function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol; s
 }
 
 export default function WarehouseInventoryPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
   const [page, setPage] = useState(1);
@@ -128,8 +130,8 @@ export default function WarehouseInventoryPage() {
           <Package className="h-5 w-5 text-amber-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventar</h1>
-          <p className="text-sm text-gray-500">Hozirgi zaxira holati</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('inventory.title')}</h1>
+          <p className="text-sm text-gray-500">{t('warehouse.inventorySubtitle')}</p>
         </div>
       </div>
 
@@ -142,7 +144,7 @@ export default function WarehouseInventoryPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{products.length}</p>
-              <p className="text-xs text-gray-500">Jami mahsulotlar</p>
+              <p className="text-xs text-gray-500">{t('warehouse.totalProducts')}</p>
             </div>
           </div>
         </div>
@@ -153,7 +155,7 @@ export default function WarehouseInventoryPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{lowCount}</p>
-              <p className="text-xs text-gray-500">Kam qolgan</p>
+              <p className="text-xs text-gray-500">{t('inventory.lowStock')}</p>
             </div>
           </div>
         </div>
@@ -164,7 +166,7 @@ export default function WarehouseInventoryPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{outCount}</p>
-              <p className="text-xs text-gray-500">Tugagan</p>
+              <p className="text-xs text-gray-500">{t('warehouse.stockOut')}</p>
             </div>
           </div>
         </div>
@@ -176,7 +178,7 @@ export default function WarehouseInventoryPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Nomi yoki SKU..."
+            placeholder={t('warehouse.nameOrSkuPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
@@ -194,7 +196,7 @@ export default function WarehouseInventoryPage() {
                   : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
               )}
             >
-              {f === 'all' ? 'Barchasi' : f === 'low' ? 'Kam qoldi' : 'Tugagan'}
+              {f === 'all' ? t('common.all') : f === 'low' ? t('warehouse.lowRemaining') : t('warehouse.stockOut')}
             </button>
           ))}
         </div>
@@ -211,7 +213,7 @@ export default function WarehouseInventoryPage() {
         ) : sorted.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-400">
             <Package className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-            Ma&apos;lumot topilmadi
+            {t('common.noData')}
           </div>
         ) : (
           <>
@@ -223,21 +225,21 @@ export default function WarehouseInventoryPage() {
                       className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700"
                       onClick={() => handleSort('name')}
                     >
-                      Mahsulot <SortIcon col="name" sortCol={sortCol} sortDir={sortDir} />
+                      {t('warehouse.product')} <SortIcon col="name" sortCol={sortCol} sortDir={sortDir} />
                     </th>
                     <th className="px-4 py-3 text-left font-medium">SKU</th>
-                    <th className="px-4 py-3 text-left font-medium">Kategoriya</th>
+                    <th className="px-4 py-3 text-left font-medium">{t('warehouse.category')}</th>
                     <th
                       className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:text-gray-700"
                       onClick={() => handleSort('min')}
                     >
-                      Min. zaxira <SortIcon col="min" sortCol={sortCol} sortDir={sortDir} />
+                      {t('warehouse.minStock')} <SortIcon col="min" sortCol={sortCol} sortDir={sortDir} />
                     </th>
                     <th
                       className="px-4 py-3 text-right font-medium cursor-pointer select-none hover:text-gray-700"
                       onClick={() => handleSort('stock')}
                     >
-                      Hozirgi miqdor <SortIcon col="stock" sortCol={sortCol} sortDir={sortDir} />
+                      {t('warehouse.currentQty')} <SortIcon col="stock" sortCol={sortCol} sortDir={sortDir} />
                     </th>
                     <th className="px-4 py-3 text-right font-medium"></th>
                   </tr>
@@ -267,9 +269,9 @@ export default function WarehouseInventoryPage() {
                             )}
                           >
                             {isOut ? (
-                              <><AlertTriangle className="h-3 w-3" /> Tugagan</>
+                              <><AlertTriangle className="h-3 w-3" /> {t('warehouse.stockOut')}</>
                             ) : (
-                              `${stock} ${p.unit?.shortName ?? 'dona'}`
+                              `${stock} ${p.unit?.shortName ?? t('warehouse.unit')}`
                             )}
                           </span>
                         </td>
@@ -278,7 +280,7 @@ export default function WarehouseInventoryPage() {
                             type="button"
                             onClick={() => setEditProduct(p)}
                             className="opacity-0 group-hover:opacity-100 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
-                            title="Tahrirlash"
+                            title={t('common.edit')}
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>

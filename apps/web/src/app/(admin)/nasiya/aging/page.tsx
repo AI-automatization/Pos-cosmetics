@@ -13,6 +13,7 @@ import {
 import { useAgingReport, useNasiyaSummary } from '@/hooks/customers/useDebts';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const BUCKET_COLORS = ['#22c55e', '#eab308', '#f97316', '#ef4444'];
 
@@ -27,6 +28,7 @@ const BUCKET_META: Record<
 };
 
 export default function AgingReportPage() {
+  const { t } = useTranslation();
   const { data: aging, isLoading: loadingAging } = useAgingReport();
   const { data: summary } = useNasiyaSummary();
 
@@ -48,7 +50,7 @@ export default function AgingReportPage() {
             Nasiya boshqaruv
           </Link>
           <span className="text-gray-300">/</span>
-          <h1 className="text-xl font-semibold text-gray-900">Aging hisobot</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nasiya.agingReport')}</h1>
         </div>
       </div>
 
@@ -56,7 +58,7 @@ export default function AgingReportPage() {
       {summary && (
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <p className="text-xs text-gray-500">Jami nasiya qarz</p>
+            <p className="text-xs text-gray-500">{t('nasiya.totalDebtAmount')}</p>
             <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(summary.totalDebt)}</p>
           </div>
           <div className="rounded-xl border border-red-200 bg-red-50 p-4">
@@ -87,7 +89,7 @@ export default function AgingReportPage() {
         <div className="grid grid-cols-2 gap-6">
           {/* Pie chart */}
           <div className="rounded-xl border border-gray-200 bg-white p-6">
-            <h2 className="mb-4 font-semibold text-gray-900">Taqsimot diagrammasi</h2>
+            <h2 className="mb-4 font-semibold text-gray-900">{t('nasiya.distributionChart')}</h2>
             {pieData.length === 0 ? (
               <div className="flex h-48 items-center justify-center text-sm text-gray-400">
                 Ma'lumot yo'q
@@ -124,7 +126,7 @@ export default function AgingReportPage() {
 
           {/* Bucket cards */}
           <div className="flex flex-col gap-4">
-            <h2 className="font-semibold text-gray-900">Bucket tafsiloti</h2>
+            <h2 className="font-semibold text-gray-900">{t('nasiya.bucketDetail')}</h2>
             {aging.buckets.map((bucket) => {
               const meta = BUCKET_META[bucket.range] ?? {
                 bg: 'bg-gray-50',
@@ -171,7 +173,7 @@ export default function AgingReportPage() {
             {/* Total */}
             <div className="rounded-xl border border-gray-300 bg-gray-100 p-4">
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-gray-700">JAMI</p>
+                <p className="font-semibold text-gray-700">{t('common.total').toUpperCase()}</p>
                 <p className="text-lg font-bold text-gray-900">
                   {formatPrice(aging.grandTotal)}
                 </p>

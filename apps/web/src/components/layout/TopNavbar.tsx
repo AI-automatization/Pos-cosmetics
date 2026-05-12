@@ -18,6 +18,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
   const [newPassword, setNewPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const { mutate: resetPassword, isPending } = useResetPassword();
+  const { t } = useTranslation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +30,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-gray-900">Parolni o&apos;zgartirish</h3>
+          <h3 className="text-base font-semibold text-gray-900">{t('auth.changePassword')}</h3>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
             <X className="h-4 w-4" />
           </button>
@@ -37,7 +38,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Yangi parol <span className="text-red-500">*</span>
+              {t('auth.newPassword')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -47,7 +48,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
                 minLength={6}
                 required
                 autoFocus
-                placeholder="Kamida 6 belgi"
+                placeholder={t('auth.minChars')}
                 className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
               <button
@@ -61,14 +62,14 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
           </div>
           <div className="flex items-center justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={newPassword.length < 6 || isPending}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+              {isPending ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>
@@ -159,13 +160,14 @@ function LangSwitcher() {
 function NotificationBell() {
   const { data: unreadCount = 0 } = useUnreadCount();
   const { mutate: markAllRead } = useMarkAllRead();
+  const { t } = useTranslation();
 
   return (
     <button
       type="button"
       onClick={() => { if (unreadCount > 0) markAllRead(); }}
       className="relative rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-      aria-label="Bildirishnomalar"
+      aria-label={t('common.notifications')}
     >
       <Bell className="h-5 w-5" />
       {unreadCount > 0 && (
@@ -182,6 +184,7 @@ function NotificationBell() {
 function UserMenu() {
   const { data: user } = useCurrentUser();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [showChangePwd, setShowChangePwd] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -239,7 +242,7 @@ function UserMenu() {
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
             >
               <KeyRound className="w-4 h-4 text-gray-400" />
-              Parolni o&apos;zgartirish
+              {t('auth.changePassword')}
             </button>
             <button
               type="button"
@@ -248,7 +251,7 @@ function UserMenu() {
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
             >
               <LogOut className="w-4 h-4" />
-              {isLoggingOut ? 'Chiqilmoqda...' : 'Chiqish'}
+              {isLoggingOut ? t('auth.loggingOut') : t('auth.logout')}
             </button>
           </div>
         </div>
@@ -269,6 +272,7 @@ function UserMenu() {
 export function TopNavbar() {
   const { toggle } = useMobileSidebar();
   const pageTitle = usePageTitle();
+  const { t } = useTranslation();
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-100 bg-white px-4 shadow-[0_1px_0_0_#f3f4f6]">
@@ -277,7 +281,7 @@ export function TopNavbar() {
         type="button"
         onClick={toggle}
         className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 md:hidden"
-        aria-label="Menyu"
+        aria-label={t('common.menu')}
       >
         <Menu className="h-5 w-5" />
       </button>

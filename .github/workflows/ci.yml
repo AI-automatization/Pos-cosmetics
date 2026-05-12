@@ -47,6 +47,32 @@ jobs:
       - name: TypeCheck Super Admin
         run: pnpm --filter super-admin exec tsc --noEmit
 
+  test:
+    name: "Unit Tests"
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter api exec prisma generate
+
+      - name: Run API tests
+        run: pnpm --filter api test --passWithNoTests
+
   build-web:
     name: "Build Web (Admin Panel)"
     needs: lint
@@ -70,7 +96,7 @@ jobs:
       - name: Build web app
         run: pnpm --filter web build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api-production-c5b6.up.railway.app' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api.raos.uz' }}
 
   build-super-admin:
     name: "Build Super Admin"
@@ -95,7 +121,7 @@ jobs:
       - name: Build super-admin app
         run: pnpm --filter super-admin build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api-production-c5b6.up.railway.app' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api.raos.uz' }}
 
 # Deploy: Railway auto-deploys on push to main via GitHub integration
 # NEVER use "railway up" — see DEPLOY.md

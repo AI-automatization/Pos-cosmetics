@@ -111,7 +111,7 @@ export default function BranchReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
@@ -119,7 +119,7 @@ export default function BranchReportsPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="h-full overflow-y-auto p-6">
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           Ma'lumot yuklashda xatolik yuz berdi
         </div>
@@ -129,7 +129,7 @@ export default function BranchReportsPage() {
 
   if (!branches || branches.length === 0) {
     return (
-      <div className="flex flex-col gap-4 p-6">
+      <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">{t('nav.branchComparison')}</h1>
           <SearchableDropdown

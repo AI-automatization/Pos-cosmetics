@@ -7,6 +7,7 @@ import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useShifts } from '@/hooks/sales/useShifts';
 import { formatPrice, formatDateTime, cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function formatDuration(openedAt: string, closedAt?: string | null): string {
   const end = closedAt ? new Date(closedAt) : new Date();
@@ -45,6 +46,7 @@ const STATUS_FILTERS: Array<{ value: ShiftStatus | 'ALL'; label: string }> = [
 ];
 
 export default function ShiftsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [statusFilter, setStatusFilter] = useState<ShiftStatus | 'ALL'>('ALL');
@@ -182,7 +184,7 @@ export default function ShiftsPage() {
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Yopildi</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  <SortHeader field="duration" label="Davomiylik" />
+                  <SortHeader field="duration" label={t('shifts.duration')} />
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Holat</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Sotuvlar</th>

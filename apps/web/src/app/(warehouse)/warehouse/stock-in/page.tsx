@@ -2,23 +2,22 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Save, Package, X, Hash, FileText, StickyNote, Pencil } from 'lucide-react';
+import { Save, Package } from 'lucide-react';
 import { useCreateInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
 import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/catalog/useProducts';
-import { useSuppliers, useSupplier, useCreateSupplier } from '@/hooks/catalog/useSuppliers';
+import { useSuppliers, useSupplier } from '@/hooks/catalog/useSuppliers';
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { ProductForm } from '@/app/(admin)/catalog/products/ProductForm';
 import type { ProductFormData } from '@/app/(admin)/catalog/products/ProductForm';
-import { SearchableDropdown, type DropdownOption } from '@/components/ui/SearchableDropdown';
-import type { CreateInvoiceDto, InvoiceItem } from '@/api/warehouse.api';
+import { type DropdownOption } from '@/components/ui/SearchableDropdown';
+import type { CreateInvoiceDto } from '@/api/warehouse.api';
 import type { Product } from '@/types/catalog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-
-interface ItemRow extends InvoiceItem {
-  _key: number;
-  productName?: string;
-}
+import { useTranslation } from '@/i18n/i18n-context';
+import { NewSupplierModal } from './NewSupplierModal';
+import { StockInItemsTable, type ItemRow } from './StockInItemsTable';
+import { StockInMetaCard } from './StockInMetaCard';
 
 let _keyCounter = 0;
 const nextKey = () => ++_keyCounter;
@@ -32,11 +31,11 @@ function nextBatchNumber(): string {
 }
 
 export default function StockInPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { mutate: createInvoice, isPending } = useCreateInvoice();
   const { data: productsData } = useProducts({ limit: 500 });
   const { data: suppliers } = useSuppliers();
-  const { mutate: createSupplier, isPending: isCreatingSupplier } = useCreateSupplier();
   const { mutate: createProduct, isPending: isCreatingProduct } = useCreateProduct();
   const { mutate: updateProduct, isPending: isUpdatingProduct } = useUpdateProduct();
   const { data: categories } = useCategories();
@@ -50,9 +49,6 @@ export default function StockInPage() {
   const [submitted, setSubmitted] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
-  const [supplierForm, setSupplierForm] = useState({ name: '', phone: '+998', company: '', address: '' });
-  const [supplierProductIds, setSupplierProductIds] = useState<string[]>([]);
-  const [supplierProductSearch, setSupplierProductSearch] = useState('');
 
   const [productModal, setProductModal] = useState<{ rowKey: number } | null>(null);
   const [editProductModal, setEditProductModal] = useState<Product | null>(null);
@@ -102,8 +98,6 @@ export default function StockInPage() {
 
   const updateRow = (key: number, patch: Partial<ItemRow>) =>
     setItems((prev) => prev.map((r) => (r._key === key ? { ...r, ...patch } : r)));
-
-  const totalCost = items.reduce((s, r) => s + r.quantity * r.purchasePrice, 0);
 
   const handleCreateProduct = (formData: ProductFormData) => {
     const allBarcodes = (formData.extraBarcodes ?? []).map((b) => b.value).filter((v) => v.trim().length > 0);
@@ -163,31 +157,6 @@ export default function StockInPage() {
     );
   };
 
-  const handleCreateSupplier = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!supplierForm.name.trim()) {
-      toast.error('Kontragent nomini kiriting');
-      return;
-    }
-    createSupplier(
-      { name: supplierForm.name.trim(), phone: supplierForm.phone || undefined, company: supplierForm.company || undefined, address: supplierForm.address || undefined },
-      {
-        onSuccess: async (newSupplier) => {
-          toast.success('Kontragent yaratildi');
-          // Link selected products to new supplier (fire-and-forget, best-effort)
-          if (supplierProductIds.length > 0) {
-            const { suppliersApi } = await import('@/api/suppliers.api');
-            await Promise.all(supplierProductIds.map((pid) => suppliersApi.linkProduct(newSupplier.id, pid).catch(() => {})));
-          }
-          setSupplierId(newSupplier.id);
-          setShowSupplierModal(false);
-          setSupplierForm({ name: '', phone: '+998', company: '', address: '' });
-          setSupplierProductIds([]);
-          setSupplierProductSearch('');
-        },
-      },
-    );
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,19 +164,19 @@ export default function StockInPage() {
 
     const noProduct = items.filter((r) => !r.productId);
     if (noProduct.length === items.length) {
-      toast.error('Kamida bitta mahsulot tanlang');
+      toast.error(t('warehouse.selectAtLeastOneProduct'));
       return;
     }
 
     const invalidQty = items.filter((r) => r.productId && r.quantity <= 0);
     if (invalidQty.length > 0) {
-      toast.error('Miqdor 0 dan katta bo\'lishi kerak');
+      toast.error(t('warehouse.qtyMustBePositive'));
       return;
     }
 
     const invalidPrice = items.filter((r) => r.productId && r.purchasePrice < 0);
     if (invalidPrice.length > 0) {
-      toast.error('Narx manfiy bo\'lishi mumkin emas');
+      toast.error(t('warehouse.priceCannotBeNegative'));
       return;
     }
 
@@ -239,305 +208,64 @@ export default function StockInPage() {
           <Package className="h-5 w-5 text-amber-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tovar qabul qilish</h1>
-          <p className="text-sm text-gray-500">Yangi nakladnoy yaratish</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.stockInTitle')}</h1>
+          <p className="text-sm text-gray-500">{t('warehouse.stockInSubtitle')}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Invoice meta — card */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <FileText className="h-4 w-4 text-gray-400" />
-            <h2 className="text-sm font-semibold text-gray-700">Nakladnoy ma&apos;lumotlari</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Invoice number — optional toggle */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nakladnoy raqami</label>
-              {showInvoiceNumber ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={invoiceNumber}
-                    onChange={(e) => setInvoiceNumber(e.target.value)}
-                    placeholder="INV-2026-001"
-                    className="flex-1 rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setShowInvoiceNumber(false); setInvoiceNumber(''); }}
-                    className="rounded-lg px-2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowInvoiceNumber(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-3.5 py-2.5 text-sm text-gray-500 transition-colors hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50/50"
-                >
-                  <Hash className="h-3.5 w-3.5" />
-                  Raqam qo&apos;shish
-                </button>
-              )}
-              <p className="mt-1 text-xs text-gray-400">Ixtiyoriy — bo&apos;sh qolsa avtomatik yaratiladi</p>
-            </div>
-
-            {/* Supplier — SearchableDropdown */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Yetkazib beruvchi</label>
-              <div className="flex gap-2">
-                <SearchableDropdown
-                  options={supplierOptions}
-                  value={supplierId}
-                  onChange={setSupplierId}
-                  placeholder="Kontragent tanlang..."
-                  searchPlaceholder="Nomi yoki kompaniya..."
-                  className="flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSupplierModal(true)}
-                  className="flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-700 transition hover:bg-amber-100 whitespace-nowrap"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Yangi
-                </button>
-              </div>
-            </div>
-
-            {/* Note */}
-            <div>
-              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                <StickyNote className="h-4 w-4 text-gray-400" />
-                Izoh
-              </label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Qo'shimcha izoh..."
-                rows={3}
-                className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
-              />
-            </div>
-          </div>
-
-          {/* Supplier products banner */}
-          {showBanner && (
-            <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-amber-800">
-                <Package className="h-4 w-4 shrink-0 text-amber-600" />
-                <span>
-                  Bu kontragentda <strong>{supplierProducts.length}</strong> ta mahsulot bor
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newRows = supplierProducts
-                      .filter((ps) => !items.some((r) => r.productId === ps.product.id))
-                      .map((ps) => {
-                        const p = allProducts.find((x) => x.id === ps.product.id);
-                        return {
-                          _key: nextKey(),
-                          productId: ps.product.id,
-                          productName: ps.product.name,
-                          quantity: 1,
-                          purchasePrice: p?.costPrice ?? 0,
-                          batchNumber: nextBatchNumber(),
-                        };
-                      });
-                    setItems((prev) => {
-                      const filtered = prev.filter((r) => r.productId);
-                      return [...filtered, ...newRows];
-                    });
-                    setBannerDismissed(true);
-                  }}
-                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-700"
-                >
-                  Qo&apos;shish
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBannerDismissed(true)}
-                  className="rounded-lg p-1.5 text-amber-500 transition hover:bg-amber-100"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <StockInMetaCard
+          invoiceNumber={invoiceNumber}
+          showInvoiceNumber={showInvoiceNumber}
+          note={note}
+          supplierId={supplierId}
+          supplierOptions={supplierOptions}
+          supplierProducts={supplierProducts}
+          showBanner={showBanner}
+          items={items}
+          onInvoiceNumberChange={setInvoiceNumber}
+          onShowInvoiceNumber={setShowInvoiceNumber}
+          onNoteChange={setNote}
+          onSupplierChange={setSupplierId}
+          onShowNewSupplier={() => setShowSupplierModal(true)}
+          onAddSupplierProducts={(filteredProducts) => {
+            const newRows = filteredProducts.map((ps) => {
+              const p = allProducts.find((x) => x.id === ps.product.id);
+              return {
+                _key: nextKey(),
+                productId: ps.product.id,
+                productName: ps.product.name,
+                quantity: 1,
+                purchasePrice: p?.costPrice ?? 0,
+                batchNumber: nextBatchNumber(),
+              };
+            });
+            setItems((prev) => [...prev.filter((r) => r.productId), ...newRows]);
+            setBannerDismissed(true);
+          }}
+          onDismissBanner={() => setBannerDismissed(true)}
+        />
 
         {/* Items table — card */}
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-gray-400" />
-              <h2 className="text-sm font-semibold text-gray-700">Tovarlar</h2>
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                {items.length}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={addRow}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
-            >
-              <Plus className="h-4 w-4" />
-              Qator qo&apos;shish
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50/80 sticky top-0 z-10">
-                <tr className="text-xs text-gray-500 uppercase tracking-wider">
-                  <th className="px-4 py-3 text-left min-w-[280px]">Tovar</th>
-                  <th className="px-4 py-3 text-right w-24">Miqdor</th>
-                  <th className="px-4 py-3 text-right w-36">Narx (UZS)</th>
-                  <th className="px-4 py-3 text-left w-28">Partiya</th>
-                  <th className="px-4 py-3 text-right w-32">Jami</th>
-                  <th className="px-4 py-3 w-12" />
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[480px] overflow-y-auto">
-              <table className="w-full text-sm">
-                <colgroup>
-                  <col className="min-w-[280px]" />
-                  <col className="w-24" />
-                  <col className="w-36" />
-                  <col className="w-28" />
-                  <col className="w-32" />
-                  <col className="w-12" />
-                </colgroup>
-                <tbody className="divide-y divide-gray-50">
-                  {items.map((row) => {
-                    const rowInvalid = submitted && !row.productId;
-                    const qtyInvalid = submitted && row.quantity <= 0;
-                    const priceInvalid = submitted && row.purchasePrice < 0;
-                    return (
-                    <tr key={row._key} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-4 py-3">
-                        <SearchableDropdown
-                          options={productOptions}
-                          value={row.productId}
-                          onChange={(val) => {
-                            const p = allProducts.find((x) => x.id === val);
-                            updateRow(row._key, {
-                              productId: val,
-                              productName: p?.name,
-                              ...(p?.costPrice != null && { purchasePrice: p.costPrice }),
-                            });
-                          }}
-                          placeholder="Mahsulot tanlang..."
-                          searchPlaceholder="Nomi yoki barcode..."
-                          emptyMessage="Topilmadi"
-                          clearable={false}
-                          className={rowInvalid ? 'ring-2 ring-red-400 rounded-xl' : ''}
-                        />
-                        {rowInvalid && (
-                          <p className="mt-1 text-xs text-red-500">Mahsulot tanlanishi shart</p>
-                        )}
-                        {!row.productId && !rowInvalid && (
-                          <button
-                            type="button"
-                            onClick={() => setProductModal({ rowKey: row._key })}
-                            className="mt-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
-                          >
-                            + Yangi mahsulot yaratish
-                          </button>
-                        )}
-                        {row.productId && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const p = (productsData?.items ?? (Array.isArray(productsData) ? productsData : [])).find((x: Product) => x.id === row.productId);
-                              if (p) setEditProductModal(p as Product);
-                            }}
-                            className="mt-1 flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 font-medium"
-                          >
-                            <Pencil className="h-3 w-3" /> Tahrirlash
-                          </button>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="number"
-                          min={1}
-                          value={row.quantity || ''}
-                          placeholder="0"
-                          onChange={(e) => updateRow(row._key, { quantity: e.target.value === '' ? 0 : Number(e.target.value) })}
-                          className={cn(
-                            'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
-                            qtyInvalid ? 'border-red-400' : 'border-gray-300',
-                          )}
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="number"
-                          min={0}
-                          value={row.purchasePrice || ''}
-                          placeholder="0"
-                          onChange={(e) => updateRow(row._key, { purchasePrice: e.target.value === '' ? 0 : Number(e.target.value) })}
-                          className={cn(
-                            'w-full text-right rounded-xl border bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
-                            priceInvalid ? 'border-red-400' : 'border-gray-300',
-                          )}
-                        />
-                        {priceInvalid && <p className="mt-1 text-xs text-red-500">Narx manfiy bo&apos;lishi mumkin emas</p>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={row.batchNumber ?? ''}
-                          onChange={(e) => updateRow(row._key, { batchNumber: e.target.value || undefined })}
-                          placeholder="—"
-                          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="font-semibold text-gray-900">
-                          {(row.quantity * row.purchasePrice).toLocaleString('uz-UZ')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() => removeRow(row._key)}
-                          disabled={items.length === 1}
-                          className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            {/* Total row — outside scroll area */}
-            <div className="flex items-center justify-end gap-4 border-t-2 border-gray-200 bg-gray-50/80 px-4 py-3">
-              <span className="text-sm font-semibold uppercase tracking-wider text-gray-600">Jami summa:</span>
-              <span className="text-lg font-bold text-gray-900">{totalCost.toLocaleString('uz-UZ')}</span>
-              <span className="text-xs text-gray-500">UZS</span>
-            </div>
-          </div>
-        </div>
+        <StockInItemsTable
+          items={items}
+          submitted={submitted}
+          productOptions={productOptions}
+          allProducts={allProducts}
+          productsData={productsData}
+          onAddRow={addRow}
+          onRemoveRow={removeRow}
+          onUpdateRow={updateRow}
+          onCreateProduct={(rowKey) => setProductModal({ rowKey })}
+          onEditProduct={setEditProductModal}
+        />
 
 
         {/* Submit bar */}
         <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-500">
-            {items.filter((r) => r.productId).length} ta tovar tanlangan
+            {items.filter((r) => r.productId).length} {t('warehouse.goodsSelected')}
           </p>
           <div className="flex gap-3">
             <button
@@ -545,7 +273,7 @@ export default function StockInPage() {
               onClick={() => router.back()}
               className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -557,7 +285,7 @@ export default function StockInPage() {
               )}
             >
               <Save className="h-4 w-4" />
-              {isPending ? 'Saqlanmoqda...' : 'Nakladnoyni saqlash'}
+              {isPending ? t('common.saving') : t('warehouse.saveInvoice')}
             </button>
           </div>
         </div>
@@ -588,126 +316,13 @@ export default function StockInPage() {
 
       {/* Supplier create modal */}
       {showSupplierModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md mx-4 rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-gray-900">Yangi kontragent</h3>
-              <button
-                type="button"
-                onClick={() => setShowSupplierModal(false)}
-                className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateSupplier} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nomi *</label>
-                <input
-                  type="text"
-                  required
-                  value={supplierForm.name}
-                  onChange={(e) => setSupplierForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefon *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="+998XXXXXXXXX"
-                  value={supplierForm.phone}
-                  onChange={(e) => setSupplierForm((f) => ({ ...f, phone: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Kompaniya</label>
-                  <input
-                    type="text"
-                    value={supplierForm.company}
-                    onChange={(e) => setSupplierForm((f) => ({ ...f, company: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Manzil</label>
-                  <input
-                    type="text"
-                    value={supplierForm.address}
-                    onChange={(e) => setSupplierForm((f) => ({ ...f, address: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
-              </div>
-              {/* Products section */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Mahsulotlar <span className="text-xs font-normal text-gray-400">(ixtiyoriy)</span>
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={supplierProductSearch}
-                    onChange={(e) => setSupplierProductSearch(e.target.value)}
-                    placeholder="Mahsulot qidirish..."
-                    className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
-                  />
-                </div>
-                {supplierProductSearch && (
-                  <div className="max-h-32 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-                    {allProducts
-                      .filter((p) => p.name.toLowerCase().includes(supplierProductSearch.toLowerCase()) && !supplierProductIds.includes(p.id))
-                      .slice(0, 8)
-                      .map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => { setSupplierProductIds((ids) => [...ids, p.id]); setSupplierProductSearch(''); }}
-                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
-                        >
-                          <Plus className="h-3 w-3 text-blue-500 shrink-0" />
-                          {p.name}
-                        </button>
-                      ))}
-                  </div>
-                )}
-                {supplierProductIds.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {supplierProductIds.map((id) => {
-                      const p = allProducts.find((x) => x.id === id);
-                      return (
-                        <span key={id} className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                          {p?.name ?? id}
-                          <button type="button" onClick={() => setSupplierProductIds((ids) => ids.filter((i) => i !== id))}><X className="h-3 w-3" /></button>
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSupplierModal(false)}
-                  className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                >
-                  Bekor
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreatingSupplier}
-                  className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:opacity-50"
-                >
-                  {isCreatingSupplier ? 'Saqlanmoqda...' : 'Saqlash'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <NewSupplierModal
+          allProducts={allProducts}
+          onCreated={(newSupplierId) => {
+            setSupplierId(newSupplierId);
+          }}
+          onClose={() => setShowSupplierModal(false)}
+        />
       )}
     </div>
   );

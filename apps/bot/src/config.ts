@@ -37,7 +37,7 @@ export const config = {
   debtCheckCron:    process.env.DEBT_CHECK_CRON   ?? '0 9 * * *',     // har kuni 09:00
   expiryDaysWarning: Number(process.env.EXPIRY_DAYS_WARNING ?? 30),
 
-  apiUrl: process.env.API_INTERNAL_URL ?? 'https://api-production-c5b6.up.railway.app/api/v1',
+  apiUrl: process.env.API_INTERNAL_URL ?? 'https://api.raos.uz/api/v1',
 
   env: process.env.NODE_ENV ?? 'development',
 };

@@ -3,6 +3,7 @@
 import { Info } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import type { ProfitSummary } from '@/types/reports';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface RowProps {
   label: string;
@@ -34,26 +35,27 @@ interface ProfitBreakdownProps {
 }
 
 export function ProfitBreakdown({ profit }: ProfitBreakdownProps) {
+  const { t } = useTranslation();
   const margin = parseFloat(profit.grossMarginPct);
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
-      <h2 className="mb-3 text-sm font-semibold text-gray-700">Foyda tahlili (bugun)</h2>
+      <h2 className="mb-3 text-sm font-semibold text-gray-700">{t('pnl.profitToday')}</h2>
       <div className="flex flex-col gap-2">
         <Row
-          label="Tushum"
+          label={t('pnl.revenue')}
           value={profit.revenue}
           tooltip="Barcha buyurtmalar jami summasi (chegirmadan oldin)"
           color="text-gray-900"
         />
         <Row
-          label="Tannarx (COGS)"
+          label={t('pnl.cogs')}
           value={-profit.cogs}
           tooltip="Sotilgan mahsulotlarning kelish narxi summasi"
           color="text-red-600"
           prefix="−"
         />
         <Row
-          label="Qaytarishlar"
+          label={t('pnl.returns')}
           value={-profit.returns}
           tooltip="Tasdiqlangan qaytarishlar summasi"
           color="text-orange-600"
@@ -61,7 +63,7 @@ export function ProfitBreakdown({ profit }: ProfitBreakdownProps) {
         />
         <div className="my-1 border-t border-dashed border-gray-200" />
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-700">Yalpi foyda</span>
+          <span className="text-sm font-semibold text-gray-700">{t('pnl.grossProfit')}</span>
           <div className="flex items-center gap-2">
             <span
               className={`text-sm font-bold ${profit.grossProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}

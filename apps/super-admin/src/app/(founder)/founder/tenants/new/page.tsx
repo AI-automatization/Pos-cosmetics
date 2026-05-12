@@ -97,8 +97,11 @@ export default function NewTenantPage() {
       });
       toast.success(d.emailSent ? 'Магазин создан! Данные отправлены на email.' : 'Магазин создан!');
     },
-    onError: () => {
-      toast.error('Произошла ошибка. Попробуйте снова.');
+    onError: (err: unknown) => {
+      const axiosErr = err as { response?: { data?: { message?: string }; status?: number } };
+      const msg = axiosErr?.response?.data?.message || 'Произошла ошибка. Попробуйте снова.';
+      const status = axiosErr?.response?.status;
+      toast.error(status === 403 ? `Нет доступа: ${msg}` : msg);
     },
   });
 
@@ -165,8 +168,8 @@ export default function NewTenantPage() {
               <input {...companyForm.register('slug')} placeholder={autoSlug || 'gulnora-kosmetika'} className={INPUT_CLS}
                 onFocus={(e) => { if (!e.target.value && autoSlug) companyForm.setValue('slug', autoSlug); }} />
             </Field>
-            <Field label="Телефон" error={companyForm.formState.errors.phone?.message}>
-              <input {...companyForm.register('phone')} placeholder="+998901234567" className={cn(INPUT_CLS, 'font-mono')} />
+            <Field label="Телефон" error={companyForm.formState.errors.phone?.message} hint="Формат: +998XXXXXXXXX (13 символов)">
+              <input {...companyForm.register('phone')} placeholder="+998901234567" maxLength={13} className={cn(INPUT_CLS, 'font-mono')} />
             </Field>
             <Field label="Город" error={companyForm.formState.errors.city?.message}>
               <input {...companyForm.register('city')} placeholder="Ташкент" className={INPUT_CLS} />
@@ -220,8 +223,8 @@ export default function NewTenantPage() {
             <Field label="Email" error={ownerForm.formState.errors.email?.message}>
               <input {...ownerForm.register('email')} type="email" placeholder="gulnora@example.com" className={INPUT_CLS} />
             </Field>
-            <Field label="Телефон" error={ownerForm.formState.errors.phone?.message}>
-              <input {...ownerForm.register('phone')} placeholder="+998901234567" className={cn(INPUT_CLS, 'font-mono')} />
+            <Field label="Телефон" error={ownerForm.formState.errors.phone?.message} hint="Формат: +998XXXXXXXXX (13 символов)">
+              <input {...ownerForm.register('phone')} placeholder="+998901234567" maxLength={13} className={cn(INPUT_CLS, 'font-mono')} />
             </Field>
             <div className="flex items-center gap-2">
               <input type="checkbox" id="autoPassword" {...ownerForm.register('autoPassword')} className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500" />

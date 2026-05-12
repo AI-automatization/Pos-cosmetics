@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { OrderItem } from '@/types/order';
 import type { Return } from '@/types/returns';
 import { REFUND_METHOD_LABELS } from '@/types/returns';
@@ -22,9 +23,14 @@ interface ReturnModalProps {
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
 
-const STEPS = ['Qidirish', 'Tovarlar', 'Usul', 'Tasdiqlash'];
-
 function StepIndicator({ current }: { current: number }) {
+  const { t } = useTranslation();
+  const STEPS = [
+    t('pos.returnStepSearch'),
+    t('pos.returnStepItems'),
+    t('pos.returnStepMethod'),
+    t('pos.returnStepConfirm'),
+  ];
   return (
     <div className="flex items-center gap-1 px-6 py-2 border-b border-gray-100 bg-gray-50/80">
       {STEPS.map((label, i) => (
@@ -61,6 +67,13 @@ function ModalShell({
   onClose: () => void;
   step: number;
 }) {
+  const { t } = useTranslation();
+  const STEPS = [
+    t('pos.returnStepSearch'),
+    t('pos.returnStepItems'),
+    t('pos.returnStepMethod'),
+    t('pos.returnStepConfirm'),
+  ];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]">
       <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 flex flex-col max-h-[92vh] overflow-hidden">
@@ -71,15 +84,15 @@ function ModalShell({
               <RotateCcw className="h-4 w-4 text-orange-500" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-gray-900">Mahsulot qaytarish</h2>
-              <p className="text-xs text-gray-400">{STEPS[step] ?? 'Bajarildi'}</p>
+              <h2 className="text-sm font-semibold text-gray-900">{t('pos.returnTitle')}</h2>
+              <p className="text-xs text-gray-400">{STEPS[step] ?? t('pos.returnDone')}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Yopish"
+            aria-label={t('common.close')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -109,12 +122,13 @@ function StepLookup({
   isLoading: boolean;
   error: string | null;
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   return (
     <div className="flex flex-col gap-4 px-6 py-6">
-      <p className="text-sm text-gray-500">Chek raqamini kiriting yoki skanerlang</p>
+      <p className="text-sm text-gray-500">{t('pos.returnEnterReceipt')}</p>
 
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -126,7 +140,7 @@ function StepLookup({
             value={orderNumberInput}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') onSubmit(); }}
-            placeholder="Chek №"
+            placeholder={t('pos.returnReceiptPlaceholder')}
             className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-9 pr-4 text-gray-900 placeholder-gray-400 text-lg font-mono outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition"
           />
         </div>
@@ -137,7 +151,7 @@ function StepLookup({
           className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-          Qidirish
+          {t('pos.returnStepSearch')}
         </button>
       </div>
 
@@ -153,36 +167,37 @@ function StepLookup({
 
 // ─── Return reason select ─────────────────────────────────────────────────────
 
-const RETURN_REASON_OPTIONS = [
-  "Buzilgan tovar",
-  "Mijoz fikri o'zgardi",
-  "Pul yetmadi",
-  "Muddati o'tgan",
-  "Boshqa",
-] as const;
-
 function ReasonSelect({ reason, onChange }: { reason: string; onChange: (v: string) => void }) {
-  const presets = RETURN_REASON_OPTIONS.slice(0, -1) as readonly string[];
+  const { t } = useTranslation();
+  const RETURN_REASON_OPTIONS = [
+    t('pos.returnReasonDefective'),
+    t('pos.returnReasonMindChanged'),
+    t('pos.returnReasonNoMoney'),
+    t('pos.returnReasonExpired'),
+    t('pos.returnReasonOther'),
+  ];
+  const otherLabel = t('pos.returnReasonOther');
+  const presets = RETURN_REASON_OPTIONS.slice(0, -1);
   const isCustom = reason !== '' && reason !== '__custom__' && !presets.includes(reason);
-  const selectedOption = presets.includes(reason) ? reason : (isCustom || reason === '__custom__') ? 'Boshqa' : '';
-  const showTextarea = selectedOption === 'Boshqa';
+  const selectedOption = presets.includes(reason) ? reason : (isCustom || reason === '__custom__') ? otherLabel : '';
+  const showTextarea = selectedOption === otherLabel;
   const textareaValue = isCustom ? reason : '';
 
   function handleSelect(val: string) {
-    if (val === 'Boshqa') onChange('__custom__');
+    if (val === otherLabel) onChange('__custom__');
     else onChange(val);
   }
 
   return (
     <div className="mt-3 space-y-2">
-      <label className="block text-xs font-semibold text-gray-600">Qaytarish sababi</label>
+      <label className="block text-xs font-semibold text-gray-600">{t('pos.returnReason')}</label>
       <div className="relative">
         <select
           value={selectedOption}
           onChange={(e) => handleSelect(e.target.value)}
           className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-10 text-sm text-gray-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition"
         >
-          <option value="" disabled>Sababni tanlang...</option>
+          <option value="" disabled>{t('pos.returnReasonPlaceholder')}</option>
           {RETURN_REASON_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
@@ -193,7 +208,7 @@ function ReasonSelect({ reason, onChange }: { reason: string; onChange: (v: stri
         <textarea
           value={textareaValue}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Sababni kiriting..."
+          placeholder={t('pos.returnReasonCustomPlaceholder')}
           rows={2}
           autoFocus
           className="w-full rounded-xl border border-orange-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 resize-none transition"
@@ -226,6 +241,7 @@ function StepItemSelect({
   onBack: () => void;
   onProceed: () => void;
 }) {
+  const { t } = useTranslation();
   const hasSelected = Object.keys(selectedItems).length > 0;
 
   return (
@@ -286,11 +302,11 @@ function StepItemSelect({
       {/* Footer */}
       <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex items-center justify-between rounded-b-2xl">
         <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 transition">
-          ← Orqaga
+          {t('common.back')}
         </button>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-xs text-gray-400">Qaytarish</p>
+            <p className="text-xs text-gray-400">{t('pos.refundTotal')}</p>
             <span className="text-lg font-bold text-orange-500">{formatPrice(refundTotal)}</span>
           </div>
           <button
@@ -299,7 +315,7 @@ function StepItemSelect({
             disabled={!hasSelected}
             className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Davom →
+            {t('pos.continue')}
           </button>
         </div>
       </div>
@@ -328,6 +344,7 @@ function StepMethodSelect({
   onBack: () => void;
   onProceed: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="flex-1 px-5 py-5 space-y-3 overflow-y-auto">
@@ -357,13 +374,13 @@ function StepMethodSelect({
             {isLoadingCash ? (
               <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Kassa balansi tekshirilmoqda...
+                {t('pos.checkingCashBalance')}
               </p>
             ) : availableCash !== null ? (
               <p className={cn('mt-1 text-xs', isCashAllowed ? 'text-green-600' : 'text-red-500')}>
                 {isCashAllowed
-                  ? `Kassada: ${formatPrice(availableCash)} — yetarli`
-                  : `Kassada: ${formatPrice(availableCash)} — yetarli emas (kerak: ${formatPrice(refundTotal)})`}
+                  ? t('pos.cashSufficient', { amount: formatPrice(availableCash) })
+                  : t('pos.cashInsufficient', { amount: formatPrice(availableCash), required: formatPrice(refundTotal) })}
               </p>
             ) : null}
           </div>
@@ -390,14 +407,14 @@ function StepMethodSelect({
               <CreditCard className="h-5 w-5 text-blue-500" />
               <span className="font-semibold text-gray-900">{REFUND_METHOD_LABELS.TERMINAL}</span>
             </div>
-            <p className="mt-1 text-xs text-gray-500">Qaytarish 1–3 ish kuni ichida amalga oshiriladi</p>
+            <p className="mt-1 text-xs text-gray-500">{t('pos.terminalRefundInfo')}</p>
           </div>
         </div>
       </div>
 
       <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex items-center justify-between rounded-b-2xl">
         <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 transition">
-          ← Orqaga
+          {t('common.back')}
         </button>
         <button
           type="button"
@@ -405,7 +422,7 @@ function StepMethodSelect({
           disabled={!refundMethod}
           className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Tasdiqlash →
+          {t('pos.confirmReturn')}
         </button>
       </div>
     </>
@@ -433,13 +450,14 @@ function StepConfirm({
   onBack: () => void;
   onSubmit: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="overflow-y-auto flex-1 px-5 py-5 space-y-4">
         {/* Summary card */}
         <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100 shadow-sm">
           <div className="flex justify-between px-4 py-3 text-sm">
-            <span className="text-gray-500">Chek №</span>
+            <span className="text-gray-500">{t('pos.receiptNumber')}</span>
             <span className="font-mono font-semibold text-gray-900">{order.orderNumber}</span>
           </div>
           {Object.values(selectedItems).map((item) => (
@@ -449,11 +467,11 @@ function StepConfirm({
             </div>
           ))}
           <div className="flex justify-between px-4 py-3">
-            <span className="text-sm text-gray-500">Qaytarish summasi</span>
+            <span className="text-sm text-gray-500">{t('pos.refundTotal')}</span>
             <span className="text-base font-bold text-orange-500">{formatPrice(refundTotal)}</span>
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
-            <span className="text-gray-500">Usul</span>
+            <span className="text-gray-500">{t('pos.return')}</span>
             <span className="font-medium text-gray-900">{REFUND_METHOD_LABELS[refundMethod]}</span>
           </div>
         </div>
@@ -462,7 +480,7 @@ function StepConfirm({
           <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
             <Banknote className="h-5 w-5 text-green-500 shrink-0" />
             <p className="text-sm text-green-700">
-              Mijozga <strong>{formatPrice(refundTotal)}</strong> naqd pul bering
+              {t('pos.giveCashToCustomer', { amount: formatPrice(refundTotal) })}
             </p>
           </div>
         )}
@@ -471,7 +489,7 @@ function StepConfirm({
           <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
             <CreditCard className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700">
-              Bank orqali qaytarish so'rovi yaratiladi. 1–3 ish kuni ichida kartaga qaytariladi.
+              {t('pos.bankRefundInfo')}
             </p>
           </div>
         )}
@@ -486,7 +504,7 @@ function StepConfirm({
 
       <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex items-center justify-between rounded-b-2xl">
         <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 transition">
-          ← Orqaga
+          {t('common.back')}
         </button>
         <button
           type="button"
@@ -495,7 +513,7 @@ function StepConfirm({
           className="flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isSubmitting ? 'Bajarilmoqda...' : 'Qaytarishni tasdiqlash'}
+          {isSubmitting ? t('pos.processing') : t('pos.confirmReturn')}
         </button>
       </div>
     </>
@@ -515,6 +533,7 @@ function StepSuccess({
   refundMethod: 'CASH' | 'TERMINAL' | null;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="flex-1 flex flex-col items-center justify-center p-8 gap-5">
@@ -525,8 +544,8 @@ function StepSuccess({
           <p className="text-2xl font-bold text-gray-900">{formatPrice(refundTotal)}</p>
           <p className="text-sm text-gray-500 mt-1.5">
             {refundMethod === 'CASH'
-              ? 'Naqd pul mijozga berildi'
-              : "Bank kartasi qaytarish so'rovi yaratildi"}
+              ? t('pos.returnCashGiven')
+              : t('pos.returnBankCreated')}
           </p>
         </div>
         <p className="text-xs text-gray-400 font-mono">ID: {ret.id.slice(0, 8)}...</p>
@@ -538,7 +557,7 @@ function StepSuccess({
           onClick={onClose}
           className="rounded-xl bg-orange-500 px-10 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600"
         >
-          Yopish
+          {t('common.close')}
         </button>
       </div>
     </>

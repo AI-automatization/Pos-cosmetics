@@ -8,7 +8,7 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/types/package.json ./packages/types/
 COPY packages/ui/package.json ./packages/ui/
 
-RUN pnpm install --no-frozen-lockfile --filter web...
+RUN pnpm install --frozen-lockfile --filter web...
 
 COPY apps/web/ ./apps/web/
 COPY packages/types/ ./packages/types/

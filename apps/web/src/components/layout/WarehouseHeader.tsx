@@ -7,31 +7,31 @@ import { useTranslation } from '@/i18n/i18n-context';
 import { LOCALES, type Locale } from '@/i18n/index';
 import { cn } from '@/lib/utils';
 
-const WAREHOUSE_TITLES: [string, string][] = [
-  ['/warehouse/invoices', 'Nakladnoylar'],
-  ['/warehouse/stock-in', 'Kirim qo\'shish'],
-  ['/warehouse/write-off', 'Hisobdan chiqarish'],
-  ['/warehouse/inventory', 'Inventar'],
-  ['/warehouse/expiry', 'Muddati tugayotganlar'],
-  ['/warehouse/low-stock', 'Kam qolganlar'],
-  ['/warehouse/history', 'Harakatlar tarixi'],
-  ['/warehouse/suppliers', 'Yetkazib beruvchilar'],
-  ['/warehouse', 'Dashboard'],
+const WAREHOUSE_TITLE_KEYS: [string, string][] = [
+  ['/warehouse/invoices', 'warehouse.invoices'],
+  ['/warehouse/stock-in', 'warehouse.stockIn'],
+  ['/warehouse/write-off', 'warehouse.writeOff'],
+  ['/warehouse/inventory', 'nav.inventory'],
+  ['/warehouse/expiry', 'warehouse.expiry'],
+  ['/warehouse/low-stock', 'warehouse.lowStock'],
+  ['/warehouse/history', 'warehouse.history'],
+  ['/warehouse/suppliers', 'nav.suppliers'],
+  ['/warehouse', 'nav.dashboard'],
 ];
 
-function getTitle(pathname: string): string {
-  for (const [prefix, title] of WAREHOUSE_TITLES) {
-    if (pathname === prefix || pathname.startsWith(prefix + '/')) return title;
+function getTitleKey(pathname: string): string {
+  for (const [prefix, key] of WAREHOUSE_TITLE_KEYS) {
+    if (pathname === prefix || pathname.startsWith(prefix + '/')) return key;
   }
-  return 'Ombor';
+  return 'nav.warehousePanel';
 }
 
 export function WarehouseHeader() {
   const { data: user } = useCurrentUser();
   const { mutate: logout, isPending } = useLogout();
-  const { locale, setLocale } = useTranslation();
+  const { locale, setLocale, t } = useTranslation();
   const pathname = usePathname();
-  const pageTitle = getTitle(pathname);
+  const pageTitle = t(getTitleKey(pathname));
 
   const initials = user
     ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || '?'
@@ -81,7 +81,7 @@ export function WarehouseHeader() {
               type="button"
               onClick={() => logout()}
               disabled={isPending}
-              title="Chiqish"
+              title={t('auth.logout')}
               className="ml-1 rounded-md p-1 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
             >
               <LogOut className="h-3.5 w-3.5" />

@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { FileText, Plus, Search, ChevronRight, X } from 'lucide-react';
 import { useWarehouseInvoices } from '@/hooks/warehouse/useWarehouseInvoices';
 import { formatPrice, formatDateTime } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export default function WarehouseInvoicesPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -39,15 +41,15 @@ export default function WarehouseInvoicesPage() {
       {/* Sarlavha */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Nakladnoylar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Tovar qabul kirim hujjatlari</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.invoices')}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t('warehouse.invoicesSubtitle')}</p>
         </div>
         <Link
           href="/warehouse/stock-in"
           className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
         >
           <Plus className="h-4 w-4" />
-          Yangi nakladnoy
+          {t('warehouse.newInvoice')}
         </Link>
       </div>
 
@@ -59,7 +61,7 @@ export default function WarehouseInvoicesPage() {
             <input
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Raqam yoki izoh..."
+              placeholder={t('warehouse.invoiceSearchPlaceholder')}
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
           </div>
@@ -82,7 +84,7 @@ export default function WarehouseInvoicesPage() {
             className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
           >
             <X className="h-3.5 w-3.5" />
-            Filtrlarni tozalash
+            {t('common.clearFilters')}
           </button>
         )}
       </div>
@@ -98,9 +100,9 @@ export default function WarehouseInvoicesPage() {
         ) : filtered.length === 0 ? (
           <div className="py-16 flex flex-col items-center gap-2 text-gray-400">
             <FileText className="h-10 w-10 text-gray-300" />
-            <p className="text-sm">Nakladnoylar topilmadi</p>
+            <p className="text-sm">{t('warehouse.noInvoices')}</p>
             <Link href="/warehouse/stock-in" className="mt-2 text-sm text-amber-600 hover:underline">
-              Birinchi nakladnoyni yarating
+              {t('warehouse.createFirstInvoice')}
             </Link>
           </div>
         ) : (
@@ -108,11 +110,11 @@ export default function WarehouseInvoicesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                  <th className="px-4 py-3 text-left">Raqam</th>
-                  <th className="px-4 py-3 text-left">Sana</th>
-                  <th className="px-4 py-3 text-left">Tovarlar</th>
-                  <th className="px-4 py-3 text-left">Izoh</th>
-                  <th className="px-4 py-3 text-right">Jami summa</th>
+                  <th className="px-4 py-3 text-left">{t('warehouse.invoiceNumber')}</th>
+                  <th className="px-4 py-3 text-left">{t('warehouse.date')}</th>
+                  <th className="px-4 py-3 text-left">{t('warehouse.goods')}</th>
+                  <th className="px-4 py-3 text-left">{t('warehouse.note')}</th>
+                  <th className="px-4 py-3 text-right">{t('warehouse.totalAmount')}</th>
                   <th className="px-4 py-3 w-8"></th>
                 </tr>
               </thead>
@@ -130,7 +132,7 @@ export default function WarehouseInvoicesPage() {
                       {formatDateTime(inv.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {inv.items.length} ta tovar
+                      {inv.items.length} {t('warehouse.goodsCount')}
                     </td>
                     <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">
                       {inv.note ?? '—'}
@@ -149,7 +151,7 @@ export default function WarehouseInvoicesPage() {
             {/* Sahifalash */}
             {totalPages > 1 && (
               <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                <span>Jami: {total} ta</span>
+                <span>{t('warehouse.total')}: {total} ta</span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}

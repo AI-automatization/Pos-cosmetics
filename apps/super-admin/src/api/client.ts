@@ -45,7 +45,7 @@ apiClient.interceptors.response.use(
       return Promise.reject(err);
     }
 
-    if (err.response?.status >= 500 && typeof window !== 'undefined') {
+    if (err.response?.status >= 500 && typeof window !== 'undefined' && !err.config?.url?.includes('/logs/client-error')) {
       apiClient
         .post('/logs/client-error', {
           source: 'super-admin',

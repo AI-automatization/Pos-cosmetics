@@ -24,6 +24,14 @@ logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+logi.txt
+
+# Debug / temp files
+test-register.json
+test-login.json
+debug-login.mjs
+cookies.txt
+POLAT_PROGRESS.txt
 
 # Claude Code (local only)
 .claude/settings.local.json
@@ -84,3 +92,13 @@ apps/mobile/js_errors.txt
 # Telegram Bot secrets (use .env files only)
 *.bot.env
 .env.tg
+
+# Security — never commit credentials/cookies
+cookies.txt
+*.cookie
+test-login.json
+debug-login*.mjs
+audit-*.mjs
+warehouse-audit*.mjs
+e2e-sprint*.mjs
+e2e-verify*.mjs
