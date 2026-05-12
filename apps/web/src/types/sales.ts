@@ -41,8 +41,10 @@ export interface CreateOrderItemDto {
   lineDiscount: number;
 }
 
+export type ApiPaymentMethod = 'CASH' | 'CARD' | 'TERMINAL' | 'PAYME' | 'CLICK' | 'NASIYA' | 'BONUS';
+
 export interface PaymentEntryDto {
-  method: 'CASH' | 'CARD' | 'NASIYA' | 'BONUS';
+  method: ApiPaymentMethod;
   amount: number;
 }
 

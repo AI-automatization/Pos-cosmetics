@@ -9,7 +9,7 @@ import { usePOSStore } from '@/store/pos.store';
 import { useSyncStore } from '@/store/sync.store';
 import { useLoyaltyConfig } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
-import type { Order } from '@/types/sales';
+import type { Order, ApiPaymentMethod } from '@/types/sales';
 
 export function useCompleteSale(onSuccess: (order: Order) => void) {
   const store = usePOSStore();
@@ -27,7 +27,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
       const CARD_TYPE_MAP = { terminal: 'TERMINAL', payme: 'PAYME', click: 'CLICK' } as const;
       const cardMethod = CARD_TYPE_MAP[cardType] ?? 'TERMINAL';
 
-      let payments: { method: string; amount: number }[];
+      let payments: { method: ApiPaymentMethod; amount: number }[];
       if (paymentMethod === 'cash') {
         payments = [{ method: 'CASH', amount: total }];
       } else if (paymentMethod === 'card') {
