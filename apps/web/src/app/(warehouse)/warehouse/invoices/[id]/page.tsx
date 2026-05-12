@@ -1,9 +1,9 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Calendar, User, Package, Hash } from 'lucide-react';
-import { useWarehouseInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
+import { ArrowLeft, FileText, Calendar, User, Package, Hash, Pencil, Check, X as XIcon } from 'lucide-react';
+import { useWarehouseInvoice, useUpdateInvoice } from '@/hooks/warehouse/useWarehouseInvoices';
 import { formatPrice, formatDateTime } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 
@@ -11,6 +11,23 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const { t } = useTranslation();
   const { id } = use(params);
   const { data: invoice, isLoading } = useWarehouseInvoice(id);
+  const { mutate: updateInvoice, isPending: isSaving } = useUpdateInvoice();
+  const [editing, setEditing] = useState(false);
+  const [editNote, setEditNote] = useState('');
+  const [editNumber, setEditNumber] = useState('');
+
+  const startEditing = () => {
+    setEditNote(invoice?.note ?? '');
+    setEditNumber(invoice?.invoiceNumber ?? '');
+    setEditing(true);
+  };
+
+  const saveEdit = () => {
+    updateInvoice(
+      { id, invoiceNumber: editNumber, note: editNote },
+      { onSuccess: () => setEditing(false) },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -54,6 +71,37 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           </h1>
           <p className="text-sm text-gray-500">{t('warehouse.invoiceDetail')}</p>
         </div>
+        {!editing ? (
+          <button
+            type="button"
+            onClick={startEditing}
+            className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            <Pencil className="h-4 w-4" />
+            {t('common.edit')}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              disabled={isSaving}
+              className="flex items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            >
+              <XIcon className="h-4 w-4" />
+              {t('common.cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={saveEdit}
+              disabled={isSaving}
+              className="flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              <Check className="h-4 w-4" />
+              {t('common.save')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Invoice meta card */}
@@ -65,7 +113,16 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             </div>
             <div>
               <p className="text-xs text-gray-500">{t('warehouse.invoiceNumber')}</p>
-              <p className="font-semibold text-gray-900">{invoice.invoiceNumber || '—'}</p>
+              {editing ? (
+                <input
+                  type="text"
+                  value={editNumber}
+                  onChange={(e) => setEditNumber(e.target.value)}
+                  className="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1 text-sm font-semibold outline-none focus:border-amber-500"
+                />
+              ) : (
+                <p className="font-semibold text-gray-900">{invoice.invoiceNumber || '—'}</p>
+              )}
             </div>
           </div>
 
@@ -103,9 +160,20 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {invoice.note && (
+        {(invoice.note || editing) && (
           <div className="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-600">
-            <span className="font-medium text-gray-700">{t('warehouse.note')}:</span> {invoice.note}
+            <span className="font-medium text-gray-700">{t('warehouse.note')}:</span>{' '}
+            {editing ? (
+              <input
+                type="text"
+                value={editNote}
+                onChange={(e) => setEditNote(e.target.value)}
+                placeholder={t('warehouse.additionalNote')}
+                className="ml-1 w-64 rounded-lg border border-gray-300 px-2 py-1 text-sm outline-none focus:border-amber-500"
+              />
+            ) : (
+              invoice.note
+            )}
           </div>
         )}
       </div>

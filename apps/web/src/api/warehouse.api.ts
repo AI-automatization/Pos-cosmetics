@@ -62,6 +62,9 @@ export const warehouseApi = {
   getInvoice: (id: string) =>
     apiClient.get<WarehouseInvoice>(`/warehouse/invoices/${id}`),
 
+  updateInvoice: (id: string, dto: { invoiceNumber?: string; note?: string; supplierId?: string }) =>
+    apiClient.patch<WarehouseInvoice>(`/warehouse/invoices/${id}`, dto),
+
   // T-328
   writeOff: (dto: WriteOffDto) =>
     apiClient.post('/inventory/write-off', dto),

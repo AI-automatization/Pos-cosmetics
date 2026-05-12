@@ -63,6 +63,19 @@ export class WarehouseInvoiceController {
     return this.svc.getInvoice(tenantId, invoiceId);
   }
 
+  // ─── PATCH /warehouse/invoices/:id — update metadata ──────────────────────
+
+  @Patch('invoices/:id')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
+  @ApiOperation({ summary: 'Nakladnoy metadatani tahrirlash (raqam, izoh, kontragent)' })
+  updateInvoice(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id') invoiceId: string,
+    @Body() dto: { invoiceNumber?: string; note?: string; supplierId?: string },
+  ) {
+    return this.svc.updateInvoiceMeta(tenantId, invoiceId, dto);
+  }
+
   // ─── APPROVE / REJECT invoice ────────────────────────────────────────────
 
   @Patch('invoices/:id/approve')
