@@ -61,6 +61,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
   const [discountInput, setDiscountInput] = useState(String(orderDiscount));
   const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
+  const [cardType, setCardType] = useState<'terminal' | 'payme' | 'click'>('terminal');
   // Ref so we can read latest globalPromo inside effect without adding it to deps
   const globalPromoRef = useRef(globalPromo);
   globalPromoRef.current = globalPromo;
@@ -97,8 +98,22 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     setDiscountType(orderDiscountType);
   }, [orderDiscount, orderDiscountType]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const MAX_CASHIER_DISCOUNT_PCT = 5;
+
   const handleDiscountApply = () => {
-    const val = parseFloat(discountInput) || 0;
+    let val = parseFloat(discountInput) || 0;
+    if (isCashier) {
+      if (discountType === 'percent' && val > MAX_CASHIER_DISCOUNT_PCT) {
+        val = MAX_CASHIER_DISCOUNT_PCT;
+        setDiscountInput(String(MAX_CASHIER_DISCOUNT_PCT));
+      } else if (discountType === 'fixed' && subtotal > 0) {
+        const maxFixed = Math.floor(subtotal * MAX_CASHIER_DISCOUNT_PCT / 100);
+        if (val > maxFixed) {
+          val = maxFixed;
+          setDiscountInput(String(maxFixed));
+        }
+      }
+    }
     setOrderDiscount(val, discountType);
   };
 
@@ -272,6 +287,47 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Card payment — terminal / Payme / Click */}
+      {paymentMethod === 'card' && (
+        <div className="shrink-0 border-b border-gray-100 p-3">
+          <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.cardMethod')}</p>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { key: 'terminal' as const, label: t('pos.terminal'), icon: '🏧' },
+              { key: 'payme' as const, label: 'Payme', icon: '💳' },
+              { key: 'click' as const, label: 'Click', icon: '📱' },
+            ]).map((m) => (
+              <button
+                key={m.key}
+                type="button"
+                onClick={() => setCardType(m.key)}
+                className={cn(
+                  'flex flex-col items-center gap-1 rounded-xl border py-3 text-sm font-medium transition',
+                  cardType === m.key
+                    ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
+                )}
+              >
+                <span className="text-lg">{m.icon}</span>
+                <span>{m.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-blue-700">{t('pos.amountToPay')}</span>
+              <span className="text-lg font-bold text-blue-700">{formatPrice(total)}</span>
+            </div>
+            {cardType === 'terminal' && (
+              <p className="mt-1 text-xs text-blue-500">{t('pos.terminalHint')}</p>
+            )}
+            {(cardType === 'payme' || cardType === 'click') && (
+              <p className="mt-1 text-xs text-blue-500">{t('pos.onlinePaymentHint')}</p>
+            )}
+          </div>
         </div>
       )}
 
