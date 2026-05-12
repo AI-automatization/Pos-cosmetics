@@ -1,5 +1,54 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-07
+# Yangilangan: 2026-05-12
+
+---
+
+## T-423 (mobile) | 2026-05-12 | [MOBILE] | PaymentsHistoryScreen — client-side sana + method filtri
+
+- **Yechim:** Backend hali `from`/`to` qo'llab-quvvatlamaydi (T-423 backend qismi Ibrat uchun ochiq). Mobile da client-side workaround: `filtered` useMemo da `createdAt` bo'yicha `from`/`to` orasini tekshirish. Method filter (Naqd/Karta/Nasiya/Click/Payme) faollashtirildi — `paymentMethod` field bo'yicha client-side filtrlash. Limit 200→500.
+- **Fayl:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
+
+---
+
+## T-470 | 2026-05-12 | [MOBILE] | StockOutScreen — WAREHOUSE roli qo'shildi
+
+- **Yechim:** `STOCK_OUT_ROLES` ga `'WAREHOUSE'` qo'shildi. Lock screen matniga "Omborchi" qo'shildi.
+- **Fayl:** `apps/mobile/src/screens/StockOut/StockOutColors.ts`, `apps/mobile/src/screens/StockOut/index.tsx`
+
+---
+
+## T-469 | 2026-05-12 | [MOBILE] | LowStockList — rol guard + search qo'shildi
+
+- **Yechim:** `ALLOWED_ROLES = ['OWNER', 'ADMIN', 'MANAGER']` role guard + lock screen UI. Search bar (product name/SKU client-side filter). `enabled: hasAccess` query optimization.
+- **Fayl:** `apps/mobile/src/screens/Inventory/LowStockList.tsx`
+
+---
+
+## T-468 | 2026-05-12 | [MOBILE] | InvoicesScreen — search, status filter, Cancel tugmasi
+
+- **Yechim:** Search bar (invoice number + supplier name). Status filter tabs (ALL/PENDING/RECEIVED/CANCELLED) + count badges. InvoiceDetailSheet ga `rejectMutation` + "Bekor qilish" red button qo'shildi.
+- **Fayl:** `apps/mobile/src/screens/Ombor/InvoicesScreen.tsx`, `apps/mobile/src/screens/Ombor/InvoiceDetailSheet.tsx`, `apps/mobile/src/api/inventory.api.ts`
+
+---
+
+## T-467 | 2026-05-12 | [MOBILE] | StockMovementsScreen — infinite scroll pagination
+
+- **Yechim:** `useQuery` → `useInfiniteQuery` ga o'tkazildi. `getNextPageParam` bilan sahifalar avtomatik yuklanadi. `FlatList` da `onEndReached` + `onEndReachedThreshold(0.5)` + loading footer.
+- **Fayl:** `apps/mobile/src/screens/StockMovements/useStockMovementData.ts`, `apps/mobile/src/screens/StockMovements/index.tsx`
+
+---
+
+## T-466 | 2026-05-12 | [MOBILE] | StockTransfer — tanlangan mahsulot sheet ga uzatildi
+
+- **Yechim:** `selectedItem` state qo'shildi. `onSelect` da item capture qilinadi. `NewTransferSheet` ga `selectedProduct` prop + `useEffect` auto-population.
+- **Fayl:** `apps/mobile/src/screens/StockTransfer/index.tsx`, `apps/mobile/src/screens/StockTransfer/NewTransferSheet.tsx`
+
+---
+
+## T-465 | 2026-05-12 | [MOBILE] | Ombor — Restock request (kassir + ombor tomoni)
+
+- **Yechim:** Kassir: LowStockList da "So'rov" button + `sendRestockRequest` mutation. Ombor: `RestockRequestsScreen.tsx` yaratildi (LOW_STOCK notificationlar, Yangi/Barchasi/Qabul qilingan filter, "Qabul qildim" button). OmborHeader ga notifications icon. Navigation wired.
+- **Fayl:** `apps/mobile/src/screens/Inventory/LowStockList.tsx`, `apps/mobile/src/screens/Ombor/RestockRequestsScreen.tsx`, `apps/mobile/src/screens/Ombor/OmborHeader.tsx`, `apps/mobile/src/screens/Ombor/index.tsx`, `apps/mobile/src/api/alerts.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
 
 ---
 

@@ -196,7 +196,7 @@ export default function PaymentsHistoryScreen() {
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['orders', from, to],
-    queryFn: () => salesApi.getOrders({ from, to, limit: 200 }),
+    queryFn: () => salesApi.getOrders({ from, to, limit: 500 }),
     staleTime: 3 * 60_000,
   });
 
@@ -204,14 +204,38 @@ export default function PaymentsHistoryScreen() {
 
   const filtered = useMemo(() => {
     let list = orders;
+
+    // Client-side date filter (backend T-423 hali from/to qo'llab-quvvatlamaydi)
+    const fromMs = new Date(from + 'T00:00:00').getTime();
+    const toMs = new Date(to + 'T23:59:59').getTime();
+    list = list.filter((o) => {
+      const t = new Date(o.createdAt).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+
     // search by order number
     if (search.trim()) {
       const q = search.replace(/^#/, '').trim();
       list = list.filter((o) => String(o.orderNumber).includes(q));
     }
-    // method filter — disabled until T-423 adds paymentMethod to Order API response
+
+    // method filter (client-side — paymentMethod mavjud bo'lsa ishlaydi)
+    if (method !== 'Barchasi') {
+      const methodMap: Record<string, string[]> = {
+        Naqd:  ['NAQD', 'CASH'],
+        Karta: ['KARTA', 'CARD', 'TERMINAL'],
+        Nasiya: ['NASIYA', 'DEBT'],
+        Click: ['CLICK'],
+        Payme: ['PAYME'],
+      };
+      const allowed = methodMap[method] ?? [];
+      list = list.filter((o) =>
+        allowed.includes((o as OrderWithMethod).paymentMethod ?? ''),
+      );
+    }
+
     return list;
-  }, [orders, search, method]);
+  }, [orders, search, method, from, to]);
 
   // Stat cards — payment method bo'yicha
   const statCards = useMemo(() => {
@@ -315,17 +339,15 @@ export default function PaymentsHistoryScreen() {
       >
         {METHODS.map((m) => {
           const active = m.key === method;
-          const isDisabled = m.key !== 'Barchasi';
           return (
             <TouchableOpacity
               key={m.key}
               style={[
                 styles.methodPill,
                 active && styles.methodPillActive,
-                isDisabled && styles.methodPillDisabled,
               ]}
-              onPress={() => !isDisabled && setMethod(m.key)}
-              activeOpacity={isDisabled ? 1 : 0.75}
+              onPress={() => setMethod(m.key)}
+              activeOpacity={0.75}
             >
               <Ionicons
                 name={m.icon}
@@ -452,7 +474,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.white,
   },
   methodPillActive: { backgroundColor: '#111827', borderColor: '#111827' },
-  methodPillDisabled: { opacity: 0.35 },
   methodPillText: { fontSize: 12, fontWeight: '600', color: C.muted },
   methodPillTextActive: { color: C.white },
 

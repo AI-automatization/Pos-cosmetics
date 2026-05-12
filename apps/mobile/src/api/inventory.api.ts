@@ -491,4 +491,9 @@ export const inventoryApi = {
     const res = await api.patch(`/warehouse/invoices/${id}/approve`);
     return res.data;
   },
+
+  rejectInvoice: async (id: string): Promise<InvoiceDetail> => {
+    const res = await api.patch(`/warehouse/invoices/${id}/reject`);
+    return res.data;
+  },
 };

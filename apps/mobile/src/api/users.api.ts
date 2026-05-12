@@ -78,4 +78,8 @@ export const usersApi = {
   toggleActive: async (id: string, isActive: boolean): Promise<void> => {
     await api.patch(`/users/${id}`, { isActive });
   },
+
+  resetPassword: async (id: string, newPassword: string): Promise<void> => {
+    await api.post(`/users/${id}/reset-password`, { newPassword });
+  },
 };

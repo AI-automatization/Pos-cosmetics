@@ -130,6 +130,15 @@ export default function InvoiceDetailSheet({
     },
   });
 
+  const rejectMutation = useMutation({
+    mutationFn: () => inventoryApi.rejectInvoice(invoiceId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warehouse-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['warehouse-invoice', invoiceId] });
+      onClose();
+    },
+  });
+
   const items     = data?.items ?? [];
   const totalCost = data?.totalCost ?? 0;
   const statusKey = (data?.status ?? 'CANCELLED') as InvoiceStatus;
@@ -231,23 +240,40 @@ export default function InvoiceDetailSheet({
               <Text style={styles.totalValue}>{fmt(totalCost)}</Text>
             </View>
 
-            {/* Approve button — only PENDING */}
+            {/* Action buttons — only PENDING */}
             {statusKey === 'PENDING' && (
-              <TouchableOpacity
-                style={[
-                  styles.approveBtn,
-                  approveMutation.isPending ? styles.approveBtnDisabled : null,
-                ]}
-                onPress={() => approveMutation.mutate()}
-                activeOpacity={0.8}
-                disabled={approveMutation.isPending}
-              >
-                {approveMutation.isPending ? (
-                  <ActivityIndicator size="small" color={C.white} />
-                ) : (
-                  <Text style={styles.approveBtnText}>Tasdiqlash</Text>
-                )}
-              </TouchableOpacity>
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.rejectBtn,
+                    rejectMutation.isPending ? styles.approveBtnDisabled : null,
+                  ]}
+                  onPress={() => rejectMutation.mutate()}
+                  activeOpacity={0.8}
+                  disabled={rejectMutation.isPending || approveMutation.isPending}
+                >
+                  {rejectMutation.isPending ? (
+                    <ActivityIndicator size="small" color={C.white} />
+                  ) : (
+                    <Text style={styles.rejectBtnText}>Bekor qilish</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.approveBtn,
+                    approveMutation.isPending ? styles.approveBtnDisabled : null,
+                  ]}
+                  onPress={() => approveMutation.mutate()}
+                  activeOpacity={0.8}
+                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                >
+                  {approveMutation.isPending ? (
+                    <ActivityIndicator size="small" color={C.white} />
+                  ) : (
+                    <Text style={styles.approveBtnText}>Tasdiqlash</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             )}
           </ScrollView>
         )}
@@ -451,14 +477,28 @@ const styles = StyleSheet.create({
     color: C.text,
   },
 
-  // ─── Approve button ────────────────────────────
+  // ─── Action buttons ────────────────────────────
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
   approveBtn: {
+    flex: 2,
     backgroundColor: C.green,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    minHeight: 48,
+  },
+  rejectBtn: {
+    flex: 1,
+    backgroundColor: C.red,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
     minHeight: 48,
   },
   approveBtnDisabled: {
@@ -466,6 +506,11 @@ const styles = StyleSheet.create({
   },
   approveBtnText: {
     fontSize: 16,
+    fontWeight: '700',
+    color: C.white,
+  },
+  rejectBtnText: {
+    fontSize: 14,
     fontWeight: '700',
     color: C.white,
   },

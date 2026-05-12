@@ -29,8 +29,9 @@ export default function StockTransferScreen() {
   const navigation = useNavigation<NavProp>();
   const { user }   = useAuthStore();
 
-  const [search,       setSearch]  = useState('');
-  const [sheetVisible, setSheet]   = useState(false);
+  const [search,        setSearch]       = useState('');
+  const [sheetVisible,  setSheet]        = useState(false);
+  const [selectedItem,  setSelectedItem] = useState<StockLevel | null>(null);
 
   const hasAccess = TRANSFER_ROLES.includes(
     user?.role as typeof TRANSFER_ROLES[number],
@@ -49,8 +50,8 @@ export default function StockTransferScreen() {
     );
   }, [search, allItems]);
 
-  const handleSheetClose = () => setSheet(false);
-  const handleSuccess    = () => setSheet(false);
+  const handleSheetClose = () => { setSheet(false); setSelectedItem(null); };
+  const handleSuccess    = () => { setSheet(false); setSelectedItem(null); };
 
   // Ruxsat yo'q
   if (!hasAccess) {
@@ -179,7 +180,7 @@ export default function StockTransferScreen() {
         renderItem={({ item }) => (
           <StockTransferProductCard
             item={item}
-            onSelect={() => setSheet(true)}
+            onSelect={(selected) => { setSelectedItem(selected); setSheet(true); }}
           />
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -203,6 +204,7 @@ export default function StockTransferScreen() {
         stockLevels={stockLevels}
         branches={branches}
         createTransfer={createTransfer}
+        selectedProduct={selectedItem}
       />
     </SafeAreaView>
   );

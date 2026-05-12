@@ -1,4 +1,4 @@
-// index.tsx — Harakatlar tarixi ekrani
+// index.tsx — Harakatlar tarixi ekrani (infinite scroll)
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
@@ -45,8 +45,15 @@ export default function StockMovementsScreen() {
     user?.role as typeof MOVEMENT_ROLES[number],
   );
 
-  const { movements } = useStockMovementData(1);
-  const allItems: StockMovement[] = movements.data?.items ?? [];
+  const { movements } = useStockMovementData();
+
+  // Flatten all pages into a single array
+  const allItems: StockMovement[] = useMemo(
+    () => movements.data?.pages?.flatMap((p) => p.items) ?? [],
+    [movements.data?.pages],
+  );
+
+  const totalCount = movements.data?.pages?.[0]?.total ?? 0;
 
   const filtered = useMemo(() => {
     const allowedTypes = TYPE_FILTER_MAP[typeFilter];
@@ -70,6 +77,12 @@ export default function StockMovementsScreen() {
   const handleTypeChange  = useCallback((f: TypeFilter) => setTypeFilter(f), []);
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
 
+  const handleLoadMore = useCallback(() => {
+    if (movements.hasNextPage && !movements.isFetchingNextPage) {
+      void movements.fetchNextPage();
+    }
+  }, [movements]);
+
   const renderItem = useCallback(
     ({ item }: { item: StockMovement }) => <StockMovementCard item={item} />,
     [],
@@ -92,7 +105,7 @@ export default function StockMovementsScreen() {
         onTypeChange={handleTypeChange}
         search={search}
         onSearchChange={handleSearchChange}
-        total={movements.data?.total ?? 0}
+        total={totalCount}
         resultCount={filtered.length}
       />
     ),
@@ -100,11 +113,21 @@ export default function StockMovementsScreen() {
       typeFilter,
       search,
       filtered.length,
-      movements.data?.total,
+      totalCount,
       handleTypeChange,
       handleSearchChange,
     ],
   );
+
+  const renderFooter = useCallback(() => {
+    if (!movements.isFetchingNextPage) return null;
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color={C.primary} />
+        <Text style={styles.footerText}>Yuklanmoqda...</Text>
+      </View>
+    );
+  }, [movements.isFetchingNextPage]);
 
   if (!hasAccess) {
     return (
@@ -160,6 +183,9 @@ export default function StockMovementsScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={renderListHeader}
         ItemSeparatorComponent={renderSeparator}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="swap-horizontal-outline" size={48} color={C.muted} />
@@ -215,6 +241,17 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 15,
+    color:    C.muted,
+  },
+  footer: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'center',
+    gap:            8,
+    paddingVertical: 16,
+  },
+  footerText: {
+    fontSize: 13,
     color:    C.muted,
   },
 });

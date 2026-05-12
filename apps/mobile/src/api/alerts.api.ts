@@ -108,4 +108,12 @@ export const alertsApi = {
   markAsRead: async (alertId: string): Promise<void> => {
     await api.patch(`/notifications/${alertId}/read`);
   },
+
+  // GET /notifications?type=LOW_STOCK — restock requests for warehouse staff
+  getRestockRequests: async (page = 1, limit = 50): Promise<Alert[]> => {
+    const { data } = await api.get<PaginatedNotifications>('/notifications', {
+      params: { type: 'LOW_STOCK', page, limit },
+    });
+    return (data.items ?? []).map(mapNotificationRaw);
+  },
 };

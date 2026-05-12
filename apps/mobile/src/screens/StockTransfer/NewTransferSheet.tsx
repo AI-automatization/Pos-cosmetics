@@ -1,6 +1,6 @@
 // NewTransferSheet.tsx — yangi o'tkazma modal komponenti
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -25,12 +25,13 @@ import type { Branch } from '../../api/branches.api';
 import type { CreateTransferBody, CreateTransferResponse } from '../../api/inventory.api';
 
 interface NewTransferSheetProps {
-  readonly visible:         boolean;
-  readonly onClose:         () => void;
-  readonly onSuccess:       () => void;
-  readonly stockLevels:     UseQueryResult<StockLevel[]>;
-  readonly branches:        UseQueryResult<Branch[]>;
-  readonly createTransfer:  UseMutationResult<CreateTransferResponse, Error, CreateTransferBody>;
+  readonly visible:          boolean;
+  readonly onClose:          () => void;
+  readonly onSuccess:        () => void;
+  readonly stockLevels:      UseQueryResult<StockLevel[]>;
+  readonly branches:         UseQueryResult<Branch[]>;
+  readonly createTransfer:   UseMutationResult<CreateTransferResponse, Error, CreateTransferBody>;
+  readonly selectedProduct?: StockLevel | null;
 }
 
 interface AddedItem extends TransferItem {
@@ -44,6 +45,7 @@ export default function NewTransferSheet({
   stockLevels,
   branches,
   createTransfer,
+  selectedProduct,
 }: NewTransferSheetProps) {
   const [fromBranchId,      setFromBranchId]      = useState('');
   const [toBranchId,        setToBranchId]         = useState('');
@@ -69,6 +71,23 @@ export default function NewTransferSheet({
     resetForm();
     onClose();
   }, [resetForm, onClose]);
+
+  // Pre-fill selected product when sheet opens
+  useEffect(() => {
+    if (visible && selectedProduct && selectedProduct.totalQty > 0) {
+      const key = `${selectedProduct.productId}-${selectedProduct.warehouseId}`;
+      setAddedItems([{
+        key,
+        productId:     selectedProduct.productId,
+        productName:   selectedProduct.name,
+        quantity:       1,
+        warehouseId:   selectedProduct.warehouseId,
+        warehouseName: selectedProduct.warehouseName,
+        availableQty:  selectedProduct.totalQty,
+      }]);
+      setQtyInputMap({ [key]: '1' });
+    }
+  }, [visible, selectedProduct]);
 
   // Qidiruv bo'yicha filterlangan va mavjud mahsulotlar
   const availableProducts = useMemo<StockLevel[]>(() => {

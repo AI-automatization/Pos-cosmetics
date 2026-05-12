@@ -8,9 +8,10 @@ interface Props {
   onScanPress?: () => void;
   onFilterPress?: () => void;
   onInvoicesPress?: () => void;
+  onRestockRequestsPress?: () => void;
 }
 
-export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPress }: Props) {
+export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPress, onRestockRequestsPress }: Props) {
   return (
     <View style={styles.header}>
       <View>
@@ -18,6 +19,9 @@ export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPres
         <Text style={styles.headerSub}>Zaxira holati</Text>
       </View>
       <View style={styles.actions}>
+        <TouchableOpacity style={styles.iconBtn} onPress={onRestockRequestsPress} activeOpacity={0.75}>
+          <Ionicons name="notifications-outline" size={20} color={C.primary} />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn} onPress={onScanPress} activeOpacity={0.75}>
           <Ionicons name="scan-outline" size={20} color={C.primary} />
         </TouchableOpacity>

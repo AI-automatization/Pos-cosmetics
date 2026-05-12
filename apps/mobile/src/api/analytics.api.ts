@@ -109,6 +109,28 @@ export interface MarginItem {
   readonly qtySold: number;
 }
 
+// ─── Dead Stock types ───────────────────────────────────
+export interface DeadStockItem {
+  readonly productId: string;
+  readonly productName: string;
+  readonly sku: string | null;
+  readonly totalStock: number;
+  readonly lastSoldAt: string | null;
+  readonly carryingCost: number;
+  readonly daysIdle: number;
+}
+
+// ─── Cashier Performance types ──────────────────────────
+export interface CashierPerfItem {
+  readonly userId: string;
+  readonly name: string;
+  readonly ordersCount: number;
+  readonly revenue: number;
+  readonly avgBasket: number;
+  readonly returnsCount: number;
+  readonly shiftsCount: number;
+}
+
 export const analyticsApi = {
   getRevenue: async (branchId?: string): Promise<RevenueData[]> => {
     const { data } = await api.get<RevenueData[]>('/analytics/revenue', {
@@ -159,6 +181,42 @@ export const analyticsApi = {
       });
       const rows = Array.isArray(data) ? data : [];
       return mapAbcGroups(rows);
+    } catch {
+      return [];
+    }
+  },
+
+  getDeadStock: async (days = 90): Promise<DeadStockItem[]> => {
+    try {
+      const res = await api.get('/analytics/dead-stock', { params: { days } });
+      const raw = Array.isArray(res.data) ? res.data : [];
+      return raw.map((r: any) => ({
+        productId: r.productId ?? '',
+        productName: r.productName ?? '',
+        sku: r.sku ?? null,
+        totalStock: Number(r.totalStock ?? 0),
+        lastSoldAt: r.lastSoldAt ?? null,
+        carryingCost: Number(r.carryingCost ?? 0),
+        daysIdle: Number(r.daysIdle ?? 0),
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  getCashierPerformance: async (from?: string, to?: string): Promise<CashierPerfItem[]> => {
+    try {
+      const res = await api.get('/analytics/cashier-performance', { params: { from, to } });
+      const raw = Array.isArray(res.data) ? res.data : [];
+      return raw.map((r: any) => ({
+        userId: r.userId ?? '',
+        name: [r.firstName, r.lastName].filter(Boolean).join(' ') || 'Nomsiz',
+        ordersCount: Number(r.ordersCount ?? 0),
+        revenue: Number(r.revenue ?? 0),
+        avgBasket: Number(r.avgBasket ?? 0),
+        returnsCount: Number(r.returnsCount ?? 0),
+        shiftsCount: Number(r.shiftsCount ?? 0),
+      }));
     } catch {
       return [];
     }

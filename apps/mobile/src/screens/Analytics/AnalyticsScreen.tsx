@@ -184,6 +184,34 @@ export default function AnalyticsScreen(): React.JSX.Element {
               </View>
               <Ionicons name="chevron-forward" size={18} color={C.muted} />
             </TouchableOpacity>
+            <TouchableOpacity
+              style={s.toolCard}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('CashierPerformance')}
+            >
+              <View style={[s.toolIcon, { backgroundColor: '#EFF6FF' }]}>
+                <Ionicons name="people" size={20} color="#2563EB" />
+              </View>
+              <View style={s.toolInfo}>
+                <Text style={s.toolTitle}>Kassir Samaradorligi</Text>
+                <Text style={s.toolDesc}>Kassirlar reytingi va ko'rsatkichlari</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={C.muted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.toolCard}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('DeadStock')}
+            >
+              <View style={[s.toolIcon, { backgroundColor: '#FEE2E2' }]}>
+                <Ionicons name="archive" size={20} color="#DC2626" />
+              </View>
+              <View style={s.toolInfo}>
+                <Text style={s.toolTitle}>Harakatsiz Tovarlar</Text>
+                <Text style={s.toolDesc}>90+ kun sotilmagan mahsulotlar va zarar</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={C.muted} />
+            </TouchableOpacity>
           </View>
         </ScrollView>
       )}

@@ -1,6 +1,6 @@
 // StockOutColors.ts — rang konstantalari va ruxsat etilgan rollar
 
-export const STOCK_OUT_ROLES = ['OWNER', 'ADMIN', 'MANAGER'] as const;
+export const STOCK_OUT_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE'] as const;
 
 export const C = {
   bg:        '#F9FAFB',

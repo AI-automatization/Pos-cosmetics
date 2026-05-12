@@ -34,6 +34,8 @@ interface UserCardProps {
   readonly user: AppUser;
   readonly onEdit: (user: AppUser) => void;
   readonly onToggleActive: (user: AppUser) => void;
+  readonly onResetPassword?: (user: AppUser) => void;
+  readonly isSelf?: boolean;
 }
 
 // ─── Helpers ───────────────────────────────────────────
@@ -53,23 +55,23 @@ function fmtLastLogin(lastLogin: string | null): string {
 
 // ─── Component ─────────────────────────────────────────
 
-export default function UserCard({ user, onEdit, onToggleActive }: UserCardProps) {
+export default function UserCard({ user, onEdit, onToggleActive, onResetPassword, isSelf }: UserCardProps) {
   const role = ROLE_CONFIG[user.role] ?? ROLE_CONFIG.VIEWER;
 
   const handleMenu = () => {
-    Alert.alert(
-      `${user.firstName} ${user.lastName}`,
-      'Amalni tanlang',
-      [
-        { text: 'Tahrirlash', onPress: () => onEdit(user) },
-        {
-          text: user.isActive ? 'Bloklash' : 'Faollashtirish',
-          style: user.isActive ? 'destructive' : 'default',
-          onPress: () => onToggleActive(user),
-        },
-        { text: 'Bekor', style: 'cancel' },
-      ],
-    );
+    const actions: { text: string; onPress?: () => void; style?: 'destructive' | 'cancel' | 'default' }[] = [
+      { text: 'Tahrirlash', onPress: () => onEdit(user) },
+    ];
+    if (onResetPassword && !isSelf) {
+      actions.push({ text: 'Parol tiklash', onPress: () => onResetPassword(user) });
+    }
+    actions.push({
+      text: user.isActive ? 'Bloklash' : 'Faollashtirish',
+      style: user.isActive ? 'destructive' : 'default',
+      onPress: () => onToggleActive(user),
+    });
+    actions.push({ text: 'Bekor', style: 'cancel' });
+    Alert.alert(`${user.firstName} ${user.lastName}`, 'Amalni tanlang', actions);
   };
 
   return (

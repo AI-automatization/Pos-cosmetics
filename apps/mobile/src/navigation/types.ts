@@ -156,9 +156,12 @@ export type AnalyticsStackParamList = {
   AnalyticsMain: undefined;
   AbcAnalysis: undefined;
   MarginAnalysis: undefined;
+  CashierPerformance: undefined;
+  DeadStock: undefined;
 };
 
 export type OmborTabStackParamList = {
   OmborMain: undefined;
   InvoicesScreen: undefined;
+  RestockRequestsScreen: undefined;
 };

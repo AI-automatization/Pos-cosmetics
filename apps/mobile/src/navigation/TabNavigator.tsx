@@ -50,6 +50,7 @@ import StockOutScreen from '../screens/StockOut';
 import StockTransferScreen from '../screens/StockTransfer';
 import ExpiryScreen from '../screens/Expiry';
 import InvoicesScreen from '../screens/Ombor/InvoicesScreen';
+import RestockRequestsScreen from '../screens/Ombor/RestockRequestsScreen';
 import StockMovementsScreen from '../screens/StockMovements';
 import SalesOrdersScreen from '../screens/SalesOrders';
 import SalesReturnsScreen from '../screens/SalesReturns';
@@ -175,6 +176,11 @@ function OmborTabNavigator(): React.JSX.Element {
         name="InvoicesScreen"
         component={InvoicesScreen}
         options={{ title: 'Nakladnoylar' }}
+      />
+      <OmborTabStack.Screen
+        name="RestockRequestsScreen"
+        component={RestockRequestsScreen}
+        options={{ title: "To'ldirish so'rovlari" }}
       />
     </OmborTabStack.Navigator>
   );

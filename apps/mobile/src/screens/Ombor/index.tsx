@@ -66,6 +66,7 @@ export default function OmborScreen() {
       onScanPress={() => searchRef.current?.focus()}
       onFilterPress={() => setShowWarehouseModal(true)}
       onInvoicesPress={() => navigation.navigate('InvoicesScreen')}
+      onRestockRequestsPress={() => navigation.navigate('RestockRequestsScreen')}
     />
   );
 

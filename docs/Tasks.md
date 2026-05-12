@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-08 (statistika qayta hisoblandi — T-447..T-457 va boshqalar Done.md ga o'tdi)
+# Yangilangan: 2026-05-12 (T-465..T-470 bajarildi, T-423 mobile qismi tayyor)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -80,15 +80,7 @@
 
 ---
 
-*(T-384 — Done.md ga ko'chirildi 2026-05-02)*
-
----
-
-*(T-392 — Done.md ga ko'chirildi 2026-05-02)*
-
----
-
-*(T-384 — Done.md ga ko'chirildi 2026-05-02)*
+*(T-384, T-392 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
 
@@ -264,27 +256,6 @@
 
 ---
 
----
-
----
-
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
 # ══════════════════════════════════════════════════════════════
 # STATISTIKA
 # ══════════════════════════════════════════════════════════════
@@ -293,25 +264,26 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **12** | **0** | **2** | **5** | **5** |
+| **19** | **0** | **4** | **10** | **5** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 0 | 0 | 4 | 4 | **8** |
+| [BACKEND] | 0 | 3 | 4 | 4 | **11** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
-| [IKKALASI] | 0 | 2 | 0 | 1 | **3** |
+| [MOBILE] | 0 | 0 | 5 | 0 | **5** |
+| [IKKALASI] | 0 | 1 | 0 | 1 | **2** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 0 | 1 | 5 | 4 | **10** |
-| **Ibrat + Abdulaziz** | 0 | 1 | 0 | 0 | **1** |
-| **Belgilanmagan** | 0 | 0 | 0 | 1 | **1** |
+| **Ibrat** (Full-Stack) | 0 | 4 | 3 | 0 | **7** |
+| **Abdulaziz** (Mobile) | 0 | 0 | 5 | 0 | **5** |
+| **Belgilanmagan** | 0 | 0 | 1 | 5 | **6** |
 
-> Yangilandi: 2026-05-08 — T-447..T-457 va boshqalar Done.md ga o'tdi; [MOBILE] P2/P3 tasklar bajarildi
+> Yangilandi: 2026-05-12 — T-465..T-470 Done.md ga o'tdi; T-423 mobile qismi bajarildi (backend ochiq)
 
 ---
 
@@ -477,88 +449,22 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-## T-465 | P2 | [MOBILE] | Ombor — Restock request (kassirdan so'rov) ekrani (mobile)
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Ombor/ (yangi) yoki apps/mobile/src/screens/Kirim/ (kengaytirish)
-- **Backend:** Restock request API — tayyor (T-427 da bajarilgan)
-- **Muammo:** Web warehouse dashboard da "Restock requests" bo'limi bor (kassir kam qolgan mahsulot uchun so'rov yuboradi, ombor xodimi real-time ko'radi + beep sound). Mobile da bu funksiya yo'q.
-- **Kutilgan:** Ikki tomonlama:
-  - **Kassir tomoni:** Kam qolgan mahsulot kartochkasida "So'rov yuborish" tugmasi → restock request yaratish
-  - **Ombor tomoni:** Kirim yoki Ombor ekranida "So'rovlar" tabi/badge — yangi so'rovlarni ko'rish, "Qabul qildim" deb belgilash
-  - Push notification: yangi so'rov kelganda ombor xodimiga bildirishnoma
+*(T-465, T-466, T-467, T-468 — Done.md ga ko'chirildi 2026-05-12)*
 
 ---
 
-## T-466 | P2 | [MOBILE] | StockTransferScreen — tanlangan mahsulot sheet ga uzatilmaydi (UX bug)
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/StockTransfer/index.tsx
-- **Muammo:** Mahsulot kartochkasiga bosganda `onSelect={() => setSheet(true)}` chaqiriladi, lekin tanlangan mahsulot `NewTransferSheet` ga uzatilmaydi. Sheet har doim bo'sh ochiladi — foydalanuvchi mahsulotni qayta qidirishi kerak.
-- **Kutilgan:** `selectedItem` state qo'shish, `onSelect` da set qilish, `NewTransferSheet` ga `selectedItem` prop sifatida uzatish. Sheet ochilganda mahsulot oldindan tanlangan bo'lishi kerak.
+*(T-469, T-470 — Done.md ga ko'chirildi 2026-05-12)*
 
 ---
 
-## T-467 | P2 | [MOBILE] | StockMovementsScreen — pagination yo'q, faqat 50 ta record ko'rinadi
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/StockMovements/index.tsx
-- **Muammo:** `GET /inventory/movements?page=1&limit=50` faqat birinchi sahifani yuklaydi. Load more yoki infinite scroll yo'q. Yuqori hajmli do'konlarda eski harakatlar ko'rinmaydi.
-- **Kutilgan:** `FlatList` da `onEndReached` + `onEndReachedThreshold` bilan infinite scroll qo'shish. `page` state ni oshirib keyingi sahifani yuklash, `items` ga append qilish.
-
----
-
-## T-468 | P2 | [MOBILE] | InvoicesScreen — search, filter va Cancel tugmasi yo'q
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Ombor/InvoicesScreen.tsx, apps/mobile/src/screens/Ombor/InvoiceDetailSheet.tsx
-- **Muammo:** 3 ta kamchilik:
-  1. Search yo'q — invoice raqami yoki yetkazuvchi nomi bo'yicha qidirish imkoni yo'q
-  2. Filter yo'q — sana bo'yicha filtrlash mumkin emas (API `from`/`to` qo'llab-quvvatlaydi)
-  3. InvoiceDetailSheet da faqat "Qabul qilish" (Approve) tugmasi bor, "Bekor qilish" (Cancel/Reject) tugmasi yo'q (KirimScreen da ikkisi ham bor)
-- **Kutilgan:**
-  - Search bar qo'shish (client-side filter: invoice number, supplier name)
-  - Status filter tabs: ALL / PENDING / RECEIVED / CANCELLED
-  - InvoiceDetailSheet ga "Bekor qilish" tugmasi qo'shish (`PATCH /warehouse/invoices/:id/reject`)
-
----
-
-## T-469 | P3 | [MOBILE] | LowStockList — rol guard va search yo'q
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/Inventory/LowStockList.tsx
-- **Muammo:** 2 ta kamchilik:
-  1. Rol guard yo'q — CASHIER va VIEWER ham kirishi mumkin (boshqa ombor ekranlarida Manager+ guard bor)
-  2. Search yo'q — mahsulot nomi bo'yicha qidirish imkoni yo'q
-- **Kutilgan:**
-  - Rol guard qo'shish: faqat OWNER, ADMIN, MANAGER, WAREHOUSE roli kirishi mumkin
-  - Search bar qo'shish (client-side: product name filter)
-
----
-
-## T-470 | P3 | [MOBILE] | StockOutScreen — WAREHOUSE roli kirolmaydi
-
-- **Sana:** 2026-05-09
-- **Mas'ul:** Abdulaziz
-- **Fayl:** apps/mobile/src/screens/StockOut/index.tsx
-- **Muammo:** `ALLOWED_ROLES` ga `WAREHOUSE` kiritilmagan — ombor xodimi hisobdan chiqarish (write-off) qilolmaydi. Lock screen ko'rsatiladi: "Kerakli rol: Manager, Admin, Owner". Lekin amalda ombor xodimi shikastlangan/muddati o'tgan mahsulotlarni chiqarishi kerak.
-- **Kutilgan:** `ALLOWED_ROLES` ga `'WAREHOUSE'` qo'shish. Yoki alohida ruxsat tizimi (masalan, WAREHOUSE faqat o'z omboridagi mahsulotlarni chiqarishi mumkin).
-
----
-
-## T-423 | P1 | [IKKALASI] | PaymentsHistoryScreen — Backend `/sales/orders` `from`/`to` sana filtrini qabul qilmaydi
+## T-423 | P1 | [BACKEND] | PaymentsHistoryScreen — Backend `/sales/orders` `from`/`to` sana filtrini qabul qilmaydi
 
 - **Sana:** 2026-05-05
-- **Mas'ul:** Ibrat (backend fix) + Abdulaziz (mobile)
-- **Fayl:** apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx, apps/api/src/sales/sales.controller.ts, apps/api/src/sales/sales.service.ts
-- **Muammo:** `PaymentsHistoryScreen` `salesApi.getOrders({ from, to, limit: 200 })` chaqiradi. Lekin backend `GET /sales/orders` controlleri faqat `page`, `limit`, `shiftId` parametrlarini qabul qiladi; `from` va `to` parametrlari yo'q. `sales.service.ts` `getOrders()` ham `where` shartida sana filtri yo'q. Natija: davr filtri tugmalari (bugun/7 kun/30 kun/90 kun) hech qanday ta'sir qilmaydi — har doim barcha orderlar qaytariladi.
+- **Mas'ul:** Ibrat (backend fix)
+- **Fayl:** apps/api/src/sales/sales.controller.ts, apps/api/src/sales/sales.service.ts
+- **Muammo:** Backend `GET /sales/orders` controlleri faqat `page`, `limit`, `shiftId` parametrlarini qabul qiladi; `from` va `to` parametrlari yo'q. `order.service.ts` `getOrders()` da `createdAt` bo'yicha filter yo'q.
 - **Kutilgan:** Backend `from` va `to` query parametrlarini qabul qilib, `order.createdAt` bo'yicha filtrlashi kerak.
+- **Mobile holat:** ✅ Client-side sana filtri qo'shildi (2026-05-12) — davr tugmalari ishlaydi. Backend fix ham kerak (katta hajmda client-side filter sekin bo'ladi).
 - **Topildi:** Manual Code Review — 2026-05-05
 
 ---
-
