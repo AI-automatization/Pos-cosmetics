@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { authApi, type LoginPayload } from '@/api/auth.api';
 import { extractErrorMessage } from '@/lib/utils';
-import { getAccessToken, setAccessToken, clearAccessToken } from '@/api/token';
+import { getAccessToken, setAccessToken, clearAccessToken, setUserIdFallback, clearUserIdFallback } from '@/api/token';
 
 const SESSION_COOKIE = 'session_active';
 const ROLE_COOKIE = 'user_role';
@@ -80,6 +80,7 @@ export function useLogin() {
         const user = await authApi.me();
         queryClient.setQueryData(['auth', 'me'], user);
         setSessionCookie(user.role, user.id); // set role + userId cookies for middleware & refresh
+        setUserIdFallback(user.id); // localStorage fallback
 
         if (user.role === 'WAREHOUSE') {
           router.push('/warehouse');
@@ -118,6 +119,7 @@ export function useLogout() {
       } finally {
         clearAccessToken();
         clearSessionCookie();
+        clearUserIdFallback();
         queryClient.clear();
       }
     },
@@ -127,6 +129,7 @@ export function useLogout() {
     onError: () => {
       clearAccessToken();
       clearSessionCookie();
+      clearUserIdFallback();
       router.push('/login');
     },
   });
