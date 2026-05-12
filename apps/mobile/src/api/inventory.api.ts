@@ -47,11 +47,6 @@ export interface LowStockItem {
   isLow: boolean;
 }
 
-export interface StockListResponse {
-  data: LowStockItem[];
-  total: number;
-}
-
 export interface ProductStockLevel {
   warehouseId: string;
   warehouseName: string;
@@ -201,42 +196,13 @@ export interface InvoiceListResponse {
 }
 
 export const inventoryApi = {
-  getStock: async (branchId?: string): Promise<StockListResponse> => {
-    const { data } = await api.get<StockListResponse>('/inventory/levels', {
-      params: { branchId },
-    });
-    return data;
-  },
-
-  getLowStock: async (branchId?: string): Promise<LowStockItem[]> => {
+  getStockLevels: async (params?: {
+    search?: string;
+    branchId?: string;
+    lowStock?: boolean;
+  }): Promise<LowStockItem[]> => {
     const { data } = await api.get<unknown>('/inventory/levels', {
-      params: { lowStock: true, branchId },
-    });
-    const raw = Array.isArray(data)
-      ? data
-      : ((data as any)?.data ?? (data as any)?.items ?? []);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return raw.map((item: any): LowStockItem => {
-      const qty = item.totalQty ?? item.stock ?? item.quantity ?? 0;
-      const threshold = item.minStockLevel ?? 5;
-      return {
-        productId: item.productId,
-        productName: item.name ?? item.productName ?? '',
-        sku: item.sku ?? '',
-        warehouseId: item.warehouseId,
-        warehouseName: item.warehouseName ?? '',
-        stock: qty,
-        quantity: qty,
-        minStockLevel: threshold,
-        threshold,
-        isLow: qty <= threshold,
-      };
-    });
-  },
-
-  getStockLevels: async (search?: string): Promise<LowStockItem[]> => {
-    const { data } = await api.get<unknown>('/inventory/levels', {
-      params: search ? { search } : undefined,
+      params: params ?? undefined,
     });
     // Backend returns a plain array: [{ productId, warehouseId, totalQty, name, sku, minStockLevel, warehouseName }]
     const raw = Array.isArray(data)
@@ -266,31 +232,6 @@ export const inventoryApi = {
       `/inventory/products/${productId}/stock`,
     );
     return data;
-  },
-
-  getReceipts: async (params?: {
-    page?: number;
-    limit?: number;
-    from?: string;
-    to?: string;
-  }): Promise<ReceiptListResponse> => {
-    const { data } = await api.get<{ invoices?: WarehouseInvoice[]; items?: WarehouseInvoice[]; data?: WarehouseInvoice[]; total: number; page: number; limit: number }>(
-      '/warehouse/invoices',
-      { params },
-    );
-    // Backend returns { invoices, total, page, limit } — check all possible keys
-    const rawItems: WarehouseInvoice[] = data.invoices ?? data.items ?? data.data ?? [];
-    const items: Receipt[] = rawItems.map((r) => ({
-      id: r.id,
-      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
-      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('uz-UZ') : '—',
-      supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
-      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      totalCost: r.totalCost ?? 0,
-      status: r.status === 'RECEIVED' ? 'RECEIVED' : r.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
-      notes: r.notes ?? r.note,
-    }));
-    return { items, total: data.total ?? 0, page: data.page ?? 1, limit: data.limit ?? 20 };
   },
 
   getReceiptById: async (id: string): Promise<Receipt> => {
@@ -336,34 +277,6 @@ export const inventoryApi = {
   createTransfer: async (body: CreateTransferBody): Promise<CreateTransferResponse> => {
     const { data } = await api.post<CreateTransferResponse>('/inventory/transfers', body);
     return data;
-  },
-
-  acceptReceipt: async (id: string): Promise<Receipt> => {
-    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/approve`);
-    const r = data;
-    return {
-      id: r.id,
-      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
-      date: new Date(r.createdAt ?? Date.now()).toLocaleDateString('uz-UZ'),
-      supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
-      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      totalCost: r.totalCost ?? 0,
-      status: 'RECEIVED',
-    };
-  },
-
-  cancelReceipt: async (id: string): Promise<Receipt> => {
-    const { data } = await api.patch<any>(`/warehouse/invoices/${id}/reject`);
-    const r = data;
-    return {
-      id: r.id,
-      receiptNumber: r.invoiceNumber ?? '#' + String(r.id).slice(0, 6),
-      date: new Date(r.createdAt ?? Date.now()).toLocaleDateString('uz-UZ'),
-      supplierName: r.supplier?.name ?? r.supplierName ?? "Noma'lum",
-      itemsCount: r.items?.length ?? r.itemsCount ?? 0,
-      totalCost: r.totalCost ?? 0,
-      status: 'CANCELLED',
-    };
   },
 
   createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {

@@ -77,7 +77,7 @@ export default function LowStockScreen(): React.JSX.Element {
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['inventory', 'low-stock', selectedBranchId],
-    queryFn: safeQueryFn<StockItem[]>(() => inventoryApi.getLowStock(selectedBranchId ?? undefined), []),
+    queryFn: safeQueryFn<StockItem[]>(() => inventoryApi.getStockLevels({ branchId: selectedBranchId ?? undefined, lowStock: true }), []),
     enabled: hasAccess,
   });
 

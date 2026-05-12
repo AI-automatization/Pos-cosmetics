@@ -89,7 +89,7 @@ export function useDashboardData() {
 
   const lowStock = useQuery({
     queryKey: ['inventory', 'low-stock'],
-    queryFn: () => inventoryApi.getLowStock(),
+    queryFn: () => inventoryApi.getStockLevels({ lowStock: true }),
     refetchInterval: CONFIG.ALERTS_REFETCH_INTERVAL_MS,
   });
 
