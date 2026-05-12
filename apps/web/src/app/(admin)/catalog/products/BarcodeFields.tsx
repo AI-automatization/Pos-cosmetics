@@ -49,6 +49,10 @@ export function BarcodeFields({ register, fields, append, remove, setValue, getV
     const MIN_LEN = 4;
 
     function onKeyDown(e: KeyboardEvent) {
+      // Если фокус в barcode-поле — пользователь вводит вручную, не перехватываем
+      const el = document.activeElement as HTMLElement | null;
+      if (el?.hasAttribute('data-barcode-field')) return;
+
       const now = Date.now();
       const gap = now - scanTimeRef.current;
       scanTimeRef.current = now;
@@ -59,9 +63,8 @@ export function BarcodeFields({ register, fields, append, remove, setValue, getV
         if (code.length >= MIN_LEN) {
           e.preventDefault();
           // Очищаем текст который сканер "напечатал" в активный input
-          const el = document.activeElement as HTMLInputElement | null;
-          if (el?.tagName === 'INPUT' && !el.hasAttribute('data-barcode-field')) {
-            el.value = el.value.replace(code, '');
+          if (el?.tagName === 'INPUT') {
+            (el as HTMLInputElement).value = (el as HTMLInputElement).value.replace(code, '');
             el.dispatchEvent(new Event('input', { bubbles: true }));
           }
           handleHardwareScan(code);

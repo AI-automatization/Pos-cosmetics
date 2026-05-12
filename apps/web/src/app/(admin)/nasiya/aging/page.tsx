@@ -38,7 +38,7 @@ export default function AgingReportPage() {
       .map((b) => ({ name: b.label, value: b.totalAmount })) ?? [];
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

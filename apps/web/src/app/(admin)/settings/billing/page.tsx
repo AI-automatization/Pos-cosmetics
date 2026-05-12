@@ -164,7 +164,7 @@ export default function BillingPage() {
         <div className="space-y-6">
           {/* Current subscription info */}
           {subscription ? (
-            <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="h-full overflow-y-auto flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
                   <CreditCard className="h-6 w-6 text-blue-600" />

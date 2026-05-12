@@ -174,7 +174,7 @@ async function seedDemoData(tid) {
   const pwHash = await bcrypt.hash(DEMO_PASSWORD, 12);
 
   // Update tenant
-  await prisma.tenant.update({ where: { id: tid }, data: { name: 'Kosmetika Savdosi' } });
+  await prisma.tenant.update({ where: { id: tid }, data: { name: 'Kosmetika Savdosi', slug: 'kosmetika-demo' } });
 
   // --- Branches ---
   console.log('  Branches...');
@@ -341,7 +341,8 @@ async function seedDemoData(tid) {
         const qty = 1 + Math.floor(Math.random() * 3);
         const price = prods[i].sellPrice;
         total += price * Number(qty);
-        return { productId: prods[i].id, quantity: qty, unitPrice: price, totalPrice: price * Number(qty) };
+        const tp = price * Number(qty);
+        return { productId: prods[i].id, productName: prods[i].name, quantity: qty, unitPrice: price, total: tp };
       });
 
       const d = new Date();
@@ -350,9 +351,8 @@ async function seedDemoData(tid) {
 
       const orderData = {
         tenantId: tid, shiftId: sh.id, userId: ca.id, branchId: ca.branchId,
-        orderNumber: `KS-${String(oNum++).padStart(5, '0')}`,
-        subtotal: total, totalAmount: total,
-        paymentMethod: ['CASH', 'CARD', 'MIXED'][Math.floor(Math.random() * 3)],
+        orderNumber: oNum++,
+        subtotal: total, total: total,
         status: 'COMPLETED', createdAt: d,
         items: { create: items },
       };

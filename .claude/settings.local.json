@@ -51,7 +51,9 @@
       "mcp__plugin_playwright_playwright__browser_fill_form",
       "mcp__plugin_playwright_playwright__browser_click",
       "mcp__plugin_playwright_playwright__browser_type",
-      "mcp__plugin_playwright_playwright__browser_wait_for"
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "Bash(/tmp/final_check.sh)",
+      "Bash(/tmp/detailed_report.sh)"
     ]
   },
   "enableAllProjectMcpServers": true,

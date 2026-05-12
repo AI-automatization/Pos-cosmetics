@@ -41,7 +41,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
   if (!invoice) {
     return (
-      <div className="flex h-full items-center justify-center p-6">
+      <div className="flex h-full overflow-y-auto items-center justify-center p-6">
         <div className="text-center">
           <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300" />
           <p className="text-lg font-semibold text-gray-700">{t('warehouse.invoiceNotFound')}</p>

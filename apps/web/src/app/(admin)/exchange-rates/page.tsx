@@ -46,7 +46,7 @@ export default function ExchangeRatesPage() {
   const isLoading = latestLoading || historyLoading;
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

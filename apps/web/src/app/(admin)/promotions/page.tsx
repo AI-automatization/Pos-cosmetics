@@ -159,7 +159,7 @@ export default function PromotionsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto p-6">
+    <div className="flex flex-col gap-5 h-full overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">

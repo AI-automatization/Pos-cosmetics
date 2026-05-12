@@ -89,7 +89,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="flex-1 h-full overflow-y-auto p-5 space-y-5">
           {isLoading ? (
             <LoadingSkeleton variant="table" rows={4} />
           ) : order ? (

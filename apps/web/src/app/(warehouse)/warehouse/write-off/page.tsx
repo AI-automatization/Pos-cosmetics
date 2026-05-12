@@ -154,7 +154,7 @@ export default function WriteOffPage() {
               </tr>
             </thead>
           </table>
-          <div className="max-h-[480px] overflow-y-auto">
+          <div className="max-h-[480px] h-full overflow-y-auto">
             <table className="w-full text-sm">
               <colgroup>
                 <col />

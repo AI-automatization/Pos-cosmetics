@@ -115,7 +115,7 @@ export default function RealEstatePage() {
   });
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="h-full overflow-y-auto flex flex-col gap-6 p-6">
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-gray-900">{t('realestate.title')}</h1>
