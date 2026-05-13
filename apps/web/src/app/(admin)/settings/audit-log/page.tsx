@@ -14,6 +14,8 @@ interface AuditLogItem {
   id: string;
   tenantId: string;
   userId: string | null;
+  userName: string | null;
+  userRole: string | null;
   action: string;
   entityType: string;
   entityId: string | null;
@@ -55,6 +57,21 @@ const ACTION_COLORS: Record<string, string> = {
   APPROVE: 'bg-purple-100 text-purple-700',
 };
 
+const ENTITY_LABELS: Record<string, string> = {
+  User: 'Foydalanuvchi',
+  Product: 'Mahsulot',
+  Category: 'Kategoriya',
+  Order: 'Buyurtma',
+  Supplier: 'Yetkazib beruvchi',
+  Branch: 'Filial',
+  Shift: 'Smena',
+  Invoice: 'Nakladnoy',
+  StockMovement: 'Zaxira harakati',
+  Customer: 'Mijoz',
+  DebtRecord: 'Nasiya',
+  Promotion: 'Aksiya',
+};
+
 // ─── API hook ───────��──────────────────────────────��────────────────────────
 
 function useAuditLogs(params: { action?: string; page: number; limit: number }) {
@@ -90,15 +107,15 @@ function AuditRow({ log, t }: { log: AuditLogItem; t: (key: string) => string })
           {new Date(log.createdAt).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })}
         </td>
         <td className="px-4 py-3">
-          <p className="text-sm text-gray-700 font-mono">{log.userId ? log.userId.slice(0, 8) + '...' : '—'}</p>
-          {log.ip && <p className="text-xs text-gray-400">{log.ip}</p>}
+          <p className="text-sm font-medium text-gray-700">{log.userName ?? '—'}</p>
+          {log.userRole && <p className="text-xs text-gray-400">{log.userRole}</p>}
         </td>
         <td className="px-4 py-3">
           <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', colorClass)}>
             {log.action}
           </span>
         </td>
-        <td className="px-4 py-3 text-sm text-gray-600">{log.entityType}</td>
+        <td className="px-4 py-3 text-sm text-gray-600">{ENTITY_LABELS[log.entityType] ?? log.entityType}</td>
         <td className="px-4 py-3 text-sm text-gray-500 font-mono">
           {log.entityId ? log.entityId.slice(0, 12) + '...' : '—'}
         </td>

@@ -75,7 +75,7 @@ export class AuditService {
       }),
     };
 
-    const [total, items] = await this.prisma.$transaction([
+    const [total, rawItems] = await this.prisma.$transaction([
       this.prisma.auditLog.count({ where }),
       this.prisma.auditLog.findMany({
         where,
@@ -84,6 +84,25 @@ export class AuditService {
         orderBy: { createdAt: 'desc' },
       }),
     ]);
+
+    // Join user names
+    const userIds = [...new Set(rawItems.map((i) => i.userId).filter(Boolean))] as string[];
+    const users = userIds.length > 0
+      ? await this.prisma.user.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, firstName: true, lastName: true, role: true },
+        })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const items = rawItems.map((item) => {
+      const user = item.userId ? userMap.get(item.userId) : null;
+      return {
+        ...item,
+        userName: user ? `${user.firstName} ${user.lastName ?? ''}`.trim() : null,
+        userRole: user?.role ?? null,
+      };
+    });
 
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
