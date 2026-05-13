@@ -144,10 +144,10 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
         </div>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 overflow-y-auto p-5">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
             {/* Row 1: Name full width */}
-            <Field label="Nomi" error={errors.name?.message} required className="col-span-3">
+            <Field label="Nomi" error={errors.name?.message} required className="col-span-1 sm:col-span-2 lg:col-span-3">
               <input
                 {...register('name')}
                 placeholder="Masalan: Nivea krem 100ml"
@@ -277,7 +277,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
 
             {/* Custom unit row — full width, only when needed */}
             {unitMode === 'custom' && (
-              <div className="col-span-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
+              <div className="col-span-1 sm:col-span-2 lg:col-span-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">
                     Nomi <span className="text-red-500">*</span>

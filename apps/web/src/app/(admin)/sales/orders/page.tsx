@@ -95,7 +95,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
           ) : order ? (
             <>
               {/* Order meta info */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-lg bg-gray-50 p-3">
                   <p className="mb-0.5 text-xs font-medium text-gray-500">{t('common.date')}</p>
                   <p className="text-sm font-semibold text-gray-900">{formatDateTime(order.createdAt)}</p>

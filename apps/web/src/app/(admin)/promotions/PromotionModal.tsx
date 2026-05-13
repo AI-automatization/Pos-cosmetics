@@ -116,7 +116,7 @@ function RulesForm({
   }
   if (type === 'BUY_X_GET_Y') {
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.buyCount')}</label>
           <input type="number" min={1} value={num('buyQty') || ''} onChange={(e) => set('buyQty', Number(e.target.value))} className={inputCls} placeholder="2" />
@@ -250,7 +250,7 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
             />
 
             {/* Dates */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-gray-600">{t('promotions.startDate')}</label>
                 <input type="date" required value={form.validFrom} onChange={(e) => setField('validFrom', e.target.value)} className={inputCls} />

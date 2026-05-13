@@ -265,7 +265,7 @@ export default function CustomerProfilePage() {
         </div>
 
         {/* Debt stats */}
-        <div className="mt-5 grid grid-cols-3 gap-4">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="rounded-xl bg-white/80 p-4">
             <p className="text-xs text-gray-500">Joriy qarz</p>
             <p className={cn('mt-1 text-lg font-bold', customer.debtBalance > 0 ? 'text-orange-600' : 'text-green-600')}>

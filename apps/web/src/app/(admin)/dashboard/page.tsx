@@ -117,7 +117,7 @@ export default function DashboardPage() {
     return (
       <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
         <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <LoadingSkeleton key={i} variant="card" rows={1} />
           ))}
@@ -268,7 +268,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <WeeklyRevenueChart data={weeklyRevenue} />
         {profit ? (
           <ProfitBreakdown profit={profit} />

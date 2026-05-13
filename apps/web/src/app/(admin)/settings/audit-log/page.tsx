@@ -130,7 +130,7 @@ function AuditRow({ log, t }: { log: AuditLogItem; t: (key: string) => string })
       {expanded && hasDiff && (
         <tr className="bg-gray-50">
           <td colSpan={6} className="px-4 pb-3">
-            <div className="grid grid-cols-2 gap-4 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               {log.oldData && (
                 <div>
                   <p className="mb-1 text-xs font-semibold text-red-600">{t('audit.previous')}</p>

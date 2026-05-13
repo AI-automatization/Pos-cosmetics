@@ -72,7 +72,7 @@ function CustomerCard({
       </div>
 
       {/* Debt info */}
-      <div className="mb-3 grid grid-cols-2 gap-2 text-sm">
+      <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
         <div className="rounded-lg bg-white/70 px-3 py-2">
           <p className="text-xs text-gray-500">{t('pos.currentDebt')}</p>
           <p className={cn('font-bold', customer.debtBalance > 0 ? 'text-red-600' : 'text-gray-700')}>

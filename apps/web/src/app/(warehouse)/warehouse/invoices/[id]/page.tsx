@@ -106,7 +106,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Invoice meta card */}
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
               <Hash className="h-4 w-4 text-blue-500" />

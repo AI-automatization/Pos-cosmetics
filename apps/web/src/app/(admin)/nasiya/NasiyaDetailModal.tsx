@@ -118,7 +118,7 @@ export function NasiyaDetailModal({ debtId, onClose }: Props) {
               </div>
 
               {/* Debt amounts */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-gray-100 bg-white p-3 text-center">
                   <p className="text-xs text-gray-400">{t('nasiya.originalAmount')}</p>
                   <p className="mt-1 font-bold text-gray-900">{formatPrice(Number(detail.totalAmount))}</p>

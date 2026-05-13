@@ -131,7 +131,7 @@ export default function WarehouseDashboardPage() {
       </div>
 
       {/* Quick Navigation */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { href: '/warehouse/invoices',  icon: FileText,    label: t('warehouse.invoices'),        color: 'bg-blue-50 text-blue-600',   border: 'hover:border-blue-300' },
           { href: '/warehouse/stock-in',  icon: PackagePlus, label: t('warehouse.stockIn'),        color: 'bg-green-50 text-green-600', border: 'hover:border-green-300' },
@@ -155,7 +155,7 @@ export default function WarehouseDashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={Package}       label={t('warehouse.totalProducts')}     value={stats?.totalProducts ?? 0} color="bg-amber-500" />
         <StatCard icon={TrendingDown}  label={t('inventory.lowStock')}            value={stats?.lowStockCount ?? 0} color="bg-red-500" />
         <StatCard icon={AlertTriangle} label={t('warehouse.expirySoon')}         value={stats?.expiryCount ?? 0}  color="bg-orange-500" />

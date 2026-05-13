@@ -112,7 +112,7 @@ export default function WorkersPage() {
 
       {/* Stats row */}
       {stats && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
               <Users className="h-5 w-5 text-blue-600" />

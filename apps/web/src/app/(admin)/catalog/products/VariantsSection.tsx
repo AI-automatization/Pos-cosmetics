@@ -58,7 +58,7 @@ function VariantRow({ variant, productId }: VariantRowProps) {
   if (editing) {
     return (
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="col-span-2">
             <input
               value={form.name}
@@ -220,7 +220,7 @@ export function VariantsSection({ productId }: VariantsSectionProps) {
 
       {showAddForm && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div className="col-span-2">
               <input
                 value={form.name}

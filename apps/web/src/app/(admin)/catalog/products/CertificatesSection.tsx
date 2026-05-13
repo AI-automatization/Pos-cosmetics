@@ -201,7 +201,7 @@ function CertForm({
 
   return (
     <div className="mt-3 rounded-lg border border-emerald-200 bg-white p-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">{t('products.certNumber')} *</label>
           <input

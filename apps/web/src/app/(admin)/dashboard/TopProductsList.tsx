@@ -59,7 +59,7 @@ export function TopProductsGrid({ products }: TopProductsGridProps) {
           {t('dashboard.viewAll')}
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {products.slice(0, 5).map((p, idx) => (
           <div key={p.productId} className="flex items-center gap-2">
             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">

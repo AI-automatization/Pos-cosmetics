@@ -126,7 +126,7 @@ export default function ShiftReportsPage() {
                 {/* Expanded details */}
                 {isOpen && (
                   <div className="border-t border-gray-100 bg-gray-50 px-5 py-4">
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-500">{t('reports.cashRevenue')}</span>
                         <span className="font-medium">{formatPrice(shift.cashRevenue)}</span>

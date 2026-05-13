@@ -221,7 +221,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
       {/* Payment method — 2×2 grid */}
       <div className="shrink-0 border-b border-gray-100 p-3">
         <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.paymentType')}</p>
-        <div className="grid grid-cols-5 gap-1">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1">
           {METHODS.map((m) => (
             <button
               key={m.key}
@@ -294,7 +294,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
       {paymentMethod === 'card' && (
         <div className="shrink-0 border-b border-gray-100 p-3">
           <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.cardMethod')}</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {([
               { key: 'terminal' as const, label: t('pos.terminal'), icon: '🏧' },
               { key: 'payme' as const, label: 'Payme', icon: '💳' },

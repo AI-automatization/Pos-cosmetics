@@ -56,7 +56,7 @@ export default function AgingReportPage() {
 
       {/* Summary */}
       {summary && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="rounded-xl border border-gray-200 bg-white p-4">
             <p className="text-xs text-gray-500">{t('nasiya.totalDebtAmount')}</p>
             <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(summary.totalDebt)}</p>

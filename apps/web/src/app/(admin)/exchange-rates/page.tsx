@@ -71,7 +71,7 @@ export default function ExchangeRatesPage() {
       {latestLoading ? (
         <LoadingSkeleton variant="card" rows={1} />
       ) : latest ? (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="col-span-1 rounded-xl border border-green-200 bg-green-50 p-5">
             <p className="text-xs font-medium text-green-600">Joriy kurs (CBU)</p>
             <p className="mt-2 text-3xl font-bold text-green-700">

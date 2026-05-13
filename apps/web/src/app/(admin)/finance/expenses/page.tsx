@@ -163,7 +163,7 @@ export default function ExpensesPage() {
 
       {/* Profit summary cards */}
       {profit && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: t('pnl.revenue'), value: profit.revenue, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
             { label: t('pnl.grossProfit'), value: profit.grossProfit, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },

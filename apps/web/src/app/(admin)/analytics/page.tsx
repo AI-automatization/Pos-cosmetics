@@ -215,7 +215,7 @@ export default function AnalyticsPage() {
               <Layers className="h-4 w-4 text-gray-400" />
               <h3 className="text-sm font-semibold text-gray-900">{t('analytics.abcQuickView')}</h3>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {abcData.map((g) => (
                 <div
                   key={g.group}

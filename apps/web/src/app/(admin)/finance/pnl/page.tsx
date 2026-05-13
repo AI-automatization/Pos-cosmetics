@@ -178,7 +178,7 @@ export default function PnlPage() {
       {data && (
         <>
           {/* KPI Cards */}
-          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-5">
             <KpiCard
               label={t('pnl.revenue')}
               value={data.revenue}

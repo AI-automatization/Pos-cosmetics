@@ -65,7 +65,7 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
               Umumiy ma&apos;lumot
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-xl bg-gray-50 px-4 py-3">
                 <p className="text-xs text-gray-500">Joriy zaxira</p>
                 <p

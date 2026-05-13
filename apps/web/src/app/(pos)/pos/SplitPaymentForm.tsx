@@ -64,7 +64,7 @@ export function SplitPaymentForm({
       {/* Toggle chips */}
       <div className="border-b border-gray-100 p-3">
         <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.selectPaymentMethods')}</p>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
           {([
             { key: 'cash' as const, label: t('pos.cashShort'), color: 'blue' },
             { key: 'card' as const, label: t('pos.card'), color: 'blue' },

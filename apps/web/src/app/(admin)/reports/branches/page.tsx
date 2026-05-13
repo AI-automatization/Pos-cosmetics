@@ -180,7 +180,7 @@ export default function BranchReportsPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <SummaryCard label={t('reports.totalRevenue')} value={formatPrice(totalRevenue)} note={t('reports.allBranches')} />
         <SummaryCard label={t('reports.orders')} value={`${totalOrders} ${t('common.unit')}`} note={`${PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? ''}`} />
         <SummaryCard

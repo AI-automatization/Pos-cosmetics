@@ -166,7 +166,7 @@ export default function PrinterSettingsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* General settings */}
         <div className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="font-semibold text-gray-900">{t('printer.basicSettings')}</h2>

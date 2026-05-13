@@ -68,7 +68,7 @@ export function InvoiceDetailDrawer({ invoiceId, onClose }: InvoiceDetailDrawerP
           {invoice && (
             <>
               {/* Meta */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
                   <p className="text-xs text-gray-400 mb-0.5">Yetkazib beruvchi</p>
                   <p className="text-sm font-medium text-gray-900">{invoice.supplier?.name ?? '—'}</p>

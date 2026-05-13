@@ -49,7 +49,7 @@ function DemoTooltip({ active, payload, label }: DemoTooltipProps) {
 export function DemoContent() {
   const { t } = useTranslation();
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-5">
         <p className="mb-1 text-sm font-semibold text-gray-700">{t('dashboard.weeklyRevenueDemo')}</p>
         <p className="mb-4 text-xs text-gray-400">

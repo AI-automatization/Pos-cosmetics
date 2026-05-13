@@ -224,7 +224,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         )}
 
         {data && data.items.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 xl:grid-cols-3">
             {data.items.map((product) => (
               <ProductCard
                 key={product.id}
