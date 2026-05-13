@@ -665,13 +665,15 @@
     "total": "JAMI:",
     "cash": "Naqd pul:",
     "card": "Bank kartasi:",
+    "nasiya": "Nasiya:",
+    "bonus": "Bonus:",
+    "transfer": "O'tkazma:",
     "change": "Qaytim:",
     "fiscalStatus": "FISKAL HOLAT",
-    "fiscalPending": "KUTILMOQDA",
-    "fiscalPendingDesc": "Fiskal integratsiya ishga tushirilganda...",
+    "fiscalPending": "KKM ulanmagan",
+    "fiscalNote": "Fiskal chek KKM ulanganidan keyin chop etiladi",
     "thankYou": "Xarid uchun rahmat!",
     "visitAgain": "Yana tashrif buyuring",
-    "fiscalNote": "Fiskal eslatma",
     "subtotal": "Oraliq jami"
   },
   "suppliers": {

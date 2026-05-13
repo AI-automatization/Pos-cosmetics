@@ -5,14 +5,7 @@
 
 import type { Order } from '@/types/sales';
 import { useTranslation } from '@/i18n/i18n-context';
-
-// Shop config — will come from tenant settings (T-059 later)
-const SHOP_CONFIG = {
-  name: 'KOSMETIKA DO\'KONI',
-  address: 'Toshkent sh., Chilonzor t.',
-  phone: '+998 90 000 00 00',
-  inn: '000000000',
-} as const;
+import { useCurrentUser } from '@/hooks/auth/useAuth';
 
 function fmt(amount: number): string {
   return new Intl.NumberFormat('uz-UZ').format(Math.round(amount)) + ' so\'m';
@@ -32,18 +25,30 @@ interface ReceiptTemplateProps {
   change?: number;
 }
 
+const PAYMENT_LABELS: Record<string, string> = {
+  CASH: 'receipt.cash',
+  TERMINAL: 'receipt.card',
+  CARD: 'receipt.card',
+  PAYME: 'Payme',
+  CLICK: 'Click',
+  UZUM: 'Uzum',
+  DEBT: 'receipt.nasiya',
+  NASIYA: 'receipt.nasiya',
+  BONUS: 'receipt.bonus',
+  TRANSFER: 'receipt.transfer',
+};
+
 export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
   const { t } = useTranslation();
+  const { data: user } = useCurrentUser();
+  const shopName = user?.tenant?.name ?? 'RAOS';
   const orderNum = order.orderNumber ?? `#${(order.id ?? '').slice(0, 8).toUpperCase()}`;
 
   return (
     <div className="receipt-body">
       {/* Shop header */}
       <div className="receipt-center">
-        <div className="receipt-bold receipt-large">{SHOP_CONFIG.name}</div>
-        <div className="receipt-small">{SHOP_CONFIG.address}</div>
-        <div className="receipt-small">Tel: {SHOP_CONFIG.phone}</div>
-        <div className="receipt-small">INN: {SHOP_CONFIG.inn}</div>
+        <div className="receipt-bold receipt-large">{shopName}</div>
       </div>
 
       <div className="receipt-divider" />
@@ -111,12 +116,16 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
 
       {/* Payments */}
       <div className="receipt-small">
-        {(order.payments ?? []).map((p, i) => (
-          <div key={i} className="receipt-row">
-            <span>{p.method === 'CASH' ? t('receipt.cash') : t('receipt.card')}:</span>
-            <span className="receipt-row-right">{fmt(p.amount)}</span>
-          </div>
-        ))}
+        {(order.payments ?? []).map((p, i) => {
+          const labelKey = PAYMENT_LABELS[p.method] ?? p.method;
+          const label = labelKey.startsWith('receipt.') ? t(labelKey) : labelKey;
+          return (
+            <div key={i} className="receipt-row">
+              <span>{label}:</span>
+              <span className="receipt-row-right">{fmt(p.amount)}</span>
+            </div>
+          );
+        })}
         {change > 0 && (
           <div className="receipt-row receipt-bold">
             <span>{t('receipt.change')}:</span>

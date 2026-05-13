@@ -665,13 +665,15 @@
     "total": "TOTAL:",
     "cash": "Cash:",
     "card": "Card:",
+    "nasiya": "Credit:",
+    "bonus": "Bonus:",
+    "transfer": "Transfer:",
     "change": "Change:",
     "fiscalStatus": "FISCAL STATUS",
-    "fiscalPending": "PENDING",
-    "fiscalPendingDesc": "When fiscal integration is activated...",
+    "fiscalPending": "No fiscal device",
+    "fiscalNote": "Fiscal receipt will be issued after connecting fiscal device",
     "thankYou": "Thank you for your purchase!",
     "visitAgain": "Visit us again",
-    "fiscalNote": "Fiscal note",
     "subtotal": "Subtotal"
   },
   "suppliers": {
