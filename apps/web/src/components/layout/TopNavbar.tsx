@@ -1,10 +1,9 @@
 'use client';
 
-import { Bell, ChevronDown, User, Menu, LogOut, KeyRound, Eye, EyeOff, X } from 'lucide-react';
+import { ChevronDown, User, Menu, LogOut, KeyRound, Eye, EyeOff, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
-import { useUnreadCount, useMarkAllRead } from '@/hooks/notifications/useNotifications';
 import { useTranslation } from '@/i18n/i18n-context';
 import { useMobileSidebar } from '@/components/layout/mobile-sidebar-context';
 import { SyncStatusBar } from '@/components/SyncStatus/SyncStatusBar';
@@ -155,30 +154,6 @@ function LangSwitcher() {
   );
 }
 
-/* ─── Notification Bell ───────────────────────────────────────────────────── */
-
-function NotificationBell() {
-  const { data: unreadCount = 0 } = useUnreadCount();
-  const { mutate: markAllRead } = useMarkAllRead();
-  const { t } = useTranslation();
-
-  return (
-    <button
-      type="button"
-      onClick={() => { if (unreadCount > 0) markAllRead(); }}
-      className="relative rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-      aria-label={t('common.notifications')}
-    >
-      <Bell className="h-5 w-5" />
-      {unreadCount > 0 && (
-        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white leading-none">
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-    </button>
-  );
-}
-
 /* ─── User Menu ───────────────────────────────────────────────────────────── */
 
 function UserMenu() {
@@ -295,7 +270,6 @@ export function TopNavbar() {
       <div className="flex items-center gap-2">
         <SyncStatusBar />
         <LangSwitcher />
-        <NotificationBell />
         <UserMenu />
       </div>
     </header>
