@@ -200,7 +200,7 @@ function UserMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-gray-200 bg-white shadow-lg">
+        <div className="fixed right-2 top-14 z-50 w-56 rounded-xl border border-gray-200 bg-white shadow-lg sm:absolute sm:right-0 sm:top-full sm:mt-1 sm:fixed-auto">
           {user && (
             <div className="px-4 py-3">
               <p className="text-sm font-medium text-gray-900">{displayName}</p>
