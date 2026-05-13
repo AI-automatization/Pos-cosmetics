@@ -71,8 +71,11 @@ export interface HeatmapCell {
 
 export const analyticsApi = {
   getSalesTrend(params: { period?: string; from?: string; to?: string; branchId?: string }) {
+    const { branchId, ...rest } = params;
     return apiClient
-      .get<SalesTrendPoint[]>('/analytics/sales-trend', { params })
+      .get<SalesTrendPoint[]>('/analytics/sales-trend', {
+        params: { ...rest, ...(branchId ? { branch_id: branchId } : {}) },
+      })
       .then((r) => (Array.isArray(r.data) ? r.data : []));
   },
   getTopProducts(params: { from?: string; to?: string; limit?: number; sortBy?: string; branchId?: string }) {

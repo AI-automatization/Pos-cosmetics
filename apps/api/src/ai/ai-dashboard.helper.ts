@@ -49,7 +49,7 @@ export class AiDashboardHelper {
         AND s.opened_at <= ${to}
       WHERE u.tenant_id  = ${tenantId}
         AND u."isActive" = true
-        AND u.role::text IN ('CASHIER', 'MANAGER', 'ADMIN', 'OWNER')
+        AND u.role::text = 'CASHIER'
       GROUP BY u.id, u.first_name, u.last_name
       ORDER BY revenue DESC
     `;
