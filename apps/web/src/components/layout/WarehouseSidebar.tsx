@@ -30,13 +30,26 @@ const NAV = [
   { tKey: 'nav.suppliers', href: '/warehouse/suppliers', icon: Truck },
 ];
 
-export function WarehouseSidebar() {
+export function WarehouseSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; onMobileClose?: () => void }) {
   const pathname = usePathname();
   const { mutate: logout, isPending } = useLogout();
   const { t } = useTranslation();
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
+    <>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        />
+      )}
+    <aside className={cn(
+      'flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white',
+      'fixed inset-y-0 left-0 z-50 transition-transform duration-200 md:static md:translate-x-0',
+      mobileOpen ? 'translate-x-0' : '-translate-x-full',
+    )}>
       {/* Logo */}
       <div className="flex h-14 items-center gap-3 border-b border-gray-200 px-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-600">
@@ -87,5 +100,6 @@ export function WarehouseSidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Globe } from 'lucide-react';
+import { LogOut, Globe, Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useCurrentUser, useLogout } from '@/hooks/auth/useAuth';
 import { useTranslation } from '@/i18n/i18n-context';
@@ -26,7 +26,7 @@ function getTitleKey(pathname: string): string {
   return 'nav.warehousePanel';
 }
 
-export function WarehouseHeader() {
+export function WarehouseHeader({ onMenuToggle }: { onMenuToggle?: () => void }) {
   const { data: user } = useCurrentUser();
   const { mutate: logout, isPending } = useLogout();
   const { locale, setLocale, t } = useTranslation();
@@ -39,9 +39,19 @@ export function WarehouseHeader() {
   const fullName = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : '';
 
   return (
-    <header className="h-14 shrink-0 flex items-center justify-between gap-4 border-b border-amber-100 bg-gradient-to-r from-amber-50/60 to-white px-5">
-      {/* Page title */}
+    <header className="h-14 shrink-0 flex items-center justify-between gap-2 border-b border-amber-100 bg-gradient-to-r from-amber-50/60 to-white px-3 sm:px-5">
+      {/* Mobile burger + Page title */}
       <div className="flex items-center gap-2 min-w-0">
+        {onMenuToggle && (
+          <button
+            type="button"
+            onClick={onMenuToggle}
+            className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 md:hidden"
+            aria-label="Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
         <h1 className="text-sm font-semibold text-gray-800 truncate">{pageTitle}</h1>
       </div>
 
