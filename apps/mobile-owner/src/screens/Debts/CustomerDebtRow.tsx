@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { CustomerDebt } from '../../api/debts.api';
 import Badge from '../../components/common/Badge';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -9,9 +10,10 @@ import { Colors, Radii } from '../../config/theme';
 
 interface CustomerDebtRowProps {
   item: CustomerDebt;
+  onPay?: (item: CustomerDebt) => void;
 }
 
-export default function CustomerDebtRow({ item }: CustomerDebtRowProps) {
+export default function CustomerDebtRow({ item, onPay }: CustomerDebtRowProps) {
   const { t } = useTranslation();
   const isOverdue = item.daysSinceLastPayment > 30;
   const initials = item.customerName
@@ -34,6 +36,16 @@ export default function CustomerDebtRow({ item }: CustomerDebtRowProps) {
         <Text style={[styles.amount, isOverdue && styles.amountOverdue]}>{formatCurrency(item.totalDebt)}</Text>
         <Text style={styles.days}>{item.daysSinceLastPayment} {t('debts.days')}</Text>
         {isOverdue && <Badge label={t('debts.overdue')} variant="error" />}
+        {onPay && (
+          <TouchableOpacity
+            style={styles.payBtn}
+            onPress={() => onPay(item)}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="wallet-outline" size={14} color="#FFFFFF" />
+            <Text style={styles.payBtnText}>{t('debts.pay', { defaultValue: "To'lash" })}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -68,4 +80,19 @@ const styles = StyleSheet.create({
   amount: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary },
   amountOverdue: { color: Colors.danger },
   days: { fontSize: 12, color: Colors.textMuted },
+  payBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radii.sm,
+    marginTop: 2,
+  },
+  payBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
 });

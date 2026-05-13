@@ -15,7 +15,7 @@ import {
 import { Colors } from '../config/theme';
 
 import DashboardNavigator from './DashboardNavigator';
-import AnalyticsScreen from '../screens/Analytics';
+import AnalyticsNavigator from './AnalyticsNavigator';
 import ShiftsScreen from '../screens/Shifts';
 import WarehouseScreen from '../screens/Warehouse';
 import EmployeesNavigator from './EmployeesNavigator';
@@ -98,7 +98,7 @@ export default function TabNavigator() {
       {canSeeAnalytics(role) && (
         <Tab.Screen
           name="Analytics"
-          component={AnalyticsScreen}
+          component={AnalyticsNavigator}
           options={{ tabBarIcon: tabIcon('bar-chart-outline'), title: 'ANALITIKA' }}
         />
       )}

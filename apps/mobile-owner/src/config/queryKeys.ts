@@ -45,6 +45,10 @@ export const QUERY_KEYS = {
     all: () => ['branches'] as const,
     detail: (id: string) => ['branches', 'detail', id] as const,
   },
+  reports: {
+    shiftReports: (branchId?: string | null, period?: string) => ['reports', 'shifts', branchId ?? 'all', period ?? 'today'] as const,
+    branchReport: (period?: string) => ['reports', 'branches', period ?? 'month'] as const,
+  },
   system: {
     health: () => ['system', 'health'] as const,
     syncStatus: () => ['system', 'syncStatus'] as const,

@@ -33,6 +33,30 @@ export interface ShiftSummary {
   avgRevenuePerShift: number;
 }
 
+/** Shift report with cash reconciliation fields */
+export interface ShiftReport {
+  readonly id: string;
+  readonly cashierName: string;
+  readonly branchName: string;
+  readonly openedAt: string;
+  readonly closedAt: string | null;
+  readonly status: 'open' | 'closed';
+  readonly totalRevenue: number;
+  readonly totalOrders: number;
+  readonly cashRevenue: number;
+  readonly cardRevenue: number;
+  readonly openingCash: number;
+  readonly expectedCash: number;
+  readonly closingCash: number | null;
+  readonly discrepancy: number | null;
+}
+
+export interface ShiftReportParams {
+  from?: string;
+  to?: string;
+  branchId?: string | null;
+}
+
 export interface ShiftsParams {
   branchId?: string | null;
   fromDate?: string;
@@ -73,5 +97,25 @@ export const shiftsApi = {
       },
     });
     return data;
+  },
+
+  async getShiftReports(params: ShiftReportParams): Promise<ShiftReport[]> {
+    const { data } = await apiClient.get<ShiftReport[] | { items: ShiftReport[] }>(
+      ENDPOINTS.SHIFTS,
+      {
+        params: {
+          from_date: params.from,
+          to_date: params.to,
+          branch_id: params.branchId ?? undefined,
+          include_cash: true,
+          limit: 100,
+        },
+      },
+    );
+    if (Array.isArray(data)) return data;
+    if (Array.isArray((data as { items: ShiftReport[] }).items)) {
+      return (data as { items: ShiftReport[] }).items;
+    }
+    return [];
   },
 };

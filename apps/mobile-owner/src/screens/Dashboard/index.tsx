@@ -16,7 +16,7 @@ import { useBranchStore } from '../../store/branch.store';
 import { RevenueData, OrdersData } from '../../api/analytics.api';
 import { InventoryItem } from '../../api/inventory.api';
 import { DashboardStackParamList } from '../../navigation/types';
-import { Colors, Radii } from '../../config/theme';
+import { Colors, Radii, Shadows } from '../../config/theme';
 
 type DashboardNavProp = NativeStackNavigationProp<DashboardStackParamList, 'DashboardHome'>;
 
@@ -58,11 +58,13 @@ export default function DashboardScreen() {
   const ordersData = orders.data ?? MOCK_ORDERS;
   const lowStockData = lowStock.data && lowStock.data.length > 0 ? lowStock.data : MOCK_LOW_STOCK;
 
-  // lowStock banner first, then revenue cards, then charts — matches Stitch layout
+  // lowStock banner first, then revenue cards, then finance links, then charts — matches Stitch layout
   const sections = [
     { key: 'lowStock' },
     { key: 'debts' },
     { key: 'revenue' },
+    { key: 'finance' },
+    { key: 'reports' },
     { key: 'salesTrend' },
     { key: 'branchComparison' },
     { key: 'topProducts' },
@@ -93,6 +95,70 @@ export default function DashboardScreen() {
         );
       case 'revenue':
         return <RevenueSummaryGrid data={revenueData} orders={ordersData} />;
+      case 'finance':
+        return (
+          <View style={styles.financeSection}>
+            <Text style={styles.financeSectionTitle}>Moliya</Text>
+            <View style={styles.financeRow}>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('PnL')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.successLight }]}>
+                  <Ionicons name="analytics-outline" size={20} color={Colors.success} />
+                </View>
+                <Text style={styles.financeCardTitle}>Foyda va zarar</Text>
+                <Text style={styles.financeCardSub}>P&L hisoboti</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('DailyRevenue')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.primaryLight }]}>
+                  <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                </View>
+                <Text style={styles.financeCardTitle}>Kunlik daromad</Text>
+                <Text style={styles.financeCardSub}>Har kungi tafsilot</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      case 'reports':
+        return (
+          <View style={styles.financeSection}>
+            <Text style={styles.financeSectionTitle}>Hisobotlar</Text>
+            <View style={styles.financeRow}>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('ShiftReport')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.warningLight }]}>
+                  <Ionicons name="time-outline" size={20} color={Colors.warning} />
+                </View>
+                <Text style={styles.financeCardTitle}>Smena hisoboti</Text>
+                <Text style={styles.financeCardSub}>Kassa solishtirma</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('BranchReport')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.purpleLight }]}>
+                  <Ionicons name="business-outline" size={20} color={Colors.purple} />
+                </View>
+                <Text style={styles.financeCardTitle}>Filial taqqoslash</Text>
+                <Text style={styles.financeCardSub}>Daromad reytingi</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
       case 'salesTrend':
         return <SalesTrendChart data={salesTrend.data} />;
       case 'branchComparison':
@@ -167,5 +233,47 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.danger,
+  },
+  financeSection: {
+    paddingHorizontal: 16,
+    marginVertical: 4,
+  },
+  financeSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  financeRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  financeCard: {
+    flex: 1,
+    backgroundColor: Colors.bgSurface,
+    borderRadius: Radii.lg,
+    padding: 14,
+    alignItems: 'center',
+    gap: 6,
+    ...Shadows.card,
+  },
+  financeIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: Radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  financeCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+  },
+  financeCardSub: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });

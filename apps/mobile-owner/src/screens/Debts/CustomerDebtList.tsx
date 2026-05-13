@@ -10,9 +10,10 @@ interface CustomerDebtListProps {
   data: CustomerDebt[];
   isRefreshing: boolean;
   onRefresh: () => void;
+  onPay?: (item: CustomerDebt) => void;
 }
 
-export default function CustomerDebtList({ data, isRefreshing, onRefresh }: CustomerDebtListProps) {
+export default function CustomerDebtList({ data, isRefreshing, onRefresh, onPay }: CustomerDebtListProps) {
   const { t } = useTranslation();
   return (
     <View style={styles.container}>
@@ -21,7 +22,7 @@ export default function CustomerDebtList({ data, isRefreshing, onRefresh }: Cust
         data={data}
         scrollEnabled={false}
         keyExtractor={(item) => item.customerId}
-        renderItem={({ item }) => <CustomerDebtRow item={item} />}
+        renderItem={({ item }) => <CustomerDebtRow item={item} onPay={onPay} />}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={<EmptyState message={t('debts.emptyCustomers')} />}
       />
