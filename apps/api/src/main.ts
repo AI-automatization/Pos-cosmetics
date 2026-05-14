@@ -73,17 +73,15 @@ async function bootstrap() {
     return this.toString();
   };
 
-  // Swagger — faqat development muhitda
-  if (config.get<string>('NODE_ENV') !== 'production') {
-    const swaggerConfig = new DocumentBuilder()
-      .setTitle('RAOS API')
-      .setDescription('Retail & Asset Operating System API')
-      .setVersion('0.1.0')
-      .addBearerAuth()
-      .build();
-    const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup(`${prefix}/docs`, app, document);
-  }
+  // Swagger
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('RAOS API')
+    .setDescription('Retail & Asset Operating System API')
+    .setVersion('0.1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup(`${prefix}/docs`, app, document);
 
   // Graceful shutdown (T-085)
   app.enableShutdownHooks();
