@@ -24,7 +24,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
 import { PaymeProvider } from './providers/payme.provider';
-import { ClickProvider } from './providers/click.provider';
+import { ClickProvider, ClickWebhookBody } from './providers/click.provider';
 
 @ApiTags('Payments')
 @ApiBearerAuth()
@@ -118,34 +118,60 @@ export class PaymentsController {
     return this.paymentsService.getPaymentIntent(tenantId, id);
   }
 
-  // ─── T-107: PAYME WEBHOOK ────────────────────────────────────
+  // ─── T-393: PAYME WEBHOOK (JSON-RPC 2.0) ─────────────────────
 
   @Public()
   @Post('webhooks/payme')
-  @ApiOperation({ summary: 'T-107: Payme JSON-RPC webhook (public)' })
-  paymeWebhook(
-    @Body() body: { method: string; params: Record<string, unknown> },
+  @ApiOperation({ summary: 'T-393: Payme JSON-RPC 2.0 webhook (public)' })
+  async paymeWebhook(
+    @Body() body: { id: number; method: string; params: Record<string, unknown> },
     @Headers('authorization') auth: string,
   ) {
-    if (!this.paymeProvider.verifyWebhook(body, auth ?? '')) {
-      return { error: { code: -32504, message: 'Forbidden' } };
+    const rpcId = body.id;
+
+    if (!this.paymeProvider.verifyWebhook(auth ?? '')) {
+      return {
+        jsonrpc: '2.0',
+        id: rpcId,
+        error: { code: -32504, message: { uz: 'Forbidden', ru: 'Forbidden', en: 'Forbidden' } },
+      };
     }
-    return this.paymeProvider.handleMethod(body.method, body.params ?? {});
+
+    const result = await this.paymeProvider.handleMethod(body.method, body.params ?? {});
+    return { jsonrpc: '2.0', id: rpcId, ...result };
   }
 
-  // ─── T-107: CLICK WEBHOOKS ───────────────────────────────────
+  // ─── T-395: CLICK WEBHOOKS (signature + real logic) ───────────
 
   @Public()
   @Post('webhooks/click/prepare')
-  @ApiOperation({ summary: 'T-107: Click Prepare webhook (public)' })
-  clickPrepare(@Body() body: Record<string, unknown>) {
+  @ApiOperation({ summary: 'T-395: Click Prepare webhook (public, verified)' })
+  async clickPrepare(@Body() body: ClickWebhookBody) {
+    if (!this.clickProvider.verifySignature(body)) {
+      return {
+        click_trans_id: body.click_trans_id,
+        merchant_trans_id: body.merchant_trans_id,
+        merchant_prepare_id: null,
+        error: -1,
+        error_note: 'SIGN CHECK FAILED!',
+      };
+    }
     return this.clickProvider.handlePrepare(body);
   }
 
   @Public()
   @Post('webhooks/click/complete')
-  @ApiOperation({ summary: 'T-107: Click Complete webhook (public)' })
-  clickComplete(@Body() body: Record<string, unknown>) {
+  @ApiOperation({ summary: 'T-395: Click Complete webhook (public, verified)' })
+  async clickComplete(@Body() body: ClickWebhookBody) {
+    if (!this.clickProvider.verifySignature(body)) {
+      return {
+        click_trans_id: body.click_trans_id,
+        merchant_trans_id: body.merchant_trans_id,
+        merchant_confirm_id: null,
+        error: -1,
+        error_note: 'SIGN CHECK FAILED!',
+      };
+    }
     return this.clickProvider.handleComplete(body);
   }
 }

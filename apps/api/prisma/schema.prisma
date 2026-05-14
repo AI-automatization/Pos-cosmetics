@@ -62,6 +62,7 @@ model Tenant {
   expenses            Expense[]
   reminderLogs        ReminderLog[]
   clientErrorLogs     ClientErrorLog[]
+  paymeTransactions   PaymeTransaction[]
 
   @@map("tenants")
 }
@@ -509,9 +510,10 @@ model Order {
   user           User            @relation(fields: [userId], references: [id])
   branch         Branch?         @relation(fields: [branchId], references: [id])
   customer       Customer?       @relation(fields: [customerId], references: [id])
-  items          OrderItem[]
-  returns        Return[]
-  paymentIntents PaymentIntent[]
+  items              OrderItem[]
+  returns            Return[]
+  paymentIntents     PaymentIntent[]
+  paymeTransactions  PaymeTransaction[]
 
   @@unique([tenantId, orderNumber])
   @@index([tenantId])
@@ -606,6 +608,45 @@ model PaymentIntent {
   @@index([tenantId, orderId])
   @@index([status])
   @@map("payment_intents")
+}
+
+// T-393: Payme transaction tracking (JSON-RPC lifecycle)
+model PaymeTransaction {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  paymeId         String   @unique @map("payme_id")
+  orderId         String   @map("order_id")
+  paymentIntentId String?  @map("payment_intent_id")
+  amount          Int      // tiyin (1 UZS = 100 tiyin)
+  state           Int      @default(1) // 1=created, 2=completed, -1=cancelled_before, -2=cancelled_after
+  reason          Int?     // cancel reason (1-5)
+  createTime      BigInt   @map("create_time")
+  performTime     BigInt?  @map("perform_time")
+  cancelTime      BigInt?  @map("cancel_time")
+  createdAt       DateTime @default(now()) @map("created_at")
+  // updatedAt YO'Q — state o'zgarishi faqat aniq method orqali
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id])
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@map("payme_transactions")
+}
+
+// T-395: Webhook idempotency — har provider + externalTxId juftligi unique
+model PaymentWebhookEvent {
+  id           String   @id @default(uuid())
+  provider     String   // PAYME, CLICK, UZUM
+  externalTxId String   @map("external_tx_id")
+  tenantId     String?  @map("tenant_id")
+  action       String?  // prepare, complete, perform, cancel
+  payload      Json?    // raw webhook body (PII redacted)
+  processedAt  DateTime @default(now()) @map("processed_at")
+
+  @@unique([provider, externalTxId])
+  @@index([tenantId])
+  @@map("payment_webhook_events")
 }
 
 // ============================================

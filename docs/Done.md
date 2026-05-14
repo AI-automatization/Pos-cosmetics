@@ -1,5 +1,54 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-12
+# Yangilangan: 2026-05-14
+
+---
+
+## T-393 | 2026-05-14 | [BACKEND] | Payme provider — mock o'rniga real JSON-RPC logika
+
+- **Yechim:**
+  - `PaymeTransaction` Prisma modeli qo'shildi (payme_id unique, state lifecycle)
+  - 5 ta JSON-RPC method real logika: order validation, amount sverka, PaymentIntent create/settle/reverse
+  - JSON-RPC 2.0 format (`jsonrpc: "2.0"`, `id`) controller da
+  - Tenant resolution orderId orqali
+  - Idempotency: PaymeTransaction.paymeId unique
+  - `timingSafeEqual` auth tekshiruvda
+  - 12 soat timeout + auto-expire
+- **Fayl:** `payme.provider.ts`, `payments.controller.ts`, `schema.prisma`, migration `20260514120000`
+
+---
+
+## T-394 | 2026-05-14 | [SECURITY] | Click — verifySignature chaqiruvi + timing-safe
+
+- **Yechim:**
+  - Controller: `verifySignature(body)` har ikkala Click webhook (prepare/complete) da chaqiriladi
+  - `timingSafeEqual` MD5 signature tekshiruvda (`===` o'rniga)
+  - `handleComplete` error codes: `-1` → cancelled (`-9`), `-4` → already paid, boshqa → probroska
+  - PII redaction: `card_number`, `phone`, `email` → `[REDACTED]` log da
+  - Typed `ClickWebhookBody` interface
+- **Fayl:** `click.provider.ts`, `payments.controller.ts`
+
+---
+
+## T-395 | 2026-05-14 | [BACKEND] | Payment webhooks — Idempotency + Ledger (Click)
+
+- **Yechim:**
+  - `PaymentWebhookEvent` Prisma modeli (`@@unique([provider, externalTxId])`)
+  - Click `handlePrepare`: order validation, amount check, PaymentIntent create, idempotency
+  - Click `handleComplete`: settle → `payment.settled` event → LedgerService double-entry; cancel → FAILED
+  - Takroriy webhook → idempotent javob (DB dan)
+  - PrismaService + PaymentsService DI inject
+- **Fayl:** `click.provider.ts`, `payments.controller.ts`, `schema.prisma`, migration `20260514130000`
+
+---
+
+## T-396 | 2026-05-14 | [BACKEND] | Payment webhooks — tenant resolution orderId orqali
+
+- **Yechim:** T-393 va T-395 ichida amalga oshirildi:
+  - Payme: `params.account.order_id` → `prisma.order.findUnique` → `tenantId`
+  - Click: `body.merchant_trans_id` → `prisma.order.findUnique` → `tenantId`
+  - Order topilmasa: Payme `-31050`, Click `-5`
+  - Amount sverka: Payme tiyin vs DB so'm*100, Click so'm vs DB so'm
+- **Fayl:** `payme.provider.ts`, `click.provider.ts`
 
 ---
 
