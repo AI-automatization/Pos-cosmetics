@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
+  Share,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -82,6 +84,50 @@ export default function StockMovementsScreen() {
       void movements.fetchNextPage();
     }
   }, [movements]);
+
+  const handleExport = useCallback(async () => {
+    if (filtered.length === 0) {
+      Alert.alert('Ma\'lumot yo\'q', 'Eksport qilish uchun harakatlar mavjud emas.');
+      return;
+    }
+
+    const TYPE_LABELS: Record<string, string> = {
+      IN: 'Kirim',
+      OUT: 'Chiqim',
+      ADJUSTMENT: 'Tuzatish',
+      TRANSFER_IN: 'Transfer +',
+      TRANSFER_OUT: 'Transfer -',
+      RETURN_IN: 'Qaytarish',
+      TESTER: 'Tester',
+      WRITE_OFF: 'Spisanie',
+    };
+
+    const header = 'Sana,Tur,Mahsulot,SKU,Ombor,Miqdor,Tannarx,Foydalanuvchi,Izoh';
+    const rows = filtered.map((m) => {
+      const date = new Date(m.createdAt);
+      const dateStr = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+      const typeLabel = TYPE_LABELS[m.type] ?? m.type;
+      const productName = (m.product?.name ?? '').replace(/,/g, ' ');
+      const sku = m.product?.sku ?? '';
+      const warehouse = (m.warehouse?.name ?? '').replace(/,/g, ' ');
+      const qty = m.quantity;
+      const cost = m.costPrice ?? '';
+      const userName = m.user ? `${m.user.firstName ?? ''} ${m.user.lastName ?? ''}`.trim() : '';
+      const note = (m.note ?? '').replace(/,/g, ' ').replace(/\n/g, ' ');
+      return `${dateStr},${typeLabel},${productName},${sku},${warehouse},${qty},${cost},${userName},${note}`;
+    });
+
+    const csv = [header, ...rows].join('\n');
+
+    try {
+      await Share.share({
+        message: csv,
+        title: 'Harakatlar tarixi',
+      });
+    } catch {
+      // User cancelled share
+    }
+  }, [filtered]);
 
   const renderItem = useCallback(
     ({ item }: { item: StockMovement }) => <StockMovementCard item={item} />,
@@ -174,7 +220,7 @@ export default function StockMovementsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <StockMovementHeader onBack={handleBack} />
+      <StockMovementHeader onBack={handleBack} onExport={handleExport} />
       <FlatList<StockMovement>
         data={filtered}
         keyExtractor={keyExtractor}

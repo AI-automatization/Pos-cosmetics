@@ -86,6 +86,7 @@ export type MoreStackParamList = {
   AddEmployeeScreen: undefined;
   StockOutScreen: undefined;
   TransferScreen: undefined;
+  TransferListScreen: undefined;
   ExpiryScreen: undefined;
   StockMovementsScreen: undefined;
   SalesOrdersScreen: undefined;
@@ -93,6 +94,7 @@ export type MoreStackParamList = {
   ChegirmaScreen: undefined;
   BillingScreen: undefined;
   TasksScreen: undefined;
+  TesterScreen: undefined;
 };
 
 export type RootStackParamList = {
@@ -161,7 +163,12 @@ export type AnalyticsStackParamList = {
 };
 
 export type OmborTabStackParamList = {
+  WarehouseDashboard: undefined;
   OmborMain: undefined;
   InvoicesScreen: undefined;
   RestockRequestsScreen: undefined;
+  SuppliersOmborScreen: undefined;
+  SupplierDetailScreen: { supplierId: string };
+  TransferListScreen: undefined;
+  TesterScreen: undefined;
 };

@@ -7,10 +7,12 @@ import { C } from './StockMovementColors';
 
 interface Props {
   readonly onBack: () => void;
+  readonly onExport?: () => void;
 }
 
 export const StockMovementHeader = React.memo(function StockMovementHeader({
   onBack,
+  onExport,
 }: Props) {
   return (
     <View style={styles.header}>
@@ -28,7 +30,13 @@ export const StockMovementHeader = React.memo(function StockMovementHeader({
         <Text style={styles.title}>Harakatlar tarixi</Text>
       </View>
 
-      <View style={styles.backBtn} />
+      {onExport ? (
+        <TouchableOpacity style={styles.backBtn} onPress={onExport} activeOpacity={0.7}>
+          <Ionicons name="share-social-outline" size={18} color={C.primary} />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.backBtn} />
+      )}
     </View>
   );
 });

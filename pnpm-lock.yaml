@@ -305,6 +305,9 @@ importers:
       expo-notifications:
         specifier: ~55.0.14
         version: 55.0.14(expo@55.0.9)(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      expo-print:
+        specifier: ^55.0.15
+        version: 55.0.15(expo@55.0.9)(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))
       expo-secure-store:
         specifier: ~55.0.9
         version: 55.0.9(expo@55.0.9)
@@ -5149,6 +5152,12 @@ packages:
     peerDependencies:
       expo: '*'
       react: '*'
+      react-native: '*'
+
+  expo-print@55.0.15:
+    resolution: {integrity: sha512-poo/RB8Bzoqi2jCeAqmHJFib07GMx41FPmQCNSb/NI+1KC5kucW/2VCRXKzwgVofdwFYMJbg04ewiA8YpY8PCQ==}
+    peerDependencies:
+      expo: '*'
       react-native: '*'
 
   expo-secure-store@55.0.9:
@@ -14812,6 +14821,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  expo-print@55.0.15(expo@55.0.9)(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)):
+    dependencies:
+      expo: 55.0.9(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@4.0.1(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)))(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react-server-dom-webpack@19.0.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(webpack@5.104.1))(react@19.2.0)(typescript@5.9.3)
+      react-native: 0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
 
   expo-secure-store@55.0.9(expo@55.0.9):
     dependencies:

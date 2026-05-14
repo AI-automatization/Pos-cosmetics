@@ -23,6 +23,9 @@ import OmborHeader from './OmborHeader';
 import OmborProductCard from './OmborProductCard';
 import OmborEmptyState from './OmborEmptyState';
 import OmborListHeader from './OmborListHeader';
+import ProductStockDetailSheet from './ProductStockDetailSheet';
+import LabelPrintSheet from '../Catalog/LabelPrintSheet';
+import type { LowStockItem } from '../../api/inventory.api';
 
 type OmborNav = NativeStackNavigationProp<OmborTabStackParamList, 'OmborMain'>;
 
@@ -32,6 +35,15 @@ export default function OmborScreen() {
   const [activeTab, setActiveTab]           = useState<FilterTab>('ALL');
   const [activeWarehouse, setActiveWarehouse] = useState<string | null>(null);
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<LowStockItem | null>(null);
+  const [printProduct, setPrintProduct] = useState<{
+    id: string;
+    name: string;
+    barcode?: string | null;
+    sellPrice: number;
+    sku?: string | null;
+  } | null>(null);
   const searchRef = useRef<TextInput>(null);
 
   const { stockLevels } = useOmborData();
@@ -120,7 +132,22 @@ export default function OmborScreen() {
             inputRef={searchRef}
           />
         }
-        renderItem={({ item }) => <OmborProductCard item={item} />}
+        renderItem={({ item }) => (
+          <OmborProductCard
+            item={item}
+            onPress={() => {
+              setSelectedProductId(item.productId);
+              setSelectedProduct(item);
+            }}
+            onPrint={() => setPrintProduct({
+              id: item.productId,
+              name: item.productName,
+              sellPrice: 0,
+              sku: item.sku || null,
+              barcode: null,
+            })}
+          />
+        )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={<OmborEmptyState />}
       />
@@ -166,6 +193,20 @@ export default function OmborScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <ProductStockDetailSheet
+        productId={selectedProductId}
+        item={selectedProduct}
+        onClose={() => {
+          setSelectedProductId(null);
+          setSelectedProduct(null);
+        }}
+      />
+
+      <LabelPrintSheet
+        product={printProduct}
+        onClose={() => setPrintProduct(null)}
+      />
     </SafeAreaView>
   );
 }

@@ -27,6 +27,18 @@ export interface UpdateSupplierDto {
   isActive?: boolean;
 }
 
+export interface SupplierDetail extends Supplier {
+  productSuppliers?: {
+    product: {
+      id: string;
+      name: string;
+      sku: string | null;
+      sellPrice: number;
+      isActive: boolean;
+    };
+  }[];
+}
+
 export interface ProductInfo {
   id: string;
   name: string;
@@ -166,5 +178,10 @@ export const catalogApi = {
 
   deleteSupplier: async (id: string): Promise<void> => {
     await api.delete(`/catalog/suppliers/${id}`);
+  },
+
+  getSupplierById: async (id: string): Promise<SupplierDetail> => {
+    const { data } = await api.get(`/catalog/suppliers/${id}`);
+    return data;
   },
 };

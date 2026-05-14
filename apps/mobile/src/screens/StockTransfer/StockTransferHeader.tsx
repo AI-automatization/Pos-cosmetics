@@ -8,11 +8,13 @@ import { C } from './StockTransferColors';
 interface StockTransferHeaderProps {
   readonly onBack: () => void;
   readonly onAdd:  () => void;
+  readonly onListPress?: () => void;
 }
 
 export const StockTransferHeader = React.memo(function StockTransferHeader({
   onBack,
   onAdd,
+  onListPress,
 }: StockTransferHeaderProps) {
   return (
     <View style={styles.header}>
@@ -27,13 +29,24 @@ export const StockTransferHeader = React.memo(function StockTransferHeader({
 
       <Text style={styles.title}>O'tkazma</Text>
 
-      <TouchableOpacity
-        style={styles.addBtn}
-        onPress={onAdd}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="add" size={22} color={C.primary} />
-      </TouchableOpacity>
+      <View style={styles.headerActions}>
+        {onListPress != null && (
+          <TouchableOpacity
+            style={styles.listBtn}
+            onPress={onListPress}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="list-outline" size={22} color={C.primary} />
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={onAdd}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={22} color={C.primary} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 });
@@ -64,12 +77,25 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color:      C.text,
   },
+  headerActions: {
+    flexDirection: 'row' as const,
+    alignItems:    'center' as const,
+    gap:           8,
+  },
+  listBtn: {
+    width:           36,
+    height:          36,
+    borderRadius:    10,
+    backgroundColor: C.primary + '15',
+    alignItems:      'center' as const,
+    justifyContent:  'center' as const,
+  },
   addBtn: {
     width:           36,
     height:          36,
     borderRadius:    10,
     backgroundColor: C.primary + '15',
-    alignItems:      'center',
-    justifyContent:  'center',
+    alignItems:      'center' as const,
+    justifyContent:  'center' as const,
   },
 });

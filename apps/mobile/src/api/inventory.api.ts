@@ -144,6 +144,41 @@ export interface RestockRequestResponse {
   notifiedCount: number;
 }
 
+export type TransferStatus = 'REQUESTED' | 'APPROVED' | 'SHIPPED' | 'RECEIVED' | 'CANCELLED';
+
+export interface StockTransferListItem {
+  id: string;
+  fromBranchId: string;
+  toBranchId: string;
+  status: TransferStatus;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: {
+    id: string;
+    productId: string;
+    quantity: number;
+    product: { name: string; sku: string };
+  }[];
+  fromBranch: { name: string };
+  toBranch: { name: string };
+  requestedBy: { firstName: string; lastName: string };
+}
+
+export interface TransferListResponse {
+  items: StockTransferListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface TransferListParams {
+  status?: TransferStatus;
+  branchId?: string;
+  page?: number;
+  limit?: number;
+}
+
 export interface CreateTransferBody {
   fromBranchId: string;
   toBranchId: string;
@@ -193,6 +228,93 @@ export interface InvoiceListResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+// ── Warehouse Dashboard ──────────────────────────────────
+
+export interface WarehouseDashboardStats {
+  totalProducts: number;
+  todayMovementsIn: number;
+  todayMovementsOut: number;
+  lowStockCount: number;
+  expiryCount: number;
+}
+
+export interface DashboardLowStockItem {
+  productId: string;
+  name: string;
+  totalQty: number;
+}
+
+export interface DashboardExpiryItem {
+  productId: string;
+  expiryDate: string;
+  batchNumber: string | null;
+  quantity: number;
+  product: { name: string };
+}
+
+export interface DashboardMovement {
+  id: string;
+  type: 'IN' | 'OUT' | 'ADJUSTMENT' | 'WRITE_OFF' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'RETURN_IN';
+  quantity: number;
+  createdAt: string;
+  note: string | null;
+  product: { name: string };
+}
+
+export interface WarehouseDashboardResponse {
+  stats: WarehouseDashboardStats;
+  lowStockItems: DashboardLowStockItem[];
+  expiryItems: DashboardExpiryItem[];
+  recentMovements: DashboardMovement[];
+}
+
+export interface WarehouseAlertsResponse {
+  expired: number;
+  soonExpiring: number;
+  alerts: {
+    type: 'EXPIRED' | 'EXPIRING_SOON';
+    productId: string;
+    expiryDate: string;
+    batchNumber: string | null;
+    product: { name: string };
+  }[];
+}
+
+// ── Tester / Sample ──────────────────────────────────
+
+export interface OpenTesterDto {
+  productId: string;
+  warehouseId: string;
+  quantity: number;
+  costPrice: number;
+  note?: string;
+}
+
+export interface OpenTesterResponse {
+  movement: { id: string };
+  expense: { id: string };
+  totalCost: number;
+}
+
+export interface TesterMovement {
+  id: string;
+  productId: string;
+  warehouseId: string;
+  type: string;
+  quantity: number;
+  costPrice: number | null;
+  note: string | null;
+  createdAt: string;
+  product: { id: string; name: string; sku: string | null };
+  warehouse: { id: string; name: string };
+}
+
+export interface TesterListResponse {
+  items: TesterMovement[];
+  totalCost: number;
+  count: number;
 }
 
 export const inventoryApi = {
@@ -277,6 +399,27 @@ export const inventoryApi = {
   createTransfer: async (body: CreateTransferBody): Promise<CreateTransferResponse> => {
     const { data } = await api.post<CreateTransferResponse>('/inventory/transfers', body);
     return data;
+  },
+
+  listTransfers: async (params?: TransferListParams): Promise<TransferListResponse> => {
+    const { data } = await api.get('/inventory/transfers', { params });
+    return data;
+  },
+
+  approveTransfer: async (id: string): Promise<void> => {
+    await api.patch(`/inventory/transfers/${id}/approve`);
+  },
+
+  shipTransfer: async (id: string): Promise<void> => {
+    await api.patch(`/inventory/transfers/${id}/ship`);
+  },
+
+  receiveTransfer: async (id: string): Promise<void> => {
+    await api.patch(`/inventory/transfers/${id}/receive`);
+  },
+
+  cancelTransfer: async (id: string): Promise<void> => {
+    await api.patch(`/inventory/transfers/${id}/cancel`);
   },
 
   createReceipt: async (body: CreateReceiptBody): Promise<CreateReceiptResponse> => {
@@ -408,5 +551,25 @@ export const inventoryApi = {
   rejectInvoice: async (id: string): Promise<InvoiceDetail> => {
     const res = await api.patch(`/warehouse/invoices/${id}/reject`);
     return res.data;
+  },
+
+  openTester: async (dto: OpenTesterDto): Promise<OpenTesterResponse> => {
+    const { data } = await api.post<OpenTesterResponse>('/inventory/testers', dto);
+    return data;
+  },
+
+  getTesters: async (params?: { from?: string; to?: string }): Promise<TesterListResponse> => {
+    const { data } = await api.get<TesterListResponse>('/inventory/testers', { params });
+    return data;
+  },
+
+  getWarehouseDashboard: async (): Promise<WarehouseDashboardResponse> => {
+    const { data } = await api.get('/warehouse/dashboard');
+    return data;
+  },
+
+  getWarehouseAlerts: async (): Promise<WarehouseAlertsResponse> => {
+    const { data } = await api.get('/warehouse/alerts');
+    return data;
   },
 };

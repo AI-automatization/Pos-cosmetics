@@ -25,6 +25,7 @@ import BranchRevenueCard from './BranchRevenueCard';
 import RevenueCard from './RevenueCard';
 import WeeklyTrendChart from './WeeklyTrendChart';
 import TopProductsCard from './TopProductsCard';
+import LowStockWidget from './LowStockWidget';
 import ManagerKPICard from './ManagerKPICard';
 import StatCard from '../../components/common/StatCard';
 import { formatCompact } from '../../utils/currency';
@@ -83,6 +84,7 @@ export default function DashboardScreen() {
     topProducts,
     currentShift,
     nasiyaSummary,
+    lowStock,
     monthlyProfit,
     isMonthlyLoading,
     branchRevenue,
@@ -121,6 +123,7 @@ export default function DashboardScreen() {
   const summary = todaySummary.data;
   const weekly = weeklyRevenue.data ?? [];
   const products = topProducts.data ?? [];
+  const lowStockItems = lowStock.data ?? [];
 
   const handleOpenConfirm = (openingCash: number) => {
     setLoading(true);
@@ -316,6 +319,16 @@ export default function DashboardScreen() {
         {products.length > 0 && (
           <View style={styles.section}>
             <TopProductsCard products={products} />
+          </View>
+        )}
+
+        {/* Low stock warning */}
+        {lowStockItems.length > 0 && (
+          <View style={styles.section}>
+            <LowStockWidget
+              items={lowStockItems}
+              onViewAll={() => navigation.navigate('Koproq', { screen: 'LowStockList' } as any)}
+            />
           </View>
         )}
 

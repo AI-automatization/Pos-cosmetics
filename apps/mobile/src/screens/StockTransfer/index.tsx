@@ -60,6 +60,7 @@ export default function StockTransferScreen() {
         <StockTransferHeader
           onBack={() => navigation.goBack()}
           onAdd={() => {}}
+          onListPress={() => navigation.navigate('TransferListScreen')}
         />
         <View style={styles.centerFill}>
           <Ionicons name="lock-closed-outline" size={48} color={C.muted} />
@@ -77,6 +78,7 @@ export default function StockTransferScreen() {
         <StockTransferHeader
           onBack={() => navigation.goBack()}
           onAdd={() => {}}
+          onListPress={() => navigation.navigate('TransferListScreen')}
         />
         <View style={styles.centerFill}>
           <ActivityIndicator size="large" color={C.primary} />
@@ -94,6 +96,7 @@ export default function StockTransferScreen() {
         <StockTransferHeader
           onBack={() => navigation.goBack()}
           onAdd={() => {}}
+          onListPress={() => navigation.navigate('TransferListScreen')}
         />
         <View style={styles.centerFill}>
           <Ionicons
@@ -123,6 +126,7 @@ export default function StockTransferScreen() {
       <StockTransferHeader
         onBack={() => navigation.goBack()}
         onAdd={() => setSheet(true)}
+        onListPress={() => navigation.navigate('TransferListScreen')}
       />
 
       <FlatList<StockLevel>
