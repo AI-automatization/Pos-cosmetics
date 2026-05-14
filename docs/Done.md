@@ -3,6 +3,19 @@
 
 ---
 
+## T-389 | 2026-05-14 | [IKKALASI] | Cookie namespace isolation super-admin ↔ web
+
+- **Yechim:**
+  - `sa_` prefix — T-387 da qilingan (client.ts, middleware.ts, login/page.tsx)
+  - `useAuth.ts` — allaqachon `SA_*` konstantalarini import qiladi
+  - **Backend logout endpoint:** `POST /admin/auth/logout` — `res.clearCookie('sa_access_token')`
+  - **useAuth.ts logout:** backend endpoint chaqirib httpOnly cookie tozalaydi
+  - **client.ts clearAuthAndRedirect:** ham backend logout chaqiradi
+  - Web app (`session_active`, `user_role`) va super-admin (`sa_*`) — **collision yo'q**
+- **Fayl:** `admin-auth.controller.ts`, `useAuth.ts`, `client.ts`
+
+---
+
 ## T-388 | 2026-05-14 | [BACKEND] | Fiscal worker — idempotency + enum filter + tsc fix
 
 - **Yechim:**

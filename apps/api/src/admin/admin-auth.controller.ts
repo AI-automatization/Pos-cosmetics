@@ -64,6 +64,16 @@ export class AdminAuthController {
     return result;
   }
 
+  // ─── T-389: Logout — clear httpOnly cookie ─────────────────────
+  @Public()
+  @Post('auth/logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'T-389: Super Admin logout — httpOnly cookie tozalash' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('sa_access_token', { path: '/' });
+    return { success: true };
+  }
+
   // ─── BOOTSTRAP: Birinchi Super Admin yaratish ──────────────────
   @Public()
   @Post('auth/bootstrap')

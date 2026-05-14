@@ -50,27 +50,7 @@
 
 ---
 
-## T-389 | P0 | [IKKALASI] | Cookie namespace isolation super-admin ↔ web
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Manba:** Team Lead architecture review, merge 018de20..6e4bad7
-- **Fayl:**
-  - `apps/super-admin/src/middleware.ts`
-  - `apps/super-admin/src/api/client.ts`
-  - `apps/super-admin/src/hooks/auth/useAuth.ts`
-  - `apps/super-admin/src/app/login/page.tsx`
-- **Muammo:** Super-admin va web bir xil cookie/localStorage kalit ishlatadi:
-  - Cookie: `session_active`, `user_role`
-  - localStorage: `access_token`
-  - Production'da `*.raos.uz` domen ostida deploy qilinsa → session collision, founder ↔ tenant OWNER orasida auth leak
-- **Vazifa:**
-  - Super-admin'ga `sa_` prefiks joriy qilish:
-    - Cookie: `sa_session_active`, `sa_user_role`
-    - localStorage: `sa_access_token` (T-387 bajarilgach localStorage umuman olib tashlanadi)
-  - `middleware.ts` shu prefiksni o'qisin
-  - `useAuth.ts`, `client.ts`, `login/page.tsx` — barcha cookie/storage operatsiyalar yangi kalitlarga o'tsin
-- **Kutilgan:** Super-admin va web mustaqil auth — bir domain ostida ham collision yo'q.
+*(T-389 — BAJARILDI, Done.md ga ko'chirildi 2026-05-14)*
 
 ---
 

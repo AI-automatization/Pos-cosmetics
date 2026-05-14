@@ -28,6 +28,8 @@ apiClient.interceptors.request.use((config) => {
 
 function clearAuthAndRedirect() {
   if (typeof window === 'undefined') return;
+  // T-389: Clear httpOnly cookie via backend
+  apiClient.post('/admin/auth/logout').catch(() => {});
   localStorage.removeItem(SA_TOKEN_KEY);
   localStorage.removeItem(SA_ADMIN_ID_KEY);
   localStorage.removeItem(SA_ADMIN_ROLE_KEY);
