@@ -100,7 +100,7 @@ export function CustomerFormModal({ onClose }: Props) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Asosiy</p>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs font-medium text-gray-700">
                 To&apos;liq ism <span className="text-red-500">*</span>
@@ -172,7 +172,7 @@ export function CustomerFormModal({ onClose }: Props) {
 
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Qo&apos;shimcha</p>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs font-medium text-gray-700">Manzil</label>
               <input

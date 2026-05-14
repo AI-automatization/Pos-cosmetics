@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Printer, Check, RefreshCw, Wifi, Usb, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { useTranslation } from '@/i18n/i18n-context';
 
 // Printer settings stored in localStorage
 const LS_KEY = 'raos_printer_settings';
@@ -38,21 +39,13 @@ const DEFAULT_SETTINGS: PrinterSettings = {
   storeName: '',
   inn: '',
   address: '',
-  footerText: 'Xaridingiz uchun rahmat!',
+  footerText: '',
 };
-
-const COMMON_PRINTERS = [
-  { value: 'epson-tm-t20', label: 'Epson TM-T20' },
-  { value: 'epson-tm-t88', label: 'Epson TM-T88VI' },
-  { value: 'xprinter-xp80', label: 'XPrinter XP-80' },
-  { value: 'rongta-rp80', label: 'RONGTA RP80' },
-  { value: 'custom', label: 'Boshqa...' },
-];
 
 function buildTestReceiptHtml(paperWidth: '58' | '80') {
   const w = paperWidth === '58' ? '48mm' : '72mm';
   const fs = paperWidth === '58' ? '10px' : '12px';
-  const now = new Date().toLocaleString('uz-UZ');
+  const now = new Date().toLocaleString();
   return `<html>
 <head>
 <style>
@@ -67,21 +60,21 @@ function buildTestReceiptHtml(paperWidth: '58' | '80') {
 </head>
 <body>
   <div class="center bold" style="font-size:${paperWidth === '58' ? '12px' : '14px'}">RAOS POS</div>
-  <div class="center">Test cheki (${paperWidth}mm)</div>
-  <div class="center small">Printer ulanishini tekshirish</div>
+  <div class="center">Test receipt (${paperWidth}mm)</div>
+  <div class="center small">Printer connection test</div>
   <div class="line"></div>
-  <div class="row"><span>Mahsulot A × 2</span><span>20,000</span></div>
-  <div class="row"><span>Mahsulot B × 1</span><span>15,000</span></div>
-  <div class="row"><span>Mahsulot C × 3</span><span>45,000</span></div>
+  <div class="row"><span>Product A x 2</span><span>20,000</span></div>
+  <div class="row"><span>Product B x 1</span><span>15,000</span></div>
+  <div class="row"><span>Product C x 3</span><span>45,000</span></div>
   <div class="line"></div>
-  <div class="row bold"><span>JAMI:</span><span>80,000 so'm</span></div>
+  <div class="row bold"><span>TOTAL:</span><span>80,000</span></div>
   <div class="line"></div>
-  <div class="row small"><span>Naqd pul:</span><span>100,000</span></div>
-  <div class="row small bold"><span>Qaytim:</span><span>20,000</span></div>
+  <div class="row small"><span>Cash:</span><span>100,000</span></div>
+  <div class="row small bold"><span>Change:</span><span>20,000</span></div>
   <div class="line"></div>
-  <div class="center small">Xarid uchun rahmat!</div>
+  <div class="center small">Thank you!</div>
   <div class="center" style="font-size:9px;margin-top:4px">${now}</div>
-  <div class="center" style="font-size:8px;margin-top:2px;color:#888">RAOS · raos.uz</div>
+  <div class="center" style="font-size:8px;margin-top:2px;color:#888">RAOS - raos.uz</div>
 </body>
 </html>`;
 }
@@ -101,9 +94,18 @@ function testPrint(paperWidth: '58' | '80', copies: number) {
 }
 
 export default function PrinterSettingsPage() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<PrinterSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
   const [testing, setTesting] = useState(false);
+
+  const COMMON_PRINTERS = [
+    { value: 'epson-tm-t20', label: 'Epson TM-T20' },
+    { value: 'epson-tm-t88', label: 'Epson TM-T88VI' },
+    { value: 'xprinter-xp80', label: 'XPrinter XP-80' },
+    { value: 'rongta-rp80', label: 'RONGTA RP80' },
+    { value: 'custom', label: t('printer.otherModel') },
+  ];
 
   useEffect(() => {
     try {
@@ -128,16 +130,16 @@ export default function PrinterSettingsPage() {
     setSettings((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
             <Printer className="h-5 w-5 text-gray-600" />
-            Thermal Printer sozlamalari
+            {t('printer.title')}
           </h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            80mm yoki 58mm chek printer konfiguratsiyasi
+            {t('printer.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -148,7 +150,7 @@ export default function PrinterSettingsPage() {
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
           >
             <RefreshCw className={cn('h-4 w-4', testing && 'animate-spin')} />
-            {testing ? 'Chiqarilmoqda...' : 'Test chek'}
+            {testing ? t('printer.printing') : t('printer.testPrint')}
           </button>
           <button
             type="button"
@@ -159,21 +161,21 @@ export default function PrinterSettingsPage() {
             )}
           >
             {saved ? <Check className="h-4 w-4" /> : <Settings2 className="h-4 w-4" />}
-            {saved ? 'Saqlandi!' : 'Saqlash'}
+            {saved ? t('printer.saved') : t('printer.save')}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* General settings */}
         <div className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-5">
-          <h2 className="font-semibold text-gray-900">Asosiy sozlamalar</h2>
+          <h2 className="font-semibold text-gray-900">{t('printer.basicSettings')}</h2>
 
           {/* Enable */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-700">Printerni yoqish</p>
-              <p className="text-xs text-gray-400">Chek chiqarish funksiyasi</p>
+              <p className="text-sm font-medium text-gray-700">{t('printer.enablePrinter')}</p>
+              <p className="text-xs text-gray-400">{t('printer.enablePrinterDesc')}</p>
             </div>
             <button
               type="button"
@@ -195,8 +197,8 @@ export default function PrinterSettingsPage() {
           {/* Auto-print */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-700">Auto-print</p>
-              <p className="text-xs text-gray-400">Sotuv tugaganda avtomatik chiqarish</p>
+              <p className="text-sm font-medium text-gray-700">{t('printer.autoPrint')}</p>
+              <p className="text-xs text-gray-400">{t('printer.autoPrintDesc')}</p>
             </div>
             <button
               type="button"
@@ -218,8 +220,8 @@ export default function PrinterSettingsPage() {
           {/* Cash drawer */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-700">Kassa qutisini ochish</p>
-              <p className="text-xs text-gray-400">Naqd to'lovda avtomatik ochish</p>
+              <p className="text-sm font-medium text-gray-700">{t('printer.openCashDrawer')}</p>
+              <p className="text-xs text-gray-400">{t('printer.openCashDrawerDesc')}</p>
             </div>
             <button
               type="button"
@@ -240,7 +242,7 @@ export default function PrinterSettingsPage() {
 
           {/* Paper width */}
           <div>
-            <p className="mb-2 text-sm font-medium text-gray-700">Qog'oz kengligi</p>
+            <p className="mb-2 text-sm font-medium text-gray-700">{t('printer.paperWidth')}</p>
             <div className="flex gap-2">
               {(['58', '80'] as const).map((w) => (
                 <button
@@ -262,14 +264,14 @@ export default function PrinterSettingsPage() {
 
           {/* Copies */}
           <div>
-            <p className="mb-2 text-sm font-medium text-gray-700">Nusxa soni</p>
+            <p className="mb-2 text-sm font-medium text-gray-700">{t('printer.copies')}</p>
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => update('copies', Math.max(1, settings.copies - 1))}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
               >
-                −
+                -
               </button>
               <span className="w-8 text-center font-semibold text-gray-900">{settings.copies}</span>
               <button
@@ -285,28 +287,28 @@ export default function PrinterSettingsPage() {
 
         {/* Connection settings */}
         <div className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-5">
-          <h2 className="font-semibold text-gray-900">Ulanish</h2>
+          <h2 className="font-semibold text-gray-900">{t('printer.connection')}</h2>
 
           {/* Printer model */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Printer modeli</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t('printer.printerModel')}</label>
             <SearchableDropdown
               options={COMMON_PRINTERS}
               value={settings.model}
               onChange={(val) => update('model', val)}
-              placeholder="— Tanlang —"
+              placeholder={t('printer.selectModel')}
               searchable={false}
             />
           </div>
 
           {/* Connection type */}
           <div>
-            <p className="mb-2 text-sm font-medium text-gray-700">Ulanish turi</p>
+            <p className="mb-2 text-sm font-medium text-gray-700">{t('printer.connectionType')}</p>
             <div className="flex flex-col gap-2">
               {([
-                { key: 'browser', label: 'Browser Print (window.print)', icon: RefreshCw, desc: 'Oddiy, hamma brauzerlarda ishlaydi' },
-                { key: 'usb', label: 'USB (WebUSB API)', icon: Usb, desc: 'Tauri desktop ilovada to\'liq ishlaydi' },
-                { key: 'network', label: 'Network (TCP/IP)', icon: Wifi, desc: 'Tarmoq orqali, IP va port kerak' },
+                { key: 'browser', label: t('printer.browserPrint'), icon: RefreshCw, desc: t('printer.browserPrintDesc') },
+                { key: 'usb', label: t('printer.usbPrint'), icon: Usb, desc: t('printer.usbPrintDesc') },
+                { key: 'network', label: t('printer.networkPrint'), icon: Wifi, desc: t('printer.networkPrintDesc') },
               ] as const).map((conn) => (
                 <button
                   key={conn.key}
@@ -345,7 +347,7 @@ export default function PrinterSettingsPage() {
           {settings.connection === 'network' && (
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="mb-1 block text-xs font-medium text-gray-600">IP manzil</label>
+                <label className="mb-1 block text-xs font-medium text-gray-600">{t('printer.ipAddress')}</label>
                 <input
                   type="text"
                   value={settings.networkIp}
@@ -355,7 +357,7 @@ export default function PrinterSettingsPage() {
                 />
               </div>
               <div className="w-24">
-                <label className="mb-1 block text-xs font-medium text-gray-600">Port</label>
+                <label className="mb-1 block text-xs font-medium text-gray-600">{t('printer.port')}</label>
                 <input
                   type="text"
                   value={settings.networkPort}
@@ -371,20 +373,20 @@ export default function PrinterSettingsPage() {
 
       {/* T-330: Receipt customization */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h3 className="mb-4 text-sm font-semibold text-gray-800">Chek sarlavhasi va footer</h3>
+        <h3 className="mb-4 text-sm font-semibold text-gray-800">{t('printer.headerFooter')}</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Do'kon nomi</label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">{t('printer.storeName')}</label>
             <input
               type="text"
               value={settings.storeName}
               onChange={(e) => update('storeName', e.target.value)}
-              placeholder="Gulsanam Kosmetika"
+              placeholder={t('printer.storeNamePlaceholder')}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">INN/STIR</label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">{t('printer.inn')}</label>
             <input
               type="text"
               value={settings.inn}
@@ -394,22 +396,22 @@ export default function PrinterSettingsPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Manzil</label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">{t('printer.address')}</label>
             <input
               type="text"
               value={settings.address}
               onChange={(e) => update('address', e.target.value)}
-              placeholder="Toshkent sh., Chilonzor t."
+              placeholder={t('printer.addressPlaceholder')}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Footer matni</label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">{t('printer.footerText')}</label>
             <input
               type="text"
               value={settings.footerText}
               onChange={(e) => update('footerText', e.target.value)}
-              placeholder="Xaridingiz uchun rahmat!"
+              placeholder={t('printer.defaultFooter')}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
             />
           </div>
@@ -419,7 +421,7 @@ export default function PrinterSettingsPage() {
       {/* Supported printers info */}
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
         <p className="mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          Qo'llab-quvvatlanadigan printerlar
+          {t('printer.supportedPrinters')}
         </p>
         <div className="flex flex-wrap gap-2">
           {['Epson TM-T20', 'Epson TM-T88VI', 'XPrinter XP-80', 'RONGTA RP80', 'XPrinter N160II'].map((m) => (
@@ -429,8 +431,7 @@ export default function PrinterSettingsPage() {
           ))}
         </div>
         <p className="mt-3 text-xs text-gray-400">
-          💡 MVP rejimida <strong>Browser Print</strong> (window.print) ishlatiladi.
-          Tauri desktop ilovada ESC/POS binary commands orqali to'liq ishlaydi.
+          {t('printer.mvpNote')}
         </p>
       </div>
     </div>

@@ -10,8 +10,6 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import { useDailyRevenue } from '@/hooks/reports/useReports';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice } from '@/lib/utils';
@@ -64,17 +62,9 @@ export default function DailyRevenuePage() {
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/reports"
-          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">{t('nav.dailyRevenue')}</h1>
-          <p className="text-sm text-gray-500">{t('reports.dailyRevenueSubtitle')}</p>
-        </div>
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">{t('nav.dailyRevenue')}</h1>
+        <p className="text-sm text-gray-500">{t('reports.dailyRevenueSubtitle')}</p>
       </div>
 
       {/* Date range */}
@@ -131,15 +121,15 @@ export default function DailyRevenuePage() {
         <LoadingSkeleton variant="table" rows={6} />
       ) : isError ? (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-          Backend API (T-024) hali tayyor emas
+          {t('reports.apiNotReady')}
         </div>
       ) : (
         <>
           {/* Summary cards */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { label: t('reports.totalSales'), value: formatPrice(totalRevenue) },
-              { label: t('reports.totalOrders'), value: `${totalOrders} ta` },
+              { label: t('reports.totalOrders'), value: `${totalOrders} ${t('common.unit')}` },
               { label: t('reports.avgPerDay'), value: formatPrice(avgPerDay) },
             ].map(({ label, value }) => (
               <div

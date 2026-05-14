@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useUsers, useUpdateUser } from '@/hooks/settings/useUsers';
 import { useBranches } from '@/hooks/settings/useBranches';
+import { useTranslation } from '@/i18n/i18n-context';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ErrorState } from '@/components/common/ErrorState';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
@@ -14,7 +15,7 @@ import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { UserModal } from '@/components/settings/UserModal';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
-import { ROLE_LABELS, ROLE_ORDER } from '@/types/user';
+import { ROLE_LABEL_KEYS, ROLE_ORDER } from '@/types/user';
 
 /* ─── Role badge ─── */
 const ROLE_COLORS: Record<UserRole, string> = {
@@ -27,15 +28,17 @@ const ROLE_COLORS: Record<UserRole, string> = {
 };
 
 function RoleBadge({ role, isActive = true }: { role: UserRole; isActive?: boolean }) {
+  const { t } = useTranslation();
   return (
     <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', isActive ? ROLE_COLORS[role] : 'bg-gray-100 text-gray-400')}>
-      {ROLE_LABELS[role]}
+      {t(ROLE_LABEL_KEYS[role])}
     </span>
   );
 }
 
 /* ─── Page ─── */
 export default function WorkersPage() {
+  const { t } = useTranslation();
   const [showModal,  setShowModal]  = useState(false);
   const [editUser,   setEditUser]   = useState<User | undefined>();
   const [search,     setSearch]     = useState('');
@@ -92,9 +95,9 @@ export default function WorkersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Xodimlar</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('workers.title')}</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            {stats ? `${stats.active} faol / ${stats.total} jami` : 'Yuklanmoqda...'}
+            {stats ? t('workers.subtitle', { active: stats.active, total: stats.total }) : t('common.loading')}
           </p>
         </div>
         <button
@@ -103,19 +106,19 @@ export default function WorkersPage() {
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
         >
           <UserPlus className="h-4 w-4" />
-          Yangi xodim
+          {t('workers.add')}
         </button>
       </div>
 
       {/* Stats row */}
       {stats && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Jami</p>
+              <p className="text-xs text-gray-500">{t('common.total')}</p>
               <p className="text-lg font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>
@@ -124,7 +127,7 @@ export default function WorkersPage() {
               <UserCheck className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-xs text-green-700">Faol</p>
+              <p className="text-xs text-green-700">{t('common.active')}</p>
               <p className="text-lg font-bold text-green-700">{stats.active}</p>
             </div>
           </div>
@@ -133,14 +136,14 @@ export default function WorkersPage() {
               <UserX className="h-5 w-5 text-gray-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Nofaol</p>
+              <p className="text-xs text-gray-500">{t('common.inactive')}</p>
               <p className="text-lg font-bold text-gray-600">{stats.inactive}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-100 bg-white px-4 py-3">
             {stats.byRole.map(({ role, count }) => (
               <span key={role} className={cn('rounded-full px-2 py-0.5 text-xs font-medium', ROLE_COLORS[role])}>
-                {ROLE_LABELS[role]} {count}
+                {t(ROLE_LABEL_KEYS[role])} {count}
               </span>
             ))}
           </div>
@@ -151,7 +154,7 @@ export default function WorkersPage() {
       <div className="flex flex-wrap items-center gap-3">
         {/* Status tabs */}
         <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-          {([['all', 'Barchasi'], ['active', 'Faol'], ['inactive', 'Nofaol']] as const).map(([key, label]) => (
+          {([{ key: 'all' as const, label: t('common.all') }, { key: 'active' as const, label: t('common.active') }, { key: 'inactive' as const, label: t('common.inactive') }]).map(({ key, label }) => (
             <button
               key={key}
               type="button"
@@ -169,10 +172,10 @@ export default function WorkersPage() {
         {/* Role filter */}
         <div className="w-40">
           <SearchableDropdown
-            options={ROLE_ORDER.filter((r) => r !== 'OWNER').map((r) => ({ value: r, label: ROLE_LABELS[r] }))}
+            options={ROLE_ORDER.filter((r) => r !== 'OWNER').map((r) => ({ value: r, label: t(ROLE_LABEL_KEYS[r]) }))}
             value={roleFilter}
             onChange={(val) => setRoleFilter(val)}
-            placeholder="Barcha rollar"
+            placeholder={t('workers.allRoles')}
             searchable={false}
             clearable
           />
@@ -185,7 +188,7 @@ export default function WorkersPage() {
               options={branches.filter((b) => b.isActive).map((b) => ({ value: b.id, label: b.name }))}
               value={branchFilter}
               onChange={(val) => setBranchFilter(val)}
-              placeholder="Barcha filiallar"
+              placeholder={t('workers.allBranches')}
               searchable={branches.length > 4}
               clearable
             />
@@ -205,14 +208,15 @@ export default function WorkersPage() {
       <ScrollableTable
         searchValue={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Ism yoki email bo'yicha..."
+        searchPlaceholder={t('workers.searchPlaceholder')}
         totalCount={filtered.length}
         isLoading={false}
+        maxHeight="calc(100vh - 480px)"
       >
         <table className="w-full text-sm">
           <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
             <tr>
-              {['Xodim', 'Email', 'Rol', 'Filial', "So'nggi kirish", 'Holat', 'Amallar'].map((h) => (
+              {[t('common.employee'), t('common.email'), t('common.role'), t('common.branch'), t('common.lastLogin'), t('common.status'), t('common.actions')].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
               ))}
             </tr>
@@ -222,7 +226,7 @@ export default function WorkersPage() {
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
                   <Users className="mx-auto mb-2 h-8 w-8 opacity-30" />
-                  <p className="text-sm">{search ? "Qidiruv bo'yicha natija topilmadi" : "Xodimlar yo'q"}</p>
+                  <p className="text-sm">{search ? t('common.noSearchResults') : t('workers.empty')}</p>
                 </td>
               </tr>
             ) : filtered.map((u) => (
@@ -254,8 +258,8 @@ export default function WorkersPage() {
                 </td>
                 <td className="px-4 py-3">
                   {u.isActive
-                    ? <span className="flex items-center gap-1 text-xs text-green-600"><CheckCircle className="h-3.5 w-3.5" />Faol</span>
-                    : <span className="flex items-center gap-1 text-xs text-gray-400"><XCircle className="h-3.5 w-3.5" />Nofaol</span>}
+                    ? <span className="flex items-center gap-1 text-xs text-green-600"><CheckCircle className="h-3.5 w-3.5" />{t('common.active')}</span>
+                    : <span className="flex items-center gap-1 text-xs text-gray-400"><XCircle className="h-3.5 w-3.5" />{t('common.inactive')}</span>}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -264,7 +268,7 @@ export default function WorkersPage() {
                       onClick={() => { setEditUser(u); setShowModal(true); }}
                       className="rounded-md border border-gray-200 px-2.5 py-1 text-xs text-gray-700 transition hover:bg-gray-50"
                     >
-                      Tahrirlash
+                      {t('common.edit')}
                     </button>
                     {u.role !== 'OWNER' && (
                       <button
@@ -277,7 +281,7 @@ export default function WorkersPage() {
                             : 'border-green-200 text-green-600 hover:bg-green-50',
                         )}
                       >
-                        {u.isActive ? "O'chirish" : 'Yoqish'}
+                        {u.isActive ? t('settings.disable') : t('settings.enable')}
                       </button>
                     )}
                   </div>

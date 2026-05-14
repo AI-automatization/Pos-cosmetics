@@ -93,7 +93,7 @@ export function CreateTransferModal({ onClose }: CreateTransferModalProps) {
 
         <div className="max-h-[75vh] overflow-y-auto p-5 space-y-4">
           {/* Branches */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 Qaysi filialdan <span className="text-red-500">*</span>

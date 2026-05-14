@@ -9,12 +9,12 @@ import { usePOSStore } from '@/store/pos.store';
 import { useSyncStore } from '@/store/sync.store';
 import { useLoyaltyConfig } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
-import type { Order } from '@/types/sales';
+import type { Order, ApiPaymentMethod } from '@/types/sales';
 
 export function useCompleteSale(onSuccess: (order: Order) => void) {
   const store = usePOSStore();
   const cart = store.carts[store.activeCartId];
-  const { items, orderDiscount, orderDiscountType, paymentMethod, cashAmount, cardAmount, bonusPoints, splitNasiyaAmount, selectedCustomer } = cart;
+  const { items, orderDiscount, orderDiscountType, paymentMethod, cardType, cashAmount, cardAmount, bonusPoints, splitNasiyaAmount, selectedCustomer } = cart;
   const { shiftId, totals, clearCart, recordSale } = store;
   const { addPendingOrder } = useSyncStore();
   const { data: loyaltyConfig } = useLoyaltyConfig();
@@ -24,11 +24,14 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
     mutationFn: () => {
       const { total } = totals();
 
-      let payments: { method: 'CASH' | 'CARD' | 'NASIYA' | 'BONUS'; amount: number }[];
+      const CARD_TYPE_MAP = { terminal: 'TERMINAL', payme: 'PAYME', click: 'CLICK' } as const;
+      const cardMethod = CARD_TYPE_MAP[cardType] ?? 'TERMINAL';
+
+      let payments: { method: ApiPaymentMethod; amount: number }[];
       if (paymentMethod === 'cash') {
         payments = [{ method: 'CASH', amount: total }];
       } else if (paymentMethod === 'card') {
-        payments = [{ method: 'CARD', amount: total }];
+        payments = [{ method: cardMethod, amount: total }];
       } else if (paymentMethod === 'nasiya') {
         payments = [{ method: 'NASIYA', amount: total }];
       } else if (paymentMethod === 'bonus') {
@@ -37,8 +40,8 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         // split — include all non-zero components
         payments = (
           [
-            cashAmount > 0 ? { method: 'CASH' as const, amount: cashAmount } : null,
-            cardAmount > 0 ? { method: 'CARD' as const, amount: cardAmount } : null,
+            cashAmount > 0 ? { method: 'CASH', amount: cashAmount } : null,
+            cardAmount > 0 ? { method: cardMethod, amount: cardAmount } : null,
             splitNasiyaAmount > 0 ? { method: 'NASIYA' as const, amount: splitNasiyaAmount } : null,
             bonusPoints > 0 ? { method: 'BONUS' as const, amount: bonusPoints * redeemRate } : null,
           ] as (typeof payments[0] | null)[]

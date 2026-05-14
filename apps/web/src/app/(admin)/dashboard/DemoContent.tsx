@@ -10,6 +10,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const DEMO_WEEKLY = [
   { label: '22.02', revenue: 1_250_000 },
@@ -46,12 +47,13 @@ function DemoTooltip({ active, payload, label }: DemoTooltipProps) {
 }
 
 export function DemoContent() {
+  const { t } = useTranslation();
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-5">
-        <p className="mb-1 text-sm font-semibold text-gray-700">Haftalik savdo (demo)</p>
+        <p className="mb-1 text-sm font-semibold text-gray-700">{t('dashboard.weeklyRevenueDemo')}</p>
         <p className="mb-4 text-xs text-gray-400">
-          Backend tayyor bo&apos;lgach real ma&apos;lumot ko&apos;rinadi
+          {t('dashboard.backendReadyDesc')}
         </p>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={DEMO_WEEKLY} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -75,7 +77,7 @@ export function DemoContent() {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <p className="mb-4 text-sm font-semibold text-gray-700">Top mahsulotlar (demo)</p>
+        <p className="mb-4 text-sm font-semibold text-gray-700">{t('dashboard.topProductsDemo')}</p>
         <div className="flex flex-col gap-3">
           {DEMO_TOP.map((p, idx) => (
             <div key={p.name} className="flex items-center gap-2">
@@ -84,7 +86,7 @@ export function DemoContent() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium text-gray-800">{p.name}</p>
-                <p className="text-xs text-gray-400">{p.qty} ta</p>
+                <p className="text-xs text-gray-400">{p.qty} {t('common.unit')}</p>
               </div>
               <span className="shrink-0 text-xs font-semibold text-gray-700">
                 {formatPrice(p.revenue)}

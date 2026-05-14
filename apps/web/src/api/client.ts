@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAccessToken, setAccessToken, clearAccessToken, getUserIdFromCookie } from './token';
+import { getAccessToken, setAccessToken, clearAccessToken, getUserIdFromCookie, clearUserIdFallback } from './token';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 
@@ -23,6 +23,7 @@ let refreshPromise: Promise<string> | null = null;
 function clearAuthAndRedirect() {
   if (typeof window === 'undefined') return;
   clearAccessToken();
+  clearUserIdFallback();
   document.cookie = 'session_active=; path=/; max-age=0';
   document.cookie = 'user_role=; path=/; max-age=0';
   document.cookie = 'user_id=; path=/; max-age=0';

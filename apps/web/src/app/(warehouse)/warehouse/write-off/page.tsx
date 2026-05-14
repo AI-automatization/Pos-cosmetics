@@ -32,6 +32,7 @@ export default function WriteOffPage() {
   const reasonOptions: DropdownOption[] = REASONS.map((r) => ({ value: r.value, label: r.label }));
 
   const [reason, setReason] = useState<string>('DAMAGED');
+  const [customReason, setCustomReason] = useState('');
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [items, setItems] = useState<ItemRow[]>([{ _key: nextKey(), productId: '', qty: 1 }]);
@@ -53,8 +54,11 @@ export default function WriteOffPage() {
     setSubmitted(true);
     const valid = items.filter((r) => r.productId && r.qty > 0);
     if (valid.length === 0) return;
+    const finalNote = reason === 'OTHER' && customReason
+      ? (note ? `${customReason}: ${note}` : customReason)
+      : (note || undefined);
     writeOff(
-      { reason: reason as WriteOffReason, note: note || undefined, items: valid.map(({ productId, qty }) => ({ productId, qty })) },
+      { reason: reason as WriteOffReason, note: finalNote, items: valid.map(({ productId, qty }) => ({ productId, qty })) },
       { onSuccess: () => router.push('/warehouse') },
     );
   };
@@ -81,12 +85,22 @@ export default function WriteOffPage() {
               <SearchableDropdown
                 options={reasonOptions}
                 value={reason}
-                onChange={setReason}
+                onChange={(val) => { setReason(val); if (val !== 'OTHER') setCustomReason(''); }}
                 placeholder={t('warehouse.selectReason')}
                 searchable={false}
                 clearable={false}
                 required
               />
+              {reason === 'OTHER' && (
+                <input
+                  type="text"
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  placeholder={t('warehouse.customReasonPlaceholder')}
+                  className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  required
+                />
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('warehouse.note')}</label>
@@ -140,7 +154,7 @@ export default function WriteOffPage() {
               </tr>
             </thead>
           </table>
-          <div className="max-h-[480px] overflow-y-auto">
+          <div className="max-h-[480px] h-full overflow-y-auto">
             <table className="w-full text-sm">
               <colgroup>
                 <col />

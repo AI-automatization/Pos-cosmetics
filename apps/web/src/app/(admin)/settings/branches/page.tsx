@@ -6,6 +6,7 @@ import {
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useBranches, useDeactivateBranch } from '@/hooks/settings/useBranches';
+import { useTranslation } from '@/i18n/i18n-context';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { cn } from '@/lib/utils';
 import type { Branch } from '@/api/branches.api';
@@ -24,6 +25,7 @@ function DeleteConfirmModal({
   onClose: () => void;
   isPending: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
@@ -32,20 +34,19 @@ function DeleteConfirmModal({
             <AlertTriangle className="h-5 w-5 text-red-600" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Filialni o&apos;chirish</h3>
-            <p className="text-sm text-gray-500">Bu amalni qaytarib bo&apos;lmaydi</p>
+            <h3 className="text-base font-semibold text-gray-900">{t('branches.deleteTitle')}</h3>
+            <p className="text-sm text-gray-500">{t('branches.deleteWarning')}</p>
           </div>
         </div>
         <p className="mb-5 text-sm text-gray-700">
-          <span className="font-semibold">&quot;{branchName}&quot;</span> filialni o&apos;chirmoqchimisiz?
-          Filialdagi xodimlar va mijozlar bog&apos;liqligini yo&apos;qotadi.
+          {t('branches.deleteConfirm', { name: branchName })}
         </p>
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="flex-1 rounded-xl border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            Bekor qilish
+            {t('common.cancel')}
           </button>
           <button type="button" onClick={onConfirm} disabled={isPending} className="flex-1 rounded-xl bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">
-            {isPending ? "O'chirilmoqda..." : "O'chirish"}
+            {isPending ? t('common.loading') : t('common.delete')}
           </button>
         </div>
       </div>
@@ -57,6 +58,7 @@ const PAGE_SIZE = 5;
 
 /* ─── Main page ─── */
 export default function BranchesPage() {
+  const { t } = useTranslation();
   const { data: branches, isLoading } = useBranches();
   const { mutate: deactivate, isPending: deactivating } = useDeactivateBranch();
   const [modal, setModal] = useState<{ open: boolean; branch: Branch | null }>({
@@ -78,23 +80,23 @@ export default function BranchesPage() {
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Filiallar</h1>
-          <p className="text-sm text-gray-500">Do&apos;kon filiallarini va xodimlarini boshqarish</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('nav.branches')}</h1>
+          <p className="text-sm text-gray-500">{t('branches.subtitle')}</p>
         </div>
         <button
           onClick={() => setModal({ open: true, branch: null })}
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
-          Filial qo&apos;shish
+          {t('branches.addBranch')}
         </button>
       </div>
 
       {!branches?.length ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 py-16">
           <Building2 className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm font-medium text-gray-500">Hali filial yo&apos;q</p>
-          <p className="mt-1 text-xs text-gray-400">Yuqoridagi tugmani bosib yangi filial qo&apos;shing</p>
+          <p className="text-sm font-medium text-gray-500">{t('branches.empty')}</p>
+          <p className="mt-1 text-xs text-gray-400">{t('branches.emptyHint')}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -116,24 +118,24 @@ export default function BranchesPage() {
                 <div className="flex shrink-0 items-center gap-3">
                   {b.isActive ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <CheckCircle className="h-3 w-3" /> Aktiv
+                      <CheckCircle className="h-3 w-3" /> {t('common.active')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">
-                      <XCircle className="h-3 w-3" /> Nofaol
+                      <XCircle className="h-3 w-3" /> {t('common.inactive')}
                     </span>
                   )}
                   <button
                     onClick={() => setModal({ open: true, branch: b })}
                     className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                    title="Tahrirlash"
+                    title={t('common.edit')}
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setDeleteTarget(b)}
                     className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                    title="O'chirish"
+                    title={t('common.delete')}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -147,7 +149,7 @@ export default function BranchesPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3">
               <p className="text-sm text-gray-500">
-                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, branches?.length ?? 0)} / {branches?.length ?? 0} filial
+                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, branches?.length ?? 0)} / {branches?.length ?? 0} {t('common.branch')}
               </p>
               <div className="flex items-center gap-1">
                 <button

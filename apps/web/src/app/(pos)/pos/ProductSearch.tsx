@@ -6,6 +6,21 @@ import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';
 import { useShallow } from 'zustand/react/shallow';
 import { useBarcodeScanner } from '@/hooks/pos/useBarcodeScanner';
+
+/** Короткий beep через Web Audio API — работает без внешних файлов */
+function playBeep() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 1200;
+    gain.gain.value = 0.3;
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+  } catch { /* silent fallback */ }
+}
 import { usePromoMap } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
@@ -168,6 +183,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
     if (data.items.length === 1) {
       barcodeTriggeredRef.current = false;
       handleAdd(data.items[0]);
+      playBeep();
       onSearchChange('');
       setDebouncedSearch('');
     } else if (!isFetching) {
@@ -208,7 +224,7 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
         )}
 
         {data && data.items.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 xl:grid-cols-3">
             {data.items.map((product) => (
               <ProductCard
                 key={product.id}

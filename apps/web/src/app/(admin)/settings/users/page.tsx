@@ -126,7 +126,7 @@ export default function UsersPage() {
   }, [users, search]);
 
   if (isLoading) return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">{t('settings.users')}</h1>

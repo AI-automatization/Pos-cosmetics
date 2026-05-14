@@ -131,7 +131,7 @@ export default function WarehouseDashboardPage() {
       </div>
 
       {/* Quick Navigation */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { href: '/warehouse/invoices',  icon: FileText,    label: t('warehouse.invoices'),        color: 'bg-blue-50 text-blue-600',   border: 'hover:border-blue-300' },
           { href: '/warehouse/stock-in',  icon: PackagePlus, label: t('warehouse.stockIn'),        color: 'bg-green-50 text-green-600', border: 'hover:border-green-300' },
@@ -155,7 +155,7 @@ export default function WarehouseDashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={Package}       label={t('warehouse.totalProducts')}     value={stats?.totalProducts ?? 0} color="bg-amber-500" />
         <StatCard icon={TrendingDown}  label={t('inventory.lowStock')}            value={stats?.lowStockCount ?? 0} color="bg-red-500" />
         <StatCard icon={AlertTriangle} label={t('warehouse.expirySoon')}         value={stats?.expiryCount ?? 0}  color="bg-orange-500" />
@@ -202,7 +202,7 @@ export default function WarehouseDashboardPage() {
           {(data?.recentMovements.length ?? 0) === 0 ? (
             <p className="px-4 py-6 text-sm text-gray-400 text-center">{t('warehouse.noMovementsToday')}</p>
           ) : (
-            <ul className="divide-y divide-gray-50 max-h-64 overflow-y-auto">
+            <ul className="divide-y divide-gray-50 max-h-64 h-full overflow-y-auto">
               {data!.recentMovements.map((m) => {
                 const meta = TYPE_LABELS[m.type] ?? { label: m.type, color: 'text-gray-600 bg-gray-100' };
                 return (

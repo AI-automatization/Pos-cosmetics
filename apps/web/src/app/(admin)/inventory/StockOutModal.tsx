@@ -6,13 +6,8 @@ import { useStockOut } from '@/hooks/inventory/useInventory';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { StockOutItem, StockOutReason } from '@/types/inventory';
-
-const REASONS: { value: StockOutReason; label: string }[] = [
-  { value: 'DAMAGE', label: 'Shikastlangan' },
-  { value: 'WRITE_OFF', label: 'Hisobdan chiqarish' },
-  { value: 'OTHER', label: 'Boshqa sabab' },
-];
 
 interface ItemRow extends StockOutItem {
   _key: number;
@@ -29,9 +24,16 @@ interface StockOutModalProps {
 }
 
 export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
+  const { t } = useTranslation();
   const { data: productsData } = useProducts({ limit: 500 });
   const products = productsData?.items ?? [];
   const { mutate: submitStockOut, isPending } = useStockOut();
+
+  const REASONS: { value: StockOutReason; label: string }[] = [
+    { value: 'DAMAGE', label: t('inventory.reasonDamaged') },
+    { value: 'WRITE_OFF', label: t('inventory.reasonWriteOff') },
+    { value: 'OTHER', label: t('inventory.reasonOther') },
+  ];
 
   const [reason, setReason] = useState<StockOutReason>('DAMAGE');
   const [notes, setNotes] = useState('');
@@ -79,8 +81,8 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Chiqim</h2>
-            <p className="text-sm text-gray-500">Ombordan tovar chiqarish</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('inventory.stockOut')}</h2>
+            <p className="text-sm text-gray-500">{t('inventory.stockOutDesc')}</p>
           </div>
           <button
             type="button"
@@ -96,7 +98,7 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-y-auto">
           <div className="flex flex-col gap-5 p-6">
             {/* Reason + Notes */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-700">
                   Sabab <span className="text-red-500">*</span>
@@ -119,7 +121,7 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Qo'shimcha ma'lumot..."
+                  placeholder={t('inventory.additionalInfo')}
                   className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -153,7 +155,7 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
                       }))}
                       value={row.productId}
                       onChange={(val) => updateRow(row._key, { productId: val })}
-                      placeholder="Mahsulot tanlang..."
+                      placeholder={t('inventory.selectProduct')}
                       searchPlaceholder="Nomi yoki barcode..."
                       clearable={false}
                       required
@@ -204,7 +206,7 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
               onClick={onClose}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -215,7 +217,7 @@ export function StockOutModal({ isOpen, onClose }: StockOutModalProps) {
               )}
             >
               <Save className="h-4 w-4" />
-              {isPending ? 'Saqlanmoqda...' : 'Chiqimni saqlash'}
+              {isPending ? t('common.saving') : t('inventory.stockOut')}
             </button>
           </div>
         </form>

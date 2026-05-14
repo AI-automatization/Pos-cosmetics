@@ -19,31 +19,33 @@ function formatDuration(openedAt: string, closedAt?: string | null): string {
 }
 import type { ShiftStatus } from '@/types/shift';
 
-const STATUS_CONFIG: Record<ShiftStatus, { label: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
-  OPEN: { label: 'Ochiq', icon: Clock, className: 'bg-green-100 text-green-700' },
-  CLOSED: { label: 'Yopilgan', icon: Lock, className: 'bg-gray-100 text-gray-600' },
+// Config uses i18n keys — resolved inside component with t()
+const STATUS_CONFIG: Record<ShiftStatus, { key: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
+  OPEN: { key: 'reports.opened', icon: Clock, className: 'bg-green-100 text-green-700' },
+  CLOSED: { key: 'reports.closed', icon: Lock, className: 'bg-gray-100 text-gray-600' },
 };
 
+const STATUS_FILTER_VALUES: Array<{ value: ShiftStatus | 'ALL'; key: string }> = [
+  { value: 'ALL', key: 'common.all' },
+  { value: 'OPEN', key: 'reports.opened' },
+  { value: 'CLOSED', key: 'reports.closed' },
+];
+
 function StatusBadge({ status }: { status: ShiftStatus }) {
+  const { t } = useTranslation();
   const config = STATUS_CONFIG[status as ShiftStatus] ?? {
-    label: status ?? "Noma'lum",
+    key: 'common.noData',
     icon: AlertCircle,
     className: 'bg-gray-100 text-gray-500',
   };
-  const { label, icon: Icon, className } = config;
+  const { key, icon: Icon, className } = config;
   return (
     <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', className)}>
       <Icon className="h-3 w-3" />
-      {label}
+      {t(key)}
     </span>
   );
 }
-
-const STATUS_FILTERS: Array<{ value: ShiftStatus | 'ALL'; label: string }> = [
-  { value: 'ALL', label: 'Barchasi' },
-  { value: 'OPEN', label: 'Ochiq' },
-  { value: 'CLOSED', label: 'Yopilgan' },
-];
 
 export default function ShiftsPage() {
   const { t } = useTranslation();
@@ -137,7 +139,7 @@ export default function ShiftsPage() {
     >
       {/* Filter tabs */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {STATUS_FILTERS.map((f) => (
+        {STATUS_FILTER_VALUES.map((f) => (
           <button
             key={f.value}
             type="button"
@@ -149,12 +151,12 @@ export default function ShiftsPage() {
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50',
             )}
           >
-            {f.label}
+            {t(f.key)}
           </button>
         ))}
         <input
           type="text"
-          placeholder="Kassir bo'yicha qidirish..."
+          placeholder={t('shifts.searchPlaceholder')}
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-52 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -178,20 +180,20 @@ export default function ShiftsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Kassir</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('reports.cashier')}</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  <SortHeader field="openedAt" label="Ochildi" />
+                  <SortHeader field="openedAt" label={t('shifts.opened')} />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Yopildi</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('shifts.closed')}</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <SortHeader field="duration" label={t('shifts.duration')} />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Holat</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Sotuvlar</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Naqd</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Karta</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('common.status')}</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">{t('shifts.sales')}</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">{t('payments.cash')}</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">{t('payments.card')}</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  <SortHeader field="revenue" label="Jami daromad" />
+                  <SortHeader field="revenue" label={t('shifts.totalRevenue')} />
                 </th>
               </tr>
             </thead>
@@ -200,7 +202,7 @@ export default function ShiftsPage() {
                 <tr>
                   <td colSpan={9} className="py-12 text-center">
                     <Clock className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    <p className="text-sm text-gray-500">Smenalar mavjud emas</p>
+                    <p className="text-sm text-gray-500">{t('shifts.noShifts')}</p>
                   </td>
                 </tr>
               ) : (
@@ -209,7 +211,7 @@ export default function ShiftsPage() {
                     <td className="px-4 py-3 font-medium text-gray-900">{s.cashierName}</td>
                     <td className="px-4 py-3 text-gray-600 text-xs">{formatDateTime(s.openedAt)}</td>
                     <td className="px-4 py-3 text-gray-600 text-xs">
-                      {s.closedAt ? formatDateTime(s.closedAt) : <span className="text-green-600 font-medium">Ochiq</span>}
+                      {s.closedAt ? formatDateTime(s.closedAt) : <span className="text-green-600 font-medium">{t('reports.opened')}</span>}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500">{formatDuration(s.openedAt, s.closedAt)}</td>
                     <td className="px-4 py-3">

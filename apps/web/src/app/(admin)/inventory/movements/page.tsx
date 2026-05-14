@@ -38,7 +38,7 @@ export default function MovementsPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       <div className="flex items-center gap-3">
         <Link href="/inventory" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
           <ArrowLeft className="h-5 w-5" />

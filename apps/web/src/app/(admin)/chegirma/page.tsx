@@ -6,6 +6,7 @@ import { cn, formatPrice } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { CreateDiscountModal } from './CreateDiscountModal';
+import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Demo Data ─── */
 
@@ -47,38 +48,43 @@ const DEMO_DISCOUNTS: Discount[] = Array.from({ length: 25 }, (_, i) => ({
   usedCount: i * 7,
 }));
 
-/* ─── Status config ─── */
+/* ─── Status config (className only, labels via t()) ─── */
 
-const STATUS_CONFIG: Record<DiscountStatus, { label: string; className: string }> = {
-  active: { label: 'Faol', className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20' },
-  completed: { label: 'Yakunlangan', className: 'bg-gray-100 text-gray-600 ring-1 ring-gray-500/20' },
-  pending: { label: 'Kutilmoqda', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20' },
+const STATUS_CLASS: Record<DiscountStatus, string> = {
+  active: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20',
+  completed: 'bg-gray-100 text-gray-600 ring-1 ring-gray-500/20',
+  pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20',
 };
-
-/* ─── Filter options ─── */
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Hammasi' },
-  { value: 'active', label: 'Faol' },
-  { value: 'completed', label: 'Yakunlangan' },
-  { value: 'pending', label: 'Kutilmoqda' },
-];
-
-const TYPE_OPTIONS = [
-  { value: '', label: 'Hammasi' },
-  { value: 'percent', label: 'Foiz (%)' },
-  { value: 'fixed', label: "Miqdor (So'm)" },
-];
 
 /* ─── Page ─── */
 
 export default function ChegirmaPage() {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const STATUS_LABEL: Record<DiscountStatus, string> = {
+    active: t('discounts.statusActive'),
+    completed: t('discounts.statusCompleted'),
+    pending: t('discounts.statusPending'),
+  };
+
+  const STATUS_OPTIONS = [
+    { value: '', label: t('discounts.allStatuses') },
+    { value: 'active', label: t('discounts.statusActive') },
+    { value: 'completed', label: t('discounts.statusCompleted') },
+    { value: 'pending', label: t('discounts.statusPending') },
+  ];
+
+  const TYPE_OPTIONS = [
+    { value: '', label: t('discounts.allTypes') },
+    { value: 'percent', label: t('discounts.typePercentLabel') },
+    { value: 'fixed', label: t('discounts.typeFixedLabel') },
+  ];
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -107,10 +113,10 @@ export default function ChegirmaPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-            Chegirmalar boshqaruvi
+            {t('nav.chegirma')}
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Mahsulotlarga chegirma qo&apos;shing va boshqaring
+            {t('discounts.subtitle')}
           </p>
         </div>
         <button
@@ -119,7 +125,7 @@ export default function ChegirmaPage() {
           className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 active:scale-95"
         >
           <Plus className="h-4 w-4" />
-          Yangi chegirma
+          {t('discounts.addNew')}
         </button>
       </div>
 
@@ -127,35 +133,35 @@ export default function ChegirmaPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="stat-card-green flex flex-col gap-3 rounded-2xl p-5 text-white shadow-md">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium opacity-90">Faol chegirmalar</p>
+            <p className="text-sm font-medium opacity-90">{t('discounts.activeLabel')}</p>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
               <Tag className="h-4 w-4" />
             </div>
           </div>
           <p className="text-3xl font-black">{activeCount}</p>
-          <p className="text-xs opacity-75">Hozirda aktiv chegirmalar</p>
+          <p className="text-xs opacity-75">{t('discounts.activeSubtitle')}</p>
         </div>
 
         <div className="stat-card-orange flex flex-col gap-3 rounded-2xl p-5 text-white shadow-md">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium opacity-90">Bugun tejaldi</p>
+            <p className="text-sm font-medium opacity-90">{t('discounts.todaySaved')}</p>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
               <TrendingDown className="h-4 w-4" />
             </div>
           </div>
           <p className="text-xl font-black">{formatPrice(todaySaved)}</p>
-          <p className="text-xs opacity-75">Chegirmalar orqali</p>
+          <p className="text-xs opacity-75">{t('discounts.viaDiscounts')}</p>
         </div>
 
         <div className="stat-card-purple flex flex-col gap-3 rounded-2xl p-5 text-white shadow-md">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium opacity-90">Jami ishlatildi</p>
+            <p className="text-sm font-medium opacity-90">{t('discounts.totalUsed')}</p>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
               <BarChart3 className="h-4 w-4" />
             </div>
           </div>
           <p className="text-3xl font-black">{totalUsed}</p>
-          <p className="text-xs opacity-75">Barcha chegirmalar uchun</p>
+          <p className="text-xs opacity-75">{t('discounts.forAll')}</p>
         </div>
       </div>
 
@@ -163,14 +169,14 @@ export default function ChegirmaPage() {
       <ScrollableTable
         searchValue={search}
         onSearchChange={(v) => { setSearch(v); setPage(1); }}
-        searchPlaceholder="Mahsulot qidiring..."
+        searchPlaceholder={t('discounts.searchPlaceholder')}
         filters={
           <>
             <SearchableDropdown
               options={STATUS_OPTIONS}
               value={statusFilter}
               onChange={(v) => { setStatusFilter(v); setPage(1); }}
-              placeholder="Status"
+              placeholder={t('common.status')}
               searchable={false}
               clearable={!!statusFilter}
               className="w-40"
@@ -179,7 +185,7 @@ export default function ChegirmaPage() {
               options={TYPE_OPTIONS}
               value={typeFilter}
               onChange={(v) => { setTypeFilter(v); setPage(1); }}
-              placeholder="Turi"
+              placeholder={t('common.type')}
               searchable={false}
               clearable={!!typeFilter}
               className="w-44"
@@ -198,7 +204,7 @@ export default function ChegirmaPage() {
         <table className="w-full text-sm">
           <thead className="sticky top-0 border-b border-gray-200 bg-gray-50">
             <tr>
-              {['Mahsulot', 'Chegirma turi', 'Miqdor', 'Boshlanish', 'Tugash', 'Status', 'Amallar'].map((h) => (
+              {[t('discounts.colProduct'), t('discounts.colType'), t('discounts.colAmount'), t('discounts.colStart'), t('discounts.colEnd'), t('discounts.colStatus'), t('discounts.colActions')].map((h) => (
                 <th
                   key={h}
                   className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
@@ -212,12 +218,13 @@ export default function ChegirmaPage() {
             {paginated.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-sm text-gray-400">
-                  Chegirmalar topilmadi
+                  {t('discounts.noDiscounts')}
                 </td>
               </tr>
             ) : (
               paginated.map((d) => {
-                const status = STATUS_CONFIG[d.status];
+                const statusClassName = STATUS_CLASS[d.status];
+                const statusLabel = STATUS_LABEL[d.status];
                 return (
                   <tr key={d.id} className="transition hover:bg-gray-50">
                     {/* Product */}
@@ -246,7 +253,7 @@ export default function ChegirmaPage() {
                         )}
                       >
                         <Percent className="h-3 w-3" />
-                        {d.type === 'percent' ? 'Foiz' : "So'm"}
+                        {d.type === 'percent' ? t('discounts.typePercent') : t('discounts.typeFixed')}
                       </span>
                     </td>
 
@@ -263,8 +270,8 @@ export default function ChegirmaPage() {
 
                     {/* Status */}
                     <td className="px-4 py-3">
-                      <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', status.className)}>
-                        {status.label}
+                      <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', statusClassName)}>
+                        {statusLabel}
                       </span>
                     </td>
 
@@ -274,14 +281,14 @@ export default function ChegirmaPage() {
                         <button
                           type="button"
                           className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
-                          title="Tahrirlash"
+                          title={t('common.edit')}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
                           className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                          title="O'chirish"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>

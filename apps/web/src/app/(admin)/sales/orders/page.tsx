@@ -77,7 +77,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            {order ? `Buyurtma #${order.orderNumber}` : 'Buyurtma tafsilotlari'}
+            {order ? `${t('orders.orderNumber')} #${order.orderNumber}` : t('orders.detail')}
           </h2>
           <button
             type="button"
@@ -89,23 +89,23 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="flex-1 h-full overflow-y-auto p-5 space-y-5">
           {isLoading ? (
             <LoadingSkeleton variant="table" rows={4} />
           ) : order ? (
             <>
               {/* Order meta info */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <p className="mb-0.5 text-xs font-medium text-gray-500">Sana</p>
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">{t('common.date')}</p>
                   <p className="text-sm font-semibold text-gray-900">{formatDateTime(order.createdAt)}</p>
                 </div>
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <p className="mb-0.5 text-xs font-medium text-gray-500">Kassir</p>
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">{t('reports.cashier')}</p>
                   <p className="text-sm font-semibold text-gray-900">{order.cashierName ?? '—'}</p>
                 </div>
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <p className="mb-0.5 text-xs font-medium text-gray-500">To&apos;lov usuli</p>
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">{t('payments.method')}</p>
                   {order.paymentMethod ? (
                     <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900">
                       {(() => {
@@ -119,7 +119,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
                   )}
                 </div>
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <p className="mb-0.5 text-xs font-medium text-gray-500">Holat</p>
+                  <p className="mb-0.5 text-xs font-medium text-gray-500">{t('common.status')}</p>
                   <StatusBadge status={order.status} />
                 </div>
               </div>
@@ -127,7 +127,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
               {/* Customer row (if present) */}
               {order.customerName && (
                 <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-2.5">
-                  <span className="text-xs font-medium text-blue-500">Mijoz: </span>
+                  <span className="text-xs font-medium text-blue-500">{t('payments.customer')} </span>
                   <span className="text-sm font-semibold text-blue-800">{order.customerName}</span>
                 </div>
               )}
@@ -135,29 +135,29 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
               {/* Notes row (if present) */}
               {order.notes && (
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5">
-                  <span className="text-xs font-medium text-gray-500">Izoh: </span>
+                  <span className="text-xs font-medium text-gray-500">{t('common.note')}: </span>
                   <span className="text-sm text-gray-700">{order.notes}</span>
                 </div>
               )}
 
               {/* Order items table */}
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">Mahsulotlar</h3>
+                <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('nav.products')}</h3>
                 <div className="overflow-hidden rounded-lg border border-gray-200">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          Mahsulot
+                          {t('common.product')}
                         </th>
                         <th className="px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          Miqdor
+                          {t('common.quantity')}
                         </th>
                         <th className="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          Narx
+                          {t('common.price')}
                         </th>
                         <th className="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          Jami
+                          {t('common.total')}
                         </th>
                       </tr>
                     </thead>
@@ -165,7 +165,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
                       {order.items.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="px-3 py-4 text-center text-sm text-gray-400">
-                            Mahsulotlar mavjud emas
+                            {t('common.noData')}
                           </td>
                         </tr>
                       ) : (
@@ -197,7 +197,7 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
               {/* Payment intents detail */}
               {order.paymentIntents && order.paymentIntents.length > 0 && (
                 <div>
-                  <h3 className="mb-2 text-sm font-semibold text-gray-700">To&apos;lovlar</h3>
+                  <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('nav.payments')}</h3>
                   <div className="space-y-1.5">
                     {order.paymentIntents.map((pi, idx) => {
                       const Icon = PAYMENT_ICONS[pi.method] ?? Banknote;
@@ -218,29 +218,29 @@ function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () =
               {/* Totals footer */}
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-1.5">
                 <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>Jami (soliqlarsiz)</span>
+                  <span>{t('receipt.subtotal')}</span>
                   <span>{formatPrice(order.subtotal)}</span>
                 </div>
                 {order.discountAmount > 0 && (
                   <div className="flex items-center justify-between text-sm text-green-600">
-                    <span>Chegirma</span>
+                    <span>{t('pos.discount')}</span>
                     <span>- {formatPrice(order.discountAmount)}</span>
                   </div>
                 )}
                 {order.taxAmount > 0 && (
                   <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>Soliq</span>
+                    <span>{t('payments.tax')}</span>
                     <span>{formatPrice(order.taxAmount)}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between border-t border-gray-200 pt-2 text-base font-bold text-gray-900">
-                  <span>Umumiy</span>
+                  <span>{t('common.total')}</span>
                   <span>{formatPrice(order.total)}</span>
                 </div>
               </div>
             </>
           ) : (
-            <div className="py-8 text-center text-sm text-gray-400">Ma&apos;lumot topilmadi</div>
+            <div className="py-8 text-center text-sm text-gray-400">{t('common.noData')}</div>
           )}
         </div>
       </div>
@@ -362,7 +362,7 @@ export default function OrdersPage() {
 
       {!isError && (
         orders.length === 0 && !isLoading ? (
-          <EmptyState icon={ShoppingCart} title="Buyurtmalar mavjud emas" />
+          <EmptyState icon={ShoppingCart} title={t('orders.noOrders')} />
         ) : (
           <ScrollableTable
             totalCount={total}
@@ -381,19 +381,19 @@ export default function OrdersPage() {
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <span className="flex items-center gap-1">
                       <Receipt className="h-3.5 w-3.5" />
-                      Buyurtma №
+                      {t('orders.orderNumber')}
                     </span>
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    <SortHeader field="createdAt" label="Sana" />
+                    <SortHeader field="createdAt" label={t('common.date')} />
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Kassir</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">To&apos;lov</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Holat</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('reports.cashier')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('payments.method')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('common.status')}</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    <SortHeader field="total" label="Summa" />
+                    <SortHeader field="total" label={t('common.total')} />
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Amal</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -423,7 +423,7 @@ export default function OrdersPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedOrderId(o.id)}
-                        title="Ko'rish"
+                        title={t('common.show')}
                         className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                       >
                         <Eye className="h-4 w-4" />

@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import { useShiftReports } from '@/hooks/reports/useReports';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice } from '@/lib/utils';
@@ -42,14 +40,9 @@ export default function ShiftReportsPage() {
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/reports" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">{t('nav.shiftReports')}</h1>
-          <p className="text-sm text-gray-500">{t('reports.shiftReportsSubtitle')}</p>
-        </div>
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">{t('nav.shiftReports')}</h1>
+        <p className="text-sm text-gray-500">{t('reports.shiftReportsSubtitle')}</p>
       </div>
 
       {/* Date range */}
@@ -81,7 +74,7 @@ export default function ShiftReportsPage() {
         <LoadingSkeleton variant="table" rows={5} />
       ) : isError ? (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-          Backend API (T-024) hali tayyor emas
+          {t('reports.apiNotReady')}
         </div>
       ) : !data || data.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-400">
@@ -115,7 +108,7 @@ export default function ShiftReportsPage() {
                     <p className="text-sm font-bold text-gray-900">
                       {formatPrice(shift.totalRevenue)}
                     </p>
-                    <p className="text-xs text-gray-400">{shift.ordersCount} ta savdo</p>
+                    <p className="text-xs text-gray-400">{shift.ordersCount} {t('shifts.salesCount')}</p>
                   </div>
                   <div
                     className={cn(
@@ -133,7 +126,7 @@ export default function ShiftReportsPage() {
                 {/* Expanded details */}
                 {isOpen && (
                   <div className="border-t border-gray-100 bg-gray-50 px-5 py-4">
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-500">{t('reports.cashRevenue')}</span>
                         <span className="font-medium">{formatPrice(shift.cashRevenue)}</span>

@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
 
   const { data: branches = [] } = useBranches();
   const branchOptions = [
-    { value: '', label: 'Barcha filiallar' },
+    { value: '', label: t('analytics.allBranches') },
     ...branches.map((b) => ({ value: b.id, label: b.name })),
   ];
   const bid = branchId || undefined;
@@ -77,15 +77,15 @@ export default function AnalyticsPage() {
         {/* ── Header ── */}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Analitika</h1>
-            <p className="mt-1 text-sm text-gray-500">Biznes ko&apos;rsatkichlari va tahlil</p>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">{t('nav.analytics')}</h1>
+            <p className="mt-1 text-sm text-gray-500">{t('analytics.subtitle')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <SearchableDropdown
               options={branchOptions}
               value={branchId}
               onChange={setBranchId}
-              placeholder="Barcha filiallar"
+              placeholder={t('analytics.allBranches')}
               clearable={branchId !== ''}
               searchable={branches.length > 3}
               className="w-52"
@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
                     : 'text-gray-500 hover:text-gray-700',
                 )}
               >
-                Bugun
+                {t('time.today')}
               </button>
               {([7, 30, 90] as const).map((d) => (
                 <button
@@ -138,10 +138,10 @@ export default function AnalyticsPage() {
         {/* ── KPI Cards ── */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
-            { label: t('analytics.totalRevenue'), value: formatPrice(totalRevenue), sub: `${days} kun`, icon: TrendingUp, gradient: 'from-indigo-500 to-blue-600' },
-            { label: t('analytics.totalOrders'), value: totalOrders.toLocaleString(), sub: 'ta', icon: ShoppingCart, gradient: 'from-violet-500 to-purple-600' },
-            { label: t('analytics.avgCheck'), value: formatPrice(avgCheck), sub: 'buyurtma', icon: DollarSign, gradient: 'from-emerald-500 to-teal-600' },
-            { label: t('analytics.avgBasket'), value: formatPrice(avgBasket), sub: 'buyurtma', icon: Package, gradient: 'from-amber-500 to-orange-600' },
+            { label: t('analytics.totalRevenue'), value: formatPrice(totalRevenue), sub: `${days} ${t('analytics.days')}`, icon: TrendingUp, gradient: 'from-indigo-500 to-blue-600' },
+            { label: t('analytics.totalOrders'), value: totalOrders.toLocaleString(), sub: t('common.unit'), icon: ShoppingCart, gradient: 'from-violet-500 to-purple-600' },
+            { label: t('analytics.avgCheck'), value: formatPrice(avgCheck), sub: t('analytics.perOrder'), icon: DollarSign, gradient: 'from-emerald-500 to-teal-600' },
+            { label: t('analytics.avgBasket'), value: formatPrice(avgBasket), sub: t('analytics.perOrder'), icon: Package, gradient: 'from-amber-500 to-orange-600' },
           ].map(({ label, value, sub, icon: Icon, gradient }) => (
             <div key={label} className="group relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:shadow-md">
               <div className={cn('absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gradient-to-br opacity-10 transition group-hover:opacity-20', gradient)} />
@@ -213,9 +213,9 @@ export default function AnalyticsPage() {
           <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
             <div className="mb-3 flex items-center gap-2">
               <Layers className="h-4 w-4 text-gray-400" />
-              <h3 className="text-sm font-semibold text-gray-900">ABC — tezkor ko&apos;rinish</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{t('analytics.abcQuickView')}</h3>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {abcData.map((g) => (
                 <div
                   key={g.group}
@@ -228,7 +228,7 @@ export default function AnalyticsPage() {
                   <span className="text-2xl font-black" style={{ color: ABC_COLORS[g.group] }}>
                     {g.group}
                   </span>
-                  <p className="mt-1 text-xs text-gray-500">{(g.products ?? []).length} mahsulot</p>
+                  <p className="mt-1 text-xs text-gray-500">{t('analytics.productCount', { count: (g.products ?? []).length })}</p>
                   <p className="text-xs font-bold text-gray-700">
                     {Number(g.revenueShare).toFixed(0)}%
                   </p>

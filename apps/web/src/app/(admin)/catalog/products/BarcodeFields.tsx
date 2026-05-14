@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { UseFormRegister, UseFieldArrayReturn } from 'react-hook-form';
 import { X, Plus, Barcode, ScanLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { inputCls } from './FormField';
 import { BarcodeScanner } from '@/components/ui/BarcodeScanner';
 import { useTranslation } from '@/i18n/i18n-context';
+import { toast } from 'sonner';
 import type { ProductFormData } from './ProductForm';
 
 interface BarcodeFieldsProps {
@@ -15,12 +16,82 @@ interface BarcodeFieldsProps {
   append: UseFieldArrayReturn<ProductFormData, 'extraBarcodes'>['append'];
   remove: UseFieldArrayReturn<ProductFormData, 'extraBarcodes'>['remove'];
   setValue: (name: `extraBarcodes.${number}.value`, value: string) => void;
+  getValues?: () => ProductFormData;
   className?: string;
 }
 
-export function BarcodeFields({ register, fields, append, remove, setValue, className }: BarcodeFieldsProps) {
+export function BarcodeFields({ register, fields, append, remove, setValue, getValues, className }: BarcodeFieldsProps) {
   const { t } = useTranslation();
   const [scanIndex, setScanIndex] = useState<number | null>(null);
+
+  // USB/Bluetooth сканер: перехватывает быстрый ввод из ЛЮБОГО input
+  const scanBufRef = useRef('');
+  const scanTimeRef = useRef(0);
+  const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleHardwareScan = useCallback((code: string) => {
+    const current = getValues?.()?.extraBarcodes ?? [];
+    if (current.some((b) => b.value === code)) {
+      toast.warning(`Barcode ${code} allaqachon qo'shilgan`);
+      return;
+    }
+    const emptyIdx = current.findIndex((b) => !b.value);
+    if (emptyIdx >= 0) {
+      setValue(`extraBarcodes.${emptyIdx}.value`, code);
+    } else {
+      append({ value: code });
+    }
+    toast.success(`Barcode qo'shildi: ${code}`);
+  }, [append, setValue, getValues]);
+
+  useEffect(() => {
+    const MAX_DELAY = 80;
+    const MIN_LEN = 4;
+
+    function onKeyDown(e: KeyboardEvent) {
+      // Если фокус в barcode-поле — пользователь вводит вручную, не перехватываем
+      const el = document.activeElement as HTMLElement | null;
+      if (el?.hasAttribute('data-barcode-field')) return;
+
+      const now = Date.now();
+      const gap = now - scanTimeRef.current;
+      scanTimeRef.current = now;
+
+      if (e.key === 'Enter') {
+        if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
+        const code = scanBufRef.current.trim();
+        if (code.length >= MIN_LEN) {
+          e.preventDefault();
+          // Очищаем текст который сканер "напечатал" в активный input
+          if (el?.tagName === 'INPUT') {
+            (el as HTMLInputElement).value = (el as HTMLInputElement).value.replace(code, '');
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          handleHardwareScan(code);
+        }
+        scanBufRef.current = '';
+        return;
+      }
+
+      if (gap > MAX_DELAY && scanBufRef.current.length > 0) {
+        scanBufRef.current = '';
+      }
+
+      if (e.key.length === 1) {
+        scanBufRef.current += e.key;
+        if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
+        scanTimerRef.current = setTimeout(() => {
+          scanBufRef.current = '';
+        }, 200);
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true);
+      if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
+    };
+  }, [handleHardwareScan]);
 
   return (
     <div className={cn('col-span-2', className)}>
@@ -54,6 +125,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, clas
               <input
                 {...register(`extraBarcodes.${index}.value`)}
                 placeholder={`Barcode ${index + 1}`}
+                data-barcode-field="true"
                 className={cn(inputCls, 'flex-1')}
               />
               <button

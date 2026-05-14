@@ -9,9 +9,11 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { SupplierModal } from '@/components/catalog/SupplierModal';
 import { useSuppliers, useDeleteSupplier } from '@/hooks/catalog/useSuppliers';
 import { useCanEdit } from '@/hooks/auth/useAuth';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Supplier } from '@/types/supplier';
 
 export default function SuppliersPage() {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
   const [deleting, setDeleting] = useState<Supplier | null>(null);
@@ -54,7 +56,7 @@ export default function SuppliersPage() {
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" />
-            Qo&apos;shish
+            {t('common.add')}
           </button>
         ) : undefined
       }
@@ -65,18 +67,18 @@ export default function SuppliersPage() {
         <ScrollableTable
           searchValue={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Nomi, kompaniya yoki telefon..."
+          searchPlaceholder={t('suppliers.searchPlaceholder')}
           totalCount={filtered.length}
           isLoading={isLoading}
         >
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nomi</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Kompaniya</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Telefon</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Manzil</th>
-                {canEdit && <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Amallar</th>}
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('suppliers.name')}</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('suppliers.company')}</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('suppliers.phone')}</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{t('suppliers.address')}</th>
+                {canEdit && <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">{t('common.actions')}</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -85,7 +87,7 @@ export default function SuppliersPage() {
                   <td colSpan={canEdit ? 5 : 4} className="py-12 text-center">
                     <Building2 className="mx-auto mb-2 h-8 w-8 text-gray-300" />
                     <p className="text-sm text-gray-500">
-                      {search ? "Qidiruv bo'yicha natija topilmadi" : "Yetkazib beruvchilar mavjud emas"}
+                      {search ? t('common.noSearchResults') : t('suppliers.empty')}
                     </p>
                   </td>
                 </tr>
@@ -144,9 +146,9 @@ export default function SuppliersPage() {
 
       <ConfirmDialog
         isOpen={!!deleting}
-        title="Yetkazib beruvchini o'chirish"
-        message={`"${deleting?.name}" ni o'chirmoqchimisiz?`}
-        confirmLabel="O'chirish"
+        title={t('suppliers.deleteTitle')}
+        message={t('suppliers.deleteConfirm', { name: deleting?.name ?? '' })}
+        confirmLabel={t('common.delete')}
         isPending={deleteSupplier.isPending}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleting(null)}

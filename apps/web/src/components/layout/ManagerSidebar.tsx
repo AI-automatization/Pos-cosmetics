@@ -26,12 +26,24 @@ const NAV = [
   { tKey: 'nav.reports', href: '/reports', icon: BarChart2 },
 ];
 
-export function ManagerSidebar() {
+export function ManagerSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boolean; onMobileClose?: () => void }) {
   const pathname = usePathname();
   const { t } = useTranslation();
 
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-gray-200 bg-white">
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        />
+      )}
+    <aside className={cn(
+      'flex h-full w-56 shrink-0 flex-col border-r border-gray-200 bg-white',
+      'fixed inset-y-0 left-0 z-50 transition-transform duration-200 md:static md:translate-x-0',
+      mobileOpen ? 'translate-x-0' : '-translate-x-full',
+    )}>
       {/* Logo */}
       <div className="flex h-14 items-center gap-3 border-b border-gray-200 px-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
@@ -70,5 +82,6 @@ export function ManagerSidebar() {
         </div>
       </nav>
     </aside>
+    </>
   );
 }

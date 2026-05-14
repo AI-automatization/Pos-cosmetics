@@ -150,7 +150,7 @@ export default function NasiyaPage() {
 
       {/* Summary cards */}
       {summary && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
             <p className="text-xs font-medium text-orange-600">{t('nasiya.totalDebt')}</p>
             <p className="mt-1 text-xl font-bold text-orange-700">{formatPrice(summary.totalDebt)}</p>

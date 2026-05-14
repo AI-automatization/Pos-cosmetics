@@ -183,6 +183,30 @@ export class WarehouseInvoiceService {
     };
   }
 
+  // ─── PATCH /warehouse/invoices/:id — update metadata ──────────────────
+
+  async updateInvoiceMeta(
+    tenantId: string,
+    invoiceId: string,
+    dto: { invoiceNumber?: string; note?: string; supplierId?: string },
+  ) {
+    const invoice = await this.prisma.warehouseInvoice.findFirst({
+      where: { id: invoiceId, tenantId },
+    });
+    if (!invoice) throw new NotFoundException('Nakladnoy topilmadi');
+
+    const data: Record<string, unknown> = {};
+    if (dto.invoiceNumber !== undefined) data.invoiceNumber = dto.invoiceNumber || null;
+    if (dto.note !== undefined) data.note = dto.note || null;
+    if (dto.supplierId !== undefined) data.supplierId = dto.supplierId || null;
+
+    const updated = await this.prisma.warehouseInvoice.update({
+      where: { id: invoiceId },
+      data,
+    });
+    return updated;
+  }
+
   // ─── APPROVE invoice ────────────────────────────────────────────────
 
   async approveInvoice(tenantId: string, userId: string, invoiceId: string) {

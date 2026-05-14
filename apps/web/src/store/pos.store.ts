@@ -6,12 +6,15 @@ import type { Customer } from '@/types/customer';
 
 // ─── Cart state (per-cart) ────────────────────────────────────────────────────
 
+export type CardType = 'terminal' | 'payme' | 'click';
+
 export interface CartState {
   id: string;
   items: CartItem[];
   orderDiscount: number;
   orderDiscountType: DiscountType;
   paymentMethod: PaymentMethod;
+  cardType: CardType;
   cashAmount: number;
   cardAmount: number;
   bonusPoints: number;
@@ -25,6 +28,7 @@ export const emptyCart = (id: string): CartState => ({
   orderDiscount: 0,
   orderDiscountType: 'percent',
   paymentMethod: 'cash',
+  cardType: 'terminal',
   cashAmount: 0,
   cardAmount: 0,
   bonusPoints: 0,
@@ -56,6 +60,7 @@ interface POSState {
   setPaymentMethod: (method: PaymentMethod) => void;
   setCashAmount: (amount: number) => void;
   setCardAmount: (amount: number) => void;
+  setCardType: (type: CardType) => void;
   setBonusPoints: (points: number) => void;
   setSplitNasiyaAmount: (amount: number) => void;
   setSelectedCustomer: (customer: Customer | null) => void;
@@ -187,6 +192,7 @@ export const usePOSStore = create<POSState>()(
       setPaymentMethod: (method) => set((s) => patchActive(s, { paymentMethod: method })),
       setCashAmount: (amount) => set((s) => patchActive(s, { cashAmount: Math.max(0, amount) })),
       setCardAmount: (amount) => set((s) => patchActive(s, { cardAmount: Math.max(0, amount) })),
+      setCardType: (type) => set((s) => patchActive(s, { cardType: type })),
       setBonusPoints: (points) => set((s) => patchActive(s, { bonusPoints: Math.max(0, points) })),
       setSplitNasiyaAmount: (amount) => set((s) => patchActive(s, { splitNasiyaAmount: Math.max(0, amount) })),
       setSelectedCustomer: (customer) => set((s) => patchActive(s, { selectedCustomer: customer })),

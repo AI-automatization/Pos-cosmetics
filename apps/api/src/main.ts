@@ -30,9 +30,13 @@ async function bootstrap() {
     'CORS_ORIGIN',
     'http://localhost:3001,http://localhost:3002,http://localhost:3003,https://raos.uz,https://www.raos.uz',
   );
-  // '*' with credentials is rejected by browsers — reflect request origin instead
+  // SECURITY: '*' with credentials is dangerous — block in production
+  const isProduction = config.get<string>('NODE_ENV') === 'production';
+  if (corsOriginRaw === '*' && isProduction) {
+    logger.error('CORS_ORIGIN=* is not allowed in production! Set explicit origins.', 'Security');
+  }
   const corsOrigin: string | string[] | boolean = corsOriginRaw === '*'
-    ? true
+    ? (isProduction ? false : true)
     : corsOriginRaw.includes(',')
       ? corsOriginRaw.split(',').map((o) => o.trim())
       : corsOriginRaw;
@@ -69,15 +73,17 @@ async function bootstrap() {
     return this.toString();
   };
 
-  // Swagger
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('RAOS API')
-    .setDescription('Retail & Asset Operating System API')
-    .setVersion('0.1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup(`${prefix}/docs`, app, document);
+  // Swagger — faqat development muhitda
+  if (config.get<string>('NODE_ENV') !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('RAOS API')
+      .setDescription('Retail & Asset Operating System API')
+      .setVersion('0.1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup(`${prefix}/docs`, app, document);
+  }
 
   // Graceful shutdown (T-085)
   app.enableShutdownHooks();

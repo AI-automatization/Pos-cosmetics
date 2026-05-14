@@ -2,9 +2,10 @@ export type ReturnStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export type RefundMethod = 'CASH' | 'TERMINAL';
 
-export const REFUND_METHOD_LABELS: Record<RefundMethod, string> = {
-  CASH: 'Naqd pul',
-  TERMINAL: 'Bank kartasi',
+// i18n key map — use with t() to get translated labels
+export const REFUND_METHOD_KEYS: Record<RefundMethod, string> = {
+  CASH: 'returns.cashRefund',
+  TERMINAL: 'returns.cardRefund',
 };
 
 export interface ReturnItem {
@@ -46,8 +47,9 @@ export interface CreateReturnDto {
   refundMethod?: RefundMethod;
 }
 
-export const RETURN_STATUS_LABELS: Record<ReturnStatus, string> = {
-  PENDING: 'Kutilmoqda',
-  APPROVED: 'Tasdiqlangan',
-  REJECTED: 'Rad etilgan',
+// i18n key map — use with t() to get translated labels
+export const RETURN_STATUS_KEYS: Record<ReturnStatus, string> = {
+  PENDING: 'common.pending',
+  APPROVED: 'common.approved',
+  REJECTED: 'returns.rejected',
 };

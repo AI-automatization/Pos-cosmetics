@@ -49,7 +49,7 @@ export class AiDashboardHelper {
         AND s.opened_at <= ${to}
       WHERE u.tenant_id  = ${tenantId}
         AND u."isActive" = true
-        AND u.role::text IN ('CASHIER', 'MANAGER', 'ADMIN', 'OWNER')
+        AND u.role::text = 'CASHIER'
       GROUP BY u.id, u.first_name, u.last_name
       ORDER BY revenue DESC
     `;
@@ -217,7 +217,7 @@ export class AiDashboardHelper {
       FROM branches b
       LEFT JOIN orders o
         ON o.branch_id = b.id
-        AND o.status::text = 'COMPLETED'
+        AND o.status::text IN ('COMPLETED', 'RETURNED')
         AND o.created_at >= ${from}
         AND o.created_at <= ${now}
       WHERE b.tenant_id = ${tenantId}
@@ -234,7 +234,7 @@ export class AiDashboardHelper {
       FROM branches b
       LEFT JOIN orders o
         ON o.branch_id = b.id
-        AND o.status::text = 'COMPLETED'
+        AND o.status::text IN ('COMPLETED', 'RETURNED')
         AND o.created_at >= ${prevFrom}
         AND o.created_at <= ${prevTo}
       WHERE b.tenant_id = ${tenantId}
@@ -283,7 +283,7 @@ export class AiDashboardHelper {
       FROM branches b
       LEFT JOIN orders o
         ON o.branch_id = b.id
-        AND o.status::text = 'COMPLETED'
+        AND o.status::text IN ('COMPLETED', 'RETURNED')
         AND o.created_at >= ${from}
         AND o.created_at <= ${now}
       WHERE b.tenant_id = ${tenantId}

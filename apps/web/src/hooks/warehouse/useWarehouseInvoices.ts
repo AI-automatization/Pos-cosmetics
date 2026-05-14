@@ -18,6 +18,20 @@ export function useWarehouseInvoice(id: string) {
   });
 }
 
+export function useUpdateInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...dto }: { id: string; invoiceNumber?: string; note?: string; supplierId?: string }) =>
+      warehouseApi.updateInvoice(id, dto),
+    onSuccess: (_data, variables) => {
+      void qc.invalidateQueries({ queryKey: ['warehouse-invoice', variables.id] });
+      void qc.invalidateQueries({ queryKey: ['warehouse-invoices'] });
+      toast.success('Saqlandi');
+    },
+    onError: (err: unknown) => toast.error(extractErrorMessage(err)),
+  });
+}
+
 export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({

@@ -19,11 +19,12 @@ import type { CustomerWithDebt } from '@/types/debt';
 import { CustomerFormModal } from './CustomerFormModal';
 
 function StatusBadge({ customer }: { customer: CustomerWithDebt }) {
+  const { t } = useTranslation();
   if (customer.isBlocked) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
         <ShieldOff className="h-3 w-3" />
-        Bloklangan
+        {t('customers.statusBlocked')}
       </span>
     );
   }
@@ -31,20 +32,20 @@ function StatusBadge({ customer }: { customer: CustomerWithDebt }) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
         <AlertTriangle className="h-3 w-3" />
-        Muddati o&apos;tgan
+        {t('nasiya.overdue')}
       </span>
     );
   }
   if (customer.debtBalance > 0) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
-        Nasiyada
+        {t('customers.statusInDebt')}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-      Toza
+      {t('customers.statusClean')}
     </span>
   );
 }
@@ -112,15 +113,15 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto p-6">
+    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {showCreate && <CustomerFormModal onClose={() => setShowCreate(false)} />}
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Mijozlar</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('customers.title')}</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            {customers ? `${customers.length} ta mijoz` : 'Yuklanmoqda...'}
+            {customers ? `${customers.length} ${t('common.unit')}` : t('common.loading')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -130,33 +131,33 @@ export default function CustomersPage() {
             className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" />
-            Mijoz qo&apos;shish
+            {t('customers.addCustomer')}
           </button>
           <Link
             href="/nasiya"
             className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-orange-600"
           >
             <TrendingUp className="h-4 w-4" />
-            Nasiya boshqaruv
+            {t('nasiya.management')}
           </Link>
         </div>
       </div>
 
       {/* Summary cards */}
       {summary && (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {[
             {
               label: t('nasiya.totalDebt'),
               value: formatPrice(summary.totalDebt),
-              sub: `${summary.totalCustomers} ta mijoz`,
+              sub: `${summary.totalCustomers} ${t('common.unit')}`,
               color: 'text-orange-600',
               bg: 'bg-orange-50',
             },
             {
               label: t('nasiya.overdue'),
               value: formatPrice(summary.overdueDebt),
-              sub: `${summary.overdueCustomers} ta mijoz`,
+              sub: `${summary.overdueCustomers} ${t('common.unit')}`,
               color: 'text-red-600',
               bg: 'bg-red-50',
             },
@@ -170,7 +171,7 @@ export default function CustomersPage() {
             {
               label: t('customers.totalCustomers'),
               value: summary.totalCustomers.toString(),
-              sub: `${summary.overdueCustomers} ta muddati o'tgan mijoz`,
+              sub: `${summary.overdueCustomers} ${t('customers.overdueCount')}`,
               color: 'text-blue-600',
               bg: 'bg-blue-50',
             },
@@ -191,7 +192,7 @@ export default function CustomersPage() {
       <ScrollableTable
         searchValue={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Ism yoki telefon..."
+        searchPlaceholder={t('customers.searchPlaceholder')}
         totalCount={customers?.length}
         isLoading={isLoading}
       >
@@ -217,7 +218,7 @@ export default function CustomersPage() {
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
                   <UserCircle className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                  {search ? "Qidiruv bo'yicha natija topilmadi" : "Mijozlar yo'q"}
+                  {search ? t('common.noSearchResults') : t('customers.empty')}
                 </td>
               </tr>
             ) : (
@@ -281,7 +282,7 @@ export default function CustomersPage() {
                       href={`/customers/${customer.id}`}
                       className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
                     >
-                      Ko&apos;rish
+                      {t('common.show')}
                     </Link>
                   </td>
                 </tr>

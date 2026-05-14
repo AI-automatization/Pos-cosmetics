@@ -229,7 +229,7 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
                   </div>
 
                   {/* Miqdor | Narx | Partiya */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div className="flex flex-col gap-1">
                       <label className="text-xs font-medium text-gray-500">
                         Miqdor{row.productUnit ? ` (${row.productUnit})` : ''} <span className="text-red-500">*</span>

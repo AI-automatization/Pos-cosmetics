@@ -139,7 +139,7 @@ function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: ()
           ) : order ? (
             <>
               {/* Meta grid */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="bg-gray-50 rounded-lg p-3">
                   <p className="text-xs text-gray-400 mb-0.5">{t('common.date')}</p>
                   <p className="text-sm font-medium text-gray-800">
@@ -357,7 +357,7 @@ export default function PaymentsHistoryPage() {
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {/* Stats cards */}
         {stats && (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
               label={t('payments.total')}
               value={formatPrice(stats.total)}

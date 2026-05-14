@@ -30,7 +30,7 @@ export default function LowStockPage() {
   const lowCount = items?.filter((i) => i.status === 'LOW').length ?? 0;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="h-full overflow-y-auto flex flex-col gap-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

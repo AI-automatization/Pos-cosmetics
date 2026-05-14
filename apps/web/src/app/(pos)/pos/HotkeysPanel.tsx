@@ -35,7 +35,7 @@ export function HotkeysPanel() {
         <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', showHotkeys && 'rotate-180')} />
       </button>
       {showHotkeys && (
-        <div className="grid grid-cols-3 gap-1 px-3 pb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 px-3 pb-3">
           {hotkeys.map((hk) => (
             <div key={hk.key} className="flex items-center gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5">
               <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-[9px] font-bold text-gray-700 whitespace-nowrap leading-none">

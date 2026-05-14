@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import { useTopProducts } from '@/hooks/reports/useReports';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice } from '@/lib/utils';
@@ -32,14 +30,9 @@ export default function TopProductsPage() {
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/reports" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">{t('nav.topProducts')}</h1>
-          <p className="text-sm text-gray-500">{t('reports.topProductsSubtitle')}</p>
-        </div>
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">{t('nav.topProducts')}</h1>
+        <p className="text-sm text-gray-500">{t('reports.topProductsSubtitle')}</p>
       </div>
 
       {/* Date range */}
@@ -95,7 +88,7 @@ export default function TopProductsPage() {
         <LoadingSkeleton variant="table" rows={8} />
       ) : isError ? (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-          Backend API (T-024) hali tayyor emas
+          {t('reports.apiNotReady')}
         </div>
       ) : !data || data.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-400">
@@ -128,7 +121,7 @@ export default function TopProductsPage() {
                         {p.productName}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-gray-700">
-                        {p.quantity} ta
+                        {p.quantity} {t('common.unit')}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-gray-500">
                         {p.ordersCount}

@@ -2,6 +2,7 @@
 
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { DOW_LABELS, EmptyState } from './AnalyticsShared';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface HeatmapCell {
   dow: number;
@@ -15,17 +16,18 @@ interface Props {
 }
 
 export function AnalyticsHeatmapTab({ heatmap, isLoading }: Props) {
+  const { t } = useTranslation();
   const heatmapMax = heatmap.reduce((m, c) => Math.max(m, c.ordersCount), 1);
   const heatmapGrid: Record<string, number> = {};
   heatmap.forEach((c) => { heatmapGrid[`${c.dow}-${c.hour}`] = c.ordersCount; });
 
   return (
     <div className="space-y-4">
-      <h2 className="text-base font-semibold text-gray-900">Faollik xaritasi</h2>
+      <h2 className="text-base font-semibold text-gray-900">{t('analytics.heatmapTitle')}</h2>
       {isLoading ? (
         <LoadingSkeleton variant="line" className="h-56" />
       ) : heatmap.length === 0 ? (
-        <EmptyState label="Ma'lumotlar topilmadi" />
+        <EmptyState label={t('analytics.noData')} />
       ) : (
         <div className="overflow-x-auto">
           <div className="min-w-max">

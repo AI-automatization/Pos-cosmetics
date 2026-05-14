@@ -10,8 +10,9 @@ import {
 import { EmptyState } from '@/components/common/EmptyState';
 import { cn } from '@/lib/utils';
 import { useCanEdit } from '@/hooks/auth/useAuth';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { Promotion, PromotionType } from '@/types/promotion';
-import { PROMO_TYPE_LABELS, PROMO_TYPE_COLORS, DEMO_PROMOTIONS } from '@/types/promotion';
+import { PROMO_TYPE_LABEL_KEYS, PROMO_TYPE_COLORS, DEMO_PROMOTIONS } from '@/types/promotion';
 import { PromotionModal } from './PromotionModal';
 
 /* ─── Helpers ─── */
@@ -21,15 +22,18 @@ function formatDate(iso: string | null) {
   return new Date(iso).toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function rulesLabel(p: Promotion): string {
-  const r = p.rules as Record<string, unknown>;
-  switch (p.type) {
-    case 'PERCENT':     return `${r.percent}% chegirma`;
-    case 'FIXED':       return `${Number(r.amount).toLocaleString()} so'm chegirma`;
-    case 'BUY_X_GET_Y': return `${r.buyQty} olsang ${r.getQty} bepul`;
-    case 'BUNDLE':      return `${r.discount}% paket chegirma`;
-    default:            return '—';
-  }
+function useRulesLabel() {
+  const { t } = useTranslation();
+  return (p: Promotion): string => {
+    const r = p.rules as Record<string, unknown>;
+    switch (p.type) {
+      case 'PERCENT':     return t('promotions.rulesPercent', { percent: String(r.percent ?? '') });
+      case 'FIXED':       return t('promotions.rulesFixed', { amount: Number(r.amount ?? 0).toLocaleString() });
+      case 'BUY_X_GET_Y': return t('promotions.rulesBuyXGetY', { buyQty: String(r.buyQty ?? ''), getQty: String(r.getQty ?? '') });
+      case 'BUNDLE':      return t('promotions.rulesBundle', { discount: String(r.discount ?? '') });
+      default:            return '—';
+    }
+  };
 }
 
 const TYPE_ICONS: Record<PromotionType, React.ComponentType<{ className?: string }>> = {
@@ -64,6 +68,8 @@ interface CardProps {
 }
 
 function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: CardProps) {
+  const { t } = useTranslation();
+  const rulesLabel = useRulesLabel();
   const TypeIcon = TYPE_ICONS[p.type];
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5">
@@ -78,7 +84,7 @@ function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: Ca
             <div className="min-w-0">
               <p className="truncate font-semibold text-gray-900">{p.name}</p>
               <span className={cn('mt-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', PROMO_TYPE_COLORS[p.type])}>
-                {PROMO_TYPE_LABELS[p.type]}
+                {t(PROMO_TYPE_LABEL_KEYS[p.type])}
               </span>
             </div>
           </div>
@@ -86,7 +92,7 @@ function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: Ca
             type="button"
             onClick={onToggle}
             className="shrink-0 rounded-full p-1 transition hover:bg-gray-100"
-            title={p.isActive ? 'Nofaol qilish' : 'Faol qilish'}
+            title={p.isActive ? t('promotions.deactivate') : t('promotions.activate')}
           >
             {p.isActive
               ? <ToggleRight className="h-6 w-6 text-emerald-500" />
@@ -107,7 +113,7 @@ function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: Ca
             'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
             p.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-400',
           )}>
-            {p.isActive ? 'Faol' : 'Nofaol'}
+            {p.isActive ? t('common.active') : t('common.inactive')}
           </span>
         </div>
       </div>
@@ -120,7 +126,7 @@ function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: Ca
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-blue-50 hover:text-blue-600"
           >
             <Pencil className="h-3.5 w-3.5" />
-            Tahrirlash
+            {t('common.edit')}
           </button>
           <button
             type="button"
@@ -128,7 +134,7 @@ function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: Ca
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-red-50 hover:text-red-600"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            O&apos;chirish
+            {t('common.delete')}
           </button>
         </div>
       )}
@@ -139,6 +145,7 @@ function PromotionCard({ promotion: p, canEdit, onEdit, onDelete, onToggle }: Ca
 /* ─── Page ─── */
 
 export default function PromotionsPage() {
+  const { t } = useTranslation();
   const { data: promotions, isLoading, isError } = usePromotions();
   const { mutate: deletePromo } = useDeletePromotion();
   const { mutate: toggle } = useTogglePromotion();
@@ -148,19 +155,19 @@ export default function PromotionsPage() {
   const items: Promotion[] = isError ? DEMO_PROMOTIONS : (promotions ?? []);
 
   const handleDelete = (id: string) => {
-    if (confirm("Aksiyani o'chirmoqchimisiz?")) deletePromo(id);
+    if (confirm(t('promotions.deleteConfirm'))) deletePromo(id);
   };
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto p-6">
+    <div className="flex flex-col gap-5 h-full overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
             <Tag className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Aksiyalar</h1>
-            <p className="text-sm text-gray-500">{items.length} ta aksiya</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('promotions.title')}</h1>
+            <p className="text-sm text-gray-500">{t('promotions.count', { count: items.length })}</p>
           </div>
         </div>
         {canEdit && (
@@ -169,7 +176,7 @@ export default function PromotionsPage() {
             className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
           >
             <Plus className="h-4 w-4" />
-            Yangi aksiya
+            {t('promotions.new')}
           </button>
         )}
       </div>
@@ -192,9 +199,9 @@ export default function PromotionsPage() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={Tag}
-          title="Hali aksiyalar yo'q"
-          description="Chegirma yoki aksiya yaratish uchun tugmani bosing"
-          action={canEdit ? { label: 'Aksiya yaratish', onClick: () => setModal('create') } : undefined}
+          title={t('promotions.empty')}
+          description={t('promotions.emptyDesc')}
+          action={canEdit ? { label: t('promotions.create'), onClick: () => setModal('create') } : undefined}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

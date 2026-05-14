@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCreateBranch, useUpdateBranch } from '@/hooks/settings/useBranches';
+import { useTranslation } from '@/i18n/i18n-context';
 import { cn } from '@/lib/utils';
 import type { Branch } from '@/api/branches.api';
 
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function BranchModal({ branch, onClose }: Props) {
+  const { t } = useTranslation();
   const { mutate: create, isPending: creating } = useCreateBranch();
   const { mutate: update, isPending: updating } = useUpdateBranch();
   const isPending = creating || updating;
@@ -42,7 +44,7 @@ export function BranchModal({ branch, onClose }: Props) {
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
-            {branch ? 'Filialni tahrirlash' : 'Yangi filial'}
+            {branch ? t('branches.editBranch') : t('branches.newBranch')}
           </h2>
           <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
             <X className="h-5 w-5" />
@@ -51,7 +53,7 @@ export function BranchModal({ branch, onClose }: Props) {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Filial nomi <span className="text-red-500">*</span>
+              {t('branches.branchName')} <span className="text-red-500">*</span>
             </label>
             <input
               {...register('name')}
@@ -64,7 +66,7 @@ export function BranchModal({ branch, onClose }: Props) {
             {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Manzil</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t('branches.address')}</label>
             <input
               {...register('address')}
               placeholder="Yunusobod 5-mavze"
@@ -77,14 +79,14 @@ export function BranchModal({ branch, onClose }: Props) {
               onClick={onClose}
               className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
               className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {isPending ? 'Saqlanmoqda...' : branch ? 'Saqlash' : 'Yaratish'}
+              {isPending ? t('common.saving') : branch ? t('common.save') : t('common.create')}
             </button>
           </div>
         </form>

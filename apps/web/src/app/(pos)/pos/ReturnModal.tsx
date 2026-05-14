@@ -10,7 +10,7 @@ import { formatPrice } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import type { OrderItem } from '@/types/order';
 import type { Return } from '@/types/returns';
-import { REFUND_METHOD_LABELS } from '@/types/returns';
+import { REFUND_METHOD_KEYS } from '@/types/returns';
 import { usePOSReturn } from '@/hooks/pos/usePOSReturn';
 import { usePOSStore } from '@/store/pos.store';
 
@@ -369,7 +369,7 @@ function StepMethodSelect({
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <Banknote className="h-5 w-5 text-green-500" />
-              <span className="font-semibold text-gray-900">{REFUND_METHOD_LABELS.CASH}</span>
+              <span className="font-semibold text-gray-900">{t(REFUND_METHOD_KEYS.CASH)}</span>
             </div>
             {isLoadingCash ? (
               <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
@@ -405,7 +405,7 @@ function StepMethodSelect({
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-blue-500" />
-              <span className="font-semibold text-gray-900">{REFUND_METHOD_LABELS.TERMINAL}</span>
+              <span className="font-semibold text-gray-900">{t(REFUND_METHOD_KEYS.TERMINAL)}</span>
             </div>
             <p className="mt-1 text-xs text-gray-500">{t('pos.terminalRefundInfo')}</p>
           </div>
@@ -472,7 +472,7 @@ function StepConfirm({
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
             <span className="text-gray-500">{t('pos.return')}</span>
-            <span className="font-medium text-gray-900">{REFUND_METHOD_LABELS[refundMethod]}</span>
+            <span className="font-medium text-gray-900">{t(REFUND_METHOD_KEYS[refundMethod])}</span>
           </div>
         </div>
 

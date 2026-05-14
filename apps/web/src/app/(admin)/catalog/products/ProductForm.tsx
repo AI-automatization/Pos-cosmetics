@@ -51,7 +51,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
   if (!product) {
     return {
       costPrice: 0, sellPrice: 0, minStockLevel: 0, initialStock: 0,
-      extraBarcodes: [], description: '', name: '', sku: '', categoryId: '',
+      extraBarcodes: [{ value: '' }], description: '', name: '', sku: '', categoryId: '',
       supplierId: initialSupplierId ?? '', unitId: '',
     };
   }
@@ -75,7 +75,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
 
 export function ProductForm({ product, categories, isPending, onSubmit, onClose, initialSupplierId }: ProductFormProps) {
   const { t } = useTranslation();
-  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
+  const { register, control, handleSubmit, watch, setValue, getValues, formState: { errors } } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as import('react-hook-form').Resolver<ProductFormData>,
     defaultValues: buildDefaultValues(product, initialSupplierId),
   });
@@ -129,8 +129,8 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative z-10 w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-lg font-bold text-gray-900">
             {product ? t('products.editProduct') : t('products.addProduct')}
           </h2>
@@ -143,11 +143,11 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-5">
-          <div className="grid grid-cols-3 gap-3">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 overflow-y-auto p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
             {/* Row 1: Name full width */}
-            <Field label="Nomi" error={errors.name?.message} required className="col-span-3">
+            <Field label="Nomi" error={errors.name?.message} required className="col-span-1 sm:col-span-2 lg:col-span-3">
               <input
                 {...register('name')}
                 placeholder="Masalan: Nivea krem 100ml"
@@ -229,6 +229,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               append={append}
               remove={remove}
               setValue={(name, value) => setValue(name, value)}
+              getValues={getValues}
               className="col-span-2"
             />
 
@@ -276,7 +277,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
 
             {/* Custom unit row — full width, only when needed */}
             {unitMode === 'custom' && (
-              <div className="col-span-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
+              <div className="col-span-1 sm:col-span-2 lg:col-span-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">
                     Nomi <span className="text-red-500">*</span>

@@ -112,7 +112,7 @@ export class ShiftService {
     if (!shift) return null;
 
     const orders = await this.prisma.order.findMany({
-      where: { tenantId, shiftId: shift.id, status: 'COMPLETED' },
+      where: { tenantId, shiftId: shift.id, status: { in: ['COMPLETED', 'RETURNED'] } },
       include: { paymentIntents: { select: { method: true, amount: true } } },
     });
 
@@ -191,7 +191,7 @@ export class ShiftService {
           user: { select: { id: true, firstName: true, lastName: true } },
           branch: { select: { id: true, name: true } },
           orders: {
-            where: { status: 'COMPLETED' },
+            where: { status: { in: ['COMPLETED', 'RETURNED'] } },
             select: {
               total: true,
               paymentIntents: { select: { method: true, amount: true } },
@@ -247,7 +247,7 @@ export class ShiftService {
         user: { select: { id: true, firstName: true, lastName: true } },
         branch: { select: { id: true, name: true } },
         orders: {
-          where: { status: 'COMPLETED' },
+          where: { status: { in: ['COMPLETED', 'RETURNED'] } },
           include: {
             paymentIntents: { select: { method: true, amount: true } },
             returns: { select: { id: true } },
@@ -311,7 +311,7 @@ export class ShiftService {
         ...(opts.branchId ? { branchId: opts.branchId } : {}),
       },
       include: {
-        orders: { where: { status: 'COMPLETED' }, select: { total: true } },
+        orders: { where: { status: { in: ['COMPLETED', 'RETURNED'] } }, select: { total: true } },
       },
     });
 
