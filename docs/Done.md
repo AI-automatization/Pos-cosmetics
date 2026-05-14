@@ -3,6 +3,17 @@
 
 ---
 
+## T-388 | 2026-05-14 | [BACKEND] | Fiscal worker — idempotency + enum filter + tsc fix
+
+- **Yechim:**
+  - `jobId: fiscal:${orderId}` — double publish = same job (BullMQ idempotency)
+  - `findFirst` filter: `status: COMPLETED, fiscalStatus: { in: [PENDING, NONE, FAILED] }` — REVERSED/VOIDED skip
+  - `Number(item.quantity)` — Decimal → number tsc fix (edi fail bo'layotgan edi)
+  - tenantId in updateMany, FAILED on final attempt, retry 3x exponential — allaqachon qilingan edi
+- **Fayl:** `fiscal.worker.ts`, `queue.service.ts`
+
+---
+
 ## T-387 | 2026-05-14 | [SECURITY] | Super Admin panel — hardening (4/4 done)
 
 - **Yechim:**

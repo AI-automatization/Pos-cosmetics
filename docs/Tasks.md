@@ -46,36 +46,7 @@
 
 ---
 
-## T-388 | P0 | [BACKEND] | Fiscal worker — tenantId + retry + idempotency
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Manba:** Team Lead backend review, merge 018de20..6e4bad7
-- **Fayl:**
-  - `apps/worker/src/workers/fiscal.worker.ts`
-  - `apps/api/src/sales/sales.service.ts` (sale.created listener qismi)
-- **Muammo:** Fiscal worker refactor'da 3 ta kritik xato — cross-tenant write, noto'g'ri FAILED status, idempotency yo'q.
-- **Vazifa:**
-  1. **tenantId without in `order.update`** (`fiscal.worker.ts:138-141`):
-     - `prisma.order.update({ where: { id: orderId } })` → `updateMany({ where: { id: orderId, tenantId } })`
-     - Cross-tenant write risk yo'qotish
-  2. **`fiscalStatus='FAILED'` faqat final attempt'da** (`fiscal.worker.ts:151-159`):
-     - `worker.on('failed')` ichida tekshirish: `if (job.attemptsMade >= job.opts.attempts)` — faqat shunda FAILED
-     - Aks holda retry paytida status rassinxronlashadi
-  3. **Retry + exponential backoff** (`createFiscalWorker`):
-     - `defaultJobOptions: { attempts: 3, backoff: { type: 'exponential', delay: 2000 } }`
-     - Hozir 1 attempt (BullMQ default) — CLAUDE.md fiscal retry qoidasi buzilgan
-  4. **Idempotency key**:
-     - `sales.service.ts` da `sale.created` event listener'ida `queue.add('fiscal', data, { jobId: \`fiscal:${orderId}\` })`
-     - Double publish = 2 chek REGOS'ga — shu orqali bloklanadi
-  5. **Enum filter tekshiruvi** (`fiscal.worker.ts:73`):
-     - `findFirst` ga qo'shish: `AND status: 'COMPLETED', fiscalStatus: { in: ['PENDING', 'FAILED'] }`
-     - REVERSED/CANCELLED sale'larga chek yuborilmasin
-  6. **TypeScript build xatoligi** (`fiscal.worker.ts:116`) — **hozir tsc fail bo'lyapti**:
-     - `qty: Prisma.Decimal` REGOS payload'iga `number` sifatida yuborilmoqda
-     - Fix: `qty: item.qty.toNumber()` yoki `Number(item.qty)`
-     - Shu bilan birga P2 eslatma: `isTaxable=false` mahsulotlar uchun `vatRate: 0` yuborish
-- **Kutilgan:** Fiscal worker prod-ready — tenant isolation, to'g'ri retry, idempotent.
+*(T-388 — BAJARILDI, Done.md ga ko'chirildi 2026-05-14)*
 
 ---
 

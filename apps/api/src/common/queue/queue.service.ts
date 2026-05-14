@@ -126,6 +126,8 @@ export class QueueService implements OnModuleDestroy {
 
   async addFiscalReceiptJob(data: FiscalReceiptJob) {
     return this.getQueue(QUEUE_NAMES.FISCAL_RECEIPT).add('send-receipt', data, {
+      // T-388: Idempotency — same orderId = same job, prevents double fiscal receipts
+      jobId: `fiscal:${data.orderId}`,
       attempts: 3,
       backoff: { type: 'exponential', delay: 2000 },
       removeOnComplete: 100,
