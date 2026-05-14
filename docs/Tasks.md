@@ -42,34 +42,7 @@
 
 ---
 
-## T-387 | P0 | [SECURITY] | Super Admin panel — hardening (DEPLOY BLOKER)
-
-- **Sana:** 2026-04-24
-- **Mas'ul:** Ibrat
-- **Manba:** Team Lead audit (AbdulazizYormatov), merge 018de20..6e4bad7
-- **Fayl:**
-  - `apps/api/src/admin/admin-database.service.ts`
-  - `apps/api/src/admin/admin-auth.controller.ts`
-  - `apps/super-admin/src/api/client.ts`
-  - `apps/super-admin/src/app/login/page.tsx`
-- **Muammo:** Super Admin panelida 4 ta kritik xavfsizlik teshigi — prod ga deploy qilinmasin.
-- **Vazifa:**
-  1. **SQL console whitelist + audit log** (`admin-database.service.ts:390-438`):
-     - Regex bilan bloklash: `DROP|TRUNCATE|ALTER SCHEMA|DELETE FROM <t>(?!.*WHERE)`
-     - Destructive SQL uchun `x-confirm-destructive: yes` header talab qilish
-     - Yangi `admin_audit_log` jadvali yaratish (immutable) — har SQL query + adminId + timestamp yozilishi shart
-     - `$queryRawUnsafe` o'rniga `;` belgisini o'rta qatorda man qilish (multi-statement bloklash)
-  2. **JWT localStorage → httpOnly cookie** (`super-admin/src/api/client.ts:13-17`, `app/login/page.tsx:56-58`):
-     - accessToken'ni `httpOnly; Secure; SameSite=Strict` cookie'ga ko'chirish
-     - axios: `withCredentials: true`
-     - Middleware faqat server cookie'dan o'qisin (client-set `session_active` bekor qilinsin)
-  3. **DLQ endpoints — JwtAuthGuard qo'shish** (`admin-auth.controller.ts:310-348`):
-     - 4 ta endpoint'da `@UseGuards(SuperAdminGuard)` → `@UseGuards(JwtAuthGuard, SuperAdminGuard)`
-  4. **Rate-limit `/admin/auth/login` + `/admin/auth/bootstrap`** (`admin-auth.controller.ts:42-67`):
-     - `@Throttle({ default: { limit: 5, ttl: 60_000 } })`
-     - `IpBlockService.recordFailed()` integratsiya
-     - `bootstrap` endpoint'iga IP logging qo'shish
-- **Kutilgan:** Prod ga super-admin deploy qilinishi mumkin bo'ladi. Barcha 4 qator audit trail orqali kuzatiladi.
+*(T-387 — BAJARILDI, Done.md ga ko'chirildi 2026-05-14)*
 
 ---
 

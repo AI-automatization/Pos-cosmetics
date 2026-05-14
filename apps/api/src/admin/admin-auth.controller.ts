@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
@@ -20,6 +21,7 @@ import {
   ApiTags,
   ApiBody,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { Public } from '../common/decorators';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -40,14 +42,26 @@ export class AdminAuthController {
     private readonly ipBlockService: IpBlockService,
   ) {}
 
-  // ─── PUBLIC: Login ─────────────────────────────────────────────
+  // ─── PUBLIC: Login (T-387: httpOnly cookie) ────────────────────
   @Public()
   @Post('auth/login')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Super Admin tizimga kirishi' })
-  login(@Body() dto: AdminLoginDto) {
-    return this.adminAuthService.login(dto);
+  @ApiOperation({ summary: 'Super Admin tizimga kirishi (httpOnly cookie)' })
+  async login(@Body() dto: AdminLoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.adminAuthService.login(dto);
+
+    // T-387: Set httpOnly cookie for super-admin JWT
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('sa_access_token', result.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 24h
+      path: '/',
+    });
+
+    return result;
   }
 
   // ─── BOOTSTRAP: Birinchi Super Admin yaratish ──────────────────

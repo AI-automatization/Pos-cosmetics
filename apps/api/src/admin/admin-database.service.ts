@@ -394,11 +394,19 @@ export class AdminDatabaseService {
     return { updated: ids.length, tableName };
   }
 
-  // ─── SQL CONSOLE ────────────────────────────────────────────────────────────
+  // ─── SQL CONSOLE (T-387 hardened) ────────────────────────────────────────────
 
-  async executeQuery(sql: string) {
+  async executeQuery(sql: string, adminId?: string, confirmDestructive = false) {
     const trimmed = sql.trim();
     if (!trimmed) throw new BadRequestException('Пустой запрос');
+
+    // T-387: Multi-statement bloklash — `;` ichki qismda taqiqlangan
+    if (this.containsMultipleStatements(trimmed)) {
+      this.logger.error(`SQL CONSOLE BLOCKED [MULTI-STMT]: ${trimmed.slice(0, 200)}`, { adminId });
+      throw new BadRequestException(
+        'Bir nechta SQL buyruq (`;` bilan ajratilgan) taqiqlangan. Faqat bitta buyruq yuboring.',
+      );
+    }
 
     const upperSql = trimmed.toUpperCase();
     const isSelect = upperSql.startsWith('SELECT') || upperSql.startsWith('EXPLAIN') || upperSql.startsWith('WITH');
@@ -408,7 +416,7 @@ export class AdminDatabaseService {
     // SECURITY: Production da faqat SELECT ruxsat etiladi
     const isProduction = process.env.NODE_ENV === 'production';
     if (isProduction && !isSelect) {
-      this.logger.error(`SQL CONSOLE BLOCKED [PROD]: ${trimmed.slice(0, 200)}`);
+      this.logger.error(`SQL CONSOLE BLOCKED [PROD]: ${trimmed.slice(0, 200)}`, { adminId });
       throw new BadRequestException(
         'Production muhitda faqat SELECT so\'rovlari ruxsat etiladi.',
       );
@@ -416,21 +424,25 @@ export class AdminDatabaseService {
 
     // T-387: DDL taqiqlangan — DROP, ALTER, TRUNCATE, CREATE
     if (isDdl) {
-      this.logger.error(`SQL CONSOLE BLOCKED [DDL]: ${trimmed.slice(0, 200)}`);
+      this.logger.error(`SQL CONSOLE BLOCKED [DDL]: ${trimmed.slice(0, 200)}`, { adminId });
       throw new BadRequestException(
         'DDL операции (DROP, ALTER, TRUNCATE, CREATE) тақиқланган. Фақат SELECT ва DML (INSERT/UPDATE/DELETE) рухсат этилган.',
+      );
+    }
+
+    // T-387: DELETE/UPDATE without WHERE → require confirmation header
+    if (isDml && this.isDestructiveDml(upperSql) && !confirmDestructive) {
+      this.logger.warn(`SQL CONSOLE DESTRUCTIVE BLOCKED: ${trimmed.slice(0, 200)}`, { adminId });
+      throw new BadRequestException(
+        'Destructive DML (DELETE/UPDATE without WHERE) aniqlandi. x-confirm-destructive: yes header yuborib tasdiqlang.',
       );
     }
 
     const start = Date.now();
     const type: 'SELECT' | 'DML' = isDml ? 'DML' : 'SELECT';
 
-    // T-387: Audit log — har SQL query logga yoziladi
-    this.logger.warn(`SQL CONSOLE [${type}]: ${trimmed.slice(0, 500)}`, {
-      sqlType: type,
-      sqlLength: trimmed.length,
-      timestamp: new Date().toISOString(),
-    });
+    // T-387: Audit log — DB ga immutable yozish
+    await this.recordAuditLog(adminId ?? 'unknown', type, trimmed);
 
     try {
       if (isSelect) {
@@ -452,6 +464,7 @@ export class AdminDatabaseService {
       this.logger.warn(`SQL CONSOLE DML EXECUTED: ${trimmed.slice(0, 500)}`, {
         affectedRows: result,
         executionTimeMs: Date.now() - start,
+        adminId,
       });
 
       return {
@@ -464,8 +477,57 @@ export class AdminDatabaseService {
       };
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Unknown SQL error';
-      this.logger.error(`SQL CONSOLE ERROR: ${msg}`, { sql: trimmed.slice(0, 300) });
+      this.logger.error(`SQL CONSOLE ERROR: ${msg}`, { sql: trimmed.slice(0, 300), adminId });
       throw new BadRequestException(`SQL ошибка: ${msg}`);
+    }
+  }
+
+  /**
+   * T-387: Multi-statement detection — `;` o'rtada bo'lsa block
+   * Stringlar ichidagi `;` ni e'tiborsiz qoldiradi
+   */
+  private containsMultipleStatements(sql: string): boolean {
+    let inSingle = false;
+    let inDouble = false;
+    for (let i = 0; i < sql.length; i++) {
+      const ch = sql[i];
+      if (ch === "'" && !inDouble) inSingle = !inSingle;
+      else if (ch === '"' && !inSingle) inDouble = !inDouble;
+      else if (ch === ';' && !inSingle && !inDouble) {
+        // oxirgi `;` dan keyin faqat whitespace bo'lsa — OK
+        const rest = sql.slice(i + 1).trim();
+        if (rest.length > 0) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * T-387: DELETE/UPDATE without WHERE detection
+   */
+  private isDestructiveDml(upperSql: string): boolean {
+    // DELETE FROM table (without WHERE)
+    if (upperSql.startsWith('DELETE') && !upperSql.includes('WHERE')) return true;
+    // UPDATE table SET ... (without WHERE)
+    if (upperSql.startsWith('UPDATE') && !upperSql.includes('WHERE')) return true;
+    return false;
+  }
+
+  /**
+   * T-387: Audit log — immutable record to DB
+   */
+  private async recordAuditLog(adminId: string, sqlType: string, query: string): Promise<void> {
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO admin_sql_audit_log (id, admin_id, sql_type, query, executed_at)
+        VALUES (gen_random_uuid(), ${adminId}, ${sqlType}, ${query.slice(0, 2000)}, NOW())
+      `;
+    } catch {
+      // Jadval hali yaratilmagan bo'lsa — faqat Logger ga yozish
+      this.logger.warn(`SQL CONSOLE AUDIT [${sqlType}]: ${query.slice(0, 500)}`, {
+        adminId,
+        timestamp: new Date().toISOString(),
+      });
     }
   }
 

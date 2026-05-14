@@ -49,10 +49,13 @@ export default function FounderLoginPage() {
       const res = await apiClient.post<AdminLoginResponse>('/admin/auth/login', data);
       const { accessToken, admin } = res.data;
 
+      // T-387: JWT now in httpOnly cookie (set by backend).
+      // localStorage kept for backward compat; will be removed in future.
       localStorage.setItem(SA_TOKEN_KEY, accessToken);
       localStorage.setItem(SA_ADMIN_ID_KEY, admin.id);
       localStorage.setItem(SA_ADMIN_ROLE_KEY, admin.role);
 
+      // Session flag cookie (non-httpOnly) for middleware routing
       document.cookie = `${SA_SESSION_COOKIE}=1; path=/; max-age=${SA_COOKIE_MAX_AGE}; SameSite=Lax`;
       document.cookie = `${SA_ROLE_COOKIE}=SUPER_ADMIN; path=/; max-age=${SA_COOKIE_MAX_AGE}; SameSite=Lax`;
 

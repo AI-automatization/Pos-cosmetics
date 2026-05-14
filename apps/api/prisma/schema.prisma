@@ -649,6 +649,20 @@ model PaymentWebhookEvent {
   @@map("payment_webhook_events")
 }
 
+// T-387: Super Admin SQL console audit log (immutable)
+model AdminSqlAuditLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  sqlType    String   @map("sql_type") // SELECT, DML
+  query      String   // truncated to 2000 chars
+  executedAt DateTime @default(now()) @map("executed_at")
+  // updatedAt YO'Q — IMMUTABLE
+
+  @@index([adminId])
+  @@index([executedAt])
+  @@map("admin_sql_audit_log")
+}
+
 // ============================================
 // CUSTOMER MODULE (T-050)
 // ============================================

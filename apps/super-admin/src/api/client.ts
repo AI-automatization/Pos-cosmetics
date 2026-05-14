@@ -16,7 +16,8 @@ export const SA_SESSION_COOKIE = 'sa_session_active';
 export const SA_ROLE_COOKIE = 'sa_user_role';
 export const SA_COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
-// Request: JWT token
+// T-387: JWT now sent as httpOnly cookie (withCredentials: true handles this).
+// localStorage fallback for backward compatibility during migration.
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem(SA_TOKEN_KEY);

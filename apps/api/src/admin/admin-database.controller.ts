@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -21,7 +22,7 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { AdminDatabaseService } from './admin-database.service';
 
-interface AdminRequest { user?: { role?: string } }
+interface AdminRequest { user?: { role?: string; userId?: string } }
 
 @ApiTags('Super Admin — Database')
 @ApiBearerAuth()
@@ -205,11 +206,16 @@ export class AdminDatabaseController {
       },
     },
   })
-  executeQuery(@Body('sql') sql: string, @Req() req: AdminRequest) {
+  executeQuery(
+    @Body('sql') sql: string,
+    @Req() req: AdminRequest,
+    @Headers('x-confirm-destructive') confirmDestructive?: string,
+  ) {
     // T-391: SUPPORT role — SQL console taqiqlangan
     if (req.user?.role === 'SUPPORT') {
       throw new BadRequestException('SUPPORT role uchun SQL console taqiqlangan. Faqat SUPER_ADMIN ishlatishi mumkin.');
     }
-    return this.dbService.executeQuery(sql);
+    const adminId = req.user?.userId ?? 'unknown';
+    return this.dbService.executeQuery(sql, adminId, confirmDestructive === 'yes');
   }
 }

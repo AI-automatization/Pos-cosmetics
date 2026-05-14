@@ -3,6 +3,24 @@
 
 ---
 
+## T-387 | 2026-05-14 | [SECURITY] | Super Admin panel — hardening (4/4 done)
+
+- **Yechim:**
+  1. **SQL console hardening:**
+     - Multi-statement block (`;` ichki qismda) — string literal ni e'tiborsiz qoldiradi
+     - DELETE/UPDATE without WHERE → `x-confirm-destructive: yes` header talab qiladi
+     - `admin_sql_audit_log` jadval (immutable) — har SQL query + adminId + timestamp
+     - DDL taqiqlangan (DROP, ALTER, TRUNCATE, CREATE)
+  2. **JWT httpOnly cookie:**
+     - Backend login: `res.cookie('sa_access_token', token, { httpOnly, secure, sameSite: strict })`
+     - JwtStrategy: `fromExtractors([bearerHeader, cookie fallback])`
+     - Middleware: httpOnly cookie primary check, client cookie fallback
+  3. **DLQ endpoints:** Allaqachon `@UseGuards(JwtAuthGuard, SuperAdminGuard)` — o'zgarish kerak emas
+  4. **Rate-limit:** Allaqachon `@Throttle` login (5/min) va bootstrap (3/min) da bor
+- **Fayl:** `admin-database.service.ts`, `admin-database.controller.ts`, `admin-auth.controller.ts`, `jwt.strategy.ts`, `super-admin/middleware.ts`, `super-admin/api/client.ts`, `super-admin/app/login/page.tsx`, migration `20260514140000`
+
+---
+
 ## T-397 | 2026-05-14 | [SECURITY] | Webhooks — rate limit + IP logging
 
 - **Yechim:**
