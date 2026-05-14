@@ -38,25 +38,7 @@
 
 ---
 
-## T-397 | P1 | [SECURITY] | Webhooks — rate limit + timing-safe compare
-
-- **Sana:** 2026-05-13
-- **Mas'ul:** Ibrat
-- **Manba:** Team Lead audit
-- **Fayl:**
-  - `apps/api/src/payments/payments.controller.ts`
-  - `apps/api/src/payments/providers/payme.provider.ts:61`
-- **Muammo:**
-  - Webhook endpointlarda `@Throttle` YO'Q — DDoS va brute-force vektori
-  - Payme `verifyWebhook` `===` ishlatadi (timing attack)
-  - `authHeader.replace('Basic ', '')` null bo'lsa TypeError → 500
-  - IP logging YO'Q (forensics imkonsiz)
-- **Vazifa:**
-  - `@Throttle({ default: { limit: 120, ttl: 60000 } })` har 3 webhook'ga
-  - `crypto.timingSafeEqual(Buffer.from(key), Buffer.from(secret))` Payme da
-  - `authHeader ?? ''` to'liq guard + `startsWith('Basic ')` tekshiruvi
-  - Webhook logger ga `req.ip` va `req.headers['x-request-id']` qo'shish
-- **Test:** 121 ta request/min → 429; bo'sh auth header → 401 (TypeError emas)
+*(T-397 — BAJARILDI, Done.md ga ko'chirildi 2026-05-14)*
 
 ---
 

@@ -3,6 +3,17 @@
 
 ---
 
+## T-397 | 2026-05-14 | [SECURITY] | Webhooks — rate limit + IP logging
+
+- **Yechim:**
+  - `@Throttle({ default: { limit: 120, ttl: 60000 } })` — 3 ta webhook endpoint (Payme, Click Prepare, Click Complete)
+  - `req.ip` + `x-request-id` har webhook kirganida log qilinadi
+  - Auth fail → warn log + IP
+  - `timingSafeEqual` va null guard T-393/T-394 da qilingan edi
+- **Fayl:** `payments.controller.ts`
+
+---
+
 ## T-393 | 2026-05-14 | [BACKEND] | Payme provider — mock o'rniga real JSON-RPC logika
 
 - **Yechim:**
