@@ -548,3 +548,116 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 - **Topildi:** Manual Code Review — 2026-05-05
 
 ---
+
+## ════════════════════════════════════════════════════════════════
+## 🟡 MOBILE WAREHOUSE GAPLAR (T-471..T-480) — 2026-05-14
+## Web Warehouse bilan to'liq solishtirma natijasi
+## Mas'ul: Abdulaziz
+## ════════════════════════════════════════════════════════════════
+
+---
+
+## T-471 | P1 | [MOBILE] | Warehouse Dashboard — stat cards + recent movements + restock requests
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Ombor/` (yangi screen kerak)
+- **Muammo:** Mobile da warehouse dashboard yo'q. Web da 4 stat card (total products, low-stock, expiry-soon, today movements), quick navigation, lowStock list, recent movements, restock requests + **beep alert** bor.
+- **Kutilgan:** `WarehouseDashboardScreen` — `GET /warehouse/dashboard` API dan stat cards, recent movements, restock requests ko'rsatish. OmborTab da birinchi screen bo'lishi kerak.
+- **Web analog:** `apps/web/src/app/(warehouse)/warehouse/page.tsx`
+
+---
+
+## T-472 | P2 | [MOBILE] | Supplier Management — CRUD + linked products
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Ombor/` (yangi screenlar kerak)
+- **Muammo:** Mobile da supplier (yetkazib beruvchi) boshqaruvi umuman yo'q. Web da card grid + detail page + linked products + CRUD bor.
+- **Kutilgan:** `SuppliersScreen` (list + search + active/inactive filter) + `SupplierDetailScreen` (kontakt info + bog'liq mahsulotlar) + `NewSupplierSheet` (yaratish). API: `GET/POST/PATCH/DELETE /catalog/suppliers`.
+- **Web analog:** `apps/web/src/app/(warehouse)/warehouse/suppliers/`
+
+---
+
+## T-473 | P2 | [MOBILE] | Transfer Status Lifecycle — approve/ship/receive/cancel
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/StockTransfer/index.tsx`
+- **Muammo:** Mobile da faqat transfer yaratish bor. Web da to'liq lifecycle mavjud: REQUESTED → APPROVED → SHIPPED → RECEIVED / CANCELLED. Har statusda action button bor.
+- **Kutilgan:** `TransferListScreen` — `GET /inventory/transfers` + status filter tabs + action buttons (approve/ship/receive/cancel). `PATCH /inventory/transfers/:id/approve|ship|receive|cancel` endpointlari tayyor.
+- **Web analog:** `apps/web/src/app/(admin)/inventory/transfer/page.tsx`
+
+---
+
+## T-474 | P2 | [MOBILE] | Tester / Sample Tracking — stock deduction + expense ledger
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Ombor/` (yangi screen kerak)
+- **Muammo:** Kosmetika do'konida tester ochish tez-tez bo'ladi. Web da TesterModal bor (product select, qty, cost auto-calc, expense ledger ga yozish). Mobile da umuman yo'q.
+- **Kutilgan:** `TesterScreen` yoki `TesterSheet` — mahsulot tanlash, miqdor kiritish, narx avtomatik hisoblash. API: `POST /inventory/testers`, `GET /inventory/testers`.
+- **Web analog:** `apps/web/src/app/(admin)/inventory/TesterModal.tsx`
+
+---
+
+## T-475 | P3 | [MOBILE] | Product Stock Detail — movement history per product
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`
+- **Muammo:** Web da mahsulot ustiga bosilganda `ProductStockDrawer` ochiladi — current stock, min stock, cost price, va **to'liq movement history** ko'rsatadi. Mobile da bunday detail yo'q.
+- **Kutilgan:** `ProductStockSheet` (bottom sheet) — mahsulot nomi, joriy zaxira, min stock, cost price, va oxirgi N ta movement (IN/OUT/TRANSFER/WRITE_OFF). OmborProductCard dan ochiladi.
+- **Web analog:** `apps/web/src/app/(admin)/inventory/ProductStockDrawer.tsx`
+
+---
+
+## T-476 | P3 | [MOBILE] | Movement History CSV/Share — export qilish
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/StockMovements/index.tsx`
+- **Muammo:** Web da movement history sahifasida **CSV export** tugmasi bor. Mobile da export imkoniyati yo'q.
+- **Kutilgan:** StockMovementsScreen da "Ulashish" tugmasi — `expo-sharing` orqali CSV fayl share qilish (Telegram, WhatsApp, etc.)
+- **Web analog:** `apps/web/src/app/(warehouse)/warehouse/history/page.tsx` (CSV export button)
+
+---
+
+## T-477 | P3 | [MOBILE] | Label Print — Bluetooth printer orqali
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Ombor/` (yangi feature kerak)
+- **Muammo:** Web da inventory list da `LabelPrintModal` bor — narx yorlig'i chop etish. Mobile da yo'q. Kosmetika do'konida Bluetooth printer orqali label chop etish juda kerak.
+- **Kutilgan:** Bluetooth printer bilan ulanish + mahsulot narx yorlig'ini chop etish. Avval research kerak (react-native-ble-plx yoki expo-print).
+
+---
+
+## T-478 | P1 | [MOBILE] | OmborProductCard "Kirim so'rash" button — onPress bo'sh
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx` (line ~44)
+- **Muammo:** "Kirim so'rash" tugmasi `onPress: () => {}` — **bo'sh, hech narsa qilmaydi**. `sendRestockRequest()` faqat `LowStockList.tsx` da wired, OmborProductCard da emas.
+- **Kutilgan:** `onPress` → `inventoryApi.sendRestockRequest({productId, productName, currentStock})` chaqirishi kerak + Alert confirmation + success toast.
+
+---
+
+## T-479 | P2 | [MOBILE] | Dashboard lowStock widget — data bor, UI yo'q
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`, `useDashboardData.ts`
+- **Muammo:** `useDashboardData()` da `lowStock` query bor va data fetch qilinadi (`getStockLevels({lowStock:true})`), lekin Dashboard `index.tsx` da **hech qanday widget ko'rsatilmaydi** — data fetch qilinadi va ishlatilinmaydi.
+- **Kutilgan:** Dashboard da "Kam zaxira" banner yoki card qo'shish — low stock count + "Barchasi" tugmasi → LowStockList ga navigate.
+
+---
+
+## T-480 | P2 | [MOBILE] | Transfer faqat yaratish — lifecycle (list + status) yo'q
+
+- **Sana:** 2026-05-14
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/src/screens/StockTransfer/index.tsx`
+- **Muammo:** Hozir faqat yangi transfer yaratish mumkin. Oldingi transferlar ro'yxati, ularning statusi (REQUESTED/APPROVED/SHIPPED/RECEIVED/CANCELLED) va status o'zgartirish tugmalari yo'q. T-473 bilan bog'liq.
+- **Kutilgan:** StockTransfer screen da 2 tab: "Yangi transfer" + "Transferlar ro'yxati" (status filter + action buttons).
+- **Bog'liq:** T-473
