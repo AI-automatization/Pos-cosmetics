@@ -1,32 +1,69 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Copy, CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { X, Copy, CheckCircle, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { PaymentProviderType } from '@/types/payment-config';
 
 interface ProviderField {
   key: string;
-  label: string;
+  labelKey: string;
   type: 'text' | 'password';
   placeholder: string;
+  hint: string;
 }
 
 const PROVIDER_FIELDS: Record<string, ProviderField[]> = {
   PAYME: [
-    { key: 'merchantId', label: 'Merchant ID', type: 'text', placeholder: 'Payme merchant ID' },
-    { key: 'secretKey', label: 'Secret Key', type: 'password', placeholder: 'Payme secret key' },
+    {
+      key: 'merchantId',
+      labelKey: 'paymentSettings.merchantId',
+      type: 'text',
+      placeholder: '5e730e8e0b852a417aa49ceb',
+      hint: 'merchant.payme.uz → Sozlamalar → Merchant ID (24 belgi)',
+    },
+    {
+      key: 'secretKey',
+      labelKey: 'paymentSettings.secretKey',
+      type: 'password',
+      placeholder: 'xxxxxxxxxxxxxxxx',
+      hint: 'merchant.payme.uz → Sozlamalar → Kalit (Secret Key)',
+    },
   ],
   CLICK: [
-    { key: 'serviceId', label: 'Service ID', type: 'text', placeholder: 'Click service ID' },
-    { key: 'merchantId', label: 'Merchant ID', type: 'text', placeholder: 'Click merchant ID' },
-    { key: 'secretKey', label: 'Secret Key', type: 'password', placeholder: 'Click secret key' },
+    {
+      key: 'serviceId',
+      labelKey: 'paymentSettings.serviceId',
+      type: 'text',
+      placeholder: '12345',
+      hint: 'merchant.click.uz → Xizmatlar → Service ID (raqam)',
+    },
+    {
+      key: 'merchantId',
+      labelKey: 'paymentSettings.merchantId',
+      type: 'text',
+      placeholder: '67890',
+      hint: 'merchant.click.uz → Profil → Merchant ID (raqam)',
+    },
+    {
+      key: 'secretKey',
+      labelKey: 'paymentSettings.secretKey',
+      type: 'password',
+      placeholder: 'xxxxxxxxxxxxxxxx',
+      hint: 'merchant.click.uz → Xizmatlar → Secret Key',
+    },
   ],
 };
 
-const WEBHOOK_URLS: Record<string, string> = {
-  PAYME: '/payments/webhooks/payme',
-  CLICK: '/payments/webhooks/click/prepare',
+const WEBHOOK_CONFIGS: Record<string, { label: string; path: string }[]> = {
+  PAYME: [
+    { label: 'Webhook URL', path: '/payments/webhooks/payme' },
+  ],
+  CLICK: [
+    { label: 'Prepare URL', path: '/payments/webhooks/click/prepare' },
+    { label: 'Complete URL', path: '/payments/webhooks/click/complete' },
+  ],
 };
 
 const REGISTER_URLS: Record<string, string> = {
@@ -57,7 +94,9 @@ export default function OnlineProviderModal({
   isPending,
   isVerifying,
 }: Props) {
+  const { t } = useTranslation();
   const fields = PROVIDER_FIELDS[provider] ?? [];
+  const webhookConfigs = WEBHOOK_CONFIGS[provider] ?? [];
   const [values, setValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -69,11 +108,10 @@ export default function OnlineProviderModal({
   const apiBase = typeof window !== 'undefined'
     ? (process.env.NEXT_PUBLIC_API_URL ?? `${window.location.origin}/api/v1`)
     : '';
-  const webhookUrl = `${apiBase}${WEBHOOK_URLS[provider] ?? ''}`;
 
-  const copyWebhookUrl = () => {
-    navigator.clipboard.writeText(webhookUrl);
-    toast.success('Webhook URL nusxalandi');
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    toast.success(t('paymentSettings.copySuccess'));
   };
 
   const allFilled = fields.every((f) => values[f.key]?.trim());
@@ -87,19 +125,19 @@ export default function OnlineProviderModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{provider} sozlash</h3>
+          <h3 className="text-lg font-semibold">{provider} — {t('paymentSettings.configure')}</h3>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Registration link */}
+        {/* Registration instructions */}
         {REGISTER_URLS[provider] && (
           <div className="mb-4 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
             <p className="text-sm text-blue-800">
-              Avval{' '}
+              <strong>1.</strong>{' '}
               <a
                 href={REGISTER_URLS[provider]}
                 target="_blank"
@@ -108,49 +146,75 @@ export default function OnlineProviderModal({
               >
                 {REGISTER_URLS[provider]}
               </a>{' '}
-              da ro&apos;yxatdan o&apos;ting va merchant credentials oling.
+              {t('paymentSettings.registerHint')}
+            </p>
+            <p className="mt-1 text-sm text-blue-800">
+              <strong>2.</strong> Olingan kalitlarni pastga kiriting
+            </p>
+            <p className="mt-1 text-sm text-blue-800">
+              <strong>3.</strong> Webhook URL ni {provider} panelga kiriting
             </p>
           </div>
         )}
+
+        {/* Warning about email */}
+        <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <p className="text-xs text-amber-700">
+              Merchant ID — bu email <strong>EMAS</strong>. Bu {provider} merchant panelidan olinadigan
+              maxsus ID raqam yoki kod.
+            </p>
+          </div>
+        </div>
 
         {/* Credential fields */}
         <div className="space-y-3">
           {fields.map((f) => (
             <div key={f.key}>
-              <label className="mb-1 block text-sm font-medium text-gray-700">{f.label}</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t(f.labelKey)}</label>
               <input
                 type={f.type}
                 value={values[f.key] ?? ''}
                 onChange={(e) => setValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
                 placeholder={f.placeholder}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none"
               />
+              <p className="mt-0.5 text-xs text-gray-400">{f.hint}</p>
             </div>
           ))}
         </div>
 
-        {/* Webhook URL */}
-        <div className="mt-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700">Webhook URL</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              readOnly
-              value={webhookUrl}
-              className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
-            />
-            <button
-              type="button"
-              onClick={copyWebhookUrl}
-              className="rounded-lg border border-gray-300 p-2 text-gray-500 hover:bg-gray-50"
-              title="Nusxalash"
-            >
-              <Copy className="h-4 w-4" />
-            </button>
-          </div>
-          <p className="mt-1 text-xs text-gray-400">
-            Bu URL ni {provider} merchant panelida webhook sifatida kiriting
-          </p>
+        {/* Webhook URLs */}
+        <div className="mt-4 space-y-2">
+          <label className="block text-sm font-medium text-gray-700">{t('paymentSettings.webhookUrl')}</label>
+          {webhookConfigs.map((wh) => {
+            const fullUrl = `${apiBase}${wh.path}`;
+            return (
+              <div key={wh.path}>
+                {webhookConfigs.length > 1 && (
+                  <p className="mb-1 text-xs font-medium text-gray-500">{wh.label}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={fullUrl}
+                    className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-mono text-gray-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => copyUrl(fullUrl)}
+                    className="rounded-lg border border-gray-300 p-2 text-gray-500 hover:bg-gray-50"
+                    title="Nusxalash"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          <p className="text-xs text-gray-400">{t('paymentSettings.webhookUrlHint')}</p>
         </div>
 
         {/* Verification status */}
@@ -159,7 +223,7 @@ export default function OnlineProviderModal({
             {verifiedAt ? (
               <div className="flex items-center gap-1.5 text-sm text-green-600">
                 <ShieldCheck className="h-4 w-4" />
-                <span>Tekshirilgan: {new Date(verifiedAt).toLocaleDateString()}</span>
+                <span>{t('paymentSettings.verified')}: {new Date(verifiedAt).toLocaleDateString()}</span>
               </div>
             ) : (
               <button
@@ -169,7 +233,7 @@ export default function OnlineProviderModal({
                 className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm text-amber-700 hover:bg-amber-100 disabled:opacity-50"
               >
                 {isVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                {isVerifying ? 'Tekshirilmoqda...' : 'Tekshirish'}
+                {isVerifying ? t('paymentSettings.verifying') : t('paymentSettings.verify')}
               </button>
             )}
           </div>
@@ -182,7 +246,7 @@ export default function OnlineProviderModal({
             onClick={onClose}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
           >
-            Bekor qilish
+            {t('paymentSettings.cancel')}
           </button>
           <button
             type="button"
@@ -190,7 +254,7 @@ export default function OnlineProviderModal({
             disabled={!allFilled || isPending}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {isPending ? 'Saqlanmoqda...' : hasCredentials ? 'Yangilash' : 'Ulash'}
+            {isPending ? t('paymentSettings.saving') : hasCredentials ? t('paymentSettings.update') : t('paymentSettings.connect')}
           </button>
         </div>
       </div>
