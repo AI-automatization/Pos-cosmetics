@@ -141,19 +141,16 @@ export default function PaymentMethodsPage() {
                     {/* Online provider status */}
                     {p.type === 'online' && config && (
                       <div className="mt-2 flex items-center gap-2">
-                        {hasCredentials ? (
-                          <>
-                            <span className="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                              <ShieldCheck className="h-3 w-3" /> {t('paymentSettings.connected')}
-                            </span>
-                            {config.verifiedAt && (
-                              <span className="text-xs text-gray-400">
-                                Tekshirilgan: {new Date(config.verifiedAt).toLocaleDateString()}
-                              </span>
-                            )}
-                          </>
-                        ) : (
+                        {hasCredentials && config.verifiedAt ? (
+                          <span className="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                            <ShieldCheck className="h-3 w-3" /> {t('paymentSettings.verified')}: {new Date(config.verifiedAt).toLocaleDateString()}
+                          </span>
+                        ) : hasCredentials ? (
                           <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs text-amber-700">
+                            Credentials kiritilgan — tekshirilmagan
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs text-red-700">
                             {t('paymentSettings.notConnected')}
                           </span>
                         )}

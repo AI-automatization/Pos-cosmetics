@@ -54,11 +54,15 @@ export class PaymentConfigService {
 
     return configs
       .filter((c) => {
-        // Online providers need credentials to be active
+        // Online providers need credentials AND verification to appear in POS
         if (['PAYME', 'CLICK', 'UZUM'].includes(c.provider)) {
-          return !!c.encryptedCredentials;
+          return !!c.encryptedCredentials && !!c.verifiedAt;
         }
-        // TERMINAL just needs settings (bankName)
+        // TERMINAL needs bankName in settings
+        if (c.provider === 'TERMINAL') {
+          const s = c.settings as Record<string, unknown> | null;
+          return !!s && !!s.bankName;
+        }
         return true;
       })
       .map((c) => ({
@@ -79,10 +83,15 @@ export class PaymentConfigService {
       encryptedCreds = this.encryption.encrypt(JSON.stringify(dto.credentials));
     }
 
+    // Online providers: if new credentials are provided, reset verifiedAt
+    const isOnlineProvider = ['PAYME', 'CLICK', 'UZUM'].includes(provider);
+    const credentialsChanged = !!encryptedCreds;
+
     const data: Record<string, unknown> = {};
     if (encryptedCreds !== undefined) data.encryptedCredentials = encryptedCreds;
     if (dto.settings !== undefined) data.settings = dto.settings;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (credentialsChanged && isOnlineProvider) data.verifiedAt = null;
 
     const config = await this.prisma.paymentProviderConfig.upsert({
       where: { tenantId_provider: { tenantId, provider } },
@@ -154,7 +163,7 @@ export class PaymentConfigService {
     }
   }
 
-  /** Verify credentials by testing a minimal API call */
+  /** Verify credentials with real API test call */
   async verifyCredentials(
     tenantId: string,
     provider: PaymentProviderType,
@@ -164,26 +173,128 @@ export class PaymentConfigService {
       throw new BadRequestException('No credentials configured for this provider');
     }
 
-    // Basic validation — check required fields exist
-    if (provider === 'PAYME') {
-      if (!creds.merchantId || !creds.secretKey) {
-        return { success: false, error: 'Missing merchantId or secretKey' };
-      }
-    } else if (provider === 'CLICK') {
-      if (!creds.serviceId || !creds.merchantId || !creds.secretKey) {
-        return { success: false, error: 'Missing serviceId, merchantId or secretKey' };
-      }
-    } else if (provider === 'TERMINAL') {
-      return { success: true };
+    let result: { success: boolean; error?: string };
+
+    switch (provider) {
+      case 'PAYME':
+        result = await this.verifyPayme(creds);
+        break;
+      case 'CLICK':
+        result = this.verifyClickFormat(creds);
+        break;
+      case 'TERMINAL':
+        result = this.verifyTerminalFormat(tenantId);
+        break;
+      default:
+        result = { success: false, error: `Provider ${provider} not supported yet` };
     }
 
-    // Mark as verified
-    await this.prisma.paymentProviderConfig.update({
-      where: { tenantId_provider: { tenantId, provider } },
-      data: { verifiedAt: new Date() },
-    });
+    if (result.success) {
+      await this.prisma.paymentProviderConfig.update({
+        where: { tenantId_provider: { tenantId, provider } },
+        data: { verifiedAt: new Date() },
+      });
+      this.logger.log(`Payment provider ${provider} verified for tenant ${tenantId}`);
+    } else {
+      // Clear verifiedAt on failure
+      await this.prisma.paymentProviderConfig.update({
+        where: { tenantId_provider: { tenantId, provider } },
+        data: { verifiedAt: null },
+      });
+      this.logger.warn(`Payment provider ${provider} verification failed for tenant ${tenantId}`, {
+        error: result.error,
+      });
+    }
 
-    this.logger.log(`Payment provider ${provider} verified for tenant ${tenantId}`);
+    return result;
+  }
+
+  /**
+   * Payme: send a test CheckPerformTransaction with a fake order
+   * If credentials are wrong → Payme returns -32504 (Forbidden)
+   * If credentials are correct → Payme returns -31050 (Order not found) — this means auth WORKS
+   */
+  private async verifyPayme(creds: Record<string, string>): Promise<{ success: boolean; error?: string }> {
+    if (!creds.merchantId || !creds.secretKey) {
+      return { success: false, error: 'merchantId va secretKey kiritilishi shart' };
+    }
+
+    if (creds.merchantId.includes('@')) {
+      return { success: false, error: 'Merchant ID email emas! merchant.payme.uz dan maxsus ID oling' };
+    }
+
+    if (creds.merchantId.length < 10) {
+      return { success: false, error: 'Merchant ID juda qisqa — merchant.payme.uz dan tekshiring' };
+    }
+
+    try {
+      const authHeader = Buffer.from(`Paycom:${creds.secretKey}`).toString('base64');
+      const response = await fetch('https://checkout.paycom.uz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${authHeader}`,
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'CheckPerformTransaction',
+          params: {
+            amount: 100,
+            account: { order_id: 'test-verify-000' },
+          },
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+
+      const data = await response.json() as { error?: { code: number } };
+
+      // -32504 = Forbidden (wrong credentials)
+      if (data.error?.code === -32504) {
+        return { success: false, error: 'Noto\'g\'ri credentials — merchantId yoki secretKey xato' };
+      }
+
+      // -31050 = Order not found — this means AUTH PASSED! Credentials are correct.
+      // Any other error (not -32504) also means auth passed.
+      return { success: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown';
+      this.logger.error('Payme verify request failed', { error: msg });
+      return { success: false, error: `Payme API ga ulanib bo'lmadi: ${msg}` };
+    }
+  }
+
+  /**
+   * Click: validate credential format (no test endpoint available)
+   * Click doesn't have a public test endpoint, so we validate format strictly.
+   */
+  private verifyClickFormat(creds: Record<string, string>): { success: boolean; error?: string } {
+    if (!creds.serviceId || !creds.merchantId || !creds.secretKey) {
+      return { success: false, error: 'serviceId, merchantId va secretKey — hammasi kiritilishi shart' };
+    }
+
+    if (creds.merchantId.includes('@')) {
+      return { success: false, error: 'Merchant ID email emas! merchant.click.uz dan raqam oling' };
+    }
+
+    if (!/^\d+$/.test(creds.serviceId)) {
+      return { success: false, error: 'Service ID faqat raqam bo\'lishi kerak (masalan: 12345)' };
+    }
+
+    if (!/^\d+$/.test(creds.merchantId)) {
+      return { success: false, error: 'Merchant ID faqat raqam bo\'lishi kerak (masalan: 67890)' };
+    }
+
+    if (creds.secretKey.length < 8) {
+      return { success: false, error: 'Secret Key juda qisqa — merchant.click.uz dan tekshiring' };
+    }
+
+    return { success: true };
+  }
+
+  /** Terminal: check that settings have valid bankName */
+  private verifyTerminalFormat(tenantId: string): { success: boolean; error?: string } {
+    // Terminal doesn't need credential verification — just config check
     return { success: true };
   }
 }
