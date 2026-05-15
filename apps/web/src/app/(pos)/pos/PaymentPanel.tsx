@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Banknote,
   CreditCard,
@@ -23,6 +23,7 @@ import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { formatPrice, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import { CustomerSearchModal } from './CustomerSearchModal';
+import { useActiveProviders } from '@/hooks/settings/usePaymentConfig';
 import type { Order } from '@/types/sales';
 import type { PaymentMethod, DiscountType } from '@/types/sales';
 
@@ -33,6 +34,7 @@ interface PaymentPanelProps {
 const QUICK_CASH = [5000, 10000, 20000, 50000, 100000];
 
 export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
+  const { data: activeProviders } = useActiveProviders();
   const store = usePOSStore();
   const cart = store.carts[store.activeCartId];
   const { items, paymentMethod, cashAmount, cardAmount, orderDiscount, orderDiscountType, selectedCustomer, bonusPoints, splitNasiyaAmount } = cart;
@@ -117,13 +119,24 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     setOrderDiscount(val, discountType);
   };
 
-  const METHODS: { key: PaymentMethod; label: string; icon: React.ReactNode; shortcut: string }[] = [
-    { key: 'cash', label: t('pos.cashShort'), icon: <Banknote className="h-4 w-4" />, shortcut: 'F5' },
-    { key: 'card', label: t('pos.card'), icon: <CreditCard className="h-4 w-4" />, shortcut: 'F6' },
-    { key: 'split', label: t('pos.mixed'), icon: <SplitSquareVertical className="h-4 w-4" />, shortcut: 'F7' },
-    { key: 'nasiya', label: t('pos.nasiya'), icon: <UserCircle className="h-4 w-4" />, shortcut: 'F8' },
-    { key: 'bonus', label: t('pos.bonuses'), icon: <Star className="h-4 w-4" />, shortcut: 'F9' },
-  ];
+  // Dynamic provider flags — show only configured methods
+  const hasTerminal = activeProviders?.some((p) => p.provider === 'TERMINAL') ?? false;
+  const hasPayme = activeProviders?.some((p) => p.provider === 'PAYME') ?? false;
+  const hasClick = activeProviders?.some((p) => p.provider === 'CLICK') ?? false;
+  const hasCard = hasTerminal || hasPayme || hasClick;
+
+  const METHODS = useMemo(() => {
+    const methods: { key: PaymentMethod; label: string; icon: React.ReactNode; shortcut: string }[] = [
+      { key: 'cash', label: t('pos.cashShort'), icon: <Banknote className="h-4 w-4" />, shortcut: 'F5' },
+    ];
+    if (hasCard) {
+      methods.push({ key: 'card', label: t('pos.card'), icon: <CreditCard className="h-4 w-4" />, shortcut: 'F6' });
+      methods.push({ key: 'split', label: t('pos.mixed'), icon: <SplitSquareVertical className="h-4 w-4" />, shortcut: 'F7' });
+    }
+    methods.push({ key: 'nasiya', label: t('pos.nasiya'), icon: <UserCircle className="h-4 w-4" />, shortcut: 'F8' });
+    methods.push({ key: 'bonus', label: t('pos.bonuses'), icon: <Star className="h-4 w-4" />, shortcut: 'F9' });
+    return methods;
+  }, [hasCard, t]);
 
   if (items.length === 0) {
     return (
@@ -296,9 +309,9 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
           <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.cardMethod')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {([
-              { key: 'terminal' as const, label: t('pos.terminal'), icon: '🏧' },
-              { key: 'payme' as const, label: 'Payme', icon: '💳' },
-              { key: 'click' as const, label: 'Click', icon: '📱' },
+              ...(hasTerminal ? [{ key: 'terminal' as const, label: t('pos.terminal'), icon: '🏧' }] : []),
+              ...(hasPayme ? [{ key: 'payme' as const, label: 'Payme', icon: '💳' }] : []),
+              ...(hasClick ? [{ key: 'click' as const, label: 'Click', icon: '📱' }] : []),
             ]).map((m) => (
               <button
                 key={m.key}

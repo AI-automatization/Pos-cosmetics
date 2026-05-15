@@ -29,6 +29,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
 import { PaymeProvider } from './providers/payme.provider';
 import { ClickProvider, ClickWebhookBody } from './providers/click.provider';
+import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('Payments')
 @ApiBearerAuth()
@@ -42,6 +43,7 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly paymeProvider: PaymeProvider,
     private readonly clickProvider: ClickProvider,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get()
@@ -124,26 +126,37 @@ export class PaymentsController {
     return this.paymentsService.getPaymentIntent(tenantId, id);
   }
 
-  // ─── T-397: PAYME WEBHOOK (rate-limited + IP logged) ──────────
+  // ─── T-415: PAYME WEBHOOK (per-tenant + rate-limited + IP logged) ──
 
   @Public()
   @Post('webhooks/payme')
   @Throttle({ default: { limit: 120, ttl: 60000 } })
-  @ApiOperation({ summary: 'T-397: Payme JSON-RPC 2.0 webhook (public, rate-limited)' })
+  @ApiOperation({ summary: 'Payme JSON-RPC 2.0 webhook (public, per-tenant, rate-limited)' })
   async paymeWebhook(
     @Body() body: { id: number; method: string; params: Record<string, unknown> },
     @Headers('authorization') auth: string,
     @Req() req: Request,
   ) {
     const rpcId = body.id;
+    const params = body.params ?? {};
     this.logger.log('Payme webhook', {
       ip: req.ip,
       requestId: req.headers['x-request-id'],
       method: body.method,
     });
 
-    if (!this.paymeProvider.verifyWebhook(auth ?? '')) {
-      this.logger.warn('Payme webhook auth failed', { ip: req.ip });
+    // Per-tenant routing: orderId → tenantId or paymeId → tenantId
+    const tenantId = await this.resolvePaymeTenant(params);
+
+    let authValid: boolean;
+    if (tenantId) {
+      authValid = await this.paymeProvider.verifyWebhookForTenant(tenantId, auth ?? '');
+    } else {
+      authValid = this.paymeProvider.verifyWebhookLegacy(auth ?? '');
+    }
+
+    if (!authValid) {
+      this.logger.warn('Payme webhook auth failed', { ip: req.ip, tenantId });
       return {
         jsonrpc: '2.0',
         id: rpcId,
@@ -151,16 +164,39 @@ export class PaymentsController {
       };
     }
 
-    const result = await this.paymeProvider.handleMethod(body.method, body.params ?? {});
+    const result = await this.paymeProvider.handleMethod(body.method, params);
     return { jsonrpc: '2.0', id: rpcId, ...result };
   }
 
-  // ─── T-397: CLICK WEBHOOKS (rate-limited + IP logged) ────────
+  /** Resolve tenantId from Payme params (order_id or paymeId) */
+  private async resolvePaymeTenant(params: Record<string, unknown>): Promise<string | null> {
+    // Try orderId first (CheckPerformTransaction, CreateTransaction)
+    const account = params.account as { order_id?: string } | undefined;
+    if (account?.order_id) {
+      const order = await this.prisma.order.findUnique({
+        where: { id: account.order_id },
+        select: { tenantId: true },
+      });
+      return order?.tenantId ?? null;
+    }
+    // Fallback: paymeId (PerformTransaction, CancelTransaction, CheckTransaction)
+    const paymeId = params.id as string | undefined;
+    if (paymeId) {
+      const tx = await this.prisma.paymeTransaction.findUnique({
+        where: { paymeId },
+        select: { tenantId: true },
+      });
+      return tx?.tenantId ?? null;
+    }
+    return null;
+  }
+
+  // ─── T-415: CLICK WEBHOOKS (per-tenant + rate-limited + IP logged) ──
 
   @Public()
   @Post('webhooks/click/prepare')
   @Throttle({ default: { limit: 120, ttl: 60000 } })
-  @ApiOperation({ summary: 'T-397: Click Prepare webhook (public, rate-limited)' })
+  @ApiOperation({ summary: 'Click Prepare webhook (public, per-tenant, rate-limited)' })
   async clickPrepare(@Body() body: ClickWebhookBody, @Req() req: Request) {
     this.logger.log('Click Prepare webhook', {
       ip: req.ip,
@@ -168,8 +204,17 @@ export class PaymentsController {
       clickTransId: body.click_trans_id,
     });
 
-    if (!this.clickProvider.verifySignature(body)) {
-      this.logger.warn('Click Prepare signature failed', { ip: req.ip });
+    const tenantId = await this.resolveClickTenant(body.merchant_trans_id);
+
+    let signValid: boolean;
+    if (tenantId) {
+      signValid = await this.clickProvider.verifySignatureForTenant(tenantId, body);
+    } else {
+      signValid = this.clickProvider.verifySignatureLegacy(body);
+    }
+
+    if (!signValid) {
+      this.logger.warn('Click Prepare signature failed', { ip: req.ip, tenantId });
       return {
         click_trans_id: body.click_trans_id,
         merchant_trans_id: body.merchant_trans_id,
@@ -184,7 +229,7 @@ export class PaymentsController {
   @Public()
   @Post('webhooks/click/complete')
   @Throttle({ default: { limit: 120, ttl: 60000 } })
-  @ApiOperation({ summary: 'T-397: Click Complete webhook (public, rate-limited)' })
+  @ApiOperation({ summary: 'Click Complete webhook (public, per-tenant, rate-limited)' })
   async clickComplete(@Body() body: ClickWebhookBody, @Req() req: Request) {
     this.logger.log('Click Complete webhook', {
       ip: req.ip,
@@ -192,8 +237,17 @@ export class PaymentsController {
       clickTransId: body.click_trans_id,
     });
 
-    if (!this.clickProvider.verifySignature(body)) {
-      this.logger.warn('Click Complete signature failed', { ip: req.ip });
+    const tenantId = await this.resolveClickTenant(body.merchant_trans_id);
+
+    let signValid: boolean;
+    if (tenantId) {
+      signValid = await this.clickProvider.verifySignatureForTenant(tenantId, body);
+    } else {
+      signValid = this.clickProvider.verifySignatureLegacy(body);
+    }
+
+    if (!signValid) {
+      this.logger.warn('Click Complete signature failed', { ip: req.ip, tenantId });
       return {
         click_trans_id: body.click_trans_id,
         merchant_trans_id: body.merchant_trans_id,
@@ -203,5 +257,15 @@ export class PaymentsController {
       };
     }
     return this.clickProvider.handleComplete(body);
+  }
+
+  /** Resolve tenantId from Click merchant_trans_id (orderId) */
+  private async resolveClickTenant(merchantTransId: string): Promise<string | null> {
+    if (!merchantTransId) return null;
+    const order = await this.prisma.order.findUnique({
+      where: { id: merchantTransId },
+      select: { tenantId: true },
+    });
+    return order?.tenantId ?? null;
   }
 }

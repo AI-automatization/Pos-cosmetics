@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentsService } from '../payments.service';
+import { PaymentConfigService } from '../payment-config.service';
 import { PaymentMethod } from '@prisma/client';
 import { timingSafeEqual } from 'node:crypto';
 
@@ -50,29 +51,39 @@ export class PaymeProvider {
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly paymentsService: PaymentsService,
+    @Inject(forwardRef(() => PaymentConfigService))
+    private readonly paymentConfigService: PaymentConfigService,
   ) {}
 
-  private get merchantId(): string {
+  // .env fallback credentials
+  private get envMerchantId(): string {
     return this.config.get('PAYME_MERCHANT_ID', '');
   }
 
-  private get secretKey(): string {
+  private get envSecretKey(): string {
     return this.config.get('PAYME_SECRET_KEY', '');
   }
 
-  private get isConfigured(): boolean {
-    return !!(this.merchantId && this.secretKey);
+  /** Get per-tenant credentials with .env fallback */
+  async getCredentials(tenantId: string): Promise<{ merchantId: string; secretKey: string }> {
+    const creds = await this.paymentConfigService.getDecryptedCredentials(tenantId, 'PAYME');
+    return {
+      merchantId: creds?.merchantId || this.envMerchantId,
+      secretKey: creds?.secretKey || this.envSecretKey,
+    };
   }
 
   /**
    * Payme checkout URL yaratish (QR yoki redirect uchun)
+   * @param tenantId tenant identifier
    * @param amount UZS so'm
    * @param orderId internal order ID
    * @param description chek tavsifi
    */
-  createCheckoutUrl(amount: number, orderId: string, description: string): string {
-    if (!this.isConfigured) {
-      this.logger.warn('PAYME_MERCHANT_ID yoki PAYME_SECRET_KEY sozlanmagan');
+  async createCheckoutUrl(tenantId: string, amount: number, orderId: string, description: string): Promise<string> {
+    const { merchantId } = await this.getCredentials(tenantId);
+    if (!merchantId) {
+      this.logger.warn('Payme merchantId not configured', { tenantId });
       return '';
     }
 
@@ -81,20 +92,26 @@ export class PaymeProvider {
       ? 'https://checkout.test.paycom.uz'
       : 'https://checkout.paycom.uz';
 
-    // amount * 100 = tiyin
     const params = Buffer.from(
-      `m=${this.merchantId};ac.order_id=${orderId};a=${amount * 100};d=${encodeURIComponent(description)}`,
+      `m=${merchantId};ac.order_id=${orderId};a=${amount * 100};d=${encodeURIComponent(description)}`,
     ).toString('base64');
 
     return `${base}/${params}`;
   }
 
-  /**
-   * Payme webhook Basic auth tekshirish
-   * Header: "Basic base64(Paycom:<secret>)"
-   */
-  verifyWebhook(authHeader: string): boolean {
-    if (!this.secretKey) return false;
+  /** Per-tenant webhook verification */
+  async verifyWebhookForTenant(tenantId: string, authHeader: string): Promise<boolean> {
+    const { secretKey } = await this.getCredentials(tenantId);
+    return this.verifyWebhookWithKey(secretKey, authHeader);
+  }
+
+  /** Legacy: verify with .env credentials */
+  verifyWebhookLegacy(authHeader: string): boolean {
+    return this.verifyWebhookWithKey(this.envSecretKey, authHeader);
+  }
+
+  private verifyWebhookWithKey(secretKey: string, authHeader: string): boolean {
+    if (!secretKey) return false;
     if (!authHeader || !authHeader.startsWith('Basic ')) return false;
 
     try {
@@ -104,7 +121,7 @@ export class PaymeProvider {
 
       const key = decoded.slice(colonIdx + 1);
       const keyBuf = Buffer.from(key);
-      const secretBuf = Buffer.from(this.secretKey);
+      const secretBuf = Buffer.from(secretKey);
 
       if (keyBuf.length !== secretBuf.length) return false;
       return timingSafeEqual(keyBuf, secretBuf);

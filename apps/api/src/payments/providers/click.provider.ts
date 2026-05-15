@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentsService } from '../payments.service';
+import { PaymentConfigService } from '../payment-config.service';
 import { PaymentMethod, Prisma } from '@prisma/client';
 import { createHash, timingSafeEqual } from 'node:crypto';
 
@@ -69,36 +70,44 @@ export class ClickProvider {
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly paymentsService: PaymentsService,
+    @Inject(forwardRef(() => PaymentConfigService))
+    private readonly paymentConfigService: PaymentConfigService,
   ) {}
 
-  private get serviceId(): string {
+  // .env fallback credentials
+  private get envServiceId(): string {
     return this.config.get('CLICK_SERVICE_ID', '');
   }
 
-  private get merchantId(): string {
+  private get envMerchantId(): string {
     return this.config.get('CLICK_MERCHANT_ID', '');
   }
 
-  private get secretKey(): string {
+  private get envSecretKey(): string {
     return this.config.get('CLICK_SECRET_KEY', '');
   }
 
-  private get isConfigured(): boolean {
-    return !!(this.serviceId && this.merchantId && this.secretKey);
+  /** Get per-tenant credentials with .env fallback */
+  async getCredentials(tenantId: string): Promise<{ serviceId: string; merchantId: string; secretKey: string }> {
+    const creds = await this.paymentConfigService.getDecryptedCredentials(tenantId, 'CLICK');
+    return {
+      serviceId: creds?.serviceId || this.envServiceId,
+      merchantId: creds?.merchantId || this.envMerchantId,
+      secretKey: creds?.secretKey || this.envSecretKey,
+    };
   }
 
-  /**
-   * Click checkout URL yaratish
-   */
-  createCheckoutUrl(amount: number, orderId: string): string {
-    if (!this.isConfigured) {
-      this.logger.warn('CLICK_SERVICE_ID, CLICK_MERCHANT_ID yoki CLICK_SECRET_KEY sozlanmagan');
+  /** Click checkout URL yaratish (per-tenant) */
+  async createCheckoutUrl(tenantId: string, amount: number, orderId: string): Promise<string> {
+    const { serviceId, merchantId } = await this.getCredentials(tenantId);
+    if (!serviceId || !merchantId) {
+      this.logger.warn('Click credentials not configured', { tenantId });
       return '';
     }
 
     const params = new URLSearchParams({
-      service_id: this.serviceId,
-      merchant_id: this.merchantId,
+      service_id: serviceId,
+      merchant_id: merchantId,
       amount: String(amount),
       transaction_param: orderId,
       return_url: this.config.get('APP_URL', 'https://raos.uz'),
@@ -107,16 +116,24 @@ export class ClickProvider {
     return `https://my.click.uz/services/pay?${params.toString()}`;
   }
 
-  /**
-   * Click webhook signature tekshirish (MD5 + timingSafeEqual)
-   */
-  verifySignature(body: ClickWebhookBody): boolean {
-    if (!this.isConfigured) return false;
+  /** Per-tenant signature verification */
+  async verifySignatureForTenant(tenantId: string, body: ClickWebhookBody): Promise<boolean> {
+    const { serviceId, secretKey } = await this.getCredentials(tenantId);
+    return this.verifySignatureWithKeys(serviceId, secretKey, body);
+  }
+
+  /** Legacy: verify with .env credentials */
+  verifySignatureLegacy(body: ClickWebhookBody): boolean {
+    return this.verifySignatureWithKeys(this.envServiceId, this.envSecretKey, body);
+  }
+
+  private verifySignatureWithKeys(serviceId: string, secretKey: string, body: ClickWebhookBody): boolean {
+    if (!serviceId || !secretKey) return false;
 
     const parts = [
       String(body.click_trans_id ?? ''),
-      this.serviceId,
-      this.secretKey,
+      serviceId,
+      secretKey,
       String(body.merchant_trans_id ?? ''),
     ];
 

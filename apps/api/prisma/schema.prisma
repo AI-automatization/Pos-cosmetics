@@ -62,7 +62,8 @@ model Tenant {
   expenses            Expense[]
   reminderLogs        ReminderLog[]
   clientErrorLogs     ClientErrorLog[]
-  paymeTransactions   PaymeTransaction[]
+  paymeTransactions       PaymeTransaction[]
+  paymentProviderConfigs  PaymentProviderConfig[]
 
   @@map("tenants")
 }
@@ -649,6 +650,25 @@ model PaymentWebhookEvent {
   @@map("payment_webhook_events")
 }
 
+// T-415: Per-tenant payment provider credentials (encrypted)
+model PaymentProviderConfig {
+  id                   String              @id @default(uuid())
+  tenantId             String              @map("tenant_id")
+  provider             PaymentProviderType
+  isActive             Boolean             @default(true) @map("is_active")
+  encryptedCredentials String?             @map("encrypted_credentials") @db.Text
+  settings             Json                @default("{}")
+  verifiedAt           DateTime?           @map("verified_at")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, provider])
+  @@index([tenantId])
+  @@map("payment_provider_configs")
+}
+
 // T-387: Super Admin SQL console audit log (immutable)
 model AdminSqlAuditLog {
   id         String   @id @default(uuid())
@@ -931,8 +951,16 @@ enum PaymentMethod {
   TERMINAL
   CLICK
   PAYME
+  UZUM
   TRANSFER
   DEBT
+}
+
+enum PaymentProviderType {
+  TERMINAL
+  PAYME
+  CLICK
+  UZUM
 }
 
 enum PaymentIntentStatus {

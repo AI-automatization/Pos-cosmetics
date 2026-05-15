@@ -171,6 +171,7 @@ const NAV_SECTIONS: NavSection[] = [
           { label: 'Printer', tKey: 'nav.printer', href: '/settings/printer' },
           { label: 'Audit log', tKey: 'nav.auditLog', href: '/settings/audit-log' },
           { label: 'Hisob va tarif', tKey: 'nav.billing', href: '/settings/billing' },
+          { label: "To'lov usullari", tKey: 'nav.paymentMethods', href: '/settings/payment-methods' },
         ],
       },
     ],

@@ -98,6 +98,7 @@
     "users": "Users",
     "printer": "Printer",
     "billing": "Billing",
+    "paymentMethods": "Payment Methods",
     "auditLog": "Audit Log",
     "analytics": "Analytics",
     "pos": "POS",
