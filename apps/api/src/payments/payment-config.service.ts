@@ -177,7 +177,7 @@ export class PaymentConfigService {
 
     switch (provider) {
       case 'PAYME':
-        result = await this.verifyPayme(creds);
+        result = this.verifyPayme(creds);
         break;
       case 'CLICK':
         result = this.verifyClickFormat(creds);
@@ -210,58 +210,36 @@ export class PaymentConfigService {
   }
 
   /**
-   * Payme: send a test CheckPerformTransaction with a fake order
-   * If credentials are wrong → Payme returns -32504 (Forbidden)
-   * If credentials are correct → Payme returns -31050 (Order not found) — this means auth WORKS
+   * Payme: strict format validation.
+   * Payme has no public test API — they call OUR webhook, not the other way around.
+   * merchantId = 24 hex chars (MongoDB ObjectId), secretKey = non-trivial string.
    */
-  private async verifyPayme(creds: Record<string, string>): Promise<{ success: boolean; error?: string }> {
+  private verifyPayme(creds: Record<string, string>): { success: boolean; error?: string } {
     if (!creds.merchantId || !creds.secretKey) {
       return { success: false, error: 'merchantId va secretKey kiritilishi shart' };
     }
 
     if (creds.merchantId.includes('@')) {
-      return { success: false, error: 'Merchant ID email emas! merchant.payme.uz dan maxsus ID oling' };
+      return { success: false, error: 'Merchant ID email emas! merchant.payme.uz → Sozlamalar → Merchant ID' };
     }
 
-    if (creds.merchantId.length < 10) {
-      return { success: false, error: 'Merchant ID juda qisqa — merchant.payme.uz dan tekshiring' };
+    // Payme merchantId = 24 hex characters (MongoDB ObjectId)
+    if (!/^[a-f0-9]{24}$/i.test(creds.merchantId)) {
+      return {
+        success: false,
+        error: 'Merchant ID noto\'g\'ri format — 24 ta belgi (harf va raqam). Masalan: 5e730e8e0b852a417aa49ceb',
+      };
     }
 
-    try {
-      const authHeader = Buffer.from(`Paycom:${creds.secretKey}`).toString('base64');
-      const response = await fetch('https://checkout.paycom.uz', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${authHeader}`,
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'CheckPerformTransaction',
-          params: {
-            amount: 100,
-            account: { order_id: 'test-verify-000' },
-          },
-        }),
-        signal: AbortSignal.timeout(10000),
-      });
-
-      const data = await response.json() as { error?: { code: number } };
-
-      // -32504 = Forbidden (wrong credentials)
-      if (data.error?.code === -32504) {
-        return { success: false, error: 'Noto\'g\'ri credentials — merchantId yoki secretKey xato' };
-      }
-
-      // -31050 = Order not found — this means AUTH PASSED! Credentials are correct.
-      // Any other error (not -32504) also means auth passed.
-      return { success: true };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown';
-      this.logger.error('Payme verify request failed', { error: msg });
-      return { success: false, error: `Payme API ga ulanib bo'lmadi: ${msg}` };
+    if (creds.secretKey.length < 8) {
+      return { success: false, error: 'Secret Key juda qisqa — merchant.payme.uz dan tekshiring' };
     }
+
+    if (creds.secretKey.includes('@') || creds.secretKey.includes(' ')) {
+      return { success: false, error: 'Secret Key da bo\'sh joy yoki @ bo\'lmasligi kerak' };
+    }
+
+    return { success: true };
   }
 
   /**
