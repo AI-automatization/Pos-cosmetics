@@ -18,54 +18,25 @@ import {
   useDeactivateProvider,
   useVerifyProvider,
 } from '@/hooks/settings/usePaymentConfig';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { PaymentProviderType, TerminalSettings, ProviderConfigSummary } from '@/types/payment-config';
 import TerminalConfigModal from './TerminalConfigModal';
 import OnlineProviderModal from './OnlineProviderModal';
 
-interface ProviderCardDef {
+interface ProviderDef {
   provider: PaymentProviderType | 'CASH';
-  label: string;
-  description: string;
+  labelKey: string;
+  descKey: string;
   icon: React.ReactNode;
   type: 'always' | 'terminal' | 'online' | 'coming_soon';
 }
 
-const PROVIDERS: ProviderCardDef[] = [
-  {
-    provider: 'CASH',
-    label: 'Naqd pul',
-    description: "Naqd pul bilan to'lov har doim mavjud",
-    icon: <Banknote className="h-6 w-6 text-green-600" />,
-    type: 'always',
-  },
-  {
-    provider: 'TERMINAL',
-    label: 'Bank terminali',
-    description: "Uzcard, Humo, Visa, MasterCard — bank terminali orqali",
-    icon: <Building2 className="h-6 w-6 text-blue-600" />,
-    type: 'terminal',
-  },
-  {
-    provider: 'PAYME',
-    label: 'Payme',
-    description: "Payme onlayn to'lov tizimi",
-    icon: <CreditCard className="h-6 w-6 text-cyan-600" />,
-    type: 'online',
-  },
-  {
-    provider: 'CLICK',
-    label: 'Click',
-    description: "Click onlayn to'lov tizimi",
-    icon: <Smartphone className="h-6 w-6 text-blue-500" />,
-    type: 'online',
-  },
-  {
-    provider: 'UZUM',
-    label: 'Uzum Bank',
-    description: "Uzum onlayn to'lov tizimi",
-    icon: <CreditCard className="h-6 w-6 text-purple-500" />,
-    type: 'coming_soon',
-  },
+const PROVIDER_DEFS: ProviderDef[] = [
+  { provider: 'CASH', labelKey: 'paymentSettings.cash', descKey: 'paymentSettings.cashDesc', icon: <Banknote className="h-6 w-6 text-green-600" />, type: 'always' },
+  { provider: 'TERMINAL', labelKey: 'paymentSettings.terminal', descKey: 'paymentSettings.terminalDesc', icon: <Building2 className="h-6 w-6 text-blue-600" />, type: 'terminal' },
+  { provider: 'PAYME', labelKey: 'paymentSettings.payme', descKey: 'paymentSettings.paymeDesc', icon: <CreditCard className="h-6 w-6 text-cyan-600" />, type: 'online' },
+  { provider: 'CLICK', labelKey: 'paymentSettings.click', descKey: 'paymentSettings.clickDesc', icon: <Smartphone className="h-6 w-6 text-blue-500" />, type: 'online' },
+  { provider: 'UZUM', labelKey: 'paymentSettings.uzum', descKey: 'paymentSettings.uzumDesc', icon: <CreditCard className="h-6 w-6 text-purple-500" />, type: 'coming_soon' },
 ];
 
 function getConfig(configs: ProviderConfigSummary[] | undefined, provider: string): ProviderConfigSummary | undefined {
@@ -73,6 +44,7 @@ function getConfig(configs: ProviderConfigSummary[] | undefined, provider: strin
 }
 
 export default function PaymentMethodsPage() {
+  const { t } = useTranslation();
   const { data: configs, isLoading } = usePaymentConfigs();
   const upsertMutation = useUpsertProvider();
   const deactivateMutation = useDeactivateProvider();
@@ -114,14 +86,12 @@ export default function PaymentMethodsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">To&apos;lov usullari</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          To&apos;lov provayderlarini sozlang — POS kassada faqat faol provayderlar ko&apos;rinadi
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('paymentSettings.title')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('paymentSettings.subtitle')}</p>
       </div>
 
       <div className="space-y-4">
-        {PROVIDERS.map((p) => {
+        {PROVIDER_DEFS.map((p) => {
           const config = p.provider !== 'CASH' ? getConfig(configs, p.provider) : undefined;
           const isActive = p.type === 'always' || (config?.isActive ?? false);
           const hasCredentials = config?.hasCredentials ?? false;
@@ -137,8 +107,8 @@ export default function PaymentMethodsPage() {
                 <div className="flex items-start gap-4">
                   <div className="mt-0.5">{p.icon}</div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{p.label}</h3>
-                    <p className="mt-0.5 text-sm text-gray-500">{p.description}</p>
+                    <h3 className="font-semibold text-gray-900">{t(p.labelKey)}</h3>
+                    <p className="mt-0.5 text-sm text-gray-500">{t(p.descKey)}</p>
 
                     {/* Terminal settings summary */}
                     {p.provider === 'TERMINAL' && config?.isActive && (() => {
@@ -174,7 +144,7 @@ export default function PaymentMethodsPage() {
                         {hasCredentials ? (
                           <>
                             <span className="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                              <ShieldCheck className="h-3 w-3" /> Ulangan
+                              <ShieldCheck className="h-3 w-3" /> {t('paymentSettings.connected')}
                             </span>
                             {config.verifiedAt && (
                               <span className="text-xs text-gray-400">
@@ -184,7 +154,7 @@ export default function PaymentMethodsPage() {
                           </>
                         ) : (
                           <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs text-amber-700">
-                            Ulanmagan
+                            {t('paymentSettings.notConnected')}
                           </span>
                         )}
                       </div>
@@ -196,12 +166,12 @@ export default function PaymentMethodsPage() {
                 <div className="flex items-center gap-2">
                   {p.type === 'always' && (
                     <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                      Har doim
+                      {t('paymentSettings.always')}
                     </span>
                   )}
 
                   {p.type === 'coming_soon' && (
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">Tez kunda</span>
+                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">{t('paymentSettings.comingSoon')}</span>
                   )}
 
                   {(p.type === 'terminal' || p.type === 'online') && (
@@ -215,7 +185,7 @@ export default function PaymentMethodsPage() {
                         className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
                       >
                         <Settings2 className="h-3.5 w-3.5" />
-                        Sozlash
+                        {t('paymentSettings.configure')}
                       </button>
 
                       <button
@@ -223,7 +193,7 @@ export default function PaymentMethodsPage() {
                         onClick={() => handleToggle(p.provider as PaymentProviderType, isActive)}
                         disabled={deactivateMutation.isPending || upsertMutation.isPending}
                         className="text-gray-400 hover:text-gray-600"
-                        title={isActive ? "O'chirish" : 'Yoqish'}
+                        title={isActive ? t('paymentSettings.disable') : t('paymentSettings.enable')}
                       >
                         {isActive ? (
                           <ToggleRight className="h-7 w-7 text-green-500" />
@@ -245,11 +215,11 @@ export default function PaymentMethodsPage() {
         open={terminalModal}
         onClose={() => setTerminalModal(false)}
         onSave={handleTerminalSave}
-        initial={
-          getConfig(configs, 'TERMINAL')?.settings
-            ? (getConfig(configs, 'TERMINAL')!.settings as unknown as TerminalSettings)
-            : undefined
-        }
+        initial={(() => {
+          const s = getConfig(configs, 'TERMINAL')?.settings as Record<string, unknown> | undefined;
+          if (!s || !s.bankName) return undefined;
+          return { bankName: s.bankName as string, commissionRate: Number(s.commissionRate ?? 1.0), cardTypes: Array.isArray(s.cardTypes) ? s.cardTypes as string[] : ['UZCARD', 'HUMO'], terminalId: (s.terminalId as string) ?? undefined };
+        })()}
         isPending={upsertMutation.isPending}
       />
 

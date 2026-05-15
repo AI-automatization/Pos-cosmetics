@@ -21,17 +21,18 @@ export default function TerminalConfigModal({ open, onClose, onSave, initial, is
 
   useEffect(() => {
     if (initial) {
-      setBankName(initial.bankName);
-      setCommissionRate(initial.commissionRate);
-      setCardTypes(initial.cardTypes);
+      setBankName(initial.bankName ?? '');
+      setCommissionRate(initial.commissionRate ?? 1.0);
+      setCardTypes(Array.isArray(initial.cardTypes) ? initial.cardTypes : ['UZCARD', 'HUMO']);
       setTerminalId(initial.terminalId ?? '');
     }
   }, [initial]);
 
   const toggleCard = (card: string) => {
-    setCardTypes((prev) =>
-      prev.includes(card) ? prev.filter((c) => c !== card) : [...prev, card],
-    );
+    setCardTypes((prev) => {
+      const arr = Array.isArray(prev) ? prev : ['UZCARD', 'HUMO'];
+      return arr.includes(card) ? arr.filter((c) => c !== card) : [...arr, card];
+    });
   };
 
   const handleBankChange = (id: string) => {
@@ -116,7 +117,7 @@ export default function TerminalConfigModal({ open, onClose, onSave, initial, is
                   type="button"
                   onClick={() => toggleCard(card)}
                   className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
-                    cardTypes.includes(card)
+                    (cardTypes ?? []).includes(card)
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-200 text-gray-500 hover:border-gray-300'
                   }`}
