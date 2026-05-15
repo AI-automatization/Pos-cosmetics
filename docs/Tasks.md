@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-13 (T-393..T-397 qo'shildi — Payment providers audit)
+# Yangilangan: 2026-05-15 (T-415 yangilandi, T-418 qo'shildi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -70,18 +70,25 @@
 
 ---
 
-## T-415 | P1 | [BACKEND] | Payme/Click/Uzum — API kalitlarni olish va ulash
+## T-415 | P1 | [IKKALASI] | Payme/Click/Uzum — Owner o'zi merchant credentials kiritadi
 
-- **Sana:** 2026-05-12
-- **Mas'ul:** AbdulazizYormatov (Team Lead — ro'yxatdan o'tish + kalitlar)
-- **Holat:** KUTILMOQDA — merchant ro'yxatdan o'tish + moderatsiya
-- **Vazifa:**
-  - merchant.payme.uz → ro'yxatdan o'tish → PAYME_MERCHANT_ID, PAYME_SECRET_KEY
-  - merchant.click.uz → ro'yxatdan o'tish → CLICK_SERVICE_ID, CLICK_MERCHANT_ID, CLICK_SECRET_KEY
-  - business.uzum.uz → ro'yxatdan o'tish → UZUM kalitlar
-  - Webhook URL lar sozlash (backend endpoint lar tayyor)
-- **Backend tayyor:** `payme.provider.ts`, `click.provider.ts`, webhook endpoints
-- **Kutilgan:** Test kalitlar olingach → .env ga qo'shish → real integratsiya ishlaydi
+- **Sana:** 2026-05-12 (yangilangan 2026-05-15)
+- **Mas'ul:** Owner (har tenant o'zi) + Ibrat (backend/frontend)
+- **Holat:** BACKEND + FRONTEND TAYYOR. Owner merchant.payme.uz / merchant.click.uz da ro'yxatdan o'tishi kerak.
+- **Bajarilgan (2026-05-15):**
+  - ✅ `PaymentProviderConfig` DB model (per-tenant, AES-256-GCM encrypted)
+  - ✅ `EncryptionService` — credential at-rest encryption
+  - ✅ `PaymentConfigController` — CRUD + verify endpoints
+  - ✅ Owner Panel: Settings → To'lov usullari (Terminal / Payme / Click)
+  - ✅ Per-tenant webhook routing (orderId → tenantId → credentials)
+  - ✅ POS dynamic payment methods (faqat verified provayderlar ko'rinadi)
+  - ✅ Strict format verification (Payme: 24 hex, Click: raqamlar)
+  - ✅ i18n (uz, ru, en) — 45+ kalit
+- **Qolgan:**
+  - Owner merchant.payme.uz da ro'yxatdan o'tishi (1-3 kun moderatsiya)
+  - Owner merchant.click.uz da ro'yxatdan o'tishi
+  - Real credentials bilan end-to-end test
+  - Uzum provider (`uzum.provider.ts`) — kalitlar olingach
 
 ---
 

@@ -1,5 +1,24 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-14
+# Yangilangan: 2026-05-15
+
+---
+
+## T-415-partial | 2026-05-15 | [IKKALASI] | Per-tenant payment provider management
+
+- **Yechim:**
+  - `PaymentProviderConfig` model — per-tenant, AES-256-GCM encrypted credentials
+  - `EncryptionService` — `apps/api/src/common/encryption/` (ENCRYPTION_MASTER_KEY)
+  - `PaymentConfigService` + `PaymentConfigController` — CRUD + verify
+  - Owner Panel: Settings → To'lov usullari (Terminal/Payme/Click modals)
+  - Per-tenant webhook routing: orderId → tenantId → credentials → verify
+  - POS PaymentPanel: dynamic methods (faqat verified provayderlar)
+  - Strict verification: Payme (24 hex), Click (raqamlar), email rejection
+  - i18n: uz/ru/en — 45+ kalit
+- **Fayllar:**
+  - Backend: `encryption.service.ts`, `payment-config.service.ts`, `payment-config.controller.ts`, `payment-config.dto.ts`, `uz-banks.ts`
+  - Modified: `payme.provider.ts`, `click.provider.ts`, `payments.controller.ts`, `payments.module.ts`, `schema.prisma`
+  - Frontend: `payment-config.api.ts`, `usePaymentConfig.ts`, `payment-methods/page.tsx`, `TerminalConfigModal.tsx`, `OnlineProviderModal.tsx`
+  - Modified: `PaymentPanel.tsx`, `Sidebar.tsx`, `uz.json`, `ru.json`, `en.json`
 
 ---
 
