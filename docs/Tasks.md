@@ -662,16 +662,4 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-## T-497 | P1 | [MOBILE] | CASHIER: Katta ombordan kelgan transferni qabul qilish (Receive)
-
-- **Sana:** 2026-05-16
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/StockTransfer/`, `apps/mobile/src/navigation/TabNavigator.tsx`
-- **Muammo:** Katta ombor do'konga mahsulot yuboradi (transfer SHIPPED holati). Hozir CASHIER bu transferlarni ko'rish yoki qabul qilish imkoniyati yo'q. Kassir do'konda bo'lgani uchun kelgan mahsulotni qabul qilib, zaxiraga kiritishi kerak.
-- **Kutilgan:** CASHIER uchun maxsus ekran yoki Ko'proq menyuda **"Kelgan mahsulotlar"** bo'limi:
-  - `GET /inventory/transfers?status=SHIPPED&toBranchId={currentBranchId}` — do'konga yuborilgan transferlar ro'yxati
-  - Har transferda **"Qabul qilish"** tugmasi → `PATCH /inventory/transfers/:id/receive`
-  - Qabul qilinganda zaxira avtomatik yangilanadi (backend tomonida)
-  - Push notification: "Katta ombordan 5 dona Lipstick yuborildi" → kassir ko'radi va qabul qiladi
-- **Bog'liq:** T-473 (Transfer lifecycle), T-480 (Transfer list)
-- **Topildi:** CASHIER Visual QA — 2026-05-16
+*(T-497 — Done.md ga ko'chirildi 2026-05-16)*

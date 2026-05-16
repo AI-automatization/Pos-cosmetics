@@ -3,6 +3,12 @@
 
 ---
 
+## T-497 | 2026-05-16 | [MOBILE] | CASHIER: Kelgan transferni qabul qilish (Receive)
+- **Yechim:** `IncomingTransfersScreen` yaratildi — `listTransfers({status:'SHIPPED'})` bilan kelgan transferlarni ko'rsatadi. Har card: yuboruvchi filial, sana, mahsulotlar ro'yxati (nom + miqdor), "Qabul qilish" tugmasi. `receiveTransfer(id)` mutation. Ko'proq → Inventar → "Kelgan mahsulotlar" CASHIER menyusiga qo'shildi.
+- **Fayl:** `apps/mobile/src/screens/IncomingTransfers/IncomingTransfersScreen.tsx`, navigation, MoreMenu
+
+---
+
 ## T-496 | 2026-05-16 | [MOBILE] | CASHIER: Katta omborga "mahsulot kerak" so'rovi
 - **Yechim:** Allaqachon T-478 (commit 58668f4) da bajarilgan. OmborProductCard da `useMutation` → `inventoryApi.sendRestockRequest()` to'liq wired: confirmation Alert, notifiedCount, error handling, loading state. CASHIER Ombor ekraniga kirganda ishlaydi.
 - **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`
