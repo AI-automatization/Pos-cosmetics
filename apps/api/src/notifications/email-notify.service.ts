@@ -169,4 +169,47 @@ export class EmailNotifyService {
 
     return this.sendMail(opts.email, `RAOS — Данные для входа: ${opts.tenantName}`, html);
   }
+
+  /** Сотрудник добавлен — отправить credentials */
+  async sendEmployeeWelcome(opts: {
+    email: string;
+    firstName: string;
+    password: string;
+    role: string;
+    loginUrl: string;
+  }): Promise<boolean> {
+    const html = `
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+        <tr><td style="background:#4f46e5;padding:24px 32px;text-align:center;">
+          <h1 style="margin:0;color:#fff;font-size:22px;">RAOS</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;color:#111;font-size:16px;">Привет, <strong>${opts.firstName}</strong>!</p>
+          <p style="margin:0 0 20px;color:#555;font-size:14px;">Вас добавили в систему RAOS как <strong>${opts.role}</strong>. Ниже ваши данные для входа:</p>
+          <table width="100%" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 20px;">
+            <tr><td style="padding:12px 16px;font-size:13px;color:#6b7280;border-bottom:1px solid #e5e7eb;">Email</td>
+                <td style="padding:12px 16px;font-size:13px;font-weight:600;font-family:monospace;border-bottom:1px solid #e5e7eb;">${opts.email}</td></tr>
+            <tr><td style="padding:12px 16px;font-size:13px;color:#6b7280;border-bottom:1px solid #e5e7eb;">Пароль</td>
+                <td style="padding:12px 16px;font-size:15px;font-weight:700;font-family:monospace;letter-spacing:1px;border-bottom:1px solid #e5e7eb;">${opts.password}</td></tr>
+            <tr><td style="padding:12px 16px;font-size:13px;color:#6b7280;">Ссылка</td>
+                <td style="padding:12px 16px;font-size:13px;"><a href="${opts.loginUrl}" style="color:#4f46e5;">${opts.loginUrl}</a></td></tr>
+          </table>
+          <p style="margin:0 0 20px;color:#ef4444;font-size:12px;">⚠️ Рекомендуем сменить пароль при первом входе.</p>
+          <a href="${opts.loginUrl}" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">Войти в систему</a>
+        </td></tr>
+        <tr><td style="padding:16px 32px;background:#f9fafb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:11px;">© ${new Date().getFullYear()} RAOS — Retail & Asset Operating System</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`.trim();
+
+    return this.sendMail(opts.email, 'RAOS — Ваши данные для входа', html);
+  }
 }

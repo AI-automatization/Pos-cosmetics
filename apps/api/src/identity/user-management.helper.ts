@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
@@ -12,6 +13,7 @@ import { randomUUID } from 'node:crypto';
 import { USER_CREATED, USER_DEACTIVATED, USER_UPDATED } from '../events';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { EmailNotifyService } from '../notifications/email-notify.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
 
 const BCRYPT_ROUNDS = 12;
@@ -33,6 +35,8 @@ export class UserManagementHelper {
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
     private readonly auditService: AuditService,
+    private readonly emailService: EmailNotifyService,
+    private readonly config: ConfigService,
   ) {}
 
   enforceRoleHierarchy(callerRole: UserRole, targetRole: UserRole): void {
@@ -104,6 +108,15 @@ export class UserManagementHelper {
       entityType: 'User',
       entityId: user.id,
       newData: { email: user.email, role: user.role },
+    });
+
+    // Send welcome email with credentials (non-blocking)
+    void this.emailService.sendEmployeeWelcome({
+      email: user.email,
+      firstName: user.firstName,
+      password: dto.password,
+      role: user.role,
+      loginUrl: this.config.get('APP_URL', 'https://kosmetika.uz') + '/login',
     });
 
     return user;
