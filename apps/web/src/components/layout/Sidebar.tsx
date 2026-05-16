@@ -22,7 +22,6 @@ import {
   PanelLeftOpen,
   X,
   ClipboardList,
-  Plug,
 } from 'lucide-react';
 import { useState, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -158,7 +157,6 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Topshiriqlar', tKey: 'nav.tasks', href: '/tasks', icon: ClipboardList, roles: ['OWNER', 'ADMIN', 'MANAGER'] },
       { label: 'Filiallar', tKey: 'nav.branches', href: '/settings/branches', icon: Building2, roles: ['OWNER', 'ADMIN'] },
-      { label: 'ZZone', tKey: 'nav.zzone', href: '/integrations/zzone', icon: Plug, roles: ['OWNER', 'ADMIN'] },
     ],
   },
   {

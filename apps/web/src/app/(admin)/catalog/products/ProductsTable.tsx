@@ -1,6 +1,6 @@
 'use client';
 
-import { Pencil, Trash2, AlertCircle, Printer, Globe, GlobeLock } from 'lucide-react';
+import { Pencil, Trash2, AlertCircle, Printer } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import type { Product } from '@/types/catalog';
@@ -10,8 +10,6 @@ interface ProductsTableProps {
   onEdit?: (product: Product) => void;
   onDelete?: (product: Product) => void;
   onPrint?: (product: Product) => void;
-  onZzonePublish?: (product: Product) => void;
-  onZzoneUnpublish?: (product: Product) => void;
 }
 
 function StockBadge({ current, min }: { current: number; min: number }) {
@@ -50,7 +48,7 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
   );
 }
 
-export function ProductsTable({ products, onEdit, onDelete, onPrint, onZzonePublish, onZzoneUnpublish }: ProductsTableProps) {
+export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsTableProps) {
   const { t } = useTranslation();
   const colSpan = 6 + (onEdit || onDelete ? 1 : 0) + (onPrint ? 1 : 0);
 
@@ -130,28 +128,6 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint, onZzonePubl
                         aria-label={t('common.edit')}
                       >
                         <Pencil className="h-4 w-4" />
-                      </button>
-                    )}
-                    {onZzonePublish && !(product as any).zzoneProductId && (
-                      <button
-                        type="button"
-                        onClick={() => onZzonePublish(product)}
-                        className="rounded-lg p-1.5 text-gray-400 transition hover:bg-purple-50 hover:text-purple-600"
-                        aria-label={t('zzone.publish')}
-                        title={t('zzone.publish')}
-                      >
-                        <Globe className="h-4 w-4" />
-                      </button>
-                    )}
-                    {onZzoneUnpublish && (product as any).zzoneProductId && (
-                      <button
-                        type="button"
-                        onClick={() => onZzoneUnpublish(product)}
-                        className="rounded-lg p-1.5 text-purple-500 transition hover:bg-purple-50 hover:text-purple-700"
-                        aria-label={t('zzone.unpublish')}
-                        title={t('zzone.unpublish')}
-                      >
-                        <GlobeLock className="h-4 w-4" />
                       </button>
                     )}
                     {onDelete && (

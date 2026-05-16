@@ -208,8 +208,6 @@ model Product {
   description    String?
   expiryTracking Boolean   @default(false) @map("expiry_tracking")
   isTaxable      Boolean   @default(true)  @map("is_taxable")  // T-078: QQS (НДС 12%)
-  zzoneProductId String?   @map("zzone_product_id")
-  showOnZzone    Boolean   @default(false) @map("show_on_zzone")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")
@@ -2023,20 +2021,4 @@ model AiProviderHealth {
 
   @@unique([provider, model])
   @@map("ai_provider_health")
-}
-
-// ─── INTEGRATIONS ──────────────────────────────────────────────────────
-
-model IntegrationConfig {
-  id        String   @id @default(uuid())
-  tenantId  String   @map("tenant_id")
-  provider  String   // ZZONE, etc.
-  config    Json     @default("{}") // token, refreshToken, zzoneUserId, zzoneStoreId, etc.
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@unique([tenantId, provider], name: "tenantId_provider")
-  @@index([tenantId])
-  @@map("integration_configs")
 }
