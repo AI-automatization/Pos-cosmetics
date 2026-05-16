@@ -116,7 +116,7 @@ export class UserManagementHelper {
       firstName: user.firstName,
       password: dto.password,
       role: user.role,
-      loginUrl: this.config.get('APP_URL', 'https://kosmetika.uz') + '/login',
+      loginUrl: this.config.get('APP_URL', 'https://raos.uz') + '/login',
     });
 
     return user;
