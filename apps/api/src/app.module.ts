@@ -44,6 +44,7 @@ import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
 import { EmployeesModule } from './employees/employees.module';
 import { UploadModule } from './upload/upload.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { EncryptionModule } from './common/encryption/encryption.module';
     FeatureFlagsModule,
     SupportModule,
     TasksModule,
+    IntegrationsModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)
