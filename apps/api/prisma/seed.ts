@@ -29,12 +29,11 @@ const prisma = new PrismaClient();
 
 const TENANT_SLUG = 'kosmetika-demo';
 const TENANT_NAME = 'Kosmetika Savdosi';
-const PASSWORD = process.env.SEED_PASSWORD ?? 'ChangeMeNow!';
-const BCRYPT_ROUNDS = 12;
-
 if (!process.env.SEED_PASSWORD) {
-  console.warn('⚠️  SEED_PASSWORD env o\'rnatilmagan — default parol ishlatilmoqda. Production uchun SEED_PASSWORD ni .env da belgilang!');
+  throw new Error('SEED_PASSWORD environment variable is required. Set it in .env before running seed.');
 }
+const PASSWORD = process.env.SEED_PASSWORD;
+const BCRYPT_ROUNDS = 12;
 
 // ─── Products ────────────────────────────────────────────────────
 // initialQty: fixed stock quantity (used for low-stock demo items).
