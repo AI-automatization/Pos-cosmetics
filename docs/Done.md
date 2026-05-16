@@ -3,6 +3,72 @@
 
 ---
 
+## T-480 | 2026-05-16 | [MOBILE] | Transfer 2-tab layout (yangi + ro'yxat)
+- **Yechim:** StockTransfer/index.tsx da 2 tab: "Yangi transfer" (create) + "Ro'yxat" (TransferListView). Statistics row, search, NewTransferSheet modal.
+- **Fayl:** `apps/mobile/src/screens/StockTransfer/index.tsx`, `TransferListView.tsx`
+
+---
+
+## T-479 | 2026-05-16 | [MOBILE] | Dashboard lowStock widget
+- **Yechim:** LowStockWidget komponent yaratildi — max 5 item, color-coded, "Barchasi" tugmasi → LowStockList. Dashboard da `{lowStockItems.length > 0 && <LowStockWidget />}` bilan render.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/LowStockWidget.tsx`, `Dashboard/index.tsx`
+
+---
+
+## T-478 | 2026-05-16 | [MOBILE] | OmborProductCard "Kirim so'rash" — useMutation wired
+- **Yechim:** `useMutation` → `inventoryApi.sendRestockRequest()` to'liq wired. Confirmation Alert, notifiedCount, loading state, error handling.
+- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`
+
+---
+
+## T-476 | 2026-05-16 | [MOBILE] | Movement History CSV/Share export
+- **Yechim:** StockMovementsScreen da export button + `handleExport()` — 9 ustunli CSV generatsiya, `Share.share()` orqali native share menu.
+- **Fayl:** `apps/mobile/src/screens/StockMovements/index.tsx`
+
+---
+
+## T-475 | 2026-05-16 | [MOBILE] | Product Stock Detail — movement history
+- **Yechim:** ProductStockDetailSheet — current stock, min level, warehouse breakdown, oxirgi 20 ta movement (type, qty, date, notes). 8 ta movement type color-coded.
+- **Fayl:** `apps/mobile/src/screens/Ombor/ProductStockDetailSheet.tsx`
+
+---
+
+## T-474 | 2026-05-16 | [MOBILE] | Tester / Sample Tracking
+- **Yechim:** TesterScreen (list + summary) + NewTesterSheet (product select, warehouse, qty, cost, note). `inventoryApi.openTester()` mutation. Form validation.
+- **Fayl:** `apps/mobile/src/screens/Ombor/TesterScreen.tsx`, `NewTesterSheet.tsx`
+
+---
+
+## T-473 | 2026-05-16 | [MOBILE] | Transfer Status Lifecycle
+- **Yechim:** TransferListView — 6 status filter tab (ALL/REQUESTED/APPROVED/SHIPPED/RECEIVED/CANCELLED). Dynamic action buttons: approve/ship/receive/cancel. Confirmation dialogs, loading states, auto-refetch.
+- **Fayl:** `apps/mobile/src/screens/StockTransfer/TransferListView.tsx`
+
+---
+
+## T-472 | 2026-05-16 | [MOBILE] | Supplier Management CRUD
+- **Yechim:** SuppliersOmborScreen (list + search + active/inactive filter) + SupplierDetailScreen (kontakt, linked products, edit, status toggle) + NewSupplierSheet (create/edit).
+- **Fayl:** `apps/mobile/src/screens/Ombor/SuppliersOmborScreen.tsx`, `SupplierDetailScreen.tsx`, `NewSupplierSheet.tsx`
+
+---
+
+## T-471 | 2026-05-16 | [MOBILE] | Warehouse Dashboard — stat cards + movements + restock
+- **Yechim:** WarehouseDashboardScreen — 4 stat card (jami, kam zaxira, muddati, bugungi harakatlar), quick navigation chips, expired alert banner, low stock section, recent movements, restock requests (vibration), expiry items. OmborTabStack da birinchi screen.
+- **Fayl:** `apps/mobile/src/screens/Ombor/WarehouseDashboardScreen.tsx`, `WarehouseDashboardParts.tsx`, `useWarehouseDashboard.ts`
+
+---
+
+## T-378 | 2026-05-16 | [MOBILE] | mobile-owner: EmployeeRole UPPERCASE fix
+- **Yechim:** `EmployeeRole` type va RoleSelector UPPERCASE ('CASHIER', 'MANAGER', 'ADMIN', 'WAREHOUSE') — backend Prisma enum bilan mos.
+- **Fayl:** `apps/mobile-owner/src/api/employees.api.ts`, `RoleSelector.tsx`
+
+---
+
+## T-379 | 2026-05-16 | [MOBILE] | mobile-owner: AddEmployeeScreen DTO fix
+- **Yechim:** Form fields backend CreateEmployeeDto bilan to'liq mos: firstName, lastName, email, password, role, phone. Qo'shimcha fieldlar olib tashlandi.
+- **Fayl:** `apps/mobile-owner/src/screens/Employees/AddEmployeeScreen.tsx`
+
+---
+
 ## T-497 | 2026-05-16 | [MOBILE] | CASHIER: Kelgan transferni qabul qilish (Receive)
 - **Yechim:** `IncomingTransfersScreen` yaratildi — `listTransfers({status:'SHIPPED'})` bilan kelgan transferlarni ko'rsatadi. Har card: yuboruvchi filial, sana, mahsulotlar ro'yxati (nom + miqdor), "Qabul qilish" tugmasi. `receiveTransfer(id)` mutation. Ko'proq → Inventar → "Kelgan mahsulotlar" CASHIER menyusiga qo'shildi.
 - **Fayl:** `apps/mobile/src/screens/IncomingTransfers/IncomingTransfersScreen.tsx`, navigation, MoreMenu
