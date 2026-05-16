@@ -258,7 +258,14 @@
     "outOfStock": "(tugagan)",
     "lowStock": "(kam)",
     "deleteTitle": "Mahsulotni o'chirish",
-    "deleteConfirm": "\"{name}\" mahsulotini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi."
+    "deleteConfirm": "\"{name}\" mahsulotini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+    "categoryPlaceholder": "Kategoriya...",
+    "supplierPlaceholder": "Kontragent...",
+    "addSku": "SKU qo'shish",
+    "shortName": "Qisqa nom",
+    "descriptionPlaceholder": "Mahsulot haqida qisqacha ma'lumot...",
+    "productNamePlaceholder": "Masalan: Nivea krem 100ml",
+    "expiryDate": "Yaroqlilik muddati"
   },
   "pos": {
     "title": "Kassa",

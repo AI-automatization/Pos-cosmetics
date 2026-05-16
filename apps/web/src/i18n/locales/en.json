@@ -258,7 +258,14 @@
     "outOfStock": "(out of stock)",
     "lowStock": "(low)",
     "deleteTitle": "Delete Product",
-    "deleteConfirm": "Delete product \"{name}\"? This cannot be undone."
+    "deleteConfirm": "Delete product \"{name}\"? This cannot be undone.",
+    "categoryPlaceholder": "Category...",
+    "supplierPlaceholder": "Supplier...",
+    "addSku": "Add SKU",
+    "shortName": "Short name",
+    "descriptionPlaceholder": "Brief product description...",
+    "productNamePlaceholder": "E.g.: Nivea cream 100ml",
+    "expiryDate": "Expiry date"
   },
   "pos": {
     "title": "POS",

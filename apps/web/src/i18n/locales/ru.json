@@ -258,7 +258,14 @@
     "outOfStock": "(нет в наличии)",
     "lowStock": "(мало)",
     "deleteTitle": "Удалить товар",
-    "deleteConfirm": "Удалить товар \"{name}\"? Это действие необратимо."
+    "deleteConfirm": "Удалить товар \"{name}\"? Это действие необратимо.",
+    "categoryPlaceholder": "Категория...",
+    "supplierPlaceholder": "Контрагент...",
+    "addSku": "Добавить SKU",
+    "shortName": "Краткое название",
+    "descriptionPlaceholder": "Краткое описание товара...",
+    "productNamePlaceholder": "Напр.: Nivea крем 100мл",
+    "expiryDate": "Срок годности"
   },
   "pos": {
     "title": "Касса",
