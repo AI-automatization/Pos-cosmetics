@@ -285,24 +285,28 @@ export class IdentityService {
     },
   ): Promise<AuthTokens> {
     const tokens = await this.login(dto);
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { slug: dto.slug },
-    });
-    if (tenant) {
-      const loginEmail = dto.email ?? dto.login ?? '';
-      const user = await this.prisma.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email: loginEmail } },
-        select: { id: true, tenantId: true },
+
+    // Create session if possible — slug may be undefined when user has single tenant
+    if (dto.slug) {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { slug: dto.slug },
       });
-      if (user) {
-        sessionParams.sessionService
-          .createSession({
-            userId: user.id,
-            tenantId: user.tenantId,
-            ip: sessionParams.ip,
-            userAgent: sessionParams.userAgent,
-          })
-          .catch(() => null);
+      if (tenant) {
+        const loginEmail = dto.email ?? dto.login ?? '';
+        const user = await this.prisma.user.findUnique({
+          where: { tenantId_email: { tenantId: tenant.id, email: loginEmail } },
+          select: { id: true, tenantId: true },
+        });
+        if (user) {
+          sessionParams.sessionService
+            .createSession({
+              userId: user.id,
+              tenantId: user.tenantId,
+              ip: sessionParams.ip,
+              userAgent: sessionParams.userAgent,
+            })
+            .catch(() => null);
+        }
       }
     }
     return tokens;
