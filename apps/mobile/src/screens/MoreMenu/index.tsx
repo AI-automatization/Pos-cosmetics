@@ -242,13 +242,15 @@ export default function MoreMenuScreen(): React.JSX.Element {
 
   const groups = useMemo<readonly MenuGroup[]>(
     () => [
-      // INVENTAR guruhi — CASHIER ko'rmaydi (Kirim, Ombor kassirga kerak emas)
-      ...(!isCashier ? [{
+      // INVENTAR guruhi — CASHIER faqat Ombor ko'radi (Kirim yashiriladi)
+      {
         ...INVENTAR_GROUP,
-        items: roleLevel >= 3
-          ? [...INVENTAR_GROUP.items, { icon: 'warning-outline' as const, title: 'Kam qolgan', subtitle: 'Zaxira kam mahsulotlar', screen: 'LowStockList' as keyof MoreStackParamList }]
-          : INVENTAR_GROUP.items,
-      }] : []),
+        items: isCashier
+          ? INVENTAR_GROUP.items.filter(i => i.title === 'Ombor')
+          : roleLevel >= 3
+            ? [...INVENTAR_GROUP.items, { icon: 'warning-outline' as const, title: 'Kam qolgan', subtitle: 'Zaxira kam mahsulotlar', screen: 'LowStockList' as keyof MoreStackParamList }]
+            : INVENTAR_GROUP.items,
+      },
       ...(user?.role === 'WAREHOUSE' ? [WAREHOUSE_GROUP] : []),
       // BIZNES guruhi — WAREHOUSE ko'rmaydi; CASHIER faqat Mijozlar va Aksiyalar
       ...(user?.role === 'WAREHOUSE' ? [] : [{

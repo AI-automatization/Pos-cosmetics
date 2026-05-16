@@ -658,15 +658,7 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-## T-496 | P1 | [MOBILE] | CASHIER: Katta omborga "mahsulot kerak" so'rovi yuborish
-
-- **Sana:** 2026-05-16
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`, `apps/mobile/src/api/inventory.api.ts`
-- **Muammo:** CASHIER do'kondagi omborni ko'radi (T-490 bo'yicha Ombor qoladi), lekin mahsulot kam bo'lganda katta omborga so'rov yuborishning oson yo'li yo'q. Hozirgi "Kirim so'rash" tugmasi bo'sh (T-478 — onPress bo'sh). CASHIER uchun bu juda muhim: mahsulot tugayotganini ko'radi → katta omborga "X mahsulotdan Y dona kerak" deb so'rov yuboradi → omborchi ko'rib transfer yaratadi.
-- **Kutilgan:** Ombor ekranida har mahsulot cardida **"So'rov yuborish"** tugmasi. Bosilganda: miqdor kiritish modal → `POST /inventory/restock-requests` (productId, quantity, note) → omborchiga notification boradi. CASHIER uchun faqat so'rov — tasdiqlash omborchi/manager tomonidan.
-- **Bog'liq:** T-478 (OmborProductCard onPress bo'sh — shu task hal qiladi)
-- **Topildi:** CASHIER Visual QA — 2026-05-16
+*(T-496 — Done.md ga ko'chirildi 2026-05-16, T-478 da allaqachon bajarilgan)*
 
 ---
 

@@ -3,6 +3,12 @@
 
 ---
 
+## T-496 | 2026-05-16 | [MOBILE] | CASHIER: Katta omborga "mahsulot kerak" so'rovi
+- **Yechim:** Allaqachon T-478 (commit 58668f4) da bajarilgan. OmborProductCard da `useMutation` → `inventoryApi.sendRestockRequest()` to'liq wired: confirmation Alert, notifiedCount, error handling, loading state. CASHIER Ombor ekraniga kirganda ishlaydi.
+- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`
+
+---
+
 ## T-495 | 2026-05-16 | [MOBILE] | CASHIER: useDashboardData — moliyaviy querylar disabled
 - **Yechim:** `skipFinancial = isWarehouse || isCashier` qo'shildi. Barcha 7 ta moliyaviy query (todaySummary, weeklyRevenue, topProducts, currentShift, nasiyaOverdue, monthlyProfit, branchRevenue) CASHIER uchun disabled bo'ldi. Faqat `lowStock` query qoldi.
 - **Fayl:** `apps/mobile/src/screens/Dashboard/useDashboardData.ts`
