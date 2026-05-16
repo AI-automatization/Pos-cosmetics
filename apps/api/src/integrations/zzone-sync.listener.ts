@@ -84,13 +84,13 @@ export class ZzoneSyncListener {
     tenantId: string,
     productId: string,
   ): Promise<void> {
-    // Get product info from RAOS
+    // Get product with ZZone mapping
     const product = await this.prisma.product.findFirst({
       where: { id: productId, tenantId },
-      select: { sku: true, name: true },
+      select: { sku: true, name: true, zzoneProductId: true, showOnZzone: true },
     });
 
-    if (!product) return;
+    if (!product || !product.zzoneProductId || !product.showOnZzone) return;
 
     // Get current stock from latest snapshot
     const snapshot = await this.prisma.stockSnapshot.findFirst({
@@ -101,11 +101,13 @@ export class ZzoneSyncListener {
 
     const currentStock = snapshot ? Number(snapshot.quantity) : 0;
 
-    this.logger.log(
-      `[ZZone Sync] Product "${product.name}" (${product.sku}) stock → ${currentStock}`,
-    );
+    // Push stock update to ZZone
+    await this.zzoneClient.updateProduct(token, product.zzoneProductId, {
+      stock: currentStock,
+    });
 
-    // TODO: When product-level zzoneProductId mapping is implemented:
-    // await this.zzoneClient.updateProduct(token, zzoneProductId, { stock: currentStock });
+    this.logger.log(
+      `[ZZone Sync] Pushed stock: "${product.name}" → ${currentStock} (ZZone: ${product.zzoneProductId})`,
+    );
   }
 }

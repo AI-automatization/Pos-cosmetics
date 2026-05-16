@@ -1416,6 +1416,10 @@
     "stock": "Остаток",
     "category": "Категория",
     "price": "Цена",
-    "syncInfo": "Товары и заказы синхронизируются с маркетплейсом ZZone"
+    "syncInfo": "Товары и заказы синхронизируются с маркетплейсом ZZone",
+    "publish": "Опубликовать в ZZone",
+    "unpublish": "Убрать из ZZone",
+    "publishSuccess": "Товар опубликован в ZZone",
+    "unpublishSuccess": "Товар убран из ZZone"
   }
 }

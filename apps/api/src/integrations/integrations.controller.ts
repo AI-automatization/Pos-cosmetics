@@ -126,4 +126,32 @@ export class IntegrationsController {
     const order = await this.service.updateOrderStatus(tenantId, orderId, dto.status);
     return { data: order, message: `Order status updated to ${dto.status}` };
   }
+
+  // ─── PRODUCT MAPPING ─────────────────────────────────────────────────
+
+  @Post('publish/:productId')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  async publishProduct(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('productId') productId: string,
+  ) {
+    const result = await this.service.publishProduct(tenantId, productId);
+    return { data: result, message: 'Product published to ZZone' };
+  }
+
+  @Post('unpublish/:productId')
+  @Roles('OWNER', 'ADMIN', 'MANAGER')
+  async unpublishProduct(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('productId') productId: string,
+  ) {
+    await this.service.unpublishProduct(tenantId, productId);
+    return { data: null, message: 'Product removed from ZZone' };
+  }
+
+  @Get('published')
+  async getPublishedProducts(@CurrentUser('tenantId') tenantId: string) {
+    const products = await this.service.getPublishedProducts(tenantId);
+    return { data: products };
+  }
 }

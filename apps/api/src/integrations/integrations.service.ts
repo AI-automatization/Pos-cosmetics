@@ -178,6 +178,102 @@ export class IntegrationsService {
     return this.zzoneClient.getMyStore(token);
   }
 
+  // ─── PRODUCT MAPPING (RAOS ↔ ZZone) ─────────────────────────────────
+
+  async publishProduct(
+    tenantId: string,
+    productId: string,
+  ): Promise<{ zzoneProductId: string }> {
+    const token = await this.getToken(tenantId);
+
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, tenantId },
+      select: { id: true, name: true, sellPrice: true, description: true, zzoneProductId: true },
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
+
+    // If already published — just return existing
+    if (product.zzoneProductId) {
+      return { zzoneProductId: product.zzoneProductId };
+    }
+
+    // Get stock
+    const snapshot = await this.prisma.stockSnapshot.findFirst({
+      where: { productId, tenantId },
+      orderBy: { calculatedAt: 'desc' },
+      select: { quantity: true },
+    });
+    const stock = snapshot ? Number(snapshot.quantity) : 0;
+
+    // Push to ZZone
+    const zzoneProduct = await this.zzoneClient.createProduct(token, {
+      name: product.name,
+      price: Number(product.sellPrice),
+      category: 'Boshqa', // TODO: map RAOS category → ZZone category
+      description: product.description || '',
+      stock,
+    });
+
+    // Save mapping
+    await this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        zzoneProductId: zzoneProduct._id,
+        showOnZzone: true,
+      },
+    });
+
+    this.logger.log(`[ZZone] Published "${product.name}" → ${zzoneProduct._id}`);
+
+    return { zzoneProductId: zzoneProduct._id };
+  }
+
+  async unpublishProduct(
+    tenantId: string,
+    productId: string,
+  ): Promise<void> {
+    const token = await this.getToken(tenantId);
+
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, tenantId },
+      select: { id: true, zzoneProductId: true, name: true },
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
+    if (!product.zzoneProductId) return;
+
+    // Delete from ZZone
+    try {
+      await this.zzoneClient.deleteProduct(token, product.zzoneProductId);
+    } catch {
+      // ZZone product might already be deleted — proceed
+    }
+
+    // Clear mapping
+    await this.prisma.product.update({
+      where: { id: productId },
+      data: { zzoneProductId: null, showOnZzone: false },
+    });
+
+    this.logger.log(`[ZZone] Unpublished "${product.name}"`);
+  }
+
+  async getPublishedProducts(
+    tenantId: string,
+  ): Promise<{ id: string; name: string; zzoneProductId: string; sellPrice: number }[]> {
+    const products = await this.prisma.product.findMany({
+      where: { tenantId, showOnZzone: true, zzoneProductId: { not: null } },
+      select: { id: true, name: true, zzoneProductId: true, sellPrice: true },
+    });
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      zzoneProductId: p.zzoneProductId!,
+      sellPrice: Number(p.sellPrice),
+    }));
+  }
+
   // ─── HELPERS ─────────────────────────────────────────────────────────
 
   private async getConfig(tenantId: string): Promise<{

@@ -107,4 +107,23 @@ export const zzoneApi = {
       .patch(`/integrations/zzone/orders/${orderId}/status`, { status })
       .then((r) => r.data?.data ?? r.data);
   },
+
+  // Product mapping (RAOS → ZZone)
+  publishProduct(productId: string): Promise<{ zzoneProductId: string }> {
+    return apiClient
+      .post(`/integrations/zzone/publish/${productId}`)
+      .then((r) => r.data?.data ?? r.data);
+  },
+
+  unpublishProduct(productId: string): Promise<void> {
+    return apiClient
+      .post(`/integrations/zzone/unpublish/${productId}`)
+      .then(() => undefined);
+  },
+
+  getPublishedProducts(): Promise<{ id: string; name: string; zzoneProductId: string; sellPrice: number }[]> {
+    return apiClient
+      .get('/integrations/zzone/published')
+      .then((r) => r.data?.data ?? r.data);
+  },
 };

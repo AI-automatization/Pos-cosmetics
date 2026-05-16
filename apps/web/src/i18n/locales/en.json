@@ -1416,6 +1416,10 @@
     "stock": "Stock",
     "category": "Category",
     "price": "Price",
-    "syncInfo": "Products and orders are synced with ZZone marketplace"
+    "syncInfo": "Products and orders are synced with ZZone marketplace",
+    "publish": "Publish to ZZone",
+    "unpublish": "Remove from ZZone",
+    "publishSuccess": "Product published to ZZone",
+    "unpublishSuccess": "Product removed from ZZone"
   }
 }

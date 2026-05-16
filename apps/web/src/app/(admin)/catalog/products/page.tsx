@@ -19,6 +19,9 @@ import {
 import { useCategories } from '@/hooks/catalog/useCategories';
 import { useCanEdit } from '@/hooks/auth/useAuth';
 import { useTranslation } from '@/i18n/i18n-context';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { zzoneApi } from '@/api/zzone.api';
+import { toast } from 'sonner';
 import type { Product, CreateProductDto, UpdateProductDto } from '@/types/catalog';
 import type { ProductFormData } from './ProductForm';
 
@@ -45,6 +48,32 @@ export default function ProductsPage() {
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+  const qc = useQueryClient();
+
+  // ZZone integration
+  const { data: zzoneStatus } = useQuery({
+    queryKey: ['zzone', 'status'],
+    queryFn: () => zzoneApi.getStatus(),
+    staleTime: 60_000,
+  });
+
+  const zzonePublish = useMutation({
+    mutationFn: (productId: string) => zzoneApi.publishProduct(productId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['products'] });
+      toast.success(t('zzone.publishSuccess'));
+    },
+    onError: () => toast.error(t('common.error')),
+  });
+
+  const zzoneUnpublish = useMutation({
+    mutationFn: (productId: string) => zzoneApi.unpublishProduct(productId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['products'] });
+      toast.success(t('zzone.unpublishSuccess'));
+    },
+    onError: () => toast.error(t('common.error')),
+  });
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -154,6 +183,8 @@ export default function ProductsPage() {
             onEdit={canEdit ? handleOpenEdit : undefined}
             onDelete={canEdit ? (p) => setDeletingProduct(p) : undefined}
             onPrint={(p) => setPrintProducts([p])}
+            onZzonePublish={zzoneStatus?.connected && canEdit ? (p) => zzonePublish.mutate(p.id) : undefined}
+            onZzoneUnpublish={zzoneStatus?.connected && canEdit ? (p) => zzoneUnpublish.mutate(p.id) : undefined}
           />
         </ScrollableTable>
       )}

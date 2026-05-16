@@ -1416,6 +1416,10 @@
     "stock": "Zaxira",
     "category": "Kategoriya",
     "price": "Narx",
-    "syncInfo": "Mahsulotlar va buyurtmalar ZZone marketplace bilan sinxronlanadi"
+    "syncInfo": "Mahsulotlar va buyurtmalar ZZone marketplace bilan sinxronlanadi",
+    "publish": "ZZone ga yuborish",
+    "unpublish": "ZZone dan olib tashlash",
+    "publishSuccess": "Mahsulot ZZone ga chiqarildi",
+    "unpublishSuccess": "Mahsulot ZZone dan olib tashlandi"
   }
 }

@@ -208,6 +208,8 @@ model Product {
   description    String?
   expiryTracking Boolean   @default(false) @map("expiry_tracking")
   isTaxable      Boolean   @default(true)  @map("is_taxable")  // T-078: QQS (НДС 12%)
+  zzoneProductId String?   @map("zzone_product_id")
+  showOnZzone    Boolean   @default(false) @map("show_on_zzone")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")
