@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { ZzoneModule } from './integrations/zzone/zzone.module';
 import { AppLoggerService } from './common/logger/logger.service';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -106,7 +107,6 @@ async function bootstrap() {
     .addTag('Health', 'Проверка доступности API')
     .build();
 
-  const { ZzoneModule } = await import('./integrations/zzone/zzone.module');
   const zzoneDocument = SwaggerModule.createDocument(app, zzoneSwaggerConfig, {
     include: [ZzoneModule],
   });

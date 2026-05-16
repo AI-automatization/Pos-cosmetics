@@ -11,9 +11,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiHeader, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { Public } from '../../common/decorators';
 import { ZzoneInboundService } from './zzone-inbound.service';
 
 @Controller('zzone')
+@Public()
 @ApiHeader({ name: 'X-Api-Key', required: true, description: 'API ключ для ZZone интеграции' })
 export class ZzoneInboundController {
   private readonly apiKey: string;
