@@ -128,6 +128,12 @@ export default function LoginPage() {
             </button>
           </form>
 
+          <div className="mt-4 text-center">
+            <a href="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+              {t('auth.forgotPassword')}
+            </a>
+          </div>
+
         </div>
 
         {/* Footer */}

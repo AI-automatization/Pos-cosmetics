@@ -138,7 +138,22 @@
     "verifying": "Verifying...",
     "copyright": "© {year} RAOS · All rights reserved",
     "hidePassword": "Hide password",
-    "showPassword": "Show password"
+    "showPassword": "Show password",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordHint": "Enter your email and company slug — we'll send a recovery code",
+    "companySlug": "Company slug (from URL)",
+    "sendCode": "Send code",
+    "enterCode": "Enter code",
+    "codeHint": "A 6-digit code has been sent to your email. Valid for 10 minutes.",
+    "resetPassword": "Reset password",
+    "passwordMin8": "At least 8 characters",
+    "passwordChanged": "Password changed!",
+    "canLoginNow": "You can now log in with your new password",
+    "backToLogin": "Back to login",
+    "otpSent": "Code sent to email",
+    "otpError": "Failed to send code",
+    "otpInvalid": "Invalid or expired code",
+    "passwordResetSuccess": "Password successfully changed"
   },
   "validation": {
     "emailRequired": "Email is required",

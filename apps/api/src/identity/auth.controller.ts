@@ -33,6 +33,7 @@ import { IdentityService } from './identity.service';
 import { PinService } from './pin.service';
 import { SessionService } from './session.service';
 import { ApiKeyService, API_KEY_SCOPES } from './api-key.service';
+import { PasswordResetService } from './password-reset.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { randomUUID, timingSafeEqual } from 'crypto';
@@ -80,6 +81,7 @@ export class AuthController {
     private readonly pinService: PinService,
     private readonly sessionService: SessionService,
     private readonly apiKeyService: ApiKeyService,
+    private readonly passwordResetService: PasswordResetService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -448,5 +450,38 @@ export class AuthController {
         tenantId: found.tenantId,
       },
     };
+  }
+
+  // ─── PASSWORD RESET ─────────────────────────────────────────────
+
+  @Public()
+  @Post('forgot-password')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send password reset OTP to email' })
+  forgotPassword(@Body() dto: { email: string; slug: string }) {
+    return this.passwordResetService.forgotPassword(dto.email, dto.slug);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using OTP' })
+  resetPassword(@Body() dto: { email: string; slug: string; otp: string; newPassword: string }) {
+    return this.passwordResetService.resetPassword(dto.email, dto.slug, dto.otp, dto.newPassword);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Change own password (logged-in user)' })
+  changePassword(
+    @CurrentUser('userId') userId: string,
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: { oldPassword: string; newPassword: string },
+  ) {
+    return this.passwordResetService.changePassword(userId, tenantId, dto.oldPassword, dto.newPassword);
   }
 }

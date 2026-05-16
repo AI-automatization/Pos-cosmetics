@@ -138,7 +138,22 @@
     "verifying": "Tekshirilmoqda...",
     "copyright": "© {year} RAOS · Barcha huquqlar himoyalangan",
     "hidePassword": "Parolni yashirish",
-    "showPassword": "Parolni ko'rsatish"
+    "showPassword": "Parolni ko'rsatish",
+    "forgotPassword": "Parolni unutdingiz?",
+    "forgotPasswordHint": "Email va kompaniya slug ini kiriting — tiklash kodi yuboramiz",
+    "companySlug": "Kompaniya slug (URL dan)",
+    "sendCode": "Kod yuborish",
+    "enterCode": "Kodni kiriting",
+    "codeHint": "6 raqamli kod emailingizga yuborildi. 10 daqiqa amal qiladi.",
+    "resetPassword": "Parolni yangilash",
+    "passwordMin8": "Kamida 8 belgi",
+    "passwordChanged": "Parol o'zgartirildi!",
+    "canLoginNow": "Endi yangi parol bilan kirishingiz mumkin",
+    "backToLogin": "Kirishga qaytish",
+    "otpSent": "Kod emailga yuborildi",
+    "otpError": "Kod yuborib bo'lmadi",
+    "otpInvalid": "Noto'g'ri yoki muddati o'tgan kod",
+    "passwordResetSuccess": "Parol muvaffaqiyatli o'zgartirildi"
   },
   "validation": {
     "emailRequired": "Email kiritilmadi",

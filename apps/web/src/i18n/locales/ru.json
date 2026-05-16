@@ -138,7 +138,22 @@
     "verifying": "Проверка...",
     "copyright": "© {year} RAOS · Все права защищены",
     "hidePassword": "Скрыть пароль",
-    "showPassword": "Показать пароль"
+    "showPassword": "Показать пароль",
+    "forgotPassword": "Забыли пароль?",
+    "forgotPasswordHint": "Введите email и slug компании — мы отправим код восстановления",
+    "companySlug": "Slug компании (из URL)",
+    "sendCode": "Отправить код",
+    "enterCode": "Введите код",
+    "codeHint": "6-значный код отправлен на вашу почту. Действует 10 минут.",
+    "resetPassword": "Сменить пароль",
+    "passwordMin8": "Минимум 8 символов",
+    "passwordChanged": "Пароль изменён!",
+    "canLoginNow": "Теперь вы можете войти с новым паролем",
+    "backToLogin": "Вернуться к входу",
+    "otpSent": "Код отправлен на почту",
+    "otpError": "Не удалось отправить код",
+    "otpInvalid": "Неверный или истёкший код",
+    "passwordResetSuccess": "Пароль успешно изменён"
   },
   "validation": {
     "emailRequired": "Email не указан",

@@ -12,6 +12,7 @@ import { IdentityService } from './identity.service';
 import { TokenHelper } from './token.helper';
 import { LockoutHelper } from './lockout.helper';
 import { UserManagementHelper } from './user-management.helper';
+import { PasswordResetService } from './password-reset.service';
 import { TenantInfoHelper } from './tenant-info.helper';
 import { PinService } from './pin.service';
 import { SessionService } from './session.service';
@@ -46,6 +47,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     TokenHelper,
     LockoutHelper,
     UserManagementHelper,
+    PasswordResetService,
     TenantInfoHelper,
     TenantSettingsService,
     PinService,
