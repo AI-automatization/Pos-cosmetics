@@ -259,6 +259,7 @@
     "lowStock": "(kam)",
     "deleteTitle": "Mahsulotni o'chirish",
     "deleteConfirm": "\"{name}\" mahsulotini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+    "barcodes": "Barcode(lar)",
     "categoryPlaceholder": "Kategoriya...",
     "supplierPlaceholder": "Kontragent...",
     "addSku": "SKU qo'shish",
@@ -990,7 +991,16 @@
     "expenses": "Xarajatlar",
     "byCategory": "Kategoriya bo'yicha",
     "allCategories": "Barcha kategoriyalar",
-    "noExpenses": "Xarajat topilmadi"
+    "noExpenses": "Xarajat topilmadi",
+    "selectCategory": "Kategoriya tanlang",
+    "customCategory": "Kategoriya nomi",
+    "customCategoryPlaceholder": "Masalan: Reklama, Ta'mir...",
+    "expenseDescPlaceholder": "Xarajat haqida qisqacha...",
+    "catRent": "Ijara",
+    "catSalary": "Maosh",
+    "catDelivery": "Yetkazib berish",
+    "catUtilities": "Kommunal",
+    "catOther": "Boshqa"
   },
   "pnl": {
     "cogs": "Tannarx (COGS)",

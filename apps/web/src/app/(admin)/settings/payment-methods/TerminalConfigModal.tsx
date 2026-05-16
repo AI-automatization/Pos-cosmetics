@@ -75,7 +75,7 @@ export default function TerminalConfigModal({ open, onClose, onSave, initial, is
               <option value="">{t('paymentSettings.selectBank')}</option>
               {UZ_BANKS.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.name}
+                  {b.id === 'other' ? t('common.other') : b.name}
                 </option>
               ))}
             </select>

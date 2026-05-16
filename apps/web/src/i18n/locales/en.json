@@ -259,6 +259,7 @@
     "lowStock": "(low)",
     "deleteTitle": "Delete Product",
     "deleteConfirm": "Delete product \"{name}\"? This cannot be undone.",
+    "barcodes": "Barcodes",
     "categoryPlaceholder": "Category...",
     "supplierPlaceholder": "Supplier...",
     "addSku": "Add SKU",
@@ -990,7 +991,16 @@
     "expenses": "Expenses",
     "byCategory": "By Category",
     "allCategories": "All Categories",
-    "noExpenses": "No expenses found"
+    "noExpenses": "No expenses found",
+    "selectCategory": "Select category",
+    "customCategory": "Category name",
+    "customCategoryPlaceholder": "E.g.: Advertising, Repairs...",
+    "expenseDescPlaceholder": "Brief expense description...",
+    "catRent": "Rent",
+    "catSalary": "Salary",
+    "catDelivery": "Delivery",
+    "catUtilities": "Utilities",
+    "catOther": "Other"
   },
   "pnl": {
     "cogs": "Cost of Goods (COGS)",

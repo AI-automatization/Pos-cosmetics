@@ -97,7 +97,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, getV
     <div className={cn('col-span-2', className)}>
       <div className="mb-1 flex items-center justify-between">
         <label className="text-sm font-medium text-gray-700">
-          Barcode(lar)
+          {t('products.barcodes')}
         </label>
         <button
           type="button"
@@ -105,7 +105,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, getV
           className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
         >
           <Plus className="h-3.5 w-3.5" />
-          Qo&apos;shish
+          {t('common.add')}
         </button>
       </div>
 
@@ -119,7 +119,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, getV
           {t('products.addBarcode')}
         </button>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex max-h-[160px] flex-col gap-2 overflow-y-auto">
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-center gap-2">
               <input

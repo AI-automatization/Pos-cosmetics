@@ -259,6 +259,7 @@
     "lowStock": "(мало)",
     "deleteTitle": "Удалить товар",
     "deleteConfirm": "Удалить товар \"{name}\"? Это действие необратимо.",
+    "barcodes": "Штрихкоды",
     "categoryPlaceholder": "Категория...",
     "supplierPlaceholder": "Контрагент...",
     "addSku": "Добавить SKU",
@@ -990,7 +991,16 @@
     "expenses": "Расходы",
     "byCategory": "По категориям",
     "allCategories": "Все категории",
-    "noExpenses": "Расходы не найдены"
+    "noExpenses": "Расходы не найдены",
+    "selectCategory": "Выберите категорию",
+    "customCategory": "Название категории",
+    "customCategoryPlaceholder": "Напр.: Реклама, Ремонт...",
+    "expenseDescPlaceholder": "Краткое описание расхода...",
+    "catRent": "Аренда",
+    "catSalary": "Зарплата",
+    "catDelivery": "Доставка",
+    "catUtilities": "Коммунальные",
+    "catOther": "Другое"
   },
   "pnl": {
     "cogs": "Себестоимость (COGS)",
