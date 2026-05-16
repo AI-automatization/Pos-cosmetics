@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-14 (merge main — T-393..T-397 qo'shildi)
+# Yangilangan: 2026-05-16 (CASHIER QA audit: T-489..T-495 qo'shildi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -241,8 +241,6 @@
   - **Faza 3** — Auto-translate service (Google Translate API yoki LibreTranslate)
 - **Kutilgan:** Product yaratishda auto 3-til tarjima
 
----
-
 *(T-384, T-392 — Done.md ga ko'chirildi 2026-05-02)*
 
 ---
@@ -323,14 +321,6 @@
 
 ---
 
-
-
-
-
-
-
-
-
 ## T-419 | P2 | [BACKEND] | Ko'chmas mulk — POST /real-estate/properties endpoint yo'q
 
 - **Sana:** 2026-04-29
@@ -359,22 +349,11 @@
 ---
 
 ## ════════════════════════════════════════════════════════════════
-## 🔴 MOBILE-OWNER API CONTRACT (T-221..T-226) — 2026-03-14
-## apps/mobile-owner/src/config/endpoints.ts bilan TO'LIQ MOS KELISHI SHART
-## Mas'ul: Abdulaziz (tekshirish) + Ibrat (backend)
+## ✅ MOBILE-OWNER API CONTRACT (T-221..T-226) — BAJARILDI
+## Mas'ul: Abdulaziz + Ibrat
 ## ════════════════════════════════════════════════════════════════
 
----
-
-*(T-449 — Done.md ga ko'chirildi 2026-05-06)*
-
----
-
-*(T-450 — Done.md ga ko'chirildi 2026-05-06)*
-
----
-
-*(T-452 — Done.md ga ko'chirildi 2026-05-06)*
+*(T-449, T-450, T-452 — Done.md ga ko'chirildi 2026-05-06)*
 
 ---
 
@@ -384,7 +363,6 @@
 
 *(T-447, T-448, T-451, T-453 — Done.md ga ko'chirildi)*
 
----
 ## T-116 | P3 | [BACKEND] | Customer loyalty — Points + tiers
 - **Sana:** 2026-02-26
 - **Vazifa:** Earn points (1 point/1000 UZS). Tiers: Bronze/Silver/Gold. Birthday bonus. Redeem as payment.
@@ -419,26 +397,28 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **22** | **0** | **8** | **9** | **5** |
+| **39** | **7** | **11** | **13** | **8** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| [BACKEND] | 0 | 3 | 4 | 4 | **11** |
+| [BACKEND] | 4 | 5 | 4 | 4 | **17** |
+| [SECURITY] | 2 | 1 | 1 | 0 | **4** |
+| [MOBILE] | 0 | 4 | 7 | 3 | **14** |
+| [IKKALASI] | 1 | 1 | 0 | 1 | **3** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
-| [MOBILE] | 0 | 4 | 4 | 0 | **8** |
-| [IKKALASI] | 0 | 1 | 0 | 1 | **2** |
 
 ### Mas'uliyat taqsimoti
 
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
-| **Ibrat** (Full-Stack) | 0 | 4 | 3 | 0 | **7** |
-| **Abdulaziz** (Mobile) | 0 | 4 | 4 | 0 | **8** |
-| **Belgilanmagan** | 0 | 0 | 1 | 5 | **6** |
+| **Ibrat** (Full-Stack) | 7 | 5 | 6 | 0 | **18** |
+| **Abdulaziz** (Mobile) | 0 | 4 | 7 | 3 | **14** |
+| **AbdulazizYormatov** (Team Lead) | 0 | 2 | 0 | 0 | **2** |
+| **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
 
-> Yangilandi: 2026-05-15 — Visual QA: WAREHOUSE rol UI audit (T-481..T-488) qo'shildi
+> Yangilandi: 2026-05-16 — CASHIER ROL UI AUDIT (T-489..T-495) BAJARILDI. T-496, T-497 ochiq (so'rov + qabul qilish).
 
 ---
 
@@ -527,15 +507,7 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-*(T-460, T-461, T-462, T-463, T-464 — Done.md ga ko'chirildi 2026-05-12)*
-
----
-
-*(T-465, T-466, T-467, T-468 — Done.md ga ko'chirildi 2026-05-12)*
-
----
-
-*(T-469, T-470 — Done.md ga ko'chirildi 2026-05-12)*
+*(T-460..T-470 — Done.md ga ko'chirildi 2026-05-12)*
 
 ---
 
@@ -667,112 +639,47 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 ---
 
 ## ════════════════════════════════════════════════════════════════
-## 🔴 WAREHOUSE ROL UI AUDIT (T-481..T-488) — 2026-05-15
-## WAREHOUSE xodimiga savdo/moliya/nasiya ko'rinmasligi kerak
-## Topildi: Visual QA (iOS Simulator) — 2026-05-15
+## ✅ WAREHOUSE ROL UI AUDIT (T-481..T-488) — TO'LIQ BAJARILDI 2026-05-16
+## Barcha 8 ta task Done.md ga ko'chirildi
 ## Mas'ul: Abdulaziz
 ## ════════════════════════════════════════════════════════════════
 
----
-
-## T-481 | P1 | [MOBILE] | Dashboard stat cards — 4 ta savdo card WAREHOUSE ga ko'rinadi
-
-- **Sana:** 2026-05-15
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx` (lines 228-265)
-- **Muammo:** Dashboard da 4 ta stat card (Buyurtmalar, Daromad, O'rtacha chek, Nasiya) WAREHOUSE roliga ham ko'rinadi. Ular savdo/moliya metrikasi — ombor xodimiga keraksiz. `isWarehouse` faqat smena bannerda ishlatilgan, stat cardlarda yo'q.
-- **Kutilgan:** `isWarehouse === true` bo'lsa bu 4 card yashiriladi.
-- **O'rniga:** 4 ta warehouse stat card: **Jami mahsulot** (totalProducts), **Kam zaxira** (lowStockCount), **Muddati tugayotgan** (expiryCount), **Bugungi harakatlar** (todayMovementsIn + todayMovementsOut). Data: `useWarehouseDashboard(isWarehouse)` → `dashboard.data.stats`.
-- **Sabab:** Ombor xodimi buyurtma, daromad, o'rtacha chek ko'rishi shart emas — bu kassir/manager KPI si
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
+*(T-481, T-482, T-483, T-484, T-485, T-486, T-487, T-488 — Done.md ga ko'chirildi 2026-05-16)*
 
 ---
 
-## T-482 | P1 | [MOBILE] | Moliya tab — WAREHOUSE uchun yashirilmagan (KRITIK)
+## ════════════════════════════════════════════════════════════════
+## ✅ CASHIER ROL UI AUDIT (T-489..T-495) — TO'LIQ BAJARILDI 2026-05-16
+## Barcha 7 ta task Done.md ga ko'chirildi
+## Mas'ul: Abdulaziz
+## ════════════════════════════════════════════════════════════════
 
-- **Sana:** 2026-05-15
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx` (lines 326-335)
-- **Muammo:** "Moliya" bottom tab HAR DOIM ko'rinadi (`{/* har doim */}` comment bor). WAREHOUSE roliga to'liq Finance moduli ochiq: P&L hisoboti, Xarajatlar, To'lovlar tarixi, Kunlik daromad, Nasiya aging, Shift hisobotlari, ReportsHub. Bu DATA EXPOSURE — ombor xodimi butun moliya ma'lumotlarini ko'ra oladi.
-- **Kutilgan:** Moliya tab WAREHOUSE uchun yashiriladi yoki almashtriladi.
-- **O'rniga:** "Harakatlar" tab → `StockMovementsScreen`. Icon: `swap-horizontal-outline`. `MovementsTabNavigator` yaratish (1 screen stack). `TabNavigator.tsx` da: `component={isWarehouse ? MovementsTabNavigator : FinanceNavigator}`, `tabBarLabel: isWarehouse ? 'Harakatlar' : 'Moliya'`.
-- **Sabab:** Ombor xodimi P&L, daromad, xarajat, to'lov tarixini ko'rmasligi kerak — bu faqat OWNER/ADMIN/MANAGER uchun
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
+*(T-489, T-490, T-491, T-492, T-493, T-494, T-495 — Done.md ga ko'chirildi 2026-05-16)*
 
 ---
 
-## T-483 | P1 | [MOBILE] | Dashboard WeeklyTrendChart — haftalik savdo chart WAREHOUSE ga ko'rinadi
+## T-496 | P1 | [MOBILE] | CASHIER: Katta omborga "mahsulot kerak" so'rovi yuborish
 
-- **Sana:** 2026-05-15
+- **Sana:** 2026-05-16
 - **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx` (lines 303-306)
-- **Muammo:** "Haftalik trend" chart (haftalik savdo daromadi) hech qanday rol guard'siz ko'rinadi. Data `reportsApi.getDailyRevenue` dan olinadi — sof savdo metrikasi.
-- **Kutilgan:** `{!isWarehouse && (<WeeklyTrendChart ... />)}` qo'shiladi.
-- **O'rniga:** Hech narsa qo'yilmaydi — yashiriladi. LowStockWidget (T-479) va Expiry Alert (T-485 dan) bu joy ni to'ldiradi.
-- **Sabab:** Haftalik savdo daromadi ombor xodimiga keraksiz — bu manager/owner uchun
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
+- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`, `apps/mobile/src/api/inventory.api.ts`
+- **Muammo:** CASHIER do'kondagi omborni ko'radi (T-490 bo'yicha Ombor qoladi), lekin mahsulot kam bo'lganda katta omborga so'rov yuborishning oson yo'li yo'q. Hozirgi "Kirim so'rash" tugmasi bo'sh (T-478 — onPress bo'sh). CASHIER uchun bu juda muhim: mahsulot tugayotganini ko'radi → katta omborga "X mahsulotdan Y dona kerak" deb so'rov yuboradi → omborchi ko'rib transfer yaratadi.
+- **Kutilgan:** Ombor ekranida har mahsulot cardida **"So'rov yuborish"** tugmasi. Bosilganda: miqdor kiritish modal → `POST /inventory/restock-requests` (productId, quantity, note) → omborchiga notification boradi. CASHIER uchun faqat so'rov — tasdiqlash omborchi/manager tomonidan.
+- **Bog'liq:** T-478 (OmborProductCard onPress bo'sh — shu task hal qiladi)
+- **Topildi:** CASHIER Visual QA — 2026-05-16
 
 ---
 
-## T-484 | P1 | [MOBILE] | Dashboard RevenueCard — foyda tahlili WAREHOUSE ga ko'rinadi
+## T-497 | P1 | [MOBILE] | CASHIER: Katta ombordan kelgan transferni qabul qilish (Receive)
 
-- **Sana:** 2026-05-15
+- **Sana:** 2026-05-16
 - **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx` (lines 309-313)
-- **Muammo:** "Foyda tahlili" karta (Daromad, Chegirma, Soliq, Sof daromad, buyurtma soni, o'rtacha chek) WAREHOUSE ga to'liq ko'rinadi. Bu detalli financial breakdown.
-- **Kutilgan:** `{summary !== undefined && !isWarehouse && (<RevenueCard ... />)}` qo'shiladi.
-- **O'rniga:** `LowStockWidget` bu pozitsiyaga ko'tariladi (hozir pastda). WAREHOUSE uchun LowStockWidget stats ostida birinchi bo'lib chiqadi.
-- **Sabab:** Daromad tahlili, chegirma, soliq — barchasi savdo/moliya tushunchalari, ombor xodimiga aloqasi yo'q
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
-
----
-
-## T-485 | P2 | [MOBILE] | Dashboard TopProductsCard — top mahsulotlar WAREHOUSE ga ko'rinadi
-
-- **Sana:** 2026-05-15
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx` (lines 315-320)
-- **Muammo:** "Top mahsulotlar bugun" (savdo bo'yicha top 3 mahsulot: Nivea Krem, Loreal Shampun, Garnier Niqob — revenue bilan) WAREHOUSE ga ko'rinadi. Bu savdo reytingi — ombor uchun emas.
-- **Kutilgan:** `{products.length > 0 && !isWarehouse && (<TopProductsCard ... />)}` qo'shiladi.
-- **O'rniga:** **Expiry Alert Card** — muddati tugagan (`alerts.data.expired`) va tez tugaydigan (`dashboard.data.expiryItems.length`) mahsulotlar sonini ko'rsatadi. Data: `useWarehouseDashboard` dan.
-- **Sabab:** Savdo bo'yicha top mahsulotlar ombor xodimiga keraksiz — ombor uchun "kam qolgan" ro'yxati kerak (T-479 da qo'shildi)
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
-
----
-
-## T-486 | P2 | [MOBILE] | Dashboard Quick Actions — WAREHOUSE uchun noto'g'ri tugmalar
-
-- **Sana:** 2026-05-15
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx` (lines 388-418)
-- **Muammo:** WAREHOUSE roli `else` branchga tushadi (CASHIER/VIEWER bilan birga). Natija: "Savdo", "Kirim", "Katalog", "Hisobot" tugmalari ko'rinadi. "Savdo" label noto'g'ri (aslida Kirim tabga navigate qiladi), "Katalog" label noto'g'ri (aslida Ombor tabga), "Hisobot" tugmasi Moliya ga olib boradi (T-482 bilan bog'liq).
-- **Kutilgan:** `isWarehouse` branch qo'shiladi — warehouse-specific quick actionlar.
-- **O'rniga:** 4 ta tugma: **Zaxira holati** (`list-outline`, → Katalog/Ombor tab), **Nakladnoy** (`document-text-outline`, → Koproq/KirimScreen), **So'rovlar** (`notifications-outline`, → Koproq), **Harakatlar** (`swap-horizontal-outline`, → Koproq/StockMovementsScreen).
-- **Sabab:** Label va funksiya mos kelmaydi, Hisobot tugmasi WAREHOUSE uchun Moliya ga olib bormasligi kerak
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
-
----
-
-## T-487 | P2 | [MOBILE] | Ko'proq menu BIZNES group — savdo/moliya itemlar WAREHOUSE ga ko'rinadi
-
-- **Sana:** 2026-05-15
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Muammo:** Ko'proq menu da BIZNES guruhidagi 5 ta item WAREHOUSE ga to'liq ko'rinadi: "Moliya" (Hisobotlar va tahlil), "Nasiya" (Qarzlar boshqaruvi), "Mijozlar" (Mijozlar ro'yxati), "Aksiyalar" (Chegirmalar va aksiyalar), "Hisobotlar" (Moliyaviy hisobotlar). Bularning 4 tasi WAREHOUSE uchun keraksiz.
-- **Kutilgan:** WAREHOUSE uchun BIZNES guruhi butunlay yashiriladi.
-- **O'rniga:** BIZNES skip. **WAREHOUSE_GROUP kengaytiriladi:** mavjud 4 ta item (Yetkazuvchilar, O'tkazma, Hisobdan chiqarish, Muddati o'tganlar) + qo'shiladi: **Transfer ro'yxati** (TransferListScreen), **Harakatlar tarixi** (StockMovementsScreen). `groups` useMemo da: `...(isWarehouse ? [] : [BIZNES_GROUP_expanded])`.
-- **Sabab:** Qarz boshqaruvi, aksiyalar, moliyaviy hisobotlar — barchasi savdo/moliya sohasiga tegishli
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
-
----
-
-## T-488 | P2 | [MOBILE] | useDashboardData — WAREHOUSE uchun keraksiz 7 ta API query fire bo'ladi
-
-- **Sana:** 2026-05-15
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Dashboard/useDashboardData.ts`
-- **Muammo:** `useDashboardData()` hook ichida 7 ta query WAREHOUSE uchun ham fire bo'ladi: todaySummary (savdo), weeklyRevenue (savdo), topProducts (savdo), currentShift (smena), nasiyaOverdue (qarz), monthlyProfit (moliya), branchRevenue (moliya). Bular demo fallback data qaytaradi — WAREHOUSE foydalanuvchi "1.8 mln daromad" ko'radi (aslida demo).
-- **Kutilgan:** `useDashboardData({ isWarehouse })` parametr qabul qiladi.
-- **O'rniga:** `enabled: !skip` guard qo'shiladi: todaySummary, weeklyRevenue, topProducts, currentShift, nasiyaOverdue, monthlyProfit, branchRevenue — barchasi skip. Faqat `lowStock` query doim enabled. `useWarehouseDashboard(isWarehouse)` ham Dashboard da chaqiriladi — WAREHOUSE uchun data shu yerdan keladi.
-- **Sabab:** Server resurslarni behuda sarflash + demo data haqiqiy savdo sifatida ko'rinishi foydalanuvchini chalg'itadi
-- **Topildi:** Visual QA (iOS Simulator) — 2026-05-15
+- **Fayl:** `apps/mobile/src/screens/StockTransfer/`, `apps/mobile/src/navigation/TabNavigator.tsx`
+- **Muammo:** Katta ombor do'konga mahsulot yuboradi (transfer SHIPPED holati). Hozir CASHIER bu transferlarni ko'rish yoki qabul qilish imkoniyati yo'q. Kassir do'konda bo'lgani uchun kelgan mahsulotni qabul qilib, zaxiraga kiritishi kerak.
+- **Kutilgan:** CASHIER uchun maxsus ekran yoki Ko'proq menyuda **"Kelgan mahsulotlar"** bo'limi:
+  - `GET /inventory/transfers?status=SHIPPED&toBranchId={currentBranchId}` — do'konga yuborilgan transferlar ro'yxati
+  - Har transferda **"Qabul qilish"** tugmasi → `PATCH /inventory/transfers/:id/receive`
+  - Qabul qilinganda zaxira avtomatik yangilanadi (backend tomonida)
+  - Push notification: "Katta ombordan 5 dona Lipstick yuborildi" → kassir ko'radi va qabul qiladi
+- **Bog'liq:** T-473 (Transfer lifecycle), T-480 (Transfer list)
+- **Topildi:** CASHIER Visual QA — 2026-05-16

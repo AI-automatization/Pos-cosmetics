@@ -1,5 +1,73 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-12
+# Yangilangan: 2026-05-16
+
+---
+
+## T-495 | 2026-05-16 | [MOBILE] | CASHIER: useDashboardData — moliyaviy querylar disabled
+- **Yechim:** `skipFinancial = isWarehouse || isCashier` qo'shildi. Barcha 7 ta moliyaviy query (todaySummary, weeklyRevenue, topProducts, currentShift, nasiyaOverdue, monthlyProfit, branchRevenue) CASHIER uchun disabled bo'ldi. Faqat `lowStock` query qoldi.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/useDashboardData.ts`
+
+---
+
+## T-494 | 2026-05-16 | [MOBILE] | CASHIER: Dashboard Haftalik trend yashirildi
+- **Yechim:** `{!isWarehouse && !isCashier && <WeeklyTrendChart />}` guard qo'shildi.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
+## T-493 | 2026-05-16 | [MOBILE] | CASHIER: Dashboard Foyda tahlili + stat cards guard
+- **Yechim:** RevenueCard va TopProductsCard ga `!isCashier` guard qo'shildi. SalesStatsGrid ga `isCashier` prop — faqat Buyurtmalar soni ko'rsatiladi (Daromad, O'rtacha chek, Nasiya yashirildi).
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`, `apps/mobile/src/screens/Dashboard/SalesStatsGrid.tsx`
+
+---
+
+## T-492 | 2026-05-16 | [MOBILE] | CASHIER: Dashboard Quick Actions — Savdo, Katalog, Mijozlar, Sozlamalar
+- **Yechim:** `isCashier` branch qo'shildi — 4 ta kassir-specific tugma: Savdo, Katalog, Mijozlar, Sozlamalar. Kirim va Hisobot olib tashlandi.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
+## T-491 | 2026-05-16 | [MOBILE] | CASHIER: Ko'proq BIZNES — Moliya, Nasiya, Hisobotlar yashirildi
+- **Yechim:** `isCashier` guard qo'shildi — BIZNES guruhidan faqat Mijozlar va Aksiyalar qoldi. Moliya, Nasiya, Hisobotlar yashirildi.
+- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
+
+---
+
+## T-490 | 2026-05-16 | [MOBILE] | CASHIER: Ko'proq INVENTAR — Kirim yashirildi
+- **Yechim:** `isCashier` guard qo'shildi — INVENTAR guruhi to'liq yashirildi (Kirim va Ombor). Ombor zaxirasini ko'rish uchun Katalog tab yetarli.
+- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
+
+---
+
+## T-489 | 2026-05-16 | [MOBILE] | CASHIER: Moliya tab yashirildi (P0)
+- **Yechim:** `{!isCashier && <Tab.Screen name="Moliya" />}` guard qo'shildi. CASHIER uchun bottom tab 4 taga tushdi: Bosh sahifa, Savdo, Katalog, Ko'proq.
+- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`
+
+---
+
+## T-487 | 2026-05-16 | [MOBILE] | Ko'proq menu BIZNES group — WAREHOUSE guard
+- **Yechim:** BIZNES guruhi WAREHOUSE uchun yashirildi (`user?.role === 'WAREHOUSE' ? [] : [BIZNES]`). WAREHOUSE_GROUP ga 2 ta yangi item qo'shildi: "Transfer ro'yxati" (TransferListScreen) va "Harakatlar tarixi" (StockMovementsScreen).
+- **Fayl:** apps/mobile/src/screens/MoreMenu/index.tsx
+
+---
+
+## T-486 | 2026-05-16 | [MOBILE] | Dashboard Quick Actions — WAREHOUSE branch
+- **Yechim:** `isWarehouse` branch qo'shildi — 4 ta warehouse-specific tugma: Zaxira holati, Nakladnoy, So'rovlar, Harakatlar. CASHIER/VIEWER else branch saqlanib qoldi.
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
+## T-485 | 2026-05-16 | [MOBILE] | Dashboard TopProductsCard — WAREHOUSE guard
+
+- **Yechim:** `{products.length > 0 && !isWarehouse && (...)}` guard qo'shildi — WAREHOUSE foydalanuvchi TopProductsCard ni ko'rmaydi
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
+## T-484 | 2026-05-16 | [MOBILE] | Dashboard RevenueCard — WAREHOUSE guard
+
+- **Yechim:** `{summary !== undefined && !isWarehouse && (...)}` guard qo'shildi — WAREHOUSE foydalanuvchi RevenueCard ni ko'rmaydi
+- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
 
 ---
 
@@ -2145,6 +2213,66 @@
 | T-368 | 2026-04-20 | [FRONTEND] | Aralash to'lov bonus bug — hardcoded `bonusPoints * 100` → `bonusPoints * redeemRate` (loyaltyConfig dan). `useLoyaltyConfig()` hook `useCompleteSale` va `PaymentPanel` ga qo'shildi | `useCompleteSale.ts`, `PaymentPanel.tsx` |
 | T-369 | 2026-04-20 | [FRONTEND] | Sidebar — Sozlamalar bo'limidan "Filiallar" o'chirildi (Boshqaruv bo'limida qoldi) | `Sidebar.tsx` |
 | T-411 | 2026-04-29 | [MOBILE] | Dashboard bell tugmasiga onPress + NotificationsScreen + unread badge (qizil doira, 99+). DashboardNavigator stack yaratildi. | `Dashboard/index.tsx`, `DashboardNavigator.tsx`, `screens/Notifications/index.tsx`, `types.ts`, `TabNavigator.tsx` |
+
+---
+
+## 2026-05-16 SESSIYA — WAREHOUSE ROL UI AUDIT (T-481..T-488)
+
+---
+
+## T-488 | [MOBILE] | useDashboardData — WAREHOUSE uchun keraksiz API query guard
+- **Sana:** 2026-05-16
+- **Yechim:** `useDashboardData()` ga `isWarehouse` parametr qo'shildi, 7 ta sales/finance query (todaySummary, weeklyRevenue, topProducts, currentShift, nasiyaOverdue, monthlyProfit, branchRevenue) `enabled: !isWarehouse` bilan guard qilindi, lowStock query doim faol
+- **Fayllar:** `apps/mobile/src/screens/Dashboard/useDashboardData.ts`, `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
+## T-481 | [MOBILE] | Dashboard stat cards — WAREHOUSE uchun ombor stat cards
+- **Sana:** 2026-05-16
+- **Yechim:** Dashboard stat cards — WAREHOUSE uchun 4 ta ombor stat card (WarehouseStatsGrid: Jami mahsulot, Kam zaxira, Muddati tugayotgan, Bugungi harakatlar), boshqa rollar uchun 4 ta savdo card (SalesStatsGrid) alohida komponentlarga ajratildi
+- **Fayllar:** `apps/mobile/src/screens/Dashboard/WarehouseStatsGrid.tsx` (yangi), `apps/mobile/src/screens/Dashboard/SalesStatsGrid.tsx` (yangi), `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
+## T-482 | [MOBILE] | Moliya tab — WAREHOUSE uchun "Harakatlar" tab
+- **Sana:** 2026-05-16
+- **Yechim:** Moliya tab WAREHOUSE uchun "Harakatlar" (StockMovementsScreen) bilan almashtirildi, MovementsTabNavigator yaratildi. `TabNavigator.tsx` da: `component={isWarehouse ? MovementsTabNavigator : FinanceNavigator}`, `tabBarLabel: isWarehouse ? 'Harakatlar' : 'Moliya'`
+- **Fayllar:** `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
+
+---
+
+## T-483 | [MOBILE] | Dashboard WeeklyTrendChart — WAREHOUSE guard
+- **Sana:** 2026-05-16
+- **Yechim:** WeeklyTrendChart ga `!isWarehouse` guard qo'shildi — WAREHOUSE rolida haftalik savdo chart yashiriladi
+- **Fayllar:** `apps/mobile/src/screens/Dashboard/index.tsx`
+
+---
+
+## T-484 | [MOBILE] | Ko'proq menu — WAREHOUSE uchun "Sotuvlar" yashirish
+- **Sana:** 2026-05-16
+- **Yechim:** Ko'proq (More) menu da "Sotuvlar" bo'limi WAREHOUSE roli uchun yashirildi — `isWarehouse` guard bilan sales-related menu itemlar filtrlandi
+- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
+
+---
+
+## T-485 | [MOBILE] | Ko'proq menu MOLIYA group — WAREHOUSE guard
+- **Sana:** 2026-05-16
+- **Yechim:** Ko'proq menu MOLIYA guruhidagi elementlar (Xarajatlar, Moliya hisoboti, Foyda/zarar) WAREHOUSE roli uchun yashirildi — finance endpointlarga WAREHOUSE kirishi taqiqlangan
+- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
+
+---
+
+## T-486 | [MOBILE] | Ko'proq menu SAVDO group — WAREHOUSE guard
+- **Sana:** 2026-05-16
+- **Yechim:** Ko'proq menu SAVDO guruhidagi elementlar (To'lovlar tarixi, Chegirmalar, Promosiyalar) WAREHOUSE roli uchun yashirildi
+- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
+
+---
+
+## T-487 | [MOBILE] | Ko'proq menu BIZNES group — WAREHOUSE guard
+- **Sana:** 2026-05-16
+- **Yechim:** Ko'proq menu BIZNES guruhidagi elementlar (Filiallar, Mijozlar, Audit jurnali) WAREHOUSE roli uchun yashirildi — WAREHOUSE faqat ombor operatsiyalariga kirishi kerak
+- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
 
 ---
 

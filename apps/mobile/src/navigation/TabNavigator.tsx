@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MoreStackParamList, OmborTabStackParamList } from './types';
+import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MovementsStackParamList, MoreStackParamList, OmborTabStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
 
 // Navigators
@@ -214,6 +214,17 @@ function OmborTabNavigator(): React.JSX.Element {
   );
 }
 
+// ─── Harakatlar Stack (Warehouse movements) ─────────────────
+const MovementsStack = createNativeStackNavigator<MovementsStackParamList>();
+
+function MovementsTabNavigator(): React.JSX.Element {
+  return (
+    <MovementsStack.Navigator screenOptions={{ headerShown: false }}>
+      <MovementsStack.Screen name="MovementsMain" component={StockMovementsScreen} />
+    </MovementsStack.Navigator>
+  );
+}
+
 // ─── Tab icon helper ───────────────────────────────────────
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -238,6 +249,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 export default function TabNavigator(): React.JSX.Element {
   const { user } = useAuthStore();
   const isWarehouse = user?.role === 'WAREHOUSE';
+  const isCashier = user?.role === 'CASHIER';
   const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
 
   return (
@@ -323,16 +335,23 @@ export default function TabNavigator(): React.JSX.Element {
         />
       )}
 
-      {/* Tab 4/3: Moliya — har doim */}
-      <Tab.Screen
-        name="Moliya"
-        component={FinanceNavigator}
-        options={{
-          tabBarLabel: 'Moliya',
-          tabBarIcon: ({ focused, color }) =>
-            TabIcon(focused, 'trending-up-outline', 'trending-up', color),
-        }}
-      />
+      {/* Tab 4/3: Moliya (WAREHOUSE: Harakatlar, CASHIER: yashirin) */}
+      {!isCashier && (
+        <Tab.Screen
+          name="Moliya"
+          component={isWarehouse ? MovementsTabNavigator : FinanceNavigator}
+          options={{
+            tabBarLabel: isWarehouse ? 'Harakatlar' : 'Moliya',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(
+                focused,
+                isWarehouse ? 'swap-horizontal-outline' : 'trending-up-outline',
+                isWarehouse ? 'swap-horizontal' : 'trending-up',
+                color,
+              ),
+          }}
+        />
+      )}
 
       {/* Tab 5/4: Ko'proq — har doim */}
       <Tab.Screen

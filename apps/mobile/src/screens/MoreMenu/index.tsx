@@ -159,6 +159,18 @@ const WAREHOUSE_GROUP: MenuGroup = {
       subtitle: 'Expiry tracking',
       screen: 'ExpiryScreen' as keyof MoreStackParamList,
     },
+    {
+      icon: 'list-outline' as const,
+      title: 'Transfer ro\'yxati',
+      subtitle: 'Barcha transferlar holati',
+      screen: 'TransferListScreen' as keyof MoreStackParamList,
+    },
+    {
+      icon: 'analytics-outline' as const,
+      title: 'Harakatlar tarixi',
+      subtitle: 'Ombor harakatlari',
+      screen: 'StockMovementsScreen' as keyof MoreStackParamList,
+    },
   ],
 };
 
@@ -226,33 +238,42 @@ export default function MoreMenuScreen(): React.JSX.Element {
   const { user, clearAuth } = useAuthStore();
 
   const roleLevel = getRoleLevel(user?.role);
+  const isCashier = user?.role === 'CASHIER';
 
   const groups = useMemo<readonly MenuGroup[]>(
     () => [
-      {
+      // INVENTAR guruhi — CASHIER ko'rmaydi (Kirim, Ombor kassirga kerak emas)
+      ...(!isCashier ? [{
         ...INVENTAR_GROUP,
         items: roleLevel >= 3
           ? [...INVENTAR_GROUP.items, { icon: 'warning-outline' as const, title: 'Kam qolgan', subtitle: 'Zaxira kam mahsulotlar', screen: 'LowStockList' as keyof MoreStackParamList }]
           : INVENTAR_GROUP.items,
-      },
+      }] : []),
       ...(user?.role === 'WAREHOUSE' ? [WAREHOUSE_GROUP] : []),
-      {
+      // BIZNES guruhi — WAREHOUSE ko'rmaydi; CASHIER faqat Mijozlar va Aksiyalar
+      ...(user?.role === 'WAREHOUSE' ? [] : [{
         ...BIZNES_GROUP,
-        items: [
-          ...BIZNES_GROUP.items.slice(0, 4),
-          ...(roleLevel >= 4
-            ? [{ icon: 'pricetags-outline' as const, title: 'Chegirmalar', subtitle: 'Chegirma yaratish va boshqaruv', screen: 'ChegirmaScreen' as keyof MoreStackParamList }]
-            : []),
-          ...(roleLevel >= 3
-            ? [
-                { icon: 'checkmark-circle-outline' as const, title: 'Vazifalar', subtitle: 'Topshiriqlar boshqaruvi', screen: 'TasksScreen' as keyof MoreStackParamList },
-                { icon: 'receipt-outline' as const, title: 'Buyurtmalar', subtitle: 'Sotuv tarixi', screen: 'SalesOrdersScreen' as keyof MoreStackParamList },
-                { icon: 'return-down-back-outline' as const, title: 'Qaytarish', subtitle: 'Mahsulot qaytarish', screen: 'SalesReturnsScreen' as keyof MoreStackParamList },
-              ]
-            : []),
-          ...BIZNES_GROUP.items.slice(4),
-        ],
-      },
+        items: isCashier
+          ? [
+              // CASHIER faqat Mijozlar va Aksiyalar ko'radi
+              BIZNES_GROUP.items[2]!, // Mijozlar
+              BIZNES_GROUP.items[3]!, // Aksiyalar
+            ]
+          : [
+              ...BIZNES_GROUP.items.slice(0, 4),
+              ...(roleLevel >= 4
+                ? [{ icon: 'pricetags-outline' as const, title: 'Chegirmalar', subtitle: 'Chegirma yaratish va boshqaruv', screen: 'ChegirmaScreen' as keyof MoreStackParamList }]
+                : []),
+              ...(roleLevel >= 3
+                ? [
+                    { icon: 'checkmark-circle-outline' as const, title: 'Vazifalar', subtitle: 'Topshiriqlar boshqaruvi', screen: 'TasksScreen' as keyof MoreStackParamList },
+                    { icon: 'receipt-outline' as const, title: 'Buyurtmalar', subtitle: 'Sotuv tarixi', screen: 'SalesOrdersScreen' as keyof MoreStackParamList },
+                    { icon: 'return-down-back-outline' as const, title: 'Qaytarish', subtitle: 'Mahsulot qaytarish', screen: 'SalesReturnsScreen' as keyof MoreStackParamList },
+                  ]
+                : []),
+              ...BIZNES_GROUP.items.slice(4),
+            ],
+      }]),
       ...(roleLevel >= 3 ? [{
         ...BOSHQARUV_GROUP,
         items: roleLevel >= 4
@@ -270,7 +291,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
       ...(roleLevel >= 4 ? [OWNER_GROUP] : []),
       SOZLAMALAR_GROUP,
     ],
-    [roleLevel, user?.role],
+    [roleLevel, user?.role, isCashier],
   );
 
   const handlePress = (item: MenuItem): void => {

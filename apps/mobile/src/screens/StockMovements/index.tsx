@@ -182,7 +182,7 @@ export default function StockMovementsScreen() {
         <View style={styles.centerFill}>
           <Ionicons name="lock-closed-outline" size={48} color={C.muted} />
           <Text style={styles.errorText}>Bu bo'lim uchun ruxsat yo'q</Text>
-          <Text style={styles.errorSub}>Kerakli rol: Manager, Admin, Egasi</Text>
+          <Text style={styles.errorSub}>Kerakli rol: Manager, Admin, Egasi, Omborchi</Text>
         </View>
       </SafeAreaView>
     );

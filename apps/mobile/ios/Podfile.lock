@@ -228,6 +228,8 @@ PODS:
     - ReactCommon
   - ExpoNotifications (55.0.14):
     - ExpoModulesCore
+  - ExpoPrint (55.0.15):
+    - ExpoModulesCore
   - ExpoSecureStore (55.0.9):
     - ExpoModulesCore
   - EXUpdatesInterface (55.1.6):
@@ -2201,6 +2203,7 @@ DEPENDENCIES:
   - "ExpoModulesCore (from `../../../node_modules/.pnpm/expo-modules-core@55.0.18_react-native@0.83.2_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0__react@19.2.0/node_modules/expo-modules-core`)"
   - "ExpoModulesJSI (from `../../../node_modules/.pnpm/expo-modules-core@55.0.18_react-native@0.83.2_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0__react@19.2.0/node_modules/expo-modules-core`)"
   - "ExpoNotifications (from `../../../node_modules/.pnpm/expo-notifications@55.0.14_expo@55.0.9_react-native@0.83.2_@babel+core@7.29.0_@types+re_fca4c21283a94bc94a350bda2f5d11a8/node_modules/expo-notifications/ios`)"
+  - "ExpoPrint (from `../../../node_modules/.pnpm/expo-print@55.0.15_expo@55.0.9_react-native@0.83.2_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0_/node_modules/expo-print/ios`)"
   - "ExpoSecureStore (from `../../../node_modules/.pnpm/expo-secure-store@55.0.9_expo@55.0.9/node_modules/expo-secure-store/ios`)"
   - "EXUpdatesInterface (from `../../../node_modules/.pnpm/expo-updates-interface@55.1.6_expo@55.0.9/node_modules/expo-updates-interface/ios`)"
   - "FBLazyVector (from `../../../node_modules/.pnpm/react-native@0.83.2_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0/node_modules/react-native/Libraries/FBLazyVector`)"
@@ -2327,6 +2330,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-modules-core@55.0.18_react-native@0.83.2_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0__react@19.2.0/node_modules/expo-modules-core"
   ExpoNotifications:
     :path: "../../../node_modules/.pnpm/expo-notifications@55.0.14_expo@55.0.9_react-native@0.83.2_@babel+core@7.29.0_@types+re_fca4c21283a94bc94a350bda2f5d11a8/node_modules/expo-notifications/ios"
+  ExpoPrint:
+    :path: "../../../node_modules/.pnpm/expo-print@55.0.15_expo@55.0.9_react-native@0.83.2_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0_/node_modules/expo-print/ios"
   ExpoSecureStore:
     :path: "../../../node_modules/.pnpm/expo-secure-store@55.0.9_expo@55.0.9/node_modules/expo-secure-store/ios"
   EXUpdatesInterface:
@@ -2508,6 +2513,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: f950d653c14728227b232312ac2420f45930a959
   ExpoModulesJSI: 92db390c19eb21af69005d94f430793c7ca7aec7
   ExpoNotifications: 0e3b12306933444ca6030782eaa0b1b015ee3b42
+  ExpoPrint: f32bc4389a51f0c8bb921835529396571fb8a0b1
   ExpoSecureStore: 83d31183fecaae7a084e88e29d14d5a02d90882a
   EXUpdatesInterface: 4c11f4d1594526258f14d09817dc407acbf24e3b
   FBLazyVector: 32e9ed0301d0fcbc1b2b341dd7fcbf291f51eb83

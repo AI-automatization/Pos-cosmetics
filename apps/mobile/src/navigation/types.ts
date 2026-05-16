@@ -65,6 +65,10 @@ export type FinanceStackParamList = {
   Export: undefined;
 };
 
+export type MovementsStackParamList = {
+  MovementsMain: undefined;
+};
+
 export type MoreStackParamList = {
   MoreMenu: undefined;
   KirimScreen: undefined;

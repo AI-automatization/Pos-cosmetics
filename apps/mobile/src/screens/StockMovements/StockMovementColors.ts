@@ -24,4 +24,4 @@ export const C = {
   grayBg:    '#F3F4F6',
 } as const;
 
-export const MOVEMENT_ROLES = ['OWNER', 'ADMIN', 'MANAGER'] as const;
+export const MOVEMENT_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE'] as const;

@@ -38,7 +38,8 @@ function makeDemoTopProducts(): TopProduct[] {
   ];
 }
 
-export function useDashboardData() {
+export default function useDashboardData(isWarehouse = false, isCashier = false) {
+  const skipFinancial = isWarehouse || isCashier;
   const today = todayISO();
   const sevenDaysAgo = daysAgoISO(6);
 
@@ -53,6 +54,7 @@ export function useDashboardData() {
       }
     },
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const weeklyRevenue = useQuery({
@@ -66,6 +68,7 @@ export function useDashboardData() {
       }
     },
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const topProducts = useQuery({
@@ -79,12 +82,14 @@ export function useDashboardData() {
       }
     },
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const currentShift = useQuery({
     queryKey: ['sales', 'shift', 'current'],
     queryFn: salesApi.getCurrentShift,
     refetchInterval: CONFIG.ALERTS_REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const lowStock = useQuery({
@@ -97,6 +102,7 @@ export function useDashboardData() {
     queryKey: ['nasiya', 'overdue'],
     queryFn: nasiyaApi.getOverdue,
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   // Oylik profit (30 kun)
@@ -110,6 +116,7 @@ export function useDashboardData() {
     queryFn:  () => reportsApi.getProfitReport(thirtyDaysAgoStr, todayStr),
     staleTime: 5 * 60_000,
     retry: false,
+    enabled: !skipFinancial,
   });
 
   // Branch daromadi (getRevenueByBranch — robust field normalization)
@@ -118,6 +125,7 @@ export function useDashboardData() {
     queryFn: () => analyticsApi.getRevenueByBranch('30d'),
     staleTime: 5 * 60_000,
     retry: false,
+    enabled: !skipFinancial,
   });
 
   // Derive summary from overdue list
@@ -135,26 +143,30 @@ export function useDashboardData() {
   };
 
   const refetchAll = () => {
-    todaySummary.refetch();
-    weeklyRevenue.refetch();
-    topProducts.refetch();
-    currentShift.refetch();
     lowStock.refetch();
-    nasiyaOverdue.refetch();
+    if (!skipFinancial) {
+      todaySummary.refetch();
+      weeklyRevenue.refetch();
+      topProducts.refetch();
+      currentShift.refetch();
+      nasiyaOverdue.refetch();
+    }
   };
 
-  const isLoading =
-    todaySummary.isLoading ||
-    weeklyRevenue.isLoading ||
-    currentShift.isLoading;
+  const isLoading = skipFinancial
+    ? lowStock.isLoading
+    : todaySummary.isLoading ||
+      weeklyRevenue.isLoading ||
+      currentShift.isLoading;
 
-  const isRefreshing =
-    todaySummary.isFetching ||
-    weeklyRevenue.isFetching ||
-    currentShift.isFetching ||
-    topProducts.isFetching ||
-    lowStock.isFetching ||
-    nasiyaOverdue.isFetching;
+  const isRefreshing = skipFinancial
+    ? lowStock.isFetching
+    : todaySummary.isFetching ||
+      weeklyRevenue.isFetching ||
+      currentShift.isFetching ||
+      topProducts.isFetching ||
+      lowStock.isFetching ||
+      nasiyaOverdue.isFetching;
 
   return {
     todaySummary,

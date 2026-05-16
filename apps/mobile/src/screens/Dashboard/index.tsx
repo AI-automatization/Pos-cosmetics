@@ -18,17 +18,17 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { DashboardStackParamList, TabParamList } from '../../navigation/types';
 import { useQuery } from '@tanstack/react-query';
 import { alertsApi } from '../../api/alerts.api';
-import { useDashboardData } from './useDashboardData';
+import useDashboardData from './useDashboardData';
 import ActiveShiftCard from './ActiveShiftCard';
 import MonthlyProfitCard from './MonthlyProfitCard';
 import BranchRevenueCard from './BranchRevenueCard';
+import WarehouseStatsGrid from './WarehouseStatsGrid';
+import SalesStatsGrid from './SalesStatsGrid';
 import RevenueCard from './RevenueCard';
 import WeeklyTrendChart from './WeeklyTrendChart';
 import TopProductsCard from './TopProductsCard';
 import LowStockWidget from './LowStockWidget';
 import ManagerKPICard from './ManagerKPICard';
-import StatCard from '../../components/common/StatCard';
-import { formatCompact } from '../../utils/currency';
 import { useShiftStore } from '../../store/shiftStore';
 import SmenaOpenSheet from '../Smena/SmenaOpenSheet';
 import SmenaCloseSheet from '../Smena/SmenaCloseSheet';
@@ -41,7 +41,6 @@ type DashboardNavProp = CompositeNavigationProp<
 >;
 
 const PRIMARY = '#2563EB';
-const PRIMARY_LIGHT = '#EFF6FF';
 
 function formatUzbekDate(): string {
   const now = new Date();
@@ -78,6 +77,9 @@ function QuickAction({ icon, label, color, bg, onPress }: QuickActionProps) {
 
 export default function DashboardScreen() {
   const navigation = useNavigation<DashboardNavProp>();
+  const { user } = useAuthStore();
+  const isWarehouse = user?.role === 'WAREHOUSE';
+  const isCashier = user?.role === 'CASHIER';
   const {
     todaySummary,
     weeklyRevenue,
@@ -92,11 +94,9 @@ export default function DashboardScreen() {
     isLoading,
     isRefreshing,
     refetchAll,
-  } = useDashboardData();
+  } = useDashboardData(isWarehouse, isCashier);
 
-  const { user } = useAuthStore();
   const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
-  const isWarehouse = user?.role === 'WAREHOUSE';
   const isManager = user?.role === 'MANAGER';
   const { openShift, closeShift } = useShiftStore();
   const [loading, setLoading] = useState(false);
@@ -228,44 +228,22 @@ export default function DashboardScreen() {
         ))}
 
         {/* Stats 2x2 grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statsRow}>
-            <StatCard
-              style={styles.statCard}
-              icon={<Ionicons name="receipt-outline" size={20} color="#2563EB" />}
-              iconBg={PRIMARY_LIGHT}
-              title="Buyurtmalar"
-              value={String(summary?.orders.count ?? 0)}
-              subtitle="bugun"
-            />
-            <StatCard
-              style={styles.statCard}
-              icon={<Ionicons name="trending-up-outline" size={20} color="#16A34A" />}
-              iconBg="#F0FDF4"
-              title="Daromad"
-              value={summary ? formatCompact(summary.netRevenue) : '0'}
-              subtitle="bugun"
-            />
-          </View>
-          <View style={styles.statsRow}>
-            <StatCard
-              style={styles.statCard}
-              icon={<Ionicons name="cart-outline" size={20} color="#D97706" />}
-              iconBg="#FFFBEB"
-              title="O'rtacha chek"
-              value={formatCompact(avgBasket)}
-              subtitle="so'm"
-            />
-            <StatCard
-              style={styles.statCard}
-              icon={<Ionicons name="wallet-outline" size={20} color="#7C3AED" />}
-              iconBg="#F5F3FF"
-              title="Nasiya"
-              value={String(nasiyaSummary.data?.overdueCount ?? 0)}
-              subtitle="muddati o'tgan"
-            />
-          </View>
-        </View>
+        {isWarehouse ? (
+          <WarehouseStatsGrid />
+        ) : isCashier ? (
+          <SalesStatsGrid
+            summary={summary}
+            avgBasket={0}
+            nasiyaOverdueCount={0}
+            isCashier
+          />
+        ) : (
+          <SalesStatsGrid
+            summary={summary}
+            avgBasket={avgBasket}
+            nasiyaOverdueCount={nasiyaSummary.data?.overdueCount ?? 0}
+          />
+        )}
 
         {/* Manager KPI card — faqat MANAGER rol uchun */}
         {isManager && (
@@ -303,20 +281,22 @@ export default function DashboardScreen() {
           </View>
         )}
 
-        {/* Weekly chart */}
-        <View style={styles.section}>
-          <WeeklyTrendChart data={weekly} />
-        </View>
+        {/* Weekly chart — CASHIER va WAREHOUSE ko'rmaydi */}
+        {!isWarehouse && !isCashier && (
+          <View style={styles.section}>
+            <WeeklyTrendChart data={weekly} />
+          </View>
+        )}
 
-        {/* Revenue card */}
-        {summary !== undefined && (
+        {/* Revenue card — CASHIER va WAREHOUSE ko'rmaydi */}
+        {summary !== undefined && !isWarehouse && !isCashier && (
           <View style={styles.section}>
             <RevenueCard summary={summary} />
           </View>
         )}
 
-        {/* Top products */}
-        {products.length > 0 && (
+        {/* Top products — CASHIER va WAREHOUSE ko'rmaydi */}
+        {products.length > 0 && !isWarehouse && !isCashier && (
           <View style={styles.section}>
             <TopProductsCard products={products} />
           </View>
@@ -396,6 +376,68 @@ export default function DashboardScreen() {
                   color="#7C3AED"
                   bg="#F5F3FF"
                   onPress={() => navigation.navigate('Koproq')}
+                />
+              </>
+            ) : isCashier ? (
+              <>
+                <QuickAction
+                  icon="cart-outline"
+                  label="Savdo"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Savdo')}
+                />
+                <QuickAction
+                  icon="grid-outline"
+                  label="Katalog"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Katalog')}
+                />
+                <QuickAction
+                  icon="people-outline"
+                  label="Mijozlar"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Koproq', { screen: 'CustomersScreen' } as any)}
+                />
+                <QuickAction
+                  icon="settings-outline"
+                  label="Sozlamalar"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Koproq', { screen: 'SettingsScreen' } as any)}
+                />
+              </>
+            ) : isWarehouse ? (
+              <>
+                <QuickAction
+                  icon="list-outline"
+                  label="Zaxira holati"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Katalog')}
+                />
+                <QuickAction
+                  icon="document-text-outline"
+                  label="Nakladnoy"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="notifications-outline"
+                  label="So'rovlar"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="swap-horizontal-outline"
+                  label="Harakatlar"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Moliya')}
                 />
               </>
             ) : (
@@ -567,20 +609,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111827',
     marginBottom: 12,
-  },
-
-  // Stats grid
-  statsGrid: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    gap: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
   },
 
   // Quick actions
