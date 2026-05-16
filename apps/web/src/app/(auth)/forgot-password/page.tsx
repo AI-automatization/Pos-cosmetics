@@ -12,17 +12,16 @@ export default function ForgotPasswordPage() {
   const { t } = useTranslation();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
-  const [slug, setSlug] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isPending, setIsPending] = useState(false);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !slug.trim()) return;
+    if (!email.trim()) return;
     setIsPending(true);
     try {
-      await apiClient.post('/auth/forgot-password', { email: email.trim(), slug: slug.trim() });
+      await apiClient.post('/auth/forgot-password', { email: email.trim() });
       setStep('otp');
       toast.success(t('auth.otpSent'));
     } catch {
@@ -39,7 +38,6 @@ export default function ForgotPasswordPage() {
     try {
       await apiClient.post('/auth/reset-password', {
         email: email.trim(),
-        slug: slug.trim(),
         otp: otp.trim(),
         newPassword,
       });
@@ -70,22 +68,16 @@ export default function ForgotPasswordPage() {
               <p className="mb-6 text-sm text-white/60">{t('auth.forgotPasswordHint')}</p>
               <form onSubmit={handleSendOtp} className="space-y-4">
                 <input
-                  type="text"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder={t('auth.companySlug')}
-                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-blue-400 focus:outline-none"
-                />
-                <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email"
+                  autoComplete="email"
                   className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-blue-400 focus:outline-none"
                 />
                 <button
                   type="submit"
-                  disabled={isPending || !email || !slug}
+                  disabled={isPending || !email}
                   className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

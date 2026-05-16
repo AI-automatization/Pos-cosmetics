@@ -459,8 +459,8 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send password reset OTP to email' })
-  forgotPassword(@Body() dto: { email: string; slug: string }) {
-    return this.passwordResetService.forgotPassword(dto.email, dto.slug);
+  forgotPassword(@Body() dto: { email: string }) {
+    return this.passwordResetService.forgotPassword(dto.email);
   }
 
   @Public()
@@ -468,8 +468,8 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reset password using OTP' })
-  resetPassword(@Body() dto: { email: string; slug: string; otp: string; newPassword: string }) {
-    return this.passwordResetService.resetPassword(dto.email, dto.slug, dto.otp, dto.newPassword);
+  resetPassword(@Body() dto: { email: string; otp: string; newPassword: string }) {
+    return this.passwordResetService.resetPassword(dto.email, dto.otp, dto.newPassword);
   }
 
   @Post('change-password')

@@ -141,7 +141,7 @@
     "hidePassword": "Скрыть пароль",
     "showPassword": "Показать пароль",
     "forgotPassword": "Забыли пароль?",
-    "forgotPasswordHint": "Введите email и slug компании — мы отправим код восстановления",
+    "forgotPasswordHint": "Введите ваш email — мы отправим код восстановления",
     "companySlug": "Slug компании (из URL)",
     "sendCode": "Отправить код",
     "enterCode": "Введите код",

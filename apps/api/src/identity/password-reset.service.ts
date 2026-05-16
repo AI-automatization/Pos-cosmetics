@@ -27,24 +27,20 @@ export class PasswordResetService {
   ) {}
 
   /** Step 1: Generate OTP and send to email */
-  async forgotPassword(email: string, slug: string): Promise<{ sent: boolean }> {
-    const tenant = await this.prisma.tenant.findUnique({ where: { slug } });
-    if (!tenant) {
-      // Don't reveal if tenant exists — return success anyway
-      return { sent: true };
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { tenantId_email: { tenantId: tenant.id, email } },
+  async forgotPassword(email: string): Promise<{ sent: boolean }> {
+    // Find user by email (any active tenant)
+    const user = await this.prisma.user.findFirst({
+      where: { email, isActive: true, tenant: { isActive: true } },
+      select: { id: true, tenantId: true, email: true },
     });
     if (!user) {
-      // Don't reveal if user exists
+      // Don't reveal if user exists — return success anyway
       return { sent: true };
     }
 
     // Generate 6-digit OTP
     const otp = String(randomInt(100000, 999999));
-    const cacheKey = `${OTP_PREFIX}:${tenant.id}:${email}`;
+    const cacheKey = `${OTP_PREFIX}:${user.tenantId}:${email}`;
 
     await this.cache.set(cacheKey, otp, OTP_TTL_SECONDS);
 
@@ -54,31 +50,26 @@ export class PasswordResetService {
       this.logger.warn(`Failed to send OTP to ${email}`);
     }
 
-    this.logger.log(`Password reset OTP sent to ${email}`, { tenantId: tenant.id });
+    this.logger.log(`Password reset OTP sent to ${email}`, { tenantId: user.tenantId });
     return { sent: true };
   }
 
   /** Step 2: Verify OTP and set new password */
   async resetPassword(
     email: string,
-    slug: string,
     otp: string,
     newPassword: string,
   ): Promise<{ success: boolean }> {
-    const tenant = await this.prisma.tenant.findUnique({ where: { slug } });
-    if (!tenant) {
-      throw new BadRequestException('Noto\'g\'ri ma\'lumotlar');
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { tenantId_email: { tenantId: tenant.id, email } },
+    const user = await this.prisma.user.findFirst({
+      where: { email, isActive: true, tenant: { isActive: true } },
+      select: { id: true, tenantId: true },
     });
     if (!user) {
       throw new BadRequestException('Noto\'g\'ri ma\'lumotlar');
     }
 
     // Verify OTP from Redis
-    const cacheKey = `${OTP_PREFIX}:${tenant.id}:${email}`;
+    const cacheKey = `${OTP_PREFIX}:${user.tenantId}:${email}`;
     const storedOtp = await this.cache.get<string>(cacheKey);
 
     if (!storedOtp || storedOtp !== otp) {
@@ -97,14 +88,14 @@ export class PasswordResetService {
 
     // Audit
     void this.auditService.log({
-      tenantId: tenant.id,
+      tenantId: user.tenantId,
       userId: user.id,
       action: 'PASSWORD_RESET',
       entityType: 'User',
       entityId: user.id,
     });
 
-    this.logger.log(`Password reset completed for ${email}`, { tenantId: tenant.id });
+    this.logger.log(`Password reset completed for ${email}`, { tenantId: user.tenantId });
     return { success: true };
   }
 

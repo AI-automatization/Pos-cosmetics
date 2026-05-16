@@ -141,7 +141,7 @@
     "hidePassword": "Parolni yashirish",
     "showPassword": "Parolni ko'rsatish",
     "forgotPassword": "Parolni unutdingiz?",
-    "forgotPasswordHint": "Email va kompaniya slug ini kiriting — tiklash kodi yuboramiz",
+    "forgotPasswordHint": "Email manzilingizni kiriting — tiklash kodi yuboramiz",
     "companySlug": "Kompaniya slug (URL dan)",
     "sendCode": "Kod yuborish",
     "enterCode": "Kodni kiriting",

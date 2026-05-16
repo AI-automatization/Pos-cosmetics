@@ -141,7 +141,7 @@
     "hidePassword": "Hide password",
     "showPassword": "Show password",
     "forgotPassword": "Forgot password?",
-    "forgotPasswordHint": "Enter your email and company slug — we'll send a recovery code",
+    "forgotPasswordHint": "Enter your email — we'll send a recovery code",
     "companySlug": "Company slug (from URL)",
     "sendCode": "Send code",
     "enterCode": "Enter code",
