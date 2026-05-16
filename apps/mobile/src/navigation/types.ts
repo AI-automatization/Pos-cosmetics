@@ -99,6 +99,7 @@ export type MoreStackParamList = {
   BillingScreen: undefined;
   TasksScreen: undefined;
   TesterScreen: undefined;
+  IncomingTransfersScreen: undefined;
 };
 
 export type RootStackParamList = {

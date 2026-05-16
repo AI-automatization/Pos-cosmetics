@@ -62,6 +62,7 @@ import SalesReturnsScreen from '../screens/SalesReturns';
 import ChegirmaScreen from '../screens/Chegirmalar/ChegirmaScreen';
 import BillingScreen from '../screens/Billing/BillingScreen';
 import TasksScreen from '../screens/Tasks/TasksScreen';
+import IncomingTransfersScreen from '../screens/IncomingTransfers/IncomingTransfersScreen';
 import { getRoleLevel } from '../utils/roles';
 
 // ─── Colors ───────────────────────────────────────────────
@@ -159,6 +160,7 @@ function MoreNavigator(): React.JSX.Element {
       <MoreStack.Screen name="BillingScreen" component={BillingScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="TasksScreen" component={TasksScreen} options={{ headerShown: false }} />
       <MoreStack.Screen name="TesterScreen" component={TesterScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="IncomingTransfersScreen" component={IncomingTransfersScreen} options={{ headerShown: false }} />
     </MoreStack.Navigator>
   );
 }

@@ -242,11 +242,14 @@ export default function MoreMenuScreen(): React.JSX.Element {
 
   const groups = useMemo<readonly MenuGroup[]>(
     () => [
-      // INVENTAR guruhi — CASHIER faqat Ombor ko'radi (Kirim yashiriladi)
+      // INVENTAR guruhi — CASHIER faqat Ombor + Kelgan mahsulotlar ko'radi
       {
         ...INVENTAR_GROUP,
         items: isCashier
-          ? INVENTAR_GROUP.items.filter(i => i.title === 'Ombor')
+          ? [
+              ...INVENTAR_GROUP.items.filter(i => i.title === 'Ombor'),
+              { icon: 'download-outline' as const, title: 'Kelgan mahsulotlar', subtitle: 'Qabul qilish kutilmoqda', screen: 'IncomingTransfersScreen' as keyof MoreStackParamList },
+            ]
           : roleLevel >= 3
             ? [...INVENTAR_GROUP.items, { icon: 'warning-outline' as const, title: 'Kam qolgan', subtitle: 'Zaxira kam mahsulotlar', screen: 'LowStockList' as keyof MoreStackParamList }]
             : INVENTAR_GROUP.items,
