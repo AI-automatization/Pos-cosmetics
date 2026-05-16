@@ -501,6 +501,7 @@ model Order {
   taxAmount      Decimal      @default(0) @map("tax_amount") @db.Decimal(15, 2)
   total          Decimal      @db.Decimal(15, 2)
   notes          String?
+  origin         String       @default("POS") @map("origin") // POS | ZZONE | MANUAL
   fiscalStatus   FiscalStatus @default(NONE) @map("fiscal_status")
   fiscalId       String?      @map("fiscal_id")
   fiscalQr       String?      @map("fiscal_qr")
@@ -923,6 +924,8 @@ enum ShiftStatus {
 }
 
 enum OrderStatus {
+  PENDING
+  CONFIRMED
   COMPLETED
   RETURNED
   VOIDED
@@ -2021,4 +2024,18 @@ model AiProviderHealth {
 
   @@unique([provider, model])
   @@map("ai_provider_health")
+}
+
+model IntegrationConfig {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  provider  String
+  config    Json     @default("{}")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, provider], name: "tenantId_provider")
+  @@index([tenantId])
+  @@map("integration_configs")
 }
