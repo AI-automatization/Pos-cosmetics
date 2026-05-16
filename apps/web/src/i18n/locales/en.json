@@ -61,6 +61,7 @@
     "goBack": "Go back",
     "new": "New",
     "notFound": "Not found",
+    "print": "Print",
     "processing": "Processing...",
     "understood": "Understood"
   },
@@ -219,6 +220,8 @@
     "unit": "Unit",
     "unitShortName": "Short name",
     "searchPlaceholder": "Search by name, SKU or barcode...",
+    "notFound": "No products found",
+    "addFirst": "Add your first product",
     "skuBarcode": "SKU / Barcode",
     "addBarcode": "Add barcode",
     "scanWithCamera": "Scan with camera",

@@ -57,22 +57,22 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
       <thead>
         <tr className="border-b border-gray-200 bg-gray-50">
           <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Mahsulot
+            {t('products.productName')}
           </th>
           <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
             {t('products.skuBarcode')}
           </th>
           <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Kategoriya
+            {t('products.category')}
           </th>
           <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Sotuv narxi
+            {t('products.sellPrice')}
           </th>
           <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Zaxira
+            {t('products.currentStock')}
           </th>
           <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Status
+            {t('common.status')}
           </th>
           {(onEdit || onDelete) && (
             <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -81,7 +81,7 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
           )}
           {onPrint && (
             <th className="px-2 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Chop
+              {t('common.print')}
             </th>
           )}
         </tr>
@@ -90,8 +90,8 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
         {products.length === 0 ? (
           <tr>
             <td colSpan={colSpan} className="py-16 text-center">
-              <p className="text-sm text-gray-500">Mahsulotlar topilmadi</p>
-              <p className="mt-1 text-xs text-gray-400">Yangi mahsulot qo&apos;shing</p>
+              <p className="text-sm text-gray-500">{t('products.notFound')}</p>
+              <p className="mt-1 text-xs text-gray-400">{t('products.addFirst')}</p>
             </td>
           </tr>
         ) : (

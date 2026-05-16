@@ -61,6 +61,7 @@
     "goBack": "Orqaga qaytish",
     "new": "Yangi",
     "notFound": "Topilmadi",
+    "print": "Chop etish",
     "processing": "Bajarilmoqda...",
     "understood": "Tushunarli"
   },
@@ -219,6 +220,8 @@
     "unit": "O'lchov birligi",
     "unitShortName": "Qisqa nom",
     "searchPlaceholder": "Nom, SKU yoki barcode bo'yicha qidirish...",
+    "notFound": "Mahsulotlar topilmadi",
+    "addFirst": "Yangi mahsulot qo'shing",
     "skuBarcode": "SKU / Barcode",
     "addBarcode": "Barcode qo'shish",
     "scanWithCamera": "Kamera bilan skanerlash",
