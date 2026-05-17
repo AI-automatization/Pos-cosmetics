@@ -53,7 +53,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         paymentMethod === 'bonus' ||
         (paymentMethod === 'split' && (splitNasiyaAmount > 0 || bonusPoints > 0));
 
-      const orderPayload = {
+      const orderPayload: import('@/types/sales').CreateOrderDto = {
         shiftId: shiftId ?? '',
         items: items.map((item) => ({
           productId: item.productId,
@@ -78,7 +78,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
           id: crypto.randomUUID(),
           label,
           createdAt: new Date().toISOString(),
-          payload: orderPayload as Record<string, unknown>,
+          payload: orderPayload as unknown as Record<string, unknown>,
         });
         const { total: totalAmt } = totals();
         const cash = paymentMethod === 'cash' ? totalAmt : paymentMethod === 'split' ? cashAmount : 0;
