@@ -1,4 +1,5 @@
 # ─── Stage 1: builder ─────────────────────────────────────────
+# cache-bust: 2026-05-17
 FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
