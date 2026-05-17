@@ -10,7 +10,6 @@ import { useBranches } from '@/hooks/settings/useBranches';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
-import { ROLE_ORDER } from '@/types/user';
 import { useTranslation } from '@/i18n/i18n-context';
 
 const ROLE_KEYS: { value: UserRole; labelKey: string; subKey: string }[] = [

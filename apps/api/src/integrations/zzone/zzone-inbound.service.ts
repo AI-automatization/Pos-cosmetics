@@ -1,5 +1,6 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { OrderStatus } from '@prisma/client';
 
 /**
  * ZZone → RAOS (Inbound Service)
@@ -15,14 +16,11 @@ export class ZzoneInboundService {
 
   // ─── PRODUCTS ────────────────────────────────────────────────────────
 
-  async getProducts(sellerId?: string, page = 1) {
+  async getProducts(sellerId: string, page = 1) {
     const limit = 50;
     const skip = (page - 1) * limit;
 
-    const where: any = { deletedAt: null, isActive: true };
-    if (sellerId) {
-      where.tenantId = sellerId;
-    }
+    const where = { deletedAt: null, isActive: true, tenantId: sellerId };
 
     const [total, products] = await this.prisma.$transaction([
       this.prisma.product.count({ where }),
@@ -181,26 +179,33 @@ export class ZzoneInboundService {
     };
   }
 
-  async updateOrderStatus(orderId: string, status: string) {
+  async updateOrderStatus(orderId: string, status: string, sellerId: string) {
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId },
+      where: { id: orderId, tenantId: sellerId },
     });
 
     if (!order) throw new NotFoundException('Order not found');
 
+    const validStatuses = Object.values(OrderStatus);
+    if (!validStatuses.includes(status as OrderStatus)) {
+      throw new BadRequestException(`Invalid status: ${status}. Valid: ${validStatuses.join(', ')}`);
+    }
+
     const updated = await this.prisma.order.update({
       where: { id: orderId },
-      data: { status: status as any },
+      data: { status: status as OrderStatus },
       select: { id: true, status: true, createdAt: true },
     });
 
     return { orderId: updated.id, status: updated.status, createdAt: updated.createdAt };
   }
 
-  async getOrders(sellerId?: string, status?: string) {
-    const where: any = { origin: 'ZZONE' };
-    if (sellerId) where.tenantId = sellerId;
-    if (status) where.status = status;
+  async getOrders(sellerId: string, status?: string) {
+    const where: { origin: string; tenantId: string; status?: OrderStatus } = {
+      origin: 'ZZONE',
+      tenantId: sellerId,
+    };
+    if (status) where.status = status as OrderStatus;
 
     const orders = await this.prisma.order.findMany({
       where,

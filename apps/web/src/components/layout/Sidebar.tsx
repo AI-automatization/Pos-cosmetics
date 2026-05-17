@@ -54,7 +54,6 @@ interface NavSection {
 
 /* ─── Navigation Config (single source of truth) ─── */
 
-const ALL: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER', 'CASHIER'];
 const NO_CASHIER: Role[] = ['OWNER', 'ADMIN', 'MANAGER', 'VIEWER'];
 
 const ADMIN_ONLY: Role[] = ['OWNER', 'ADMIN'];

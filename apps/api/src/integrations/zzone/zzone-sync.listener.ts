@@ -3,6 +3,11 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ZzoneOutboundService } from './zzone-outbound.service';
 
+interface ZzoneConfig {
+  token?: string;
+  productMappings?: Record<string, string>;
+}
+
 /**
  * ZZone Auto-Sync Listener
  *
@@ -48,7 +53,10 @@ export class ZzoneSyncListener {
 
       if (!config || !config.isActive) return;
 
-      const { token, productMappings } = config.config as any;
+      const zzoneConfig = config.config as ZzoneConfig | null;
+      if (!zzoneConfig || typeof zzoneConfig !== 'object') return;
+
+      const { token, productMappings } = zzoneConfig;
       if (!token) return;
 
       // Find ZZone product ID mapping

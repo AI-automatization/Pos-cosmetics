@@ -271,7 +271,7 @@ export class PaymentConfigService {
   }
 
   /** Terminal: check that settings have valid bankName */
-  private verifyTerminalFormat(tenantId: string): { success: boolean; error?: string } {
+  private verifyTerminalFormat(_tenantId: string): { success: boolean; error?: string } {
     // Terminal doesn't need credential verification — just config check
     return { success: true };
   }

@@ -75,7 +75,7 @@ export default function StockInPage() {
       setItems(newRows);
       setBannerDismissed(true);
     }
-  }, [supplierDetail]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [supplierDetail]);
   const supplierProducts = supplierDetail?.productSuppliers?.filter((ps) => ps.product.isActive) ?? [];
   const showBanner = !!supplierId && !bannerDismissed && supplierProducts.length > 0
     && !supplierProducts.every((ps) => items.some((r) => r.productId === ps.product.id));

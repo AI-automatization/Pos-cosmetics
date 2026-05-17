@@ -10,7 +10,7 @@ import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { useOrders, useOrder } from '@/hooks/sales/useOrders';
 import { formatPrice, formatDateTime, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
-import type { OrderStatus, PaymentMethod } from '@/types/order';
+import type { OrderStatus } from '@/types/order';
 
 const STATUS_CONFIG: Record<OrderStatus, { icon: React.ComponentType<{ className?: string }>; className: string }> = {
   COMPLETED: { icon: CheckCircle, className: 'bg-green-100 text-green-700' },
@@ -18,7 +18,7 @@ const STATUS_CONFIG: Record<OrderStatus, { icon: React.ComponentType<{ className
   VOIDED: { icon: XCircle, className: 'bg-red-100 text-red-700' },
 };
 
-const PAYMENT_METHOD_KEYS: Record<string, string> = {
+const _PAYMENT_METHOD_KEYS: Record<string, string> = {
   CASH: 'payments.cash',
   NAQD: 'payments.cash',
   CARD: 'payments.card',

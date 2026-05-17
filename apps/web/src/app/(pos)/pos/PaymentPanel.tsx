@@ -46,7 +46,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
       if (splitNasiyaAmount !== 0) setSplitNasiyaAmount(0);
       if (paymentMethod !== 'nasiya' && paymentMethod !== 'bonus' && bonusPoints !== 0) setBonusPoints(0);
     }
-  }, [paymentMethod]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [paymentMethod]);
 
   const { data: loyaltyConfig } = useLoyaltyConfig();
   const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
@@ -98,7 +98,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     }
     setDiscountInput(String(orderDiscount));
     setDiscountType(orderDiscountType);
-  }, [orderDiscount, orderDiscountType]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orderDiscount, orderDiscountType]);
 
   const MAX_CASHIER_DISCOUNT_PCT = 5;
 

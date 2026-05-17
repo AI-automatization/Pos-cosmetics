@@ -22,7 +22,10 @@ export class ZzoneOutboundService {
   // ─── AUTH ────────────────────────────────────────────────────────────
 
   async login(phone: string, password: string): Promise<{ token: string; userId: string }> {
-    const res = await this.request('POST', '/api/auth/login', { phone, password });
+    const res = await this.request('POST', '/api/auth/login', { phone, password }) as {
+      token: string;
+      user: { id: string };
+    };
     return { token: res.token, userId: res.user.id };
   }
 
@@ -32,7 +35,9 @@ export class ZzoneOutboundService {
     token: string,
     product: { name: string; price: number; category: string; description?: string; stock: number },
   ): Promise<{ zzoneProductId: string }> {
-    const res = await this.request('POST', '/api/products', product, token);
+    const res = await this.request('POST', '/api/products', product, token) as {
+      product: { _id: string };
+    };
     return { zzoneProductId: res.product._id };
   }
 
@@ -57,12 +62,15 @@ export class ZzoneOutboundService {
   async getSellerOrders(
     token: string,
     params?: { status?: string; page?: number },
-  ): Promise<{ orders: any[]; pagination: any }> {
+  ): Promise<{ orders: unknown[]; pagination: Record<string, unknown> }> {
     const query = new URLSearchParams();
     if (params?.status) query.set('status', params.status);
     if (params?.page) query.set('page', String(params.page));
     const qs = query.toString() ? `?${query.toString()}` : '';
-    return this.request('GET', `/api/orders/seller${qs}`, undefined, token);
+    return this.request('GET', `/api/orders/seller${qs}`, undefined, token) as Promise<{
+      orders: unknown[];
+      pagination: Record<string, unknown>;
+    }>;
   }
 
   async updateOrderStatus(token: string, orderId: string, status: string): Promise<void> {
@@ -84,7 +92,7 @@ export class ZzoneOutboundService {
 
   // ─── INTERNAL ────────────────────────────────────────────────────────
 
-  private async request(method: string, path: string, body?: unknown, token?: string): Promise<any> {
+  private async request(method: string, path: string, body?: unknown, token?: string): Promise<unknown> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 

@@ -15,14 +15,6 @@ import { useProducts } from '@/hooks/catalog/useProducts';
 
 /* ─── Helpers ─── */
 
-const TYPE_ICONS: Record<PromotionType, React.ComponentType<{ className?: string }>> = {
-  PERCENT:     ({ className }) => <span className={className}>%</span>,
-  FIXED:       ({ className }) => <span className={className}>⚡</span>,
-  BUY_X_GET_Y: ({ className }) => <span className={className}>🎁</span>,
-  BUNDLE:      ({ className }) => <span className={className}>🏷</span>,
-};
-
-// Re-import proper icons to keep consistency with page.tsx
 import { Percent, Zap, Gift, Tag } from 'lucide-react';
 
 const TYPED_ICONS: Record<PromotionType, React.ComponentType<{ className?: string }>> = {

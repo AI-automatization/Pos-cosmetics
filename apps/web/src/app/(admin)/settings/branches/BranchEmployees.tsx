@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import {
-  X, ArrowRightLeft, UserPlus, Users, ChevronDown, ChevronUp, AlertTriangle,
+  X, ArrowRightLeft, UserPlus, Users, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { useUsers } from '@/hooks/settings/useUsers';
 import { useAllEmployees, useTransferEmployee } from '@/hooks/employees/useEmployees';

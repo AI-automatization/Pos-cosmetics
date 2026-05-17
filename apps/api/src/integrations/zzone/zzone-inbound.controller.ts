@@ -8,6 +8,7 @@ import {
   Query,
   Headers,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiHeader, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
@@ -32,16 +33,17 @@ export class ZzoneInboundController {
   @Get('products')
   @ApiTags('Products')
   @ApiOperation({ summary: 'Barcha mahsulotlar', description: 'RAOS dagi barcha faol mahsulotlarni olish. Pagination bilan.' })
-  @ApiQuery({ name: 'sellerId', required: false, description: 'Tenant ID bo\'yicha filter' })
+  @ApiQuery({ name: 'sellerId', required: true, description: 'Tenant ID (MAJBURIY — multi-tenant isolation)' })
   @ApiQuery({ name: 'page', required: false, description: 'Sahifa raqami (default: 1)' })
   @ApiResponse({ status: 200, description: 'Mahsulotlar ro\'yxati' })
   @ApiResponse({ status: 401, description: 'Noto\'g\'ri API key' })
   async getProducts(
     @Headers('x-api-key') key: string,
-    @Query('sellerId') sellerId?: string,
+    @Query('sellerId') sellerId: string,
     @Query('page') page?: string,
   ) {
     this.validateKey(key);
+    if (!sellerId) throw new BadRequestException('sellerId is required');
     const result = await this.service.getProducts(sellerId, page ? +page : 1);
     return { success: true, data: result };
   }
@@ -110,25 +112,27 @@ export class ZzoneInboundController {
   async updateOrderStatus(
     @Headers('x-api-key') key: string,
     @Param('orderId') orderId: string,
-    @Body() body: { status: string },
+    @Body() body: { status: string; sellerId: string },
   ) {
     this.validateKey(key);
-    const order = await this.service.updateOrderStatus(orderId, body.status);
+    if (!body.sellerId) throw new BadRequestException('sellerId is required');
+    const order = await this.service.updateOrderStatus(orderId, body.status, body.sellerId);
     return { success: true, data: order };
   }
 
   @Get('orders')
   @ApiTags('Orders')
   @ApiOperation({ summary: 'ZZone buyurtmalar', description: 'Faqat origin=ZZONE bo\'lgan orderlarni qaytaradi' })
-  @ApiQuery({ name: 'sellerId', required: false, description: 'Tenant ID filter' })
+  @ApiQuery({ name: 'sellerId', required: true, description: 'Tenant ID (MAJBURIY — multi-tenant isolation)' })
   @ApiQuery({ name: 'status', required: false, description: 'PENDING | CONFIRMED | COMPLETED | VOIDED' })
   @ApiResponse({ status: 200, description: 'Buyurtmalar ro\'yxati' })
   async getOrders(
     @Headers('x-api-key') key: string,
-    @Query('sellerId') sellerId?: string,
+    @Query('sellerId') sellerId: string,
     @Query('status') status?: string,
   ) {
     this.validateKey(key);
+    if (!sellerId) throw new BadRequestException('sellerId is required');
     const orders = await this.service.getOrders(sellerId, status);
     return { success: true, data: orders };
   }

@@ -128,6 +128,12 @@ export class OrderService {
 
       const orderItemsInsert = orderItemsData.map(({ isTaxable: _t, ...rest }) => rest);
 
+      // POS flow: payment is already confirmed by cashier before calling createOrder.
+      // Use PENDING for deferred/online orders, COMPLETED for immediate POS sales.
+      const initialStatus = dto.customerId && !resolvedShiftId
+        ? OrderStatus.PENDING
+        : OrderStatus.COMPLETED;
+
       const order = await tx.order.create({
         data: {
           tenantId,
@@ -136,7 +142,7 @@ export class OrderService {
           branchId: resolvedBranchId,
           customerId: dto.customerId,
           orderNumber,
-          status: OrderStatus.COMPLETED,
+          status: initialStatus,
           subtotal,
           discountAmount,
           discountType: dto.discountType ?? 'FIXED',

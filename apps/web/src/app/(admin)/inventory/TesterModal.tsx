@@ -51,7 +51,7 @@ export function TesterModal({ isOpen, onClose }: TesterModalProps) {
       if (warehouses.length === 1) setWarehouseId(warehouses[0].id);
       else setWarehouseId('');
     }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const canSubmit = productId && warehouseId && quantity > 0 && costPrice >= 0;
 

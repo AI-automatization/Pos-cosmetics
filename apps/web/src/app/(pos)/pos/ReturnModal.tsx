@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   X, Search, CheckSquare, Square, RotateCcw,
   Banknote, CreditCard, CheckCircle2, AlertTriangle, Loader2, ChevronDown,
