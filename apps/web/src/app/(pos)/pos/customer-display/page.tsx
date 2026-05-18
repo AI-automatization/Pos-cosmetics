@@ -83,7 +83,7 @@ export default function CustomerDisplayPage() {
         {saleInfo.change > 0 && (
           <div className="rounded-2xl border border-emerald-700 bg-emerald-900/60 px-8 py-4 text-center">
             <p className="text-sm text-emerald-400">{t('pos.change')}</p>
-            <p className="text-3xl font-bold text-emerald-300">{formatPrice(saleInfo.change)}</p>
+            <p className="text-xl sm:text-3xl font-bold text-emerald-300">{formatPrice(saleInfo.change)}</p>
           </div>
         )}
       </div>

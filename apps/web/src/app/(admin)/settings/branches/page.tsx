@@ -77,7 +77,7 @@ export default function BranchesPage() {
   if (isLoading) return <LoadingSkeleton />;
 
   return (
-    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
+    <div className="flex flex-col gap-4 sm:gap-6 h-full overflow-y-auto p-3 sm:p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">{t('nav.branches')}</h1>
