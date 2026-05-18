@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/i18n-context';
 import { apiClient } from '@/api/client';
@@ -55,8 +56,8 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/30">
-            <ShoppingBag className="h-7 w-7 text-white" />
+          <div className="inline-flex h-16 w-16 overflow-hidden rounded-2xl shadow-lg shadow-raos-cyan/30 ring-1 ring-white/10">
+            <Image src="/icon.png" alt="RAOS" width={64} height={64} priority />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-white">RAOS</h1>
         </div>
@@ -73,12 +74,12 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email"
                   autoComplete="email"
-                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-blue-400 focus:outline-none"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-raos-cyan focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={isPending || !email}
-                  className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-raos-cyan py-3 text-sm font-semibold text-raos-bg-deep hover:bg-raos-cyan-light shadow-lg shadow-raos-cyan/30 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   {t('auth.sendCode')}
@@ -98,14 +99,14 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="000000"
                   maxLength={6}
-                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] text-white placeholder-white/40 focus:border-blue-400 focus:outline-none"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] text-white placeholder-white/40 focus:border-raos-cyan focus:outline-none"
                 />
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder={t('auth.newPassword')}
-                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-blue-400 focus:outline-none"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-raos-cyan focus:outline-none"
                 />
                 {newPassword && newPassword.length < 8 && (
                   <p className="text-xs text-red-400">{t('auth.passwordMin8')}</p>
@@ -113,7 +114,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isPending || otp.length !== 6 || newPassword.length < 8}
-                  className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-raos-cyan py-3 text-sm font-semibold text-raos-bg-deep hover:bg-raos-cyan-light shadow-lg shadow-raos-cyan/30 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   {t('auth.resetPassword')}
@@ -129,7 +130,7 @@ export default function ForgotPasswordPage() {
               <p className="mt-2 text-sm text-white/60">{t('auth.canLoginNow')}</p>
               <a
                 href="/login"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-raos-cyan px-6 py-3 text-sm font-semibold text-raos-bg-deep hover:bg-raos-cyan-light shadow-lg shadow-raos-cyan/30"
               >
                 {t('auth.login')}
               </a>
