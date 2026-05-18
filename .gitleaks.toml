@@ -1,0 +1,12 @@
+# Gitleaks configuration — RAOS
+# https://github.com/gitleaks/gitleaks#configuration
+
+title = "RAOS Gitleaks Config"
+
+[allowlist]
+  description = "Allow placeholder values in example files"
+  paths = [
+    '''.env\.example''',
+    '''prisma/seed\.ts''',
+    '''docker-compose\.yml''',
+  ]
