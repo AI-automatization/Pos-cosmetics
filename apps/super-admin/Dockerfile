@@ -6,7 +6,7 @@ WORKDIR /app
 COPY .npmrc package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/super-admin/package.json ./apps/super-admin/
 
-RUN pnpm install --no-frozen-lockfile --filter super-admin...
+RUN pnpm install --frozen-lockfile --filter super-admin...
 
 COPY apps/super-admin/ ./apps/super-admin/
 
