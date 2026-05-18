@@ -701,5 +701,5 @@ Hech qanday ma'lumot bazadan o'chirilmaydi — faqat isActive = false yoki delet
 
 - **Production API:** https://api-production-c5b6.up.railway.app/api/v1
 - **Swagger (mahalliy):** http://localhost:3003/api/v1/docs
-- **Production Web:** https://web-production-5b0b7.up.railway.app
+- **Production Web:** https://raos.uz (eski: web-production-5b0b7.up.railway.app — Cloudflare custom domain 2026-05-07)
 - **Test skript:** `bash scripts/full-test.sh` — 43/43 test o'tadi

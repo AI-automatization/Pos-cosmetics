@@ -29,7 +29,7 @@ async function bootstrap() {
   // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
   const corsOriginRaw = config.get<string>(
     'CORS_ORIGIN',
-    'http://localhost:3001,http://localhost:3002,http://localhost:3003,https://raos.uz,https://www.raos.uz',
+    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,https://web-production-5b0b7.up.railway.app,https://super-admin-production-a0db.up.railway.app,https://raos.uz,https://www.raos.uz',
   );
   // SECURITY: '*' with credentials is dangerous — block in production
   const isProduction = config.get<string>('NODE_ENV') === 'production';
