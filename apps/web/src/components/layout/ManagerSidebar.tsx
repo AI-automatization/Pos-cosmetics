@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -11,7 +12,6 @@ import {
   Users,
   BarChart2,
   ChevronRight,
-  BriefcaseBusiness,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
@@ -44,10 +44,10 @@ export function ManagerSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boo
       'fixed inset-y-0 left-0 z-50 transition-transform duration-200 md:static md:translate-x-0',
       mobileOpen ? 'translate-x-0' : '-translate-x-full',
     )}>
-      {/* Logo */}
+      {/* Logo — RAOS canonical cyan icon */}
       <div className="flex h-14 items-center gap-3 border-b border-gray-200 px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
-          <BriefcaseBusiness className="h-4 w-4 text-white" />
+        <div className="flex h-7 w-7 overflow-hidden rounded-lg shadow-sm shadow-raos-cyan/30 ring-1 ring-raos-cyan/20">
+          <Image src="/icon.png" alt="RAOS" width={28} height={28} priority />
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">RAOS</p>
@@ -69,7 +69,7 @@ export function ManagerSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: boo
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
                   active
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-raos-cyan/10 text-raos-cyan-dark'
                     : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
                 )}
               >

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -11,7 +12,6 @@ import {
   BarChart2,
   Settings,
   ChevronDown,
-  Store,
   Monitor,
   Users,
   HandCoins,
@@ -252,11 +252,11 @@ function NavLink({
         'flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
         collapsed ? 'justify-center' : 'gap-3',
         active
-          ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+          ? 'bg-raos-cyan/10 text-raos-cyan-dark shadow-sm ring-1 ring-raos-cyan/20'
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
       )}
     >
-      <item.icon className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-blue-600' : 'text-gray-400')} />
+      <item.icon className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-raos-cyan-dark' : 'text-gray-400')} />
       {!collapsed && label}
     </Link>
   );
@@ -282,11 +282,11 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
         className={cn(
           'flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
           isActive
-            ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+            ? 'bg-raos-cyan/10 text-raos-cyan-dark shadow-sm ring-1 ring-raos-cyan/20'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         )}
       >
-        <item.icon className={cn('h-4.5 w-4.5 shrink-0', isActive ? 'text-blue-600' : 'text-gray-400')} />
+        <item.icon className={cn('h-4.5 w-4.5 shrink-0', isActive ? 'text-raos-cyan-dark' : 'text-gray-400')} />
       </Link>
     );
   }
@@ -299,11 +299,11 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
         className={cn(
           'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
           isActive
-            ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+            ? 'bg-raos-cyan/10 text-raos-cyan-dark shadow-sm ring-1 ring-raos-cyan/20'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         )}
       >
-        <item.icon className={cn('h-4.5 w-4.5 shrink-0', isActive ? 'text-blue-600' : 'text-gray-400')} />
+        <item.icon className={cn('h-4.5 w-4.5 shrink-0', isActive ? 'text-raos-cyan-dark' : 'text-gray-400')} />
         <span className="flex-1 text-left">{label}</span>
         <ChevronDown
           className={cn('h-4 w-4 transition-transform', open && 'rotate-180')}
@@ -322,7 +322,7 @@ function NavGroup({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
                 className={cn(
                   'rounded-md px-2.5 py-1.5 text-sm transition-colors duration-100',
                   active
-                    ? 'font-semibold text-blue-700'
+                    ? 'font-semibold text-raos-cyan-dark'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800',
                 )}
               >
@@ -353,13 +353,13 @@ function SidebarContent({
 
   return (
     <>
-      {/* Logo */}
+      {/* Logo — RAOS canonical cyan icon (apps/web/public/icon.png) */}
       <div className={cn(
         'flex h-14 items-center border-b border-gray-100',
         collapsed ? 'justify-center px-2' : 'gap-3 px-4',
       )}>
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-sm">
-          <Store className="h-4 w-4 text-white" />
+        <div className="flex h-8 w-8 shrink-0 overflow-hidden rounded-xl shadow-sm shadow-raos-cyan/30 ring-1 ring-raos-cyan/20">
+          <Image src="/icon.png" alt="RAOS" width={32} height={32} priority />
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
@@ -403,7 +403,7 @@ function SidebarContent({
       {!collapsed && user && (
         <div className="border-t border-gray-100 p-2">
           <div className="flex items-center gap-2.5 rounded-lg px-3 py-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-raos-cyan to-raos-cyan-dark text-xs font-bold text-raos-bg-deep">
               {(user.firstName ?? user.email ?? 'U').slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Check, Building2, Users, Package, Rocket, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -74,7 +75,7 @@ export default function OnboardingPage() {
           </p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="mt-6 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+            className="mt-6 w-full rounded-lg bg-raos-cyan px-4 py-2.5 text-sm font-semibold text-raos-bg-deep shadow-md shadow-raos-cyan/30 hover:bg-raos-cyan-light transition"
           >
             {t('onboarding.step4Action')}
           </button>
@@ -88,11 +89,17 @@ export default function OnboardingPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('onboarding.welcome')}</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('onboarding.stepsProgress', { done: doneCount, total: totalSteps })}
-            </p>
+          <div className="flex items-start gap-4">
+            {/* Brand mark — RAOS welcome hero */}
+            <div className="hidden h-12 w-12 shrink-0 overflow-hidden rounded-2xl shadow-md shadow-raos-cyan/30 ring-1 ring-raos-cyan/20 sm:inline-flex">
+              <Image src="/icon.png" alt="RAOS" width={48} height={48} priority />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{t('onboarding.welcome')}</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {t('onboarding.stepsProgress', { done: doneCount, total: totalSteps })}
+              </p>
+            </div>
           </div>
           <button
             onClick={skip}
@@ -106,7 +113,7 @@ export default function OnboardingPage() {
         <div className="mb-8">
           <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+              className="h-full bg-raos-cyan rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -129,18 +136,18 @@ export default function OnboardingPage() {
                   isDone
                     ? 'bg-green-50 border-green-200 opacity-75'
                     : isActive
-                    ? 'bg-white border-indigo-300 shadow-sm'
+                    ? 'bg-white border-raos-cyan/40 shadow-sm shadow-raos-cyan/10'
                     : 'bg-white border-gray-200 hover:border-gray-300',
                 )}
               >
                 {/* Step icon */}
                 <div className={cn(
                   'flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center',
-                  isDone ? 'bg-green-500' : isActive ? 'bg-indigo-600' : 'bg-gray-100',
+                  isDone ? 'bg-green-500' : isActive ? 'bg-raos-cyan shadow-md shadow-raos-cyan/30' : 'bg-gray-100',
                 )}>
                   {isDone
                     ? <Check className="h-5 w-5 text-white" />
-                    : <Icon className={cn('h-5 w-5', isActive ? 'text-white' : 'text-gray-400')} />
+                    : <Icon className={cn('h-5 w-5', isActive ? 'text-raos-bg-deep' : 'text-gray-400')} />
                   }
                 </div>
 
@@ -156,7 +163,7 @@ export default function OnboardingPage() {
                 {isActive && !isDone && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleAction(step); }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-raos-cyan text-raos-bg-deep rounded-lg shadow-sm shadow-raos-cyan/30 hover:bg-raos-cyan-light transition whitespace-nowrap"
                   >
                     {t(`onboarding.${step.actionKey}`)}
                     <ChevronRight className="h-3.5 w-3.5" />

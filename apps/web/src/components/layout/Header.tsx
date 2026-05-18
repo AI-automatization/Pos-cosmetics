@@ -63,8 +63,8 @@ function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 transition hover:bg-gray-50"
       >
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100">
-          <User className="h-4 w-4 text-blue-600" />
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-raos-cyan/15 ring-1 ring-raos-cyan/30">
+          <User className="h-4 w-4 text-raos-cyan-dark" />
         </div>
         <div className="hidden text-left sm:block">
           <p className="text-sm font-medium text-gray-700 leading-tight">{displayName}</p>
@@ -86,7 +86,7 @@ function UserMenu() {
               <p className="text-sm font-medium text-gray-900">{displayName}</p>
               <p className="text-xs text-gray-400 truncate">{user.email}</p>
               {user.tenant && (
-                <p className="mt-1 text-xs text-blue-600 font-medium">{user.tenant.name}</p>
+                <p className="mt-1 text-xs text-raos-cyan-dark font-medium">{user.tenant.name}</p>
               )}
             </div>
           )}
@@ -142,7 +142,7 @@ function LanguageSwitcher() {
               className={cn(
                 'flex w-full items-center gap-2 px-3 py-2 text-sm transition',
                 locale === l.value
-                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  ? 'bg-raos-cyan/10 text-raos-cyan-dark font-medium'
                   : 'text-gray-600 hover:bg-gray-50',
               )}
             >
