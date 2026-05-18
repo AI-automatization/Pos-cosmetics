@@ -1,3 +1,19 @@
+<div align="center">
+  <img src="apps/web/public/android-chrome-512x512.png" width="120" alt="RAOS logo"/>
+
+  # RAOS
+
+  **Universal POS Retail Platform**
+
+  Barcha O'zbek sotuv do'konlari uchun zamonaviy savdo va kassa boshqaruv tizimi.
+
+  Stack: Next.js 15 · NestJS · React Native (Expo) · PostgreSQL · TypeScript
+
+  Brand: cyan `#24D4F4` + dark navy `#0E1530` · [Brand kit](packages/brand-kit)
+</div>
+
+---
+
 # 🤖 CLAUDE CLI TIZIMI — Loyiha Shabloni
 
 > VENTRA loyihasida ishlab chiqilgan va 26 ta bug, 4 ta arxitektura tuzatishi,
