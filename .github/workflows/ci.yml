@@ -71,7 +71,10 @@ jobs:
         run: pnpm --filter api exec prisma generate
 
       - name: Run API tests
-        run: pnpm --filter api test --passWithNoTests
+        run: pnpm --filter api test
+
+      - name: Run Worker tests
+        run: pnpm --filter worker test --passWithNoTests
 
   build-web:
     name: "Build Web (Admin Panel)"
@@ -96,7 +99,7 @@ jobs:
       - name: Build web app
         run: pnpm --filter web build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api.raos.uz' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
   build-super-admin:
     name: "Build Super Admin"
@@ -121,7 +124,7 @@ jobs:
       - name: Build super-admin app
         run: pnpm --filter super-admin build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://api.raos.uz' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
 # Deploy: Railway auto-deploys on push to main via GitHub integration
 # NEVER use "railway up" — see DEPLOY.md
