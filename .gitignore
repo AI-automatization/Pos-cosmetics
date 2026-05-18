@@ -82,8 +82,17 @@ apps/mobile/rn_logs.txt
 apps/mobile/error_logs.txt
 apps/mobile/js_errors.txt
 *.png
+# Production assets — DO NOT ignore
 !apps/mobile/assets/**/*.png
+!apps/mobile/src/assets/**/*.png
+!apps/mobile/ios/**/*.png
+!apps/mobile/android/**/*.png
+!apps/mobile-owner/assets/**/*.png
 !apps/web/public/**/*.png
+!apps/web/src/app/icon.png
+!apps/web/src/app/apple-icon.png
+!apps/web/src/app/opengraph-image.png
+!apps/web/src/app/twitter-image.png
 
 # Playwright MCP
 .playwright-mcp/
