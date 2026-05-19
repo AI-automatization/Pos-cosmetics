@@ -17,6 +17,11 @@ export const INVENTORY_DEDUCTED = 'inventory.deducted';
 export const INVENTORY_RECEIVED = 'inventory.received';
 export const INVENTORY_ADJUSTED = 'inventory.adjusted';
 
+// Product events (ZZone sync triggers)
+export const PRODUCT_CREATED = 'product.created';
+export const PRODUCT_UPDATED = 'product.updated';
+export const PRODUCT_DELETED = 'product.deleted';
+
 // Payment events
 export const PAYMENT_CREATED = 'payment.created';
 export const PAYMENT_CONFIRMED = 'payment.confirmed';
