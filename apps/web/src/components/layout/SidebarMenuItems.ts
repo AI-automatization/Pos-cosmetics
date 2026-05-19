@@ -61,6 +61,7 @@ export const NAV_SECTIONS: NavSection[] = [
           { label: 'Mahsulotlar', tKey: 'nav.products', href: '/catalog/products' },
           { label: 'Kategoriyalar', tKey: 'nav.categories', href: '/catalog/categories' },
           { label: 'Yetkazib beruvchilar', tKey: 'nav.suppliers', href: '/catalog/suppliers' },
+          { label: 'Import', tKey: 'import.title', href: '/catalog/import' },
         ],
       },
       {
