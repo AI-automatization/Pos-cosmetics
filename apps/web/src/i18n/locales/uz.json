@@ -709,7 +709,9 @@
     "fiscalNote": "Fiskal chek KKM ulanganidan keyin chop etiladi",
     "thankYou": "Xarid uchun rahmat!",
     "visitAgain": "Yana tashrif buyuring",
-    "subtotal": "Oraliq jami"
+    "subtotal": "Oraliq jami",
+    "loyaltyEarned": "Yig'ilgan ball",
+    "loyaltyBalance": "Jami ball"
   },
   "suppliers": {
     "title": "Yetkazib beruvchilar",

@@ -709,7 +709,9 @@
     "fiscalNote": "Fiscal receipt will be issued after connecting fiscal device",
     "thankYou": "Thank you for your purchase!",
     "visitAgain": "Visit us again",
-    "subtotal": "Subtotal"
+    "subtotal": "Subtotal",
+    "loyaltyEarned": "Points Earned",
+    "loyaltyBalance": "Total Points"
   },
   "suppliers": {
     "title": "Suppliers",

@@ -709,7 +709,9 @@
     "fiscalNote": "Фискальный чек будет выдан после подключения ККМ",
     "thankYou": "Спасибо за покупку!",
     "visitAgain": "Приходите снова",
-    "subtotal": "Подитог"
+    "subtotal": "Подитог",
+    "loyaltyEarned": "Начислено баллов",
+    "loyaltyBalance": "Всего баллов"
   },
   "suppliers": {
     "title": "Поставщики",
