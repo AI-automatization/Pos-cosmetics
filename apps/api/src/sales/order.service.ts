@@ -272,10 +272,8 @@ export class OrderService {
     return {
       orderNumber: order.orderNumber,
       date: order.createdAt,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cashier: `${(order as any).user?.firstName} ${(order as any).user?.lastName}`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      customer: (order as any).customer?.name ?? null,
+      cashier: `${order.user?.firstName ?? ''} ${order.user?.lastName ?? ''}`.trim(),
+      customer: order.customer?.name ?? null,
       items: order.items.map((i) => ({
         name: i.productName,
         qty: i.quantity,
@@ -286,8 +284,7 @@ export class OrderService {
       discount: order.discountAmount,
       tax: order.taxAmount,
       total: order.total,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payments: (order as any).paymentIntents?.map((p: any) => ({
+      payments: order.paymentIntents?.map((p) => ({
         method: p.method,
         amount: p.amount,
       })),

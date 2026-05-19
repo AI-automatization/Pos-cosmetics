@@ -6,6 +6,7 @@ import { AdminTenantHelper } from './admin-tenant.helper';
 import { AdminSubscriptionHelper } from './admin-subscription.helper';
 import { AdminMetricsService } from './admin-metrics.service';
 import { AdminDatabaseService } from './admin-database.service';
+import { AdminSqlConsoleService } from './admin-sql-console.service';
 import { AdminAuthController } from './admin-auth.controller';
 import { AdminTenantController } from './admin-tenant.controller';
 import { AdminOpsController } from './admin-ops.controller';
@@ -27,7 +28,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     }),
   ],
   controllers: [AdminAuthController, AdminTenantController, AdminOpsController, AdminDatabaseController],
-  providers: [AdminAuthService, AdminTenantHelper, AdminSubscriptionHelper, AdminMetricsService, AdminDatabaseService],
+  providers: [AdminAuthService, AdminTenantHelper, AdminSubscriptionHelper, AdminMetricsService, AdminDatabaseService, AdminSqlConsoleService],
   exports: [AdminAuthService, AdminMetricsService, AdminDatabaseService],
 })
 export class AdminModule {}

@@ -21,6 +21,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { AdminDatabaseService } from './admin-database.service';
+import { AdminSqlConsoleService } from './admin-sql-console.service';
 
 interface AdminRequest { user?: { role?: string; userId?: string } }
 
@@ -29,7 +30,10 @@ interface AdminRequest { user?: { role?: string; userId?: string } }
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
 @Controller('admin/db')
 export class AdminDatabaseController {
-  constructor(private readonly dbService: AdminDatabaseService) {}
+  constructor(
+    private readonly dbService: AdminDatabaseService,
+    private readonly sqlConsole: AdminSqlConsoleService,
+  ) {}
 
   // ─── READ ──────────────────────────────────────────────────────────────────
 
@@ -216,6 +220,6 @@ export class AdminDatabaseController {
       throw new BadRequestException('SUPPORT role uchun SQL console taqiqlangan. Faqat SUPER_ADMIN ishlatishi mumkin.');
     }
     const adminId = req.user?.userId ?? 'unknown';
-    return this.dbService.executeQuery(sql, adminId, confirmDestructive === 'yes');
+    return this.sqlConsole.executeQuery(sql, adminId, confirmDestructive === 'yes');
   }
 }
