@@ -110,6 +110,30 @@ export class ProductImportService {
     return { created, updated, errors };
   }
 
+  // ─── TEMPLATE ──────────────────────────────────────────────────
+
+  async generateTemplate(): Promise<Buffer> {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Import shablon');
+    ws.columns = [
+      { header: "Nomi", key: 'name', width: 30 },
+      { header: "SKU", key: 'sku', width: 15 },
+      { header: "Barkod", key: 'barcode', width: 15 },
+      { header: "Narx (so'm)", key: 'price', width: 15 },
+      { header: "Tannarx", key: 'costPrice', width: 15 },
+      { header: "O'lchov", key: 'unit', width: 10 },
+      { header: "Kategoriya", key: 'category', width: 20 },
+      { header: "Min zaxira", key: 'minStock', width: 12 },
+    ];
+    ws.getRow(1).font = { bold: true };
+    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9EAD3' } };
+    // Example rows
+    ws.addRow({ name: "Chanel No.5 100ml", sku: 'CH-N5-100', barcode: '3145891255300', price: 1200000, costPrice: 850000, unit: 'dona', category: 'Kosmetika', minStock: 5 });
+    ws.addRow({ name: "Nivea Cream 300ml", sku: 'NIV-300', barcode: '', price: 58000, costPrice: 38000, unit: 'dona', category: 'Kosmetika', minStock: 20 });
+    const buf = await wb.xlsx.writeBuffer();
+    return Buffer.from(buf as ArrayBuffer);
+  }
+
   // ─── EXPORT ────────────────────────────────────────────────────
 
   async exportToXlsx(tenantId: string): Promise<Buffer> {

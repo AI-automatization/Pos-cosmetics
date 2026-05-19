@@ -56,6 +56,15 @@ export class ProductImportController {
     return this.importService.importFromBuffer(tenantId, userId, file.buffer, file.mimetype);
   }
 
+  @Get('import/template')
+  @ApiOperation({ summary: 'Download import template XLSX' })
+  async downloadTemplate(@Res() res: Response) {
+    const buf = await this.importService.generateTemplate();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="RAOS-import-template.xlsx"');
+    res.send(buf);
+  }
+
   @Get('export')
   @ApiOperation({ summary: 'T-130: Mahsulotlarni XLSX/CSV ga eksport qilish' })
   @ApiQuery({ name: 'format', required: false, enum: ['xlsx', 'csv'], description: 'Default: xlsx' })

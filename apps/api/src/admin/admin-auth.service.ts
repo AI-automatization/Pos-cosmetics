@@ -341,9 +341,7 @@ export class AdminAuthService {
       select: { id: true, name: true },
     });
 
-    // Emit product.created for each product — sync listener will handle the rest
-    const { EventEmitter2 } = await import('@nestjs/event-emitter');
-    // Note: this is a simplified trigger — actual sync happens in ZzoneSyncListener
+    // Note: actual sync happens via ZzoneSyncListener on product events
     return {
       success: true,
       message: `Sync triggered for ${products.length} products`,
