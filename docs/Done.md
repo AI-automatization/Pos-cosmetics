@@ -1,5 +1,41 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-16
+# Yangilangan: 2026-05-19
+
+---
+
+## T-503 | 2026-05-19 | [MOBILE] | App version check — minimum versiya tekshiruvi + force update
+- **Yechim:** `useVersionCheck` hook — `GET /app/min-version` endpoint dan semver tekshirish. `ForceUpdateScreen` — eski versiya bo'lsa Store ga yo'naltiradi. LoginScreen dagi hardcoded `v1.0.0` → `Constants.expoConfig.version` (dinamik). `expo-constants` dependency qo'shildi.
+- **Fayl:** `apps/mobile/src/hooks/useVersionCheck.ts`, `apps/mobile/src/screens/Auth/ForceUpdateScreen.tsx`, `apps/mobile/src/screens/Auth/LoginScreen.tsx`, `apps/mobile/src/App.tsx`
+
+---
+
+## T-502 | 2026-05-19 | [MOBILE] | Deep link validation — URL scheme whitelist
+- **Yechim:** `app.json` da `scheme: "raos"`, iOS `associatedDomains`, Android `intentFilters` (autoVerify). `linking.ts` — URL whitelist + path validation (javascript:, data:, path traversal bloklangan). Faqat `SaleDetail` va `AlertDetail` deep link orqali ochiladi. Auth/Finance TAQIQLANGAN.
+- **Fayl:** `apps/mobile/app.json`, `apps/mobile/src/navigation/linking.ts`, `apps/mobile/src/App.tsx`
+
+---
+
+## T-501 | 2026-05-19 | [SECURITY] | Screenshot protection — maxfiy ekranlarda bloklash
+- **Yechim:** `expo-screen-capture` + `useScreenProtection` hook (`useFocusEffect` based). 13 ta sensitive ekranga qo'shildi: Login, Biometric, PaymentSheet, PaymentSuccess, PnL, OrderDetail, NasiyaAging, PaymentsHistory, DebtDetail, PayModal, EmployeeDetail, CustomerDetail, ShiftDetail. Dev da skip, production da screenshot + recording bloklangan.
+- **Fayl:** `apps/mobile/src/hooks/useScreenProtection.ts` + 13 ta screen fayl
+
+---
+
+## T-500 | 2026-05-19 | [SECURITY] | Biometric auth — server-side re-validation kuchaytirildi
+- **Yechim:** BiometricScreen — `loadFromStorage()` cache early return olib tashlandi, `authApi.me()` HAR DOIM chaqiriladi, `refreshToken` saqlanadi (bo'sh string emas). `useRequireReauth` hook yaratildi — sensitive operatsiyalar uchun 5 daqiqalik biometric re-auth.
+- **Fayl:** `apps/mobile/src/screens/Auth/BiometricScreen.tsx`, `apps/mobile/src/hooks/useRequireReauth.ts`
+
+---
+
+## T-499 | 2026-05-19 | [SECURITY] | Jailbreak/Root detection — rooted qurilma tekshiruvi
+- **Yechim:** `jail-monkey` v3.0.0 (New Arch support). `useSecurityCheck` hook — `isJailBroken()` + `trustFall()`. `CompromisedDeviceScreen` — ogohlantirish + logout. AppState listener — background dan qaytganda qayta tekshiradi. Dev da skip.
+- **Fayl:** `apps/mobile/src/hooks/useSecurityCheck.ts`, `apps/mobile/src/screens/Auth/CompromisedDeviceScreen.tsx`, `apps/mobile/src/App.tsx`
+
+---
+
+## T-498 | 2026-05-19 | [SECURITY] | Mobile SSL Certificate Pinning — MITM himoyasi
+- **Yechim:** `react-native-ssl-public-key-pinning` v1.2.6. `sslPinning.ts` — `setupSslPinning()` + error listener. `app.json` da `expo-build-properties` — iOS network inspector o'chirildi. Dev da skip, production da barcha Axios so'rovlar pinned cert orqali. Placeholder hash lar — deploy oldidan haqiqiy hash qo'yish kerak.
+- **Fayl:** `apps/mobile/src/lib/sslPinning.ts`, `apps/mobile/app.json`, `apps/mobile/src/App.tsx`
 
 ---
 

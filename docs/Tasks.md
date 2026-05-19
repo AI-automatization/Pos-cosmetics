@@ -336,49 +336,7 @@
 
 ---
 
-## T-499 | P2 | [SECURITY] | Jailbreak/Root detection — rooted qurilmada token xavfi
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Abdulaziz
-- **Manba:** Team Lead security audit (AbdulazizYormatov), GitHub #26
-- **Fayl:** `apps/mobile/src/` (yangi hook/service kerak)
-- **Muammo:** Jailbreak (iOS) yoki root (Android) qilingan qurilmada `expo-secure-store` encryption buzilishi mumkin — JWT tokenlar ochiq o'qiladi. Hech qanday runtime detection yo'q.
-- **Vazifa:**
-  - `jail-monkey` yoki `expo-device` + custom detection logikasi qo'shish
-  - Detect bo'lsa: logout + warning dialog ko'rsatish
-  - App startup da va background dan qaytganda tekshirish
-- **Kutilgan:** Rooted/jailbroken qurilmada app ishlashdan oldin ogohlantiradi
-
----
-
-## T-500 | P2 | [SECURITY] | Biometric auth — server-side re-validation zaif
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Abdulaziz
-- **Manba:** Team Lead security audit (AbdulazizYormatov), GitHub #27
-- **Fayl:** `apps/mobile/src/screens/Auth/BiometricScreen.tsx`, `apps/mobile/src/hooks/useBiometricAuth.ts`
-- **Muammo:** `expo-local-authentication` ishlaydi, lekin biometric muvaffaqiyatidan keyin cached `access_token` ishlatiladi — server-side qayta tekshiruv zaif. Token expired bo'lsa ham app authenticated ko'rsatadi. Bo'sh `refreshToken: ''` bilan `setUser()` chaqiriladi.
-- **Vazifa:**
-  - Biometric success dan keyin server `POST /auth/verify-token` chaqirish
-  - Token expired bo'lsa refresh flow ishga tushirish (bo'sh refresh token emas)
-  - Sensitive operatsiyalar (to'lov, transfer) uchun per-operation re-auth
-- **Kutilgan:** Biometric + server validation = ikki qatlamli xavfsizlik
-
----
-
-## T-501 | P2 | [SECURITY] | Screenshot protection — maxfiy ekranlarda bloklash
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Abdulaziz
-- **Manba:** Team Lead security audit (AbdulazizYormatov), GitHub #28
-- **Fayl:** `apps/mobile/src/` (yangi utility kerak)
-- **Muammo:** To'lov, login, PIN ekranlarida screenshot olish mumkin. POS app uchun moliyaviy ma'lumotlar himoyalanishi shart.
-- **Vazifa:**
-  - `expo-screen-capture` o'rnatish
-  - `preventScreenCapture()` qo'shish: Login, PIN, Payment, OrderDetail ekranlarida
-  - `allowScreenCapture()` boshqa ekranlarda qaytarish
-  - Android: `FLAG_SECURE`, iOS: `isProtected` API
-- **Kutilgan:** Sensitive ekranlarda screenshot/screen recording bloklangan
+*(T-499, T-500, T-501 — Done.md ga ko'chirildi 2026-05-19)*
 
 ---
 
@@ -431,15 +389,15 @@
 
 | Umumiy ochiq | P0 | P1 | P2 | P3 |
 |--------------|----|----|----|----|
-| **45** | **7** | **12** | **16** | **10** |
+| **39** | **7** | **11** | **13** | **8** |
 
 ### Kategoriya bo'yicha
 
 | Kategoriya | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | [BACKEND] | 4 | 5 | 4 | 4 | **17** |
-| [SECURITY] | 2 | 2 | 4 | 0 | **8** |
-| [MOBILE] | 0 | 4 | 7 | 5 | **16** |
+| [SECURITY] | 2 | 1 | 1 | 0 | **4** |
+| [MOBILE] | 0 | 4 | 7 | 3 | **14** |
 | [IKKALASI] | 1 | 1 | 0 | 1 | **3** |
 | [BACKEND+FRONTEND] | 0 | 0 | 1 | 0 | **1** |
 
@@ -448,11 +406,11 @@
 | Dasturchi | P0 | P1 | P2 | P3 | Jami |
 |-----------|----|----|----|----|------|
 | **Ibrat** (Full-Stack) | 7 | 5 | 6 | 0 | **18** |
-| **Abdulaziz** (Mobile) | 0 | 5 | 10 | 5 | **20** |
+| **Abdulaziz** (Mobile) | 0 | 4 | 7 | 3 | **14** |
 | **AbdulazizYormatov** (Team Lead) | 0 | 2 | 0 | 0 | **2** |
 | **Belgilanmagan** | 0 | 0 | 0 | 5 | **5** |
 
-> Yangilandi: 2026-05-19 — Team Lead security audit: T-498..T-503 qo'shildi (6 ta mobile security issue).
+> Yangilandi: 2026-05-19 — T-498..T-503 BAJARILDI (security audit), Done.md ga ko'chirildi.
 
 ---
 
@@ -557,18 +515,7 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-## T-498 | P1 | [SECURITY] | Mobile SSL Certificate Pinning yo'q — MITM xavfi
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Abdulaziz
-- **Manba:** Team Lead security audit (AbdulazizYormatov), GitHub #25
-- **Fayl:** `apps/mobile/src/api/client.ts`
-- **Muammo:** Barcha HTTP so'rovlar standart HTTPS orqali yuboriladi, SSL/TLS certificate pinning yo'q. Man-in-the-middle (MITM) ataka orqali API traffic interceptlanishi mumkin — to'lov ma'lumotlari, JWT tokenlar xavf ostida.
-- **Vazifa:**
-  - `react-native-ssl-pinning` yoki custom TLS pinning implement qilish
-  - Backend sertifikat public key ni pin qilish
-  - Pin mismatch bo'lsa request bloklash + user ga xabar
-- **Kutilgan:** Barcha API so'rovlar pinned certificate orqali — MITM imkonsiz
+*(T-498 — Done.md ga ko'chirildi 2026-05-19)*
 
 ---
 
@@ -592,34 +539,7 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 
 ---
 
-## T-502 | P3 | [MOBILE] | Deep link validation — URL scheme whitelist
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Abdulaziz
-- **Manba:** Team Lead security audit (AbdulazizYormatov), GitHub #29
-- **Fayl:** `apps/mobile/app.json`, `apps/mobile/src/navigation/`
-- **Muammo:** Hozir deep linking implement qilinmagan (faqat `tel:` URI). Kelajakda deep link qo'shilganda URL validation va scheme whitelist bo'lishi shart — redirect hijack oldini olish.
-- **Vazifa:**
-  - Deep linking implement qilishda: `app.json` da `scheme` + `host` config
-  - Expo Linking da URL whitelist + origin check
-  - Faqat ruxsat berilgan path larga routing
-- **Kutilgan:** Deep link qo'shilganda xavfsiz — faqat tasdiqlangan URL lar ishlaydi
-
----
-
-## T-503 | P3 | [MOBILE] | App version check — minimum versiya tekshiruvi + force update
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Abdulaziz
-- **Manba:** Team Lead security audit (AbdulazizYormatov), GitHub #31
-- **Fayl:** `apps/mobile/App.tsx`, `apps/mobile/app.json`
-- **Muammo:** Minimum versiya tekshiruvi yo'q. Eski versiya foydalanuvchilari yangilanmasdan ishlashda davom etadi — xavfsizlik patch lari yetib bormaydi.
-- **Vazifa:**
-  - Backend: `GET /api/v1/app/min-version` endpoint (Ibrat)
-  - Mobile: App.tsx da startup da versiya tekshirish
-  - `app version < minVersion` bo'lsa force update modal ko'rsatish (Store ga yo'naltirish)
-  - `app.json` versiyani `package.json` dan avtomatik sync
-- **Kutilgan:** Eski versiyalar bloklangan, foydalanuvchilar yangilanishga majbur
+*(T-502, T-503 — Done.md ga ko'chirildi 2026-05-19)*
 
 ---
 
