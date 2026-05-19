@@ -64,6 +64,7 @@ model Tenant {
   clientErrorLogs     ClientErrorLog[]
   paymeTransactions       PaymeTransaction[]
   paymentProviderConfigs  PaymentProviderConfig[]
+  promoCodes              PromoCode[]
 
   @@map("tenants")
 }
@@ -2078,4 +2079,36 @@ model IntegrationConfig {
   @@unique([tenantId, provider], name: "tenantId_provider")
   @@index([tenantId])
   @@map("integration_configs")
+}
+
+// ============================================
+// PROMO CODES (T-467)
+// ============================================
+
+enum PromoType {
+  PERCENT
+  FIXED
+}
+
+model PromoCode {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  code        String
+  type        PromoType @default(PERCENT)
+  value       Decimal   @default(0)
+  usageLimit  Int       @default(0) @map("usage_limit")   // 0 = unlimited
+  usageCount  Int       @default(0) @map("usage_count")
+  minPurchase Decimal   @default(0) @map("min_purchase")
+  validFrom   DateTime  @map("valid_from")
+  validTo     DateTime? @map("valid_to")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, code], name: "tenantId_code")
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@map("promo_codes")
 }
