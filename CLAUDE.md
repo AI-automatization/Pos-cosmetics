@@ -4,7 +4,7 @@
 
 # Barcha dasturchilar uchun UMUMIY qoidalar
 
-# RAOS v3.0 — Jamoa restrukturizatsiyasi (2026-03-23)
+# RAOS v4.0 — Jamoa kengaytirildi (2026-05-19)
 
 ---
 
@@ -19,6 +19,8 @@ Kimligingizni aniqlay olmayman — ismingiz kim?
   2. Abdulaziz (Mobile — React Native Android + iOS)
   3. AbdulazizYormatov (Team Lead — Arxitektura & Code Review)
   4. Bekzod (PM — Project Management & QA)
+  5. Ziyoda (Landing Page — Next.js Frontend)
+  6. Hobbit (Analitika, Kontent, Post)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
@@ -27,8 +29,10 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 - Abdulaziz → `CLAUDE_MOBILE.md`
 - AbdulazizYormatov → `CLAUDE_FULLSTACK.md` + `CLAUDE_MOBILE.md` (read-only review uchun)
 - Bekzod → `CLAUDE_FULLSTACK.md` (read-only, project overview uchun)
+- Ziyoda → `CLAUDE_LANDING.md`
+- Hobbit → `CLAUDE_CONTENT.md`
 
-### Jamoa Tuzilishi (2026-03-23 dan)
+### Jamoa Tuzilishi (2026-05-19 dan)
 
 | Rol | Ism | Mas'uliyat | Zona |
 |-----|-----|-----------|------|
@@ -36,10 +40,14 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 | **Mobile Dev** | Abdulaziz | Android + iOS (staff app + owner app) | apps/mobile, apps/mobile-owner |
 | **Team Lead** | AbdulazizYormatov | Code review, arxitektura qarorlari, PR tasdiqlash | Barcha zonalar (read + review) |
 | **PM** | Bekzod | Task prioritizatsiya, sprint planning, QA, yangi g'oyalar | docs/, CLAUDE*.md, test |
+| **Landing Dev** | Ziyoda Mirazakirova | Landing page — dizayn, SEO, konversiya, A/B test (VAQTINCHALIK) | apps/landing/ |
+| **Analitik & Kontent** | Hobbit | Raqobat tahlili, kontent strategiya, ijtimoiy tarmoq postlar | docs/competitive-analysis/, docs/content/ |
 | **Warehouse Staff** | — | Inventar boshqaruvi (ombor) | apps/web/(warehouse)/, apps/api/src/inventory/ |
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 > **Eslatma:** Polat 2026-03-23 dan loyihani tark etdi. Barcha backend vazifalari Ibrat ga o'tdi.
+> **Eslatma:** Ziyoda — VAQTINCHALIK (landing page tayyor bo'lgach, vazifa yakunlanadi).
+> **Eslatma:** Hobbit — analitika, kontent va post uchun mas'ul. Kod yozmaydi, faqat docs/ bilan ishlaydi.
 
 ---
 
@@ -67,6 +75,7 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 | POS Desktop    | Tauri + SQLite (offline-first)   | —    |
 | Mobile (Staff) | React Native (Android + iOS)     | —    |
 | Mobile (Owner) | React Native (Android + iOS)     | —    |
+| Landing Page   | Next.js 15 + Tailwind v4         | 3002 |
 | Bot            | grammY (Telegram)                | —    |
 | Object Storage | S3-compatible (MinIO dev)        | 9000 |
 
@@ -79,6 +88,7 @@ apps/
   bot/             → Ibrat zonasi (Telegram bot — grammY)
   web/             → Ibrat zonasi (Admin Panel — Next.js)
   pos/             → Ibrat zonasi (POS Desktop — Tauri)
+  landing/         → Ziyoda zonasi (Landing Page — Next.js, VAQTINCHALIK)
   mobile/          → Abdulaziz zonasi (Staff App — React Native Android + iOS)
   mobile-owner/    → Abdulaziz zonasi (Owner App — React Native Android + iOS)
 packages/
@@ -89,6 +99,8 @@ packages/
 prisma/            → Ibrat boshqaradi (schema + migrations)
 docker/            → Ibrat boshqaradi (infra)
 docs/              → Hammaga ochiq (Bekzod — PM sifatida boshqaradi)
+docs/competitive-analysis/ → Hobbit zonasi (raqobat tahlili)
+docs/content/      → Hobbit zonasi (kontent reja, postlar)
 ```
 
 ---
@@ -225,6 +237,8 @@ Events stored in event_log table (immutable).
 [SECURITY]  — Auth, RBAC, Encryption, Audit
 [OFFLINE]   — Sync engine, conflict resolution, SQLite
 [AI]        — Analytics pipeline, insights, forecasting
+[LANDING]   — Landing page, SEO, konversiya, A/B test
+[CONTENT]   — Raqobat tahlili, kontent strategiya, ijtimoiy tarmoq postlar
 [IKKALASI]  — Shared types, API contract, migrations
 ```
 
@@ -264,6 +278,9 @@ ibrat/feat-[feature-name]
 ibrat/fix-[bug-description]
 abdulaziz/feat-[feature-name]
 abdulaziz/fix-[bug-description]
+ziyoda/feat-[feature-name]
+ziyoda/fix-[bug-description]
+hobbit/content-[topic-name]
 
 # Commit format (Conventional Commits — MAJBURIY):
 feat(module): short description in English
@@ -283,7 +300,7 @@ docs(module): documentation update
 
 # Modul nomlari commit da:
 # identity, catalog, inventory, sales, payments, ledger,
-# tax, realestate, ai, pos, admin, mobile, sync, infra
+# tax, realestate, ai, pos, admin, mobile, sync, infra, landing, content
 
 # Branch Protection (main):
 ✓ PR orqali faqat (direct push TAQIQLANGAN)
@@ -496,6 +513,7 @@ cd apps/api && npx prisma migrate dev && npx prisma generate
 # 4. Dev servers:
 pnpm --filter api dev        # Backend  → :3000
 pnpm --filter web dev        # Admin    → :3001
+pnpm --filter landing dev    # Landing  → :3002
 pnpm --filter worker dev     # Worker
 pnpm --filter bot dev        # Telegram bot
 pnpm --filter pos dev        # POS Desktop (Tauri)
@@ -553,6 +571,8 @@ QOIDA: Har dasturchi FAQAT o'z zonasidagi fayllarni o'zgartiradi.
 ZONALAR:
   Ibrat     → apps/api/, apps/web/, apps/pos/, apps/bot/, apps/worker/, docker/, prisma/
   Abdulaziz → apps/mobile/, apps/mobile-owner/
+  Ziyoda    → apps/landing/ (VAQTINCHALIK — landing tayyor bo'lgach yakunlanadi)
+  Hobbit    → docs/competitive-analysis/, docs/content/ (faqat docs, KOD YOZMAYDI)
   UMUMIY    → packages/* (faqat kelishib)
 
 PROTSEDURA (boshqa zona fayli kerak bo'lsa):
@@ -564,6 +584,12 @@ PROTSEDURA (boshqa zona fayli kerak bo'lsa):
 PR TEKSHIRUVI (merge oldidan):
   git diff main --name-only | grep -v "^apps/(api|web|pos|bot|worker)/"
   ↑ Ibrat uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
+
+  git diff main --name-only | grep -v "^apps/landing/"
+  ↑ Ziyoda uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
+
+  git diff main --name-only | grep -v "^docs/(competitive-analysis|content)/"
+  ↑ Hobbit uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
 
 ISTISNO:
   - CI lint fix (barcha apps uchun) → Team Lead tasdiqlagandan keyin
@@ -608,10 +634,12 @@ ISTISNO:
 | --------------------------- | ------------------------------------------------------- |
 | `CLAUDE_FULLSTACK.md`       | Ibrat (Full-Stack — Web + Backend + DevOps)             |
 | `CLAUDE_MOBILE.md`          | Abdulaziz (Mobile — Android + iOS)                      |
+| `CLAUDE_LANDING.md`         | Ziyoda (Landing Page — Next.js, VAQTINCHALIK)           |
+| `CLAUDE_CONTENT.md`         | Hobbit (Analitika, Kontent, Post)                       |
 | `docs/AGENTS_GUIDE.md`      | Hammaga — Claude agentlari to'liq qo'llanmasi           |
 | `docs/Tasks.md`             | Ochiq vazifalar (Bekzod — PM boshqaradi)                |
 | `docs/Done.md`              | Bajarilgan ishlar                                       |
 
 ---
 
-_CLAUDE.md | RAOS | v3.0 | 2026-03-24 — Mobile iOS qo'shildi, mobile-owner aniqlashtirildi_
+_CLAUDE.md | RAOS | v4.0 | 2026-05-19 — Ziyoda (Landing) va Hobbit (Analitika/Kontent) qo'shildi_
