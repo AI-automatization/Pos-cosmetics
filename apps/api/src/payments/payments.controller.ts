@@ -29,6 +29,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
 import { PaymeProvider } from './providers/payme.provider';
 import { ClickProvider, ClickWebhookBody } from './providers/click.provider';
+import { UzumProvider } from './providers/uzum.provider';
 import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('Payments')
@@ -43,6 +44,7 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly paymeProvider: PaymeProvider,
     private readonly clickProvider: ClickProvider,
+    private readonly uzumProvider: UzumProvider,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -267,5 +269,57 @@ export class PaymentsController {
       select: { tenantId: true },
     });
     return order?.tenantId ?? null;
+  }
+
+  // ─── UZUM WEBHOOK (single endpoint, action in path) ────
+
+  @Public()
+  @Post('webhooks/uzum/:action')
+  @Throttle({ default: { limit: 120, ttl: 60000 } })
+  @ApiOperation({ summary: 'Uzum Pay webhook (public, per-tenant, rate-limited)' })
+  @ApiParam({ name: 'action', enum: ['check', 'create', 'confirm', 'reverse', 'status'] })
+  async uzumWebhook(
+    @Param('action') action: string,
+    @Body() body: { serviceId: number; timestamp: number; transId?: string; amount?: number; params?: Record<string, unknown> },
+    @Headers('authorization') auth: string,
+    @Req() req: Request,
+  ) {
+    this.logger.log('Uzum webhook', {
+      ip: req.ip,
+      requestId: req.headers['x-request-id'],
+      action,
+      serviceId: body.serviceId,
+      transId: body.transId,
+    });
+
+    if (!this.uzumProvider.isValidAction(action)) {
+      return {
+        serviceId: body.serviceId,
+        timestamp: Date.now(),
+        status: 'FAILED',
+        errorCode: '10003',
+      };
+    }
+
+    const tenantId = await this.uzumProvider.resolveTenant(body);
+
+    let authValid: boolean;
+    if (tenantId) {
+      authValid = await this.uzumProvider.verifyAuthForTenant(tenantId, auth ?? '');
+    } else {
+      authValid = this.uzumProvider.verifyAuthLegacy(auth ?? '');
+    }
+
+    if (!authValid) {
+      this.logger.warn('Uzum webhook auth failed', { ip: req.ip, action, tenantId });
+      return {
+        serviceId: body.serviceId,
+        timestamp: Date.now(),
+        status: 'FAILED',
+        errorCode: '10001',
+      };
+    }
+
+    return this.uzumProvider.handleAction(action as 'check' | 'create' | 'confirm' | 'reverse' | 'status', body);
   }
 }

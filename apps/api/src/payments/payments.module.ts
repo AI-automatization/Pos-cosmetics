@@ -5,6 +5,7 @@ import { PaymentConfigController } from './payment-config.controller';
 import { PaymentConfigService } from './payment-config.service';
 import { PaymeProvider } from './providers/payme.provider';
 import { ClickProvider } from './providers/click.provider';
+import { UzumProvider } from './providers/uzum.provider';
 
 @Module({
   controllers: [PaymentsController, PaymentConfigController],
@@ -13,7 +14,8 @@ import { ClickProvider } from './providers/click.provider';
     PaymentConfigService,
     PaymeProvider,
     ClickProvider,
+    UzumProvider,
   ],
-  exports: [PaymentsService, PaymentConfigService, PaymeProvider, ClickProvider],
+  exports: [PaymentsService, PaymentConfigService, PaymeProvider, ClickProvider, UzumProvider],
 })
 export class PaymentsModule {}

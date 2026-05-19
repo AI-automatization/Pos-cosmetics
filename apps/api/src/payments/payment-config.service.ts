@@ -182,6 +182,9 @@ export class PaymentConfigService {
       case 'CLICK':
         result = this.verifyClickFormat(creds);
         break;
+      case 'UZUM':
+        result = this.verifyUzumFormat(creds);
+        break;
       case 'TERMINAL':
         result = this.verifyTerminalFormat(tenantId);
         break;
@@ -265,6 +268,30 @@ export class PaymentConfigService {
 
     if (creds.secretKey.length < 8) {
       return { success: false, error: 'Secret Key juda qisqa — merchant.click.uz dan tekshiring' };
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Uzum: validate credential format
+   * serviceId = numeric, username + password = non-empty strings
+   */
+  private verifyUzumFormat(creds: Record<string, string>): { success: boolean; error?: string } {
+    if (!creds.serviceId || !creds.username || !creds.password) {
+      return { success: false, error: 'serviceId, username va password — hammasi kiritilishi shart' };
+    }
+
+    if (!/^\d+$/.test(creds.serviceId)) {
+      return { success: false, error: 'Service ID faqat raqam bo\'lishi kerak' };
+    }
+
+    if (creds.username.length < 3) {
+      return { success: false, error: 'Username juda qisqa — merchants.uzumbank.uz dan tekshiring' };
+    }
+
+    if (creds.password.length < 8) {
+      return { success: false, error: 'Password juda qisqa — merchants.uzumbank.uz dan tekshiring' };
     }
 
     return { success: true };
