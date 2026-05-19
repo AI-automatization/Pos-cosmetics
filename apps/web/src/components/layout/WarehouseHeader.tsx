@@ -39,7 +39,7 @@ export function WarehouseHeader({ onMenuToggle }: { onMenuToggle?: () => void })
   const fullName = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : '';
 
   return (
-    <header className="h-14 shrink-0 flex items-center justify-between gap-2 border-b border-amber-100 bg-gradient-to-r from-amber-50/60 to-white px-3 sm:px-5">
+    <header className="h-14 shrink-0 flex items-center justify-between gap-2 border-b border-blue-100 bg-gradient-to-r from-blue-50/60 to-white px-3 sm:px-5">
       {/* Mobile burger + Page title */}
       <div className="flex items-center gap-2 min-w-0">
         {onMenuToggle && (
@@ -68,7 +68,7 @@ export function WarehouseHeader({ onMenuToggle }: { onMenuToggle?: () => void })
               className={cn(
                 'rounded-md px-2 py-1 text-[10px] font-bold uppercase transition',
                 locale === loc.value
-                  ? 'bg-amber-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-700',
               )}
             >
@@ -80,12 +80,12 @@ export function WarehouseHeader({ onMenuToggle }: { onMenuToggle?: () => void })
         {/* User info */}
         {user && (
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold text-amber-700 shrink-0">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-700 shrink-0">
               {initials}
             </div>
             <div className="hidden sm:block">
               <p className="text-xs font-semibold text-gray-800 leading-tight">{fullName}</p>
-              <p className="text-[10px] font-medium text-amber-600 leading-tight uppercase">{user.role}</p>
+              <p className="text-[10px] font-medium text-blue-600 leading-tight uppercase">{user.role}</p>
             </div>
             <button
               type="button"

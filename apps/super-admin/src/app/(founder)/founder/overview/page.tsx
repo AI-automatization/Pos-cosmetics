@@ -51,8 +51,8 @@ export default function FounderOverviewPage() {
           value: stats.totalTenants.toString(),
           sub: `${stats.activeTenants} активных`,
           icon: Building2,
-          color: 'text-violet-600',
-          bg: 'bg-violet-50',
+          color: 'text-blue-600',
+          bg: 'bg-blue-50',
         },
         {
           label: 'Продажи (сегодня)',
@@ -147,7 +147,7 @@ export default function FounderOverviewPage() {
                 labelStyle={{ color: '#374151' }}
                 formatter={(v: number | string | undefined) => [typeof v === 'number' ? `${v} млн` : String(v ?? ''), 'Выручка']}
               />
-              <Bar dataKey="revenueM" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenueM" fill="#2563eb" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -166,13 +166,13 @@ export default function FounderOverviewPage() {
                       <span className="mr-2 text-gray-400">#{i + 1}</span>
                       {t.name}
                     </span>
-                    <span className="font-medium text-violet-600">
+                    <span className="font-medium text-blue-600">
                       {formatPrice(t.revenue)}
                     </span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
                     <div
-                      className="h-full rounded-full bg-violet-500 transition-all duration-500"
+                      className="h-full rounded-full bg-blue-500 transition-all duration-500"
                       style={{ width: `${pct}%` }}
                     />
                   </div>

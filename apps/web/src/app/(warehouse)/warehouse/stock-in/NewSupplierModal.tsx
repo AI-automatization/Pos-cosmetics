@@ -139,7 +139,7 @@ export function NewSupplierModal({ allProducts, onCreated, onClose }: Props) {
                 {supplierProductIds.map((id) => {
                   const p = allProducts.find((x) => x.id === id);
                   return (
-                    <span key={id} className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
+                    <span key={id} className="flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800">
                       {p?.name ?? id}
                       <button type="button" onClick={() => setSupplierProductIds((ids) => ids.filter((i) => i !== id))}>
                         <X className="h-3 w-3" />
@@ -162,7 +162,7 @@ export function NewSupplierModal({ allProducts, onCreated, onClose }: Props) {
             <button
               type="submit"
               disabled={isCreatingSupplier}
-              className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:opacity-50"
+              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
             >
               {isCreatingSupplier ? t('common.saving') : t('common.save')}
             </button>

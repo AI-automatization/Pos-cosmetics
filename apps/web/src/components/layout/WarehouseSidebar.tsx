@@ -57,7 +57,7 @@ export function WarehouseSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: b
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">RAOS</p>
-          <p className="text-xs text-amber-600 font-medium">{t('nav.warehousePanel')}</p>
+          <p className="text-xs text-blue-600 font-medium">{t('nav.warehousePanel')}</p>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export function WarehouseSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: b
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
                   active
-                    ? 'bg-amber-50 text-amber-700'
+                    ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
                 )}
               >

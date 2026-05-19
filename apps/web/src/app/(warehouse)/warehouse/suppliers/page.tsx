@@ -68,7 +68,7 @@ export default function WarehouseSuppliersPage() {
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
             >
               <Plus className="h-4 w-4" />
               {t('common.add')}
@@ -85,7 +85,7 @@ export default function WarehouseSuppliersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('warehouse.supplierSearchFullPlaceholder')}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
         <div className="flex gap-1">
@@ -96,7 +96,7 @@ export default function WarehouseSuppliersPage() {
               className={cn(
                 'rounded-lg px-3 py-2 text-xs font-medium transition',
                 filterActive === f
-                  ? 'bg-amber-600 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
               )}
             >
@@ -125,7 +125,7 @@ export default function WarehouseSuppliersPage() {
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="mt-1 text-xs text-amber-600 hover:underline"
+              className="mt-1 text-xs text-blue-600 hover:underline"
             >
               {t('warehouse.addFirstSupplier')}
             </button>
@@ -140,7 +140,7 @@ export default function WarehouseSuppliersPage() {
                 className={cn(
                   'bg-white border rounded-xl p-4 space-y-3 transition relative',
                   supplier.isActive
-                    ? 'border-gray-200 hover:border-amber-300 hover:shadow-sm'
+                    ? 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
                     : 'border-gray-100 opacity-60',
                 )}
               >
@@ -148,7 +148,7 @@ export default function WarehouseSuppliersPage() {
                 <Link href={`/warehouse/suppliers/${supplier.id}`} className="block">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-gray-900 leading-tight hover:text-amber-700 transition">{supplier.name}</h3>
+                      <h3 className="font-semibold text-gray-900 leading-tight hover:text-blue-700 transition">{supplier.name}</h3>
                       {supplier.company && (
                         <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
                           <Building2 className="h-3 w-3" />
@@ -169,7 +169,7 @@ export default function WarehouseSuppliersPage() {
                   {supplier.phone && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Phone className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                      <a href={`tel:${supplier.phone}`} className="hover:text-amber-600 transition">
+                      <a href={`tel:${supplier.phone}`} className="hover:text-blue-600 transition">
                         {supplier.phone}
                       </a>
                     </div>
@@ -195,7 +195,7 @@ export default function WarehouseSuppliersPage() {
                       <button
                         type="button"
                         onClick={() => setEditSupplier(supplier)}
-                        className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
+                        className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-blue-600 transition"
                         title={t('common.edit')}
                       >
                         <Pencil className="h-3.5 w-3.5" />

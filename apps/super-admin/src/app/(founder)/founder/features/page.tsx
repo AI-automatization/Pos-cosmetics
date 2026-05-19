@@ -81,7 +81,7 @@ export default function FeaturesPage() {
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
-            <Flag className="h-6 w-6 text-violet-600" />
+            <Flag className="h-6 w-6 text-blue-600" />
             Feature Flags
           </h1>
           <p className="mt-1 text-sm text-gray-500">Управление функциями платформы</p>
@@ -89,7 +89,7 @@ export default function FeaturesPage() {
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
           Новый флаг
@@ -106,9 +106,9 @@ export default function FeaturesPage() {
           <p className="text-xs text-green-600">Включено</p>
           <p className="text-2xl font-bold text-green-700">{enabledCount}</p>
         </div>
-        <div className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
-          <p className="text-xs text-violet-600">Глобальных</p>
-          <p className="text-2xl font-bold text-violet-700">{globalCount}</p>
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+          <p className="text-xs text-blue-600">Глобальных</p>
+          <p className="text-2xl font-bold text-blue-700">{globalCount}</p>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default function FeaturesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Поиск по названию..."
-            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none placeholder:text-gray-400 focus:border-violet-400"
+            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none placeholder:text-gray-400 focus:border-blue-400"
           />
         </div>
 
@@ -215,7 +215,7 @@ export default function FeaturesPage() {
                     {/* Scope */}
                     <td className="px-4 py-3">
                       {isGlobal ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
                           <Globe className="h-3 w-3" />
                           Глобальный
                         </span>
@@ -307,7 +307,7 @@ function CreateFlagModal({ onClose }: { onClose: () => void }) {
     onError: (err) => toast.error(extractErrorMessage(err)),
   });
 
-  const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400';
+  const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -315,7 +315,7 @@ function CreateFlagModal({ onClose }: { onClose: () => void }) {
       <div className="relative z-10 w-full max-w-md rounded-xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div className="flex items-center gap-2">
-            <Flag className="h-5 w-5 text-violet-600" />
+            <Flag className="h-5 w-5 text-blue-600" />
             <h3 className="font-semibold text-gray-900">Новый Feature Flag</h3>
           </div>
           <button type="button" onClick={onClose} className="rounded p-1 text-gray-400 hover:bg-gray-100">
@@ -337,7 +337,7 @@ function CreateFlagModal({ onClose }: { onClose: () => void }) {
             <div className="flex gap-2">
               <button type="button" onClick={() => { setScope('GLOBAL'); setTenantId(''); }}
                 className={cn('flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition',
-                  scope === 'GLOBAL' ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-500 hover:border-gray-300')}>
+                  scope === 'GLOBAL' ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300')}>
                 <Globe className="mr-1.5 inline h-3.5 w-3.5" />Глобальный
               </button>
               <button type="button" onClick={() => setScope('TENANT')}
@@ -383,7 +383,7 @@ function CreateFlagModal({ onClose }: { onClose: () => void }) {
               Отмена
             </button>
             <button type="submit" disabled={createMut.isPending || !name}
-              className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50">
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
               {createMut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Создать
             </button>

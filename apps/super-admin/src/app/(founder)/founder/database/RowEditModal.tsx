@@ -140,7 +140,7 @@ export function RowEditModal({ tableName, row, onClose }: RowEditModalProps) {
         {/* Body */}
         {schemaLoading ? (
           <div className="flex items-center justify-center p-10">
-            <Loader2 className="h-5 w-5 animate-spin text-violet-500" />
+            <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
           </div>
         ) : (
           <form id="row-edit-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5">
@@ -189,7 +189,7 @@ export function RowEditModal({ tableName, row, onClose }: RowEditModalProps) {
             type="submit"
             form="row-edit-form"
             disabled={isPending || schemaLoading}
-            className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-violet-700 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
           >
             {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {isEdit ? 'Сохранить' : 'Создать'}
@@ -229,7 +229,7 @@ function FieldInput({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none focus:border-violet-400"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none focus:border-blue-400"
         >
           <option value="true">true</option>
           <option value="false">false</option>
@@ -247,7 +247,7 @@ function FieldInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={4}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-xs text-gray-700 outline-none focus:border-violet-400"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-xs text-gray-700 outline-none focus:border-blue-400"
           placeholder={col.nullable ? 'null' : 'JSON...'}
         />
       </div>
@@ -261,7 +261,7 @@ function FieldInput({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none focus:border-violet-400"
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none focus:border-blue-400"
         placeholder={col.nullable ? 'null' : ''}
       />
     </div>

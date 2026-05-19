@@ -27,7 +27,7 @@ interface TenantUser {
 }
 
 const ROLE_BADGES: Record<string, string> = {
-  OWNER: 'bg-violet-100 text-violet-700',
+  OWNER: 'bg-blue-100 text-blue-700',
   ADMIN: 'bg-blue-100 text-blue-700',
   MANAGER: 'bg-emerald-100 text-emerald-700',
   CASHIER: 'bg-amber-100 text-amber-700',
@@ -84,7 +84,7 @@ function ResetPasswordModal({ user, tenantId, onClose }: ResetPasswordModalProps
   };
 
   const inputCls =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 pr-20';
+    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 pr-20';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -145,7 +145,7 @@ function ResetPasswordModal({ user, tenantId, onClose }: ResetPasswordModalProps
           <button
             type="button"
             onClick={handleGenerate}
-            className="flex items-center gap-2 self-start rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:border-violet-400 hover:text-violet-600"
+            className="flex items-center gap-2 self-start rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:border-blue-400 hover:text-blue-600"
           >
             <RefreshCw className="h-4 w-4" />
             Сгенерировать пароль
@@ -216,7 +216,7 @@ export function UsersTab({ tenantId, tenantName }: UsersTabProps) {
         <button
           type="button"
           onClick={() => setShowAddOwner(true)}
-          className="flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
         >
           <UserPlus className="h-4 w-4" />
           Добавить Owner

@@ -26,7 +26,7 @@ export function MigrationsTab() {
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3">
-        <GitBranch className="h-4 w-4 text-violet-500" />
+        <GitBranch className="h-4 w-4 text-blue-500" />
         <h2 className="text-sm font-semibold text-gray-700">Prisma Migrations</h2>
         <span className="ml-auto text-xs text-gray-400">{sorted.length} миграций</span>
       </div>

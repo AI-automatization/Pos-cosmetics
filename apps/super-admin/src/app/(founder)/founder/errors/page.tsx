@@ -147,7 +147,7 @@ export default function FounderErrorsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Текст ошибки, тенант, URL..."
-            className="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+            className="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           />
         </div>
       </div>
@@ -189,7 +189,7 @@ export default function FounderErrorsPage() {
                     <div className="mt-1 flex items-center gap-3 text-xs text-gray-400">
                       <Link
                         href={`/founder/tenants/${err.tenantId}`}
-                        className="text-violet-600 hover:underline"
+                        className="text-blue-600 hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {err.tenantName}

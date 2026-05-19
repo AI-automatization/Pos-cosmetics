@@ -74,12 +74,12 @@ export default function FounderLoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-600 shadow-lg shadow-violet-600/30">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/30">
             <Zap className="h-7 w-7 text-white" />
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white">RAOS</h1>
-            <p className="text-sm text-violet-300">Super Admin Panel</p>
+            <p className="text-sm text-blue-300">Super Admin Panel</p>
           </div>
         </div>
 
@@ -95,7 +95,7 @@ export default function FounderLoginPage() {
               type="email"
               placeholder="admin@raos.uz"
               autoComplete="email"
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white outline-none placeholder:text-gray-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white outline-none placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
             {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
           </div>
@@ -108,7 +108,7 @@ export default function FounderLoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 pr-10 text-sm text-white outline-none placeholder:text-gray-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 pr-10 text-sm text-white outline-none placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
               <button
                 type="button"
@@ -124,7 +124,7 @@ export default function FounderLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:opacity-60"
+            className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
             {isLoading ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

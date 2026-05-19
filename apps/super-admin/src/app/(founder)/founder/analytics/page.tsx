@@ -73,7 +73,7 @@ export default function AnalyticsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
-            <BarChart3 className="h-6 w-6 text-violet-600" />
+            <BarChart3 className="h-6 w-6 text-blue-600" />
             Аналитика платформы
           </h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
               onClick={() => setDays(opt.value)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                 days === opt.value
-                  ? 'bg-violet-600 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
                   const hasData = val > 0;
                   const width = maxRevenue > 0 ? Math.max((val / maxRevenue) * 100, 0) : 0;
                   return (
-                    <tr key={i} className={hasData ? 'bg-violet-50/40 hover:bg-violet-50' : 'hover:bg-gray-50'}>
+                    <tr key={i} className={hasData ? 'bg-blue-50/40 hover:bg-blue-50' : 'hover:bg-gray-50'}>
                       <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-700">
                         {point.date ? new Date(point.date).toLocaleDateString('ru', { day: 'numeric', month: 'long', weekday: 'short' }) : '—'}
                       </td>
@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
                         {hasData && (
                           <div className="h-5 rounded bg-gray-100">
                             <div
-                              className="h-full rounded bg-violet-500"
+                              className="h-full rounded bg-blue-500"
                               style={{ width: `${width}%` }}
                             />
                           </div>
@@ -155,7 +155,7 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="px-4 py-2 text-right">
                         {hasData ? (
-                          <span className="rounded-full bg-violet-100 px-2 py-0.5 font-medium text-violet-700">
+                          <span className="rounded-full bg-blue-100 px-2 py-0.5 font-medium text-blue-700">
                             {point.orders}
                           </span>
                         ) : (
@@ -194,7 +194,7 @@ export default function AnalyticsPage() {
               <tbody className="divide-y divide-gray-100">
                 {topTenants.map((t, i) => (
                   <tr key={i} className="hover:bg-gray-50">
-                    <td className="px-4 py-2.5 font-bold text-violet-600">{i + 1}</td>
+                    <td className="px-4 py-2.5 font-bold text-blue-600">{i + 1}</td>
                     <td className="px-4 py-2.5 font-medium text-gray-800">{t.name ?? '—'}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-gray-700">
                       {formatMoney(t.revenue ?? 0)}

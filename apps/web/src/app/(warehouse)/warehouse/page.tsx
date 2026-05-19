@@ -135,7 +135,7 @@ export default function WarehouseDashboardPage() {
         {[
           { href: '/warehouse/invoices',  icon: FileText,    label: t('warehouse.invoices'),        color: 'bg-blue-50 text-blue-600',   border: 'hover:border-blue-300' },
           { href: '/warehouse/stock-in',  icon: PackagePlus, label: t('warehouse.stockIn'),        color: 'bg-green-50 text-green-600', border: 'hover:border-green-300' },
-          { href: '/warehouse/inventory', icon: LayoutList,  label: t('inventory.title'),            color: 'bg-amber-50 text-amber-600', border: 'hover:border-amber-300' },
+          { href: '/warehouse/inventory', icon: LayoutList,  label: t('inventory.title'),            color: 'bg-blue-50 text-blue-600', border: 'hover:border-blue-300' },
           { href: '/warehouse/low-stock', icon: TrendingDown,label: t('inventory.lowStock'),          color: 'bg-red-50 text-red-600',     border: 'hover:border-red-300' },
           { href: '/warehouse/expiry',    icon: CalendarX,   label: t('inventory.expiringSoon'),  color: 'bg-orange-50 text-orange-600', border: 'hover:border-orange-300' },
           { href: '/warehouse/suppliers', icon: Truck,       label: t('nav.suppliers'), color: 'bg-purple-50 text-purple-600', border: 'hover:border-purple-300' },
@@ -156,7 +156,7 @@ export default function WarehouseDashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Package}       label={t('warehouse.totalProducts')}     value={stats?.totalProducts ?? 0} color="bg-amber-500" />
+        <StatCard icon={Package}       label={t('warehouse.totalProducts')}     value={stats?.totalProducts ?? 0} color="bg-blue-500" />
         <StatCard icon={TrendingDown}  label={t('inventory.lowStock')}            value={stats?.lowStockCount ?? 0} color="bg-red-500" />
         <StatCard icon={AlertTriangle} label={t('warehouse.expirySoon')}         value={stats?.expiryCount ?? 0}  color="bg-orange-500" />
         <StatCard icon={ArrowUpDown}   label={t('warehouse.todayMovements')}    value={(stats?.todayMovementsIn ?? 0) + (stats?.todayMovementsOut ?? 0)} color="bg-blue-500" />

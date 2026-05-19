@@ -138,7 +138,7 @@ export default function TenantDetailPage() {
     return (
       <div className="flex flex-col items-center gap-4 p-12">
         <p className="text-gray-500">Магазин не найден</p>
-        <Link href="/founder/tenants" className="rounded-lg bg-violet-600 px-4 py-2 text-sm text-white">
+        <Link href="/founder/tenants" className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white">
           Назад
         </Link>
       </div>
@@ -163,8 +163,8 @@ export default function TenantDetailPage() {
         {/* Title + actions */}
         <div className="mb-5 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100">
-              <Building2 className="h-6 w-6 text-violet-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
+              <Building2 className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function TenantDetailPage() {
               type="button"
               onClick={() => impersonateMut.mutate()}
               disabled={impersonateMut.isPending}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 transition hover:border-violet-400 hover:text-violet-600 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 transition hover:border-blue-400 hover:text-blue-600 disabled:opacity-50"
             >
               <LogIn className="h-4 w-4" />
               Войти
@@ -196,7 +196,7 @@ export default function TenantDetailPage() {
             <button
               type="button"
               onClick={() => setShowEdit(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 transition hover:border-violet-400 hover:text-violet-600"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 transition hover:border-blue-400 hover:text-blue-600"
             >
               <Pencil className="h-4 w-4" />
               Редактировать
@@ -239,7 +239,7 @@ export default function TenantDetailPage() {
                 className={cn(
                   'flex items-center gap-1.5 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition',
                   active
-                    ? 'border-violet-600 text-violet-600'
+                    ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                 )}
               >

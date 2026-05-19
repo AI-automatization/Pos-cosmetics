@@ -124,7 +124,7 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
           </div>
 
           <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-            <Store className="h-5 w-5 text-violet-500" />
+            <Store className="h-5 w-5 text-blue-500" />
             <div>
               <p className="text-xs text-gray-500">Статус</p>
               <p
@@ -177,7 +177,7 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
                   'Выручка',
                 ]}
               />
-              <Bar dataKey="revenueM" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenueM" fill="#2563eb" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (

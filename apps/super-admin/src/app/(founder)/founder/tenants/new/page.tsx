@@ -22,7 +22,7 @@ import {
 
 // ─── Shared field helpers ────────────────────────────────────────────────────
 
-const INPUT_CLS = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100';
+const INPUT_CLS = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
 
 function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -135,7 +135,7 @@ export default function NewTenantPage() {
     <button type="button" onClick={onClick} className="flex-1 rounded-lg border border-gray-300 py-2 text-sm text-gray-700 hover:bg-gray-50">{label}</button>
   );
   const nextBtn = (label: string, loading = false) => (
-    <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60">
+    <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
       {loading ? 'Создание...' : label}
     </button>
   );
@@ -187,13 +187,13 @@ export default function NewTenantPage() {
               </Field>
             )}
 
-            <button type="button" onClick={() => setLegalOpen(!legalOpen)} className="flex items-center gap-2 text-sm font-medium text-violet-600 hover:text-violet-700">
+            <button type="button" onClick={() => setLegalOpen(!legalOpen)} className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700">
               <ChevronDown className={cn('h-4 w-4 transition-transform', legalOpen && 'rotate-180')} />
               Юридические данные
             </button>
             {legalOpen && (
-              <div className="flex flex-col gap-3 rounded-lg border border-violet-100 bg-violet-50/30 p-4">
-                <p className="text-xs text-violet-600">Данные для договоров и фискальных чеков. Необязательно — можно заполнить позже.</p>
+              <div className="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50/30 p-4">
+                <p className="text-xs text-blue-600">Данные для договоров и фискальных чеков. Необязательно — можно заполнить позже.</p>
                 <Field label="Юр. название" hint="Полное юридическое наименование компании"><input {...companyForm.register('legalName')} placeholder='OOO "Gulnora"' className={INPUT_CLS} /></Field>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="ИНН" hint="Идентификационный номер налогоплательщика (9 цифр)"><input {...companyForm.register('inn')} placeholder="123456789" className={INPUT_CLS} /></Field>
@@ -227,9 +227,9 @@ export default function NewTenantPage() {
               <input {...ownerForm.register('phone')} placeholder="+998901234567" maxLength={13} className={cn(INPUT_CLS, 'font-mono')} />
             </Field>
             <div className="flex items-center gap-2">
-              <input type="checkbox" id="autoPassword" {...ownerForm.register('autoPassword')} className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+              <input type="checkbox" id="autoPassword" {...ownerForm.register('autoPassword')} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
               <label htmlFor="autoPassword" className="flex items-center gap-1.5 text-sm text-gray-700">
-                <Sparkles className="h-3.5 w-3.5 text-violet-500" /> Авто-пароль
+                <Sparkles className="h-3.5 w-3.5 text-blue-500" /> Авто-пароль
               </label>
             </div>
             {!ownerForm.watch('autoPassword') && (
@@ -255,8 +255,8 @@ export default function NewTenantPage() {
                   <button key={plan.id} type="button"
                     onClick={() => planForm.setValue('planId', plan.id, { shouldValidate: true })}
                     className={cn('flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition',
-                      selected ? 'border-violet-600 bg-violet-50 ring-1 ring-violet-200' : 'border-gray-200 bg-white hover:border-gray-300')}>
-                    <span className={cn('text-sm font-semibold', selected ? 'text-violet-700' : 'text-gray-900')}>{plan.name}</span>
+                      selected ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200' : 'border-gray-200 bg-white hover:border-gray-300')}>
+                    <span className={cn('text-sm font-semibold', selected ? 'text-blue-700' : 'text-gray-900')}>{plan.name}</span>
                     <span className="text-xs text-gray-500">
                       {plan.price > 0 ? `${(plan.price / 1000).toFixed(0)}k сум/мес` : plan.id === 'ENTERPRISE' ? 'Договор' : 'Бесплатно'}
                     </span>
@@ -280,8 +280,8 @@ export default function NewTenantPage() {
         ) : (
           <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6">
             <h2 className="text-base font-semibold text-gray-900">Подтверждение</h2>
-            <div className="rounded-xl bg-violet-50 p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-500">Компания</p>
+            <div className="rounded-xl bg-blue-50 p-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-500">Компания</p>
               <SummaryRow label="Название" value={companyData?.name} />
               <SummaryRow label="Slug" value={companyData?.slug} />
               <SummaryRow label="Телефон" value={companyData?.phone} />
@@ -306,7 +306,7 @@ export default function NewTenantPage() {
             <div className="flex gap-2 pt-2">
               {backBtn(() => setStep(3))}
               <button type="button" onClick={handleConfirm} disabled={createMutation.isPending}
-                className="flex-1 rounded-lg bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60">
+                className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
                 {createMutation.isPending ? 'Создание...' : 'Создать'}
               </button>
             </div>
