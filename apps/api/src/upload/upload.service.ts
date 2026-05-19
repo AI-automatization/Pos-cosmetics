@@ -33,13 +33,23 @@ export class UploadService {
   private readonly bucket: string;
   private readonly publicEndpoint: string;
 
+  private readonly disabled: boolean;
+
   constructor(private readonly config: ConfigService) {
     const endpoint = config.get<string>('MINIO_ENDPOINT', 'http://localhost:9000');
-    const accessKey = config.getOrThrow<string>('MINIO_ACCESS_KEY');
-    const secretKey = config.getOrThrow<string>('MINIO_SECRET_KEY');
+    const accessKey = config.get<string>('MINIO_ACCESS_KEY');
+    const secretKey = config.get<string>('MINIO_SECRET_KEY');
     this.bucket = config.get<string>('MINIO_BUCKET', 'raos');
     this.publicEndpoint = config.get<string>('MINIO_PUBLIC_URL', endpoint);
 
+    if (!accessKey || !secretKey) {
+      this.logger.warn('MINIO_ACCESS_KEY / MINIO_SECRET_KEY not set — upload disabled');
+      this.disabled = true;
+      this.s3 = null as unknown as S3Client;
+      return;
+    }
+
+    this.disabled = false;
     this.s3 = new S3Client({
       endpoint,
       region: 'us-east-1', // MinIO ignores region but SDK requires it
@@ -56,6 +66,9 @@ export class UploadService {
     file: Express.Multer.File,
     folder = 'uploads',
   ): Promise<{ url: string; key: string; size: number; mimeType: string }> {
+    if (this.disabled) {
+      throw new BadRequestException('File upload is not configured (MINIO_ACCESS_KEY missing)');
+    }
     this.validateFile(file);
 
     const ext = ALLOWED_MIME[file.mimetype] ?? path.extname(file.originalname);
@@ -91,6 +104,7 @@ export class UploadService {
    * Generate a presigned GET URL (default 1 hour)
    */
   async presignGet(key: string, expiresIn = 3600): Promise<string> {
+    if (this.disabled) throw new BadRequestException('File upload is not configured');
     return getSignedUrl(
       this.s3,
       new GetObjectCommand({ Bucket: this.bucket, Key: key }),
@@ -102,6 +116,7 @@ export class UploadService {
    * Delete an object by key
    */
   async deleteOne(key: string): Promise<void> {
+    if (this.disabled) throw new BadRequestException('File upload is not configured');
     await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
     this.logger.log(`Deleted ${key}`);
   }
