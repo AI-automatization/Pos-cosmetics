@@ -208,6 +208,7 @@ model Product {
   description    String?
   expiryTracking Boolean   @default(false) @map("expiry_tracking")
   isTaxable      Boolean   @default(true)  @map("is_taxable")  // T-078: QQS (НДС 12%)
+  zzoneVisible   Boolean   @default(false) @map("zzone_visible") // ZZone marketplace visibility
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")
@@ -227,6 +228,7 @@ model Product {
   transferItems    StockTransferItem[]
   certificates     ProductCertificate[]
   priceChanges     PriceChange[]
+  vehicleCompats   ProductVehicleCompatibility[]
 
   @@unique([tenantId, sku])
   @@unique([tenantId, barcode])
@@ -249,6 +251,44 @@ model ProductBarcode {
   @@index([barcode])
   @@index([productId])
   @@map("product_barcodes")
+}
+
+// ============================================
+// VEHICLE COMPATIBILITY (ZZone auto-parts)
+// ============================================
+
+model Vehicle {
+  id        String   @id @default(uuid())
+  brand     String   // Toyota, Chevrolet, Audi
+  model     String   // Camry, Cobalt, A6
+  yearFrom  Int      @map("year_from")
+  yearTo    Int?     @map("year_to") // null = current
+  bodyType  String?  @map("body_type") // sedan, hatchback, suv, wagon
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  productCompats ProductVehicleCompatibility[]
+
+  @@unique([brand, model, yearFrom])
+  @@index([brand])
+  @@index([brand, model])
+  @@map("vehicles")
+}
+
+model ProductVehicleCompatibility {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  vehicleId String   @map("vehicle_id")
+  notes     String?  // "Only 2.4L engine", "Front only"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, vehicleId])
+  @@index([vehicleId])
+  @@index([productId])
+  @@map("product_vehicle_compatibilities")
 }
 
 // ============================================
