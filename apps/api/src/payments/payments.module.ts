@@ -6,6 +6,7 @@ import { PaymentConfigService } from './payment-config.service';
 import { PaymeProvider } from './providers/payme.provider';
 import { ClickProvider } from './providers/click.provider';
 import { UzumProvider } from './providers/uzum.provider';
+import { PaymentReconciliationService } from './payment-reconciliation.service';
 
 @Module({
   controllers: [PaymentsController, PaymentConfigController],
@@ -15,6 +16,7 @@ import { UzumProvider } from './providers/uzum.provider';
     PaymeProvider,
     ClickProvider,
     UzumProvider,
+    PaymentReconciliationService,
   ],
   exports: [PaymentsService, PaymentConfigService, PaymeProvider, ClickProvider, UzumProvider],
 })
