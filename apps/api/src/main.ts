@@ -74,7 +74,7 @@ async function bootstrap() {
     return this.toString();
   };
 
-  // Swagger — disabled in production (security: prevents API surface exposure)
+  // Swagger — internal docs disabled in production
   if (!isProduction) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('RAOS API')
@@ -86,18 +86,19 @@ async function bootstrap() {
       include: [], // all modules
     });
     SwaggerModule.setup(`${prefix}/docs`, app, document);
-
-    const zzoneSwaggerConfig = new DocumentBuilder()
-      .setTitle('RAOS x ZZone Collaboration API')
-      .setDescription('ZZone marketplace integration API')
-      .setVersion('1.0.0')
-      .addApiKey({ type: 'apiKey', name: 'X-Api-Key', in: 'header' }, 'api-key')
-      .build();
-    const zzoneDocument = SwaggerModule.createDocument(app, zzoneSwaggerConfig, {
-      include: [ZzoneModule],
-    });
-    SwaggerModule.setup(`${prefix}/zzone/docs`, app, zzoneDocument);
   }
+
+  // ZZone Swagger — ALWAYS enabled (public partner API docs)
+  const zzoneSwaggerConfig = new DocumentBuilder()
+    .setTitle('RAOS x ZZone Collaboration API')
+    .setDescription('ZZone marketplace integration API — 18 endpoints')
+    .setVersion('1.0.0')
+    .addApiKey({ type: 'apiKey', name: 'X-Api-Key', in: 'header' }, 'api-key')
+    .build();
+  const zzoneDocument = SwaggerModule.createDocument(app, zzoneSwaggerConfig, {
+    include: [ZzoneModule],
+  });
+  SwaggerModule.setup(`${prefix}/zzone/docs`, app, zzoneDocument);
 
   // Graceful shutdown (T-085)
   app.enableShutdownHooks();
