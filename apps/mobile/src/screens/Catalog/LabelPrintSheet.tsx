@@ -7,11 +7,16 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  ScrollView,
   Share,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useBtPrinter } from '../../hooks/useBtPrinter';
+import { buildTsplLabel } from '../../lib/tsplBuilder';
+import type { LabelSize as TsplLabelSize } from '../../lib/tsplBuilder';
+import BtDeviceList from './BtDeviceList';
 
 // ─── expo-print dynamic import ────────────────────────────────────────────────
 // expo-print o'rnatilmagan muhitlarda xatolik chiqmasligi uchun lazy require
@@ -54,6 +59,9 @@ const SIZE_DIMS: Record<LabelSize, { w: string; h: string; fontSize: string }> =
   '40x30': { w: '40mm', h: '30mm', fontSize: '8pt' },
   '58x40': { w: '58mm', h: '40mm', fontSize: '9pt' },
 };
+
+// ─── Print mode ──────────────────────────────────────────────────────────────
+type PrintMode = 'system' | 'bluetooth';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MIN_COPIES     = 1;
@@ -104,21 +112,21 @@ function buildLabelHtml(
 // ─── LabelPrintSheet ──────────────────────────────────────────────────────────
 export function LabelPrintSheet({ product, onClose }: LabelPrintSheetProps) {
   const { t } = useTranslation();
+  const bt = useBtPrinter();
 
+  const [printMode, setPrintMode]       = useState<PrintMode>('system');
   const [selectedSize, setSelectedSize] = useState<LabelSize>(DEFAULT_SIZE);
   const [copies, setCopies]             = useState<number>(DEFAULT_COPIES);
   const [loading, setLoading]           = useState(false);
 
-  const handleDecrease = () => {
-    setCopies((prev) => Math.max(MIN_COPIES, prev - 1));
-  };
+  const isBtReady = printMode === 'bluetooth' && bt.connectedDevice !== null;
+  const canPrint  = printMode === 'system' || isBtReady;
 
-  const handleIncrease = () => {
-    setCopies((prev) => Math.min(MAX_COPIES, prev + 1));
-  };
+  const handleDecrease = () => setCopies((prev) => Math.max(MIN_COPIES, prev - 1));
+  const handleIncrease = () => setCopies((prev) => Math.min(MAX_COPIES, prev + 1));
 
   const handleClose = () => {
-    if (loading) return;
+    if (loading || bt.isPrinting) return;
     setCopies(DEFAULT_COPIES);
     setSelectedSize(DEFAULT_SIZE);
     onClose();
@@ -126,13 +134,29 @@ export function LabelPrintSheet({ product, onClose }: LabelPrintSheetProps) {
 
   const handlePrint = async () => {
     if (!product) return;
+
+    if (printMode === 'bluetooth') {
+      const tspl = buildTsplLabel(
+        {
+          name: product.name,
+          sku: product.sku,
+          barcode: product.barcode,
+          price: product.sellPrice,
+        },
+        selectedSize as TsplLabelSize,
+        copies,
+      );
+      await bt.printTspl(tspl);
+      return;
+    }
+
+    // System print mode
     setLoading(true);
     try {
       const html = buildLabelHtml(product, selectedSize, copies);
       if (expoPrint) {
         await expoPrint.printAsync({ html });
       } else {
-        // Fallback: Share sheet orqali
         await Share.share({
           message: `${product.name} — ${product.sellPrice.toLocaleString('uz-UZ')} so'm`,
           title: t('catalog.labelPrint.shareTitle'),
@@ -145,10 +169,8 @@ export function LabelPrintSheet({ product, onClose }: LabelPrintSheetProps) {
     }
   };
 
-  // Preview barcode simulyatsiya (monospace |||)
-  const previewBarcode = product?.barcode
-    ? `||| ${product.barcode} |||`
-    : null;
+  const previewBarcode = product?.barcode ? `||| ${product.barcode} |||` : null;
+  const isProcessing = loading || bt.isPrinting;
 
   return (
     <Modal
@@ -157,14 +179,11 @@ export function LabelPrintSheet({ product, onClose }: LabelPrintSheetProps) {
       animationType="slide"
       onRequestClose={handleClose}
     >
-      {/* Overlay — bosish orqali yopish */}
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
-      {/* Sheet */}
       <View style={styles.sheet}>
-        {/* Drag handle */}
         <View style={styles.handle} />
 
         {/* Header */}
@@ -173,104 +192,143 @@ export function LabelPrintSheet({ product, onClose }: LabelPrintSheetProps) {
           <TouchableOpacity
             style={styles.closeBtn}
             onPress={handleClose}
-            disabled={loading}
+            disabled={isProcessing}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons name="close" size={18} color={C.muted} />
           </TouchableOpacity>
         </View>
 
-        {/* O'lcham tanlash */}
-        <Text style={styles.sectionLabel}>{t('catalog.labelPrint.sizeLabel')}</Text>
-        <View style={styles.pillRow}>
-          {LABEL_SIZES.map((size) => {
-            const isActive = selectedSize === size.key;
-            return (
-              <TouchableOpacity
-                key={size.key}
-                style={[styles.pill, isActive && styles.pillActive]}
-                onPress={() => setSelectedSize(size.key)}
-                activeOpacity={0.75}
-              >
-                <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
-                  {size.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Nusxa soni */}
-        <Text style={styles.sectionLabel}>{t('catalog.labelPrint.copiesLabel')}</Text>
-        <View style={styles.copiesRow}>
-          <TouchableOpacity
-            style={[styles.counterBtn, copies <= MIN_COPIES && styles.counterBtnDisabled]}
-            onPress={handleDecrease}
-            disabled={copies <= MIN_COPIES}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons
-              name="remove"
-              size={20}
-              color={copies <= MIN_COPIES ? C.muted : C.text}
-            />
-          </TouchableOpacity>
-
-          <View style={styles.counterValue}>
-            <Text style={styles.counterText}>{copies}</Text>
+        <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+          {/* Print mode tanlash */}
+          <Text style={styles.sectionLabel}>CHOP ETISH USULI</Text>
+          <View style={styles.pillRow}>
+            <TouchableOpacity
+              style={[styles.pill, printMode === 'system' && styles.pillActive]}
+              onPress={() => setPrintMode('system')}
+              activeOpacity={0.75}
+            >
+              <Ionicons
+                name="document-outline"
+                size={16}
+                color={printMode === 'system' ? C.pillActiveText : C.pillText}
+              />
+              <Text style={[styles.pillText, printMode === 'system' && styles.pillTextActive]}>
+                Tizim
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.pill, printMode === 'bluetooth' && styles.pillActive]}
+              onPress={() => setPrintMode('bluetooth')}
+              activeOpacity={0.75}
+            >
+              <Ionicons
+                name="bluetooth"
+                size={16}
+                color={printMode === 'bluetooth' ? C.pillActiveText : C.pillText}
+              />
+              <Text style={[styles.pillText, printMode === 'bluetooth' && styles.pillTextActive]}>
+                Bluetooth
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={[styles.counterBtn, copies >= MAX_COPIES && styles.counterBtnDisabled]}
-            onPress={handleIncrease}
-            disabled={copies >= MAX_COPIES}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons
-              name="add"
-              size={20}
-              color={copies >= MAX_COPIES ? C.muted : C.text}
+          {/* BT device selection */}
+          {printMode === 'bluetooth' ? (
+            <BtDeviceList
+              isAvailable={bt.isAvailable}
+              isScanning={bt.isScanning}
+              devices={bt.devices}
+              connectedDevice={bt.connectedDevice}
+              error={bt.error}
+              onScan={bt.scan}
+              onConnect={bt.connect}
+              onDisconnect={bt.disconnect}
             />
-          </TouchableOpacity>
-        </View>
+          ) : null}
 
-        {/* Preview */}
-        <View style={styles.previewBox}>
-          <Text style={styles.previewProductName} numberOfLines={2}>
-            {product?.name ?? ''}
-          </Text>
-          {product?.sku ? (
-            <Text style={styles.previewSku}>SKU: {product.sku}</Text>
-          ) : null}
-          {previewBarcode ? (
-            <Text style={styles.previewBarcode}>{previewBarcode}</Text>
-          ) : null}
-          <Text style={styles.previewPrice}>
-            {(product?.sellPrice ?? 0).toLocaleString('uz-UZ')} so'm
-          </Text>
-        </View>
+          {/* Label o'lchami */}
+          <Text style={styles.sectionLabel}>{t('catalog.labelPrint.sizeLabel')}</Text>
+          <View style={styles.pillRow}>
+            {LABEL_SIZES.map((size) => {
+              const isActive = selectedSize === size.key;
+              return (
+                <TouchableOpacity
+                  key={size.key}
+                  style={[styles.pill, isActive && styles.pillActive]}
+                  onPress={() => setSelectedSize(size.key)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
+                    {size.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Nusxa soni */}
+          <Text style={styles.sectionLabel}>{t('catalog.labelPrint.copiesLabel')}</Text>
+          <View style={styles.copiesRow}>
+            <TouchableOpacity
+              style={[styles.counterBtn, copies <= MIN_COPIES && styles.counterBtnDisabled]}
+              onPress={handleDecrease}
+              disabled={copies <= MIN_COPIES}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="remove" size={20} color={copies <= MIN_COPIES ? C.muted : C.text} />
+            </TouchableOpacity>
+            <View style={styles.counterValue}>
+              <Text style={styles.counterText}>{copies}</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.counterBtn, copies >= MAX_COPIES && styles.counterBtnDisabled]}
+              onPress={handleIncrease}
+              disabled={copies >= MAX_COPIES}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="add" size={20} color={copies >= MAX_COPIES ? C.muted : C.text} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Preview */}
+          <View style={styles.previewBox}>
+            <Text style={styles.previewProductName} numberOfLines={2}>
+              {product?.name ?? ''}
+            </Text>
+            {product?.sku ? <Text style={styles.previewSku}>SKU: {product.sku}</Text> : null}
+            {previewBarcode ? <Text style={styles.previewBarcode}>{previewBarcode}</Text> : null}
+            <Text style={styles.previewPrice}>
+              {(product?.sellPrice ?? 0).toLocaleString('uz-UZ')} so'm
+            </Text>
+          </View>
+        </ScrollView>
 
         {/* Action tugmalar */}
         <View style={styles.actions}>
           <TouchableOpacity
             style={styles.cancelBtn}
             onPress={handleClose}
-            disabled={loading}
+            disabled={isProcessing}
           >
             <Text style={styles.cancelBtnText}>{t('catalog.labelPrint.cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.printBtn, loading && styles.btnDisabled]}
+            style={[styles.printBtn, (isProcessing || !canPrint) && styles.btnDisabled]}
             onPress={handlePrint}
-            disabled={loading}
+            disabled={isProcessing || !canPrint}
             activeOpacity={0.85}
           >
-            {loading ? (
+            {isProcessing ? (
               <ActivityIndicator color={C.white} size="small" />
             ) : (
               <>
-                <Ionicons name="print-outline" size={18} color={C.white} />
+                <Ionicons
+                  name={printMode === 'bluetooth' ? 'bluetooth' : 'print-outline'}
+                  size={18}
+                  color={C.white}
+                />
                 <Text style={styles.printBtnText}>
                   {t('catalog.labelPrint.printButton', { count: copies })}
                 </Text>
@@ -342,6 +400,7 @@ const styles = StyleSheet.create({
   },
   pill: {
     flex: 1,
+    flexDirection: 'row',
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
@@ -349,6 +408,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
   },
   pillActive: {
     backgroundColor: C.pillActive,
