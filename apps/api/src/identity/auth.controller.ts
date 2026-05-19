@@ -12,57 +12,30 @@ import {
   Req,
   Res,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
-  ApiProperty,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { IsOptional, IsString, IsArray, IsNumber, Min, Max } from 'class-validator';
 import { Throttle } from '@nestjs/throttler';
 import { UserRole } from '@prisma/client';
 import { Request, Response } from 'express';
 import { CurrentUser, Public } from '../common/decorators';
-import { LoginDto, RefreshTokenDto, RegisterTenantDto, SetPinDto, UpdateTenantInfoDto, VerifyPinDto, RegisterBiometricDto, VerifyBiometricDto } from './dto';
+import {
+  LoginDto,
+  RefreshTokenDto,
+  RegisterTenantDto,
+  UpdateTenantInfoDto,
+} from './dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { IdentityService } from './identity.service';
-import { PinService } from './pin.service';
 import { SessionService } from './session.service';
-import { ApiKeyService, API_KEY_SCOPES } from './api-key.service';
-import { PasswordResetService } from './password-reset.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { randomUUID, timingSafeEqual } from 'crypto';
 
-class CreateApiKeyDto {
-  @ApiProperty({ example: 'POS-Branch-1' })
-  @IsString()
-  name!: string;
-
-  @ApiProperty({ example: ['sync:read', 'sync:write'], required: false })
-  @IsOptional()
-  @IsArray()
-  scopes?: string[];
-
-  @ApiProperty({ example: 'branch-uuid', required: false })
-  @IsOptional()
-  @IsString()
-  branchId?: string;
-
-  @ApiProperty({ example: 365, required: false, description: 'Expire in N days. Omit for no expiry.' })
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(3650)
-  expiresInDays?: number;
-}
-
-const REFRESH_COOKIE = 'refreshToken';
-const REFRESH_COOKIE_OPTIONS = {
+export const REFRESH_COOKIE = 'refreshToken';
+export const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   // SameSite=None required for cross-origin Railway deployment (frontend ≠ backend domain).
@@ -78,11 +51,7 @@ const REFRESH_COOKIE_OPTIONS = {
 export class AuthController {
   constructor(
     private readonly identityService: IdentityService,
-    private readonly pinService: PinService,
     private readonly sessionService: SessionService,
-    private readonly apiKeyService: ApiKeyService,
-    private readonly passwordResetService: PasswordResetService,
-    private readonly prisma: PrismaService,
   ) {}
 
   @Public()
@@ -164,43 +133,6 @@ export class AuthController {
     return this.identityService.getProfile(userId);
   }
 
-  // ─── PIN ENDPOINTS (T-068) ────────────────────────────────────
-
-  @Post('pin/set')
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'PIN o\'rnatish yoki o\'zgartirish (4-6 raqam)' })
-  @ApiResponse({ status: 200, description: 'PIN o\'rnatildi' })
-  async setPin(
-    @CurrentUser('userId') userId: string,
-    @Body() dto: SetPinDto,
-  ) {
-    await this.pinService.setPin(userId, dto.pin, dto.oldPin);
-    return { message: 'PIN muvaffaqiyatli o\'rnatildi' };
-  }
-
-  @Post('pin/verify')
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'PIN tekshirish (sensitive operatsiya oldidan)' })
-  @ApiResponse({ status: 200, description: 'PIN to\'g\'ri' })
-  @ApiResponse({ status: 401, description: 'PIN noto\'g\'ri yoki bloklangan' })
-  async verifyPin(
-    @CurrentUser('userId') userId: string,
-    @Body() dto: VerifyPinDto,
-  ) {
-    await this.pinService.verifyPin(userId, dto.pin, dto.action);
-    return { verified: true, action: dto.action };
-  }
-
-  @Get('pin/status')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'PIN o\'rnatilganmi tekshirish' })
-  async pinStatus(@CurrentUser('userId') userId: string) {
-    const hasPin = await this.pinService.hasPinSet(userId);
-    return { hasPinSet: hasPin };
-  }
-
   // ─── T-079: Tenant soliq ma'lumotlari ──────────────────────────
 
   @Get('tenant')
@@ -280,209 +212,5 @@ export class AuthController {
     @CurrentUser('role') role: UserRole,
   ) {
     return this.sessionService.forceLogoutUser(targetUserId, tenantId, role);
-  }
-
-  // ─── T-071: API KEY MANAGEMENT ────────────────────────────────
-
-  @Post('api-keys')
-  @ApiBearerAuth()
-  @Roles('OWNER', 'ADMIN')
-  @ApiOperation({ summary: 'Yangi API key yaratish (POS sync uchun) (T-071)' })
-  @ApiResponse({ status: 201, description: 'API key yaratildi. Key FAQAT SHU SAFAR ko\'rsatiladi!' })
-  createApiKey(
-    @CurrentUser('tenantId') tenantId: string,
-    @Body() dto: CreateApiKeyDto,
-  ) {
-    return this.apiKeyService.createApiKey({
-      tenantId,
-      branchId: dto.branchId,
-      name: dto.name,
-      scopes: dto.scopes,
-      expiresInDays: dto.expiresInDays,
-    });
-  }
-
-  @Get('api-keys')
-  @ApiBearerAuth()
-  @Roles('OWNER', 'ADMIN')
-  @ApiOperation({ summary: 'API keylar ro\'yxati' })
-  listApiKeys(@CurrentUser('tenantId') tenantId: string) {
-    return this.apiKeyService.listApiKeys(tenantId);
-  }
-
-  @Get('api-keys/scopes')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Mavjud API key scope\'lar' })
-  getScopes() {
-    return { scopes: API_KEY_SCOPES };
-  }
-
-  @Delete('api-keys/:id/revoke')
-  @ApiBearerAuth()
-  @Roles('OWNER', 'ADMIN')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'API key ni o\'chirish (revoke)' })
-  @ApiParam({ name: 'id', type: String })
-  revokeApiKey(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('tenantId') tenantId: string,
-  ) {
-    return this.apiKeyService.revokeApiKey(id, tenantId);
-  }
-
-  @Delete('api-keys/:id')
-  @ApiBearerAuth()
-  @Roles('OWNER', 'ADMIN')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'API key ni butunlay o\'chirish' })
-  @ApiParam({ name: 'id', type: String })
-  deleteApiKey(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('tenantId') tenantId: string,
-  ) {
-    return this.apiKeyService.deleteApiKey(id, tenantId);
-  }
-
-  // ─── T-225: BIOMETRIC ─────────────────────────────────────────
-
-  /**
-   * POST /auth/biometric/register
-   * Logged-in user device uchun biometric token yaratadi.
-   * Token 30 kunlik, botSettings JSON da saqlanadi.
-   */
-  @Post('biometric/register')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'T-225: Qurilma uchun biometric token ro\'yxatdan o\'tkazish' })
-  async registerBiometric(
-    @CurrentUser('userId') userId: string,
-    @Body() dto: RegisterBiometricDto,
-  ) {
-    const biometricToken = randomUUID();
-    const expiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000);
-
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
-    const existing = (user.botSettings ?? {}) as Record<string, unknown>;
-    const keys = (existing['biometricKeys'] ?? {}) as Record<string, unknown>;
-
-    keys[dto.deviceId] = {
-      token: biometricToken,
-      publicKey: dto.publicKey,
-      expiresAt: expiresAt.toISOString(),
-    };
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { botSettings: { ...existing, biometricKeys: keys } as object },
-    });
-
-    return { success: true, biometricToken, expiresAt };
-  }
-
-  /**
-   * POST /auth/biometric/verify
-   * biometricToken + deviceId orqali foydalanuvchi identifikatsiya va JWT qaytaradi.
-   */
-  @Public()
-  @Post('biometric/verify')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'T-225: Biometric token orqali login — JWT qaytaradi' })
-  async verifyBiometric(
-    @Body() dto: VerifyBiometricDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    // T-346 fix 1: tenantId filter — cross-tenant full table scan bartaraf etildi
-    const users = await this.prisma.user.findMany({
-      where: { isActive: true, tenantId: dto.tenantId },
-      select: { id: true, tenantId: true, email: true, role: true, firstName: true, lastName: true, botSettings: true },
-    });
-
-    const now = Date.now();
-    let found: (typeof users)[0] | null = null;
-
-    for (const u of users) {
-      const settings = (u.botSettings ?? {}) as Record<string, unknown>;
-      const keys = (settings['biometricKeys'] ?? {}) as Record<string, Record<string, string>>;
-      const entry = keys[dto.deviceId];
-      if (!entry || new Date(entry['expiresAt']).getTime() <= now) continue;
-
-      // T-346 fix 2: timing attack — crypto.timingSafeEqual ishlatildi
-      const storedBuf = Buffer.from(entry['token'] ?? '', 'utf8');
-      const givenBuf = Buffer.from(dto.biometricToken, 'utf8');
-      const tokenMatch =
-        storedBuf.length === givenBuf.length &&
-        timingSafeEqual(storedBuf, givenBuf);
-
-      if (tokenMatch) {
-        found = u;
-        break;
-      }
-    }
-
-    if (!found) {
-      throw new UnauthorizedException('Biometric token yaroqsiz yoki muddati o\'tgan');
-    }
-
-    // Token muddatini yangilaymiz
-    const settings = (found.botSettings ?? {}) as Record<string, unknown>;
-    const keys = (settings['biometricKeys'] ?? {}) as Record<string, Record<string, string>>;
-    keys[dto.deviceId] = {
-      ...keys[dto.deviceId],
-      expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
-    };
-    await this.prisma.user.update({
-      where: { id: found.id },
-      data: { botSettings: { ...settings, biometricKeys: keys } as object },
-    });
-
-    const tokens = await this.identityService.loginById(found.id);
-    // T-347: refreshToken httpOnly cookie — body dan olib tashlandi
-    res.cookie(REFRESH_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
-    return {
-      accessToken: tokens.accessToken,
-      user: {
-        id: found.id,
-        email: found.email,
-        firstName: found.firstName,
-        lastName: found.lastName,
-        role: found.role,
-        tenantId: found.tenantId,
-      },
-    };
-  }
-
-  // ─── PASSWORD RESET ─────────────────────────────────────────────
-
-  @Public()
-  @Post('forgot-password')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Send password reset OTP to email' })
-  forgotPassword(@Body() dto: { email: string }) {
-    return this.passwordResetService.forgotPassword(dto.email);
-  }
-
-  @Public()
-  @Post('reset-password')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reset password using OTP' })
-  resetPassword(@Body() dto: { email: string; otp: string; newPassword: string }) {
-    return this.passwordResetService.resetPassword(dto.email, dto.otp, dto.newPassword);
-  }
-
-  @Post('change-password')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Change own password (logged-in user)' })
-  changePassword(
-    @CurrentUser('userId') userId: string,
-    @CurrentUser('tenantId') tenantId: string,
-    @Body() dto: { oldPassword: string; newPassword: string },
-  ) {
-    return this.passwordResetService.changePassword(userId, tenantId, dto.oldPassword, dto.newPassword);
   }
 }

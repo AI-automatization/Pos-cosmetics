@@ -1,19 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import {
-  Banknote,
-  CreditCard,
-  SplitSquareVertical,
-  Check,
-  Tag,
-  UserCircle,
-  Star,
-} from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Check, Tag } from 'lucide-react';
 import { HotkeysPanel } from './HotkeysPanel';
 import { BonusSection } from './BonusSection';
 import { SplitPaymentForm } from './SplitPaymentForm';
 import { NasiyaCustomerSection } from './NasiyaCustomerSection';
+import { PaymentMethodButtons, CashInputSection, CardInputSection } from './PaymentMethods';
 import { useLoyaltyConfig } from '@/hooks/customers/useLoyalty';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import { useGlobalPromo } from '@/hooks/promotions/usePromotions';
@@ -25,13 +18,13 @@ import { useTranslation } from '@/i18n/i18n-context';
 import { CustomerSearchModal } from './CustomerSearchModal';
 import { useActiveProviders } from '@/hooks/settings/usePaymentConfig';
 import type { Order } from '@/types/sales';
-import type { PaymentMethod, DiscountType } from '@/types/sales';
+import type { DiscountType } from '@/types/sales';
 
 interface PaymentPanelProps {
   onSaleComplete: (order: Order, change: number) => void;
 }
 
-const QUICK_CASH = [5000, 10000, 20000, 50000, 100000];
+const MAX_CASHIER_DISCOUNT_PCT = 5;
 
 export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const { data: activeProviders } = useActiveProviders();
@@ -72,7 +65,7 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const discountPct = discountType === 'percent'
     ? discountVal
     : subtotal > 0 ? (discountVal / subtotal) * 100 : 0;
-  const overLimit = isCashier && discountPct > 5;
+  const overLimit = isCashier && discountPct > MAX_CASHIER_DISCOUNT_PCT;
   const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   // Sync local state when store resets after clearCart().
@@ -100,8 +93,6 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     setDiscountType(orderDiscountType);
   }, [orderDiscount, orderDiscountType]);
 
-  const MAX_CASHIER_DISCOUNT_PCT = 5;
-
   const handleDiscountApply = () => {
     let val = parseFloat(discountInput) || 0;
     if (isCashier) {
@@ -124,19 +115,6 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const hasPayme = activeProviders?.some((p) => p.provider === 'PAYME') ?? false;
   const hasClick = activeProviders?.some((p) => p.provider === 'CLICK') ?? false;
   const hasCard = hasTerminal || hasPayme || hasClick;
-
-  const METHODS = useMemo(() => {
-    const methods: { key: PaymentMethod; label: string; icon: React.ReactNode; shortcut: string }[] = [
-      { key: 'cash', label: t('pos.cashShort'), icon: <Banknote className="h-4 w-4" />, shortcut: 'F5' },
-    ];
-    if (hasCard) {
-      methods.push({ key: 'card', label: t('pos.card'), icon: <CreditCard className="h-4 w-4" />, shortcut: 'F6' });
-      methods.push({ key: 'split', label: t('pos.mixed'), icon: <SplitSquareVertical className="h-4 w-4" />, shortcut: 'F7' });
-    }
-    methods.push({ key: 'nasiya', label: t('pos.nasiya'), icon: <UserCircle className="h-4 w-4" />, shortcut: 'F8' });
-    methods.push({ key: 'bonus', label: t('pos.bonuses'), icon: <Star className="h-4 w-4" />, shortcut: 'F9' });
-    return methods;
-  }, [hasCard, t]);
 
   if (items.length === 0) {
     return (
@@ -168,7 +146,6 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
 
       {/* Discount */}
       <div className="shrink-0 border-b border-gray-100 p-3">
-        {/* Active global promotion banner */}
         {globalPromo && (
           <div className="mb-2 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5">
             <Tag className="h-3.5 w-3.5 shrink-0 text-red-600" />
@@ -231,162 +208,74 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         )}
       </div>
 
-      {/* Payment method — 2×2 grid */}
-      <div className="shrink-0 border-b border-gray-100 p-3">
-        <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.paymentType')}</p>
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1">
-          {METHODS.map((m) => (
-            <button
-              key={m.key}
-              type="button"
-              onClick={() => {
-                setPaymentMethod(m.key);
-                if (m.key !== 'nasiya' && m.key !== 'bonus') setSelectedCustomer(null);
-              }}
-              className={cn(
-                'flex flex-col items-center gap-0.5 rounded-lg border py-1.5 px-1 text-[10px] font-medium transition',
-                paymentMethod === m.key
-                  ? m.key === 'nasiya'
-                    ? 'border-orange-400 bg-orange-50 text-orange-700'
-                    : m.key === 'bonus'
-                    ? 'border-violet-400 bg-violet-50 text-violet-700'
-                    : 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
-              )}
-            >
-              {m.icon}
-              <span className="truncate w-full text-center">{m.label}</span>
-              <span className="text-gray-400 text-[9px]">{m.shortcut}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Payment method buttons */}
+      <PaymentMethodButtons
+        paymentMethod={paymentMethod}
+        hasCard={hasCard}
+        onSelect={setPaymentMethod}
+        onClearCustomer={() => setSelectedCustomer(null)}
+      />
 
       {/* Scrollable payment details area */}
       <div className="min-h-0 flex-1 overflow-y-auto">
-
-      {/* Cash input — cash only mode */}
-      {paymentMethod === 'cash' && (
-        <div className="shrink-0 border-b border-gray-100 p-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.customerPaid')}</p>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={cashAmount || ''}
-            onChange={(e) => {
-              const raw = e.target.value.replace(/\s/g, '').replace(',', '.');
-              if (/^\d*\.?\d*$/.test(raw)) setCashAmount(parseFloat(raw) || 0);
-            }}
-            placeholder={formatPrice(total)}
-            className="w-full rounded-xl border border-gray-200 px-4 py-4 text-right text-xl font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+        {paymentMethod === 'cash' && (
+          <CashInputSection
+            cashAmount={cashAmount}
+            total={total}
+            change={change}
+            onSetCashAmount={setCashAmount}
           />
-          <div className="mt-2 flex flex-wrap gap-1">
-            {QUICK_CASH.filter((v) => v >= total * 0.5).slice(0, 4).map((v) => (
-              <button key={v} type="button" onClick={() => setCashAmount(v)}
-                className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
-                {(v / 1000).toFixed(0)}K
-              </button>
-            ))}
-            <button type="button" onClick={() => setCashAmount(total)}
-              className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100">
-              {t('pos.exact')}
-            </button>
-          </div>
-          {change > 0 && (
-            <div className="mt-2 rounded-lg bg-green-50 px-3 py-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-green-700">{t('pos.change')}:</span>
-                <span className="font-bold text-green-700">{formatPrice(change)}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+        )}
 
-      {/* Card payment — terminal / Payme / Click */}
-      {paymentMethod === 'card' && (
-        <div className="shrink-0 border-b border-gray-100 p-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.cardMethod')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {([
-              ...(hasTerminal ? [{ key: 'terminal' as const, label: t('pos.terminal'), icon: '🏧' }] : []),
-              ...(hasPayme ? [{ key: 'payme' as const, label: 'Payme', icon: '💳' }] : []),
-              ...(hasClick ? [{ key: 'click' as const, label: 'Click', icon: '📱' }] : []),
-            ]).map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                onClick={() => setCardType(m.key)}
-                className={cn(
-                  'flex flex-col items-center gap-1 rounded-xl border py-3 text-sm font-medium transition',
-                  cardType === m.key
-                    ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
-                )}
-              >
-                <span className="text-lg">{m.icon}</span>
-                <span>{m.label}</span>
-              </button>
-            ))}
-          </div>
-          <div className="mt-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-700">{t('pos.amountToPay')}</span>
-              <span className="text-lg font-bold text-blue-700">{formatPrice(total)}</span>
-            </div>
-            {cardType === 'terminal' && (
-              <p className="mt-1 text-xs text-blue-500">{t('pos.terminalHint')}</p>
-            )}
-            {(cardType === 'payme' || cardType === 'click') && (
-              <p className="mt-1 text-xs text-blue-500">{t('pos.onlinePaymentHint')}</p>
-            )}
-          </div>
-        </div>
-      )}
+        {paymentMethod === 'card' && (
+          <CardInputSection
+            cardType={cardType}
+            total={total}
+            hasTerminal={hasTerminal}
+            hasPayme={hasPayme}
+            hasClick={hasClick}
+            onSetCardType={setCardType}
+          />
+        )}
 
-      {/* ─── ARALASH (split) — 4-way payment ─── */}
-      {paymentMethod === 'split' && (
-        <SplitPaymentForm
-          total={total}
-          cashAmount={cashAmount}
-          cardAmount={cardAmount}
-          bonusPoints={bonusPoints}
-          splitNasiyaAmount={splitNasiyaAmount}
-          redeemRate={redeemRate}
-          selectedCustomer={selectedCustomer}
-          setCashAmount={setCashAmount}
-          setCardAmount={setCardAmount}
-          setBonusPoints={setBonusPoints}
-          setSplitNasiyaAmount={setSplitNasiyaAmount}
-          onSelectCustomer={() => setShowCustomerModal(true)}
-        />
-      )}
+        {paymentMethod === 'split' && (
+          <SplitPaymentForm
+            total={total}
+            cashAmount={cashAmount}
+            cardAmount={cardAmount}
+            bonusPoints={bonusPoints}
+            splitNasiyaAmount={splitNasiyaAmount}
+            redeemRate={redeemRate}
+            selectedCustomer={selectedCustomer}
+            setCashAmount={setCashAmount}
+            setCardAmount={setCardAmount}
+            setBonusPoints={setBonusPoints}
+            setSplitNasiyaAmount={setSplitNasiyaAmount}
+            onSelectCustomer={() => setShowCustomerModal(true)}
+          />
+        )}
 
-      {/* Nasiya — customer selection */}
-      {paymentMethod === 'nasiya' && (
-        <NasiyaCustomerSection
-          selectedCustomer={selectedCustomer}
-          total={total}
-          onSelectCustomer={() => setShowCustomerModal(true)}
-        />
-      )}
+        {paymentMethod === 'nasiya' && (
+          <NasiyaCustomerSection
+            selectedCustomer={selectedCustomer}
+            total={total}
+            onSelectCustomer={() => setShowCustomerModal(true)}
+          />
+        )}
 
-      {/* Bonus payment panel */}
-      {paymentMethod === 'bonus' && (
-        <BonusSection
-          selectedCustomer={selectedCustomer}
-          bonusPoints={bonusPoints}
-          redeemRate={redeemRate}
-          total={total}
-          onSelectCustomer={() => setShowCustomerModal(true)}
-          onChangeCustomer={() => setShowCustomerModal(true)}
-          onSetBonusPoints={setBonusPoints}
-        />
-      )}
+        {paymentMethod === 'bonus' && (
+          <BonusSection
+            selectedCustomer={selectedCustomer}
+            bonusPoints={bonusPoints}
+            redeemRate={redeemRate}
+            total={total}
+            onSelectCustomer={() => setShowCustomerModal(true)}
+            onChangeCustomer={() => setShowCustomerModal(true)}
+            onSetBonusPoints={setBonusPoints}
+          />
+        )}
+      </div>
 
-      </div>{/* end scrollable area */}
-
-      {/* Hotkeys reference panel */}
       <HotkeysPanel />
 
       {/* Complete button */}
@@ -431,7 +320,6 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </button>
       </div>
 
-      {/* Customer search modal */}
       {showCustomerModal && (
         <CustomerSearchModal
           onSelect={(customer) => {

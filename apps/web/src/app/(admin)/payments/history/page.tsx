@@ -1,53 +1,19 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import {
-  CreditCard,
-  Banknote,
-  Smartphone,
-  ArrowUpRight,
-  Eye,
-  X,
-  Clock,
-  Loader2,
-} from 'lucide-react';
-import { ScrollableTable } from '@/components/ui/ScrollableTable';
+import { Banknote, CreditCard, Clock } from 'lucide-react';
 import { formatPrice, cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { ordersApi } from '@/api/orders.api';
-import { useOrder } from '@/hooks/sales/useOrders';
-import type { Order, OrderItem } from '@/types/order';
+import type { Order } from '@/types/order';
 import { useTranslation } from '@/i18n/i18n-context';
+import { PaymentsTable } from './_components/PaymentsTable';
+import { PaymentDetailModal } from './_components/PaymentDetailModal';
 
 interface OrderWithCustomer extends Order {
   customer?: { id: string; name: string; phone: string } | null;
 }
 
-// METHOD_LABEL and STATUS_LABEL are now built inside the component using t()
-
-const METHOD_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  // Backend-computed keys (Uzbek)
-  NAQD: Banknote,
-  KARTA: CreditCard,
-  NASIYA: Clock,
-  ARALASH: ArrowUpRight,
-  // PaymentIntent method keys (English)
-  CASH: Banknote,
-  CARD: CreditCard,
-  TERMINAL: CreditCard,
-  DEBT: Clock,
-  TRANSFER: ArrowUpRight,
-  CLICK: Smartphone,
-  PAYME: Smartphone,
-};
-
-const STATUS_STYLE: Record<string, string> = {
-  COMPLETED: 'bg-green-100 text-green-700',
-  RETURNED: 'bg-orange-100 text-orange-700',
-  VOIDED: 'bg-gray-100 text-gray-600',
-};
-
-// Stat card colors
 const STAT_COLORS: Record<string, string> = {
   blue: 'bg-blue-50 text-blue-700',
   green: 'bg-green-50 text-green-700',
@@ -80,194 +46,6 @@ function StatCard({ label, value, sub, icon: Icon, color }: StatCardProps) {
   );
 }
 
-// Payment detail modal — fetches full order by id
-function PaymentDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
-  const { t } = useTranslation();
-  const { data: order, isLoading } = useOrder(orderId);
-
-  const METHOD_LABEL: Record<string, string> = {
-    NAQD: t('payments.cash'),
-    KARTA: t('payments.card'),
-    NASIYA: t('payments.debt'),
-    ARALASH: t('payments.mixed'),
-    CASH: t('payments.cash'),
-    CARD: t('payments.card'),
-    TERMINAL: t('payments.card'),
-    DEBT: t('payments.debt'),
-    TRANSFER: t('payments.bankTransfer'),
-    CLICK: 'Click',
-    PAYME: 'Payme',
-  };
-
-  const STATUS_LABEL: Record<string, string> = {
-    COMPLETED: t('orders.completed'),
-    RETURNED: t('orders.returned'),
-    VOIDED: t('orders.cancelled'),
-  };
-
-  const method = order?.paymentMethod ?? 'CASH';
-  const MethodIcon = METHOD_ICON[method] ?? CreditCard;
-
-  return (
-    <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="bg-white rounded-xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">
-            {t('payments.detail')}
-            {order ? (
-              <span className="ml-1.5 font-mono text-blue-600">— #{order.orderNumber}</span>
-            ) : null}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="overflow-y-auto flex-1 p-4 space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
-            </div>
-          ) : order ? (
-            <>
-              {/* Meta grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">{t('common.date')}</p>
-                  <p className="text-sm font-medium text-gray-800">
-                    {new Date(order.createdAt).toLocaleString('uz-UZ', {
-                      dateStyle: 'short',
-                      timeStyle: 'short',
-                    })}
-                  </p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">{t('reports.cashier')}</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">
-                    {order.cashierName ?? '—'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">{t('payments.method')}</p>
-                  <span className="flex items-center gap-1 text-sm font-medium text-gray-800">
-                    <MethodIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    {METHOD_LABEL[method] ?? method}
-                  </span>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">{t('common.status')}</p>
-                  <span
-                    className={cn(
-                      'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                      STATUS_STYLE[order.status] ?? 'bg-gray-100 text-gray-600',
-                    )}
-                  >
-                    {STATUS_LABEL[order.status] ?? order.status}
-                  </span>
-                </div>
-              </div>
-
-              {/* Customer row */}
-              {order.customerName && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-sm text-blue-800">
-                  <span className="text-blue-400">{t('payments.customer')}</span>
-                  <span className="font-medium">{order.customerName}</span>
-                </div>
-              )}
-
-              {/* Items table */}
-              {order.items && order.items.length > 0 ? (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                    {t('nav.products')}
-                  </p>
-                  <div className="border border-gray-100 rounded-lg overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          {[t('common.product'), t('common.quantity'), t('common.price'), t('common.total')].map((h) => (
-                            <th
-                              key={h}
-                              className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
-                            >
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {order.items.map((item: OrderItem) => (
-                          <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-3 py-2.5 text-gray-800 font-medium">
-                              {item.productName}
-                              {item.sku && (
-                                <span className="ml-1.5 text-xs text-gray-400 font-mono">
-                                  {item.sku}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-3 py-2.5 text-gray-600">{item.quantity}</td>
-                            <td className="px-3 py-2.5 text-gray-600">
-                              {formatPrice(item.unitPrice)}
-                            </td>
-                            <td className="px-3 py-2.5 font-semibold text-gray-900">
-                              {formatPrice(item.total)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Total footer */}
-              <div className="border-t border-gray-100 pt-3 space-y-1.5">
-                {order.discountAmount > 0 && (
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{t('pos.discount')}</span>
-                    <span className="text-orange-600">− {formatPrice(order.discountAmount)}</span>
-                  </div>
-                )}
-                {order.taxAmount > 0 && (
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{t('payments.tax')}</span>
-                    <span>{formatPrice(order.taxAmount)}</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-700">{t('common.total')}</span>
-                  <span className="text-base font-bold text-gray-900">
-                    {formatPrice(Number(order.total))}
-                  </span>
-                </div>
-              </div>
-
-              {/* Notes */}
-              {order.notes && (
-                <div className="bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2 text-sm text-yellow-800">
-                  <span className="font-medium">{t('common.note')}: </span>
-                  {order.notes}
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-center text-gray-400 py-8">Ma&apos;lumot topilmadi</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function useOrdersQuery(page: number) {
   return useQuery({
     queryKey: ['orders', 'payments-history', page],
@@ -279,28 +57,6 @@ function useOrdersQuery(page: number) {
 export default function PaymentsHistoryPage() {
   const { t } = useTranslation();
 
-  const METHOD_LABEL: Record<string, string> = {
-    // Backend-computed keys (Uzbek)
-    NAQD: t('payments.cash'),
-    KARTA: t('payments.card'),
-    NASIYA: t('payments.debt'),
-    ARALASH: t('payments.mixed'),
-    // PaymentIntent method keys (English)
-    CASH: t('payments.cash'),
-    CARD: t('payments.card'),
-    TERMINAL: t('payments.card'),
-    DEBT: t('payments.debt'),
-    TRANSFER: t('payments.bankTransfer'),
-    CLICK: 'Click',
-    PAYME: 'Payme',
-  };
-
-  const STATUS_LABEL: Record<string, string> = {
-    COMPLETED: t('orders.completed'),
-    RETURNED: t('orders.returned'),
-    VOIDED: t('orders.cancelled'),
-  };
-
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(30);
@@ -311,7 +67,6 @@ export default function PaymentsHistoryPage() {
   const orders = (data?.items ?? []) as OrderWithCustomer[];
   const total = data?.total ?? 0;
 
-  // Compute stats from current page orders
   const stats = useMemo(() => {
     if (!orders.length) return null;
     const cash = orders.filter((o) => o.paymentMethod === 'NAQD' || o.paymentMethod === 'CASH');
@@ -330,32 +85,15 @@ export default function PaymentsHistoryPage() {
     return {
       total: totalSum,
       totalCount: orders.length,
-      cash: {
-        sum: cash.reduce((s, o) => s + (Number(o.total) || 0), 0),
-        count: cash.length,
-      },
-      card: {
-        sum: card.reduce((s, o) => s + (Number(o.total) || 0), 0),
-        count: card.length,
-      },
-      debt: {
-        sum: debt.reduce((s, o) => s + (Number(o.total) || 0), 0),
-        count: debt.length,
-      },
+      cash: { sum: cash.reduce((s, o) => s + (Number(o.total) || 0), 0), count: cash.length },
+      card: { sum: card.reduce((s, o) => s + (Number(o.total) || 0), 0), count: card.length },
+      debt: { sum: debt.reduce((s, o) => s + (Number(o.total) || 0), 0), count: debt.length },
     };
   }, [orders]);
-
-  const filtered = orders.filter(
-    (o) =>
-      !search ||
-      String(o.orderNumber).includes(search) ||
-      (o.paymentMethod ?? '').toLowerCase().includes(search.toLowerCase()),
-  );
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {/* Stats cards */}
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
@@ -388,104 +126,20 @@ export default function PaymentsHistoryPage() {
           </div>
         )}
 
-        {/* Table */}
-        <ScrollableTable
-          searchValue={search}
-          onSearchChange={setSearch}
-          searchPlaceholder={t('payments.searchPlaceholder')}
-          totalCount={total}
+        <PaymentsTable
+          orders={orders}
+          total={total}
           isLoading={isLoading}
-          pagination={
-            total > pageSize
-              ? {
-                  page,
-                  pageSize,
-                  total,
-                  onPageChange: setPage,
-                  onPageSizeChange: (s) => {
-                    setPageSize(s);
-                    setPage(1);
-                  },
-                }
-              : undefined
-          }
-        >
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
-              <tr>
-                {[t('common.date'), t('orders.orderNumber'), t('payments.method'), t('finance.amount'), t('common.status'), ""].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-400">
-                    <CreditCard className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    {t('payments.noPayments')}
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((o) => {
-                  const method = o.paymentMethod ?? 'CASH';
-                  const Icon = METHOD_ICON[method] ?? CreditCard;
-                  return (
-                    <tr key={o.id} className="transition hover:bg-gray-50 group">
-                      <td className="px-4 py-3 text-gray-500">
-                        {new Date(o.createdAt).toLocaleString('uz-UZ', {
-                          dateStyle: 'short',
-                          timeStyle: 'short',
-                        })}
-                      </td>
-                      <td className="px-4 py-3 font-mono font-medium text-gray-900">
-                        #{o.orderNumber}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="flex items-center gap-1.5 text-gray-700">
-                          <Icon className="h-4 w-4 text-gray-400" />
-                          {METHOD_LABEL[method] ?? method}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-gray-900">
-                        {formatPrice(Number(o.total))}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={cn(
-                            'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                            STATUS_STYLE[o.status] ?? 'bg-gray-100 text-gray-600',
-                          )}
-                        >
-                          {STATUS_LABEL[o.status] ?? o.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => setSelectedOrderId(o.id)}
-                          className="p-1.5 rounded-lg text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-gray-100 hover:text-blue-600 transition-all"
-                          title={t('payments.detail')}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </ScrollableTable>
+          search={search}
+          onSearchChange={setSearch}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+          onSelectOrder={setSelectedOrderId}
+        />
       </div>
 
-      {/* Detail modal */}
       {selectedOrderId && (
         <PaymentDetailModal
           orderId={selectedOrderId}

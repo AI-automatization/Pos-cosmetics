@@ -1,66 +1,17 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
-
-// ─── Whitelist: все 47 таблиц из Prisma schema ─────────────────────────────
-const TABLE_WHITELIST = new Set([
-  'tenants', 'users', 'branches', 'event_log', 'categories', 'units',
-  'products', 'product_barcodes', 'stock_snapshots', 'product_variants',
-  'bundle_items', 'suppliers', 'product_suppliers', 'warehouses',
-  'stock_movements', 'stock_transfers', 'stock_transfer_items',
-  'shifts', 'orders', 'order_items', 'returns', 'return_items',
-  'payment_intents', 'customers', 'debt_records', 'debt_payments',
-  'admin_users', 'notifications', 'fcm_tokens', 'reminder_logs',
-  'loyalty_configs', 'loyalty_accounts', 'loyalty_transactions',
-  'journal_entries', 'journal_lines', 'audit_logs', 'expenses',
-  'exchange_rates', 'z_reports', 'login_attempts', 'user_locks',
-  'pin_attempts', 'client_error_logs', 'product_prices',
-  'subscription_plans', 'tenant_subscriptions', 'sessions', 'sync_outbox',
-  'api_keys', 'product_certificates', 'promotions', 'telegram_link_tokens',
-  'bot_otp_tokens', 'tenant_settings', 'price_changes', 'feature_flags',
-  'warehouse_invoices', 'warehouse_invoice_items', 'support_tickets',
-  'ticket_messages', 'tasks', 'properties', 'rental_contracts',
-  'rental_payments', '_prisma_migrations',
-]);
-
-// Поля, которые маскируются при чтении
-const REDACTED_FIELDS = new Set([
-  'password_hash', 'passwordhash', 'pin_hash', 'pinhash',
-  'refresh_token', 'refreshtoken', 'key_hash', 'keyhash',
-]);
-
-// Поля паролей — автоматически хешируются при записи
-const PASSWORD_FIELDS = new Set([
-  'password_hash', 'passwordhash', 'pin_hash', 'pinhash',
-]);
-
-const BCRYPT_ROUNDS = 12;
-
-type TableInfo = {
-  name: string;
-  rowCount: number;
-  sizeBytes: number;
-  hasTenantId: boolean;
-};
-
-type ColumnInfo = {
-  name: string;
-  type: string;
-  nullable: boolean;
-  defaultValue: string | null;
-  isPrimaryKey: boolean;
-  udtName?: string; // PostgreSQL enum type name (e.g. "UserRole", "AdminRole")
-};
-
-type DbStats = {
-  dbSizeMb: number;
-  activeConnections: number;
-  maxConnections: number;
-  uptime: string;
-  version: string;
-  tablesCount: number;
-};
+import {
+  TABLE_WHITELIST,
+  TableInfo,
+  ColumnInfo,
+  DbStats,
+  assertTableAllowed,
+  assertColumnsAllowed,
+  maskRow,
+  processWriteData,
+  redactForLog,
+} from './admin-db-constants';
 
 @Injectable()
 export class AdminDatabaseService {
@@ -105,7 +56,7 @@ export class AdminDatabaseService {
   // ─── TABLE SCHEMA ───────────────────────────────────────────────────────────
 
   async getTableSchema(tableName: string): Promise<{ columns: ColumnInfo[]; indexes: string[] }> {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     const columns = await this.prisma.$queryRaw<
       { column_name: string; data_type: string; udt_name: string; is_nullable: string; column_default: string | null }[]
@@ -160,7 +111,7 @@ export class AdminDatabaseService {
       search?: string;
     },
   ) {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     const page = opts.page ?? 1;
     const limit = Math.min(opts.limit ?? 50, 200);
@@ -196,7 +147,7 @@ export class AdminDatabaseService {
     const rows = await this.prisma.$queryRawUnsafe<Record<string, unknown>[]>(dataSql, ...params);
 
     // Маскировка и сериализация
-    const masked = rows.map((row) => this.maskRow(row));
+    const masked = rows.map((row) => maskRow(row));
 
     return { rows: masked, total, page, limit };
   }
@@ -204,7 +155,7 @@ export class AdminDatabaseService {
   // ─── CREATE ROW ─────────────────────────────────────────────────────────────
 
   async createRow(tableName: string, data: Record<string, unknown>) {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     if (!data || typeof data !== 'object') {
       throw new BadRequestException('Данные для создания не переданы');
@@ -227,7 +178,7 @@ export class AdminDatabaseService {
     if (colMap.has('created_at') && !data.created_at) data.created_at = now;
     if (colMap.has('updated_at') && !data.updated_at) data.updated_at = now;
 
-    const processed = await this.processWriteData(data, true);
+    const processed = await processWriteData(data, true);
     const keys = Object.keys(processed);
     const values = Object.values(processed);
 
@@ -236,15 +187,7 @@ export class AdminDatabaseService {
     }
 
     // SECURITY: Column names MUST exist in schema (prevents SQL injection via crafted keys)
-    const VALID_COL_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-    for (const k of keys) {
-      if (!colMap.has(k)) {
-        throw new BadRequestException(`Столбец "${k}" не существует в таблице "${tableName}"`);
-      }
-      if (!VALID_COL_RE.test(k)) {
-        throw new BadRequestException(`Недопустимое имя столбца: "${k}"`);
-      }
-    }
+    assertColumnsAllowed(keys, colMap, tableName);
 
     // Строим parameterized INSERT — $1, $2, ... вместо string interpolation
     const colsSql = keys.map((k) => `"${k}"`).join(', ');
@@ -271,15 +214,15 @@ export class AdminDatabaseService {
       : [];
     const row = rows[0] ?? processed;
 
-    this.logger.log(`DB CREATE: ${tableName}`, { data: this.redactForLog(processed) });
+    this.logger.log(`DB CREATE: ${tableName}`, { data: redactForLog(processed) });
 
-    return { row: this.maskRow(row ?? {}) };
+    return { row: maskRow(row ?? {}) };
   }
 
   // ─── UPDATE ROW ─────────────────────────────────────────────────────────────
 
   async updateRow(tableName: string, id: string, data: Record<string, unknown>) {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     if (!data || typeof data !== 'object') {
       throw new BadRequestException('Данные для обновления не переданы');
@@ -298,7 +241,7 @@ export class AdminDatabaseService {
     const schema = await this.getTableSchema(tableName);
     const colMap = new Map(schema.columns.map((c) => [c.name, c]));
 
-    const processed = await this.processWriteData(data);
+    const processed = await processWriteData(data);
     const keys = Object.keys(processed);
     const values = Object.values(processed);
 
@@ -307,15 +250,7 @@ export class AdminDatabaseService {
     }
 
     // SECURITY: Column names MUST exist in schema (prevents SQL injection via crafted keys)
-    const VALID_COL_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-    for (const k of keys) {
-      if (!colMap.has(k)) {
-        throw new BadRequestException(`Столбец "${k}" не существует в таблице "${tableName}"`);
-      }
-      if (!VALID_COL_RE.test(k)) {
-        throw new BadRequestException(`Недопустимое имя столбца: "${k}"`);
-      }
-    }
+    assertColumnsAllowed(keys, colMap, tableName);
 
     // SET clause — enum-колонки кастятся через ::type_name
     const setClause = keys.map((k, i) => {
@@ -329,20 +264,20 @@ export class AdminDatabaseService {
     const row = rows[0];
 
     this.logger.log(`DB UPDATE: ${tableName}.${id}`, {
-      oldData: this.redactForLog(oldRows[0] ?? {}),
-      newData: this.redactForLog(processed),
+      oldData: redactForLog(oldRows[0] ?? {}),
+      newData: redactForLog(processed),
     });
 
     return {
-      row: this.maskRow(row ?? {}),
-      oldValues: this.maskRow(oldRows[0] ?? {}),
+      row: maskRow(row ?? {}),
+      oldValues: maskRow(oldRows[0] ?? {}),
     };
   }
 
   // ─── DELETE ROW ─────────────────────────────────────────────────────────────
 
   async deleteRow(tableName: string, id: string) {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     // Получаем данные перед удалением
     const oldRows = await this.prisma.$queryRawUnsafe<Record<string, unknown>[]>(
@@ -356,16 +291,16 @@ export class AdminDatabaseService {
     await this.prisma.$queryRawUnsafe(`DELETE FROM "${tableName}" WHERE id = $1`, id);
 
     this.logger.log(`DB DELETE: ${tableName}.${id}`, {
-      deletedData: this.redactForLog(oldRows[0] ?? {}),
+      deletedData: redactForLog(oldRows[0] ?? {}),
     });
 
-    return { deleted: true, id, deletedData: this.maskRow(oldRows[0] ?? {}) };
+    return { deleted: true, id, deletedData: maskRow(oldRows[0] ?? {}) };
   }
 
   // ─── BULK DELETE ────────────────────────────────────────────────────────────
 
   async bulkDelete(tableName: string, ids: string[]) {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     if (ids.length === 0) throw new BadRequestException('Нет ID для удаления');
     if (ids.length > 100) throw new BadRequestException('Максимум 100 записей за раз');
@@ -383,12 +318,12 @@ export class AdminDatabaseService {
   // ─── BULK UPDATE ────────────────────────────────────────────────────────────
 
   async bulkUpdate(tableName: string, ids: string[], data: Record<string, unknown>) {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     if (ids.length === 0) throw new BadRequestException('Нет ID для обновления');
     if (ids.length > 100) throw new BadRequestException('Максимум 100 записей за раз');
 
-    const processed = await this.processWriteData(data);
+    const processed = await processWriteData(data);
     const keys = Object.keys(processed);
     const values = Object.values(processed);
 
@@ -397,15 +332,7 @@ export class AdminDatabaseService {
     // SECURITY: Column names MUST exist in schema (prevents SQL injection via crafted keys)
     const schema = await this.getTableSchema(tableName);
     const colMap = new Map(schema.columns.map((c) => [c.name, c]));
-    const VALID_COL_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-    for (const k of keys) {
-      if (!colMap.has(k)) {
-        throw new BadRequestException(`Столбец "${k}" не существует в таблице "${tableName}"`);
-      }
-      if (!VALID_COL_RE.test(k)) {
-        throw new BadRequestException(`Недопустимое имя столбца: "${k}"`);
-      }
-    }
+    assertColumnsAllowed(keys, colMap, tableName);
 
     const setClause = keys.map((k, i) => `"${k}" = $${i + 1}`).join(', ');
     const idPlaceholders = ids.map((_, i) => `$${keys.length + i + 1}`).join(', ');
@@ -413,7 +340,7 @@ export class AdminDatabaseService {
 
     await this.prisma.$queryRawUnsafe(sql, ...values, ...ids);
 
-    this.logger.log(`DB BULK UPDATE: ${tableName}`, { ids, data: this.redactForLog(processed) });
+    this.logger.log(`DB BULK UPDATE: ${tableName}`, { ids, data: redactForLog(processed) });
 
     return { updated: ids.length, tableName };
   }
@@ -495,7 +422,7 @@ export class AdminDatabaseService {
   // ─── EXPORT CSV ─────────────────────────────────────────────────────────────
 
   async exportTable(tableName: string, tenantId?: string): Promise<string> {
-    this.assertTableAllowed(tableName);
+    assertTableAllowed(tableName);
 
     const schema = await this.getTableSchema(tableName);
     const hasTenantId = schema.columns.some((c) => c.name === 'tenant_id');
@@ -512,7 +439,7 @@ export class AdminDatabaseService {
     const rows = await this.prisma.$queryRawUnsafe<Record<string, unknown>[]>(sql, ...params);
     if (rows.length === 0) return '';
 
-    const masked = rows.map((row) => this.maskRow(row));
+    const masked = rows.map((row) => maskRow(row));
     const headers = Object.keys(masked[0]);
     const csvLines = [
       headers.join(','),
@@ -529,54 +456,5 @@ export class AdminDatabaseService {
     ];
 
     return csvLines.join('\n');
-  }
-
-  // ─── HELPERS ────────────────────────────────────────────────────────────────
-
-  private assertTableAllowed(tableName: string) {
-    if (!TABLE_WHITELIST.has(tableName)) {
-      throw new BadRequestException(`Таблица "${tableName}" не доступна`);
-    }
-  }
-
-  private maskRow(row: Record<string, unknown>): Record<string, unknown> {
-    const masked: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(row)) {
-      if (REDACTED_FIELDS.has(key.toLowerCase())) {
-        masked[key] = '[REDACTED]';
-      } else if (typeof value === 'bigint') {
-        masked[key] = value.toString();
-      } else if (value instanceof Date) {
-        masked[key] = value.toISOString();
-      } else {
-        masked[key] = value;
-      }
-    }
-    return masked;
-  }
-
-  private async processWriteData(data: Record<string, unknown>, allowId = false): Promise<Record<string, unknown>> {
-    const processed: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data)) {
-      if (key === 'id' && !allowId) continue;
-      if (PASSWORD_FIELDS.has(key.toLowerCase()) && typeof value === 'string') {
-        processed[key] = await bcrypt.hash(value, BCRYPT_ROUNDS);
-      } else {
-        processed[key] = value;
-      }
-    }
-    return processed;
-  }
-
-  private redactForLog(data: Record<string, unknown>): Record<string, unknown> {
-    const safe: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data)) {
-      if (REDACTED_FIELDS.has(key.toLowerCase()) || PASSWORD_FIELDS.has(key.toLowerCase())) {
-        safe[key] = '[REDACTED]';
-      } else {
-        safe[key] = value;
-      }
-    }
-    return safe;
   }
 }

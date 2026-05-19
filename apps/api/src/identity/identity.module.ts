@@ -4,6 +4,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
+import { PinController } from './pin.controller';
+import { BiometricController } from './biometric.controller';
+import { ApiKeyController } from './api-key.controller';
+import { PasswordController } from './password.controller';
 import { UsersController } from './users.controller';
 import { IdentityInfoController } from './identity-info.controller';
 import { TenantSettingsController } from './tenant-settings.controller';
@@ -41,7 +45,16 @@ import { NotificationsModule } from '../notifications/notifications.module';
       }),
     }),
   ],
-  controllers: [AuthController, UsersController, IdentityInfoController, TenantSettingsController],
+  controllers: [
+    AuthController,
+    PinController,
+    BiometricController,
+    ApiKeyController,
+    PasswordController,
+    UsersController,
+    IdentityInfoController,
+    TenantSettingsController,
+  ],
   providers: [
     IdentityService,
     TokenHelper,
