@@ -17,6 +17,7 @@ import SearchBar from '../../components/common/SearchBar';
 import ErrorView from '@/components/common/ErrorView';
 import OrderDetailSheet from './OrderDetailSheet';
 import type { OrderStatus } from '@raos/types';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -187,6 +188,7 @@ function StatCard({
 
 // ─── PaymentsHistoryScreen ─────────────────────────────
 export default function PaymentsHistoryScreen() {
+  useScreenProtection();
   const [period, setPeriod]         = useState<PeriodKey>('30d');
   const [method, setMethod]         = useState<MethodKey>('Barchasi');
   const [search, setSearch]         = useState('');

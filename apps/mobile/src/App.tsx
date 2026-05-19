@@ -10,7 +10,13 @@ import './i18n';
 import { useAuthStore } from './store/auth.store';
 import { useShiftStore } from './store/shiftStore';
 import RootNavigator from './navigation/RootNavigator';
+import linking from './navigation/linking';
 import { useNotifications } from './hooks/useNotifications';
+import { useSecurityCheck } from './hooks/useSecurityCheck';
+import { useVersionCheck } from './hooks/useVersionCheck';
+import { setupSslPinning, registerSslPinningErrorListener } from './lib/sslPinning';
+import CompromisedDeviceScreen from './screens/Auth/CompromisedDeviceScreen';
+import ForceUpdateScreen from './screens/Auth/ForceUpdateScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,14 +29,34 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const [ready, setReady] = useState(false);
+  const security = useSecurityCheck();
+  const versionStatus = useVersionCheck();
 
   useNotifications();
 
   useEffect(() => {
-    useAuthStore.getState().loadFromStorage()
+    setupSslPinning()
+      .then(() => useAuthStore.getState().loadFromStorage())
       .then(() => useShiftStore.getState().syncWithApi())
       .finally(() => setReady(true));
+
+    const unsubscribe = registerSslPinningErrorListener();
+    return unsubscribe;
   }, []);
+
+  if (security.isCompromised) {
+    return <CompromisedDeviceScreen reason={security.reason} />;
+  }
+
+  if (versionStatus.needsUpdate) {
+    return (
+      <ForceUpdateScreen
+        currentVersion={versionStatus.currentVersion}
+        minVersion={versionStatus.minVersion}
+        storeUrl={versionStatus.storeUrl}
+      />
+    );
+  }
 
   if (!ready) {
     return (
@@ -41,7 +67,7 @@ function AppContent() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <StatusBar style="dark" />
       <RootNavigator />
     </NavigationContainer>

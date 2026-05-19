@@ -11,12 +11,14 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDateTime, formatDuration } from '../../utils/formatDate';
 import Badge from '../../components/common/Badge';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 type Props = {
   route: RouteProp<ShiftsOwnerStackParamList, 'ShiftDetail'>;
 };
 
 export default function ShiftDetailScreen({ route }: Props) {
+  useScreenProtection();
   const { t } = useTranslation();
   const { shiftId } = route.params;
   const { data: shift, isLoading, isError, error, refetch } = useShiftDetail(shiftId);

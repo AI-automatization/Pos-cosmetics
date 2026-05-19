@@ -16,6 +16,7 @@ import { authApi } from '../../api';
 import { useAuthStore } from '../../store/auth.store';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 import { extractErrorMessage } from '../../utils/error';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 const PRIMARY = '#2563EB';
 const PRIMARY_LIGHT = '#EFF6FF';
@@ -23,9 +24,10 @@ const PRIMARY_LIGHT = '#EFF6FF';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Biometric'>;
 
 export default function BiometricScreen({ navigation }: Props) {
+  useScreenProtection();
   const { t } = useTranslation();
   const { authenticate } = useBiometricAuth();
-  const { setUser, loadFromStorage } = useAuthStore();
+  const { setUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,20 +39,37 @@ export default function BiometricScreen({ navigation }: Props) {
     setLoading(true);
     setError(null);
     try {
+      // 1. Device biometric check
       const success = await authenticate();
       if (!success) {
         setError(t('auth.loginError'));
         return;
       }
-      // Try to restore session from stored tokens
-      const restored = await loadFromStorage();
-      if (restored) return;
 
-      // Tokens expired — refresh via API
-      const me = await authApi.me();
-      await SecureStore.getItemAsync('access_token').then((token) => {
-        if (token) setUser(me, token, '');
-      });
+      // 2. Load stored tokens
+      const [accessToken, refreshToken, userStr] = await Promise.all([
+        SecureStore.getItemAsync('access_token'),
+        SecureStore.getItemAsync('refresh_token'),
+        SecureStore.getItemAsync('user'),
+      ]);
+
+      if (!accessToken || !userStr) {
+        // No cached session — must login again
+        navigation.navigate('Login');
+        return;
+      }
+
+      // 3. ALWAYS validate with server (not just cache)
+      try {
+        const me = await authApi.me();
+        // Server validated — update with fresh data + keep BOTH tokens
+        await setUser(me, accessToken, refreshToken ?? '');
+      } catch {
+        // Token invalid — try refresh via client interceptor
+        // If refresh also fails, client.ts interceptor calls clearAuth()
+        // Redirect to login
+        navigation.navigate('Login');
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {

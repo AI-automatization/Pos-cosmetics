@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../../api/reports.api';
 import ErrorView from '@/components/common/ErrorView';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -153,6 +154,7 @@ interface Props {
 }
 
 export default function PnLScreen({ onClose }: Props) {
+  useScreenProtection();
   const [period, setPeriod] = useState<PeriodKey>('30d');
 
   const { from, to } = useMemo(() => getPeriodDates(period), [period]);

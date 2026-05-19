@@ -19,6 +19,8 @@ import { authApi } from '../../api';
 import { useAuthStore } from '../../store/auth.store';
 import { extractErrorMessage } from '../../utils/error';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
+import Constants from 'expo-constants';
 
 const COLORS = {
   primary: '#2563EB',
@@ -42,6 +44,7 @@ const LANGS = [
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
+  useScreenProtection();
   const { i18n } = useTranslation();
   const { isAvailable: biometricAvailable } = useBiometricAuth();
   const setUser = useAuthStore((s) => s.setUser);
@@ -220,7 +223,7 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
           </View>
 
-          <Text style={styles.versionText}>v1.0.0</Text>
+          <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '0.0.0'}</Text>
 
           {/* DEV only — haqiqiy API bilan demo login */}
           {__DEV__ && (

@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import type { SavdoStackParamList } from '../../navigation/types';
 import SuccessAnimation from './SuccessAnimation';
 import OrderSummarySection from './OrderSummarySection';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -31,6 +32,7 @@ type Props = {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function PaymentSuccessScreen({ navigation, route }: Props) {
+  useScreenProtection();
   const { t } = useTranslation();
   const { items, paymentMethod, orderNumber } = route.params;
 

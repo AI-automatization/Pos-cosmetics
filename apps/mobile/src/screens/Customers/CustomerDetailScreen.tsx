@@ -20,6 +20,7 @@ import ErrorView from '@/components/common/ErrorView';
 import { DebtPaySheet } from './DebtPaySheet';
 import { useCustomerDebts } from '../../hooks/customers/useCustomerDebts';
 import type { DebtRecord } from '../../api/nasiya.api';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -293,6 +294,7 @@ const statStyles = StyleSheet.create({
 
 // ─── CustomerDetailScreen ─────────────────────────────
 export default function CustomerDetailScreen() {
+  useScreenProtection();
   const route = useRoute<RouteProps>();
   const navigation = useNavigation<Nav>();
   const { customerId, customerName } = route.params;

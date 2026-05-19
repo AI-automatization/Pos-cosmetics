@@ -19,6 +19,7 @@ import { nasiyaApi } from '../../api/nasiya.api';
 import { formatUZS } from '../../utils/currency';
 import { extractErrorMessage } from '../../utils/error';
 import QuickFillButtons from './QuickFillButtons';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 type PayMethod = 'CASH' | 'CARD' | 'TRANSFER';
 
@@ -48,6 +49,7 @@ interface Props {
 }
 
 export default function PayModal({ debt, visible, onClose, onSuccess }: Props) {
+  useScreenProtection();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PayMethod>('CASH');
   const [loading, setLoading] = useState(false);

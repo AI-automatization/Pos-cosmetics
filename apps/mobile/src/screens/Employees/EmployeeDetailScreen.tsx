@@ -31,6 +31,7 @@ import {
 } from './components/detail';
 import { useAuthStore } from '../../store/auth.store';
 import { getRoleLevel } from '../../utils/roles';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 type Route = RouteProp<EmployeesStackParamList, 'EmployeeDetail'>;
 type Nav = NativeStackNavigationProp<EmployeesStackParamList, 'EmployeeDetail'>;
@@ -64,6 +65,7 @@ const MOCK_PROFILE: Employee = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function EmployeeDetailScreen() {
+  useScreenProtection();
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();

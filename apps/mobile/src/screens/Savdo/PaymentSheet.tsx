@@ -16,6 +16,7 @@ import PaymentSummaryCard from './PaymentSummaryCard';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import PaymentInputBlock from './PaymentInputBlock';
 import PaymentSuccessView from './PaymentSuccessView';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Backward-compat re-exports ────────────────────────
 export type { PaymentMethod, CartItem } from './PaymentSheetTypes';
@@ -39,6 +40,7 @@ export default function PaymentSheet({
   onConfirm,
   onRemoveItem,
 }: Props) {
+  useScreenProtection();
   const [method, setMethod]       = useState<PaymentMethod>('NAQD');
   const [split, setSplit]         = useState(false);
   const [received, setReceived]   = useState('');

@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { nasiyaApi, type DebtRecord } from '../../api/nasiya.api';
 import ErrorView from '@/components/common/ErrorView';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -309,6 +310,7 @@ interface Props {
 }
 
 export default function NasiyaAgingScreen({ onClose }: Props) {
+  useScreenProtection();
   const [tab, setTab]           = useState<TabKey>('all');
   const [payRecord, setPayRecord] = useState<DebtRecord | null>(null);
   const queryClient             = useQueryClient();
