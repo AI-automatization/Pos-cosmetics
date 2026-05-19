@@ -5,14 +5,18 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   UseGuards,
   ParseUUIDPipe,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { LoyaltyService } from './loyalty.service';
 import {
@@ -48,7 +52,56 @@ export class LoyaltyController {
     return this.loyaltyService.updateConfig(tenantId, dto);
   }
 
-  // ─── ACCOUNT ──────────────────────────────────────────────────
+  // ─── ACCOUNTS LIST ────────────────────────────────────────────
+
+  @Get('accounts')
+  @ApiOperation({ summary: 'Barcha loyalty hisoblari ro\'yxati (sahifalangan)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'minPoints', required: false, type: Number })
+  listAccounts(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('minPoints', new DefaultValuePipe(undefined)) minPoints?: string,
+  ) {
+    const min = minPoints !== undefined ? parseInt(minPoints, 10) : undefined;
+    return this.loyaltyService.listAccounts(tenantId, page, limit, min);
+  }
+
+  // ─── TRANSACTIONS LIST ────────────────────────────────────────
+
+  @Get('transactions')
+  @ApiOperation({ summary: 'Loyalty tranzaksiyalar ro\'yxati (sahifalangan)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'type', required: false, type: String, enum: ['EARN', 'REDEEM', 'ADJUSTMENT', 'EXPIRE'] })
+  @ApiQuery({ name: 'customerId', required: false, type: String })
+  listTransactions(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('type') type?: string,
+    @Query('customerId') customerId?: string,
+  ) {
+    return this.loyaltyService.listTransactions(
+      tenantId,
+      page,
+      limit,
+      type,
+      customerId,
+    );
+  }
+
+  // ─── STATS ────────────────────────────────────────────────────
+
+  @Get('stats')
+  @ApiOperation({ summary: 'Loyalty statistikasi (bugungi + umumiy)' })
+  getStats(@CurrentUser('tenantId') tenantId: string) {
+    return this.loyaltyService.getStats(tenantId);
+  }
+
+  // ─── ACCOUNT (per customer) ───────────────────────────────────
 
   @Get('accounts/:customerId')
   @ApiOperation({ summary: 'Xaridor loyalty hisobi va tranzaksiya tarixi' })
