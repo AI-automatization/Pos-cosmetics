@@ -11,6 +11,7 @@ import {
   HandCoins,
   Wallet,
   TrendingUp,
+  Star,
   Building2,
   ClipboardList,
 } from 'lucide-react';
@@ -86,10 +87,22 @@ export const NAV_SECTIONS: NavSection[] = [
           { label: 'Buyurtmalar', tKey: 'nav.orders', href: '/sales/orders' },
           { label: 'Qaytarishlar', tKey: 'nav.returns', href: '/sales/returns' },
           { label: 'Chegirmalar', tKey: 'nav.promotions', href: '/promotions' },
+          { label: 'Promo kodlar', tKey: 'promo.title', href: '/promotions/codes' },
           { label: 'Smenalar', tKey: 'nav.shifts', href: '/sales/shifts' },
         ],
       },
       { label: "To'lovlar", tKey: 'nav.paymentHistory', href: '/payments/history', icon: CreditCard, roles: NO_CASHIER },
+      {
+        label: 'Loyalty', tKey: 'loyalty.title',
+        icon: Star,
+        roles: NO_CASHIER,
+        children: [
+          { label: 'Dashboard', tKey: 'loyalty.dashboard', href: '/loyalty' },
+          { label: 'Mijoz ballari', tKey: 'loyalty.customers', href: '/loyalty/customers' },
+          { label: 'Ball tarixi', tKey: 'loyalty.history', href: '/loyalty/history' },
+          { label: 'Sozlamalar', tKey: 'loyalty.settings', href: '/loyalty/settings' },
+        ],
+      },
       {
         label: 'Nasiya', tKey: 'nav.nasiya',
         icon: HandCoins,
