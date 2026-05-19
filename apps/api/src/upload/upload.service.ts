@@ -35,8 +35,8 @@ export class UploadService {
 
   constructor(private readonly config: ConfigService) {
     const endpoint = config.get<string>('MINIO_ENDPOINT', 'http://localhost:9000');
-    const accessKey = config.get<string>('MINIO_ACCESS_KEY', 'minioadmin');
-    const secretKey = config.get<string>('MINIO_SECRET_KEY', 'minioadmin');
+    const accessKey = config.getOrThrow<string>('MINIO_ACCESS_KEY');
+    const secretKey = config.getOrThrow<string>('MINIO_SECRET_KEY');
     this.bucket = config.get<string>('MINIO_BUCKET', 'raos');
     this.publicEndpoint = config.get<string>('MINIO_PUBLIC_URL', endpoint);
 
