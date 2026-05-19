@@ -48,8 +48,9 @@ export class PromotionsService {
 
   async updatePromotion(tenantId: string, id: string, dto: UpdatePromotionDto) {
     await this.getPromotion(tenantId, id);
+    // SECURITY: use compound where to prevent TOCTOU tenant bypass
     return this.prisma.promotion.update({
-      where: { id },
+      where: { id, tenantId },
       data: {
         ...(dto.name !== undefined && { name: dto.name }),
         ...(dto.rules !== undefined && { rules: dto.rules as Prisma.InputJsonValue }),
@@ -62,7 +63,8 @@ export class PromotionsService {
 
   async deletePromotion(tenantId: string, id: string) {
     await this.getPromotion(tenantId, id);
-    await this.prisma.promotion.delete({ where: { id } });
+    // SECURITY: use compound where to prevent TOCTOU tenant bypass
+    await this.prisma.promotion.delete({ where: { id, tenantId } });
     return { success: true };
   }
 

@@ -160,12 +160,12 @@ export class WarehouseInvoiceService {
     const productIds = invoice.items.map((i) => i.productId);
     const [products, supplier] = await Promise.all([
       this.prisma.product.findMany({
-        where: { id: { in: productIds } },
+        where: { id: { in: productIds }, tenantId },
         select: { id: true, name: true, sku: true, unit: { select: { shortName: true } } },
       }),
       invoice.supplierId
         ? this.prisma.supplier.findFirst({
-            where: { id: invoice.supplierId },
+            where: { id: invoice.supplierId, tenantId },
             select: { id: true, name: true, phone: true, company: true },
           })
         : null,

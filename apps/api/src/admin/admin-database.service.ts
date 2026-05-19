@@ -306,6 +306,17 @@ export class AdminDatabaseService {
       throw new BadRequestException('Нет данных для обновления');
     }
 
+    // SECURITY: Column names MUST exist in schema (prevents SQL injection via crafted keys)
+    const VALID_COL_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    for (const k of keys) {
+      if (!colMap.has(k)) {
+        throw new BadRequestException(`Столбец "${k}" не существует в таблице "${tableName}"`);
+      }
+      if (!VALID_COL_RE.test(k)) {
+        throw new BadRequestException(`Недопустимое имя столбца: "${k}"`);
+      }
+    }
+
     // SET clause — enum-колонки кастятся через ::type_name
     const setClause = keys.map((k, i) => {
       const col = colMap.get(k);
@@ -383,6 +394,19 @@ export class AdminDatabaseService {
 
     if (keys.length === 0) throw new BadRequestException('Нет данных для обновления');
 
+    // SECURITY: Column names MUST exist in schema (prevents SQL injection via crafted keys)
+    const schema = await this.getTableSchema(tableName);
+    const colMap = new Map(schema.columns.map((c) => [c.name, c]));
+    const VALID_COL_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    for (const k of keys) {
+      if (!colMap.has(k)) {
+        throw new BadRequestException(`Столбец "${k}" не существует в таблице "${tableName}"`);
+      }
+      if (!VALID_COL_RE.test(k)) {
+        throw new BadRequestException(`Недопустимое имя столбца: "${k}"`);
+      }
+    }
+
     const setClause = keys.map((k, i) => `"${k}" = $${i + 1}`).join(', ');
     const idPlaceholders = ids.map((_, i) => `$${keys.length + i + 1}`).join(', ');
     const sql = `UPDATE "${tableName}" SET ${setClause} WHERE id IN (${idPlaceholders})`;
@@ -409,16 +433,27 @@ export class AdminDatabaseService {
     }
 
     const upperSql = trimmed.toUpperCase();
-    const isSelect = upperSql.startsWith('SELECT') || upperSql.startsWith('EXPLAIN') || upperSql.startsWith('WITH');
-    const isDml = upperSql.startsWith('INSERT') || upperSql.startsWith('UPDATE') || upperSql.startsWith('DELETE');
+    // T-387: EXPLAIN ANALYZE can execute DML — treat EXPLAIN as SELECT only if no DML inside
+    const isExplain = upperSql.startsWith('EXPLAIN');
+    const explainContainsDml = isExplain && /\b(INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE|CREATE)\b/.test(upperSql);
+    const isSelect = (upperSql.startsWith('SELECT') || upperSql.startsWith('WITH') || (isExplain && !explainContainsDml));
+    const isDml = upperSql.startsWith('INSERT') || upperSql.startsWith('UPDATE') || upperSql.startsWith('DELETE') || explainContainsDml;
     const isDdl = upperSql.startsWith('DROP') || upperSql.startsWith('ALTER') || upperSql.startsWith('TRUNCATE') || upperSql.startsWith('CREATE');
 
-    // SECURITY: Production da faqat SELECT ruxsat etiladi
+    // SECURITY: Production da faqat read-only SELECT ruxsat etiladi
     const isProduction = process.env.NODE_ENV === 'production';
-    if (isProduction && !isSelect) {
+    if (isProduction && (!isSelect || isDml || isDdl)) {
       this.logger.error(`SQL CONSOLE BLOCKED [PROD]: ${trimmed.slice(0, 200)}`, { adminId });
       throw new BadRequestException(
         'Production muhitda faqat SELECT so\'rovlari ruxsat etiladi.',
+      );
+    }
+
+    // SECURITY: WITH (CTE) containing DML — block always
+    if (upperSql.startsWith('WITH') && /\b(INSERT|UPDATE|DELETE)\b/.test(upperSql)) {
+      this.logger.error(`SQL CONSOLE BLOCKED [CTE-DML]: ${trimmed.slice(0, 200)}`, { adminId });
+      throw new BadRequestException(
+        'CTE (WITH) ichida DML (INSERT/UPDATE/DELETE) taqiqlangan.',
       );
     }
 

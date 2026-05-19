@@ -25,7 +25,11 @@ export class ZzoneInboundController {
     private readonly service: ZzoneInboundService,
     private readonly config: ConfigService,
   ) {
-    this.apiKey = this.config.get<string>('ZZONE_API_KEY') || 'zzone-raos-integration-key-2026';
+    const key = this.config.get<string>('ZZONE_API_KEY');
+    if (!key) {
+      throw new Error('ZZONE_API_KEY environment variable is required');
+    }
+    this.apiKey = key;
   }
 
   // ─── PRODUCTS ─────────────────────────────────────────────────────────

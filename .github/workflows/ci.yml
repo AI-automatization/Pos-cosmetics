@@ -47,6 +47,12 @@ jobs:
       - name: TypeCheck Super Admin
         run: pnpm --filter super-admin exec tsc --noEmit
 
+      - name: TypeCheck Worker
+        run: pnpm --filter worker exec tsc --noEmit
+
+      - name: TypeCheck Bot
+        run: pnpm --filter bot exec tsc --noEmit
+
   test:
     name: "Unit Tests"
     needs: lint

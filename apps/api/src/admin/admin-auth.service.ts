@@ -55,7 +55,7 @@ export class AdminAuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '24h',
+      expiresIn: '1h',
     } as Parameters<typeof this.jwtService.signAsync>[1]);
 
     this.logger.log(`Admin login: ${admin.email} (${admin.role})`);

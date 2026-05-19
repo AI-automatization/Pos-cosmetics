@@ -10,7 +10,8 @@ import {
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const KEY_LENGTH = 32;
-const SALT = 'raos-payment-credentials';
+// Salt derived from master key — unique per deployment
+const SALT_PREFIX = 'raos-enc-v1-';
 
 @Injectable()
 export class EncryptionService {
@@ -20,12 +21,14 @@ export class EncryptionService {
   constructor(private readonly config: ConfigService) {
     const masterKey = this.config.get<string>('ENCRYPTION_MASTER_KEY');
     if (!masterKey) {
-      this.logger.warn(
-        'ENCRYPTION_MASTER_KEY not set — using fallback dev key. DO NOT use in production!',
-      );
+      const msg = 'ENCRYPTION_MASTER_KEY environment variable is required. Generate: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"';
+      this.logger.error(msg);
+      throw new Error(msg);
     }
-    const secret = masterKey || 'raos-dev-encryption-key-not-for-production';
-    this.key = scryptSync(secret, SALT, KEY_LENGTH);
+    const secret = masterKey;
+    // Dynamic salt from master key — different per deployment
+    const salt = SALT_PREFIX + secret.slice(0, 16);
+    this.key = scryptSync(secret, salt, KEY_LENGTH);
   }
 
   /** Encrypt plaintext → "ivHex:tagHex:ciphertextHex" */

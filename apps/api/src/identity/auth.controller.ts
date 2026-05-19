@@ -386,6 +386,7 @@ export class AuthController {
    */
   @Public()
   @Post('biometric/verify')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'T-225: Biometric token orqali login — JWT qaytaradi' })
   async verifyBiometric(

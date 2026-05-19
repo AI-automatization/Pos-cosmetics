@@ -74,43 +74,30 @@ async function bootstrap() {
     return this.toString();
   };
 
-  // Swagger — Main RAOS API
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('RAOS API')
-    .setDescription('Retail & Asset Operating System API')
-    .setVersion('0.1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig, {
-    include: [], // all modules
-  });
-  SwaggerModule.setup(`${prefix}/docs`, app, document);
+  // Swagger — disabled in production (security: prevents API surface exposure)
+  if (!isProduction) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('RAOS API')
+      .setDescription('Retail & Asset Operating System API')
+      .setVersion('0.1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig, {
+      include: [], // all modules
+    });
+    SwaggerModule.setup(`${prefix}/docs`, app, document);
 
-  // Swagger — ZZone Collaboration API (separate docs)
-  const zzoneSwaggerConfig = new DocumentBuilder()
-    .setTitle('RAOS x ZZone Collaboration API')
-    .setDescription(
-      'API для интеграции ZZone маркетплейса с RAOS POS системой.\n\n' +
-      '## Аутентификация\n' +
-      'Все запросы требуют заголовок `X-Api-Key`.\n\n' +
-      '## Направления\n' +
-      '- **Inbound (ZZone → RAOS):** ZZone вызывает эти endpoints для получени�� товаров, создания заказов\n' +
-      '- **Outbound (RAOS → ZZone):** RAOS автоматически пуши�� stock при продаже\n\n' +
-      '## Base URL\n' +
-      '`https://your-raos-domain.com/api/v1/zzone`',
-    )
-    .setVersion('1.0.0')
-    .addApiKey({ type: 'apiKey', name: 'X-Api-Key', in: 'header' }, 'api-key')
-    .addTag('Products', 'Получение товаров и остатков из RAOS')
-    .addTag('Orders', 'Создание и управление заказами')
-    .addTag('Sellers', 'Информация о продавцах и магазинах')
-    .addTag('Health', 'Проверка доступности API')
-    .build();
-
-  const zzoneDocument = SwaggerModule.createDocument(app, zzoneSwaggerConfig, {
-    include: [ZzoneModule],
-  });
-  SwaggerModule.setup(`${prefix}/zzone/docs`, app, zzoneDocument);
+    const zzoneSwaggerConfig = new DocumentBuilder()
+      .setTitle('RAOS x ZZone Collaboration API')
+      .setDescription('ZZone marketplace integration API')
+      .setVersion('1.0.0')
+      .addApiKey({ type: 'apiKey', name: 'X-Api-Key', in: 'header' }, 'api-key')
+      .build();
+    const zzoneDocument = SwaggerModule.createDocument(app, zzoneSwaggerConfig, {
+      include: [ZzoneModule],
+    });
+    SwaggerModule.setup(`${prefix}/zzone/docs`, app, zzoneDocument);
+  }
 
   // Graceful shutdown (T-085)
   app.enableShutdownHooks();
@@ -119,7 +106,9 @@ async function bootstrap() {
   const port = config.get<number>('PORT') ?? config.get<number>('API_PORT', 3000);
   await app.listen(port);
   logger.log(`RAOS API v1 running on http://localhost:${port}/${prefix}`, 'Bootstrap');
-  logger.log(`Swagger docs: http://localhost:${port}/${prefix}/docs`, 'Bootstrap');
+  if (!isProduction) {
+    logger.log(`Swagger docs: http://localhost:${port}/${prefix}/docs`, 'Bootstrap');
+  }
 }
 
 bootstrap();

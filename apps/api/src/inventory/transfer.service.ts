@@ -113,7 +113,7 @@ export class TransferService {
     }
 
     return this.prisma.stockTransfer.update({
-      where: { id: transferId },
+      where: { id: transferId, tenantId },
       data: { status: 'APPROVED', approvedById },
       include: { items: true },
     });

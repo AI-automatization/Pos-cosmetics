@@ -39,8 +39,8 @@ describe('Fiscal Worker — receipt payload', () => {
 
       expect(payload.total).toBe(1200000);
       expect(payload.taxAmount).toBe(144000);
-      expect(payload.items[0].qty).toBe(2);
-      expect(payload.items[0].price).toBe(600000);
+      expect(payload.items[0]!.qty).toBe(2);
+      expect(payload.items[0]!.price).toBe(600000);
       expect(payload.items[0].total).toBe(1200000);
       expect(typeof payload.total).toBe('number');
     });
