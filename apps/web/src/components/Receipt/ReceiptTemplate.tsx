@@ -145,6 +145,25 @@ export function ReceiptTemplate({ order, change = 0 }: ReceiptTemplateProps) {
         </div>
       </div>
 
+      {/* Loyalty info — show if customer exists (points earned from this sale) */}
+      {order.customer && order.loyaltyEarned != null && order.loyaltyEarned > 0 && (
+        <>
+          <div className="receipt-divider" />
+          <div className="receipt-small">
+            <div className="receipt-row">
+              <span>⭐ {t('receipt.loyaltyEarned') || 'Yig\'ilgan ball'}:</span>
+              <span className="receipt-row-right receipt-bold">+{order.loyaltyEarned}</span>
+            </div>
+            {order.loyaltyBalance != null && (
+              <div className="receipt-row">
+                <span>{t('receipt.loyaltyBalance') || 'Jami ball'}:</span>
+                <span className="receipt-row-right">{order.loyaltyBalance}</span>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
       <div className="receipt-divider" />
 
       {/* Footer */}

@@ -125,6 +125,17 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         toast.success(`Sotuv #${order.orderNumber ?? order.id?.slice(0, 8) ?? '—'} yakunlandi!`);
       }
 
+      // Loyalty: show earned points toast if customer selected
+      if (selectedCustomer && loyaltyConfig?.isActive) {
+        const earnRate = loyaltyConfig.earnRate ?? DEFAULT_LOYALTY_CONFIG.earnRate;
+        const earned = Math.floor(total / earnRate);
+        if (earned > 0) {
+          toast.info(`⭐ ${selectedCustomer.name}: +${earned} ball yig'ildi`, { duration: 5000 });
+          // Attach to order for receipt display
+          order.loyaltyEarned = earned;
+        }
+      }
+
       // Low-stock check — success toast dan keyin ko'rinsin
       setTimeout(() => {
         soldItems.forEach(({ productId, name, remainingStock }) => {
