@@ -14,7 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { analyticsApi } from '../../api/analytics.api';
-import type { BranchRevenueItem, BranchRevenue } from '../../api/analytics.api';
+import type { BranchRevenueItem, BranchComparisonItem } from '../../api/analytics.api';
 import type { FinanceStackParamList } from '../../navigation/types';
 
 // ─── Colors ────────────────────────────────────────────
@@ -127,7 +127,7 @@ export default function BranchReportsScreen() {
       try {
         return await analyticsApi.getBranchComparison();
       } catch {
-        return [] as BranchRevenue[];
+        return [] as BranchComparisonItem[];
       }
     },
     staleTime: 30_000,
@@ -143,9 +143,8 @@ export default function BranchReportsScreen() {
 
   const trendMap = useMemo<Record<string, number>>(() => {
     const map: Record<string, number> = {};
-    branchComparison.forEach((b: BranchRevenue) => {
-      map[b.branchId] = b.trend;
-    });
+    // BranchComparisonItem does not include trend data;
+    // revenue-by-branch items will render without a trend badge.
     return map;
   }, [branchComparison]);
 

@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api/sales.api';
 import type { OrderWithMethod } from '../../api/sales.api';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -42,19 +43,19 @@ const STATUS_CONFIG: Record<SupportedStatus, { bg: string; color: string; label:
 const FALLBACK_STATUS = STATUS_CONFIG.VOIDED;
 
 // ─── OrderWithMethod kengaytmasi (API javobiga mos) ────
-interface OrderDetail extends OrderWithMethod {
-  items?: OrderLineItem[];
-  discount?: number;
-  tax?: number;
-  note?: string;
-}
-
 interface OrderLineItem {
   productId: string;
   productName?: string;
   quantity: number;
   price: number;
   total: number;
+}
+
+interface OrderDetail extends Omit<OrderWithMethod, 'items'> {
+  items?: OrderLineItem[];
+  discount?: number;
+  tax?: number;
+  note?: string;
 }
 
 // ─── Props ─────────────────────────────────────────────
@@ -127,11 +128,25 @@ function LineItem({ item }: { readonly item: OrderLineItem }) {
 
 // ─── OrderDetailSheet ──────────────────────────────────
 export default function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
+  useScreenProtection();
   const visible = orderId !== null;
 
   const { data, isLoading } = useQuery<OrderDetail>({
     queryKey: ['order-detail', orderId],
-    queryFn:  () => salesApi.getOrderById(orderId!) as Promise<OrderDetail>,
+    queryFn:  async (): Promise<OrderDetail> => {
+      const raw = await salesApi.getOrderById(orderId!);
+      const { items: rawItems, ...rest } = raw;
+      return {
+        ...rest,
+        items: rawItems?.map((oi) => ({
+          productId: oi.productId,
+          productName: oi.productName,
+          quantity: oi.quantity,
+          price: oi.unitPrice,
+          total: oi.total,
+        })),
+      };
+    },
     enabled:  visible,
     staleTime: 60_000,
   });

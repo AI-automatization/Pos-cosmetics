@@ -21,7 +21,7 @@ function ItemRow({ item }: { item: SaleItem }): React.JSX.Element {
         <Text style={styles.itemName}>{item.productName}</Text>
         <Text style={styles.itemQty}>x{item.quantity}</Text>
       </View>
-      <Text style={styles.itemTotal}>{formatCurrency(item.total)}</Text>
+      <Text style={styles.itemTotal}>{formatCurrency(Number(item.total))}</Text>
     </View>
   );
 }
@@ -65,7 +65,7 @@ export default function SaleDetailScreen({ route }: Props): React.JSX.Element {
         />
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>{t('sales.total')}</Text>
-          <Text style={styles.totalValue}>{formatCurrency(data.total, data.currency)}</Text>
+          <Text style={styles.totalValue}>{formatCurrency(Number(data.total), data.currency ?? 'UZS')}</Text>
         </View>
       </Card>
     </ScreenLayout>

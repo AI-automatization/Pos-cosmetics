@@ -21,7 +21,7 @@ interface OmborListHeaderProps {
   readonly resultCount: number;
   readonly onSearchChange: (text: string) => void;
   readonly onTabChange:    (tab: FilterTab) => void;
-  readonly inputRef?: React.RefObject<TextInput>;
+  readonly inputRef?: React.RefObject<TextInput | null>;
 }
 
 export default function OmborListHeader({

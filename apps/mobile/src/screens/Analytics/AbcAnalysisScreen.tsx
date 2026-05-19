@@ -55,7 +55,8 @@ function GroupCard({ group, expanded, onToggle }: {
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const colors = GROUP_COLORS[group.group] ?? GROUP_COLORS.C;
+  const defaultColors = { bg: '#F1F5F9', text: '#64748B', bar: '#94A3B8', label: 'Past daromad' } as const;
+  const colors = GROUP_COLORS[group.group] ?? defaultColors;
   return (
     <View style={s.groupCard}>
       <TouchableOpacity style={s.groupHeader} onPress={onToggle} activeOpacity={0.7}>

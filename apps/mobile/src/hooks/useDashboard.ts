@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsApi, salesApi, alertsApi, branchesApi as branchApi } from '@/api';
 import { QUERY_STALE_TIMES, REFETCH_INTERVALS } from '@/config/constants';
 import { safeQueryFn } from '@/utils/error';
-import type { RevenueData, BranchRevenue, InsightItem } from '@/api/analytics.api';
+import type { RevenueData, BranchComparisonItem, InsightItem } from '@/api/analytics.api';
 import type { QuickStats, ActiveShift } from '@/api/sales.api';
 import type { Alert } from '@/api/alerts.api';
 import type { Branch } from '@/api/branches.api';
@@ -30,7 +30,7 @@ export function useDashboard(branchId?: string) {
 
   const branchComparison = useQuery({
     queryKey: ['dashboard', 'branches-comparison'],
-    queryFn: safeQueryFn<BranchRevenue[]>(() => analyticsApi.getBranchComparison(), []),
+    queryFn: safeQueryFn<BranchComparisonItem[]>(() => analyticsApi.getBranchComparison(), []),
     staleTime: QUERY_STALE_TIMES.DASHBOARD,
     refetchInterval: REFETCH_INTERVALS.DASHBOARD,
   });

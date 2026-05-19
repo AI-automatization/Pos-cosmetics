@@ -63,15 +63,15 @@ function getActionButtons(status: TransferStatus): ActionBtnConfig[] {
     case 'REQUESTED':
       return [
         { label: 'Tasdiqlash', color: C.primary, action: 'approve' },
-        { label: 'Bekor qilish', color: C.danger, action: 'cancel' },
+        { label: 'Bekor qilish', color: C.red, action: 'cancel' },
       ];
     case 'APPROVED':
       return [
         { label: "Jo'natish", color: C.primary, action: 'ship' },
-        { label: 'Bekor qilish', color: C.danger, action: 'cancel' },
+        { label: 'Bekor qilish', color: C.red, action: 'cancel' },
       ];
     case 'SHIPPED':
-      return [{ label: 'Qabul qilish', color: C.success, action: 'receive' }];
+      return [{ label: 'Qabul qilish', color: C.green, action: 'receive' }];
     default:
       return [];
   }
@@ -133,10 +133,10 @@ const TransferCard = React.memo(function TransferCard({
         {visibleItems.map((it, idx) => (
           <View key={idx} style={s.itemRow}>
             <Text style={s.itemName} numberOfLines={1}>
-              {it.productName}
+              {it.product.name}
             </Text>
             <Text style={s.itemQty}>
-              {it.quantity} {it.unit}
+              {it.quantity} dona
             </Text>
           </View>
         ))}
@@ -150,7 +150,7 @@ const TransferCard = React.memo(function TransferCard({
         <View style={s.footerLeft}>
           <Ionicons name="person-outline" size={12} color={C.muted} />
           <Text style={s.footerMeta} numberOfLines={1}>
-            {item.createdByName}
+            {item.requestedBy.firstName} {item.requestedBy.lastName}
           </Text>
           <Text style={s.footerDot}> · </Text>
           <Ionicons name="calendar-outline" size={12} color={C.muted} />
@@ -198,7 +198,7 @@ export default function TransferListView({ style }: TransferListViewProps) {
   const transfers = useQuery({
     queryKey: ['stock-transfers', statusFilter],
     queryFn: () =>
-      inventoryApi.listTransfers(statusFilter === 'ALL' ? undefined : statusFilter),
+      inventoryApi.listTransfers(statusFilter === 'ALL' ? undefined : { status: statusFilter }),
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
@@ -376,7 +376,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: C.surface,
+    backgroundColor: C.white,
     borderWidth: 1,
     borderColor: C.border,
   },
@@ -414,7 +414,7 @@ const s = StyleSheet.create({
 
   // Card
   card: {
-    backgroundColor: C.surface,
+    backgroundColor: C.white,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
@@ -482,7 +482,7 @@ const s = StyleSheet.create({
     marginHorizontal: 8,
   },
   itemsWrap: {
-    backgroundColor: C.background,
+    backgroundColor: C.bg,
     borderRadius: 8,
     padding: 10,
     gap: 6,

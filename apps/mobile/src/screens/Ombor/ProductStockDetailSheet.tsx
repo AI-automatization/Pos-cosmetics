@@ -46,7 +46,8 @@ function parseNote(note: string | null, type: string): string | null {
   if (!note) return null;
   if (type === 'IN' && note.includes('|')) {
     const parts = note.split('|');
-    return parts.length > 1 ? parts[1].trim() : note;
+    const second = parts[1];
+    return parts.length > 1 && second !== undefined ? second.trim() : note;
   }
   return note;
 }

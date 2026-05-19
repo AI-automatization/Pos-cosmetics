@@ -39,6 +39,9 @@ export interface SaleDetail {
   notes: string | null;
   createdAt: string;
   paymentMethod?: string | null;
+  branchName?: string;
+  cashierName?: string;
+  currency?: string;
   items: SaleItem[];
 }
 
@@ -77,7 +80,9 @@ export interface PaginatedOrders {
 // Backend shift response type (different shape than ShiftDetail)
 interface BackendShiftResponse {
   id: string;
-  branchId?: string;
+  tenantId?: string;
+  userId?: string;
+  branchId?: string | null;
   branchName?: string;
   cashierId?: string;
   cashierName?: string;
@@ -89,15 +94,31 @@ interface BackendShiftResponse {
   totalRevenue?: number;
   totalOrders?: number;
   expectedCash?: number | null;
+  notes?: string | null;
+  createdAt?: string;
   paymentBreakdown?: Record<string, number>;
-  [key: string]: unknown;
 }
 
 function mapShiftDetail(raw: BackendShiftResponse): ShiftDetail {
   const pb = raw.paymentBreakdown ?? {};
   const nameParts = (raw.cashierName ?? '').split(' ');
+  const status = (raw.status ?? 'OPEN').toUpperCase() as 'OPEN' | 'CLOSED';
+
   return {
-    ...raw,
+    id: raw.id,
+    tenantId: raw.tenantId ?? '',
+    userId: raw.userId ?? raw.cashierId ?? '',
+    branchId: raw.branchId ?? null,
+    status,
+    openedAt: new Date(raw.openedAt),
+    closedAt: raw.closedAt ? new Date(raw.closedAt) : null,
+    openingCash: raw.openingCash ?? 0,
+    closingCash: raw.closingCash ?? null,
+    expectedCash: raw.expectedCash ?? null,
+    notes: raw.notes ?? null,
+    createdAt: raw.createdAt ? new Date(raw.createdAt) : new Date(raw.openedAt),
+    totalRevenue: raw.totalRevenue,
+    totalOrders: raw.totalOrders,
     cashAmount: pb.cash ?? pb.naqd ?? 0,
     cardAmount: (pb.card ?? 0) + (pb.terminal ?? 0),
     nasiyaAmount: pb.nasiya ?? pb.debt ?? 0,
@@ -105,8 +126,10 @@ function mapShiftDetail(raw: BackendShiftResponse): ShiftDetail {
     user: raw.cashierName
       ? { firstName: nameParts[0] ?? '', lastName: nameParts.slice(1).join(' ') }
       : undefined,
-    status: (raw.status ?? 'OPEN').toUpperCase(),
-  } as ShiftDetail;
+    paymentBreakdown: pb
+      ? Object.entries(pb).map(([method, amount]) => ({ method, amount }))
+      : undefined,
+  };
 }
 
 export const salesApi = {

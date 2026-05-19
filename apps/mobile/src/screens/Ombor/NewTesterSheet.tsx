@@ -80,7 +80,7 @@ export default function NewTesterSheet({ visible, onClose, onSuccess }: NewTeste
 
   useEffect(() => {
     const wh = warehouses.data;
-    if (wh && wh.length === 1) setSelectedWarehouse(wh[0].id);
+    if (wh && wh.length === 1 && wh[0] !== undefined) setSelectedWarehouse(wh[0].id);
   }, [warehouses.data]);
 
   const handleProductSelect = (id: string, name: string) => {

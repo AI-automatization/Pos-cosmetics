@@ -98,8 +98,10 @@ export function QuickChip({ label, icon, onPress, badge }: QuickChipProps) {
 
 // ── MovementRow ────────────────────────────────────────────
 
+const DEFAULT_MOVEMENT_CFG = { color: C.secondary, label: 'Boshqa' } as const;
+
 export function MovementRow({ item }: { readonly item: DashboardMovement }) {
-  const cfg = MOVEMENT_CFG[item.type] ?? MOVEMENT_CFG.ADJUSTMENT;
+  const cfg = MOVEMENT_CFG[item.type] ?? DEFAULT_MOVEMENT_CFG;
   const isNegative = item.type === 'OUT' || item.type === 'TRANSFER_OUT' || item.type === 'WRITE_OFF';
   return (
     <View style={styles.movementRow}>
