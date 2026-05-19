@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -81,6 +82,44 @@ export class ZzoneInboundController {
     return { success: true, data: stock };
   }
 
+  @Patch('products/:productId')
+  @ApiTags('Products')
+  @ApiOperation({ summary: 'Mahsulotni yangilash', description: 'Partial update — faqat yuborilgan fieldlar o\'zgaradi' })
+  @ApiParam({ name: 'productId', description: 'RAOS Product UUID' })
+  @ApiResponse({ status: 200, description: 'Mahsulot yangilandi' })
+  @ApiResponse({ status: 404, description: 'Mahsulot topilmadi' })
+  async updateProduct(
+    @Headers('x-api-key') key: string,
+    @Param('productId') productId: string,
+    @Body() body: {
+      name?: string;
+      price?: number;
+      description?: string;
+      imageUrl?: string;
+      category?: string;
+      isActive?: boolean;
+    },
+  ) {
+    this.validateKey(key);
+    const product = await this.service.updateProduct(productId, body);
+    return { success: true, data: product };
+  }
+
+  @Delete('products/:productId')
+  @ApiTags('Products')
+  @ApiOperation({ summary: 'Mahsulotni o\'chirish', description: 'Soft delete — mahsulot ZZone vitrinadan yashiriladi' })
+  @ApiParam({ name: 'productId', description: 'RAOS Product UUID' })
+  @ApiResponse({ status: 200, description: 'Mahsulot o\'chirildi (soft)' })
+  @ApiResponse({ status: 404, description: 'Mahsulot topilmadi' })
+  async deleteProduct(
+    @Headers('x-api-key') key: string,
+    @Param('productId') productId: string,
+  ) {
+    this.validateKey(key);
+    const result = await this.service.deleteProduct(productId);
+    return { success: true, data: result };
+  }
+
   // ─── ORDERS ──────────────────────────────────────────────────────────
 
   @Post('orders')
@@ -124,6 +163,62 @@ export class ZzoneInboundController {
     return { success: true, data: order };
   }
 
+  @Get('orders/:orderId')
+  @ApiTags('Orders')
+  @ApiOperation({ summary: 'Bitta buyurtma', description: 'Order ID bo\'yicha to\'liq ma\'lumot' })
+  @ApiParam({ name: 'orderId', description: 'RAOS Order UUID' })
+  @ApiResponse({ status: 200, description: 'Order topildi' })
+  @ApiResponse({ status: 404, description: 'Order topilmadi' })
+  async getOrder(
+    @Headers('x-api-key') key: string,
+    @Param('orderId') orderId: string,
+  ) {
+    this.validateKey(key);
+    const order = await this.service.getOrder(orderId);
+    return { success: true, data: order };
+  }
+
+  @Patch('orders/:orderId')
+  @ApiTags('Orders')
+  @ApiOperation({ summary: 'Buyurtmani tahrirlash', description: 'Faqat PENDING statusda tahrirlash mumkin' })
+  @ApiParam({ name: 'orderId', description: 'RAOS Order UUID' })
+  @ApiResponse({ status: 200, description: 'Order yangilandi' })
+  @ApiResponse({ status: 400, description: 'Faqat PENDING statusda tahrirlash mumkin' })
+  async updateOrder(
+    @Headers('x-api-key') key: string,
+    @Param('orderId') orderId: string,
+    @Body() body: {
+      sellerId: string;
+      quantity?: number;
+      totalPrice?: number;
+      deliveryAddress?: string;
+      clientPhone?: string;
+    },
+  ) {
+    this.validateKey(key);
+    if (!body.sellerId) throw new BadRequestException('sellerId is required');
+    const order = await this.service.updateOrder(orderId, body.sellerId, body);
+    return { success: true, data: order };
+  }
+
+  @Delete('orders/:orderId')
+  @ApiTags('Orders')
+  @ApiOperation({ summary: 'Buyurtmani bekor qilish', description: 'Faqat PENDING yoki CONFIRMED statusda bekor qilish mumkin. Stock qaytariladi.' })
+  @ApiParam({ name: 'orderId', description: 'RAOS Order UUID' })
+  @ApiQuery({ name: 'sellerId', required: true, description: 'Tenant ID' })
+  @ApiResponse({ status: 200, description: 'Order bekor qilindi, stock qaytarildi' })
+  @ApiResponse({ status: 400, description: 'COMPLETED statusdagi orderni bekor qilib bo\'lmaydi' })
+  async deleteOrder(
+    @Headers('x-api-key') key: string,
+    @Param('orderId') orderId: string,
+    @Query('sellerId') sellerId: string,
+  ) {
+    this.validateKey(key);
+    if (!sellerId) throw new BadRequestException('sellerId is required');
+    const result = await this.service.voidOrder(orderId, sellerId);
+    return { success: true, data: result };
+  }
+
   @Get('orders')
   @ApiTags('Orders')
   @ApiOperation({ summary: 'ZZone buyurtmalar', description: 'Faqat origin=ZZONE bo\'lgan orderlarni qaytaradi' })
@@ -158,8 +253,40 @@ export class ZzoneInboundController {
     return { success: true, data: seller };
   }
 
-  @Get('stores/:storeId')
+  @Patch('sellers/:sellerId')
   @ApiTags('Sellers')
+  @ApiOperation({ summary: 'Seller ma\'lumotini yangilash', description: 'Tenant ma\'lumotlarini partial update' })
+  @ApiParam({ name: 'sellerId', description: 'Tenant UUID' })
+  @ApiResponse({ status: 200, description: 'Seller yangilandi' })
+  @ApiResponse({ status: 404, description: 'Seller topilmadi' })
+  async updateSeller(
+    @Headers('x-api-key') key: string,
+    @Param('sellerId') sellerId: string,
+    @Body() body: { name?: string; phone?: string; city?: string },
+  ) {
+    this.validateKey(key);
+    const seller = await this.service.updateSeller(sellerId, body);
+    return { success: true, data: seller };
+  }
+
+  @Delete('sellers/:sellerId')
+  @ApiTags('Sellers')
+  @ApiOperation({ summary: 'Sellerni deaktivatsiya', description: 'Seller nofaol bo\'ladi, barcha mahsulotlari ZZone dan yashiriladi' })
+  @ApiParam({ name: 'sellerId', description: 'Tenant UUID' })
+  @ApiResponse({ status: 200, description: 'Seller deaktivatsiya qilindi' })
+  async deactivateSeller(
+    @Headers('x-api-key') key: string,
+    @Param('sellerId') sellerId: string,
+  ) {
+    this.validateKey(key);
+    const result = await this.service.deactivateSeller(sellerId);
+    return { success: true, data: result };
+  }
+
+  // ─── STORES ──────────────────────────────────────────────────────────
+
+  @Get('stores/:storeId')
+  @ApiTags('Stores')
   @ApiOperation({ summary: 'Do\'kon/filial', description: 'Branch (do\'kon) haqida ma\'lumot' })
   @ApiParam({ name: 'storeId', description: 'Branch UUID' })
   @ApiResponse({ status: 200, description: 'Store topildi' })
@@ -171,6 +298,36 @@ export class ZzoneInboundController {
     this.validateKey(key);
     const store = await this.service.getStore(storeId);
     return { success: true, data: store };
+  }
+
+  @Patch('stores/:storeId')
+  @ApiTags('Stores')
+  @ApiOperation({ summary: 'Do\'konni yangilash', description: 'Branch ma\'lumotlarini partial update' })
+  @ApiParam({ name: 'storeId', description: 'Branch UUID' })
+  @ApiResponse({ status: 200, description: 'Store yangilandi' })
+  @ApiResponse({ status: 404, description: 'Store topilmadi' })
+  async updateStore(
+    @Headers('x-api-key') key: string,
+    @Param('storeId') storeId: string,
+    @Body() body: { name?: string; address?: string },
+  ) {
+    this.validateKey(key);
+    const store = await this.service.updateStore(storeId, body);
+    return { success: true, data: store };
+  }
+
+  @Delete('stores/:storeId')
+  @ApiTags('Stores')
+  @ApiOperation({ summary: 'Do\'konni deaktivatsiya', description: 'Branch nofaol bo\'ladi' })
+  @ApiParam({ name: 'storeId', description: 'Branch UUID' })
+  @ApiResponse({ status: 200, description: 'Store deaktivatsiya qilindi' })
+  async deactivateStore(
+    @Headers('x-api-key') key: string,
+    @Param('storeId') storeId: string,
+  ) {
+    this.validateKey(key);
+    const result = await this.service.deactivateStore(storeId);
+    return { success: true, data: result };
   }
 
   // ─── HEALTH ──────────────────────────────────────────────────────────
