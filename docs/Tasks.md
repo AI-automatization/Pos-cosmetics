@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-19 (T-438..T-457 — Landing page tasklar Ziyoda uchun)
+# Yangilangan: 2026-05-19 (T-458..T-468 — Sprint plan: Loyalty, SMS, Import, Demo)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -73,6 +73,51 @@
 ---
 
 *(T-393..T-397, T-387..T-389 — BAJARILDI, Done.md 2026-05-14)*
+
+---
+
+## T-458 | P0 | [IKKALASI] | Demo tenant yaratish — sales jamoa uchun tayyor demo
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `prisma/seed-demo.ts` (yaratish kerak)
+- **Vazifa:**
+  - Demo tenant: "RAOS Demo Do'kon" (3 filial: Toshkent, Samarqand, Namangan)
+  - 50-100 ta namuna mahsulot (Kosmetika 15, Kiyim 15, Oziq-ovqat 10, Elektronika 10)
+  - 20 ta namuna mijoz (loyalty balli bor)
+  - 30 ta namuna sotuv (oxirgi 7 kun)
+  - Kassir: "Demo Kassir", Login: `demo@raos.uz` / `demo2026`
+  - Loyalty config: yoqilgan, 1000 so'm = 1 ball
+  - Demo cheklovlar: MAX 100 mahsulot, MAX 1000 sotuv, 30 kun muddat
+  - "Demo rejim" banner yuqorida
+  - `pnpm seed:demo` buyruq package.json ga
+- **Kutilgan:** demo@raos.uz bilan kirsa tayyor do'kon ko'rinadi
+- **Muddat:** 2 kun
+- **Hafta:** W21 (1-hafta)
+- **Trek:** D (Demo + Security)
+
+---
+
+## T-459 | P0 | [SECURITY] | Security audit — qolgan ochiq masalalar yopish
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Holat:** ASOSAN BAJARILDI (2026-05-19 sessiyada 23 GitHub issue yopildi)
+- **Bajarilgan:**
+  - ✅ SQL injection column names (updateRow/bulkUpdate) — schema validation + regex
+  - ✅ EXPLAIN ANALYZE DML bypass — DML keyword detection
+  - ✅ Hardcoded ZZone API key + encryption key — throw if missing
+  - ✅ SQL console CTE-DML bypass — WITH+DML blocked
+  - ✅ Swagger production — disabled via isProduction
+  - ✅ TOCTOU promotions — compound where {id, tenantId}
+  - ✅ Cross-tenant warehouse-invoice — tenantId added
+  - ✅ Transfer approve — tenantId in update where
+  - ✅ Biometric rate limit — @Throttle(5/min)
+  - ✅ Admin JWT 24h → 1h
+  - ✅ MinIO default creds — getOrThrow
+- **Qolgan:** Har fix uchun test yozish (qisman bor — promotions, transfer testlari)
+- **Muddat:** 1 kun (testlar)
+- **Hafta:** W21
 
 ---
 
@@ -582,6 +627,130 @@
 
 ---
 
+## T-460 | P1 | [FRONTEND] | Loyalty Web UI — dashboard, config, mijoz ballari, tarix
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(admin)/loyalty/` (yaratish kerak)
+- **Holat:** Backend TAYYOR (`apps/api/src/loyalty/` — 224 qator, config + earn/redeem/adjust)
+- **Vazifa:**
+  - `/loyalty` — Dashboard: faol mijozlar, bugungi berilgan/ishlatilgan ballar, o'rtacha ball
+  - `/loyalty/settings` — Config: yoqish/o'chirish, ball ratio, min redeem, amal muddati
+  - `/loyalty/customers` — Jadval: ism, telefon, ballar, oxirgi tranzaksiya + ball qo'shish/yechish modal
+  - `/loyalty/history` — Tarix: sana, mijoz, turi (EARN/REDEEM/ADJUST/EXPIRE), miqdor + CSV export
+  - React Query hooks: `hooks/loyalty/`
+  - i18n: uz/ru/en
+- **Kutilgan:** Admin panelda loyalty sozlash + mijoz ballarini ko'rish
+- **Muddat:** 3-4 kun
+- **Hafta:** W22 (2-hafta)
+- **Trek:** A (Loyalty)
+- **Branch:** `ibrat/feat-loyalty-web-ui`
+
+---
+
+## T-461 | P1 | [IKKALASI] | Loyalty kassa integratsiya — POS da ball ko'rsatish va ishlatish
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(pos)/pos/`, `apps/web/src/hooks/pos/`
+- **Vazifa:**
+  - Mijoz tanlanganda → joriy ball ko'rinsin: "Aziza | 450 ball (45,000 so'm)"
+  - To'lov vaqtida "Ballardan foydalanish" toggle + ball miqdor input
+  - Chegirma summasi: "- 30,000 so'm (300 ball)"
+  - Sotuv tugaganda chekda: "Yig'ilgan: +15 | Jami: 165"
+  - `ReceiptTemplate.tsx` ga loyalty ma'lumot qo'shish
+- **Kutilgan:** Kassada ball ko'rinadi, ishlatiladi, chekda chiqadi
+- **Muddat:** 2-3 kun
+- **Hafta:** W23 (3-hafta)
+- **Trek:** A (Loyalty)
+- **Bog'liq:** T-460 (loyalty config bo'lishi kerak)
+
+---
+
+## T-462 | P1 | [BACKEND] | SMS gateway research — PlayMobile vs SMS.uz vs GetSMS
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `docs/sms-gateway-research.md` (yaratish kerak)
+- **Vazifa:**
+  - 3 ta O'zbek SMS provider solishtirish
+  - Har biri: narx/SMS, API (REST/SDK), sandbox, min depozit, alphanumeric sender
+  - Jadval + tavsiya: qaysi provider va nega
+  - AbdulazizYormatov tasdiqlashi kerak
+- **Kutilgan:** SMS provider tanlangan, hujjatlangan
+- **Muddat:** 2 kun
+- **Hafta:** W22
+- **Trek:** B (SMS Campaign)
+
+---
+
+## T-463 | P1 | [BACKEND] | SMS module — backend (gateway + campaign + scheduling)
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/sms/` (yaratish kerak)
+- **Vazifa:**
+  - `sms.module.ts`, `sms.service.ts` (gateway abstraction), `sms.controller.ts`
+  - `adapters/playmobile.adapter.ts` (yoki tanlangan provider)
+  - SmsService: sendSingle, sendBulk, getBalance, getDeliveryStatus
+  - Campaign: DRAFT → SCHEDULED → SENDING → SENT → COMPLETED
+  - Prisma: `sms_campaigns`, `sms_messages` tables
+  - Scheduling: BullMQ delayed job
+  - Rate limiting: max 100 SMS/min
+  - Tenant isolation + cost tracking + unsubscribe ("STOP")
+- **Kutilgan:** API orqali SMS yuborish va kampaniya yaratish
+- **Muddat:** 1 hafta
+- **Hafta:** W23
+- **Trek:** B (SMS Campaign)
+- **Bog'liq:** T-462 (provider tanlangan bo'lishi kerak)
+- **Branch:** `ibrat/feat-sms-campaign`
+
+---
+
+## T-464 | P1 | [FRONTEND] | SMS Campaign Web UI — kampaniya yaratish, yuborish, kuzatish
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(admin)/campaigns/` (yaratish kerak)
+- **Vazifa:**
+  - `/campaigns` — Ro'yxat: nomi, status, audience, yuborildi/yetkazildi, sana
+  - `/campaigns/new` — Yaratish: nomi, matn (160 belgi counter), audience segment, vaqt, preview
+  - `/campaigns/[id]` — Detail: status bar, statistika, xabar ro'yxati
+  - `/campaigns/templates` — Tayyor shablonlar (yangi mahsulot, chegirma, re-engagement)
+  - Audience segments: barcha, oxirgi 30 kun xaridorlar, loyalty 100+, 60+ kun churning
+  - Variables: [ism], [ballar], [dokon]
+- **Kutilgan:** Admin panelda SMS kampaniya yaratish, yuborish, kuzatish
+- **Muddat:** 3-4 kun
+- **Hafta:** W24 (4-hafta)
+- **Trek:** B (SMS Campaign)
+- **Bog'liq:** T-463
+
+---
+
+## T-465 | P1 | [BACKEND] | Product Import — Excel/CSV dan mahsulot yuklash
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/catalog/import-export/`
+- **Holat:** Export allaqachon bor. Import kerak.
+- **Vazifa:**
+  - `POST /catalog/import` (multipart form, .xlsx/.csv)
+  - Validation: nom (majburiy), barcode, narx, kategoriya, birlik
+  - Duplicate tekshirish (barcode)
+  - Progress tracking: { total, processed, errors }
+  - Error report: qaysi qator, sababi
+  - `GET /catalog/import/template` → RAOS-import-template.xlsx
+  - BullMQ job 1000+ mahsulot uchun
+  - Web UI: `/catalog/import` — drag & drop, progress bar, natija + xatolar
+  - Onboarding wizard: "Mahsulotlar import" qadam
+- **Kutilgan:** Tenant Excel dan mahsulot yuklay oladi
+- **Muddat:** 3-4 kun
+- **Hafta:** W22
+- **Trek:** C (Promo + Import)
+- **Branch:** `ibrat/feat-product-import`
+
+---
+
 ---
 
 # ══════════════════════════════════════════════════════════════
@@ -710,6 +879,60 @@
 ## apps/mobile-owner/src/config/endpoints.ts bilan TO'LIQ MOS KELISHI SHART
 ## Mas'ul: Abdulaziz (tekshirish) + Ibrat (backend)
 ## ════════════════════════════════════════════════════════════════
+
+## T-466 | P2 | [BACKEND] | Loyalty Telegram Bot — /ballar, tarix, sotuv notification
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/bot/src/loyalty/` (yaratish kerak)
+- **Vazifa:**
+  - `/ballar` yoki "ballarim" → joriy ball + so'm qiymati
+  - `/tarix` yoki "ball tarixi" → oxirgi 10 ta tranzaksiya
+  - Sotuv notification: "Xaridingiz uchun rahmat! +15 ball. Jami: 165 (16,500 so'm)"
+- **Kutilgan:** Mijoz Telegram orqali ballarini ko'ra oladi
+- **Muddat:** 2 kun
+- **Hafta:** W24
+- **Trek:** A (Loyalty)
+- **Bog'liq:** T-460, T-461
+
+---
+
+## T-467 | P2 | [IKKALASI] | Promo kod moduli — yaratish, tekshirish, kassada qo'llash
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/sales/promotions/`, `apps/web/`
+- **Holat:** Promotions module bor, promo KOD kengaytma kerak
+- **Vazifa:**
+  - Backend: promo kod yaratish (RAOS-XXXX), validate, apply
+  - Prisma: `promo_codes` table (code, type, value, usageLimit, usageCount, minPurchase, validFrom/To)
+  - Web UI: `/promotions/codes` — ro'yxat, yaratish modal, QR kod generatsiya
+  - Kassa: to'lov ekranida "Promo kod" input → validate → chegirma
+- **Kutilgan:** Tenant promo kod yaratadi, kassada ishlatiladi
+- **Muddat:** 1 hafta
+- **Hafta:** W24-25
+- **Trek:** C (Promo + Import)
+- **Branch:** `ibrat/feat-promo-codes`
+
+---
+
+## T-468 | P2 | [FRONTEND] | Web Admin Polish — branding, onboarding wizard, i18n
+
+- **Sana:** 2026-05-19
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/`
+- **Vazifa:**
+  - Dashboard: RAOS branding (cyan #24D4F4), logo sidebar, "Powered by RAOS" footer
+  - Onboarding wizard: 5 qadam (do'kon, filial, import, kassir, birinchi sotuv)
+  - i18n: barcha sahifalarda uz/ru/en to'liq
+  - Loading/error states: skeleton, error boundary
+- **Kutilgan:** Professional, demo-ready admin panel
+- **Muddat:** davomiy
+- **Hafta:** W25+
+- **Trek:** D (Demo + Security)
+- **Branch:** `ibrat/chore-admin-polish`
+
+---
 
 ---
 
