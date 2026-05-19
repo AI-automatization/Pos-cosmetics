@@ -38,19 +38,64 @@ const BCRYPT_ROUNDS = 12;
 // ─── Products ────────────────────────────────────────────────────
 // initialQty: fixed stock quantity (used for low-stock demo items).
 // If omitted, randBetween(20, 80) is used.
-const PRODUCTS: Array<{ name: string; sku: string; cost: number; sell: number; minStock: number; initialQty?: number }> = [
-  { name: "Chanel No.5 EDP 100ml",   sku: "CH-N5-100",   cost: 850000,  sell: 1200000, minStock: 5 },
-  { name: "Dior Sauvage EDT 100ml",  sku: "DR-SAU-100",  cost: 780000,  sell: 1100000, minStock: 5 },
-  { name: "L'Oreal Elvive Shampoo",  sku: "LOR-ELV-400", cost: 45000,   sell: 72000,   minStock: 20 },
-  { name: "Nivea Soft Cream 300ml",  sku: "NIV-SOFT-300", cost: 38000,  sell: 58000,   minStock: 20 },
-  { name: "MAC Lipstick Ruby Woo",   sku: "MAC-LIP-RW",  cost: 280000,  sell: 420000,  minStock: 10 },
-  { name: "Versace Eros EDT 100ml",  sku: "VER-ERO-100", cost: 920000,  sell: 1350000, minStock: 3 },
-  { name: "Garnier Vitamin C Serum", sku: "GAR-VIT-30",  cost: 65000,   sell: 98000,   minStock: 15 },
-  { name: "NYX Eyeshadow Palette",   sku: "NYX-PAL-ULT", cost: 185000,  sell: 275000,  minStock: 8 },
-  { name: "Maybelline Mascara",      sku: "MAY-MAS-BIG", cost: 55000,   sell: 82000,   minStock: 20 },
-  { name: "KIKO Milano Lipstick",    sku: "KIK-LIP-315", cost: 95000,   sell: 148000,  minStock: 10 },
+// category: maps to category name for assignment
+const PRODUCTS: Array<{ name: string; sku: string; cost: number; sell: number; minStock: number; initialQty?: number; category: string }> = [
+  // ── Kosmetika (11 ta) ──────────────────────────────────────────
+  { name: "Chanel No.5 EDP 100ml",   sku: "CH-N5-100",    cost: 850000,  sell: 1200000, minStock: 5,  category: "Kosmetika" },
+  { name: "Dior Sauvage EDT 100ml",  sku: "DR-SAU-100",   cost: 780000,  sell: 1100000, minStock: 5,  category: "Kosmetika" },
+  { name: "L'Oreal Elvive Shampoo",  sku: "LOR-ELV-400",  cost: 45000,   sell: 72000,   minStock: 20, category: "Kosmetika" },
+  { name: "Nivea Soft Cream 300ml",  sku: "NIV-SOFT-300", cost: 38000,   sell: 58000,   minStock: 20, category: "Kosmetika" },
+  { name: "MAC Lipstick Ruby Woo",   sku: "MAC-LIP-RW",   cost: 280000,  sell: 420000,  minStock: 10, category: "Kosmetika" },
+  { name: "Versace Eros EDT 100ml",  sku: "VER-ERO-100",  cost: 920000,  sell: 1350000, minStock: 3,  category: "Kosmetika" },
+  { name: "Garnier Vitamin C Serum", sku: "GAR-VIT-30",   cost: 65000,   sell: 98000,   minStock: 15, category: "Kosmetika" },
+  { name: "NYX Eyeshadow Palette",   sku: "NYX-PAL-ULT",  cost: 185000,  sell: 275000,  minStock: 8,  category: "Kosmetika" },
+  { name: "Maybelline Mascara",      sku: "MAY-MAS-BIG",  cost: 55000,   sell: 82000,   minStock: 20, category: "Kosmetika" },
+  { name: "KIKO Milano Lipstick",    sku: "KIK-LIP-315",  cost: 95000,   sell: 148000,  minStock: 10, category: "Kosmetika" },
   // T-339: Low-stock demo — currentStock(7) < minStockLevel(10) → POS toast trigger
-  { name: "La Roche-Posay SPF50+",   sku: "LRP-SPF-50",  cost: 185000,  sell: 278000,  minStock: 10, initialQty: 7 },
+  { name: "La Roche-Posay SPF50+",   sku: "LRP-SPF-50",   cost: 185000,  sell: 278000,  minStock: 10, initialQty: 7, category: "Kosmetika" },
+  // ── Kiyim (12 ta) ─────────────────────────────────────────────
+  { name: "Erkaklar T-shirt (M)",    sku: "KIY-TSHRT-M",  cost: 50000,   sell: 85000,   minStock: 15, category: "Kiyim" },
+  { name: "Erkaklar T-shirt (L)",    sku: "KIY-TSHRT-L",  cost: 50000,   sell: 85000,   minStock: 15, category: "Kiyim" },
+  { name: "Ayollar Ko'ylak (M)",     sku: "KIY-KOYL-M",   cost: 120000,  sell: 195000,  minStock: 10, category: "Kiyim" },
+  { name: "Ayollar Ko'ylak (L)",     sku: "KIY-KOYL-L",   cost: 120000,  sell: 195000,  minStock: 10, category: "Kiyim" },
+  { name: "Erkaklar Shim (32)",      sku: "KIY-SHIM-32",  cost: 160000,  sell: 265000,  minStock: 10, category: "Kiyim" },
+  { name: "Erkaklar Shim (34)",      sku: "KIY-SHIM-34",  cost: 160000,  sell: 265000,  minStock: 10, category: "Kiyim" },
+  { name: "Ayollar Shim (M)",        sku: "KIY-ASHIM-M",  cost: 145000,  sell: 235000,  minStock: 8,  category: "Kiyim" },
+  { name: "Erkaklar Kurtka",         sku: "KIY-KURT-M",   cost: 280000,  sell: 450000,  minStock: 5,  category: "Kiyim" },
+  { name: "Ayollar Kurtka",          sku: "KIY-AKURT-M",  cost: 260000,  sell: 420000,  minStock: 5,  category: "Kiyim" },
+  { name: "Futbolka (S)",            sku: "KIY-FUTB-S",   cost: 45000,   sell: 75000,   minStock: 20, category: "Kiyim" },
+  { name: "Yozgi Ko'ylak",           sku: "KIY-YKOY-M",   cost: 85000,   sell: 140000,  minStock: 12, category: "Kiyim" },
+  { name: "Sport Kostyum",           sku: "KIY-SPORT-M",  cost: 220000,  sell: 360000,  minStock: 6,  category: "Kiyim" },
+  // ── Oziq-ovqat (10 ta) ────────────────────────────────────────
+  { name: "Choy (100g qora)",        sku: "OZQ-CHOY-100", cost: 18000,   sell: 28000,   minStock: 30, category: "Oziq-ovqat" },
+  { name: "Choy (200g yashil)",      sku: "OZQ-CHOY-200", cost: 22000,   sell: 35000,   minStock: 25, category: "Oziq-ovqat" },
+  { name: "Shokolad (Milka 90g)",    sku: "OZQ-SHOK-90",  cost: 12000,   sell: 19000,   minStock: 40, category: "Oziq-ovqat" },
+  { name: "Shokolad (Snickers)",     sku: "OZQ-SNIK-50",  cost: 8000,    sell: 13000,   minStock: 50, category: "Oziq-ovqat" },
+  { name: "Suv (Nestle 1.5L)",       sku: "OZQ-SUV-15",   cost: 5000,    sell: 8000,    minStock: 60, category: "Oziq-ovqat" },
+  { name: "Suv (Akva 0.5L)",         sku: "OZQ-SUV-05",   cost: 3000,    sell: 5000,    minStock: 80, category: "Oziq-ovqat" },
+  { name: "Qahva (Nescafe 95g)",     sku: "OZQ-QAHV-95",  cost: 28000,   sell: 45000,   minStock: 20, category: "Oziq-ovqat" },
+  { name: "Gaz. Ichimlik (Cola 1L)", sku: "OZQ-COLA-1L",  cost: 9000,    sell: 15000,   minStock: 30, category: "Oziq-ovqat" },
+  { name: "Limon (1kg)",             sku: "OZQ-LIM-1KG",  cost: 15000,   sell: 25000,   minStock: 20, category: "Oziq-ovqat" },
+  { name: "Konfet (Assorted 200g)",  sku: "OZQ-KONF-200", cost: 20000,   sell: 32000,   minStock: 25, category: "Oziq-ovqat" },
+  // ── Elektronika (10 ta) ───────────────────────────────────────
+  { name: "Quloqchin (Basic)",       sku: "ELK-QULOQ-B",  cost: 30000,   sell: 52000,   minStock: 15, category: "Elektronika" },
+  { name: "Quloqchin (Bluetooth)",   sku: "ELK-QULOQ-BT", cost: 120000,  sell: 195000,  minStock: 8,  category: "Elektronika" },
+  { name: "Powerbank 10000mAh",      sku: "ELK-PWR-10",   cost: 150000,  sell: 245000,  minStock: 8,  category: "Elektronika" },
+  { name: "Powerbank 20000mAh",      sku: "ELK-PWR-20",   cost: 220000,  sell: 360000,  minStock: 5,  category: "Elektronika" },
+  { name: "USB-C Kabel (1m)",        sku: "ELK-USB-C1",   cost: 18000,   sell: 32000,   minStock: 25, category: "Elektronika" },
+  { name: "Lightning Kabel (1m)",    sku: "ELK-LTN-1M",   cost: 20000,   sell: 35000,   minStock: 20, category: "Elektronika" },
+  { name: "Telefon Holster",         sku: "ELK-HOLS-UNI", cost: 35000,   sell: 60000,   minStock: 15, category: "Elektronika" },
+  { name: "Simsiz Zaryadlovchi",     sku: "ELK-WCH-15W",  cost: 90000,   sell: 148000,  minStock: 10, category: "Elektronika" },
+  { name: "USB Hub (4-port)",        sku: "ELK-HUB-4P",   cost: 65000,   sell: 108000,  minStock: 8,  category: "Elektronika" },
+  { name: "Selfi Ring Light",        sku: "ELK-RING-6IN", cost: 85000,   sell: 145000,  minStock: 6,  category: "Elektronika" },
+  // ── Parfyumeriya (7 ta) ───────────────────────────────────────
+  { name: "Hugo Boss EDT 100ml",     sku: "PRF-HUGO-100",  cost: 320000,  sell: 520000,  minStock: 5,  category: "Parfyumeriya" },
+  { name: "Armani Code EDP 75ml",    sku: "PRF-ARMC-75",   cost: 450000,  sell: 720000,  minStock: 4,  category: "Parfyumeriya" },
+  { name: "Dolce Gabbana Light 50ml",sku: "PRF-DGL-50",    cost: 380000,  sell: 610000,  minStock: 4,  category: "Parfyumeriya" },
+  { name: "Calvin Klein CK One",     sku: "PRF-CK-ONE",    cost: 260000,  sell: 420000,  minStock: 6,  category: "Parfyumeriya" },
+  { name: "Davidoff Cool Water 100", sku: "PRF-DCW-100",   cost: 210000,  sell: 340000,  minStock: 6,  category: "Parfyumeriya" },
+  { name: "Paco Rabanne 1M EDT",     sku: "PRF-PR1M-100",  cost: 480000,  sell: 780000,  minStock: 3,  category: "Parfyumeriya" },
+  { name: "Lacoste L.12.12 Blanc",   sku: "PRF-LAC-100",   cost: 290000,  sell: 465000,  minStock: 5,  category: "Parfyumeriya" },
 ];
 
 // ─── Branches ────────────────────────────────────────────────────
@@ -71,12 +116,26 @@ const CASHIERS = [
 
 // ─── Customer names ──────────────────────────────────────────────
 const CUSTOMERS = [
-  { name: "Malika Xasanova",   phone: "+998901234567" },
-  { name: "Dilnoza Karimova",  phone: "+998901234568" },
-  { name: "Feruza Umarova",    phone: "+998901234569" },
-  { name: "Nodira Tojiboyeva", phone: "+998901234570" },
-  { name: "Barno Mirzayeva",   phone: "+998901234571" },
-  { name: "Gulnora Hasanova",  phone: "+998901234572" },
+  { name: "Malika Xasanova",    phone: "+998901234567" },
+  { name: "Dilnoza Karimova",   phone: "+998901234568" },
+  { name: "Feruza Umarova",     phone: "+998901234569" },
+  { name: "Nodira Tojiboyeva",  phone: "+998901234570" },
+  { name: "Barno Mirzayeva",    phone: "+998901234571" },
+  { name: "Gulnora Hasanova",   phone: "+998901234572" },
+  { name: "Shahnoza Abdullayeva", phone: "+998911234573" },
+  { name: "Mohira Yusupova",    phone: "+998931234574" },
+  { name: "Zulfiya Ergasheva",  phone: "+998941234575" },
+  { name: "Nafisa Qodirov",     phone: "+998951234576" },
+  { name: "Maftuna Tursunova",  phone: "+998971234577" },
+  { name: "Sarvinoz Xoliqova",  phone: "+998981234578" },
+  { name: "Oydin Nazarova",     phone: "+998991234579" },
+  { name: "Hulkar Rajabova",    phone: "+998901234580" },
+  { name: "Aziza Sobirov",      phone: "+998911234581" },
+  { name: "Dilorom Isoqova",    phone: "+998931234582" },
+  { name: "Muazzam Aliyeva",    phone: "+998941234583" },
+  { name: "Iroda Hamidova",     phone: "+998951234584" },
+  { name: "Nozima Baxtiyorova", phone: "+998971234585" },
+  { name: "Kamola Razzaqova",   phone: "+998981234586" },
 ];
 
 function daysAgo(n: number): Date {
@@ -127,12 +186,14 @@ async function main() {
 
   // Also create the original raos-demo users for backwards compat
   const legacyUsers = [
-    { email: 'owner@raos.uz',     firstName: 'Sardor',  lastName: 'Karimov',   role: UserRole.OWNER },
-    { email: 'admin@raos.uz',     firstName: 'Dilnoza', lastName: 'Yusupova',  role: UserRole.ADMIN },
-    { email: 'manager@raos.uz',   firstName: 'Jasur',   lastName: 'Toshmatov', role: UserRole.MANAGER },
-    { email: 'cashier@raos.uz',   firstName: 'Malika',  lastName: 'Rahimova',  role: UserRole.CASHIER },
-    { email: 'viewer@raos.uz',    firstName: 'Bobur',   lastName: 'Nazarov',   role: UserRole.VIEWER },
-    { email: 'warehouse@raos.uz', firstName: 'Sherzod', lastName: 'Ergashev',  role: UserRole.WAREHOUSE },
+    { email: 'owner@raos.uz',     firstName: 'Sardor',  lastName: 'Karimov',        role: UserRole.OWNER },
+    { email: 'admin@raos.uz',     firstName: 'Dilnoza', lastName: 'Yusupova',        role: UserRole.ADMIN },
+    { email: 'manager@raos.uz',   firstName: 'Jasur',   lastName: 'Toshmatov',       role: UserRole.MANAGER },
+    { email: 'cashier@raos.uz',   firstName: 'Malika',  lastName: 'Rahimova',        role: UserRole.CASHIER },
+    { email: 'viewer@raos.uz',    firstName: 'Bobur',   lastName: 'Nazarov',         role: UserRole.VIEWER },
+    { email: 'warehouse@raos.uz', firstName: 'Sherzod', lastName: 'Ergashev',        role: UserRole.WAREHOUSE },
+    // T-458: Demo Tenant user
+    { email: 'demo@raos.uz',      firstName: 'Demo',    lastName: 'Foydalanuvchi',   role: UserRole.OWNER },
   ];
   for (const u of legacyUsers) {
     await prisma.user.upsert({
@@ -141,7 +202,7 @@ async function main() {
       create: { tenantId: tenant.id, passwordHash, ...u },
     });
   }
-  console.log(`✅ Legacy raos-demo users (5 ta)`);
+  console.log(`✅ Legacy raos-demo users (7 ta)`);
 
   // ─── 3. Branches ─────────────────────────────────────────────
   const branches: Array<{ id: string; name: string }> = [];
@@ -179,18 +240,26 @@ async function main() {
   }
   console.log(`✅ Kassirlar: ${CASHIERS.map((c) => c.firstName).join(', ')}`);
 
-  // ─── 5. Products + Category ───────────────────────────────────
-  let category = await prisma.category.findFirst({
-    where: { tenantId: tenant.id, name: 'Kosmetika' },
-  });
-  if (!category) {
-    category = await prisma.category.create({
-      data: { tenantId: tenant.id, name: 'Kosmetika' },
+  // ─── 5. Categories + Products ────────────────────────────────
+  const CATEGORY_NAMES = ['Kosmetika', 'Kiyim', 'Oziq-ovqat', 'Elektronika', 'Parfyumeriya'];
+  const categoryMap: Map<string, string> = new Map(); // name → id
+  for (const catName of CATEGORY_NAMES) {
+    let cat = await prisma.category.findFirst({
+      where: { tenantId: tenant.id, name: catName },
     });
+    if (!cat) {
+      cat = await prisma.category.create({
+        data: { tenantId: tenant.id, name: catName },
+      });
+    }
+    categoryMap.set(catName, cat.id);
   }
+  console.log(`✅ Kategoriyalar: ${CATEGORY_NAMES.join(', ')}`);
 
-  const products: Array<{ id: string; sell: number; cost: number; name: string }> = [];
+  const products: Array<{ id: string; sell: number; cost: number; name: string; initialQty?: number }> = [];
   for (const p of PRODUCTS) {
+    const catId = categoryMap.get(p.category);
+    if (!catId) throw new Error(`Category not found: ${p.category}`);
     let product = await prisma.product.findFirst({
       where: { tenantId: tenant.id, sku: p.sku },
     });
@@ -198,7 +267,7 @@ async function main() {
       product = await prisma.product.create({
         data: {
           tenantId: tenant.id,
-          categoryId: category.id,
+          categoryId: catId,
           name: p.name,
           sku: p.sku,
           costPrice: p.cost,
@@ -208,7 +277,7 @@ async function main() {
         },
       });
     }
-    products.push({ id: product.id, sell: p.sell, cost: p.cost, name: p.name });
+    products.push({ id: product.id, sell: p.sell, cost: p.cost, name: p.name, initialQty: p.initialQty });
   }
   console.log(`✅ Mahsulotlar: ${products.length} ta`);
 
@@ -266,6 +335,37 @@ async function main() {
     customerIds.push(customer.id);
   }
   console.log(`✅ Mijozlar: ${customerIds.length} ta`);
+
+  // ─── 7b. Loyalty Config ──────────────────────────────────────
+  await prisma.loyaltyConfig.upsert({
+    where: { tenantId: tenant.id },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      isActive: true,
+      earnRate: 1000,   // 1 ball per 1000 so'm
+      redeemRate: 100,  // 1 ball = 100 so'm
+      minRedeem: 100,
+    },
+  });
+  console.log(`✅ Loyalty config yaratildi`);
+
+  // ─── 7c. Loyalty Accounts for customers ──────────────────────
+  for (const customerId of customerIds) {
+    const existing = await prisma.loyaltyAccount.findUnique({
+      where: { customerId },
+    });
+    if (!existing) {
+      await prisma.loyaltyAccount.create({
+        data: {
+          tenantId: tenant.id,
+          customerId,
+          points: randBetween(50, 500),
+        },
+      });
+    }
+  }
+  console.log(`✅ Loyalty accountlar: ${customerIds.length} ta`);
 
   // ─── 8. Shifts ───────────────────────────────────────────────
   // Check how many shifts already exist
@@ -490,6 +590,7 @@ async function main() {
   console.log(`Parol       : [SEED_PASSWORD env dan]`);
   console.log(`${'─'.repeat(60)}`);
   console.log(`👑 OWNER    | owner@kosmetika.uz`);
+  console.log(`👑 OWNER    | demo@raos.uz (T-458 demo user)`);
   for (const c of CASHIERS) {
     console.log(`💰 CASHIER  | ${c.email}`);
   }
