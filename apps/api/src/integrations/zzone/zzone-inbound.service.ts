@@ -20,7 +20,7 @@ export class ZzoneInboundService {
     const limit = 50;
     const skip = (page - 1) * limit;
 
-    const where = { deletedAt: null, isActive: true, tenantId: sellerId };
+    const where = { deletedAt: null, isActive: true, zzoneVisible: true, tenantId: sellerId };
 
     const [total, products] = await this.prisma.$transaction([
       this.prisma.product.count({ where }),
