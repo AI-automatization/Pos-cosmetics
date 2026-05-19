@@ -26,11 +26,11 @@ export class ZzoneInboundController {
     private readonly service: ZzoneInboundService,
     private readonly config: ConfigService,
   ) {
-    const key = this.config.get<string>('ZZONE_API_KEY');
-    if (!key) {
-      throw new Error('ZZONE_API_KEY environment variable is required');
+    this.apiKey = this.config.get<string>('ZZONE_API_KEY', '');
+    if (!this.apiKey) {
+      // Don't crash — just log warning. Endpoints will return 401.
+      console.warn('[ZZone] ZZONE_API_KEY not set — all ZZone endpoints will return 401');
     }
-    this.apiKey = key;
   }
 
   // ─── PRODUCTS ─────────────────────────────────────────────────────────
