@@ -525,19 +525,7 @@ Quyidagi modullar apps/api/src/ da mavjud va ishlaydi:
 ## Mas'ul: Abdulaziz
 ## ════════════════════════════════════════════════════════════════
 
-*(T-471, T-472, T-473, T-474, T-475, T-476, T-478, T-479, T-480 — Done.md ga ko'chirildi 2026-05-16)*
-
----
-
-## T-477 | P3 | [MOBILE] | Label Print — Bluetooth printer orqali
-
-- **Sana:** 2026-05-14
-- **Mas'ul:** Abdulaziz
-- **Fayl:** `apps/mobile/src/screens/Ombor/` (yangi feature kerak)
-- **Muammo:** Web da inventory list da `LabelPrintModal` bor — narx yorlig'i chop etish. Mobile da yo'q. Kosmetika do'konida Bluetooth printer orqali label chop etish juda kerak.
-- **Kutilgan:** Bluetooth printer bilan ulanish + mahsulot narx yorlig'ini chop etish. Avval research kerak (react-native-ble-plx yoki expo-print).
-
----
+*(T-471, T-472, T-473, T-474, T-475, T-476, T-477, T-478, T-479, T-480 — Done.md ga ko'chirildi)*
 
 *(T-502, T-503 — Done.md ga ko'chirildi 2026-05-19)*
 

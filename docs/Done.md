@@ -1,5 +1,11 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-19
+# Yangilangan: 2026-05-20
+
+---
+
+## T-477 | 2026-05-20 | [MOBILE] | Label Print — Bluetooth thermal printer orqali
+- **Yechim:** `react-native-bluetooth-escpos-printer` paketi + safe dynamic import. `tsplBuilder.ts` — TSPL command generator (30x20, 40x30, 58x40mm, CODE128 barcode). `useBtPrinter.ts` hook — BT scan, connect, print. `BtDeviceList.tsx` — qurilma tanlash UI. `LabelPrintSheet.tsx` — dual mode: "Tizim" (expo-print/AirPrint) + "Bluetooth" (TSPL thermal). Android BT permissions (BLUETOOTH, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION).
+- **Fayl:** `apps/mobile/src/lib/tsplBuilder.ts`, `apps/mobile/src/hooks/useBtPrinter.ts`, `apps/mobile/src/screens/Catalog/BtDeviceList.tsx`, `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`, `apps/mobile/app.json`, `apps/mobile/package.json`
 
 ---
 
