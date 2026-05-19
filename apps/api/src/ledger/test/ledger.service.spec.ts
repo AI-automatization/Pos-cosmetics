@@ -3,7 +3,6 @@
  * Critical financial module — immutability + balance validation
  */
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InternalServerErrorException } from '@nestjs/common';
 import { LedgerService } from '../ledger.service';
 import { PrismaService } from '../../prisma/prisma.service';

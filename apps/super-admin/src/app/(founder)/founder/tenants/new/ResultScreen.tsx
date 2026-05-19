@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Copy, Store, Mail, MailX } from 'lucide-react';
+import { CheckCircle, Copy, Mail, MailX } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TenantResult {
