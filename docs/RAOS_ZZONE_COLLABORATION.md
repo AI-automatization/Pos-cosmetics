@@ -3,11 +3,11 @@
 > **Base URL:** `https://api.raos.uz/api/v1/zzone`
 > **Swagger Docs:** `https://api.raos.uz/api/v1/zzone/docs`
 > **Auth:** Header `X-Api-Key`
-> **Обновлено:** 2026-05-16
+> **Updated:** 2026-05-19
 
 ---
 
-## Архитектура
+## Architecture
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
@@ -15,9 +15,10 @@
 │                  zzoneback-production.up.railway.app               │
 │                                                                   │
 │  При событиях:                                                    │
-│  ├─ Клиент заказал → POST api.raos.uz/api/v1/zzone/orders       │
-│  ├─ Нужен stock   → GET  api.raos.uz/api/v1/zzone/products/:id/stock │
-│  └─ Статус менять → PATCH api.raos.uz/api/v1/zzone/orders/:id/status │
+│  ├─ Клиент заказал → POST /zzone/orders                          │
+│  ├─ Нужен stock   → GET  /zzone/products/:id/stock               │
+│  ├─ Поиск по авто → GET  /zzone/vehicles/:id/products            │
+│  └─ Статус менять → PATCH /zzone/orders/:id/status               │
 │                                                                   │
 └───────────────────────────────┬───────────────────────────────────┘
                                 │
@@ -28,22 +29,26 @@
 │                     RAOS Backend (NestJS + PostgreSQL)             │
 │                          api.raos.uz                               │
 │                                                                   │
-│  Предоставляет:                                                   │
-│  ├─ /api/v1/zzone/products         — товары для витрины          │
-│  ├─ /api/v1/zzone/products/:id/stock — остаток real-time         │
-│  ├─ /api/v1/zzone/orders           — создание/получение заказов  │
-│  ├─ /api/v1/zzone/sellers/:id      — инфо о продавце            │
-│  └─ /api/v1/zzone/stores/:id       — инфо о магазине            │
+│  Предоставляет (25 endpoints):                                    │
+│  ├─ /zzone/products (5)      — CRUD товаров + stock              │
+│  ├─ /zzone/orders (6)        — CRUD заказов + status             │
+│  ├─ /zzone/sellers (3)       — CRUD продавцов                    │
+│  ├─ /zzone/stores (3)        — CRUD магазинов                    │
+│  ├─ /zzone/vehicles (7)      — авто + совместимость              │
+│  └─ /zzone/health (1)        — проверка доступности              │
 │                                                                   │
-│  Автоматически (events):                                          │
-│  ├─ Продажа → push stock в ZZone                                 │
-│  └─ Приход товара → push stock в ZZone                           │
+│  Auto-sync (events):                                              │
+│  ├─ product.created  → push новый товар в ZZone                  │
+│  ├─ product.updated  → push изменения в ZZone                    │
+│  ├─ product.deleted  → удалить из ZZone                          │
+│  ├─ sale.created     → push stock в ZZone                        │
+│  └─ inventory.movement → push stock в ZZone                      │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Аутентификация
+## Authentication
 
 Все запросы (кроме `/health`) требуют заголовок:
 
@@ -51,247 +56,196 @@
 X-Api-Key: <ключ>
 ```
 
-Ключ выдаётся RAOS администратором. Env переменная: `ZZONE_API_KEY`
+Ключ настраивается через Super Admin → Tenant → ZZone tab.
 
 ---
 
-## API Endpoints
+## AUTO_PARTS Tenant Flow
 
-### Products
+```
+1. Super Admin создаёт tenant с типом "Авто запчасти"
+   → Автоматически создаётся IntegrationConfig (provider: ZZONE)
+   → Сидятся авто-запчасти категории (Фильтры, Тормоза, Двигатель...)
+   
+2. Super Admin настраивает ZZone token в tenant detail
+   → PATCH /admin/tenants/:id/zzone-config { token: "...", isActive: true }
 
-#### `GET /api/v1/zzone/products`
+3. Owner создаёт товар в RAOS → event product.created
+   → Sync listener автоматически пушит в ZZone
+   → Mapping сохраняется (raosId ↔ zzoneId)
 
-Все активные товары из RAOS.
+4. Кассир продаёт через POS → event sale.created
+   → Stock автоматически обновляется в ZZone
 
-**Query:**
-| Param | Required | Description |
-|-------|----------|-------------|
-| sellerId | нет | Фильтр по tenant ID |
-| page | нет | Страница (default: 1, по 50 шт) |
-
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": {
-    "products": [
-      {
-        "id": "uuid",
-        "sellerId": "tenant-uuid",
-        "name": "Yog' filtri Toyota Camry",
-        "sku": "SKU-001",
-        "barcode": "4607123456789",
-        "price": 45000,
-        "description": "Original, 2015-2020",
-        "imageUrl": null,
-        "category": "Filtrlar"
-      }
-    ],
-    "pagination": { "total": 120, "page": 1, "pages": 3 }
-  }
-}
+5. Клиент на ZZone ищет по авто → GET /zzone/vehicles/:id/products
+   → Находит совместимые запчасти из RAOS
 ```
 
 ---
 
-#### `GET /api/v1/zzone/products/:productId`
+## API Endpoints — Products (5)
 
+#### `GET /zzone/products`
+Все активные товары с `zzoneVisible=true`.
+
+**Query:** `sellerId` (required), `page` (optional, default 1, по 50 шт)
+
+#### `GET /zzone/products/:productId`
 Один товар по ID.
 
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "sellerId": "tenant-uuid",
-    "name": "Yog' filtri Toyota Camry",
-    "sku": "SKU-001",
-    "barcode": "4607123456789",
-    "price": 45000,
-    "description": "Original",
-    "imageUrl": null,
-    "isActive": true,
-    "category": "Filtrlar"
-  }
-}
-```
+#### `GET /zzone/products/:productId/stock`
+Текущий остаток (real-time).
+
+#### `PATCH /zzone/products/:productId`
+Обновить товар (partial update: name, price, description, imageUrl, isActive).
+
+#### `DELETE /zzone/products/:productId`
+Soft delete — товар скрывается из ZZone.
 
 ---
 
-#### `GET /api/v1/zzone/products/:productId/stock`
+## API Endpoints — Orders (6)
 
-Текущий остаток товара (real-time).
+#### `POST /zzone/orders`
+Создать заказ (origin: ZZONE). Body: `{ zzoneOrderId, orderNumber, productId, quantity, unitPrice, totalPrice, paymentMethod, clientName, clientPhone, deliveryAddress }`
 
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": {
-    "productId": "uuid",
-    "stock": 25,
-    "updatedAt": "2026-05-16T10:00:00.000Z"
-  }
-}
-```
+#### `GET /zzone/orders`
+Список заказов origin=ZZONE. Query: `sellerId` (required), `status` (optional).
 
----
+#### `GET /zzone/orders/:orderId`
+Детали заказа с items.
 
-### Orders
+#### `PATCH /zzone/orders/:orderId/status`
+Обновить статус. Body: `{ status, sellerId }`. Statuses: PENDING → CONFIRMED → COMPLETED | VOIDED | RETURNED.
 
-#### `POST /api/v1/zzone/orders`
+#### `PATCH /zzone/orders/:orderId`
+Редактировать заказ (только в PENDING). Body: `{ sellerId, quantity?, totalPrice?, deliveryAddress?, clientPhone? }`
 
-Создать заказ в RAOS когда клиент ZZone заказал.
-
-**Body:**
-```json
-{
-  "zzoneOrderId": "6649a1b2c3d4e5f6a7b8c9d3",
-  "orderNumber": "ZZ-0042",
-  "productId": "raos-product-uuid",
-  "quantity": 2,
-  "unitPrice": 45000,
-  "totalPrice": 90000,
-  "paymentMethod": "CLICK",
-  "clientName": "Aziz",
-  "clientPhone": "+998991234567",
-  "deliveryAddress": "Toshkent, Chilonzor"
-}
-```
-
-**Response 201:**
-```json
-{
-  "success": true,
-  "data": {
-    "raosOrderId": "uuid",
-    "zzoneOrderId": "6649a1b2c3d4e5f6a7b8c9d3",
-    "status": "PENDING",
-    "total": 90000,
-    "createdAt": "2026-05-16T10:30:00.000Z"
-  }
-}
-```
+#### `DELETE /zzone/orders/:orderId`
+Отменить заказ (только PENDING/CONFIRMED). Stock восстанавливается. Query: `sellerId`.
 
 ---
 
-#### `PATCH /api/v1/zzone/orders/:orderId/status`
+## API Endpoints — Sellers (3)
 
-Обновить статус заказа.
-
-**Body:**
-```json
-{ "status": "CONFIRMED" }
-```
-
-**Statuses:** `PENDING` → `CONFIRMED` → `COMPLETED` | `VOIDED` | `RETURNED`
-
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": {
-    "orderId": "uuid",
-    "status": "CONFIRMED",
-    "createdAt": "2026-05-16T10:30:00.000Z"
-  }
-}
-```
-
----
-
-#### `GET /api/v1/zzone/orders`
-
-Все заказы с origin=ZZONE.
-
-**Query:**
-| Param | Required | Description |
-|-------|----------|-------------|
-| sellerId | нет | Tenant ID filter |
-| status | нет | PENDING / CONFIRMED / COMPLETED / VOIDED |
-
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "sellerId": "tenant-uuid",
-      "status": "PENDING",
-      "total": 90000,
-      "notes": "ZZone #ZZ-0042 | Aziz | +998991234567 | Chilonzor",
-      "createdAt": "2026-05-16T10:30:00.000Z",
-      "items": [
-        { "productId": "uuid", "quantity": 2, "unitPrice": 45000 }
-      ]
-    }
-  ]
-}
-```
-
----
-
-### Sellers
-
-#### `GET /api/v1/zzone/sellers/:sellerId`
-
+#### `GET /zzone/sellers/:sellerId`
 Информация о продавце (tenant).
 
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "tenant-uuid",
-    "name": "Avto Zapchast Pro",
-    "slug": "avto-zapchast",
-    "phone": "+998901234567",
-    "city": "Toshkent"
-  }
-}
-```
+#### `PATCH /zzone/sellers/:sellerId`
+Обновить (name, phone, city).
+
+#### `DELETE /zzone/sellers/:sellerId`
+Деактивировать — все товары скрываются из ZZone.
 
 ---
 
-#### `GET /api/v1/zzone/stores/:storeId`
+## API Endpoints — Stores (3)
 
-Информация о магазине (branch/filial).
+#### `GET /zzone/stores/:storeId`
+Информация о магазине (branch).
 
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "branch-uuid",
-    "sellerId": "tenant-uuid",
-    "name": "Chilonzor filiali",
-    "address": "Chilonzor, 9-kvartal"
-  }
-}
-```
+#### `PATCH /zzone/stores/:storeId`
+Обновить (name, address).
+
+#### `DELETE /zzone/stores/:storeId`
+Деактивировать магазин.
 
 ---
 
-### Health
+## API Endpoints — Vehicles (7)
 
-#### `GET /api/v1/zzone/health`
+#### `GET /zzone/vehicles`
+Список авто. Query: `brand`, `model`, `year` (all optional).
 
-Проверка доступности API. API key не требуется.
+#### `GET /zzone/vehicles/brands`
+Уникальные бренды авто.
 
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": { "status": "ok", "service": "raos-zzone-api" }
-}
+#### `POST /zzone/vehicles`
+Создать авто. Body: `{ brand, model, yearFrom, yearTo?, bodyType? }`
+
+#### `GET /zzone/vehicles/:vehicleId/products`
+Совместимые товары для авто. Query: `sellerId` (optional). Для ZZone search.
+
+#### `GET /zzone/products/:productId/vehicles`
+Совместимые авто для товара.
+
+#### `POST /zzone/products/:productId/vehicles`
+Добавить совместимость. Body: `{ vehicleId, notes? }`
+
+#### `DELETE /zzone/products/:productId/vehicles/:vehicleId`
+Удалить совместимость.
+
+---
+
+## API Endpoints — Health (1)
+
+#### `GET /zzone/health`
+Проверка доступности. Без API key.
+
+---
+
+## Super Admin Endpoints (3)
+
+Доступны через JWT auth (Super Admin role):
+
+#### `GET /admin/tenants/:id/zzone-config`
+Текущая ZZone конфигурация tenant'а.
+
+#### `PATCH /admin/tenants/:id/zzone-config`
+Обновить token и isActive. Body: `{ token?, isActive? }`
+
+#### `POST /admin/tenants/:id/zzone-sync`
+Триггер bulk sync всех товаров в ZZone.
+
+---
+
+## Auto-Sync Events
+
+| Event | Trigger | Action |
+|-------|---------|--------|
+| `product.created` | Товар создан в RAOS | Push в ZZone + сохранить mapping |
+| `product.updated` | Товар изменён | Push изменения в ZZone |
+| `product.deleted` | Товар удалён | Удалить из ZZone + убрать mapping |
+| `sale.created` | Продажа через POS | Push обновлённый stock |
+| `inventory.movement` | Приход/расход | Push обновлённый stock |
+
+Sync работает **только** для tenant'ов с:
+- `businessType = 'AUTO_PARTS'`
+- `IntegrationConfig.isActive = true`
+- Валидный `token` в config
+
+---
+
+## Database Models
+
+### Vehicle (global)
+```
+id, brand, model, yearFrom, yearTo, bodyType, createdAt
+@@unique([brand, model, yearFrom])
+```
+
+### ProductVehicleCompatibility
+```
+id, productId, vehicleId, notes, createdAt
+@@unique([productId, vehicleId])
+```
+
+### Product (extended)
+```
++ zzoneVisible Boolean @default(false) — видимость на ZZone
+```
+
+### IntegrationConfig
+```
+tenantId + provider='ZZONE' (unique)
+config: { token: string, productMappings: { raosId: zzoneId } }
+isActive: boolean
 ```
 
 ---
 
 ## Errors
 
-Все ошибки:
 ```json
 {
   "success": false,
@@ -302,36 +256,22 @@ X-Api-Key: <ключ>
 | Code | Meaning |
 |------|---------|
 | 401 | Нет или неверный `X-Api-Key` |
-| 404 | Product / Order / Seller не найден |
+| 400 | Validation error (e.g., edit COMPLETED order) |
+| 404 | Entity не найден |
 | 500 | Внутренняя ошибка RAOS |
 
 ---
 
-## Auto-Sync (RAOS → ZZone)
+## Summary
 
-RAOS автоматически пушит обновления stock в ZZone при:
-- Продажа через POS (event: `sale.created`)
-- Приход/расход товара (event: `inventory.movement`)
-
-Для работы auto-sync нужна настройка в `IntegrationConfig`:
-```json
-{
-  "provider": "ZZONE",
-  "config": {
-    "token": "<seller JWT от ZZone>",
-    "productMappings": {
-      "raos-product-uuid": "zzone-product-mongo-id"
-    }
-  }
-}
-```
-
----
-
-## Итого
-
-| Направление | Endpoints | Описание |
-|-------------|-----------|----------|
-| ZZone → RAOS | 9 endpoints | ZZone дёргает RAOS для товаров/заказов |
-| RAOS → ZZone | Event-driven | Auto-push stock при продаже |
-| **Swagger** | `https://api.raos.uz/api/v1/zzone/docs` | Интерактивная документация |
+| Group | Endpoints | Description |
+|-------|-----------|-------------|
+| Products | 5 | CRUD + stock check |
+| Orders | 6 | CRUD + status + void |
+| Sellers | 3 | Read + update + deactivate |
+| Stores | 3 | Read + update + deactivate |
+| Vehicles | 7 | CRUD + compatibility |
+| Health | 1 | Status check |
+| **Total ZZone API** | **25** | |
+| Admin (JWT) | 3 | ZZone config management |
+| Auto-sync | 5 events | Product lifecycle + stock |

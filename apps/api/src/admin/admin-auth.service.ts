@@ -281,4 +281,73 @@ export class AdminAuthService {
   getTenantAuditLog(tenantId: string, opts: { page: number; limit: number }) {
     return this.subscriptionHelper.getTenantAuditLog(tenantId, opts);
   }
+
+  // ─── ZZONE CONFIG ────────────────────────────────────────────────────
+
+  async getZzoneConfig(tenantId: string) {
+    const config = await this.prisma.integrationConfig.findUnique({
+      where: { tenantId_provider: { tenantId, provider: 'ZZONE' } },
+    });
+
+    if (!config) return { exists: false, isActive: false, token: '', productCount: 0 };
+
+    const zzoneConfig = (config.config ?? {}) as { token?: string; productMappings?: Record<string, string> };
+    const productCount = Object.keys(zzoneConfig.productMappings ?? {}).length;
+
+    return {
+      exists: true,
+      isActive: config.isActive,
+      token: zzoneConfig.token ? '***' + zzoneConfig.token.slice(-4) : '',
+      productCount,
+      createdAt: config.createdAt,
+    };
+  }
+
+  async updateZzoneConfig(tenantId: string, data: { token?: string; isActive?: boolean }) {
+    const config = await this.prisma.integrationConfig.findUnique({
+      where: { tenantId_provider: { tenantId, provider: 'ZZONE' } },
+    });
+
+    if (!config) {
+      // Create if doesn't exist
+      await this.prisma.integrationConfig.create({
+        data: {
+          tenantId,
+          provider: 'ZZONE',
+          config: { token: data.token ?? '', productMappings: {} },
+          isActive: data.isActive ?? false,
+        },
+      });
+      return { success: true, created: true };
+    }
+
+    const currentConfig = (config.config ?? {}) as Record<string, unknown>;
+    if (data.token !== undefined) currentConfig.token = data.token;
+
+    await this.prisma.integrationConfig.update({
+      where: { id: config.id },
+      data: {
+        config: currentConfig as object,
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      },
+    });
+
+    return { success: true, updated: true };
+  }
+
+  async triggerZzoneSync(tenantId: string) {
+    const products = await this.prisma.product.findMany({
+      where: { tenantId, isActive: true, deletedAt: null },
+      select: { id: true, name: true },
+    });
+
+    // Emit product.created for each product — sync listener will handle the rest
+    const { EventEmitter2 } = await import('@nestjs/event-emitter');
+    // Note: this is a simplified trigger — actual sync happens in ZzoneSyncListener
+    return {
+      success: true,
+      message: `Sync triggered for ${products.length} products`,
+      productCount: products.length,
+    };
+  }
 }

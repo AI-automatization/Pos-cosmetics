@@ -181,4 +181,27 @@ export class AdminTenantController {
       limit: limit ? parseInt(limit, 10) : 50,
     });
   }
+
+  // ─── ZZONE CONFIG ────────────────────────────────────────────────────
+
+  @Get('tenants/:id/zzone-config')
+  @ApiOperation({ summary: 'ZZone интеграция конфиги' })
+  async getZzoneConfig(@Param('id') tenantId: string) {
+    return this.adminAuthService.getZzoneConfig(tenantId);
+  }
+
+  @Patch('tenants/:id/zzone-config')
+  @ApiOperation({ summary: 'ZZone конфигни янгилаш (token, isActive)' })
+  async updateZzoneConfig(
+    @Param('id') tenantId: string,
+    @Body() body: { token?: string; isActive?: boolean },
+  ) {
+    return this.adminAuthService.updateZzoneConfig(tenantId, body);
+  }
+
+  @Post('tenants/:id/zzone-sync')
+  @ApiOperation({ summary: 'Барча товарларни ZZone га синхронлаш' })
+  async triggerZzoneSync(@Param('id') tenantId: string) {
+    return this.adminAuthService.triggerZzoneSync(tenantId);
+  }
 }
