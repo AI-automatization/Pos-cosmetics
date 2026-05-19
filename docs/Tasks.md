@@ -458,20 +458,40 @@
 
 ---
 
-## T-452 | P2 | [LANDING] | Video Tutorials sahifasi — /tutorials
+## T-452 | P1 | [LANDING] | Interaktiv obuchalka — /tutorials (Playwright MCP skrinshot)
 
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (video tavsiflar)
-- **Fayl:** `apps/landing/src/app/tutorials/page.tsx`
+- **Sana:** 2026-05-19 (yangilangan — YouTube emas, ichki obuchalka)
+- **Mas'ul:** Ibrat (Playwright MCP + agent) + Ziyoda (UI sahifalar)
+- **Fayl:** `apps/landing/src/app/tutorials/`, `apps/landing/public/tutorials/`
 - **Vazifa:**
-  - 8 ta video kartochka (thumbnail + sarlavha + davomiyligi + tavsif)
-  - Kategoriyalar: "Boshlash" (4 video) + "Boshqaruv" (4 video)
-  - YouTube embed (video tayyor bo'lgach)
-  - Hozircha: placeholder thumbnail + coming soon badge
-  - Landing da VideoTutorials section → "Barcha darsliklarni ko'rish" → /tutorials
-- **Matn manba:** `docs/LANDING_PAGE_PLAN.md` → ЧАСТЬ 3
-- **Kutilgan:** Tutorial sahifasi tayyor, videolar keyin qo'shiladi
-- **Muddat:** 1 kun
+  ### A. Playwright MCP orqali skrinshot olish (Ibrat):
+  - RAOS ni localhost da ochish (web :3001, POS)
+  - Har qadam uchun skrinshot olish (Playwright `browser_take_screenshot`)
+  - Skrinshot annotatsiya (qizil doira, strelka — qayerga bosish kerak)
+  - `apps/landing/public/tutorials/` ga saqlash (step-1.png, step-2.png...)
+  - 8 ta tutorial (har biri 5-10 qadam):
+    1. Ro'yxatdan o'tish va sozlash
+    2. Tovar qo'shish — 3 usul (qo'lda, Excel, shtrix-kod)
+    3. Birinchi savdo qilish
+    4. Hisobotlar ko'rish
+    5. Xodimlarni boshqarish
+    6. Inventar boshqaruvi
+    7. Ko'p filial boshqaruvi
+    8. Soliq cheki va OFD sozlash
+  ### B. Agent yaratish — `tutorial-screenshot.md` (Ibrat):
+  - Playwright MCP ishlatib avtomatik skrinshot oluvchi agent
+  - Bir buyruq bilan barcha 8 tutorial skrinshot yangilanadi
+  - RAOS UI o'zgarganda → agent qayta ishga tushiriladi → yangi skrinshot
+  ### C. /tutorials sahifalar (Ziyoda):
+  - `/tutorials` — 8 ta tutorial kartochkalar (preview + sarlavha)
+  - `/tutorials/[slug]` — har tutorial alohida sahifa:
+    - Qadam raqami + skrinshot + matn tushuntirish
+    - "Keyingi qadam →" / "← Oldingi qadam" navigatsiya
+    - Progress bar (3/8 qadam)
+    - Mobile responsive (skrinshot zoom qilsa bo'ladi)
+  - Landing da "Darsliklar" section → /tutorials ga link
+- **Kutilgan:** Mijoz landing da to'liq o'rganadi — tashqi saytga chiqmaydi
+- **Muddat:** 2 kun (skrinshot + agent) + 2 kun (UI sahifalar)
 
 ---
 
