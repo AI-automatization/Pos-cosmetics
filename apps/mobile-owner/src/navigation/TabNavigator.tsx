@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabParamList } from './types';
 import { useAlertsStore } from '../store/alerts.store';
 import { useAuthStore } from '../store/auth.store';
+import { setNavigationRef } from '../notifications/handler';
 import {
   canSeeAnalytics,
   canSeeEmployees,
@@ -64,6 +66,11 @@ function AlertsBellTabIcon({ color, size }: { color: string; size: number }) {
 export default function TabNavigator() {
   const { user } = useAuthStore();
   const role = user?.role;
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    setNavigationRef(navigation as unknown as { navigate: (screen: string, params?: object) => void });
+  }, [navigation]);
 
   function tabIcon(name: IoniconsName) {
     return ({ color, size }: { color: string; size: number }) => (
