@@ -8,6 +8,7 @@ import {
   DbStats,
   assertTableAllowed,
   assertColumnsAllowed,
+  VALID_COL_RE,
   maskRow,
   processWriteData,
   redactForLog,
@@ -121,7 +122,7 @@ export class AdminDatabaseService {
     // Получаем колонки для валидации sort
     const schema = await this.getTableSchema(tableName);
     const colNames = new Set(schema.columns.map((c) => c.name));
-    const sortCol = opts.sort && colNames.has(opts.sort) ? opts.sort : 'id';
+    const sortCol = opts.sort && colNames.has(opts.sort) && VALID_COL_RE.test(opts.sort) ? opts.sort : 'id';
     const hasTenantId = colNames.has('tenant_id');
 
     // Строим WHERE
