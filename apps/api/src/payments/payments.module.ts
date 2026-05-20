@@ -7,6 +7,7 @@ import { PaymeProvider } from './providers/payme.provider';
 import { ClickProvider } from './providers/click.provider';
 import { UzumProvider } from './providers/uzum.provider';
 import { PaymentReconciliationService } from './payment-reconciliation.service';
+import { WebhookIpGuard } from './guards/webhook-ip.guard';
 
 @Module({
   controllers: [PaymentsController, PaymentConfigController],
@@ -17,6 +18,7 @@ import { PaymentReconciliationService } from './payment-reconciliation.service';
     ClickProvider,
     UzumProvider,
     PaymentReconciliationService,
+    WebhookIpGuard,
   ],
   exports: [PaymentsService, PaymentConfigService, PaymeProvider, ClickProvider, UzumProvider],
 })

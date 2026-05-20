@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
+import { timingSafeEqual } from 'node:crypto';
 import { ApiTags, ApiOperation, ApiHeader, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../../common/decorators';
@@ -343,7 +344,12 @@ export class ZzoneInboundController {
   // ─── AUTH HELPER ─────────────────────────────────────────────────────
 
   private validateKey(key: string): void {
-    if (!key || key !== this.apiKey) {
+    if (!key || !this.apiKey) {
+      throw new UnauthorizedException('Invalid API key');
+    }
+    const a = Buffer.from(key);
+    const b = Buffer.from(this.apiKey);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
       throw new UnauthorizedException('Invalid API key');
     }
   }

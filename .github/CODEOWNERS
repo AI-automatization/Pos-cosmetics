@@ -1,0 +1,7 @@
+# Security-critical files require CTO review
+.github/                @Abdulaziz1214
+docker/                 @Abdulaziz1214
+prisma/                 @Abdulaziz1214
+apps/api/src/admin/     @Abdulaziz1214
+apps/api/src/identity/  @Abdulaziz1214
+apps/api/src/payments/  @Abdulaziz1214

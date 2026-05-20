@@ -31,6 +31,7 @@ import { PaymeProvider } from './providers/payme.provider';
 import { ClickProvider, ClickWebhookBody } from './providers/click.provider';
 import { UzumProvider } from './providers/uzum.provider';
 import { PrismaService } from '../prisma/prisma.service';
+import { WebhookIpGuard } from './guards/webhook-ip.guard';
 
 @ApiTags('Payments')
 @ApiBearerAuth()
@@ -132,8 +133,9 @@ export class PaymentsController {
 
   @Public()
   @Post('webhooks/payme')
-  @Throttle({ default: { limit: 120, ttl: 60000 } })
-  @ApiOperation({ summary: 'Payme JSON-RPC 2.0 webhook (public, per-tenant, rate-limited)' })
+  @UseGuards(WebhookIpGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Payme JSON-RPC 2.0 webhook (public, IP-filtered, rate-limited)' })
   async paymeWebhook(
     @Body() body: { id: number; method: string; params: Record<string, unknown> },
     @Headers('authorization') auth: string,
@@ -197,8 +199,9 @@ export class PaymentsController {
 
   @Public()
   @Post('webhooks/click/prepare')
-  @Throttle({ default: { limit: 120, ttl: 60000 } })
-  @ApiOperation({ summary: 'Click Prepare webhook (public, per-tenant, rate-limited)' })
+  @UseGuards(WebhookIpGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Click Prepare webhook (public, IP-filtered, rate-limited)' })
   async clickPrepare(@Body() body: ClickWebhookBody, @Req() req: Request) {
     this.logger.log('Click Prepare webhook', {
       ip: req.ip,
@@ -230,8 +233,9 @@ export class PaymentsController {
 
   @Public()
   @Post('webhooks/click/complete')
-  @Throttle({ default: { limit: 120, ttl: 60000 } })
-  @ApiOperation({ summary: 'Click Complete webhook (public, per-tenant, rate-limited)' })
+  @UseGuards(WebhookIpGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Click Complete webhook (public, IP-filtered, rate-limited)' })
   async clickComplete(@Body() body: ClickWebhookBody, @Req() req: Request) {
     this.logger.log('Click Complete webhook', {
       ip: req.ip,
@@ -275,8 +279,9 @@ export class PaymentsController {
 
   @Public()
   @Post('webhooks/uzum/:action')
-  @Throttle({ default: { limit: 120, ttl: 60000 } })
-  @ApiOperation({ summary: 'Uzum Pay webhook (public, per-tenant, rate-limited)' })
+  @UseGuards(WebhookIpGuard)
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Uzum Pay webhook (public, IP-filtered, rate-limited)' })
   @ApiParam({ name: 'action', enum: ['check', 'create', 'confirm', 'reverse', 'status'] })
   async uzumWebhook(
     @Param('action') action: string,

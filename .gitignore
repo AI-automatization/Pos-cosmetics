@@ -37,6 +37,9 @@ POLAT_PROGRESS.txt
 .claude/settings.local.json
 .playwright-mcp/
 
+# GStack security reports (local only)
+.gstack/
+
 # IDE
 .vscode/
 !.vscode/extensions.json

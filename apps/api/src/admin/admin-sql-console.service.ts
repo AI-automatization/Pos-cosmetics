@@ -81,7 +81,7 @@ export class AdminSqlConsoleService {
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Unknown SQL error';
       this.logger.error(`SQL CONSOLE ERROR: ${msg}`, { sql: trimmed.slice(0, 300), adminId });
-      throw new BadRequestException(`SQL ошибка: ${msg}`);
+      throw new BadRequestException('SQL query failed. Check server logs for details.');
     }
   }
 
