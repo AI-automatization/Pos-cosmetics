@@ -26,10 +26,10 @@ async function bootstrap() {
   app.use(cookieParser());
   // T-077: Response compression (gzip/brotli)
   app.use(compression());
-  // CORS_ORIGIN can be comma-separated list for multiple origins (Railway + local)
+  // CORS_ORIGIN: comma-separated list. Dev defaults only — production MUST set via env.
   const corsOriginRaw = config.get<string>(
     'CORS_ORIGIN',
-    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,https://web-production-5b0b7.up.railway.app,https://super-admin-production-a0db.up.railway.app,https://raos.uz,https://www.raos.uz',
+    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004',
   );
   // SECURITY: '*' with credentials is dangerous — block in production
   const isProduction = config.get<string>('NODE_ENV') === 'production';

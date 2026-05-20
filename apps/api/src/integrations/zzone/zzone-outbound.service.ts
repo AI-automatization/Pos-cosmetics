@@ -14,9 +14,11 @@ export class ZzoneOutboundService {
   private readonly baseUrl: string;
 
   constructor(private readonly config: ConfigService) {
-    this.baseUrl =
-      this.config.get<string>('ZZONE_API_URL') ||
-      'https://zzoneback-production.up.railway.app';
+    const url = this.config.get<string>('ZZONE_API_URL');
+    if (!url) {
+      this.logger.warn('ZZONE_API_URL not set — outbound sync disabled');
+    }
+    this.baseUrl = url || '';
   }
 
   // ─── AUTH ────────────────────────────────────────────────────────────
