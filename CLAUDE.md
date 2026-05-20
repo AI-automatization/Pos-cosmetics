@@ -4,7 +4,7 @@
 
 # Barcha dasturchilar uchun UMUMIY qoidalar
 
-# RAOS v4.0 — Jamoa kengaytirildi (2026-05-19)
+# RAOS v5.0 — Sardor va Shuhratov qo'shildi (2026-05-20)
 
 ---
 
@@ -21,6 +21,8 @@ Kimligingizni aniqlay olmayman — ismingiz kim?
   4. Bekzod (PM — Project Management & QA)
   5. Ziyoda (Landing Page — Next.js Frontend)
   6. Hobbit (Analitika, Kontent, Post)
+  7. Sardor (Backend — OFD, Fiscal, Buxgalteriya)
+  8. Shuhratov (Marketing — Instagram, Outreach, Lead Gen)
 ```
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
@@ -31,23 +33,29 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 - Bekzod → `CLAUDE_FULLSTACK.md` (read-only, project overview uchun)
 - Ziyoda → `CLAUDE_LANDING.md`
 - Hobbit → `CLAUDE_CONTENT.md`
+- Sardor → `CLAUDE_FULLSTACK.md` (faqat fiscal/ledger zonasi)
+- Shuhratov → `CLAUDE_CONTENT.md` (marketing/outreach zonasi)
 
-### Jamoa Tuzilishi (2026-05-19 dan)
+### Jamoa Tuzilishi (2026-05-20 dan)
 
 | Rol | Ism | Mas'uliyat | Zona |
 |-----|-----|-----------|------|
-| **Full-Stack Dev** | Ibrat | Backend API + Web Admin + POS + Bot + Worker + DevOps | apps/api, apps/web, apps/pos, apps/bot, apps/worker, docker/, prisma/ |
+| **Full-Stack Dev** | Ibrat | Backend API + Web Admin + POS + Bot + Worker + DevOps | apps/api (tax/, ledger/, fiscal/ dan tashqari), apps/web, apps/pos, apps/bot, apps/worker, docker/, prisma/ |
+| **Backend Dev (Fiscal)** | Sardor Madaliev | OFD adapter, fiscal cheklar, buxgalteriya, 1C integratsiya | apps/api/src/tax/, apps/api/src/ledger/, apps/api/src/fiscal/ |
 | **Mobile Dev** | Abdulaziz | Android + iOS (staff app + owner app) | apps/mobile, apps/mobile-owner |
 | **Team Lead** | AbdulazizYormatov | Code review, arxitektura qarorlari, PR tasdiqlash | Barcha zonalar (read + review) |
 | **PM** | Bekzod | Task prioritizatsiya, sprint planning, QA, yangi g'oyalar | docs/, CLAUDE*.md, test |
 | **Landing Dev** | Ziyoda Mirazakirova | Landing page — dizayn, SEO, konversiya, A/B test (VAQTINCHALIK) | apps/landing/ |
 | **Analitik & Kontent** | Hobbit | Raqobat tahlili, kontent strategiya, ijtimoiy tarmoq postlar | docs/competitive-analysis/, docs/content/ |
+| **Marketing** | Shuhratov | Instagram, outreach, lead generation, DM kampaniyalar, vizual kontent | docs/marketing/, docs/outreach/ |
 | **Warehouse Staff** | — | Inventar boshqaruvi (ombor) | apps/web/(warehouse)/, apps/api/src/inventory/ |
 
 > **Nima uchun?** Har dasturchi o'z zonasida ishlaydi. Noto'g'ri faylga teginish = merge conflict + production bug.
 > **Eslatma:** Polat 2026-03-23 dan loyihani tark etdi. Barcha backend vazifalari Ibrat ga o'tdi.
 > **Eslatma:** Ziyoda — VAQTINCHALIK (landing page tayyor bo'lgach, vazifa yakunlanadi).
 > **Eslatma:** Hobbit — analitika, kontent va post uchun mas'ul. Kod yozmaydi, faqat docs/ bilan ishlaydi.
+> **Eslatma:** Sardor — faqat OFD/fiscal/buxgalteriya backend. Boshqa API modullarga teginmaydi.
+> **Eslatma:** Shuhratov — marketing va outreach. Kod yozmaydi, faqat docs/ bilan ishlaydi.
 
 ---
 
@@ -83,7 +91,9 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 ```
 apps/
-  api/             → Ibrat zonasi (Backend API — NestJS)
+  api/             → Ibrat + Sardor zonasi (Backend API — NestJS)
+                     Sardor: faqat src/tax/, src/ledger/, src/fiscal/
+                     Ibrat: qolgan barcha modullar
   worker/          → Ibrat zonasi (BullMQ processors)
   bot/             → Ibrat zonasi (Telegram bot — grammY)
   web/             → Ibrat zonasi (Admin Panel — Next.js)
@@ -101,6 +111,8 @@ docker/            → Ibrat boshqaradi (infra)
 docs/              → Hammaga ochiq (Bekzod — PM sifatida boshqaradi)
 docs/competitive-analysis/ → Hobbit zonasi (raqobat tahlili)
 docs/content/      → Hobbit zonasi (kontent reja, postlar)
+docs/marketing/    → Shuhratov zonasi (Instagram, kampaniyalar)
+docs/outreach/     → Shuhratov zonasi (lead gen, DM shablonlari)
 ```
 
 ---
@@ -239,6 +251,7 @@ Events stored in event_log table (immutable).
 [AI]        — Analytics pipeline, insights, forecasting
 [LANDING]   — Landing page, SEO, konversiya, A/B test
 [CONTENT]   — Raqobat tahlili, kontent strategiya, ijtimoiy tarmoq postlar
+[MARKETING] — Instagram, outreach, lead gen, DM kampaniyalar
 [IKKALASI]  — Shared types, API contract, migrations
 ```
 
@@ -276,10 +289,13 @@ git pull origin main
 # Branch format:
 ibrat/feat-[feature-name]
 ibrat/fix-[bug-description]
+sardor/feat-[feature-name]
+sardor/fix-[bug-description]
 abdulaziz/feat-[feature-name]
 abdulaziz/fix-[bug-description]
 ziyoda/feat-[feature-name]
 ziyoda/fix-[bug-description]
+shuhratov/content-[topic-name]
 hobbit/content-[topic-name]
 
 # Commit format (Conventional Commits — MAJBURIY):
@@ -300,7 +316,7 @@ docs(module): documentation update
 
 # Modul nomlari commit da:
 # identity, catalog, inventory, sales, payments, ledger,
-# tax, realestate, ai, pos, admin, mobile, sync, infra, landing, content
+# tax, realestate, ai, pos, admin, mobile, sync, infra, landing, content, marketing
 
 # Branch Protection (main):
 ✓ PR orqali faqat (direct push TAQIQLANGAN)
@@ -563,16 +579,18 @@ pnpm -r exec tsc --noEmit
 
 ---
 
-## 🚧 ZONA QOIDASI (2026-04-15 dan kuchaytirildi)
+## 🚧 ZONA QOIDASI (2026-05-20 dan kuchaytirildi)
 
 ```
 QOIDA: Har dasturchi FAQAT o'z zonasidagi fayllarni o'zgartiradi.
 
 ZONALAR:
-  Ibrat     → apps/api/, apps/web/, apps/pos/, apps/bot/, apps/worker/, docker/, prisma/
+  Ibrat     → apps/api/ (tax/, ledger/, fiscal/ dan TASHQARI), apps/web/, apps/pos/, apps/bot/, apps/worker/, docker/, prisma/
+  Sardor    → apps/api/src/tax/, apps/api/src/ledger/, apps/api/src/fiscal/
   Abdulaziz → apps/mobile/, apps/mobile-owner/
   Ziyoda    → apps/landing/ (VAQTINCHALIK — landing tayyor bo'lgach yakunlanadi)
   Hobbit    → docs/competitive-analysis/, docs/content/ (faqat docs, KOD YOZMAYDI)
+  Shuhratov → docs/marketing/, docs/outreach/ (faqat docs, KOD YOZMAYDI)
   UMUMIY    → packages/* (faqat kelishib)
 
 PROTSEDURA (boshqa zona fayli kerak bo'lsa):
@@ -585,15 +603,25 @@ PR TEKSHIRUVI (merge oldidan):
   git diff main --name-only | grep -v "^apps/(api|web|pos|bot|worker)/"
   ↑ Ibrat uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
 
+  git diff main --name-only | grep -v "^apps/api/src/(tax|ledger|fiscal)/"
+  ↑ Sardor uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
+
+  git diff main --name-only | grep -v "^apps/(mobile|mobile-owner)/"
+  ↑ Abdulaziz uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
+
   git diff main --name-only | grep -v "^apps/landing/"
   ↑ Ziyoda uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
 
   git diff main --name-only | grep -v "^docs/(competitive-analysis|content)/"
   ↑ Hobbit uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
 
+  git diff main --name-only | grep -v "^docs/(marketing|outreach)/"
+  ↑ Shuhratov uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
+
 ISTISNO:
   - CI lint fix (barcha apps uchun) → Team Lead tasdiqlagandan keyin
   - packages/* shared types → Telegram/chat da xabar berib, tasdiq olgach
+  - Sardor + Ibrat: apps/api/ ichida FAQAT o'z sub-papkalarida ishlaydi
 ```
 
 ---
@@ -632,14 +660,14 @@ ISTISNO:
 
 | Fayl                        | Kim uchun                                               |
 | --------------------------- | ------------------------------------------------------- |
-| `CLAUDE_FULLSTACK.md`       | Ibrat (Full-Stack — Web + Backend + DevOps)             |
+| `CLAUDE_FULLSTACK.md`       | Ibrat (Full-Stack), Sardor (Fiscal/Ledger zonasi)       |
 | `CLAUDE_MOBILE.md`          | Abdulaziz (Mobile — Android + iOS)                      |
 | `CLAUDE_LANDING.md`         | Ziyoda (Landing Page — Next.js, VAQTINCHALIK)           |
-| `CLAUDE_CONTENT.md`         | Hobbit (Analitika, Kontent, Post)                       |
+| `CLAUDE_CONTENT.md`         | Hobbit (Analitika, Kontent), Shuhratov (Marketing)      |
 | `docs/AGENTS_GUIDE.md`      | Hammaga — Claude agentlari to'liq qo'llanmasi           |
 | `docs/Tasks.md`             | Ochiq vazifalar (Bekzod — PM boshqaradi)                |
 | `docs/Done.md`              | Bajarilgan ishlar                                       |
 
 ---
 
-_CLAUDE.md | RAOS | v4.0 | 2026-05-19 — Ziyoda (Landing) va Hobbit (Analitika/Kontent) qo'shildi_
+_CLAUDE.md | RAOS | v5.0 | 2026-05-20 — Sardor (OFD/Fiscal/Buxgalteriya) va Shuhratov (Marketing/Outreach) qo'shildi_
