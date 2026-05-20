@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AlertTriangle, Calendar, Download, Package } from 'lucide-react';
+import { AlertTriangle, Download, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
