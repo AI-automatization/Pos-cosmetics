@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { type PaymentMethod, type CartItem } from './PaymentSheetTypes';
+import { type PaymentMethod, type CartItem, isOnlineMethod } from './PaymentSheetTypes';
 import PaymentSummaryCard from './PaymentSummaryCard';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import PaymentInputBlock from './PaymentInputBlock';
@@ -57,9 +57,10 @@ export default function PaymentSheet({
     }
   }, [visible, total]);
 
+  const online      = isOnlineMethod(method);
   const receivedNum = parseFloat(received.replace(/\s/g, '')) || 0;
   const change      = method === 'NAQD' && !split ? receivedNum - total : 0;
-  const canConfirm  = method !== 'NAQD' || receivedNum >= total;
+  const canConfirm  = online || method !== 'NAQD' || receivedNum >= total;
 
   const handleConfirm = () => {
     if (!canConfirm) return;
@@ -119,19 +120,28 @@ export default function PaymentSheet({
                 {/* Payment method picker */}
                 <PaymentMethodPicker method={method} onSelect={setMethod} />
 
-                {/* Split toggle + cash/card inputs */}
-                <PaymentInputBlock
-                  split={split}
-                  method={method}
-                  received={received}
-                  splitCard={splitCard}
-                  total={total}
-                  change={change}
-                  receivedNum={receivedNum}
-                  onReceivedChange={setReceived}
-                  onSplitCardChange={setSplitCard}
-                  onSplitToggle={setSplit}
-                />
+                {/* Split toggle + cash/card inputs (hidden for online methods) */}
+                {online ? (
+                  <View style={styles.onlineInfo}>
+                    <Ionicons name="globe-outline" size={20} color="#6B7280" />
+                    <Text style={styles.onlineInfoText}>
+                      Online to'lov tizimi orqali to'lanadi
+                    </Text>
+                  </View>
+                ) : (
+                  <PaymentInputBlock
+                    split={split}
+                    method={method}
+                    received={received}
+                    splitCard={splitCard}
+                    total={total}
+                    change={change}
+                    receivedNum={receivedNum}
+                    onReceivedChange={setReceived}
+                    onSplitCardChange={setSplitCard}
+                    onSplitToggle={setSplit}
+                  />
+                )}
               </ScrollView>
 
               {/* Confirm */}
@@ -140,8 +150,10 @@ export default function PaymentSheet({
                 onPress={handleConfirm}
                 activeOpacity={0.85}
               >
-                <Ionicons name="checkmark-circle-outline" size={20} color="#FFF" />
-                <Text style={styles.confirmText}>Savdoni yakunlash</Text>
+                <Ionicons name={online ? 'open-outline' : 'checkmark-circle-outline'} size={20} color="#FFF" />
+                <Text style={styles.confirmText}>
+                  {online ? "To'lovga o'tish" : 'Savdoni yakunlash'}
+                </Text>
               </TouchableOpacity>
             </>
           )}
@@ -221,5 +233,20 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
+  },
+  onlineInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+  },
+  onlineInfoText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+    flex: 1,
   },
 });

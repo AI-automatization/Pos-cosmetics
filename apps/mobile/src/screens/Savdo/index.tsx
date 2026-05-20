@@ -14,10 +14,13 @@ import { useQuery } from '@tanstack/react-query';
 import ProductCard from './ProductCard';
 import ScannerModal from './ScannerModal';
 import PaymentSheet, { type PaymentMethod } from './PaymentSheet';
+import { isOnlineMethod } from './PaymentSheetTypes';
+import OnlinePaymentSheet from './OnlinePaymentSheet';
 import LowStockSheet from './LowStockSheet';
 import { useShiftStore } from '../../store/shiftStore';
 import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import { salesApi } from '../../api/sales.api';
+import { paymentsApi, type PaymentIntentResponse } from '../../api/payments.api';
 import { type SavdoStackParamList } from '../../navigation/types';
 import ShiftGuard from '../../components/common/ShiftGuard';
 
@@ -39,6 +42,8 @@ export default function SavdoScreen() {
   const [paymentVisible, setPaymentVisible]   = useState(false);
   const [lowStockVisible, setLowStockVisible] = useState(false);
   const [orderLoading, setOrderLoading]       = useState(false);
+  const [onlinePaymentVisible, setOnlinePaymentVisible] = useState(false);
+  const [paymentIntent, setPaymentIntent] = useState<PaymentIntentResponse | null>(null);
 
   // ─── API ─────────────────────────────────────────────
   const { data: rawProducts = [], isLoading: productsLoading } = useQuery({
@@ -148,6 +153,35 @@ export default function SavdoScreen() {
       Alert.alert('Xatolik', 'Smena ochilmagan. Avval smena oching.');
       return;
     }
+    // Online payment flow (PAYME / CLICK / UZUM)
+    if (isOnlineMethod(method)) {
+      setOrderLoading(true);
+      try {
+        const order = await salesApi.createOrder({
+          shiftId,
+          items: cart.map((i) => ({
+            productId: i.product.id,
+            quantity: i.qty,
+            unitPrice: i.product.sellPrice,
+          })),
+          notes: `To'lov: ${method}`,
+        });
+        const intent = await paymentsApi.createIntent({
+          orderId: order.id,
+          method,
+          amount: totalPrice,
+        });
+        setPaymentIntent(intent);
+        setPaymentVisible(false);
+        setOnlinePaymentVisible(true);
+      } catch {
+        Alert.alert('Xatolik', "Online to'lov yaratilmadi. Qayta urinib ko'ring.");
+      } finally {
+        setOrderLoading(false);
+      }
+      return;
+    }
+    // Standard payment flow (NAQD / KARTA)
     setOrderLoading(true);
     try {
       await salesApi.createOrder({
@@ -166,6 +200,21 @@ export default function SavdoScreen() {
     } finally {
       setOrderLoading(false);
     }
+  };
+
+  // ─── Online payment callbacks ─────────────────────────
+  const handleOnlinePaymentSuccess = () => {
+    setOnlinePaymentVisible(false);
+    setPaymentIntent(null);
+    setCart([]);
+  };
+
+  const handleOnlinePaymentCancel = async () => {
+    if (paymentIntent) {
+      try { await paymentsApi.cancelIntent(paymentIntent.id); } catch { /* noop */ }
+    }
+    setOnlinePaymentVisible(false);
+    setPaymentIntent(null);
   };
 
   const cartQty    = (productId: string) => cart.find((i) => i.product.id === productId)?.qty ?? 0;
@@ -233,6 +282,13 @@ export default function SavdoScreen() {
           onClose={() => setPaymentVisible(false)}
           onRemoveItem={removeFromCart}
           onConfirm={handleConfirm}
+        />
+
+        <OnlinePaymentSheet
+          visible={onlinePaymentVisible}
+          intent={paymentIntent}
+          onSuccess={handleOnlinePaymentSuccess}
+          onCancel={handleOnlinePaymentCancel}
         />
 
         <ScannerModal

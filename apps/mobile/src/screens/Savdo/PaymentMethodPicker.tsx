@@ -14,22 +14,32 @@ export default function PaymentMethodPicker({ method, onSelect }: Props) {
   return (
     <>
       <Text style={styles.sectionLabel}>TO'LOV USULI</Text>
-      <View style={styles.methodRow}>
+      <View style={styles.methodGrid}>
         {METHODS.map((m) => {
           const active = method === m.key;
           return (
             <TouchableOpacity
               key={m.key}
-              style={[styles.methodBtn, active && styles.methodBtnActive]}
+              style={[
+                styles.methodBtn,
+                active
+                  ? { backgroundColor: m.color, borderColor: m.color }
+                  : { borderColor: m.color + '40' },
+              ]}
               onPress={() => onSelect(m.key)}
               activeOpacity={0.75}
             >
               <MaterialCommunityIcons
                 name={m.icon as React.ComponentProps<typeof MaterialCommunityIcons>['name']}
                 size={20}
-                color={active ? '#FFFFFF' : '#2563EB'}
+                color={active ? '#FFFFFF' : m.color}
               />
-              <Text style={[styles.methodLabel, active && styles.methodLabelActive]}>
+              <Text
+                style={[
+                  styles.methodLabel,
+                  { color: active ? '#FFFFFF' : m.color },
+                ]}
+              >
                 {m.label}
               </Text>
             </TouchableOpacity>
@@ -49,33 +59,27 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginBottom: 10,
   },
-  methodRow: {
+  methodGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 16,
   },
   methodBtn: {
-    flex: 1,
+    width: '31%',
+    flexGrow: 1,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#2563EB',
     backgroundColor: '#FFFFFF',
     gap: 4,
-  },
-  methodBtnActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    minHeight: 48,
   },
   methodLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#2563EB',
-  },
-  methodLabelActive: {
-    color: '#FFFFFF',
   },
 });

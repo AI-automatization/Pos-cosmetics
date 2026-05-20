@@ -332,6 +332,55 @@
 
 ---
 
+## T-504 | P2 | [BACKEND] | CreateOrderDto ga paymentMethod field qo'shish
+
+- **Sana:** 2026-05-20
+- **Mas'ul:** Ibrat
+- **Fayl:** apps/api/src/sales/dto/create-order.dto.ts, packages/types/src/sales.ts
+- **Muammo:** Hozir mobile order yaratganda payment method `notes` fieldiga yoziladi (`To'lov: NAQD`). Bu noto'g'ri — alohida field kerak.
+- **Kutilgan:** `CreateOrderDto` da `paymentMethod: PaymentMethod` optional field qo'shiladi. Backend orderni saqlayotganda bu fieldni `Order.paymentMethod` ga yozadi. Mavjud `notes` orqali yuborilgan orderlar ham ishlashda davom etadi (backward compatible).
+
+---
+
+## T-505 | P2 | [BACKEND] | Mobile uchun POST /payments/intent endpoint
+
+- **Sana:** 2026-05-20
+- **Mas'ul:** Ibrat
+- **Fayl:** apps/api/src/payments/payments.controller.ts, apps/api/src/payments/payments.service.ts
+- **Muammo:** Mobile ilovada Payme/Click/Uzum to'lov qilish uchun PaymentIntent yaratish kerak. Hozir bu endpoint mavjud emas.
+- **Kutilgan:**
+  - `POST /payments/intent` — `{ orderId, method, amount }` qabul qiladi, PaymentIntent yaratadi, tegishli provider (Payme/Click/Uzum) dan `qrCodeUrl`, `deeplink`, `checkoutUrl` oladi va qaytaradi.
+  - `GET /payments/intent/:id` — intent statusini qaytaradi (polling uchun).
+  - `POST /payments/intent/:id/cancel` — intentni bekor qiladi.
+  - Response: `{ id, orderId, method, amount, status, qrCodeUrl, deeplink, checkoutUrl, expiresAt }`
+
+---
+
+## T-506 | P2 | [BACKEND] | Uzum payment provider yaratish
+
+- **Sana:** 2026-05-20
+- **Mas'ul:** Ibrat
+- **Fayl:** apps/api/src/payments/providers/uzum.provider.ts
+- **Muammo:** Backend da Payme va Click providerlar mavjud (`payme.provider.ts`, `click.provider.ts`), lekin Uzum yo'q.
+- **Kutilgan:** Uzum provider yaratiladi — `createPayment(amount, orderId)`, `checkStatus(providerRef)`, `cancel(providerRef)` metodlari bilan. Payme provider pattern ga mos.
+
+---
+
+## T-507 | P2 | [BACKEND] | Payment provider webhook endpoints
+
+- **Sana:** 2026-05-20
+- **Mas'ul:** Ibrat
+- **Fayl:** apps/api/src/payments/webhooks/
+- **Muammo:** Payme/Click/Uzum providerlar to'lov muvaffaqiyatli bo'lganda webhook yuboradi. Bu webhooklarni qabul qilib, PaymentIntent statusini yangilash kerak.
+- **Kutilgan:**
+  - `POST /payments/webhooks/payme` — Payme callback
+  - `POST /payments/webhooks/click` — Click callback
+  - `POST /payments/webhooks/uzum` — Uzum callback
+  - Har biri: signature validation + PaymentIntent status update (CONFIRMED/SETTLED/FAILED)
+  - Webhook endpointlar `@Public()` decorator bilan (auth yo'q, signature orqali tekshiriladi)
+
+---
+
 *(T-378, T-379 — Done.md ga ko'chirildi 2026-05-16)*
 
 ---
