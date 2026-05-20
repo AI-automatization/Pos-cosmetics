@@ -1,11 +1,13 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity, Text, View, StyleSheet, RefreshControl } from 'react-native';
+import { ScrollView, TouchableOpacity, Text, View, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import ScreenLayout from '../../components/layout/ScreenLayout';
+import SkeletonList from '../../components/common/SkeletonList';
+import ErrorView from '../../components/common/ErrorView';
 import RevenueByBranchChart from './RevenueByBranchChart';
 import OrdersByBranchChart from './OrdersByBranchChart';
 import StockValueByBranch from './StockValueByBranch';
@@ -52,34 +54,86 @@ export default function AnalyticsScreen() {
     await Promise.all([revenueByBranch.refetch(), branchComparison.refetch(), stockValue.refetch()]);
   };
 
+  const isInitialLoading =
+    revenueByBranch.isLoading || stockValue.isLoading;
+
+  const allFailed =
+    revenueByBranch.isError && branchComparison.isError && stockValue.isError;
+
+  const handleRetryAll = () => {
+    void handleRefresh();
+  };
+
+  // Period tabs are always visible
+  const periodRow = (
+    <View style={styles.periodRow}>
+      {PERIODS.map((p) => (
+        <TouchableOpacity
+          key={p}
+          style={[styles.periodTab, period === p && styles.periodTabActive]}
+          onPress={() => setPeriod(p)}
+        >
+          <Text style={[styles.periodText, period === p && styles.periodTextActive]}>
+            {t(`common.${p}`)}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  // Initial loading skeleton
+  if (isInitialLoading) {
+    return (
+      <ScreenLayout title={t('analytics.title')}>
+        {periodRow}
+        <SkeletonList count={3} itemHeight={120} />
+      </ScreenLayout>
+    );
+  }
+
+  // All queries failed — show error with retry
+  if (allFailed) {
+    return (
+      <ScreenLayout title={t('analytics.title')}>
+        {periodRow}
+        <ErrorView
+          error={revenueByBranch.error ?? stockValue.error ?? branchComparison.error}
+          onRetry={handleRetryAll}
+        />
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout title={t('analytics.title')}>
-      <View style={styles.periodRow}>
-        {PERIODS.map((p) => (
-          <TouchableOpacity
-            key={p}
-            style={[styles.periodTab, period === p && styles.periodTabActive]}
-            onPress={() => setPeriod(p)}
-          >
-            <Text style={[styles.periodText, period === p && styles.periodTextActive]}>
-              {t(`common.${p}`)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {periodRow}
 
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={revenueByBranch.isFetching}
+            refreshing={revenueByBranch.isFetching || stockValue.isFetching}
             onRefresh={() => { void handleRefresh(); }}
           />
         }
         contentContainerStyle={styles.content}
       >
-        <RevenueByBranchChart data={revenueByBranch.data} />
-        <OrdersByBranchChart data={revenueByBranch.data} />
-        <StockValueByBranch data={stockValue.data} />
+        {revenueByBranch.data === undefined && !revenueByBranch.isError ? (
+          <ChartLoadingHint />
+        ) : (
+          <RevenueByBranchChart data={revenueByBranch.data} />
+        )}
+
+        {revenueByBranch.data === undefined && !revenueByBranch.isError ? (
+          <ChartLoadingHint />
+        ) : (
+          <OrdersByBranchChart data={revenueByBranch.data} />
+        )}
+
+        {stockValue.data === undefined && !stockValue.isError ? (
+          <ChartLoadingHint />
+        ) : (
+          <StockValueByBranch data={stockValue.data} />
+        )}
 
         {/* Analytics Tools */}
         <View style={styles.toolsSection}>
@@ -106,6 +160,15 @@ export default function AnalyticsScreen() {
         </View>
       </ScrollView>
     </ScreenLayout>
+  );
+}
+
+function ChartLoadingHint() {
+  return (
+    <View style={styles.chartLoadingContainer}>
+      <ActivityIndicator size="small" color={Colors.primary} />
+      <Text style={styles.chartLoadingText}>Ma'lumot yuklanmoqda...</Text>
+    </View>
   );
 }
 
@@ -137,6 +200,22 @@ const styles = StyleSheet.create({
     color: Colors.textWhite,
   },
   content: { paddingBottom: 32 },
+  chartLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 32,
+    marginHorizontal: 16,
+    marginTop: 4,
+    backgroundColor: Colors.bgSurface,
+    borderRadius: Radii.lg,
+  },
+  chartLoadingText: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    fontWeight: '500',
+  },
 
   // Tools section
   toolsSection: {
