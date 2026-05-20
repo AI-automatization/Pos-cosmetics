@@ -86,6 +86,11 @@ describe('AdminSqlConsoleService — Security', () => {
       .rejects.toThrow(BadRequestException);
   });
 
+  it('blocks EXPLAIN ANALYZE with INSERT', async () => {
+    await expect(service.executeQuery('EXPLAIN ANALYZE INSERT INTO orders (id) VALUES (\'hack\')', 'admin-1'))
+      .rejects.toThrow(BadRequestException);
+  });
+
   it('allows plain EXPLAIN SELECT', async () => {
     mockPrisma.$queryRawUnsafe.mockResolvedValue([{ plan: 'Seq Scan' }]);
     const result = await service.executeQuery('EXPLAIN SELECT * FROM users', 'admin-1');

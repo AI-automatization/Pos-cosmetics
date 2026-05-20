@@ -2,7 +2,7 @@ import { Injectable, Logger, BadRequestException, NotFoundException } from '@nes
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { BillingService } from './billing.service';
-import { BillingProvider, BillingPaymentStatus } from '@prisma/client';
+import { BillingProvider } from '@prisma/client';
 import { timingSafeEqual, createHash } from 'node:crypto';
 
 @Injectable()

@@ -36,6 +36,33 @@ export class PromoCodeController {
     return this.promoCodeService.listCodes(tenantId, page, limit);
   }
 
+  @Post()
+  @ApiOperation({ summary: 'T-467: Yangi promo kod yaratish' })
+  createCode(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: CreatePromoCodeDto,
+  ) {
+    return this.promoCodeService.createCode(tenantId, dto);
+  }
+
+  @Post('validate')
+  @ApiOperation({ summary: 'T-467: Promo kodni tekshirish' })
+  validateCode(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: ValidateCodeDto,
+  ) {
+    return this.promoCodeService.validateCode(tenantId, dto);
+  }
+
+  @Post('apply')
+  @ApiOperation({ summary: 'T-467: Promo kodni qo\'llash (usageCount++)' })
+  applyCode(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: ValidateCodeDto,
+  ) {
+    return this.promoCodeService.applyCode(tenantId, dto);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'T-467: Promo kod detail' })
   @ApiParam({ name: 'id', type: String })
@@ -44,15 +71,6 @@ export class PromoCodeController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.promoCodeService.getCode(tenantId, id);
-  }
-
-  @Post()
-  @ApiOperation({ summary: 'T-467: Yangi promo kod yaratish' })
-  createCode(
-    @CurrentUser('tenantId') tenantId: string,
-    @Body() dto: CreatePromoCodeDto,
-  ) {
-    return this.promoCodeService.createCode(tenantId, dto);
   }
 
   @Patch(':id')
@@ -74,23 +92,5 @@ export class PromoCodeController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.promoCodeService.deleteCode(tenantId, id);
-  }
-
-  @Post('validate')
-  @ApiOperation({ summary: 'T-467: Promo kodni tekshirish' })
-  validateCode(
-    @CurrentUser('tenantId') tenantId: string,
-    @Body() dto: ValidateCodeDto,
-  ) {
-    return this.promoCodeService.validateCode(tenantId, dto);
-  }
-
-  @Post('apply')
-  @ApiOperation({ summary: 'T-467: Promo kodni qo\'llash (usageCount++)' })
-  applyCode(
-    @CurrentUser('tenantId') tenantId: string,
-    @Body() dto: ValidateCodeDto,
-  ) {
-    return this.promoCodeService.applyCode(tenantId, dto);
   }
 }

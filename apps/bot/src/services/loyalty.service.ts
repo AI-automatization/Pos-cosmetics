@@ -44,8 +44,8 @@ export async function getLoyaltyByPhone(
   });
   if (!config?.isActive) return null;
 
-  const account = await prisma.loyaltyAccount.findUnique({
-    where: { customerId: customer.id },
+  const account = await prisma.loyaltyAccount.findFirst({
+    where: { customerId: customer.id, tenantId },
   });
 
   const points = account?.points ?? 0;
@@ -75,8 +75,8 @@ export async function getLoyaltyHistory(
 
   if (!customer) return null;
 
-  const account = await prisma.loyaltyAccount.findUnique({
-    where: { customerId: customer.id },
+  const account = await prisma.loyaltyAccount.findFirst({
+    where: { customerId: customer.id, tenantId },
   });
   if (!account) return { customer: customer.name, transactions: [] };
 

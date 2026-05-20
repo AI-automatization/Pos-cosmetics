@@ -127,6 +127,7 @@ export class ZzoneInboundController {
   // ─── ORDERS ──────────────────────────────────────────────────────────
 
   @Post('orders')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @ApiTags('Orders')
   @ApiOperation({ summary: 'Buyurtma yaratish', description: 'ZZone klient buyurtma berganida RAOS da order yaratish. Stock avtomatik kamayadi.' })
   @ApiResponse({ status: 201, description: 'Order yaratildi — raosOrderId qaytaradi' })

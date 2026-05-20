@@ -42,6 +42,12 @@ export class AdminSqlConsoleService {
       throw new BadRequestException('CTE (WITH) ichida DML (INSERT/UPDATE/DELETE) taqiqlangan.');
     }
 
+    // EXPLAIN ANALYZE с DML реально выполняет запрос — всегда блокируем
+    if (isExplain && explainContainsDml) {
+      this.logger.error(`SQL CONSOLE BLOCKED [EXPLAIN-DML]: ${trimmed.slice(0, 200)}`, { adminId });
+      throw new BadRequestException('EXPLAIN ANALYZE с DML (INSERT/UPDATE/DELETE) тақиқланgan — реально выполняет запрос.');
+    }
+
     if (isDdl) {
       this.logger.error(`SQL CONSOLE BLOCKED [DDL]: ${trimmed.slice(0, 200)}`, { adminId });
       throw new BadRequestException('DDL операции (DROP, ALTER, TRUNCATE, CREATE) тақиқланган.');
