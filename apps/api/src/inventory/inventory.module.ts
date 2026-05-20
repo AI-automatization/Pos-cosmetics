@@ -25,6 +25,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
     WarehouseInvoiceService,
     WarehouseDashboardService,
   ],
-  exports: [InventoryService, TransferService, WarehouseInvoiceService, WarehouseDashboardService],
+  exports: [InventoryService, TransferService, WarehouseInvoiceService, WarehouseDashboardService, ExpiryTrackingService],
 })
 export class InventoryModule {}

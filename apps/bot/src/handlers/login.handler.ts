@@ -40,6 +40,8 @@ export function commandList(): string {
     '🔄 /shift — Aktiv smenalar\n' +
     '⚠️ /lowstock — Kam qolgan mahsulotlar\n' +
     '🗓 /expiring — Muddati yaqin mahsulotlar\n' +
+    '📅 /muddat — Muddati yaqin \\(o\'zbek\\)\n' +
+    '⛔ /muddati\\_otgan — Muddati o\'tgan\n' +
     '🔔 /settings — Sozlamalar\n' +
     '🚪 /logout — Chiqish'
   );
@@ -212,6 +214,8 @@ export function registerLoginHandlers(bot: Bot) {
       '`/shift` — barcha aktiv smenalar holati\n' +
       '`/lowstock` — min level dan past mahsulotlar\n' +
       '`/expiring` — 30 kun ichida muddati tugaydigan mahsulotlar\n' +
+      '`/muddat` — muddati yaqin mahsulotlar \\(o\'zbek\\)\n' +
+      '`/muddati\\_otgan` — muddati o\'tgan mahsulotlar\n' +
       '`/settings` — bildirishnoma sozlamalari\n\n' +
       '_Alertlar avtomatik keladi: kam qoldiq, muddati yaqin, katta qaytarish_',
       { parse_mode: 'MarkdownV2' },
