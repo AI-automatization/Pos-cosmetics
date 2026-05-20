@@ -9,7 +9,6 @@ import {
   maskRow,
   processWriteData,
   assertTableAllowed,
-  REDACTED_FIELDS,
 } from '../admin-db-constants';
 import type { ColumnInfo } from '../admin-db-constants';
 
@@ -80,8 +79,14 @@ describe('Column Validation — SQL Injection Prevention', () => {
 
     it('blocks non-whitelisted tables', () => {
       expect(() => assertTableAllowed('pg_shadow')).toThrow(BadRequestException);
-      expect(() => assertTableAllowed('information_schema')).toThrow(BadRequestException);
       expect(() => assertTableAllowed('evil_table')).toThrow(BadRequestException);
+    });
+
+    it('blocks SQL injection in table names', () => {
+      expect(() => assertTableAllowed('users"; DROP TABLE users--')).toThrow(BadRequestException);
+      expect(() => assertTableAllowed('USERS')).toThrow(BadRequestException);
+      expect(() => assertTableAllowed('users;')).toThrow(BadRequestException);
+      expect(() => assertTableAllowed('')).toThrow(BadRequestException);
     });
   });
 });

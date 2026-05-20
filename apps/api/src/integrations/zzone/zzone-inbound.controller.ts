@@ -10,8 +10,10 @@ import {
   Headers,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { timingSafeEqual } from 'node:crypto';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiHeader, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../../common/decorators';
@@ -19,8 +21,10 @@ import { ZzoneInboundService } from './zzone-inbound.service';
 
 @Controller('zzone')
 @Public()
+@Throttle({ default: { limit: 60, ttl: 60000 } })
 @ApiHeader({ name: 'X-Api-Key', required: true, description: 'API ключ для ZZone интеграции' })
 export class ZzoneInboundController {
+  private readonly logger = new Logger(ZzoneInboundController.name);
   private readonly apiKey: string;
 
   constructor(
@@ -29,8 +33,7 @@ export class ZzoneInboundController {
   ) {
     this.apiKey = this.config.get<string>('ZZONE_API_KEY', '');
     if (!this.apiKey) {
-      // Don't crash — just log warning. Endpoints will return 401.
-      console.warn('[ZZone] ZZONE_API_KEY not set — all ZZone endpoints will return 401');
+      this.logger.warn('ZZONE_API_KEY not set — all ZZone endpoints will return 401');
     }
   }
 

@@ -15,7 +15,7 @@
 ## T-459 | 2026-05-20 | [SECURITY] | Security audit — 44 test + EXPLAIN ANALYZE fix
 
 - **Yechim:**
-  - 24 test: `admin-sql-console.service.spec.ts` — DDL blocking, multi-statement, EXPLAIN ANALYZE DML bypass, CTE+DML, production restrictions, data masking
+  - 24 test: `admin-sql-console.service.spec.ts` — DDL blocking, multi-statement, EXPLAIN ANALYZE DML bypass (DELETE/UPDATE/INSERT), CTE+DML, production restrictions, data masking
   - 20 test: `admin-db-constants.spec.ts` — column name SQL injection, table whitelist, data masking, bcrypt hashing, BigInt/Date serialization
   - **BUG TOPILDI VA TUZILDI:** `EXPLAIN ANALYZE DELETE FROM orders` — isDestructiveDml faqat `startsWith('DELETE')` tekshirardi, `EXPLAIN` boshlanuvchi SQL o'tib ketardi. Hozir SQL ichida DELETE/UPDATE borligini tekshiradi.
 - **Fayllar:** `apps/api/src/admin/test/`, `apps/api/src/admin/admin-sql-console.service.ts`

@@ -64,7 +64,12 @@ export type DbStats = {
 
 // ─── Shared helper functions ──────────────────────────────────────────────────
 
+const TABLE_NAME_RE = /^[a-z_][a-z0-9_]*$/;
+
 export function assertTableAllowed(tableName: string): void {
+  if (!TABLE_NAME_RE.test(tableName)) {
+    throw new BadRequestException(`Недопустимое имя таблицы: "${tableName}"`);
+  }
   if (!TABLE_WHITELIST.has(tableName)) {
     throw new BadRequestException(`Таблица "${tableName}" не доступна`);
   }
