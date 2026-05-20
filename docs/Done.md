@@ -3,6 +3,17 @@
 
 ---
 
+## T-430 | 2026-05-20 | [BACKEND] | Expiry tracking — cron alert + bot + Web UI
+
+- **Yechim:**
+  - Cron (06:00): har tenant uchun 30 kun ichida tugaydigan mahsulotlarni tekshiradi → Telegram alert (top 5) + DB notification (EXPIRY_WARNING)
+  - Bot: `/muddat` (top 10 expiring), `/muddati_otgan` (expired in stock)
+  - Web UI `/inventory/expiry`: stats cards, color-coded table, days filter (7-90), CSV export, tabs (expiring/expired)
+  - API client + React Query hooks
+- **Fayllar:** `cron.service.ts`, `cron.module.ts`, `inventory.module.ts`, `expiry.handler.ts`, `expiry.service.ts`, `inventory/expiry/page.tsx`, `useExpiry.ts`, `inventory.api.ts`
+
+---
+
 ## T-417 | 2026-05-20 | [SECURITY] | Audit topilgan o'rta masalalar
 
 - **Yechim:**

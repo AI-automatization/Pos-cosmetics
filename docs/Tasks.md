@@ -644,19 +644,7 @@
 
 ---
 
-## T-430 | P2 | [BACKEND] | Expiry tracking — yaroqlilik muddati kuzatuvi + alert
-
-- **Sana:** 2026-05-17
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/inventory/expiry/`
-- **Vazifa:**
-  - `expires_at` field inventory/batch da (allaqachon bor — tekshirish)
-  - Cron job: har kuni → 30 kun qolgan mahsulotlar → alert (Telegram + Admin)
-  - Dashboard widget: "Muddati tugayotgan mahsulotlar" (top 10)
-  - Filtr: admin panel da "expiring soon" filter
-- **Kutilgan:** Kosmetika/dori/oziq-ovqat do'konlar muddati tugamay xabar oladi
-- **Muddat:** 3 kun
-- **Niche gap:** Hech bir raqib bu funksiyani alohida focus qilmaydi
+*(T-430 — BAJARILDI, Done.md 2026-05-20)*
 
 ---
 
