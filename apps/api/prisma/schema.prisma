@@ -43,8 +43,9 @@ model Tenant {
   suppliers      Supplier[]
   zReports       ZReport[]
   notifications  Notification[]
-  subscription   TenantSubscription?
-  sessions            Session[]
+  subscription    TenantSubscription?
+  billingPayments BillingPayment[]
+  sessions             Session[]
   apiKeys             ApiKey[]
   StockMovement       StockMovement[]
   stockTransfers      StockTransfer[]
@@ -1342,7 +1343,8 @@ model SubscriptionPlan {
   isActive     Boolean @default(true) @map("is_active")
   sortOrder    Int     @default(0) @map("sort_order")
 
-  subscriptions TenantSubscription[]
+  subscriptions   TenantSubscription[]
+  billingPayments BillingPayment[]
 
   @@map("subscription_plans")
 }
@@ -1367,6 +1369,47 @@ model TenantSubscription {
   @@index([status])
   @@index([expiresAt])
   @@map("tenant_subscriptions")
+}
+
+// ─── Billing Payments (Tezcode platform merchant — NOT tenant merchant) ──────
+
+enum BillingPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum BillingProvider {
+  PAYME
+  CLICK
+  UZUM
+}
+
+model BillingPayment {
+  id             String               @id @default(uuid())
+  tenantId       String               @map("tenant_id")
+  planId         String               @map("plan_id")
+  months         Int                  @default(1)
+  amount         Decimal              @db.Decimal(15, 2) // so'm
+  provider       BillingProvider
+  status         BillingPaymentStatus @default(PENDING)
+  providerTxId   String?              @map("provider_tx_id") // Payme/Click/Uzum transaction ID
+  checkoutUrl    String?              @map("checkout_url")
+  paidAt         DateTime?            @map("paid_at")
+  failedAt       DateTime?            @map("failed_at")
+  failReason     String?              @map("fail_reason")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id])
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([providerTxId])
+  @@map("billing_payments")
 }
 
 // ─── T-069: Session management ─────────────────────────────────
