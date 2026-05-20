@@ -21,6 +21,9 @@ import { useShiftStore } from '../../store/shiftStore';
 import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import { salesApi } from '../../api/sales.api';
 import { paymentsApi, type PaymentIntentResponse } from '../../api/payments.api';
+import { loyaltyApi } from '../../api/loyalty.api';
+import type { Customer } from '../../api/customers.api';
+import CustomerSearchSheet from './CustomerSearchSheet';
 import { type SavdoStackParamList } from '../../navigation/types';
 import ShiftGuard from '../../components/common/ShiftGuard';
 
@@ -44,6 +47,9 @@ export default function SavdoScreen() {
   const [orderLoading, setOrderLoading]       = useState(false);
   const [onlinePaymentVisible, setOnlinePaymentVisible] = useState(false);
   const [paymentIntent, setPaymentIntent] = useState<PaymentIntentResponse | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerSheetVisible, setCustomerSheetVisible] = useState(false);
+  const [redeemPoints, setRedeemPoints] = useState(0);
 
   // ─── API ─────────────────────────────────────────────
   const { data: rawProducts = [], isLoading: productsLoading } = useQuery({
@@ -112,6 +118,13 @@ export default function SavdoScreen() {
         i.product.id === product.id ? { ...i, qty: i.qty - 1 } : i,
       );
     });
+  };
+
+  // ─── Customer ────────────────────────────────────────
+  const handleSelectCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setCustomerSheetVisible(false);
+    setRedeemPoints(0);
   };
 
   // ─── Scanner ──────────────────────────────────────────
@@ -184,7 +197,7 @@ export default function SavdoScreen() {
     // Standard payment flow (NAQD / KARTA)
     setOrderLoading(true);
     try {
-      await salesApi.createOrder({
+      const order = await salesApi.createOrder({
         shiftId,
         items: cart.map((i) => ({
           productId: i.product.id,
@@ -193,8 +206,17 @@ export default function SavdoScreen() {
         })),
         notes: `To'lov: ${method}`,
       });
+      if (redeemPoints > 0 && selectedCustomer) {
+        try {
+          await loyaltyApi.redeem(selectedCustomer.id, redeemPoints, order.id);
+        } catch {
+          // Don't block sale if loyalty redeem fails
+        }
+      }
       setPaymentVisible(false);
       setCart([]);
+      setSelectedCustomer(null);
+      setRedeemPoints(0);
     } catch {
       Alert.alert('Xatolik', "Buyurtma saqlanmadi. Qayta urinib ko'ring.");
     } finally {
@@ -282,6 +304,16 @@ export default function SavdoScreen() {
           onClose={() => setPaymentVisible(false)}
           onRemoveItem={removeFromCart}
           onConfirm={handleConfirm}
+          customerId={selectedCustomer?.id ?? null}
+          redeemPoints={redeemPoints}
+          onRedeemPointsChange={setRedeemPoints}
+          onSelectCustomer={() => setCustomerSheetVisible(true)}
+        />
+
+        <CustomerSearchSheet
+          visible={customerSheetVisible}
+          onClose={() => setCustomerSheetVisible(false)}
+          onSelect={handleSelectCustomer}
         />
 
         <OnlinePaymentSheet

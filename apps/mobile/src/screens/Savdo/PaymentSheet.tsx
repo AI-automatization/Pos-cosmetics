@@ -16,6 +16,7 @@ import PaymentSummaryCard from './PaymentSummaryCard';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import PaymentInputBlock from './PaymentInputBlock';
 import PaymentSuccessView from './PaymentSuccessView';
+import LoyaltySection from './LoyaltySection';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 // ─── Backward-compat re-exports ────────────────────────
@@ -29,6 +30,10 @@ interface Props {
   readonly onClose: () => void;
   readonly onConfirm: (method: PaymentMethod, received: number) => void;
   readonly onRemoveItem?: (productId: string) => void;
+  readonly customerId?: string | null;
+  readonly redeemPoints?: number;
+  readonly onRedeemPointsChange?: (points: number) => void;
+  readonly onSelectCustomer?: () => void;
 }
 
 // ─── Component ─────────────────────────────────────────
@@ -39,6 +44,10 @@ export default function PaymentSheet({
   onClose,
   onConfirm,
   onRemoveItem,
+  customerId,
+  redeemPoints,
+  onRedeemPointsChange,
+  onSelectCustomer,
 }: Props) {
   useScreenProtection();
   const [method, setMethod]       = useState<PaymentMethod>('NAQD');
@@ -110,6 +119,24 @@ export default function PaymentSheet({
                   </TouchableOpacity>
                 </View>
 
+                {/* Customer badge or select button */}
+                {customerId ? (
+                  <View style={styles.customerBadge}>
+                    <Ionicons name="person-circle-outline" size={20} color="#6366F1" />
+                    <Text style={styles.customerName}>Mijoz tanlangan</Text>
+                    {onSelectCustomer && (
+                      <TouchableOpacity onPress={onSelectCustomer}>
+                        <Text style={styles.changeBtn}>O'zgartirish</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ) : onSelectCustomer ? (
+                  <TouchableOpacity style={styles.selectCustomerBtn} onPress={onSelectCustomer}>
+                    <Ionicons name="person-add-outline" size={18} color="#6366F1" />
+                    <Text style={styles.selectCustomerText}>Mijoz tanlash (bonus uchun)</Text>
+                  </TouchableOpacity>
+                ) : null}
+
                 {/* Order summary */}
                 <PaymentSummaryCard
                   cart={cart}
@@ -119,6 +146,16 @@ export default function PaymentSheet({
 
                 {/* Payment method picker */}
                 <PaymentMethodPicker method={method} onSelect={setMethod} />
+
+                {/* Loyalty section */}
+                {customerId && (
+                  <LoyaltySection
+                    customerId={customerId}
+                    orderTotal={total}
+                    redeemPoints={redeemPoints ?? 0}
+                    onRedeemPointsChange={onRedeemPointsChange ?? (() => {})}
+                  />
+                )}
 
                 {/* Split toggle + cash/card inputs (hidden for online methods) */}
                 {online ? (
@@ -248,5 +285,43 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontWeight: '500',
     flex: 1,
+  },
+  customerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#EEF2FF',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  customerName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4338CA',
+  },
+  changeBtn: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#6366F1',
+  },
+  selectCustomerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  selectCustomerText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6366F1',
   },
 });
