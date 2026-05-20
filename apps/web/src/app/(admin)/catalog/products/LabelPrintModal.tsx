@@ -34,17 +34,20 @@ function buildPrintHtml(
   const cfg = LABEL_SIZES.find((s) => s.value === size)!;
   const isSmall = size === '30x20';
 
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const labels = products.flatMap((p) => {
     const count = copies[p.id] ?? 1;
     const expiry = fmtExpiry(p.expiryDate);
     return Array.from({ length: count }, () => {
       return `<div class="label">
-        <div class="label-name">${p.name}</div>
-        ${!isSmall ? `<div class="label-sku">SKU: ${p.sku ?? '—'}</div>` : ''}
-        ${p.barcode ? `<div class="label-barcode">|||  ${p.barcode}  |||</div>` : ''}
+        <div class="label-name">${esc(p.name)}</div>
+        ${!isSmall ? `<div class="label-sku">SKU: ${esc(p.sku ?? '—')}</div>` : ''}
+        ${p.barcode ? `<div class="label-barcode">|||  ${esc(p.barcode)}  |||</div>` : ''}
         <div class="label-bottom">
           <div class="label-price">${formatPrice(Number(p.sellPrice))}</div>
-          ${expiry ? `<div class="label-expiry">Muddat: ${expiry}</div>` : ''}
+          ${expiry ? `<div class="label-expiry">Muddat: ${esc(expiry)}</div>` : ''}
         </div>
       </div>`;
     });

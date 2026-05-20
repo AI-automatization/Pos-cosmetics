@@ -8,6 +8,17 @@ import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { apiClient } from '@/api/client';
 import { useTranslation } from '@/i18n/i18n-context';
 
+const SENSITIVE_KEYS = /password|secret|token|key|hash|credential/i;
+function redactSensitive(data: unknown): unknown {
+  if (!data || typeof data !== 'object') return data;
+  const obj = data as Record<string, unknown>;
+  const safe: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    safe[k] = SENSITIVE_KEYS.test(k) ? '[REDACTED]' : v;
+  }
+  return safe;
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface AuditLogItem {
@@ -135,7 +146,7 @@ function AuditRow({ log, t }: { log: AuditLogItem; t: (key: string) => string })
                 <div>
                   <p className="mb-1 text-xs font-semibold text-red-600">{t('audit.previous')}</p>
                   <pre className="rounded-lg border border-red-100 bg-red-50 p-2 text-xs text-red-800 overflow-x-auto max-h-48">
-                    {JSON.stringify(log.oldData, null, 2)}
+                    {JSON.stringify(redactSensitive(log.oldData), null, 2)}
                   </pre>
                 </div>
               )}
@@ -143,7 +154,7 @@ function AuditRow({ log, t }: { log: AuditLogItem; t: (key: string) => string })
                 <div>
                   <p className="mb-1 text-xs font-semibold text-green-600">{t('common.new')}</p>
                   <pre className="rounded-lg border border-green-100 bg-green-50 p-2 text-xs text-green-800 overflow-x-auto max-h-48">
-                    {JSON.stringify(log.newData, null, 2)}
+                    {JSON.stringify(redactSensitive(log.newData), null, 2)}
                   </pre>
                 </div>
               )}

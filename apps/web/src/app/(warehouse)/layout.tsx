@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { WarehouseSidebar } from '@/components/layout/WarehouseSidebar';
 import { WarehouseHeader } from '@/components/layout/WarehouseHeader';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 export default function WarehouseLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -14,7 +15,9 @@ export default function WarehouseLayout({ children }: { children: React.ReactNod
       <WarehouseSidebar mobileOpen={mobileOpen} onMobileClose={close} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <WarehouseHeader onMenuToggle={toggle} />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </div>
     </div>
   );

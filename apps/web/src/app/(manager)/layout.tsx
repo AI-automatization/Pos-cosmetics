@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Menu } from 'lucide-react';
 import { ManagerSidebar } from '@/components/layout/ManagerSidebar';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 export default function ManagerLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -29,7 +30,9 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
           </div>
           <h1 className="text-sm font-semibold text-gray-900">RAOS Manager</h1>
         </header>
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </div>
     </div>
   );

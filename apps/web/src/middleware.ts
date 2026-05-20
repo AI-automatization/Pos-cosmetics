@@ -43,7 +43,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-based routing
+  // Role-based routing (UX convenience only — NOT a security boundary).
+  // user_role cookie is client-writable. Real auth enforced by API JWT guards.
+  // TODO #141: harden with signed cookie or server-side JWT verification.
   const userRole = request.cookies.get('user_role')?.value;
   const isWarehousePath = pathname.startsWith('/warehouse');
   const isPosPath = pathname.startsWith('/pos');
