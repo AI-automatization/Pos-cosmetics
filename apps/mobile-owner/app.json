@@ -2,6 +2,8 @@
   "expo": {
     "name": "RAOS Owner",
     "slug": "raos-owner",
+    "entryPoint": "./index.ts",
+    "scheme": "raos-owner",
     "version": "1.0.0",
     "updates": {
       "enabled": false
@@ -15,7 +17,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#6366F1"
     },
     "plugins": [
       "expo-secure-store",
@@ -24,14 +26,25 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#ffffff"
+          "color": "#6366F1"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "networkInspector": false
+          },
+          "android": {
+            "minSdkVersion": 24
+          }
         }
       ]
     ],
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#6366F1"
       },
       "permissions": [
         "android.permission.USE_BIOMETRIC",
@@ -43,6 +56,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ibrat.raosowner"
     },
+    "extra": {
+      "eas": {
+        "projectId": "TO_BE_SET_AFTER_EAS_INIT"
+      }
+    },
+    "owner": "mirzaevv077",
     "newArchEnabled": false
   }
 }
