@@ -1,5 +1,92 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-15
+# Yangilangan: 2026-05-20
+
+---
+
+## T-458 | 2026-05-20 | [IKKALASI] | Demo tenant yaratish
+
+- **Yechim:** seed.ts kengaytirildi — 50 mahsulot (5 kategoriya), 20 mijoz, loyalty config + ballar
+- **Fayllar:** `apps/api/prisma/seed.ts`
+- **Demo login:** `demo@raos.uz` (OWNER role)
+- **Tarkib:** 4 filial, ~100 buyurtma, 6 nasiya, 8 bildirishnoma, loyalty 50-500 ball
+
+---
+
+## T-459 | 2026-05-20 | [SECURITY] | Security audit — 44 test + EXPLAIN ANALYZE fix
+
+- **Yechim:**
+  - 24 test: `admin-sql-console.service.spec.ts` — DDL blocking, multi-statement, EXPLAIN ANALYZE DML bypass, CTE+DML, production restrictions, data masking
+  - 20 test: `admin-db-constants.spec.ts` — column name SQL injection, table whitelist, data masking, bcrypt hashing, BigInt/Date serialization
+  - **BUG TOPILDI VA TUZILDI:** `EXPLAIN ANALYZE DELETE FROM orders` — isDestructiveDml faqat `startsWith('DELETE')` tekshirardi, `EXPLAIN` boshlanuvchi SQL o'tib ketardi. Hozir SQL ichida DELETE/UPDATE borligini tekshiradi.
+- **Fayllar:** `apps/api/src/admin/test/`, `apps/api/src/admin/admin-sql-console.service.ts`
+
+---
+
+## T-460 | 2026-05-20 | [FRONTEND] | Loyalty Web UI — 4 sahifa + 3 backend endpoint
+
+- **Yechim:**
+  - Backend: `GET /loyalty/stats`, `GET /loyalty/accounts`, `GET /loyalty/transactions`
+  - Frontend: `/loyalty` (dashboard), `/loyalty/settings`, `/loyalty/customers` (adjust modal), `/loyalty/history` (CSV export)
+  - 8 React Query hook, API client 6 yangi metod
+- **Fayllar:** `apps/api/src/loyalty/`, `apps/web/src/app/(admin)/loyalty/`, `apps/web/src/hooks/loyalty/`, `apps/web/src/api/loyalty.api.ts`
+
+---
+
+## T-461 | 2026-05-20 | [IKKALASI] | Loyalty POS integratsiya — chek + toast
+
+- **Yechim:**
+  - ReceiptTemplate: loyalty earned + balance sektsiya
+  - useCompleteSale: sotuv keyin toast ("Aziza: +15 ball yig'ildi")
+  - Order type: customer, loyaltyEarned, loyaltyBalance optional maydonlar
+  - (BonusSection, ball ishlatish, split payment — oldin tayyor edi)
+- **Fayllar:** `ReceiptTemplate.tsx`, `useCompleteSale.ts`, `types/sales.ts`
+
+---
+
+## T-462 | 2026-05-20 | [BACKEND] | SMS gateway research — 5 provider solishtirish
+
+- **Yechim:** 5 provider (PlayMobile, GetSMS, DevSMS, Eskiz, OperSMS) tahlil qilindi
+  - Eskiz: 50 so'm/SMS (eng arzon, CLAUDE.md da taqiqlangan)
+  - GetSMS: 84 so'm/SMS
+  - PlayMobile: ~80-120 so'm/SMS (eng ishonchli)
+  - **Tavsiya:** PlayMobile (primary) — AbdulazizYormatov tasdiqi kutilmoqda
+- **Fayllar:** `docs/sms-gateway-research.md`
+
+---
+
+## T-465 | 2026-05-20 | [BACKEND] | Product Import — template + Web UI
+
+- **Yechim:**
+  - Backend: `GET /catalog/products/import/template` — XLSX shablon (styled headers + 2 namuna)
+  - Frontend: `/catalog/import` — drag-and-drop, progress, natija, export (XLSX/CSV)
+  - API client: `import.api.ts` — upload, template, export (blob auth)
+- **Fayllar:** `apps/api/src/catalog/import-export/`, `apps/web/src/app/(admin)/catalog/import/`, `apps/web/src/api/import.api.ts`
+
+---
+
+## T-466 | 2026-05-20 | [BACKEND] | Loyalty Telegram Bot — /ballar, /ball_tarix, /loyalty
+
+- **Yechim:**
+  - `/ballar <telefon>` — mijoz ballari + so'm qiymati
+  - `/ball_tarix <telefon>` — oxirgi 10 tranzaksiya jadvali
+  - `/loyalty` — admin statistika (faol mijozlar, bugun berildi/ishlatildi)
+  - `ballarim <telefon>` — matnli trigger (slash kerak emas)
+  - Telefon normalizatsiya: 901234567, +998901234567, 998901234567
+- **Fayllar:** `apps/bot/src/handlers/loyalty.handler.ts`, `apps/bot/src/services/loyalty.service.ts`, `apps/bot/src/handlers/commands.ts`
+
+---
+
+## T-467 | 2026-05-20 | [IKKALASI] | Promo kod moduli — full stack CRUD + validate
+
+- **Yechim:**
+  - Prisma: `PromoCode` model + `PromoType` enum (PERCENT/FIXED) + migration
+  - Backend: 7 endpoint (`/promotions/codes` — list, get, create, update, delete, validate, apply)
+  - Auto-gen: `RAOS-XXXX` agar kod berilmasa
+  - Validate: active/expired/depleted/minPurchase tekshiruvlari
+  - Frontend: `/promotions/codes` — jadval + CreatePromoCodeModal
+  - POS: `PromoCodeInput` komponenti
+  - 10 unit test (promo-code.service.spec.ts)
+- **Fayllar:** `schema.prisma`, `apps/api/src/sales/promotions/promo-code.*`, `apps/web/src/app/(admin)/promotions/codes/`, `apps/web/src/app/(pos)/pos/PromoCodeInput.tsx`
 
 ---
 

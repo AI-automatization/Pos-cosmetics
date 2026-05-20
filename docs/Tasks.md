@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-19 (T-458..T-468 — 7/11 DONE: Loyalty+Import+Promo+Demo+SMS Research)
+# Yangilangan: 2026-05-20 (T-458..T-468 — 8/11 DONE → Done.md ga ko'chirildi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -13,10 +13,10 @@
 | **Abdulaziz** | Mobile (Android + iOS) | `apps/mobile/`, `apps/mobile-owner/` |
 | **Bekzod** | PM (Project Manager) | Rejalashtirish, test, arxitektura |
 | **Ziyoda** | Landing Dev (VAQTINCHALIK) | `apps/landing/` |
-| **Hobbit** | Analitik & Kontent | `docs/competitive-analysis/`, `docs/content/` |
+| **Shuhratov** | Analitik, Kontent & Marketing | `docs/competitive-analysis/`, `docs/content/`, `docs/marketing/`, `docs/outreach/` |
 
 > Polat loyihadan chiqdi (2026-03-23). Barcha uning vazifalari Ibrat ga o'tkazildi.
-> Ziyoda va Hobbit 2026-05-19 dan qo'shildi.
+> Ziyoda va Shuhratov 2026-05-19 dan qo'shildi.
 
 ---
 
@@ -76,48 +76,7 @@
 
 ---
 
-## T-458 | P0 | [IKKALASI] | Demo tenant yaratish — sales jamoa uchun tayyor demo
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `prisma/seed-demo.ts` (yaratish kerak)
-- **Vazifa:**
-  - Demo tenant: "RAOS Demo Do'kon" (3 filial: Toshkent, Samarqand, Namangan)
-  - 50-100 ta namuna mahsulot (Kosmetika 15, Kiyim 15, Oziq-ovqat 10, Elektronika 10)
-  - 20 ta namuna mijoz (loyalty balli bor)
-  - 30 ta namuna sotuv (oxirgi 7 kun)
-  - Kassir: "Demo Kassir", Login: `demo@raos.uz` / `demo2026`
-  - Loyalty config: yoqilgan, 1000 so'm = 1 ball
-  - Demo cheklovlar: MAX 100 mahsulot, MAX 1000 sotuv, 30 kun muddat
-  - "Demo rejim" banner yuqorida
-  - `pnpm seed:demo` buyruq package.json ga
-- **Kutilgan:** demo@raos.uz bilan kirsa tayyor do'kon ko'rinadi
-- **Muddat:** 2 kun
-- **Hafta:** W21 (1-hafta)
-- **Trek:** D (Demo + Security)
-
----
-
-## T-459 | P0 | [SECURITY] | Security audit — qolgan ochiq masalalar yopish
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Holat:** ASOSAN BAJARILDI (2026-05-19 sessiyada 23 GitHub issue yopildi)
-- **Bajarilgan:**
-  - ✅ SQL injection column names (updateRow/bulkUpdate) — schema validation + regex
-  - ✅ EXPLAIN ANALYZE DML bypass — DML keyword detection
-  - ✅ Hardcoded ZZone API key + encryption key — throw if missing
-  - ✅ SQL console CTE-DML bypass — WITH+DML blocked
-  - ✅ Swagger production — disabled via isProduction
-  - ✅ TOCTOU promotions — compound where {id, tenantId}
-  - ✅ Cross-tenant warehouse-invoice — tenantId added
-  - ✅ Transfer approve — tenantId in update where
-  - ✅ Biometric rate limit — @Throttle(5/min)
-  - ✅ Admin JWT 24h → 1h
-  - ✅ MinIO default creds — getOrThrow
-- **Qolgan:** Har fix uchun test yozish (qisman bor — promotions, transfer testlari)
-- **Muddat:** 1 kun (testlar)
-- **Hafta:** W21
+*(T-458, T-459 — BAJARILDI, Done.md 2026-05-20)*
 
 ---
 
@@ -175,7 +134,7 @@
 ## T-427 | P1 | [LANDING] | Landing page — RAOS.uz (MASTER TASK)
 
 - **Sana:** 2026-05-17 (yangilangan 2026-05-19)
-- **Mas'ul:** Ziyoda (kod) + Hobbit (kontent/matn)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (kontent/matn)
 - **Fayl:** `apps/landing/` (Next.js 15 + Tailwind v4, port 3002)
 - **Holat:** Struktura tayyor. Komponentlar yozilishi kerak.
 - **Sub-tasklar:** T-438..T-457 (quyida batafsil)
@@ -203,20 +162,7 @@
 
 ---
 
-## T-429 | P1 | [BACKEND] | Telegram Loyalty Bot — ballar, kuponlar, auto-javob
-
-- **Sana:** 2026-05-17
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/bot/src/loyalty/` (yaratish kerak)
-- **Vazifa:**
-  - Mijoz "salom" yozsa → oxirgi xarid + ball balansi + kupon
-  - Ball tizimi: 1 ball = 1000 UZS xarid
-  - Kupon generatsiya: "10% chegirma keyingi xaridda"
-  - Tug'ilgan kun bonus (agar ma'lum bo'lsa)
-  - Per-tenant: har do'kon o'z boti (yoki bitta bot, tenant ajratish)
-- **Kutilgan:** Mijoz Telegram orqali sodiqlik dasturida qatnashadi
-- **Muddat:** 1 hafta
-- **Bog'liq:** T-116 (Customer loyalty — points + tiers)
+*(T-429 — BAJARILDI T-466 sifatida, Done.md 2026-05-20)*
 
 ---
 
@@ -280,7 +226,7 @@
 ## T-440 | P1 | [LANDING] | Hero section — bosh ekran, CTA, skrinshot
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (matn)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (matn)
 - **Fayl:** `apps/landing/src/components/sections/HeroSection.tsx`
 - **Matn manba:** `docs/LANDING_PAGE_PLAN.md` → 2.2 HERO
 - **Vazifa:**
@@ -299,7 +245,7 @@
 ## T-441 | P1 | [LANDING] | Pain Points — 3 muammo kartasi
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (matn)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (matn)
 - **Fayl:** `apps/landing/src/components/sections/PainPoints.tsx`
 - **Matn manba:** `docs/LANDING_PAGE_PLAN.md` → 2.3 PROBLEMS
 - **Vazifa:**
@@ -338,7 +284,7 @@
 ## T-443 | P1 | [LANDING] | Features — 6 ta asosiy imkoniyat
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (matn)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (matn)
 - **Fayl:** `apps/landing/src/components/sections/Features.tsx`
 - **Matn manba:** `docs/LANDING_PAGE_PLAN.md` → 2.5
 - **Vazifa:**
@@ -360,7 +306,7 @@
 ## T-444 | P1 | [LANDING] | Comparison Table — RAOS vs BILLZ vs YesPOS vs Smart
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (ma'lumot tekshiruvi)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (ma'lumot tekshiruvi)
 - **Fayl:** `apps/landing/src/components/sections/Comparison.tsx`
 - **Matn manba:** `docs/LANDING_PAGE_PLAN.md` → 2.6
 - **Vazifa:**
@@ -379,7 +325,7 @@
 ## T-445 | P1 | [LANDING] | Pricing — 3 tarif (Free / Pro / Scale)
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (narx strategiya)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (narx strategiya)
 - **Fayl:** `apps/landing/src/components/sections/Pricing.tsx`
 - **Matn manba:** `docs/LANDING_PAGE_PLAN.md` → 2.7
 - **Vazifa:**
@@ -400,7 +346,7 @@
 ## T-446 | P1 | [LANDING] | FAQ — 10 savol, accordion
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (savollar matni)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (savollar matni)
 - **Fayl:** `apps/landing/src/components/sections/FAQ.tsx`
 - **Matn manba:** `docs/LANDING_PAGE_PLAN.md` → 2.9
 - **Vazifa:**
@@ -456,7 +402,7 @@
 ## T-449 | P1 | [LANDING] | Testimonials / Social proof
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (sharhlar matni)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (sharhlar matni)
 - **Fayl:** `apps/landing/src/components/sections/Testimonials.tsx`
 - **Vazifa:**
   - Raqamlar bloki: "30+ do'kon", "10,000+ tranzaksiya/kun", "99.9% uptime"
@@ -490,7 +436,7 @@
 ## T-451 | P2 | [LANDING] | i18n — UZ/RU/EN tillar o'tkazgich
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (RU/EN tarjima)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (RU/EN tarjima)
 - **Fayl:** `apps/landing/src/lib/i18n.ts`, `apps/landing/src/components/LanguageSwitcher.tsx`
 - **Vazifa:**
   - Barcha matnlar `lib/constants.ts` ga chiqarilgan
@@ -615,7 +561,7 @@
 ## T-457 | P3 | [LANDING] | Privacy Policy + Terms sahifalari
 
 - **Sana:** 2026-05-19
-- **Mas'ul:** Ziyoda (kod) + Hobbit (matn)
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (matn)
 - **Fayl:** `apps/landing/src/app/privacy/page.tsx`, `apps/landing/src/app/terms/page.tsx`
 - **Vazifa:**
   - Maxfiylik siyosati sahifasi (O'RQ-547 ga mos)
@@ -627,60 +573,7 @@
 
 ---
 
-## T-460 | P1 | [FRONTEND] | Loyalty Web UI — dashboard, config, mijoz ballari, tarix
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/loyalty/` (yaratish kerak)
-- **Holat:** Backend TAYYOR (`apps/api/src/loyalty/` — 224 qator, config + earn/redeem/adjust)
-- **Vazifa:**
-  - `/loyalty` — Dashboard: faol mijozlar, bugungi berilgan/ishlatilgan ballar, o'rtacha ball
-  - `/loyalty/settings` — Config: yoqish/o'chirish, ball ratio, min redeem, amal muddati
-  - `/loyalty/customers` — Jadval: ism, telefon, ballar, oxirgi tranzaksiya + ball qo'shish/yechish modal
-  - `/loyalty/history` — Tarix: sana, mijoz, turi (EARN/REDEEM/ADJUST/EXPIRE), miqdor + CSV export
-  - React Query hooks: `hooks/loyalty/`
-  - i18n: uz/ru/en
-- **Kutilgan:** Admin panelda loyalty sozlash + mijoz ballarini ko'rish
-- **Muddat:** 3-4 kun
-- **Hafta:** W22 (2-hafta)
-- **Trek:** A (Loyalty)
-- **Branch:** `ibrat/feat-loyalty-web-ui`
-
----
-
-## T-461 | P1 | [IKKALASI] | Loyalty kassa integratsiya — POS da ball ko'rsatish va ishlatish
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(pos)/pos/`, `apps/web/src/hooks/pos/`
-- **Vazifa:**
-  - Mijoz tanlanganda → joriy ball ko'rinsin: "Aziza | 450 ball (45,000 so'm)"
-  - To'lov vaqtida "Ballardan foydalanish" toggle + ball miqdor input
-  - Chegirma summasi: "- 30,000 so'm (300 ball)"
-  - Sotuv tugaganda chekda: "Yig'ilgan: +15 | Jami: 165"
-  - `ReceiptTemplate.tsx` ga loyalty ma'lumot qo'shish
-- **Kutilgan:** Kassada ball ko'rinadi, ishlatiladi, chekda chiqadi
-- **Muddat:** 2-3 kun
-- **Hafta:** W23 (3-hafta)
-- **Trek:** A (Loyalty)
-- **Bog'liq:** T-460 (loyalty config bo'lishi kerak)
-
----
-
-## T-462 | P1 | [BACKEND] | SMS gateway research — PlayMobile vs SMS.uz vs GetSMS
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `docs/sms-gateway-research.md` (yaratish kerak)
-- **Vazifa:**
-  - 3 ta O'zbek SMS provider solishtirish
-  - Har biri: narx/SMS, API (REST/SDK), sandbox, min depozit, alphanumeric sender
-  - Jadval + tavsiya: qaysi provider va nega
-  - AbdulazizYormatov tasdiqlashi kerak
-- **Kutilgan:** SMS provider tanlangan, hujjatlangan
-- **Muddat:** 2 kun
-- **Hafta:** W22
-- **Trek:** B (SMS Campaign)
+*(T-460, T-461, T-462, T-465 — BAJARILDI, Done.md 2026-05-20)*
 
 ---
 
@@ -727,27 +620,7 @@
 
 ---
 
-## T-465 | P1 | [BACKEND] | Product Import — Excel/CSV dan mahsulot yuklash
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/import-export/`
-- **Holat:** Export allaqachon bor. Import kerak.
-- **Vazifa:**
-  - `POST /catalog/import` (multipart form, .xlsx/.csv)
-  - Validation: nom (majburiy), barcode, narx, kategoriya, birlik
-  - Duplicate tekshirish (barcode)
-  - Progress tracking: { total, processed, errors }
-  - Error report: qaysi qator, sababi
-  - `GET /catalog/import/template` → RAOS-import-template.xlsx
-  - BullMQ job 1000+ mahsulot uchun
-  - Web UI: `/catalog/import` — drag & drop, progress bar, natija + xatolar
-  - Onboarding wizard: "Mahsulotlar import" qadam
-- **Kutilgan:** Tenant Excel dan mahsulot yuklay oladi
-- **Muddat:** 3-4 kun
-- **Hafta:** W22
-- **Trek:** C (Promo + Import)
-- **Branch:** `ibrat/feat-product-import`
+*(T-465 — BAJARILDI, Done.md 2026-05-20)*
 
 ---
 
@@ -795,20 +668,7 @@
 
 ---
 
-## T-431 | P2 | [BACKEND] | Promo codes — CRUD + sotuv paytida qo'llash
-
-- **Sana:** 2026-05-17
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/sales/promo/`
-- **Vazifa:**
-  - `PromoCode` model: code, discount_type (percent/fixed), limit, valid_from/to, tenant_id
-  - CRUD endpoints
-  - POS/Web: sotuv paytida promo code kiritish → chegirma avtomatik
-  - Usage tracking: necha marta ishlatilgan, kim ishlatgan
-  - Limitlar: 1 marta per-customer, max uses, date range
-- **Kutilgan:** Black Friday, mavsumiy aksiyalar uchun promo kodlar
-- **Muddat:** 1 hafta
-- **Raqib:** BILLZ da bor, YesPOS da yo'q
+*(T-431 — BAJARILDI T-467 sifatida, Done.md 2026-05-20)*
 
 ---
 
@@ -880,39 +740,7 @@
 ## Mas'ul: Abdulaziz (tekshirish) + Ibrat (backend)
 ## ════════════════════════════════════════════════════════════════
 
-## T-466 | P2 | [BACKEND] | Loyalty Telegram Bot — /ballar, tarix, sotuv notification
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/bot/src/loyalty/` (yaratish kerak)
-- **Vazifa:**
-  - `/ballar` yoki "ballarim" → joriy ball + so'm qiymati
-  - `/tarix` yoki "ball tarixi" → oxirgi 10 ta tranzaksiya
-  - Sotuv notification: "Xaridingiz uchun rahmat! +15 ball. Jami: 165 (16,500 so'm)"
-- **Kutilgan:** Mijoz Telegram orqali ballarini ko'ra oladi
-- **Muddat:** 2 kun
-- **Hafta:** W24
-- **Trek:** A (Loyalty)
-- **Bog'liq:** T-460, T-461
-
----
-
-## T-467 | P2 | [IKKALASI] | Promo kod moduli — yaratish, tekshirish, kassada qo'llash
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/sales/promotions/`, `apps/web/`
-- **Holat:** Promotions module bor, promo KOD kengaytma kerak
-- **Vazifa:**
-  - Backend: promo kod yaratish (RAOS-XXXX), validate, apply
-  - Prisma: `promo_codes` table (code, type, value, usageLimit, usageCount, minPurchase, validFrom/To)
-  - Web UI: `/promotions/codes` — ro'yxat, yaratish modal, QR kod generatsiya
-  - Kassa: to'lov ekranida "Promo kod" input → validate → chegirma
-- **Kutilgan:** Tenant promo kod yaratadi, kassada ishlatiladi
-- **Muddat:** 1 hafta
-- **Hafta:** W24-25
-- **Trek:** C (Promo + Import)
-- **Branch:** `ibrat/feat-promo-codes`
+*(T-466, T-467 — BAJARILDI, Done.md 2026-05-20)*
 
 ---
 
@@ -940,10 +768,7 @@
 # OCHIQ VAZIFALAR — P3 (KELAJAK, 6+ oy)
 # ══════════════════════════════════════════════════════════════
 
-## T-116 | P3 | [BACKEND] | Customer loyalty — Points + tiers
-- **Sana:** 2026-02-26
-- **Vazifa:** Earn points (1 point/1000 UZS). Tiers: Bronze/Silver/Gold. Birthday bonus. Redeem as payment.
-- **Bog'liq:** T-429 (Telegram Loyalty Bot) — birinchi loyalty MVP
+*(T-116 — BAJARILDI T-460/461/466 sifatida. Tiers: keyingi fase)*
 
 ## T-119 | P3 | [BACKEND] | Marketplace sync — Uzum/Sello
 - **Sana:** 2026-02-26
