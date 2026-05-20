@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-19 (T-458..T-468 — Sprint plan: Loyalty, SMS, Import, Demo)
+# Yangilangan: 2026-05-19 (T-458..T-468 — 7/11 DONE: Loyalty+Import+Promo+Demo+SMS Research)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---

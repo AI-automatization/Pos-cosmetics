@@ -44,7 +44,7 @@ function UsageBar({ label, used, max }: { label: string; used: number; max: numb
         <div
           className={cn(
             'h-2.5 rounded-full transition-all',
-            isHigh ? 'bg-red-500' : pct > 50 ? 'bg-amber-400' : 'bg-blue-500',
+            isHigh ? 'bg-red-500' : pct > 50 ? 'bg-blue-400' : 'bg-blue-500',
           )}
           style={{ width: `${pct}%` }}
         />
@@ -104,7 +104,7 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
     FREE: 'bg-gray-100 text-gray-600',
     BASIC: 'bg-blue-100 text-blue-700',
     PRO: 'bg-blue-100 text-blue-700',
-    ENTERPRISE: 'bg-amber-100 text-amber-700',
+    ENTERPRISE: 'bg-blue-100 text-blue-700',
   };
 
   const inputCls =

@@ -114,7 +114,7 @@ export default function FounderDatabasePage() {
         { label: 'Размер БД', value: `${stats.dbSizeMb} MB`, icon: HardDrive, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Соединения', value: `${stats.activeConnections}/${stats.maxConnections}`, icon: Plug, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Таблицы', value: String(stats.tablesCount), icon: Table2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Uptime', value: stats.uptime, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'Uptime', value: stats.uptime, icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
       ]
     : [];
 

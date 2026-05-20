@@ -101,8 +101,8 @@ export class AdminSqlConsoleService {
   }
 
   private isDestructiveDml(upperSql: string): boolean {
-    if (upperSql.startsWith('DELETE') && !upperSql.includes('WHERE')) return true;
-    if (upperSql.startsWith('UPDATE') && !upperSql.includes('WHERE')) return true;
+    if (/\bDELETE\b/.test(upperSql) && !upperSql.includes('WHERE')) return true;
+    if (/\bUPDATE\b/.test(upperSql) && !upperSql.includes('WHERE')) return true;
     return false;
   }
 
