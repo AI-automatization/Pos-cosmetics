@@ -630,15 +630,7 @@
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
 
-## T-417 | P2 | [SECURITY] | Audit topilgan o'rta masalalar
-
-- **Sana:** 2026-05-12
-- **Mas'ul:** Ibrat
-- **Vazifa:**
-  - MinIO default creds (`minioadmin`) fallback olib tashlash → `getOrThrow` (`upload.service.ts:38-39`)
-  - Seed password `ChangeMeNow!` fallback → hard fail (`prisma/seed.ts:32`)
-  - Payment webhook endpoints ga qo'shimcha rate-limit (`payments.controller.ts`)
-- **Kutilgan:** O'rta xavfli muammolar yopiladi
+*(T-417 — BAJARILDI, Done.md 2026-05-20)*
 
 ---
 

@@ -3,6 +3,22 @@
 
 ---
 
+## T-417 | 2026-05-20 | [SECURITY] | Audit topilgan o'rta masalalar
+
+- **Yechim:**
+  - MinIO default creds — upload disabled mode agar kalit yo'q (oldin qilingan)
+  - Seed password — `throw Error` agar `SEED_PASSWORD` yo'q (oldin qilingan)
+  - Payment webhooks — `@Throttle(30/min)` to'rtala endpointda (oldin qilingan)
+  - **Yangi fixlar (2026-05-20 audit):**
+  - ZZone controller: `@Throttle(60/min)` + `console.warn` → NestJS Logger
+  - `POST /auth/refresh`: `@Throttle(10/min)` — brute-force himoya
+  - `POST /auth/register`: `@Throttle(5/min)` — spam himoya
+  - `POST /notifications/telegram/verify`: `@Throttle(10/min)`
+  - `assertTableAllowed`: regex `/^[a-z_][a-z0-9_]*$/` — SQL injection defense-in-depth
+- **Fayllar:** `zzone-inbound.controller.ts`, `auth.controller.ts`, `notifications.controller.ts`, `admin-db-constants.ts`
+
+---
+
 ## T-458 | 2026-05-20 | [IKKALASI] | Demo tenant yaratish
 
 - **Yechim:** seed.ts kengaytirildi — 50 mahsulot (5 kategoriya), 20 mijoz, loyalty config + ballar
