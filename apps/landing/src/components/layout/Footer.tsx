@@ -49,7 +49,7 @@ export default function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
+                  <a href="/tutorials" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
                     {f.tutorials}
                   </a>
                 </li>
@@ -62,12 +62,12 @@ export default function Footer() {
               <p className="text-white font-semibold text-sm mb-3 mt-5">{f.legal}</p>
               <ul className="flex flex-col gap-2">
                 <li>
-                  <a href="#" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
+                  <a href="/privacy" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
                     {f.privacy}
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
+                  <a href="/terms" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
                     {f.terms}
                   </a>
                 </li>

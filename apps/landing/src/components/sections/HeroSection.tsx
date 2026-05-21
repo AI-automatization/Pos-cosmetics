@@ -69,7 +69,7 @@ export default function HeroSection() {
           {/* O'ng: POS Mockup */}
           <div className="relative flex justify-center lg:justify-end">
             {/* Floating AI badge */}
-            <div className="absolute -top-4 -left-4 z-10 bg-[#24D4F4]/10 border border-[#24D4F4]/40 text-[#24D4F4] text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-sm">
+            <div className="hidden sm:flex absolute -top-4 -left-4 z-10 items-center bg-[#24D4F4]/10 border border-[#24D4F4]/40 text-[#24D4F4] text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-sm">
               {h.mockupAI}
             </div>
 

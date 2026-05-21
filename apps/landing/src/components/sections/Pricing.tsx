@@ -83,7 +83,7 @@ function PricingCard({
       className={clsx(
         'rounded-2xl p-7 flex flex-col gap-5 transition-all duration-300 cursor-pointer',
         plan.highlighted
-          ? 'bg-[#112F4B] scale-105 hover:scale-100'
+          ? 'bg-[#112F4B]'
           : 'glass hover:scale-[0.97] hover:border-[#24D4F4] hover:shadow-[0_0_30px_rgba(36,212,244,0.2)]',
       )}
     >
@@ -135,7 +135,7 @@ function PricingCard({
 
   if (plan.highlighted) {
     return (
-      <div className="animated-border scale-105 hover:scale-100 transition-transform duration-300">
+      <div className="animated-border md:scale-105 transition-transform duration-300">
         <div className="animated-border-inner">{cardContent}</div>
       </div>
     )
