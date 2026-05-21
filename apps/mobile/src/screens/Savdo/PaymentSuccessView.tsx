@@ -6,6 +6,7 @@ import { type PaymentMethod, fmt, METHODS } from './PaymentSheetTypes';
 import { useSunmiPrinter } from '../../hooks/useSunmiPrinter';
 import { type ReceiptData } from '../../services/PrinterService';
 import { receiptPdfService } from '../../services/ReceiptPdfService';
+import { smsReceiptService } from '../../services/SmsReceiptService';
 import { useAuthStore } from '../../store/auth.store';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -20,6 +21,7 @@ interface PaymentSuccessViewProps {
   readonly orderNumber?: number | string;
   readonly cart?: ReadonlyArray<{ product: { name: string; sellPrice: number }; qty: number }>;
   readonly receivedAmount?: number;
+  readonly customerPhone?: string | null;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -39,9 +41,11 @@ export default function PaymentSuccessView({
   orderNumber,
   cart,
   receivedAmount,
+  customerPhone,
 }: PaymentSuccessViewProps) {
   const [seconds, setSeconds] = React.useState(AUTO_DISMISS_SECONDS);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isSendingSms, setIsSendingSms] = useState(false);
   const { isAvailable, isPrinting, error: printError, printReceipt } = useSunmiPrinter();
   const { user } = useAuthStore();
 
@@ -102,6 +106,21 @@ export default function PaymentSuccessView({
       setIsGeneratingPdf(false);
     }
   }, [buildReceiptData]);
+
+  const handleSendSms = useCallback(async () => {
+    const data = buildReceiptData();
+    if (!data) return;
+    setIsSendingSms(true);
+    try {
+      if (customerPhone) {
+        await smsReceiptService.sendReceipt(data, customerPhone);
+      } else {
+        await smsReceiptService.sendReceiptNoNumber(data);
+      }
+    } finally {
+      setIsSendingSms(false);
+    }
+  }, [buildReceiptData, customerPhone]);
 
   return (
     <View style={styles.container}>
@@ -170,10 +189,27 @@ export default function PaymentSuccessView({
                 color="#FFFFFF"
               />
               <Text style={styles.printBtnText}>
-                {isGeneratingPdf ? 'PDF...' : 'PDF yuborish'}
+                {isGeneratingPdf ? 'PDF...' : 'PDF'}
               </Text>
             </TouchableOpacity>
           ) : null}
+
+          {/* SMS button — always available */}
+          <TouchableOpacity
+            style={[styles.smsBtn, isSendingSms && styles.printBtnDisabled]}
+            onPress={handleSendSms}
+            disabled={isSendingSms}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={isSendingSms ? 'hourglass-outline' : 'chatbubble-outline'}
+              size={18}
+              color="#FFFFFF"
+            />
+            <Text style={styles.printBtnText}>
+              {isSendingSms ? 'SMS...' : 'SMS'}
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : null}
       {printError ? (
@@ -270,6 +306,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     backgroundColor: '#2563EB',
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 16,
+  },
+  smsBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#7C3AED',
     borderRadius: 12,
     height: 44,
     paddingHorizontal: 16,

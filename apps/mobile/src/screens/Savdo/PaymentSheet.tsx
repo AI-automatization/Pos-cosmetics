@@ -31,6 +31,7 @@ interface Props {
   readonly onConfirm: (method: PaymentMethod, received: number) => void;
   readonly onRemoveItem?: (productId: string) => void;
   readonly customerId?: string | null;
+  readonly customerPhone?: string | null;
   readonly redeemPoints?: number;
   readonly onRedeemPointsChange?: (points: number) => void;
   readonly onSelectCustomer?: () => void;
@@ -45,6 +46,7 @@ export default function PaymentSheet({
   onConfirm,
   onRemoveItem,
   customerId,
+  customerPhone,
   redeemPoints,
   onRedeemPointsChange,
   onSelectCustomer,
@@ -107,6 +109,7 @@ export default function PaymentSheet({
               method={method}
               total={total}
               onDismiss={handleDismiss}
+              customerPhone={customerPhone}
             />
           ) : (
             <>
