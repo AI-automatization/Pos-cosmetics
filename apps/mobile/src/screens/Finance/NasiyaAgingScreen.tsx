@@ -62,6 +62,13 @@ const AGE_STYLE: Record<AgeBucket, { label: string; color: string; bg: string }>
 type PayMethod = 'Naqd' | 'Karta' | 'Transfer';
 const PAY_METHODS: PayMethod[] = ['Naqd', 'Karta', 'Transfer'];
 
+/** Map UI labels to Prisma PaymentMethod enum */
+const PAY_METHOD_MAP: Record<PayMethod, string> = {
+  Naqd: 'CASH',
+  Karta: 'TERMINAL',
+  Transfer: 'TRANSFER',
+};
+
 // ─── Helpers ───────────────────────────────────────────
 function fmt(n: number): string {
   const abs = Math.abs(Number(n));
@@ -128,7 +135,7 @@ function QuickPaySheet({
               await nasiyaApi.recordPayment({
                 debtorId: record.id,
                 amount: amt,
-                paymentMethod: method,
+                paymentMethod: PAY_METHOD_MAP[method],
               });
               onPaid();
               onClose();

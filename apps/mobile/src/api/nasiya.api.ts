@@ -80,8 +80,8 @@ export const nasiyaApi = {
   recordPayment: async (dto: RecordPaymentDto): Promise<void> => {
     await api.post(`/nasiya/${dto.debtorId}/pay`, {
       amount: dto.amount,
-      paymentMethod: dto.paymentMethod,
-      note: dto.note,
+      method: dto.paymentMethod,
+      notes: dto.note,
     });
   },
 
@@ -112,7 +112,7 @@ export const nasiyaApi = {
   },
 
   pay: async (id: string, amount: number, method?: string, notes?: string): Promise<void> => {
-    await api.post(`/nasiya/${id}/pay`, { amount, paymentMethod: method ?? 'CASH', note: notes });
+    await api.post(`/nasiya/${id}/pay`, { amount, method: method ?? 'CASH', notes });
   },
 
   sendReminder: async (id: string): Promise<void> => {
