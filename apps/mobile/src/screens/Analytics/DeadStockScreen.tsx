@@ -115,12 +115,12 @@ export default function DeadStockScreen() {
   }, [items, search, sortBy]);
 
   const totalCarryingCost = useMemo(
-    () => items.reduce((s, i) => s + i.carryingCost, 0),
+    () => items.reduce((s, i) => s + Number(i.carryingCost), 0),
     [items],
   );
 
   const totalStock = useMemo(
-    () => items.reduce((s, i) => s + i.totalStock, 0),
+    () => items.reduce((s, i) => s + Number(i.totalStock), 0),
     [items],
   );
 

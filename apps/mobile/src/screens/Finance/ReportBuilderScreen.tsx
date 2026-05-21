@@ -166,8 +166,8 @@ export default function ReportBuilderScreen() {
       if (rows.length === 0) {
         return <Text style={styles.emptyText}>Natija topilmadi</Text>;
       }
-      const totalRevenue = rows.reduce((s, r) => s + r.totalRevenue, 0);
-      const totalQty     = rows.reduce((s, r) => s + r.totalQty, 0);
+      const totalRevenue = rows.reduce((s, r) => s + Number(r.totalRevenue), 0);
+      const totalQty     = rows.reduce((s, r) => s + Number(r.totalQty), 0);
       return (
         <View style={styles.tableCard}>
           <TableHeader cols={['Mahsulot', 'Miqdor', 'Daromad']} />

@@ -289,21 +289,21 @@ export default function PaymentsHistoryScreen() {
     return [
       {
         label: 'Naqd',
-        sum: cash.reduce((s, o) => s + o.total, 0),
+        sum: cash.reduce((s, o) => s + Number(o.total), 0),
         count: cash.length,
         color: '#16A34A',
         bg: '#F0FDF4',
       },
       {
         label: 'Karta',
-        sum: card.reduce((s, o) => s + o.total, 0),
+        sum: card.reduce((s, o) => s + Number(o.total), 0),
         count: card.length,
         color: '#7C3AED',
         bg: '#F5F3FF',
       },
       {
         label: 'Nasiya',
-        sum: debt.reduce((s, o) => s + o.total, 0),
+        sum: debt.reduce((s, o) => s + Number(o.total), 0),
         count: debt.length,
         color: '#D97706',
         bg: '#FFFBEB',
@@ -313,7 +313,7 @@ export default function PaymentsHistoryScreen() {
 
   // Summary stats
   const totalCompleted = useMemo(
-    () => filtered.filter((o) => o.status === 'COMPLETED').reduce((s, o) => s + o.total, 0),
+    () => filtered.filter((o) => o.status === 'COMPLETED').reduce((s, o) => s + Number(o.total), 0),
     [filtered],
   );
   const completedCount = filtered.filter((o) => o.status === 'COMPLETED').length;

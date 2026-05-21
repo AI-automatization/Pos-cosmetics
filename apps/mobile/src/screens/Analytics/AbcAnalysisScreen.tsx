@@ -134,7 +134,7 @@ export default function AbcAnalysisScreen() {
   });
 
   const grandTotal = useMemo(
-    () => groups.reduce((s, g) => s + g.totalRevenue, 0),
+    () => groups.reduce((s, g) => s + Number(g.totalRevenue), 0),
     [groups],
   );
   const totalProducts = useMemo(

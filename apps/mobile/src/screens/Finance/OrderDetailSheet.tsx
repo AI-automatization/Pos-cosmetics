@@ -157,10 +157,10 @@ export default function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetP
   const statusCfg = STATUS_CONFIG[statusKey] ?? FALLBACK_STATUS;
 
   const items    = data?.items ?? [];
-  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const discount = data?.discount ?? 0;
-  const tax      = data?.tax ?? 0;
-  const total    = data?.total ?? 0;
+  const subtotal = items.reduce((sum, item) => sum + Number(item.total), 0);
+  const discount = Number(data?.discount ?? 0);
+  const tax      = Number(data?.tax ?? 0);
+  const total    = Number(data?.total ?? 0);
 
   return (
     <Modal

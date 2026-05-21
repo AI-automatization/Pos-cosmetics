@@ -202,8 +202,8 @@ export default function ShiftReportsScreen({ onClose }: Props) {
   }, [allShifts, period]);
 
   // Summary
-  const totalRevenue = filtered.reduce((s, x) => s + (x.totalRevenue ?? 0), 0);
-  const totalOrders  = filtered.reduce((s, x) => s + (x.totalOrders  ?? 0), 0);
+  const totalRevenue = filtered.reduce((s, x) => s + Number(x.totalRevenue ?? 0), 0);
+  const totalOrders  = filtered.reduce((s, x) => s + Number(x.totalOrders  ?? 0), 0);
   const closedCount  = filtered.filter((s) => s.status?.toUpperCase() === 'CLOSED').length;
 
   if (error) return <ErrorView error={error} onRetry={() => void refetch()} />;

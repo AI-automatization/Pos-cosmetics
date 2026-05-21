@@ -172,11 +172,11 @@ export default function TopProductsScreen({ onClose }: Props) {
   });
 
   const totalRevenue = useMemo(
-    () => products.reduce((s, p) => s + p.totalRevenue, 0),
+    () => products.reduce((s, p) => s + Number(p.totalRevenue), 0),
     [products],
   );
   const totalQty = useMemo(
-    () => products.reduce((s, p) => s + p.totalQty, 0),
+    () => products.reduce((s, p) => s + Number(p.totalQty), 0),
     [products],
   );
 
