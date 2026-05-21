@@ -36,15 +36,15 @@ const KEY_AUTO_CUT = '@printer_auto_cut';
 // ─── Status config ─────────────────────────────────────
 interface StatusConfig {
   readonly color: string;
-  readonly label: string;
+  readonly labelKey: string;
 }
 
 const STATUS_MAP: Record<PrinterStatus, StatusConfig> = {
-  NORMAL:       { color: C.green,  label: 'Tayyor' },
-  OUT_OF_PAPER: { color: C.orange, label: "Qog'oz yo'q" },
-  OVERHEAT:     { color: C.red,    label: 'Qizib ketdi' },
-  ERROR:        { color: C.red,    label: 'Xatolik' },
-  UNAVAILABLE:  { color: C.muted,  label: 'Mavjud emas' },
+  NORMAL:       { color: C.green,  labelKey: 'printer.statusNormal' },
+  OUT_OF_PAPER: { color: C.orange, labelKey: 'printer.statusOutOfPaper' },
+  OVERHEAT:     { color: C.red,    labelKey: 'printer.statusOverheat' },
+  ERROR:        { color: C.red,    labelKey: 'printer.statusError' },
+  UNAVAILABLE:  { color: C.muted,  labelKey: 'printer.statusUnavailable' },
 };
 
 // ─── Sub-components ────────────────────────────────────
@@ -103,13 +103,13 @@ export default function PrinterScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Printer Status */}
-        <SectionTitle title={t('settings.printerStatus', { defaultValue: 'PRINTER HOLATI' })} />
+        <SectionTitle title={t('printer.status')} />
         <Card>
           <View style={styles.statusRow}>
             <View style={styles.statusLeft}>
               <View style={[styles.statusDot, { backgroundColor: statusCfg.color }]} />
               <View>
-                <Text style={styles.statusLabel}>{statusCfg.label}</Text>
+                <Text style={styles.statusLabel}>{t(statusCfg.labelKey)}</Text>
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
               </View>
             </View>
@@ -118,7 +118,7 @@ export default function PrinterScreen() {
         </Card>
 
         {/* Actions */}
-        <SectionTitle title={t('settings.actions', { defaultValue: 'AMALLAR' })} />
+        <SectionTitle title={t('printer.actions')} />
         <Card>
           <TouchableOpacity
             style={styles.menuRow}
@@ -130,7 +130,7 @@ export default function PrinterScreen() {
               <Ionicons name="document-text-outline" size={18} color={C.green} />
             </View>
             <Text style={styles.menuLabel}>
-              {t('settings.testPrint', { defaultValue: 'Test chop etish' })}
+              {t('printer.testPrint')}
             </Text>
             {isPrinting ? (
               <ActivityIndicator size="small" color={C.green} />
@@ -148,21 +148,21 @@ export default function PrinterScreen() {
               <Ionicons name="refresh-outline" size={18} color="#2563EB" />
             </View>
             <Text style={styles.menuLabel}>
-              {t('settings.refreshStatus', { defaultValue: 'Holatni yangilash' })}
+              {t('printer.refreshStatus')}
             </Text>
             <Ionicons name="chevron-forward" size={16} color={C.muted} />
           </TouchableOpacity>
         </Card>
 
         {/* Settings */}
-        <SectionTitle title={t('settings.sectionApp', { defaultValue: 'SOZLAMALAR' })} />
+        <SectionTitle title={t('printer.settingsSection')} />
         <Card>
           <View style={styles.menuRow}>
             <View style={[styles.menuIcon, { backgroundColor: '#FFF7ED' }]}>
               <Ionicons name="print-outline" size={18} color={C.orange} />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
-              {t('settings.autoPrint', { defaultValue: 'Avtomatik chop etish' })}
+              {t('printer.autoPrint')}
             </Text>
             <Switch
               value={autoPrint}
@@ -177,7 +177,7 @@ export default function PrinterScreen() {
               <Ionicons name="cut-outline" size={18} color="#7C3AED" />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
-              {t('settings.autoCut', { defaultValue: "Chekdan so'ng kesish" })}
+              {t('printer.autoCut')}
             </Text>
             <Switch
               value={autoCut}
@@ -189,14 +189,14 @@ export default function PrinterScreen() {
         </Card>
 
         {/* Info */}
-        <SectionTitle title={t('settings.sectionInfo', { defaultValue: "MA'LUMOT" })} />
+        <SectionTitle title={t('printer.infoSection')} />
         <Card>
           <View style={styles.menuRow}>
             <View style={[styles.menuIcon, { backgroundColor: '#F3F4F6' }]}>
               <Ionicons name="hardware-chip-outline" size={18} color={C.secondary} />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
-              {t('settings.printerType', { defaultValue: 'Printer turi' })}
+              {t('printer.printerType')}
             </Text>
             <Text style={styles.menuValue}>Sunmi ichki printer</Text>
           </View>
@@ -206,7 +206,7 @@ export default function PrinterScreen() {
               <Ionicons name="resize-outline" size={18} color={C.secondary} />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
-              {t('settings.paperWidth', { defaultValue: "Qog'oz kengligi" })}
+              {t('printer.paperWidth')}
             </Text>
             <Text style={styles.menuValue}>58mm</Text>
           </View>

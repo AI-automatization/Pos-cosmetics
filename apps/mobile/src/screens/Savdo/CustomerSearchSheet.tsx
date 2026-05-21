@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { customersApi, type Customer } from '../../api/customers.api';
 
@@ -42,6 +43,7 @@ interface Props {
 
 // ─── Component ──────────────────────────────────────────
 export default function CustomerSearchSheet({ visible, onClose, onSelect }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -98,7 +100,7 @@ export default function CustomerSearchSheet({ visible, onClose, onSelect }: Prop
         {item.debtBalance > 0 ? (
           <View style={styles.debtBadge}>
             <Text style={styles.debtBadgeText}>
-              {item.debtBalance.toLocaleString()} qarz
+              {item.debtBalance.toLocaleString()} {t('customer.debt')}
             </Text>
           </View>
         ) : null}
@@ -126,7 +128,7 @@ export default function CustomerSearchSheet({ visible, onClose, onSelect }: Prop
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Mijoz tanlash</Text>
+            <Text style={styles.headerTitle}>{t('customer.selectTitle')}</Text>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
               <Ionicons name="close" size={18} color={C.muted} />
             </TouchableOpacity>
@@ -137,7 +139,7 @@ export default function CustomerSearchSheet({ visible, onClose, onSelect }: Prop
             <Ionicons name="search-outline" size={18} color={C.mutedLight} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Ism yoki telefon raqam..."
+              placeholder={t('customer.searchHint')}
               placeholderTextColor={C.mutedLight}
               value={query}
               onChangeText={setQuery}
@@ -160,12 +162,12 @@ export default function CustomerSearchSheet({ visible, onClose, onSelect }: Prop
           ) : showHint ? (
             <View style={styles.center}>
               <Ionicons name="person-outline" size={36} color={C.mutedLight} />
-              <Text style={styles.hintText}>Kamida 2 ta harf kiriting</Text>
+              <Text style={styles.hintText}>{t('customer.minChars')}</Text>
             </View>
           ) : showEmpty ? (
             <View style={styles.center}>
               <Ionicons name="search-outline" size={36} color={C.mutedLight} />
-              <Text style={styles.hintText}>Mijoz topilmadi</Text>
+              <Text style={styles.hintText}>{t('customer.notFound')}</Text>
             </View>
           ) : (
             <FlatList
@@ -180,7 +182,7 @@ export default function CustomerSearchSheet({ visible, onClose, onSelect }: Prop
 
           {/* Skip button */}
           <TouchableOpacity style={styles.skipBtn} activeOpacity={0.7} onPress={onClose}>
-            <Text style={styles.skipText}>Mijoz qo'shmasdan davom etish</Text>
+            <Text style={styles.skipText}>{t('customer.skipCustomer')}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

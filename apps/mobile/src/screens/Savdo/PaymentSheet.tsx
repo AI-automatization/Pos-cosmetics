@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { type PaymentMethod, type CartItem, isOnlineMethod } from './PaymentSheetTypes';
 import PaymentSummaryCard from './PaymentSummaryCard';
@@ -52,6 +53,7 @@ export default function PaymentSheet({
   onSelectCustomer,
 }: Props) {
   useScreenProtection();
+  const { t } = useTranslation();
   const [method, setMethod]       = useState<PaymentMethod>('NAQD');
   const [split, setSplit]         = useState(false);
   const [received, setReceived]   = useState('');
@@ -116,7 +118,7 @@ export default function PaymentSheet({
               <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View style={styles.header}>
-                  <Text style={styles.headerTitle}>To'lov</Text>
+                  <Text style={styles.headerTitle}>{t('savdo.payment')}</Text>
                   <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
                     <Ionicons name="close" size={18} color="#6B7280" />
                   </TouchableOpacity>
@@ -126,17 +128,17 @@ export default function PaymentSheet({
                 {customerId ? (
                   <View style={styles.customerBadge}>
                     <Ionicons name="person-circle-outline" size={20} color="#6366F1" />
-                    <Text style={styles.customerName}>Mijoz tanlangan</Text>
+                    <Text style={styles.customerName}>{t('savdo.customerSelected')}</Text>
                     {onSelectCustomer && (
                       <TouchableOpacity onPress={onSelectCustomer}>
-                        <Text style={styles.changeBtn}>O'zgartirish</Text>
+                        <Text style={styles.changeBtn}>{t('savdo.changeCustomer')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
                 ) : onSelectCustomer ? (
                   <TouchableOpacity style={styles.selectCustomerBtn} onPress={onSelectCustomer}>
                     <Ionicons name="person-add-outline" size={18} color="#6366F1" />
-                    <Text style={styles.selectCustomerText}>Mijoz tanlash (bonus uchun)</Text>
+                    <Text style={styles.selectCustomerText}>{t('savdo.selectCustomer')}</Text>
                   </TouchableOpacity>
                 ) : null}
 
@@ -165,7 +167,7 @@ export default function PaymentSheet({
                   <View style={styles.onlineInfo}>
                     <Ionicons name="globe-outline" size={20} color="#6B7280" />
                     <Text style={styles.onlineInfoText}>
-                      Online to'lov tizimi orqali to'lanadi
+                      {t('savdo.onlinePaymentHint')}
                     </Text>
                   </View>
                 ) : (
@@ -192,7 +194,7 @@ export default function PaymentSheet({
               >
                 <Ionicons name={online ? 'open-outline' : 'checkmark-circle-outline'} size={20} color="#FFF" />
                 <Text style={styles.confirmText}>
-                  {online ? "To'lovga o'tish" : 'Savdoni yakunlash'}
+                  {online ? t('savdo.goToPayment') : t('savdo.confirmSale')}
                 </Text>
               </TouchableOpacity>
             </>

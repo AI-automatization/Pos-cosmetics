@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import SuccessAnimation from './SuccessAnimation';
 import { type PaymentMethod, fmt, METHODS } from './PaymentSheetTypes';
 import { useSunmiPrinter } from '../../hooks/useSunmiPrinter';
@@ -43,6 +44,7 @@ export default function PaymentSuccessView({
   receivedAmount,
   customerPhone,
 }: PaymentSuccessViewProps) {
+  const { t } = useTranslation();
   const [seconds, setSeconds] = React.useState(AUTO_DISMISS_SECONDS);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSendingSms, setIsSendingSms] = useState(false);
@@ -126,7 +128,7 @@ export default function PaymentSuccessView({
     <View style={styles.container}>
       <SuccessAnimation size={100} />
 
-      <Text style={styles.title}>To'lov tasdiqlandi!</Text>
+      <Text style={styles.title}>{t('receipt.paymentConfirmed')}</Text>
 
       <Text style={styles.total}>{fmt(total)}</Text>
 
@@ -144,13 +146,13 @@ export default function PaymentSuccessView({
       {(pointsEarned || pointsRedeemed) ? (
         <View style={styles.loyaltyInfo}>
           {pointsRedeemed ? (
-            <Text style={styles.loyaltyText}>Ishlatildi: -{pointsRedeemed} ball</Text>
+            <Text style={styles.loyaltyText}>{t('receipt.pointsRedeemed', { points: pointsRedeemed })}</Text>
           ) : null}
           {pointsEarned ? (
-            <Text style={styles.loyaltyEarn}>Yig'ildi: +{pointsEarned} ball</Text>
+            <Text style={styles.loyaltyEarn}>{t('receipt.pointsEarned', { points: pointsEarned })}</Text>
           ) : null}
           {newBalance !== undefined ? (
-            <Text style={styles.loyaltyBalance}>Jami: {newBalance} ball</Text>
+            <Text style={styles.loyaltyBalance}>{t('receipt.pointsBalance', { points: newBalance })}</Text>
           ) : null}
         </View>
       ) : null}
@@ -171,7 +173,7 @@ export default function PaymentSuccessView({
                 color="#FFFFFF"
               />
               <Text style={styles.printBtnText}>
-                {isPrinting ? 'Chop...' : 'Chop etish'}
+                {isPrinting ? t('receipt.printing') : t('receipt.print')}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -189,7 +191,7 @@ export default function PaymentSuccessView({
                 color="#FFFFFF"
               />
               <Text style={styles.printBtnText}>
-                {isGeneratingPdf ? 'PDF...' : 'PDF'}
+                {isGeneratingPdf ? t('receipt.generatingPdf') : t('receipt.sharePdf')}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -207,7 +209,7 @@ export default function PaymentSuccessView({
               color="#FFFFFF"
             />
             <Text style={styles.printBtnText}>
-              {isSendingSms ? 'SMS...' : 'SMS'}
+              {isSendingSms ? t('receipt.sendingSms') : t('receipt.sendSms')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -216,7 +218,7 @@ export default function PaymentSuccessView({
         <Text style={styles.printError}>{printError}</Text>
       ) : null}
 
-      <Text style={styles.countdown}>{seconds} soniyada yopiladi</Text>
+      <Text style={styles.countdown}>{t('receipt.closesIn', { seconds })}</Text>
     </View>
   );
 }

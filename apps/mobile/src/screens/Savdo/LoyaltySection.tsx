@@ -4,6 +4,7 @@ import {
   StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   useLoyaltyAccount, useLoyaltyConfig, pointsToMoney, moneyToPoints,
 } from '../../hooks/useLoyalty';
@@ -23,6 +24,7 @@ const QUICK_PERCENTS = [25, 50, 75, 100] as const;
 export default function LoyaltySection({
   customerId, orderTotal, redeemPoints, onRedeemPointsChange,
 }: Props) {
+  const { t } = useTranslation();
   const { data: account, isLoading: loadAcc } = useLoyaltyAccount(customerId);
   const { data: config, isLoading: loadCfg } = useLoyaltyConfig();
 
@@ -69,12 +71,12 @@ export default function LoyaltySection({
       {/* Header */}
       <View style={s.row}>
         <Ionicons name="star" size={18} color="#D97706" />
-        <Text style={s.title}>Bonus ball</Text>
+        <Text style={s.title}>{t('loyalty.title')}</Text>
       </View>
 
       {/* Balance */}
       <View style={s.row}>
-        <Text style={s.label}>Ballar:</Text>
+        <Text style={s.label}>{t('loyalty.balance')}:</Text>
         <Text style={s.value}>
           {balance.toLocaleString('ru-RU')} ({fmt(pointsToMoney(balance, redeemRate))})
         </Text>
@@ -82,7 +84,7 @@ export default function LoyaltySection({
 
       {/* Toggle */}
       <View style={s.toggleRow}>
-        <Text style={s.toggleLabel}>Ball ishlatish</Text>
+        <Text style={s.toggleLabel}>{t('loyalty.usePoints')}</Text>
         <Switch
           value={isRedeeming}
           onValueChange={handleToggle}
@@ -93,7 +95,7 @@ export default function LoyaltySection({
       </View>
 
       {!canRedeem && balance > 0 && (
-        <Text style={s.hint}>Kamida {minRedeem} ball kerak</Text>
+        <Text style={s.hint}>{t('loyalty.minRequired', { min: minRedeem })}</Text>
       )}
 
       {/* Redeem controls */}
@@ -109,7 +111,7 @@ export default function LoyaltySection({
               placeholder="0"
               placeholderTextColor="#9CA3AF"
             />
-            <Text style={s.suffix}>ball</Text>
+            <Text style={s.suffix}>{t('loyalty.points')}</Text>
           </View>
 
           <View style={s.quickRow}>
@@ -131,7 +133,7 @@ export default function LoyaltySection({
 
           <View style={s.discountRow}>
             <Ionicons name="pricetag-outline" size={16} color="#16A34A" />
-            <Text style={s.discountText}>Chegirma: -{fmt(discountAmount)}</Text>
+            <Text style={s.discountText}>{t('loyalty.discount')}: -{fmt(discountAmount)}</Text>
           </View>
         </>
       )}
@@ -139,7 +141,7 @@ export default function LoyaltySection({
       {/* Earn info */}
       <View style={s.earnRow}>
         <Ionicons name="add-circle-outline" size={16} color="#D97706" />
-        <Text style={s.earnText}>Yig'iladi: +{earnablePoints} ball</Text>
+        <Text style={s.earnText}>{t('loyalty.willEarn')}: +{earnablePoints} {t('loyalty.points')}</Text>
       </View>
     </View>
   );
