@@ -1,9 +1,17 @@
 import { useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  preventScreenCaptureAsync,
-  allowScreenCaptureAsync,
-} from 'expo-screen-capture';
+
+// Safe dynamic import — native module may not be available in dev client
+let screenCapture: {
+  preventScreenCaptureAsync: () => Promise<void>;
+  allowScreenCaptureAsync: () => Promise<void>;
+} | null = null;
+
+try {
+  screenCapture = require('expo-screen-capture');
+} catch {
+  // Not available
+}
 
 /**
  * Sensitive ekranlarda screenshot va screen recording ni bloklaydi.
@@ -18,11 +26,12 @@ import {
 export function useScreenProtection(): void {
   useFocusEffect(
     useCallback(() => {
-      if (__DEV__) return;
+      if (__DEV__ || !screenCapture) return;
 
-      preventScreenCaptureAsync();
+      screenCapture.preventScreenCaptureAsync();
+      const mod = screenCapture;
       return () => {
-        allowScreenCaptureAsync();
+        mod.allowScreenCaptureAsync();
       };
     }, []),
   );

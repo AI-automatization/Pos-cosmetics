@@ -1,7 +1,14 @@
-import {
-  initializeSslPinning,
-  addSslPinningErrorListener,
-} from 'react-native-ssl-public-key-pinning';
+// Safe dynamic import — native module may not be available in dev client
+let sslModule: {
+  initializeSslPinning: (config: Record<string, { includeSubdomains: boolean; publicKeyHashes: string[] }>) => Promise<void>;
+  addSslPinningErrorListener: (cb: (error: { serverHostname: string }) => void) => { remove: () => void };
+} | null = null;
+
+try {
+  sslModule = require('react-native-ssl-public-key-pinning');
+} catch {
+  // Not available in dev client
+}
 
 const API_HOST = process.env.EXPO_PUBLIC_API_HOST ?? 'api.raos.uz';
 
@@ -16,9 +23,9 @@ const API_HOST = process.env.EXPO_PUBLIC_API_HOST ?? 'api.raos.uz';
  *   | openssl enc -base64
  */
 export async function setupSslPinning(): Promise<void> {
-  if (__DEV__) return; // Dev da localhost/emulator — SSL yo'q
+  if (__DEV__ || !sslModule) return;
 
-  await initializeSslPinning({
+  await sslModule.initializeSslPinning({
     [API_HOST]: {
       includeSubdomains: true,
       publicKeyHashes: [
@@ -37,11 +44,17 @@ export async function setupSslPinning(): Promise<void> {
  * Qaytarilgan cleanup funksiyani useEffect da ishlatish mumkin.
  */
 export function registerSslPinningErrorListener(): () => void {
-  const subscription = addSslPinningErrorListener((error) => {
-    // Production da error tracking ga yuborish kerak
-    // reportError('ssl_pinning_failure', { hostname: error.serverHostname });
-    void error;
-  });
+  if (__DEV__ || !sslModule) return () => {};
 
-  return () => subscription.remove();
+  try {
+    const subscription = sslModule.addSslPinningErrorListener((error) => {
+      // Production da error tracking ga yuborish kerak
+      // reportError('ssl_pinning_failure', { hostname: error.serverHostname });
+      void error;
+    });
+    return () => subscription.remove();
+  } catch {
+    // Native module not linked — skip silently
+    return () => {};
+  }
 }
