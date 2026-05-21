@@ -75,8 +75,37 @@ const STATUS_STYLE: Record<OrderStatus, { label: string; color: string; bg: stri
 };
 
 // ─── Helpers ───────────────────────────────────────────
+
+/** Space-separated thousands formatter (Hermes-safe, no toLocaleString) */
 function fmt(n: number): string {
-  return n.toLocaleString('ru-RU') + ' UZS';
+  const abs = Math.abs(n);
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (n < 0 ? '-' : '') + formatted + ' UZS';
+}
+
+/**
+ * Compact number formatter for stat cards (small space).
+ * < 1 000        → "950"
+ * < 1 000 000    → "42 500" (space-separated thousands)
+ * < 1 000 000 000 → "42.5 mln"
+ * >= 1 000 000 000 → "1.2 mlrd"
+ */
+function fmtCompact(n: number): string {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+
+  if (abs >= 1_000_000_000) {
+    const val = abs / 1_000_000_000;
+    const rounded = Math.round(val * 10) / 10;
+    return sign + rounded.toString().replace('.', ',') + ' mlrd';
+  }
+  if (abs >= 1_000_000) {
+    const val = abs / 1_000_000;
+    const rounded = Math.round(val * 10) / 10;
+    return sign + rounded.toString().replace('.', ',') + ' mln';
+  }
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return sign + formatted;
 }
 
 function formatDate(d: Date | string): string {
@@ -178,8 +207,13 @@ function StatCard({
   return (
     <View style={[styles.statCard, { backgroundColor: bg }]}>
       <Text style={[styles.statLabel, { color }]}>{label}</Text>
-      <Text style={[styles.statSum, { color }]}>
-        {sum.toLocaleString('uz-UZ')} so'm
+      <Text
+        style={[styles.statSum, { color }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
+        {fmtCompact(sum)} so'm
       </Text>
       <Text style={styles.statCount}>{count} ta</Text>
     </View>
@@ -364,35 +398,6 @@ export default function PaymentsHistoryScreen() {
         })}
       </ScrollView>
 
-      {/* Stat cards */}
-      {!isLoading && (
-        <View style={styles.statRow}>
-          {statCards.map((c) => (
-            <StatCard key={c.label} {...c} />
-          ))}
-        </View>
-      )}
-
-      {/* Summary strip */}
-      {!isLoading && filtered.length > 0 && (
-        <View style={styles.summaryStrip}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Jami tushum</Text>
-            <Text style={styles.summaryValue}>{fmt(totalCompleted)}</Text>
-          </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Bajarildi</Text>
-            <Text style={[styles.summaryValue, { color: C.green }]}>{completedCount} ta</Text>
-          </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Jami</Text>
-            <Text style={styles.summaryValue}>{filtered.length} ta</Text>
-          </View>
-        </View>
-      )}
-
       {/* List */}
       {isLoading ? (
         <ActivityIndicator size="large" color={C.primary} style={styles.loader} />
@@ -414,9 +419,40 @@ export default function PaymentsHistoryScreen() {
               />
             </TouchableOpacity>
           )}
+          style={styles.flatList}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListHeaderComponent={
+            <View>
+              {/* Stat cards */}
+              <View style={styles.statRow}>
+                {statCards.map((c) => (
+                  <StatCard key={c.label} {...c} />
+                ))}
+              </View>
+
+              {/* Summary strip */}
+              {filtered.length > 0 && (
+                <View style={styles.summaryStrip}>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Jami tushum</Text>
+                    <Text style={styles.summaryValue}>{fmt(totalCompleted)}</Text>
+                  </View>
+                  <View style={styles.summaryDivider} />
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Bajarildi</Text>
+                    <Text style={[styles.summaryValue, { color: C.green }]}>{completedCount} ta</Text>
+                  </View>
+                  <View style={styles.summaryDivider} />
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Jami</Text>
+                    <Text style={styles.summaryValue}>{filtered.length} ta</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          }
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="card-outline" size={44} color={C.muted} />
@@ -482,16 +518,19 @@ const styles = StyleSheet.create({
   summaryStrip: {
     flexDirection: 'row',
     backgroundColor: C.white,
-    borderBottomWidth: 1, borderBottomColor: C.border,
-    paddingHorizontal: 16, paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1, borderColor: C.border,
+    paddingVertical: 10,
+    marginBottom: 12,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryLabel: { fontSize: 11, color: C.muted, fontWeight: '600' },
   summaryValue: { fontSize: 14, fontWeight: '800', color: C.text, marginTop: 2 },
   summaryDivider: { width: 1, backgroundColor: C.border, marginVertical: 2 },
 
+  flatList: { flex: 1 },
   loader: { marginTop: 40 },
-  listContent: { padding: 16, paddingBottom: 40 },
+  listContent: { paddingHorizontal: 16, paddingBottom: 40 },
   separator: { height: 10 },
 
   card: {
@@ -525,7 +564,6 @@ const styles = StyleSheet.create({
   statRow: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: 16,
     marginBottom: 12,
     marginTop: 12,
   },
