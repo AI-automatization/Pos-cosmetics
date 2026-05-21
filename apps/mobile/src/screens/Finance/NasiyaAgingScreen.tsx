@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -375,24 +374,25 @@ export default function NasiyaAgingScreen({ onClose }: Props) {
         <View style={{ width: 36 }} />
       </View>
 
-      {/* Summary cards (horizontal scroll) */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.summaryScroll}
-      >
+      {/* Summary cards */}
+      <View style={styles.summaryRow}>
         {[
           { label: 'Jami qarz',       value: fmtShort(totalDebt),    color: C.text,   bg: C.white   },
           { label: "Muddati o'tgan",  value: fmtShort(overdueAmt),   color: C.red,    bg: '#FEF2F2' },
           { label: 'Bu oy',           value: fmtShort(thisMonth),    color: C.orange, bg: '#FFFBEB' },
-          { label: 'Xaridorlar',      value: `${customerCount} ta`,  color: C.primary,bg: '#EFF6FF' },
         ].map((s) => (
           <View key={s.label} style={[styles.summaryCard, { backgroundColor: s.bg }]}>
             <Text style={styles.summaryLabel}>{s.label}</Text>
-            <Text style={[styles.summaryValue, { color: s.color }]}>{s.value}</Text>
+            <Text
+              style={[styles.summaryValue, { color: s.color }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {s.value}
+            </Text>
           </View>
         ))}
-      </ScrollView>
+      </View>
 
       {/* Tabs */}
       <View style={styles.tabs}>
@@ -519,12 +519,14 @@ const styles = StyleSheet.create({
   },
   headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: C.text },
 
-  summaryScroll: {
-    paddingHorizontal: 16, paddingVertical: 12, gap: 10,
+  summaryRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16, paddingVertical: 12, gap: 8,
   },
   summaryCard: {
+    flex: 1,
     borderRadius: 14, borderWidth: 1, borderColor: C.border,
-    paddingHorizontal: 16, paddingVertical: 12, minWidth: 120,
+    paddingHorizontal: 12, paddingVertical: 10,
   },
   summaryLabel: { fontSize: 11, color: C.muted, fontWeight: '600', marginBottom: 4 },
   summaryValue: { fontSize: 17, fontWeight: '800' },

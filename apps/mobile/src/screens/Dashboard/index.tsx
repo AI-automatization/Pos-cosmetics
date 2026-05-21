@@ -98,7 +98,7 @@ export default function DashboardScreen() {
 
   const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
   const isManager = user?.role === 'MANAGER';
-  const { openShift, closeShift } = useShiftStore();
+  const { openShift, closeShift, syncWithApi } = useShiftStore();
   const [loading, setLoading] = useState(false);
   const [openSheetVisible, setOpenSheetVisible] = useState(false);
   const [closeSheetVisible, setCloseSheetVisible] = useState(false);
@@ -133,7 +133,24 @@ export default function DashboardScreen() {
         Alert.alert('Tayyor', 'Smena muvaffaqiyatli ochildi');
         refetchAll();
       })
-      .catch(() => Alert.alert('Xatolik', 'Smena ochishda xatolik'))
+      .catch((err: unknown) => {
+        let msg = 'Smena ochishda xatolik';
+        if (err && typeof err === 'object' && 'response' in err) {
+          const resp = (err as { response?: { data?: { message?: string | string[]; error?: { message?: string } } } }).response;
+          const serverMsg = resp?.data?.error?.message ?? resp?.data?.message;
+          if (serverMsg) {
+            msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
+            // Agar allaqachon ochiq smena bo'lsa — syncWithApi bilan holatni yangilash
+            if (msg.includes('already has an open shift')) {
+              msg = 'Sizda allaqachon ochiq smena mavjud';
+              void syncWithApi();
+            }
+          }
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
+        Alert.alert('Xatolik', msg);
+      })
       .finally(() => setLoading(false));
   };
 

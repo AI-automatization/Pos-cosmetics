@@ -135,10 +135,14 @@ export default function SmenaScreen() {
       .catch((err: unknown) => {
         let msg = 'Smena ochishda xatolik yuz berdi';
         if (err && typeof err === 'object' && 'response' in err) {
-          const resp = (err as { response?: { data?: { message?: string }; status?: number } }).response;
-          const serverMsg = resp?.data?.message;
+          const resp = (err as { response?: { data?: { message?: string; error?: { message?: string } }; status?: number } }).response;
+          const serverMsg = resp?.data?.error?.message ?? resp?.data?.message;
           if (serverMsg) {
             msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
+            if (msg.includes('already has an open shift')) {
+              msg = 'Sizda allaqachon ochiq smena mavjud';
+              void syncWithApi();
+            }
           } else if (resp?.status) {
             msg = `Xatolik ${resp.status}: ${msg}`;
           }
