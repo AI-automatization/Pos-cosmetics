@@ -2,6 +2,14 @@
 # dockerfilePath is relative to the git repo root (build context = repo root).
 # Works for both: railway up (from apps/api/) and GitHub-connected deploy (Root Directory = /).
 dockerfilePath = "apps/api/Dockerfile"
+watchPatterns = [
+  "apps/api/**",
+  "packages/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc"
+]
 
 [deploy]
 healthcheckPath = "/api/v1/health/live"
