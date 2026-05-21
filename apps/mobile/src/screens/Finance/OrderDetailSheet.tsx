@@ -66,7 +66,9 @@ interface OrderDetailSheetProps {
 
 // ─── Helpers ───────────────────────────────────────────
 function fmt(n: number): string {
-  return n.toLocaleString('uz-UZ') + " so'm";
+  const abs = Math.abs(Number(n));
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (Number(n) < 0 ? '-' : '') + formatted + " so'm";
 }
 
 function formatDateTime(d: Date | string): string {

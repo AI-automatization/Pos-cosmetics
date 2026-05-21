@@ -51,12 +51,21 @@ function fmtShort(n: number): string {
 }
 
 function fmt(n: number): string {
-  return n.toLocaleString('ru-RU') + ' UZS';
+  const abs = Math.abs(Number(n));
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (Number(n) < 0 ? '-' : '') + formatted + ' UZS';
+}
+
+function fmtInt(n: number): string {
+  const abs = Math.abs(Number(n));
+  return (Number(n) < 0 ? '-' : '') + Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
 function dayLabel(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  return `${day}.${month}`;
 }
 
 // ─── BarChart ──────────────────────────────────────────
@@ -213,7 +222,7 @@ export default function DailyRevenueScreen({ onClose }: Props) {
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Buyurtmalar</Text>
-                <Text style={styles.summaryValue}>{totalOrders.toLocaleString('ru-RU')}</Text>
+                <Text style={styles.summaryValue}>{fmtInt(totalOrders)}</Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>

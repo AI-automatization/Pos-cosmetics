@@ -57,7 +57,11 @@ const C = {
 } as const;
 
 // ─── Helpers ──────────────────────────────────────────────
-const fmtNum = (n: number) => Number(n).toLocaleString('ru-RU');
+const fmtNum = (n: number): string => {
+  const abs = Math.abs(Number(n));
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (Number(n) < 0 ? '-' : '') + formatted;
+};
 
 function fmtDateShort(dateStr: string): string {
   const d = new Date(dateStr);

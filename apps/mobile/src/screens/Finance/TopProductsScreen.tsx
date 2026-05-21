@@ -61,6 +61,11 @@ function fmtShort(n: number): string {
 }
 
 
+function fmtInt(n: number): string {
+  const abs = Math.abs(Number(n));
+  return (Number(n) < 0 ? '-' : '') + Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
 function initials(name: string): string {
   return name
     .split(' ')
@@ -98,7 +103,7 @@ function ProductRowItem({
       {/* Name */}
       <View style={styles.itemBody}>
         <Text style={styles.itemName} numberOfLines={1}>{productName}</Text>
-        <Text style={styles.itemQty}>{totalQty.toLocaleString('ru-RU')} dona sotildi</Text>
+        <Text style={styles.itemQty}>{fmtInt(totalQty)} dona sotildi</Text>
       </View>
 
       {/* Revenue */}
@@ -255,7 +260,7 @@ export default function TopProductsScreen({ onClose }: Props) {
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Jami sotildi</Text>
-                <Text style={styles.summaryValue}>{totalQty.toLocaleString('ru-RU')} dona</Text>
+                <Text style={styles.summaryValue}>{fmtInt(totalQty)} dona</Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
@@ -308,7 +313,7 @@ export default function TopProductsScreen({ onClose }: Props) {
                       <View style={styles.qtyRow}>
                         <Text style={styles.qtyRank}>{i + 1}</Text>
                         <Text style={styles.qtyName} numberOfLines={1}>{item.productName}</Text>
-                        <Text style={styles.qtyVal}>{item.totalQty.toLocaleString('ru-RU')} dona</Text>
+                        <Text style={styles.qtyVal}>{fmtInt(item.totalQty)} dona</Text>
                       </View>
                     </View>
                   ))}

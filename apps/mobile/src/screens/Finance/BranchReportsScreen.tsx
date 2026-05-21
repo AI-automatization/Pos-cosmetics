@@ -41,7 +41,9 @@ const PERIODS: { key: PeriodKey; label: string }[] = [
 
 // ─── Helpers ───────────────────────────────────────────
 function fmtUzs(n: number): string {
-  return Number(n).toLocaleString('ru-RU') + ' UZS';
+  const abs = Math.abs(Number(n));
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (Number(n) < 0 ? '-' : '') + formatted + ' UZS';
 }
 
 // ─── TrendBadge ────────────────────────────────────────

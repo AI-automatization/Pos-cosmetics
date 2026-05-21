@@ -38,7 +38,9 @@ const C = {
 
 // ─── Helpers ───────────────────────────────────────────
 function fmtRate(n: number): string {
-  return n.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const abs = Math.abs(Number(n));
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (Number(n) < 0 ? '-' : '') + formatted;
 }
 
 function fmtDate(dateStr: string): string {

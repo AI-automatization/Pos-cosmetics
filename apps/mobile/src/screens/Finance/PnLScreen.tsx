@@ -54,7 +54,9 @@ function getPeriodDates(key: PeriodKey): { from: string; to: string } {
 
 // ─── Helpers ───────────────────────────────────────────
 function fmt(n: number): string {
-  return n.toLocaleString('ru-RU') + ' UZS';
+  const abs = Math.abs(Number(n));
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (Number(n) < 0 ? '-' : '') + formatted + ' UZS';
 }
 
 function fmtShort(n: number): string {

@@ -64,12 +64,15 @@ const PAY_METHODS: PayMethod[] = ['Naqd', 'Karta', 'Transfer'];
 
 // ─── Helpers ───────────────────────────────────────────
 function fmt(n: number): string {
-  return n.toLocaleString('ru-RU') + ' UZS';
+  const abs = Math.abs(Number(n));
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (Number(n) < 0 ? '-' : '') + formatted + ' UZS';
 }
 function fmtShort(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + ' mln';
-  if (n >= 1_000)     return (n / 1_000).toFixed(0) + ' ming';
-  return n.toString();
+  const num = Number(n) || 0;
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + ' mln';
+  if (num >= 1_000)     return (num / 1_000).toFixed(0) + ' ming';
+  return num.toString();
 }
 
 // ─── QuickPaySheet ─────────────────────────────────────
@@ -92,7 +95,7 @@ function QuickPaySheet({
   }, [visible]);
 
   if (!record) return null;
-  const remaining = record.remaining;
+  const remaining = Number(record.remaining);
 
   const handleQuick = (pct: number) => {
     setAmount(String(Math.round(remaining * pct)));
@@ -273,21 +276,21 @@ function DebtCard({
             style={[
               styles.progressBar,
               {
-                width: `${Math.min(100, Math.round((record.paidAmount / record.totalAmount) * 100))}%` as `${number}%`,
+                width: `${Math.min(100, Math.round((Number(record.paidAmount) / Number(record.totalAmount)) * 100))}%` as `${number}%`,
               },
             ]}
           />
         </View>
         <View style={styles.progressLabels}>
-          <Text style={styles.paidText}>To'landi: {fmt(record.paidAmount)}</Text>
-          <Text style={styles.totalText}>{fmt(record.totalAmount)}</Text>
+          <Text style={styles.paidText}>To'landi: {fmt(Number(record.paidAmount))}</Text>
+          <Text style={styles.totalText}>{fmt(Number(record.totalAmount))}</Text>
         </View>
       </View>
 
       <View style={styles.cardBottom}>
         <View>
           <Text style={styles.remainLabel}>Qolgan qarz</Text>
-          <Text style={styles.remainValue}>{fmt(record.remaining)}</Text>
+          <Text style={styles.remainValue}>{fmt(Number(record.remaining))}</Text>
         </View>
         <TouchableOpacity
           style={styles.payBtn}
@@ -334,14 +337,14 @@ export default function NasiyaAgingScreen({ onClose }: Props) {
   const isLoading  = tab === 'all' ? allLoading : overdueLoading;
 
   // Summary stats
-  const totalDebt    = allRecords.reduce((s, r) => s + r.remaining, 0);
-  const overdueAmt   = overdueRecords.reduce((s, r) => s + r.remaining, 0);
+  const totalDebt    = allRecords.reduce((s, r) => s + Number(r.remaining), 0);
+  const overdueAmt   = overdueRecords.reduce((s, r) => s + Number(r.remaining), 0);
   const thisMonth    = useMemo(() => {
     const now   = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]!;
     return allRecords
       .filter((r) => r.dueDate && r.dueDate >= start)
-      .reduce((s, r) => s + r.remaining, 0);
+      .reduce((s, r) => s + Number(r.remaining), 0);
   }, [allRecords]);
   const customerCount = new Set(allRecords.map((r) => r.customerId)).size;
 
