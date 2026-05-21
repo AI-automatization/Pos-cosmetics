@@ -17,6 +17,7 @@ import { useVersionCheck } from './hooks/useVersionCheck';
 import { setupSslPinning, registerSslPinningErrorListener } from './lib/sslPinning';
 import CompromisedDeviceScreen from './screens/Auth/CompromisedDeviceScreen';
 import ForceUpdateScreen from './screens/Auth/ForceUpdateScreen';
+import OfflineBanner from './components/common/OfflineBanner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +70,7 @@ function AppContent() {
   return (
     <NavigationContainer linking={linking}>
       <StatusBar style="dark" />
+      <OfflineBanner />
       <RootNavigator />
     </NavigationContainer>
   );

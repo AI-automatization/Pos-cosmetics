@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import ProductCard from './ProductCard';
 import ScannerModal from './ScannerModal';
@@ -26,6 +27,8 @@ import type { Customer } from '../../api/customers.api';
 import CustomerSearchSheet from './CustomerSearchSheet';
 import { type SavdoStackParamList } from '../../navigation/types';
 import ShiftGuard from '../../components/common/ShiftGuard';
+import { isNetworkOnline } from '../../hooks/useNetworkStatus';
+import { useOfflineQueue } from '../../hooks/useOfflineQueue';
 
 import { C, toProduct, type CartItem } from './components/utils';
 import SavdoHeader from './components/SavdoHeader';
@@ -50,6 +53,8 @@ export default function SavdoScreen() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerSheetVisible, setCustomerSheetVisible] = useState(false);
   const [redeemPoints, setRedeemPoints] = useState(0);
+
+  const { pending: pendingCount, refresh: refreshQueue } = useOfflineQueue();
 
   // ─── API ─────────────────────────────────────────────
   const { data: rawProducts = [], isLoading: productsLoading } = useQuery({
@@ -218,7 +223,27 @@ export default function SavdoScreen() {
       setSelectedCustomer(null);
       setRedeemPoints(0);
     } catch {
-      Alert.alert('Xatolik', "Buyurtma saqlanmadi. Qayta urinib ko'ring.");
+      const online = await isNetworkOnline();
+      if (!online) {
+        const { offlineQueueService } = await import('../../services/OfflineQueueService');
+        await offlineQueueService.enqueue({
+          shiftId: shiftId!,
+          items: cart.map((i) => ({
+            productId: i.product.id,
+            quantity: i.qty,
+            unitPrice: i.product.sellPrice,
+          })),
+          notes: `To'lov: ${method}`,
+        });
+        await refreshQueue();
+        Alert.alert('Offline rejim', "Buyurtma saqlandi. Internet ulanganda avtomatik yuboriladi.");
+        setPaymentVisible(false);
+        setCart([]);
+        setSelectedCustomer(null);
+        setRedeemPoints(0);
+      } else {
+        Alert.alert('Xatolik', "Buyurtma saqlanmadi. Qayta urinib ko'ring.");
+      }
     } finally {
       setOrderLoading(false);
     }
@@ -254,6 +279,15 @@ export default function SavdoScreen() {
           shiftId={shiftId}
           onBellPress={() => setLowStockVisible(true)}
         />
+
+        {pendingCount > 0 && (
+          <View style={styles.offlineBadge}>
+            <Ionicons name="cloud-upload-outline" size={14} color="#D97706" />
+            <Text style={styles.offlineBadgeText}>
+              {pendingCount} ta buyurtma yuborilmagan
+            </Text>
+          </View>
+        )}
 
         <SavdoSearchBar
           search={search}
@@ -361,4 +395,22 @@ const styles = StyleSheet.create({
   empty:        { paddingTop: 80, alignItems: 'center', gap: 8 },
   emptyText:    { fontSize: 15, color: '#6B7280', fontWeight: '500' },
   emptySubText: { fontSize: 13, color: '#9CA3AF' },
+  offlineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  offlineBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#D97706',
+  },
 });
