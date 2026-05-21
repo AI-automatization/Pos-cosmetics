@@ -1,10 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import SuccessAnimation from './SuccessAnimation';
 import { type PaymentMethod, fmt, METHODS } from './PaymentSheetTypes';
 import { useSunmiPrinter } from '../../hooks/useSunmiPrinter';
 import { type ReceiptData } from '../../services/PrinterService';
+import { receiptPdfService } from '../../services/ReceiptPdfService';
 import { useAuthStore } from '../../store/auth.store';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -40,6 +41,7 @@ export default function PaymentSuccessView({
   receivedAmount,
 }: PaymentSuccessViewProps) {
   const [seconds, setSeconds] = React.useState(AUTO_DISMISS_SECONDS);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const { isAvailable, isPrinting, error: printError, printReceipt } = useSunmiPrinter();
   const { user } = useAuthStore();
 
@@ -59,9 +61,9 @@ export default function PaymentSuccessView({
 
   const cfg = METHODS.find(m => m.key === method) ?? FALLBACK_METHOD;
 
-  const handlePrint = useCallback(async () => {
-    if (!cart || !orderNumber) return;
-    const receiptData: ReceiptData = {
+  const buildReceiptData = useCallback((): ReceiptData | null => {
+    if (!cart || !orderNumber) return null;
+    return {
       companyName: user?.tenant?.name ?? 'RAOS',
       branchName: user?.tenant?.name,
       orderNumber,
@@ -78,16 +80,28 @@ export default function PaymentSuccessView({
       receivedAmount,
       change: receivedAmount ? receivedAmount - total : undefined,
       loyaltyPoints: pointsEarned || pointsRedeemed
-        ? {
-            earned: pointsEarned,
-            redeemed: pointsRedeemed,
-            balance: newBalance,
-          }
+        ? { earned: pointsEarned, redeemed: pointsRedeemed, balance: newBalance }
         : undefined,
       date: new Date(),
     };
-    await printReceipt(receiptData);
-  }, [cart, orderNumber, total, user, cfg, receivedAmount, pointsEarned, pointsRedeemed, newBalance, printReceipt]);
+  }, [cart, orderNumber, total, user, cfg, receivedAmount, pointsEarned, pointsRedeemed, newBalance]);
+
+  const handlePrint = useCallback(async () => {
+    const data = buildReceiptData();
+    if (!data) return;
+    await printReceipt(data);
+  }, [buildReceiptData, printReceipt]);
+
+  const handleSharePdf = useCallback(async () => {
+    const data = buildReceiptData();
+    if (!data) return;
+    setIsGeneratingPdf(true);
+    try {
+      await receiptPdfService.shareReceipt(data);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [buildReceiptData]);
 
   return (
     <View style={styles.container}>
@@ -122,22 +136,45 @@ export default function PaymentSuccessView({
         </View>
       ) : null}
 
-      {isAvailable && cart && orderNumber ? (
-        <TouchableOpacity
-          style={[styles.printBtn, isPrinting && styles.printBtnDisabled]}
-          onPress={handlePrint}
-          disabled={isPrinting}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={isPrinting ? 'hourglass-outline' : 'print-outline'}
-            size={18}
-            color="#FFFFFF"
-          />
-          <Text style={styles.printBtnText}>
-            {isPrinting ? 'Chop etilmoqda...' : 'Chek chop etish'}
-          </Text>
-        </TouchableOpacity>
+      {/* Print / Share buttons */}
+      {cart && orderNumber ? (
+        <View style={styles.printRow}>
+          {isAvailable ? (
+            <TouchableOpacity
+              style={[styles.printBtn, isPrinting && styles.printBtnDisabled]}
+              onPress={handlePrint}
+              disabled={isPrinting}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={isPrinting ? 'hourglass-outline' : 'print-outline'}
+                size={18}
+                color="#FFFFFF"
+              />
+              <Text style={styles.printBtnText}>
+                {isPrinting ? 'Chop...' : 'Chop etish'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {receiptPdfService.isAvailable() ? (
+            <TouchableOpacity
+              style={[styles.pdfBtn, isGeneratingPdf && styles.printBtnDisabled]}
+              onPress={handleSharePdf}
+              disabled={isGeneratingPdf}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={isGeneratingPdf ? 'hourglass-outline' : 'share-outline'}
+                size={18}
+                color="#FFFFFF"
+              />
+              <Text style={styles.printBtnText}>
+                {isGeneratingPdf ? 'PDF...' : 'PDF yuborish'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
       ) : null}
       {printError ? (
         <Text style={styles.printError}>{printError}</Text>
@@ -210,16 +247,32 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 2,
   },
+  printRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
   printBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6,
     backgroundColor: '#059669',
     borderRadius: 12,
     height: 44,
-    marginTop: 16,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
+  },
+  pdfBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 16,
   },
   printBtnDisabled: {
     opacity: 0.6,
