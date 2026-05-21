@@ -9,15 +9,17 @@ const inter = Inter({ subsets: ['latin', 'cyrillic'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: {
-    default: "RAOS — O'zbekiston uchun smart POS tizimi",
-    template: '%s | RAOS',
+    default: "RAOS — POS tizimi va kassa dasturi O'zbekiston uchun",
+    template: '%s | RAOS — POS tizimi',
   },
   description:
-    "Kassa, sklad, Soliq.uz integratsiya, AI hisobot. 30 kun bepul sinov. Internet bo'lmasa ham ishlaydi. O'zbekiston uchun yaratilgan.",
+    "POS tizimi va kassa dasturi O'zbekiston do'konlari uchun. Soliq.uz integratsiya, AI hisobot, offline ishlaydi. 30 kun bepul sinov — karta kerak emas.",
   keywords: [
-    'POS tizimi', 'kassa dasturi', "do'kon boshqaruv", 'RAOS',
-    'Soliq.uz', 'offline kassa', 'smart kassa', 'savdo dasturi',
-    'онлайн касса', 'POS система Узбекистан', 'кассовый аппарат',
+    'POS tizimi', 'POS tizimi Uzbekiston', 'kassa dasturi', 'kassa dasturi Toshkent',
+    "do'kon boshqaruv dasturi", 'RAOS', 'Soliq.uz integratsiya', 'offline kassa',
+    'smart kassa', 'savdo dasturi', 'fiskal kassa',
+    'онлайн касса', 'POS система Узбекистан', 'кассовый аппарат', 'касса Ташкент',
+    'POS system Uzbekistan', 'cash register software', 'point of sale Tashkent',
   ],
   authors: [{ name: 'Tezcode', url: 'https://raos.uz' }],
   creator: 'Tezcode',
@@ -31,12 +33,13 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "RAOS — O'zbekiston uchun smart POS tizimi",
-    description: "Kassa, sklad, Soliq.uz, AI hisobot. 30 kun bepul sinov. Internet bo'lmasa ham ishlaydi.",
+    title: "RAOS — POS tizimi va kassa dasturi O'zbekiston uchun",
+    description: "POS tizimi: kassa, sklad, Soliq.uz, AI hisobot. 30 kun bepul. Offline ishlaydi. Toshkent, Samarqand, Namangan.",
     type: 'website',
     url: 'https://raos.uz',
     siteName: 'RAOS',
     locale: 'uz_UZ',
+    alternateLocale: ['ru_RU', 'en_US'],
     images: [
       {
         url: '/og-image.png',
@@ -48,8 +51,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "RAOS — Smart POS tizimi",
-    description: "30 kun bepul sinov. Karta kerak emas.",
+    title: "RAOS — POS tizimi O'zbekiston do'konlari uchun",
+    description: "Kassa dasturi: 30 kun bepul sinov. Offline ishlaydi. Soliq.uz integratsiya. Karta kerak emas.",
     images: ['/og-image.png'],
   },
   robots: {

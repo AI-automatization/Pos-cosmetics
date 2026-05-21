@@ -11,10 +11,10 @@ const uz = {
   },
   hero: {
     badge: '30 kun BEPUL — karta kerak emas',
-    title: "Sizning do'koningiz uchun",
-    titleHighlight: 'smart POS tizimi',
-    subtitle: 'Kassa. Sklad. Soliq. Hisobot. Bitta joyda.',
-    desc: "Internet uzilsa ham ishlaydi. AI tunda tahlil qiladi. 30 kun bepul sinab ko'ring.",
+    title: "O'zbekiston do'konlari uchun",
+    titleHighlight: 'POS tizimi va kassa dasturi',
+    subtitle: 'Kassa. Sklad. Soliq.uz. Hisobot. Bitta joyda.',
+    desc: "Internet uzilsa ham ishlaydi. AI tunda tahlil qiladi. 30 kun bepul sinab ko'ring. Toshkent, Samarqand, Namangan.",
     cta1: '30 kun bepul sinov →',
     cta2: "Demo ko'rish",
     proof1: "30+ do'kon",
@@ -200,8 +200,8 @@ const uz = {
     title: "Ko'p beriladigan savollar",
     items: [
       {
-        question: 'RAOS nima?',
-        answer: "RAOS — do'konlar uchun smart kassa tizimi. Kompyuter, planshet yoki telefonda ishlaydi. Tovar sotish, sklad, hisobot, Soliq.uz — hammasi bitta joyda.",
+        question: 'RAOS nima? Bu kassa dasturimi?',
+        answer: "RAOS — O'zbekiston do'konlari uchun POS tizimi va kassa dasturi. Kompyuter, planshet yoki telefonda ishlaydi. Tovar sotish, sklad, hisobot, Soliq.uz integratsiya — hammasi bitta joyda. Toshkent, Samarqand, Namangan va barcha shaharlarda ishlaydi.",
       },
       {
         question: 'Tizim A dan nimasi yaxshi?',
@@ -409,10 +409,10 @@ const ru: typeof uz = {
   },
   hero: {
     badge: '30 дней БЕСПЛАТНО — карта не нужна',
-    title: 'Умная POS-система для вашего',
-    titleHighlight: 'магазина',
-    subtitle: 'Касса. Склад. Налоги. Отчёты. Всё в одном.',
-    desc: 'Работает без интернета. AI анализирует ночью. Попробуйте 30 дней бесплатно.',
+    title: 'POS система и онлайн касса для',
+    titleHighlight: 'магазинов Узбекистана',
+    subtitle: 'Касса. Склад. Soliq.uz. Отчёты. Всё в одном.',
+    desc: 'Работает без интернета. AI анализирует ночью. 30 дней бесплатно. Ташкент, Самарканд, Наманган.',
     cta1: '30 дней бесплатно →',
     cta2: 'Смотреть демо',
     proof1: '30+ магазинов',
@@ -598,8 +598,8 @@ const ru: typeof uz = {
     title: 'Часто задаваемые вопросы',
     items: [
       {
-        question: 'Что такое RAOS?',
-        answer: 'RAOS — умная кассовая система для магазинов. Работает на компьютере, планшете или телефоне. Продажи, склад, отчёты, Soliq.uz — всё в одном месте.',
+        question: 'Что такое RAOS? Это онлайн касса?',
+        answer: 'RAOS — POS система и онлайн касса для магазинов Узбекистана. Работает на компьютере, планшете или телефоне. Продажи, склад, отчёты, интеграция Soliq.uz — всё в одном. Ташкент, Самарканд, Наманган и другие города.',
       },
       {
         question: 'Чем лучше Tizim A?',
@@ -807,10 +807,10 @@ const en: typeof uz = {
   },
   hero: {
     badge: '30 Days FREE — no card required',
-    title: 'The smart POS system for',
-    titleHighlight: 'your store',
-    subtitle: 'Cash register. Inventory. Tax. Reports. All in one.',
-    desc: 'Works even without internet. AI analyses at night. Try free for 30 days.',
+    title: 'POS system & cash register for',
+    titleHighlight: 'Uzbekistan stores',
+    subtitle: 'Cash register. Inventory. Soliq.uz. Reports. All in one.',
+    desc: 'Works offline. AI analyses at night. 30 days free trial. Tashkent, Samarkand, Namangan.',
     cta1: 'Start 30-day free trial →',
     cta2: 'View demo',
     proof1: '30+ stores',
@@ -996,8 +996,8 @@ const en: typeof uz = {
     title: 'Frequently asked questions',
     items: [
       {
-        question: 'What is RAOS?',
-        answer: 'RAOS is a smart POS system for retail stores. It runs on a computer, tablet or phone. Sales, inventory, reports, Soliq.uz — all in one place.',
+        question: 'What is RAOS? Is it a POS system?',
+        answer: 'RAOS is a POS system and cash register software for stores in Uzbekistan. It runs on a computer, tablet or phone. Sales, inventory, reports, Soliq.uz integration — all in one. Tashkent, Samarkand, Namangan and all cities.',
       },
       {
         question: 'How is it better than Tizim A?',
