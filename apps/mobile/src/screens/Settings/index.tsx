@@ -352,7 +352,7 @@ export default function SettingsScreen() {
             iconColor="#059669"
             label={t('settings.printer')}
             subtitle={t('settings.printerSubtitle')}
-            onPress={() => Alert.alert(t('common.comingSoon'))}
+            onPress={() => navigation.navigate('PrinterScreen')}
           />
         </Card>
 

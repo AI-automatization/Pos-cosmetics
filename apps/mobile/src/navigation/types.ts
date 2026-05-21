@@ -100,6 +100,7 @@ export type MoreStackParamList = {
   TasksScreen: undefined;
   TesterScreen: undefined;
   IncomingTransfersScreen: undefined;
+  PrinterScreen: undefined;
 };
 
 export type RootStackParamList = {

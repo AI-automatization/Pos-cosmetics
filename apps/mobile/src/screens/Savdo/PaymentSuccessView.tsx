@@ -1,8 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import SuccessAnimation from './SuccessAnimation';
 import { type PaymentMethod, fmt, METHODS } from './PaymentSheetTypes';
+import { useSunmiPrinter } from '../../hooks/useSunmiPrinter';
+import { type ReceiptData } from '../../services/PrinterService';
+import { useAuthStore } from '../../store/auth.store';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -13,6 +16,9 @@ interface PaymentSuccessViewProps {
   readonly pointsEarned?: number;
   readonly pointsRedeemed?: number;
   readonly newBalance?: number;
+  readonly orderNumber?: number | string;
+  readonly cart?: ReadonlyArray<{ product: { name: string; sellPrice: number }; qty: number }>;
+  readonly receivedAmount?: number;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -29,8 +35,13 @@ export default function PaymentSuccessView({
   pointsEarned,
   pointsRedeemed,
   newBalance,
+  orderNumber,
+  cart,
+  receivedAmount,
 }: PaymentSuccessViewProps) {
   const [seconds, setSeconds] = React.useState(AUTO_DISMISS_SECONDS);
+  const { isAvailable, isPrinting, error: printError, printReceipt } = useSunmiPrinter();
+  const { user } = useAuthStore();
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -47,6 +58,36 @@ export default function PaymentSuccessView({
   }, [onDismiss]);
 
   const cfg = METHODS.find(m => m.key === method) ?? FALLBACK_METHOD;
+
+  const handlePrint = useCallback(async () => {
+    if (!cart || !orderNumber) return;
+    const receiptData: ReceiptData = {
+      companyName: user?.tenant?.name ?? 'RAOS',
+      branchName: user?.tenant?.name,
+      orderNumber,
+      cashierName: user ? `${user.firstName} ${user.lastName}` : undefined,
+      items: cart.map(i => ({
+        name: i.product.name,
+        qty: i.qty,
+        unitPrice: i.product.sellPrice,
+        total: i.product.sellPrice * i.qty,
+      })),
+      subtotal: total,
+      total,
+      paymentMethod: cfg.label,
+      receivedAmount,
+      change: receivedAmount ? receivedAmount - total : undefined,
+      loyaltyPoints: pointsEarned || pointsRedeemed
+        ? {
+            earned: pointsEarned,
+            redeemed: pointsRedeemed,
+            balance: newBalance,
+          }
+        : undefined,
+      date: new Date(),
+    };
+    await printReceipt(receiptData);
+  }, [cart, orderNumber, total, user, cfg, receivedAmount, pointsEarned, pointsRedeemed, newBalance, printReceipt]);
 
   return (
     <View style={styles.container}>
@@ -79,6 +120,27 @@ export default function PaymentSuccessView({
             <Text style={styles.loyaltyBalance}>Jami: {newBalance} ball</Text>
           ) : null}
         </View>
+      ) : null}
+
+      {isAvailable && cart && orderNumber ? (
+        <TouchableOpacity
+          style={[styles.printBtn, isPrinting && styles.printBtnDisabled]}
+          onPress={handlePrint}
+          disabled={isPrinting}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name={isPrinting ? 'hourglass-outline' : 'print-outline'}
+            size={18}
+            color="#FFFFFF"
+          />
+          <Text style={styles.printBtnText}>
+            {isPrinting ? 'Chop etilmoqda...' : 'Chek chop etish'}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+      {printError ? (
+        <Text style={styles.printError}>{printError}</Text>
       ) : null}
 
       <Text style={styles.countdown}>{seconds} soniyada yopiladi</Text>
@@ -147,6 +209,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginTop: 2,
+  },
+  printBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#059669',
+    borderRadius: 12,
+    height: 44,
+    marginTop: 16,
+    paddingHorizontal: 24,
+  },
+  printBtnDisabled: {
+    opacity: 0.6,
+  },
+  printBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  printError: {
+    fontSize: 12,
+    color: '#DC2626',
+    marginTop: 6,
+    textAlign: 'center',
   },
   countdown: {
     fontSize: 12,
