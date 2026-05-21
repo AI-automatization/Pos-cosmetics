@@ -45,7 +45,7 @@ export default function Footer() {
               <ul className="flex flex-col gap-2">
                 <li>
                   <a href="#faq" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
-                    FAQ
+                    {t.nav.faq}
                   </a>
                 </li>
                 <li>

@@ -51,10 +51,7 @@ export default function RegistrationForm() {
       setErrors(newErrors)
       return
     }
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('Registration form data:', form)
-    }
+    // TODO: подключить к API endpoint POST /api/v1/leads или Telegram bot
     setSubmitted(true)
   }
 
@@ -122,6 +119,8 @@ export default function RegistrationForm() {
                 value={form.shopName}
                 onChange={(e) => handleChange('shopName', e.target.value)}
                 placeholder={r.shopNamePlaceholder}
+                maxLength={100}
+                autoComplete="organization"
                 className={clsx(INPUT_CLASS, errors.shopName && 'border-red-500/60')}
               />
               {errors.shopName && (
@@ -154,6 +153,8 @@ export default function RegistrationForm() {
                 value={form.fullName}
                 onChange={(e) => handleChange('fullName', e.target.value)}
                 placeholder={r.fullNamePlaceholder}
+                maxLength={80}
+                autoComplete="name"
                 className={clsx(INPUT_CLASS, errors.fullName && 'border-red-500/60')}
               />
               {errors.fullName && (
@@ -171,6 +172,8 @@ export default function RegistrationForm() {
                 value={form.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 placeholder="+998 90 123 45 67"
+                maxLength={17}
+                autoComplete="tel"
                 className={clsx(INPUT_CLASS, errors.phone && 'border-red-500/60')}
               />
               {errors.phone && (
@@ -189,6 +192,7 @@ export default function RegistrationForm() {
                 value={form.telegram}
                 onChange={(e) => handleChange('telegram', e.target.value)}
                 placeholder="@username"
+                maxLength={40}
                 className={INPUT_CLASS}
               />
             </div>

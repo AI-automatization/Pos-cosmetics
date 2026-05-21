@@ -87,9 +87,9 @@ export default function HeroSection() {
               {/* Tovar qatorlari */}
               <div className="flex flex-col gap-3 mb-5">
                 {[
-                  { name: 'Lancome La Vie Est Belle', qty: '2x', price: '320 000' },
+                  { name: 'Lancome La Vie Est Belle', qty: '1x', price: '320 000' },
                   { name: 'Revlon ColorStay Foundation', qty: '1x', price: '185 000' },
-                  { name: "L'Oreal Elvive Shampoo", qty: '3x', price: '96 000' },
+                  { name: "L'Oreal Elvive Shampoo", qty: '1x', price: '96 000' },
                 ].map((item) => (
                   <div
                     key={item.name}

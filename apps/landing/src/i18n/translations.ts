@@ -47,9 +47,9 @@ const uz = {
         badge: "Tizim A da YO'Q",
       },
       {
-        title: 'Haqiqiy AI (Night Cashier)',
-        description: 'Tunda data tahlil qiladi, ertalab sizga aytadi: qaysi tovar tugayapti, qaysi yaxshi sotilmoqda.',
-        badge: 'Haqiqiy AI',
+        title: 'AI Night Cashier',
+        description: "Tunda data tahlil qiladi, ertalab Telegram ga yozadi: qaysi tovar tugayapti, qaysi yaxshi sotilmoqda. Masalan: 'Tush Maybelline — 2 ta qoldi, buyurtma bering!'",
+        badge: 'Pro rejada',
       },
       {
         title: '30 kun bepul sinov',
@@ -103,7 +103,7 @@ const uz = {
         name: 'Starter',
         description: "Kichik do'kon uchun ideal boshlang'ich",
         features: [
-          '1 filial',
+          '1 filial, 3 kassir',
           'Cheksiz mahsulot',
           'Kassa + sklad',
           'Soliq.uz integratsiya',
@@ -120,10 +120,10 @@ const uz = {
         name: 'Growth',
         description: "O'sib borayotgan biznes uchun",
         features: [
-          '3 filial',
+          '3 filial, 10 kassir',
           "Hammasi Starter da bor",
           'Hisobotlar va analitika',
-          'SMS kampaniya',
+          'Telegram reklama xabarlari',
           'Sodiqlik dasturi',
           "Prioritet qo'llab-quvvatlash",
         ],
@@ -137,11 +137,11 @@ const uz = {
         name: 'Pro',
         description: 'Katta tarmoq va investorlar uchun',
         features: [
-          'Cheksiz filial',
+          'Cheksiz filial va kassir',
           "Hammasi Growth da bor",
           'AI Night Cashier',
           'API kirish',
-          "1C integratsiya",
+          "1C integratsiya (tez kunda)",
           'Shaxsiy menejer',
         ],
         cta: "Biz bilan bog'laning",
@@ -157,7 +157,7 @@ const uz = {
     stats: [
       { value: 30, suffix: '+', label: "do'kon" },
       { value: 10000, suffix: '+', label: 'tranzaksiya/kun' },
-      { value: 99, suffix: '.9%', label: 'uptime' },
+      { value: 24, suffix: '/7', label: "qo'llab-quvvatlash" },
     ],
     items: [
       {
@@ -169,8 +169,8 @@ const uz = {
       {
         name: 'Nilufar Yusupova',
         business: 'Kiyim butigi, Samarqand',
-        text: "3 ta do'konni bitta telefondan ko'raman. Ertalab bir qarashda barcha savdo hisobotini bilaman.",
-        rating: 5,
+        text: "3 ta do'konni bitta telefondan ko'raman. Ertalab bir qarashda barcha savdo hisobotini bilaman. Boshida sozlash biroz qiyin edi, lekin jamoa yordam berdi.",
+        rating: 4,
       },
       {
         name: 'Bobur Rahimov',
@@ -184,6 +184,8 @@ const uz = {
     title: 'Boshqa tizimlar bilan solishtiring',
     subtitle: 'Nega RAOS boshqalardan ustun?',
     featureLabel: 'Xususiyat',
+    competitorA: 'Tizim A',
+    competitorB: 'Tizim B',
     note: "Ma'lumotlar 2026-may holatiga ko'ra. Raqobatchilar narxlari ularning rasmiy saytidan olingan.",
     rows: [
       { feature: "Boshlang'ich narx", raos: "249,000 so'm", billz: "299,000 so'm", yespos: "100,000 so'm" },
@@ -203,7 +205,7 @@ const uz = {
       },
       {
         question: 'Tizim A dan nimasi yaxshi?',
-        answer: "3 asosiy farq: 1) RAOS OFFLINE ishlaydi — Tizim A internet kerak; 2) Soliq.uz integratsiya bepul — Tizim A da yo'q; 3) 74% arzonroq — 249K vs 299K oyiga.",
+        answer: "3 asosiy farq: 1) RAOS OFFLINE ishlaydi — Tizim A internet kerak; 2) Soliq.uz integratsiya bepul — Tizim A da yo'q; 3) Oyiga 50,000 so'm arzon — 249K vs 299K.",
       },
       {
         question: "Internet bo'lmasa qanday ishlaydi?",
@@ -280,6 +282,7 @@ const uz = {
     backHome: 'Bosh sahifaga',
     all: 'Barchasi',
     free: 'Bepul',
+    categoriesLabel: 'kategoriya',
     duration: 'daqiqa',
     steps: 'qadam',
     watch: "Ko'rish",
@@ -442,9 +445,9 @@ const ru: typeof uz = {
         badge: 'НЕТ В Tizim A',
       },
       {
-        title: 'Настоящий AI (Night Cashier)',
-        description: 'Ночью анализирует данные, утром сообщает: какой товар заканчивается, что продаётся лучше.',
-        badge: 'Настоящий AI',
+        title: 'AI Night Cashier',
+        description: "Ночью анализирует данные, утром пишет в Telegram: какой товар заканчивается, что продаётся лучше. Например: 'Тушь Maybelline — осталось 2 шт, закажите!'",
+        badge: 'В тарифе Pro',
       },
       {
         title: '30 дней бесплатно',
@@ -498,7 +501,7 @@ const ru: typeof uz = {
         name: 'Starter',
         description: 'Идеальный старт для небольшого магазина',
         features: [
-          '1 филиал',
+          '1 филиал, 3 кассира',
           'Неограниченно товаров',
           'Касса + склад',
           'Интеграция Soliq.uz',
@@ -515,10 +518,10 @@ const ru: typeof uz = {
         name: 'Growth',
         description: 'Для растущего бизнеса',
         features: [
-          '3 филиала',
+          '3 филиала, 10 кассиров',
           'Всё из Starter',
           'Отчёты и аналитика',
-          'SMS-кампании',
+          'Telegram-рассылка',
           'Программа лояльности',
           'Приоритетная поддержка',
         ],
@@ -532,11 +535,11 @@ const ru: typeof uz = {
         name: 'Pro',
         description: 'Для крупных сетей и инвесторов',
         features: [
-          'Неограниченно филиалов',
+          'Безлимит филиалов и кассиров',
           'Всё из Growth',
           'AI Night Cashier',
           'Доступ к API',
-          'Интеграция 1С',
+          'Интеграция 1С (скоро)',
           'Персональный менеджер',
         ],
         cta: 'Связаться с нами',
@@ -552,7 +555,7 @@ const ru: typeof uz = {
     stats: [
       { value: 30, suffix: '+', label: 'магазинов' },
       { value: 10000, suffix: '+', label: 'транзакций/день' },
-      { value: 99, suffix: '.9%', label: 'аптайм' },
+      { value: 24, suffix: '/7', label: 'поддержка' },
     ],
     items: [
       {
@@ -563,9 +566,9 @@ const ru: typeof uz = {
       },
       {
         name: 'Нилуфар Юсупова',
-        business: 'Магазин одежды, Самарканд',
-        text: 'Смотрю 3 магазина с одного телефона. Утром одним взглядом вижу все отчёты по продажам.',
-        rating: 5,
+        business: 'Бутик одежды, Самарканд',
+        text: 'Смотрю 3 магазина с одного телефона. Утром одним взглядом вижу все отчёты по продажам. Сначала настройка была непростой, но команда помогла.',
+        rating: 4,
       },
       {
         name: 'Бобур Рахимов',
@@ -579,6 +582,8 @@ const ru: typeof uz = {
     title: 'Сравните с другими системами',
     subtitle: 'Почему RAOS лучше остальных?',
     featureLabel: 'Функция',
+    competitorA: 'Система A',
+    competitorB: 'Система B',
     note: 'Данные актуальны на май 2026 г. Цены конкурентов взяты с их официальных сайтов.',
     rows: [
       { feature: 'Начальная цена', raos: '249 000 сум', billz: '299 000 сум', yespos: '100 000 сум' },
@@ -598,7 +603,7 @@ const ru: typeof uz = {
       },
       {
         question: 'Чем лучше Tizim A?',
-        answer: '3 ключевых отличия: 1) RAOS работает OFFLINE — Tizim A требует интернет; 2) Интеграция Soliq.uz бесплатна — в Tizim A её нет; 3) На 74% дешевле — 249K против 299K в месяц.',
+        answer: '3 ключевых отличия: 1) RAOS работает OFFLINE — Система A требует интернет; 2) Интеграция Soliq.uz бесплатна — в Системе A её нет; 3) На 50 000 сум дешевле в месяц — 249K против 299K.',
       },
       {
         question: 'Как работает без интернета?',
@@ -675,6 +680,7 @@ const ru: typeof uz = {
     backHome: 'На главную',
     all: 'Все',
     free: 'Бесплатно',
+    categoriesLabel: 'категорий',
     duration: 'мин',
     steps: 'шагов',
     watch: 'Смотреть',
@@ -837,9 +843,9 @@ const en: typeof uz = {
         badge: 'NOT IN Tizim A',
       },
       {
-        title: 'Real AI (Night Cashier)',
-        description: 'Analyses data overnight, tells you in the morning: which items are running out, which sell best.',
-        badge: 'Real AI',
+        title: 'AI Night Cashier',
+        description: "Analyses data overnight, sends you a Telegram message in the morning: which items are running out, which sell best. E.g.: 'Maybelline mascara — 2 left, reorder!'",
+        badge: 'Pro plan',
       },
       {
         title: '30-day free trial',
@@ -893,7 +899,7 @@ const en: typeof uz = {
         name: 'Starter',
         description: 'Ideal starting point for a small store',
         features: [
-          '1 branch',
+          '1 branch, 3 cashiers',
           'Unlimited products',
           'POS + inventory',
           'Soliq.uz integration',
@@ -910,10 +916,10 @@ const en: typeof uz = {
         name: 'Growth',
         description: 'For a growing business',
         features: [
-          '3 branches',
+          '3 branches, 10 cashiers',
           'Everything in Starter',
           'Reports & analytics',
-          'SMS campaigns',
+          'Telegram broadcast',
           'Loyalty programme',
           'Priority support',
         ],
@@ -927,11 +933,11 @@ const en: typeof uz = {
         name: 'Pro',
         description: 'For large networks and investors',
         features: [
-          'Unlimited branches',
+          'Unlimited branches & cashiers',
           'Everything in Growth',
           'AI Night Cashier',
           'API access',
-          '1C integration',
+          '1C integration (coming soon)',
           'Dedicated manager',
         ],
         cta: 'Contact us',
@@ -947,7 +953,7 @@ const en: typeof uz = {
     stats: [
       { value: 30, suffix: '+', label: 'stores' },
       { value: 10000, suffix: '+', label: 'transactions/day' },
-      { value: 99, suffix: '.9%', label: 'uptime' },
+      { value: 24, suffix: '/7', label: 'support' },
     ],
     items: [
       {
@@ -959,8 +965,8 @@ const en: typeof uz = {
       {
         name: 'Nilufar Yusupova',
         business: 'Clothing boutique, Samarkand',
-        text: 'I manage 3 stores from one phone. Every morning I see all sales reports at a glance.',
-        rating: 5,
+        text: 'I manage 3 stores from one phone. Every morning I see all sales reports at a glance. Setup was a bit tricky at first, but the team helped.',
+        rating: 4,
       },
       {
         name: 'Bobur Rahimov',
@@ -974,6 +980,8 @@ const en: typeof uz = {
     title: 'Compare with other systems',
     subtitle: 'Why is RAOS better than the rest?',
     featureLabel: 'Feature',
+    competitorA: 'System A',
+    competitorB: 'System B',
     note: 'Data as of May 2026. Competitor prices sourced from their official websites.',
     rows: [
       { feature: 'Starting price', raos: '249,000 sum', billz: '299,000 sum', yespos: '100,000 sum' },
@@ -993,7 +1001,7 @@ const en: typeof uz = {
       },
       {
         question: 'How is it better than Tizim A?',
-        answer: '3 key differences: 1) RAOS works OFFLINE — Tizim A needs internet; 2) Soliq.uz integration is free — not available in Tizim A; 3) 74% cheaper — 249K vs 299K per month.',
+        answer: '3 key differences: 1) RAOS works OFFLINE — System A needs internet; 2) Soliq.uz integration is free — not available in System A; 3) Save 50,000 sum/month — 249K vs 299K.',
       },
       {
         question: 'How does it work without internet?',
@@ -1070,6 +1078,7 @@ const en: typeof uz = {
     backHome: 'Back to home',
     all: 'All',
     free: 'Free',
+    categoriesLabel: 'categories',
     duration: 'min',
     steps: 'steps',
     watch: 'Watch',

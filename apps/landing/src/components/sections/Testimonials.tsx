@@ -15,18 +15,16 @@ function useCountUp(target: number, duration = 1500, active: boolean) {
       setCount(0)
       return
     }
-    let start = 0
-    const step = target / (duration / 16)
-    const timer = setInterval(() => {
-      start += step
-      if (start >= target) {
-        setCount(target)
-        clearInterval(timer)
-      } else {
-        setCount(Math.floor(start))
-      }
-    }, 16)
-    return () => clearInterval(timer)
+    const startTime = performance.now()
+    let rafId: number
+    const animate = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      setCount(Math.floor(target * progress))
+      if (progress < 1) rafId = requestAnimationFrame(animate)
+    }
+    rafId = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(rafId)
   }, [target, duration, active])
   return count
 }
@@ -99,7 +97,7 @@ function StatItem({ stat, active }: { stat: StatItem; active: boolean }) {
   const count = useCountUp(stat.value, 1500, active)
   return (
     <div className="text-center">
-      <p className="text-[#24D4F4] font-bold text-4xl">
+      <p className="text-[#24D4F4] font-bold text-4xl tabular-nums">
         {count.toLocaleString('uz-UZ')}
         {stat.suffix}
       </p>

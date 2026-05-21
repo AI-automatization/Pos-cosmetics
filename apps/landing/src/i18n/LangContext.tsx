@@ -23,6 +23,10 @@ export function LangProvider({ children }: { children: ReactNode }) {
     if (saved && saved in translations) setLangState(saved)
   }, [])
 
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
+
   const setLang = (l: Lang) => {
     setLangState(l)
     localStorage.setItem('raos_lang', l)

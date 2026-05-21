@@ -135,7 +135,7 @@ export default function Header() {
           <div className="md:hidden flex items-center gap-2">
             <LangDropdown size="sm" />
             <button
-              className="text-slate-300 hover:text-[#24D4F4] transition-colors p-1"
+              className="text-slate-300 hover:text-[#24D4F4] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={t.nav.menu}
             >

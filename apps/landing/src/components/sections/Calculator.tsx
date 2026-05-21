@@ -4,8 +4,8 @@ import { useState, useMemo } from 'react'
 import { useLang } from '@/i18n/LangContext'
 
 const BRANCH_COST: Record<string, number> = {
-  a:     5_400_000,
-  b:     3_600_000,
+  a:     3_588_000,
+  b:     1_200_000,
   smart: 2_400_000,
   other: 1_800_000,
   none:  0,
@@ -23,7 +23,7 @@ const POS_KEYS = ['a', 'b', 'smart', 'other', 'none'] as const
 type PosKey = typeof POS_KEYS[number]
 
 function getRaosYearly(branches: number): number {
-  const monthly = branches <= 1 ? 249_000 : branches <= 3 ? 399_000 : 799_000
+  const monthly = branches <= 1 ? 249_000 : branches <= 3 ? 449_000 : 799_000
   return monthly * 12
 }
 

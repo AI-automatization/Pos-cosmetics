@@ -5,7 +5,7 @@ import ScrollProgress from '@/components/ScrollProgress'
 import { LangProvider } from '@/i18n/LangContext'
 import JsonLd from '@/components/JsonLd'
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' })
+const inter = Inter({ subsets: ['latin', 'cyrillic'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: {
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     canonical: '/',
     languages: {
       'uz': '/',
-      'ru': '/',
-      'en': '/',
+      'ru': '/?lang=ru',
+      'en': '/?lang=en',
     },
   },
   openGraph: {
@@ -66,9 +66,7 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
-  verification: {
-    google: 'google-site-verification-token',
-  },
+  // verification: { google: 'REAL_TOKEN_HERE' }, // TODO: получить реальный токен из Google Search Console
 }
 
 export default function RootLayout({

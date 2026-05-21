@@ -135,7 +135,7 @@ export const faqItems: FAQItem[] = [
   {
     question: 'Tizim A dan nimasi yaxshi?',
     answer:
-      "3 asosiy farq: 1) RAOS OFFLINE ishlaydi — Tizim A internet kerak; 2) Soliq.uz integratsiya bepul — Tizim A da yo'q; 3) 74% arzonroq — 249K vs 299K oyiga.",
+      "3 asosiy farq: 1) RAOS OFFLINE ishlaydi — Tizim A internet kerak; 2) Soliq.uz integratsiya bepul — Tizim A da yo'q; 3) Oyiga 50,000 so'm arzon — 249K vs 299K.",
   },
   {
     question: "Internet bo'lmasa qanday ishlaydi?",

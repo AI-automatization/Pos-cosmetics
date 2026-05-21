@@ -53,7 +53,7 @@ export default function TutorialsClient() {
               {[
                 { value: tr.items.length, label: tr.all },
                 { value: tr.items.filter((i) => i.free).length, label: tr.free },
-                { value: tr.categories.length, label: 'categories' },
+                { value: tr.categories.length, label: tr.categoriesLabel },
               ].map((stat, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <span className="text-[#24D4F4] font-bold text-2xl">{stat.value}</span>

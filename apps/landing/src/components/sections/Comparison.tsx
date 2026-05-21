@@ -26,8 +26,8 @@ export default function Comparison() {
                 <th className="py-4 px-6 text-center font-bold text-base bg-[#24D4F4]/10 text-[#24D4F4]">
                   RAOS
                 </th>
-                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">Tizim A</th>
-                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">Tizim B</th>
+                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">{t.comparison.competitorA ?? 'Tizim A'}</th>
+                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">{t.comparison.competitorB ?? 'Tizim B'}</th>
               </tr>
             </thead>
             <tbody>
