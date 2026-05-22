@@ -2,6 +2,7 @@ import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TaxService } from './tax.service';
+import { FiscalAdapterService } from './fiscal-adapter.service';
 import { Roles } from '../common/decorators/roles.decorator';
 
 @ApiTags('Tax / Fiscal')
@@ -9,7 +10,10 @@ import { Roles } from '../common/decorators/roles.decorator';
 @Roles('OWNER', 'ADMIN', 'MANAGER')
 @Controller('tax')
 export class TaxController {
-  constructor(private readonly taxService: TaxService) {}
+  constructor(
+    private readonly taxService: TaxService,
+    private readonly fiscalAdapter: FiscalAdapterService,
+  ) {}
 
   @Get('report')
   @ApiOperation({ summary: 'Davriy QQS (NDS) hisoboti — 12% VAT' })
@@ -39,5 +43,11 @@ export class TaxController {
     @Param('orderId') orderId: string,
   ) {
     return this.taxService.retryFiscal(tenantId, orderId);
+  }
+
+  @Get('fiscal/provider')
+  @ApiOperation({ summary: 'Hozirgi OFD provider nomi (REGOS yoki STUB)' })
+  getProvider() {
+    return { provider: this.fiscalAdapter.provider };
   }
 }
