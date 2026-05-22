@@ -4,17 +4,17 @@ import { useEffect, useRef, useState } from 'react'
 import { Star } from 'lucide-react'
 import { useLang } from '@/i18n/LangContext'
 import type { Translations } from '@/i18n/translations'
+import { formatNumber } from '@/lib/format'
 
 type StatItem = Translations['testimonials']['stats'][number]
 type TestimonialItem = Translations['testimonials']['items'][number]
 
 function useCountUp(target: number, duration = 1500, active: boolean) {
   const [count, setCount] = useState(0)
+  const doneRef = useRef(false)
   useEffect(() => {
-    if (!active) {
-      setCount(0)
-      return
-    }
+    if (!active || doneRef.current) return
+    doneRef.current = true
     const startTime = performance.now()
     let rafId: number
     const animate = (now: number) => {
@@ -58,12 +58,11 @@ export default function Testimonials() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('visible')
-          } else {
-            entry.target.classList.remove('visible')
+            observer.unobserve(entry.target)
           }
         })
       },
-      { threshold: 0.1 },
+      { threshold: 0.05 },
     )
     elements.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
@@ -98,10 +97,10 @@ function StatItem({ stat, active }: { stat: StatItem; active: boolean }) {
   return (
     <div className="text-center">
       <p className="text-[#24D4F4] font-bold text-4xl tabular-nums">
-        {count.toLocaleString('uz-UZ')}
+        {formatNumber(count)}
         {stat.suffix}
       </p>
-      <p className="text-slate-400 text-sm mt-1">{stat.label}</p>
+      <p className="text-slate-300 text-sm mt-1">{stat.label}</p>
     </div>
   )
 }

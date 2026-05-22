@@ -442,7 +442,7 @@ const ru: typeof uz = {
       {
         title: 'Интеграция Soliq.uz',
         description: 'Фискальный чек автоматически при каждой продаже. Нулевой риск штрафа. Напрямую через ОФД.',
-        badge: 'НЕТ В Tizim A',
+        badge: 'НЕТ В Системе A',
       },
       {
         title: 'AI Night Cashier',
@@ -602,7 +602,7 @@ const ru: typeof uz = {
         answer: 'RAOS — POS система и онлайн касса для магазинов Узбекистана. Работает на компьютере, планшете или телефоне. Продажи, склад, отчёты, интеграция Soliq.uz — всё в одном. Ташкент, Самарканд, Наманган и другие города.',
       },
       {
-        question: 'Чем лучше Tizim A?',
+        question: 'Чем лучше Система A?',
         answer: '3 ключевых отличия: 1) RAOS работает OFFLINE — Система A требует интернет; 2) Интеграция Soliq.uz бесплатна — в Системе A её нет; 3) На 50 000 сум дешевле в месяц — 249K против 299K.',
       },
       {
@@ -840,7 +840,7 @@ const en: typeof uz = {
       {
         title: 'Soliq.uz integration',
         description: 'Fiscal receipt generated automatically with every sale. Zero penalty risk. Directly through OFD.',
-        badge: 'NOT IN Tizim A',
+        badge: 'NOT IN System A',
       },
       {
         title: 'AI Night Cashier',
@@ -1000,7 +1000,7 @@ const en: typeof uz = {
         answer: 'RAOS is a POS system and cash register software for stores in Uzbekistan. It runs on a computer, tablet or phone. Sales, inventory, reports, Soliq.uz integration — all in one. Tashkent, Samarkand, Namangan and all cities.',
       },
       {
-        question: 'How is it better than Tizim A?',
+        question: 'How is it better than System A?',
         answer: '3 key differences: 1) RAOS works OFFLINE — System A needs internet; 2) Soliq.uz integration is free — not available in System A; 3) Save 50,000 sum/month — 249K vs 299K.',
       },
       {

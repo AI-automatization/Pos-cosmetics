@@ -5,6 +5,7 @@ import { Check } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useLang } from '@/i18n/LangContext'
 import type { Translations } from '@/i18n/translations'
+import { formatNumber } from '@/lib/format'
 
 type Plan = Translations['pricing']['plans'][number]
 
@@ -76,7 +77,7 @@ function PricingCard({
   perMonth: string
 }) {
   const price = isYearly ? plan.yearlyPrice : plan.price
-  const formattedPrice = price.toLocaleString('uz-UZ')
+  const formattedPrice = formatNumber(price)
 
   const cardContent = (
     <div
@@ -105,7 +106,7 @@ function PricingCard({
         </div>
         {isYearly && (
           <p className="text-slate-500 text-xs mt-1 line-through">
-            {plan.price.toLocaleString('uz-UZ')} {perMonth}
+            {formatNumber(plan.price)} {perMonth}
           </p>
         )}
       </div>

@@ -30,6 +30,7 @@ export default function RegistrationForm() {
     telegram: '',
   })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({})
 
   const validate = () => {
@@ -44,15 +45,24 @@ export default function RegistrationForm() {
     return newErrors
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const newErrors = validate()
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
     }
-    // TODO: подключить к API endpoint POST /api/v1/leads или Telegram bot
-    setSubmitted(true)
+    setLoading(true)
+    try {
+      await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+    } finally {
+      setLoading(false)
+      setSubmitted(true)
+    }
   }
 
   const handleChange = (field: keyof FormData, value: string | number) => {
@@ -92,10 +102,12 @@ export default function RegistrationForm() {
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
             {/* Do'kon turi */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="shopType" className="block text-sm font-medium text-slate-300 mb-2">
                 {r.shopTypeLabel}
               </label>
               <select
+                id="shopType"
+                name="shopType"
                 value={form.shopType}
                 onChange={(e) => handleChange('shopType', e.target.value)}
                 className={clsx(INPUT_CLASS, 'appearance-none')}
@@ -111,10 +123,12 @@ export default function RegistrationForm() {
 
             {/* Do'kon nomi */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="shopName" className="block text-sm font-medium text-slate-300 mb-2">
                 {r.shopNameLabel} <span className="text-[#24D4F4]">*</span>
               </label>
               <input
+                id="shopName"
+                name="shopName"
                 type="text"
                 value={form.shopName}
                 onChange={(e) => handleChange('shopName', e.target.value)}
@@ -130,10 +144,12 @@ export default function RegistrationForm() {
 
             {/* Filiallar soni */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="branches" className="block text-sm font-medium text-slate-300 mb-2">
                 {r.branchesLabel}
               </label>
               <input
+                id="branches"
+                name="branches"
                 type="number"
                 min={1}
                 max={100}
@@ -145,10 +161,12 @@ export default function RegistrationForm() {
 
             {/* Ism */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
                 {r.fullNameLabel} <span className="text-[#24D4F4]">*</span>
               </label>
               <input
+                id="fullName"
+                name="fullName"
                 type="text"
                 value={form.fullName}
                 onChange={(e) => handleChange('fullName', e.target.value)}
@@ -164,10 +182,12 @@ export default function RegistrationForm() {
 
             {/* Telefon */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
                 {r.phoneLabel} <span className="text-[#24D4F4]">*</span>
               </label>
               <input
+                id="phone"
+                name="phone"
                 type="tel"
                 value={form.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
@@ -183,11 +203,13 @@ export default function RegistrationForm() {
 
             {/* Telegram */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="telegram" className="block text-sm font-medium text-slate-300 mb-2">
                 {r.telegramLabel}{' '}
                 <span className="text-slate-500 text-xs font-normal">{r.optional}</span>
               </label>
               <input
+                id="telegram"
+                name="telegram"
                 type="text"
                 value={form.telegram}
                 onChange={(e) => handleChange('telegram', e.target.value)}
@@ -200,10 +222,11 @@ export default function RegistrationForm() {
             {/* Submit */}
             <button
               type="submit"
-              className="mt-2 w-full flex items-center justify-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold py-4 rounded-xl hover:bg-[#0FA8C8] transition-colors text-base"
+              disabled={loading}
+              className="mt-2 w-full flex items-center justify-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold py-4 rounded-xl hover:bg-[#0FA8C8] transition-colors text-base disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <Send size={18} />
-              {r.submit}
+              {loading ? '...' : r.submit}
             </button>
           </form>
         </div>
