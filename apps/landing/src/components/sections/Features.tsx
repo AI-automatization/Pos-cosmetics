@@ -37,7 +37,7 @@ export default function Features() {
           <p className="text-slate-300 mt-3 text-base">{t.features.subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
           {t.features.items.map((feature, idx) => {
             const Icon = ICONS[idx] ?? ShieldCheck
             const animClass = idx % 2 === 0 ? 'slide-left' : 'slide-right'
