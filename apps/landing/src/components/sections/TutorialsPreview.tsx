@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Play, Clock, ArrowRight } from 'lucide-react'
 import { useLang } from '@/i18n/LangContext'
 import VideoModal from '@/components/VideoModal'
 
-// Haqiqiy video ID lar tayyor bo'lgach shu yerga qo'shing
 const VIDEO_IDS: Record<number, string | null> = {
   0: null,
   1: null,
@@ -13,25 +12,46 @@ const VIDEO_IDS: Record<number, string | null> = {
 }
 
 export default function TutorialsPreview() {
+  const sectionRef = useRef<HTMLElement>(null)
   const { t } = useLang()
   const tr = t.tutorials
   const [modal, setModal] = useState<{ title: string; videoId: string | null } | null>(null)
 
   const preview = tr.items.filter((item) => item.free).slice(0, 3)
 
+  useEffect(() => {
+    const elements = sectionRef.current?.querySelectorAll('.fade-up, .slide-left, .slide-right')
+    if (!elements) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible')
+          } else {
+            entry.target.classList.remove('visible')
+          }
+        })
+      },
+      { threshold: 0.1 },
+    )
+    elements.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section className="bg-[#0E1530] py-20">
+    <section ref={sectionRef} className="bg-[#0E1530] py-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Sarlavha */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
-          <div>
+          <div className="fade-up">
             <h2 className="text-3xl sm:text-4xl font-bold text-white">{tr.pageTitle}</h2>
             <p className="text-slate-400 mt-3 text-base">{tr.pageSubtitle}</p>
           </div>
           <a
             href="/tutorials"
-            className="inline-flex items-center gap-2 text-[#24D4F4] font-semibold text-sm hover:gap-3 transition-all shrink-0"
+            className="slide-right inline-flex items-center gap-2 text-[#24D4F4] font-semibold text-sm hover:gap-3 transition-all shrink-0"
+            style={{ animationDelay: '0.2s' }}
           >
             {tr.all} <ArrowRight size={16} />
           </a>
@@ -43,7 +63,8 @@ export default function TutorialsPreview() {
             <button
               key={idx}
               onClick={() => setModal({ title: item.title, videoId: VIDEO_IDS[idx] ?? null })}
-              className="glass rounded-2xl overflow-hidden group hover:border-[#24D4F4]/40 hover:shadow-[0_0_24px_rgba(36,212,244,0.12)] transition-all duration-300 text-left"
+              className="fade-up glass rounded-2xl overflow-hidden group hover:border-[#24D4F4]/40 hover:shadow-[0_0_24px_rgba(36,212,244,0.12)] transition-all duration-300 text-left"
+              style={{ animationDelay: `${0.1 + idx * 0.15}s` }}
             >
               {/* Thumbnail */}
               <div className="relative bg-gradient-to-br from-[#112F4B] to-[#0a1228] h-36 flex items-center justify-center overflow-hidden">
@@ -81,7 +102,7 @@ export default function TutorialsPreview() {
         </div>
 
         {/* CTA */}
-        <div className="text-center">
+        <div className="text-center fade-up" style={{ animationDelay: '0.45s' }}>
           <a
             href="/tutorials"
             className="inline-flex items-center gap-2 border border-[#24D4F4]/40 text-white font-semibold px-8 py-3.5 rounded-xl hover:border-[#24D4F4] hover:bg-[#24D4F4]/5 transition-all text-sm"
@@ -91,7 +112,6 @@ export default function TutorialsPreview() {
         </div>
       </div>
 
-      {/* Video modal */}
       {modal && (
         <VideoModal
           title={modal.title}
