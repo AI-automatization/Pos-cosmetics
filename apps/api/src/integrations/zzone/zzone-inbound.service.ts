@@ -160,9 +160,9 @@ export class ZzoneInboundService {
   async createOrderFromZzone(data: CreateZzoneOrderDto) {
     const sellerId = data.sellerId;
 
-    // Idempotency: check by zzoneOrderId in notes (tenant-scoped)
+    // Idempotency: check by zzoneOrderId (tenant-scoped, exact prefix match with delimiter)
     const existing = await this.prisma.order.findFirst({
-      where: { tenantId: sellerId, origin: 'ZZONE', notes: { contains: `ZZone #${data.orderNumber}` } },
+      where: { tenantId: sellerId, origin: 'ZZONE', notes: { startsWith: `ZZone #${data.orderNumber} |` } },
       select: { id: true },
     });
     if (existing) {
