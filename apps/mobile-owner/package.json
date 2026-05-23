@@ -37,7 +37,7 @@
     "react-native-screens": "^4.23.0",
     "react-native-svg": "15.15.3",
     "victory-native": "36",
-    "zustand": "^4"
+    "zustand": "^5"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
