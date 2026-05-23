@@ -1,11 +1,8 @@
 import { apiClient } from './client';
 import { ENDPOINTS } from '../config/endpoints';
+import type { ServiceStatus, SystemError } from '@raos/types';
 
-export interface ServiceStatus {
-  readonly status: 'healthy' | 'degraded' | 'error';
-  readonly responseMs?: number;
-  readonly message?: string;
-}
+export type { ServiceStatus, SystemError } from '@raos/types';
 
 export interface BranchSyncStatus {
   readonly branchId: string;
@@ -13,14 +10,6 @@ export interface BranchSyncStatus {
   readonly status: 'synced' | 'pending' | 'offline' | 'error';
   readonly lastSyncAt: string;
   readonly pendingItems: number;
-}
-
-export interface SystemError {
-  readonly id: string;
-  readonly level: 'error' | 'warn' | 'info';
-  readonly message: string;
-  readonly occurredAt: string;
-  readonly service: string;
 }
 
 export interface SystemHealth {

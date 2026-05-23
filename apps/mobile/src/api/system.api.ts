@@ -1,10 +1,7 @@
 import { api } from './client';
+import type { ServiceStatus, SystemError } from '@raos/types';
 
-export interface ServiceStatus {
-  status: 'healthy' | 'degraded' | 'error';
-  responseMs?: number;
-  message?: string;
-}
+export type { ServiceStatus, SystemError } from '@raos/types';
 
 export interface SystemHealth {
   apiStatus: ServiceStatus;
@@ -12,14 +9,6 @@ export interface SystemHealth {
   workerStatus: ServiceStatus;
   fiscalStatus: ServiceStatus;
   uptime: number;
-}
-
-export interface SystemError {
-  id: string;
-  level: 'error' | 'warn' | 'info';
-  message: string;
-  occurredAt: string;
-  service: string;
 }
 
 // Backend response types
