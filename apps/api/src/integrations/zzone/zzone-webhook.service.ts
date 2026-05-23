@@ -24,46 +24,35 @@ export class ZzoneWebhookService {
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
   ) {
-    this.webhookUrl = this.config.get<string>('ZZONE_WEBHOOK_URL', 'https://api.zzone.uz/api/raos/webhook');
+    this.webhookUrl = this.config.get<string>('ZZONE_WEBHOOK_URL', '');
     this.webhookSecret = this.config.get<string>('ZZONE_WEBHOOK_SECRET', '');
     if (!this.webhookSecret) {
       this.logger.warn('ZZONE_WEBHOOK_SECRET not set — webhooks disabled');
     }
+    if (!this.webhookUrl) {
+      this.logger.warn('ZZONE_WEBHOOK_URL not set — webhooks disabled');
+    }
   }
 
   async sendOrderStatusChanged(orderId: string, status: string, sellerId: string): Promise<void> {
-    await this.send('order_status_changed', {
-      orderId,
-      sellerId,
-      status,
-    });
+    await this.send('order_status_changed', { orderId, sellerId, status });
   }
 
   async sendStockUpdated(productId: string, sellerId: string, stock: number): Promise<void> {
-    await this.send('stock_updated', {
-      productId,
-      sellerId,
-      stock,
-    });
+    await this.send('stock_updated', { productId, sellerId, stock });
   }
 
   async sendProductSynced(productId: string, sellerId: string, action: 'created' | 'updated' | 'deleted'): Promise<void> {
-    await this.send('product_synced', {
-      productId,
-      sellerId,
-      action,
-    });
+    await this.send('product_synced', { productId, sellerId, action });
   }
 
   async sendSellerDeactivated(sellerId: string): Promise<void> {
-    await this.send('seller_deactivated', {
-      sellerId,
-    });
+    await this.send('seller_deactivated', { sellerId });
   }
 
   private async send(event: WebhookEventType, data: Record<string, unknown>): Promise<void> {
-    if (!this.webhookSecret) {
-      this.logger.debug(`[Webhook] Skipped ${event} — no secret configured`);
+    if (!this.webhookSecret || !this.webhookUrl) {
+      this.logger.debug(`[Webhook] Skipped ${event} — not configured`);
       return;
     }
 
@@ -87,7 +76,6 @@ export class ZzoneWebhookService {
       if (!response.ok) {
         const body = await response.text().catch(() => '');
         this.logger.warn(`[Webhook] ${event} failed: ${response.status}`, { body });
-        // Store failed webhook for retry
         await this.storeFailedWebhook(payload, response.status);
         return;
       }
@@ -105,15 +93,14 @@ export class ZzoneWebhookService {
         data: {
           provider: 'ZZONE',
           event: payload.event,
-          payload: JSON.parse(JSON.stringify(payload)),
+          payload: payload as unknown as Parameters<typeof this.prisma.webhookLog.create>[0]['data']['payload'],
           statusCode,
           success: false,
           retriesLeft: 3,
         },
       });
-    } catch {
-      // webhookLog table may not exist yet — silently skip
-      this.logger.debug('[Webhook] Could not store failed webhook — table may not exist');
+    } catch (err) {
+      this.logger.error(`[Webhook] Failed to store webhook log: ${(err as Error).message}`);
     }
   }
 }

@@ -2130,6 +2130,7 @@ model IntegrationConfig {
 
 model WebhookLog {
   id          String   @id @default(uuid())
+  tenantId    String?  @map("tenant_id")
   provider    String   // ZZONE
   event       String   // order_status_changed, stock_updated, product_synced, seller_deactivated
   payload     Json     @default("{}")
@@ -2140,7 +2141,8 @@ model WebhookLog {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  @@index([provider, success])
+  @@index([provider, success, retriesLeft])
+  @@index([tenantId])
   @@index([createdAt])
   @@map("webhook_logs")
 }

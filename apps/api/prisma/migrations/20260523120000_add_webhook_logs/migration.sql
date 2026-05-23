@@ -1,6 +1,7 @@
 -- CreateTable
 CREATE TABLE "webhook_logs" (
     "id" TEXT NOT NULL,
+    "tenant_id" TEXT,
     "provider" TEXT NOT NULL,
     "event" TEXT NOT NULL,
     "payload" JSONB NOT NULL DEFAULT '{}',
@@ -15,7 +16,10 @@ CREATE TABLE "webhook_logs" (
 );
 
 -- CreateIndex
-CREATE INDEX "webhook_logs_provider_success_idx" ON "webhook_logs"("provider", "success");
+CREATE INDEX "webhook_logs_provider_success_retries_left_idx" ON "webhook_logs"("provider", "success", "retries_left");
+
+-- CreateIndex
+CREATE INDEX "webhook_logs_tenant_id_idx" ON "webhook_logs"("tenant_id");
 
 -- CreateIndex
 CREATE INDEX "webhook_logs_created_at_idx" ON "webhook_logs"("created_at");
