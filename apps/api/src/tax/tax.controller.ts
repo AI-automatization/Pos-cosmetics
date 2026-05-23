@@ -4,6 +4,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TaxService } from './tax.service';
 import { FiscalAdapterService } from './fiscal-adapter.service';
 import { Roles } from '../common/decorators/roles.decorator';
+import { ReceiptTemplateService } from './receipt-template.service';
 
 @ApiTags('Tax / Fiscal')
 @ApiBearerAuth()
@@ -13,6 +14,7 @@ export class TaxController {
   constructor(
     private readonly taxService: TaxService,
     private readonly fiscalAdapter: FiscalAdapterService,
+    private readonly receiptTemplateService: ReceiptTemplateService,
   ) {}
 
   @Get('report')
@@ -51,5 +53,25 @@ export class TaxController {
     @Param('orderId') orderId: string,
   ) {
     return this.taxService.retryFiscal(tenantId, orderId);
+  }
+
+  // ─── RECEIPT TEMPLATE (M-6) ─────────────────────────────────────────────────
+
+  @Get('receipt/:orderId')
+  @ApiOperation({ summary: 'Chek ma\'lumotlari (JSON) — VMQ 943 format' })
+  getReceiptData(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('orderId') orderId: string,
+  ) {
+    return this.receiptTemplateService.getReceiptData(tenantId, orderId);
+  }
+
+  @Get('receipt/:orderId/text')
+  @ApiOperation({ summary: 'Chek text format (POS printer uchun)' })
+  getReceiptText(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('orderId') orderId: string,
+  ) {
+    return this.receiptTemplateService.getReceiptText(tenantId, orderId);
   }
 }
