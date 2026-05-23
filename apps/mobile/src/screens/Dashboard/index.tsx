@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   RefreshControl,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -34,13 +33,14 @@ import SmenaOpenSheet from '../Smena/SmenaOpenSheet';
 import SmenaCloseSheet from '../Smena/SmenaCloseSheet';
 import { useAuthStore } from '../../store/auth.store';
 import { getRoleLevel } from '../../utils/roles';
+import QuickAction from './QuickAction';
+import { getActionsForRole } from './quickActions';
+import { styles, PRIMARY } from './styles';
 
 type DashboardNavProp = CompositeNavigationProp<
   NativeStackNavigationProp<DashboardStackParamList>,
   BottomTabNavigationProp<TabParamList>
 >;
-
-const PRIMARY = '#2563EB';
 
 function formatUzbekDate(): string {
   const now = new Date();
@@ -50,29 +50,6 @@ function formatUzbekDate(): string {
   ];
   const days = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
   return `${now.getDate()} ${months[now.getMonth()]}, ${now.getFullYear()}, ${days[now.getDay()]}`;
-}
-
-interface QuickActionProps {
-  readonly icon: React.ComponentProps<typeof Ionicons>['name'];
-  readonly label: string;
-  readonly color: string;
-  readonly bg: string;
-  readonly onPress: () => void;
-}
-
-function QuickAction({ icon, label, color, bg, onPress }: QuickActionProps) {
-  return (
-    <TouchableOpacity
-      style={[styles.quickCard, { backgroundColor: bg }]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View style={[styles.quickIconCircle, { backgroundColor: color + '20' }]}>
-        <Ionicons name={icon} size={24} color={color} />
-      </View>
-      <Text style={[styles.quickLabel, { color }]}>{label}</Text>
-    </TouchableOpacity>
-  );
 }
 
 export default function DashboardScreen() {
@@ -102,6 +79,7 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(false);
   const [openSheetVisible, setOpenSheetVisible] = useState(false);
   const [closeSheetVisible, setCloseSheetVisible] = useState(false);
+
   // Badge — React Query bilan auto-refresh (30 soniya)
   const { data: activeAlerts, refetch: refetchAlerts } = useQuery({
     queryKey: ['alerts-active'],
@@ -125,7 +103,13 @@ export default function DashboardScreen() {
   const products = topProducts.data ?? [];
   const lowStockItems = lowStock.data ?? [];
 
-  const handleOpenConfirm = (openingCash: number) => {
+  // Quick actions — rolga qarab
+  const quickActions = useMemo(
+    () => getActionsForRole(user?.role, isOwnerAdmin),
+    [user?.role, isOwnerAdmin],
+  );
+
+  const handleOpenConfirm = useCallback((openingCash: number) => {
     setLoading(true);
     openShift(openingCash)
       .then(() => {
@@ -140,7 +124,6 @@ export default function DashboardScreen() {
           const serverMsg = resp?.data?.error?.message ?? resp?.data?.message;
           if (serverMsg) {
             msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
-            // Agar allaqachon ochiq smena bo'lsa — syncWithApi bilan holatni yangilash
             if (msg.includes('already has an open shift')) {
               msg = 'Sizda allaqachon ochiq smena mavjud';
               void syncWithApi();
@@ -152,9 +135,9 @@ export default function DashboardScreen() {
         Alert.alert('Xatolik', msg);
       })
       .finally(() => setLoading(false));
-  };
+  }, [openShift, refetchAll, syncWithApi]);
 
-  const handleCloseConfirm = async (actualCash: number) => {
+  const handleCloseConfirm = useCallback(async (actualCash: number) => {
     setLoading(true);
     try {
       await closeShift(actualCash);
@@ -166,7 +149,7 @@ export default function DashboardScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [closeShift, refetchAll]);
 
   if (isLoading) {
     return (
@@ -333,162 +316,20 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tez harakatlar</Text>
           <View style={styles.quickGrid}>
-            {isOwnerAdmin ? (
-              <>
-                <QuickAction
-                  icon="bar-chart-outline"
-                  label="Analitika"
-                  color="#2563EB"
-                  bg="#EFF6FF"
-                  onPress={() => navigation.navigate('Analytics')}
-                />
-                <QuickAction
-                  icon="trending-up-outline"
-                  label="Moliya"
-                  color="#16A34A"
-                  bg="#F0FDF4"
-                  onPress={() => navigation.navigate('Moliya')}
-                />
-                <QuickAction
-                  icon="people-outline"
-                  label="Mijozlar"
-                  color="#D97706"
-                  bg="#FFFBEB"
-                  onPress={() => navigation.navigate('Koproq')}
-                />
-                <QuickAction
-                  icon="pulse-outline"
-                  label="Sistema"
-                  color="#7C3AED"
-                  bg="#F5F3FF"
-                  onPress={() => navigation.navigate('Koproq')}
-                />
-              </>
-            ) : isManager ? (
-              <>
-                <QuickAction
-                  icon="cart-outline"
-                  label="Savdo"
-                  color="#2563EB"
-                  bg="#EFF6FF"
-                  onPress={() => navigation.navigate('Savdo')}
-                />
-                <QuickAction
-                  icon="document-text-outline"
-                  label="Hisobot"
-                  color="#0D9488"
-                  bg="#F0FDFA"
-                  onPress={() => navigation.navigate('Moliya')}
-                />
-                <QuickAction
-                  icon="people-outline"
-                  label="Mijozlar"
-                  color="#D97706"
-                  bg="#FFFBEB"
-                  onPress={() => navigation.navigate('Koproq')}
-                />
-                <QuickAction
-                  icon="receipt-outline"
-                  label="Buyurtmalar"
-                  color="#7C3AED"
-                  bg="#F5F3FF"
-                  onPress={() => navigation.navigate('Koproq')}
-                />
-              </>
-            ) : isCashier ? (
-              <>
-                <QuickAction
-                  icon="cart-outline"
-                  label="Savdo"
-                  color="#2563EB"
-                  bg="#EFF6FF"
-                  onPress={() => navigation.navigate('Savdo')}
-                />
-                <QuickAction
-                  icon="grid-outline"
-                  label="Katalog"
-                  color="#D97706"
-                  bg="#FFFBEB"
-                  onPress={() => navigation.navigate('Katalog')}
-                />
-                <QuickAction
-                  icon="people-outline"
-                  label="Mijozlar"
-                  color="#16A34A"
-                  bg="#F0FDF4"
-                  onPress={() => navigation.navigate('Koproq', { screen: 'CustomersScreen' } as any)}
-                />
-                <QuickAction
-                  icon="settings-outline"
-                  label="Sozlamalar"
-                  color="#7C3AED"
-                  bg="#F5F3FF"
-                  onPress={() => navigation.navigate('Koproq', { screen: 'SettingsScreen' } as any)}
-                />
-              </>
-            ) : isWarehouse ? (
-              <>
-                <QuickAction
-                  icon="list-outline"
-                  label="Zaxira holati"
-                  color="#2563EB"
-                  bg="#EFF6FF"
-                  onPress={() => navigation.navigate('Katalog')}
-                />
-                <QuickAction
-                  icon="document-text-outline"
-                  label="Nakladnoy"
-                  color="#16A34A"
-                  bg="#F0FDF4"
-                  onPress={() => navigation.navigate('Koproq')}
-                />
-                <QuickAction
-                  icon="notifications-outline"
-                  label="So'rovlar"
-                  color="#D97706"
-                  bg="#FFFBEB"
-                  onPress={() => navigation.navigate('Koproq')}
-                />
-                <QuickAction
-                  icon="swap-horizontal-outline"
-                  label="Harakatlar"
-                  color="#7C3AED"
-                  bg="#F5F3FF"
-                  onPress={() => navigation.navigate('Moliya')}
-                />
-              </>
-            ) : (
-              <>
-                <QuickAction
-                  icon="cart-outline"
-                  label="Savdo"
-                  color="#2563EB"
-                  bg="#EFF6FF"
-                  onPress={() => navigation.navigate('Savdo')}
-                />
-                <QuickAction
-                  icon="arrow-down-circle-outline"
-                  label="Kirim"
-                  color="#16A34A"
-                  bg="#F0FDF4"
-                  onPress={() => navigation.navigate('Koproq')}
-                />
-                <QuickAction
-                  icon="grid-outline"
-                  label="Katalog"
-                  color="#D97706"
-                  bg="#FFFBEB"
-                  onPress={() => navigation.navigate('Katalog')}
-                />
-                <QuickAction
-                  icon="bar-chart-outline"
-                  label="Hisobot"
-                  color="#7C3AED"
-                  bg="#F5F3FF"
-                  onPress={() => navigation.navigate('Moliya')}
-                />
-              </>
-            )}
+            {quickActions.map((action) => (
+              <QuickAction
+                key={action.route + action.label}
+                icon={action.icon}
+                label={action.label}
+                color={action.color}
+                bg={action.bg}
+                onPress={() =>
+                  action.routeParams
+                    ? navigation.navigate(action.route as any, action.routeParams as any)
+                    : navigation.navigate(action.route as any)
+                }
+              />
+            ))}
           </View>
         </View>
 
@@ -511,149 +352,3 @@ export default function DashboardScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  loadingCenter: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  headerDate: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  bellBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#EF4444',
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-
-  // Scroll
-  scroll: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  content: {
-    paddingBottom: 24,
-  },
-
-  // Smena banner
-  smenaBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFBEB',
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#D97706',
-  },
-  smenaBannerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  smenaBannerText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#92400E',
-  },
-  smenaOpenBtn: {
-    backgroundColor: '#D97706',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  smenaOpenBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  // Section
-  section: {
-    marginHorizontal: 16,
-    marginTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 12,
-  },
-
-  // Quick actions
-  quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  quickCard: {
-    width: '47%',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-    gap: 10,
-  },
-  quickIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quickLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  bottomPad: {
-    height: 16,
-  },
-});

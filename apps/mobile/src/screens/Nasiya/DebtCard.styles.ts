@@ -1,0 +1,201 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  customerInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  customerName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  phone: {
+    fontSize: 13,
+    color: '#2563EB',
+    textDecorationLine: 'underline',
+  },
+  badge: {
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  amounts: {
+    flexDirection: 'row',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+  },
+  amountItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  amountLabel: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginBottom: 3,
+  },
+  amountValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  amountValueGreen: { color: '#16A34A' },
+  amountValueRed: { color: '#DC2626', fontWeight: '700' },
+  progressWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 6,
+    borderRadius: 3,
+  },
+  progressPct: {
+    fontSize: 11,
+    fontWeight: '600',
+    minWidth: 80,
+    textAlign: 'right',
+  },
+  historyToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginBottom: 2,
+  },
+  historyToggleText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  historyChevron: {
+    fontSize: 10,
+    color: '#9CA3AF',
+  },
+  historyList: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 10,
+    gap: 6,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  historyDate: {
+    fontSize: 11,
+    color: '#6B7280',
+    flex: 1,
+  },
+  historyMethod: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#374151',
+    marginHorizontal: 8,
+  },
+  historyAmount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 4,
+  },
+  footerLeft: {
+    flex: 1,
+    marginRight: 8,
+    gap: 6,
+  },
+  dueDate: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  dueDateOverdue: {
+    color: '#DC2626',
+    fontWeight: '600',
+  },
+  ageBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  ageBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  btnRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  reminderBtn: {
+    borderWidth: 1,
+    borderColor: '#D97706',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reminderBtnText: {
+    color: '#D97706',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  payBtn: {
+    backgroundColor: '#2563EB',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+  },
+  payBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+});

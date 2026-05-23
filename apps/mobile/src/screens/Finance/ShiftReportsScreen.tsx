@@ -218,7 +218,7 @@ export default function ShiftReportsScreen({ onClose }: Props) {
           <Ionicons name="arrow-back" size={20} color={C.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Smena hisobotlari</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.spacer} />
       </View>
 
       {/* Period pills */}
@@ -389,4 +389,6 @@ const styles = StyleSheet.create({
 
   empty: { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyTitle: { fontSize: 15, color: C.muted, fontWeight: '600' },
+
+  spacer: { width: 36 },
 });

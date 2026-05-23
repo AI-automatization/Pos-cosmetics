@@ -186,7 +186,7 @@ export default function DailyRevenueScreen({ onClose }: Props) {
           </TouchableOpacity>
         ) : <View style={styles.headerBtn} />}
         <Text style={styles.headerTitle}>Kunlik savdo</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.spacer} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -244,19 +244,19 @@ export default function DailyRevenueScreen({ onClose }: Props) {
                 <View style={styles.tableCard}>
                   {/* Table header */}
                   <View style={[styles.tableRow, styles.tableHead]}>
-                    <Text style={[styles.tableCell, styles.tableHeadText, { flex: 2 }]}>Sana</Text>
-                    <Text style={[styles.tableCell, styles.tableHeadText, { flex: 3, textAlign: 'right' }]}>Tushum</Text>
-                    <Text style={[styles.tableCell, styles.tableHeadText, { flex: 2, textAlign: 'right' }]}>Buyurtma</Text>
+                    <Text style={[styles.tableCell, styles.tableHeadText, styles.colName]}>Sana</Text>
+                    <Text style={[styles.tableCell, styles.tableHeadText, styles.colRevenue]}>Tushum</Text>
+                    <Text style={[styles.tableCell, styles.tableHeadText, styles.colCount]}>Buyurtma</Text>
                   </View>
                   {sorted.slice().reverse().map((item, idx) => (
                     <View key={item.date}>
                       {idx > 0 && <View style={styles.rowDivider} />}
                       <View style={styles.tableRow}>
-                        <Text style={[styles.tableCell, { flex: 2 }]}>{dayLabel(item.date)}</Text>
-                        <Text style={[styles.tableCell, styles.tableCellRevenue, { flex: 3, textAlign: 'right' }]}>
+                        <Text style={[styles.tableCell, styles.colName]}>{dayLabel(item.date)}</Text>
+                        <Text style={[styles.tableCell, styles.tableCellRevenue, styles.colRevenue]}>
                           {fmt(item.revenue)}
                         </Text>
-                        <Text style={[styles.tableCell, { flex: 2, textAlign: 'right', color: C.muted }]}>
+                        <Text style={[styles.tableCell, styles.colCountMuted]}>
                           {item.orderCount} ta
                         </Text>
                       </View>
@@ -264,11 +264,11 @@ export default function DailyRevenueScreen({ onClose }: Props) {
                   ))}
                   {/* Total row */}
                   <View style={styles.totalRow}>
-                    <Text style={[styles.totalCell, { flex: 2 }]}>Jami</Text>
-                    <Text style={[styles.totalCell, { flex: 3, textAlign: 'right', color: C.primary }]}>
+                    <Text style={[styles.totalCell, styles.colName]}>Jami</Text>
+                    <Text style={[styles.totalCell, styles.totalColRevenue]}>
                       {fmt(totalRevenue)}
                     </Text>
-                    <Text style={[styles.totalCell, { flex: 2, textAlign: 'right' }]}>
+                    <Text style={[styles.totalCell, styles.colCount]}>
                       {totalOrders} ta
                     </Text>
                   </View>
@@ -366,6 +366,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1.5, borderTopColor: C.primary + '40',
   },
   totalCell: { fontSize: 13, fontWeight: '800', color: C.text },
+
+  spacer: { width: 36 },
+  colName: { flex: 2 },
+  colRevenue: { flex: 3, textAlign: 'right' },
+  colCount: { flex: 2, textAlign: 'right' },
+  colCountMuted: { flex: 2, textAlign: 'right', color: C.muted },
+  totalColRevenue: { flex: 3, textAlign: 'right', color: C.primary },
 
   empty: { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyText: { fontSize: 15, color: C.muted, fontWeight: '600' },
