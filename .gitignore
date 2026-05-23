@@ -109,3 +109,4 @@ audit-*.mjs
 warehouse-audit*.mjs
 e2e-sprint*.mjs
 e2e-verify*.mjs
+.vercel

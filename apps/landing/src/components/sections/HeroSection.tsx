@@ -45,7 +45,9 @@ export default function HeroSection() {
                 {h.cta1}
               </a>
               <a
-                href="#features"
+                href={`${process.env.NEXT_PUBLIC_LOGIN_URL}?from=%2Freports%2Fdaily-revenue`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 border border-[#24D4F4]/40 text-white font-semibold px-8 py-4 rounded-xl text-lg hover:border-[#24D4F4] hover:bg-[#24D4F4]/5 transition-all"
               >
                 {h.cta2}

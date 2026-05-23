@@ -7,6 +7,7 @@ const uz = {
     comparison: 'Taqqoslash',
     faq: 'FAQ',
     cta: 'Bepul boshlash',
+    login: 'Kirish',
     menu: 'Menyu',
   },
   hero: {
@@ -405,6 +406,7 @@ const ru: typeof uz = {
     comparison: 'Сравнение',
     faq: 'FAQ',
     cta: 'Начать бесплатно',
+    login: 'Войти',
     menu: 'Меню',
   },
   hero: {
@@ -803,6 +805,7 @@ const en: typeof uz = {
     comparison: 'Compare',
     faq: 'FAQ',
     cta: 'Start Free',
+    login: 'Log in',
     menu: 'Menu',
   },
   hero: {
