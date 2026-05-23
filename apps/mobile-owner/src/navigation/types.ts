@@ -24,6 +24,10 @@ export type DashboardStackParamList = {
   DashboardHome: undefined;
   Inventory: undefined;
   Debts: undefined;
+  ShiftReport: undefined;
+  BranchReport: undefined;
+  PnL: undefined;
+  DailyRevenue: undefined;
 };
 
 export type ShiftsStackParamList = {
@@ -34,6 +38,12 @@ export type ShiftsStackParamList = {
 export type AlertsStackParamList = {
   AlertList: undefined;
   AlertDetail: { alertId: string };
+};
+
+export type AnalyticsStackParamList = {
+  AnalyticsHome: undefined;
+  AbcAnalysis: undefined;
+  DeadStock: undefined;
 };
 
 export type EmployeesStackParamList = {

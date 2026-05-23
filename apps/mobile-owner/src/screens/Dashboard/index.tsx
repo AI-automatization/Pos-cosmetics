@@ -7,43 +7,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDashboard } from '../../hooks/useDashboard';
 import ScreenLayout from '../../components/layout/ScreenLayout';
 import SkeletonList from '../../components/common/SkeletonList';
+import ErrorView from '../../components/common/ErrorView';
 import RevenueSummaryGrid from './RevenueSummaryGrid';
 import SalesTrendChart from './SalesTrendChart';
 import BranchComparisonChart from './BranchComparisonChart';
 import TopProductsChart from './TopProductsChart';
 import LowStockAlertList from './LowStockAlertList';
 import { useBranchStore } from '../../store/branch.store';
-import { RevenueData, OrdersData } from '../../api/analytics.api';
-import { InventoryItem } from '../../api/inventory.api';
 import { DashboardStackParamList } from '../../navigation/types';
-import { Colors, Radii } from '../../config/theme';
+import { Colors, Radii, Shadows } from '../../config/theme';
 
 type DashboardNavProp = NativeStackNavigationProp<DashboardStackParamList, 'DashboardHome'>;
-
-// Mock low stock items to show the warning banner when backend is unavailable
-const MOCK_LOW_STOCK: InventoryItem[] = [
-  { id: 'm2', productName: 'Dior Sauvage EDT 60ml', barcode: '3348901419610', quantity: 3, unit: 'dona', branchName: 'Yunusabad', branchId: 'b2', costPrice: 285_000, stockValue: 855_000, reorderLevel: 5, expiryDate: '2026-08-15', status: 'low' },
-  { id: 'm4', productName: 'MAC Lipstick Ruby Woo', barcode: '773602524723', quantity: 2, unit: 'dona', branchName: 'Sergeli', branchId: 'b4', costPrice: 180_000, stockValue: 360_000, reorderLevel: 5, expiryDate: null, status: 'low' },
-  { id: 'm6', productName: "L'Oreal Paris Revitalift 30ml", barcode: '3600522861782', quantity: 1, unit: 'dona', branchName: 'Chilonzor', branchId: 'b1', costPrice: 95_000, stockValue: 95_000, reorderLevel: 3, expiryDate: '2026-04-01', status: 'expiring' },
-];
-
-// Mock data shown when backend is unavailable
-const MOCK_REVENUE: RevenueData = {
-  today: 18_750_000,
-  todayTrend: 12.4,
-  week: 124_500_000,
-  weekTrend: 8.1,
-  month: 487_200_000,
-  monthTrend: 5.6,
-  year: 2_340_000_000,
-  yearTrend: 18.2,
-};
-
-const MOCK_ORDERS: OrdersData = {
-  total: 247,
-  avgOrderValue: 75_890,
-  trend: 9.3,
-};
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
@@ -51,18 +25,19 @@ export default function DashboardScreen() {
   const selectedBranchId = useBranchStore((s) => s.selectedBranchId);
   const { revenue, orders, salesTrend, branchComparison, topProducts, lowStock } = useDashboard();
 
-  const isLoading = revenue.isLoading;
+  const isLoading = revenue.isLoading || orders.isLoading;
+  const isError = revenue.isError && orders.isError;
 
-  // Use real data if available, fall back to mock
-  const revenueData = revenue.data ?? MOCK_REVENUE;
-  const ordersData = orders.data ?? MOCK_ORDERS;
-  const lowStockData = lowStock.data && lowStock.data.length > 0 ? lowStock.data : MOCK_LOW_STOCK;
+  const revenueData = revenue.data;
+  const ordersData = orders.data;
+  const lowStockData = lowStock.data ?? [];
 
-  // lowStock banner first, then revenue cards, then charts — matches Stitch layout
+  // lowStock banner first, then revenue cards, then finance links, then charts — matches Stitch layout
   const sections = [
     { key: 'lowStock' },
-    { key: 'debts' },
     { key: 'revenue' },
+    { key: 'finance' },
+    { key: 'reports' },
     { key: 'salesTrend' },
     { key: 'branchComparison' },
     { key: 'topProducts' },
@@ -77,22 +52,73 @@ export default function DashboardScreen() {
             onViewAll={() => navigation.navigate('Inventory')}
           />
         );
-      case 'debts':
-        return (
-          <TouchableOpacity
-            style={styles.debtBanner}
-            onPress={() => navigation.navigate('Debts')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.debtLeft}>
-              <Ionicons name="card-outline" size={16} color={Colors.danger} />
-              <Text style={styles.debtText}>25 ta mijoz nasiyasi — 16.1M UZS</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={Colors.danger} />
-          </TouchableOpacity>
-        );
       case 'revenue':
+        if (!revenueData) return null;
         return <RevenueSummaryGrid data={revenueData} orders={ordersData} />;
+      case 'finance':
+        return (
+          <View style={styles.financeSection}>
+            <Text style={styles.financeSectionTitle}>Moliya</Text>
+            <View style={styles.financeRow}>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('PnL')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.successLight }]}>
+                  <Ionicons name="analytics-outline" size={20} color={Colors.success} />
+                </View>
+                <Text style={styles.financeCardTitle}>Foyda va zarar</Text>
+                <Text style={styles.financeCardSub}>P&L hisoboti</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('DailyRevenue')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.primaryLight }]}>
+                  <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                </View>
+                <Text style={styles.financeCardTitle}>Kunlik daromad</Text>
+                <Text style={styles.financeCardSub}>Har kungi tafsilot</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      case 'reports':
+        return (
+          <View style={styles.financeSection}>
+            <Text style={styles.financeSectionTitle}>Hisobotlar</Text>
+            <View style={styles.financeRow}>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('ShiftReport')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.warningLight }]}>
+                  <Ionicons name="time-outline" size={20} color={Colors.warning} />
+                </View>
+                <Text style={styles.financeCardTitle}>Smena hisoboti</Text>
+                <Text style={styles.financeCardSub}>Kassa solishtirma</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.financeCard}
+                onPress={() => navigation.navigate('BranchReport')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.financeIcon, { backgroundColor: Colors.purpleLight }]}>
+                  <Ionicons name="business-outline" size={20} color={Colors.purple} />
+                </View>
+                <Text style={styles.financeCardTitle}>Filial taqqoslash</Text>
+                <Text style={styles.financeCardSub}>Daromad reytingi</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
       case 'salesTrend':
         return <SalesTrendChart data={salesTrend.data} />;
       case 'branchComparison':
@@ -123,6 +149,17 @@ export default function DashboardScreen() {
     );
   }
 
+  if (isError) {
+    return (
+      <ScreenLayout title={t('dashboard.title')} logoMode>
+        <ErrorView
+          error={revenue.error ?? orders.error}
+          onRetry={() => { void handleRefresh(); }}
+        />
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout title={t('dashboard.title')} logoMode>
       <FlatList
@@ -145,27 +182,46 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   list: { paddingVertical: 8, paddingBottom: 32 },
   separator: { height: 8 },
-  debtBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.dangerLight,
-    marginHorizontal: 16,
+  financeSection: {
+    paddingHorizontal: 16,
     marginVertical: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    borderRadius: Radii.lg,
-    borderWidth: 1,
-    borderColor: '#FECACA',
   },
-  debtLeft: {
+  financeSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  financeRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
-  debtText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.danger,
+  financeCard: {
+    flex: 1,
+    backgroundColor: Colors.bgSurface,
+    borderRadius: Radii.lg,
+    padding: 14,
+    alignItems: 'center',
+    gap: 6,
+    ...Shadows.card,
+  },
+  financeIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: Radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  financeCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+  },
+  financeCardSub: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });

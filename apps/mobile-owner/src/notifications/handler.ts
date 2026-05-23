@@ -26,14 +26,24 @@ function handleNotificationTap(response: Notifications.NotificationResponse): vo
   switch (type) {
     case 'LOW_STOCK':
     case 'OUT_OF_STOCK':
+    case 'EXPIRY_WARNING':
       navigationRef.navigate('Main', { screen: 'Inventory' });
       break;
     case 'SUSPICIOUS_ACTIVITY':
     case 'LARGE_REFUND':
+    case 'NEW_EMPLOYEE':
       navigationRef.navigate('Main', { screen: 'Employees' });
       break;
     case 'NASIYA_OVERDUE':
       navigationRef.navigate('Main', { screen: 'Debts' });
+      break;
+    case 'SHIFT_CLOSED':
+    case 'SHIFT_OPENED':
+      navigationRef.navigate('Main', { screen: 'Shifts' });
+      break;
+    case 'LARGE_SALE':
+    case 'SALE_COMPLETED':
+      navigationRef.navigate('Main', { screen: 'Dashboard' });
       break;
     case 'SYSTEM_ERROR':
       navigationRef.navigate('Main', { screen: 'SystemHealth' });

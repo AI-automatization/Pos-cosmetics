@@ -5,8 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Alert,
   ScrollView,
@@ -21,16 +19,19 @@ import { authApi } from '../../api';
 import { useAuthStore } from '../../store/auth.store';
 import { extractErrorMessage } from '../../utils/error';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
+import Constants from 'expo-constants';
 
 const COLORS = {
-  primary: '#5B5BD6',
-  primaryLight: 'rgba(91, 91, 214, 0.1)',
-  background: '#F5F5F7',
+  primary: '#2563EB',
+  primaryLight: 'rgba(37, 99, 235, 0.1)',
+  background: '#F9FAFB',
   white: '#FFFFFF',
   textPrimary: '#111827',
   textSecondary: '#6B7280',
   textMuted: '#9CA3AF',
   border: '#E5E7EB',
+  borderFocus: '#2563EB',
   label: '#374151',
 };
 
@@ -43,6 +44,7 @@ const LANGS = [
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
+  useScreenProtection();
   const { i18n } = useTranslation();
   const { isAvailable: biometricAvailable } = useBiometricAuth();
   const setUser = useAuthStore((s) => s.setUser);
@@ -51,31 +53,43 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) return;
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Xatolik', "Barcha maydonlarni to'ldiring");
+      return;
+    }
     setLoading(true);
+    let tokenStored = false;
     try {
-      // slug — tenant kodi, keyinchalik QR yoki settings orqali konfiguratsiya qilinadi
-      const slug = await SecureStore.getItemAsync('tenant_slug') ?? '';
-      const res = await authApi.login({ slug, email: email.trim(), password });
+      const res = await authApi.login({ email: email.trim(), password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
+      tokenStored = true;
       const me = await authApi.me();
       await setUser(me, res.accessToken, res.refreshToken);
     } catch (err) {
+      // Agar token saqlangan bo'lsa lekin me() muvaffaqiyatsiz bo'lsa — eski state bilan
+      // aralash holat qoldirmaslik uchun access_token o'chirib tashla
+      if (tokenStored) {
+        await SecureStore.deleteItemAsync('access_token');
+      }
       const msg = extractErrorMessage(err);
-      Alert.alert('Xatolik', msg);
+      if (msg === 'SLUG_REQUIRED') {
+        Alert.alert(
+          'Xatolik',
+          "Bir nechta tashkilotda ro'yxatdan o'tgansiz. Slug kerak.",
+        );
+      } else {
+        Alert.alert('Xatolik', msg);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
@@ -87,7 +101,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={styles.logoLetter}>R</Text>
             </View>
             <Text style={styles.logoText}>RAOS</Text>
-            <Text style={styles.subtitle}>Savdo tizimiga xush kelibsiz</Text>
+            <Text style={styles.subtitle}>Biznesingizni boshqaring</Text>
           </View>
 
           {/* ── Form ── */}
@@ -95,7 +109,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Email */}
             <Text style={styles.label}>Elektron pochta</Text>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputWrapperFocused]}>
               <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -107,6 +121,8 @@ export default function LoginScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!loading}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
 
@@ -117,7 +133,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotText}>Parolni unutdingizmi?</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, focusedField === 'password' && styles.inputWrapperFocused]}>
               <Feather name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, styles.inputPasswordField]}
@@ -127,6 +143,8 @@ export default function LoginScreen({ navigation }: Props) {
                 placeholderTextColor={COLORS.textMuted}
                 secureTextEntry={!showPassword}
                 editable={!loading}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword((v) => !v)}
@@ -151,7 +169,7 @@ export default function LoginScreen({ navigation }: Props) {
               {loading ? (
                 <ActivityIndicator color={COLORS.white} />
               ) : (
-                <Text style={styles.loginButtonText}>Kirish →</Text>
+                <Text style={styles.loginButtonText}>Kirish</Text>
               )}
             </TouchableOpacity>
 
@@ -205,31 +223,34 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
           </View>
 
-          {/* DEV only */}
+          <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '0.0.0'}</Text>
+
+          {/* DEV only — haqiqiy API bilan demo login */}
           {__DEV__ && (
             <TouchableOpacity
               style={styles.demoButton}
-              onPress={() =>
-                setUser(
-                  {
-                    id: 'demo',
-                    email: 'demo@raos.uz',
-                    firstName: 'Demo',
-                    lastName: 'User',
-                    role: 'OWNER',
-                    tenantId: 'demo-tenant',
-                    tenant: { id: 'demo-tenant', name: "Demo Do'kon", slug: 'demo' },
-                  },
-                  'demo-access-token',
-                  'demo-refresh-token',
-                )
-              }
+              disabled={loading}
+              onPress={async () => {
+                setLoading(true);
+                try {
+                  const demoEmail = 'owner@raos.uz';
+                  const demoPass = 'Demo1234!';
+                  const res = await authApi.login({ email: demoEmail, password: demoPass });
+                  await SecureStore.setItemAsync('access_token', res.accessToken);
+                  const me = await authApi.me();
+                  await setUser(me, res.accessToken, res.refreshToken);
+                } catch (err) {
+                  const msg = extractErrorMessage(err);
+                  Alert.alert('Demo kirish xatosi', msg);
+                } finally {
+                  setLoading(false);
+                }
+              }}
             >
               <Text style={styles.demoText}>🧪 Demo kirish</Text>
             </TouchableOpacity>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -244,9 +265,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 32,
+    paddingTop: 60,
+    paddingBottom: 32,
   },
 
   // ── Logo ──
@@ -255,8 +276,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoBox: {
-    width: 72,
-    height: 72,
+    width: 80,
+    height: 80,
     borderRadius: 18,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
@@ -290,7 +311,7 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.label,
     marginBottom: 8,
@@ -311,11 +332,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 14,
     height: 52,
+  },
+  inputWrapperFocused: {
+    borderColor: COLORS.borderFocus,
+    shadowColor: COLORS.borderFocus,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   inputIcon: {
     marginRight: 10,
@@ -431,6 +460,15 @@ const styles = StyleSheet.create({
   langTextActive: {
     color: COLORS.primary,
     fontWeight: '700',
+  },
+
+  // ── Version ──
+  versionText: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 8,
+    marginBottom: 8,
   },
 
   // ── Dev Demo ──

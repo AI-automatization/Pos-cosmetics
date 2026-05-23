@@ -56,20 +56,17 @@ const styles = StyleSheet.create({
     height: 36,
     paddingHorizontal: 18,
     borderRadius: 18,
-    backgroundColor: C.white,
-    borderWidth: 1,
-    borderColor: C.border,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
   catTabActive: {
     backgroundColor: C.primary,
-    borderColor: C.primary,
   },
   catText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#374151',
     lineHeight: 16,
   },
   catTextActive: {

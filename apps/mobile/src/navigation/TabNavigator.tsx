@@ -1,23 +1,260 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useTranslation } from 'react-i18next';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import type { TabParamList } from './types';
-import SmenaScreen from '../screens/Smena';
+
+import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MovementsStackParamList, MoreStackParamList, OmborTabStackParamList } from './types';
+import { useAuthStore } from '../store/auth.store';
+
+// Navigators
+import DashboardNavigator from './DashboardNavigator';
 import SavdoScreen from '../screens/Savdo';
+import SmenaScreen from '../screens/Smena';
 import SalesNavigator from './SalesNavigator';
 import NasiyaScreen from '../screens/Nasiya';
 import KirimScreen from '../screens/Kirim';
 import OmborScreen from '../screens/Ombor';
 import SettingsScreen from '../screens/Settings';
+import MoreMenuScreen from '../screens/MoreMenu';
+import BranchesScreen from '../screens/Settings/BranchesScreen';
+import AuditLogScreen from '../screens/Settings/AuditLogScreen';
+import CustomersScreen from '../screens/Customers/CustomersScreen';
+import CustomerDetailScreen from '../screens/Customers/CustomerDetailScreen';
+import PromotionsScreen from '../screens/Promotions/PromotionsScreen';
+import UsersScreen from '../screens/Settings/UsersScreen';
+import LowStockScreen from '../screens/Inventory/LowStockList';
+import ProductsScreen from '../screens/Catalog/ProductsScreen';
+import CategoriesScreen from '../screens/Catalog/CategoriesScreen';
+import ProductFormScreen from '../screens/Catalog/ProductFormScreen';
+import SuppliersScreen from '../screens/Catalog/SuppliersScreen';
+import FinanceScreen from '../screens/Finance/FinanceScreen';
+import DailyRevenueScreen from '../screens/Finance/DailyRevenueScreen';
+import ExpensesScreen from '../screens/Finance/ExpensesScreen';
+import PnLScreen from '../screens/Finance/PnLScreen';
+import TopProductsScreen from '../screens/Finance/TopProductsScreen';
+import PaymentsHistoryScreen from '../screens/Finance/PaymentsHistoryScreen';
+import NasiyaAgingScreen from '../screens/Finance/NasiyaAgingScreen';
+import ShiftReportsScreen from '../screens/Finance/ShiftReportsScreen';
+import ReportsHubScreen from '../screens/Finance/ReportsHubScreen';
+import ExchangeRatesScreen from '../screens/Finance/ExchangeRatesScreen';
+import BranchReportsScreen from '../screens/Finance/BranchReportsScreen';
+import ReportBuilderScreen from '../screens/Finance/ReportBuilderScreen';
+import ExportScreen from '../screens/Finance/ExportScreen';
+import AnalyticsNavigator from './AnalyticsNavigator';
+import SystemHealthScreen from '../screens/SystemHealth/SystemHealthScreen';
+import EmployeesNavigator from './EmployeesNavigator';
+import DebtsScreen from '../screens/Debts';
+import ShiftsOwnerScreen from '../screens/ShiftsOwner';
+import StockOutScreen from '../screens/StockOut';
+import StockTransferScreen from '../screens/StockTransfer';
+import TransferListScreen from '../screens/StockTransfer/TransferListScreen';
+import TesterScreen from '../screens/Ombor/TesterScreen';
+import ExpiryScreen from '../screens/Expiry';
+import WarehouseDashboardScreen from '../screens/Ombor/WarehouseDashboardScreen';
+import InvoicesScreen from '../screens/Ombor/InvoicesScreen';
+import RestockRequestsScreen from '../screens/Ombor/RestockRequestsScreen';
+import SuppliersOmborScreen from '../screens/Ombor/SuppliersOmborScreen';
+import SupplierDetailScreen from '../screens/Ombor/SupplierDetailScreen';
+import StockMovementsScreen from '../screens/StockMovements';
+import SalesOrdersScreen from '../screens/SalesOrders';
+import SalesReturnsScreen from '../screens/SalesReturns';
+import ChegirmaScreen from '../screens/Chegirmalar/ChegirmaScreen';
+import BillingScreen from '../screens/Billing/BillingScreen';
+import TasksScreen from '../screens/Tasks/TasksScreen';
+import IncomingTransfersScreen from '../screens/IncomingTransfers/IncomingTransfersScreen';
+import PrinterScreen from '../screens/Settings/PrinterScreen';
+import { getRoleLevel } from '../utils/roles';
 
-const Tab = createBottomTabNavigator<TabParamList>();
-
-const PRIMARY = '#5B5BD6';
+// ─── Colors ───────────────────────────────────────────────
+const PRIMARY = '#2563EB';
 const INACTIVE = '#9CA3AF';
 
-export default function TabNavigator() {
-  const { t } = useTranslation();
+// ─── Spacing / sizing tokens ──────────────────────────────
+const FONT_SM = 11;
+const SPACING_4 = 4;
+const SPACING_6 = 6;
+const SPACING_8 = 8;
+const TAB_HEIGHT = 60;
+const ICON_SIZE = 22;
+
+// ─── Katalog Stack (Products, Categories, ProductForm, Suppliers) ──
+const CatalogStack = createNativeStackNavigator<CatalogStackParamList>();
+
+function CatalogNavigator(): React.JSX.Element {
+  return (
+    <CatalogStack.Navigator screenOptions={{ headerShown: false }}>
+      <CatalogStack.Screen name="CatalogMain" component={ProductsScreen} />
+      <CatalogStack.Screen name="Categories" component={CategoriesScreen} />
+      <CatalogStack.Screen name="ProductForm" component={ProductFormScreen} />
+      <CatalogStack.Screen name="Suppliers" component={SuppliersScreen} />
+    </CatalogStack.Navigator>
+  );
+}
+
+// ─── Moliya Stack (Finance screens) ─────────────────────────
+const FinanceStack = createNativeStackNavigator<FinanceStackParamList>();
+
+function FinanceNavigator(): React.JSX.Element {
+  return (
+    <FinanceStack.Navigator screenOptions={{ headerShown: false }}>
+      <FinanceStack.Screen name="FinanceMain" component={FinanceScreen} />
+      <FinanceStack.Screen name="DailyRevenue" component={DailyRevenueScreen} />
+      <FinanceStack.Screen name="Expenses" component={ExpensesScreen} />
+      <FinanceStack.Screen name="PnL" component={PnLScreen} />
+      <FinanceStack.Screen name="TopProducts" component={TopProductsScreen} />
+      <FinanceStack.Screen name="PaymentsHistory" component={PaymentsHistoryScreen} />
+      <FinanceStack.Screen name="NasiyaAging" component={NasiyaAgingScreen} />
+      <FinanceStack.Screen name="ShiftReports" component={ShiftReportsScreen} />
+      <FinanceStack.Screen name="ReportsHub" component={ReportsHubScreen} />
+      <FinanceStack.Screen name="ExchangeRates" component={ExchangeRatesScreen} options={{ headerShown: false }} />
+      <FinanceStack.Screen name="BranchReports" component={BranchReportsScreen} options={{ headerShown: false }} />
+      <FinanceStack.Screen name="ReportBuilder" component={ReportBuilderScreen} />
+      <FinanceStack.Screen name="Export" component={ExportScreen} />
+    </FinanceStack.Navigator>
+  );
+}
+
+// ─── Savdo Stack (SavdoMain + nested screens) ──────────────
+const SavdoStack = createNativeStackNavigator<SavdoStackParamList>();
+
+function SavdoNavigator(): React.JSX.Element {
+  return (
+    <SavdoStack.Navigator screenOptions={{ headerShown: false }}>
+      <SavdoStack.Screen name="SavdoMain" component={SavdoScreen} />
+      <SavdoStack.Screen name="SmenaScreen" component={SmenaScreen} />
+      <SavdoStack.Screen name="SalesHistory" component={SalesNavigator} />
+      <SavdoStack.Screen name="NasiyaScreen" component={NasiyaScreen} />
+    </SavdoStack.Navigator>
+  );
+}
+
+// ─── Ko'proq Stack (MoreMenu + nested screens) ─────────────
+const MoreStack = createNativeStackNavigator<MoreStackParamList>();
+
+function MoreNavigator(): React.JSX.Element {
+  return (
+    <MoreStack.Navigator screenOptions={{ headerShown: false }}>
+      <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} />
+      <MoreStack.Screen name="KirimScreen" component={KirimScreen} />
+      <MoreStack.Screen name="OmborScreen" component={OmborScreen} />
+      <MoreStack.Screen name="SettingsScreen" component={SettingsScreen} />
+      <MoreStack.Screen name="BranchesScreen" component={BranchesScreen} />
+      <MoreStack.Screen name="AuditLogScreen" component={AuditLogScreen} />
+      <MoreStack.Screen name="CustomersScreen" component={CustomersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="CustomerDetail" component={CustomerDetailScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="PromotionsScreen" component={PromotionsScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="UsersScreen" component={UsersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="LowStockList" component={LowStockScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SuppliersScreen" component={SuppliersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SystemHealthScreen" component={SystemHealthScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="DebtsScreen" component={DebtsScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="ShiftsOwnerScreen" component={ShiftsOwnerScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="StockOutScreen" component={StockOutScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="TransferScreen" component={StockTransferScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="TransferListScreen" component={TransferListScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="ExpiryScreen" component={ExpiryScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="StockMovementsScreen" component={StockMovementsScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SalesOrdersScreen" component={SalesOrdersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="SalesReturnsScreen" component={SalesReturnsScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="ChegirmaScreen" component={ChegirmaScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="BillingScreen" component={BillingScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="TasksScreen" component={TasksScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="TesterScreen" component={TesterScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="IncomingTransfersScreen" component={IncomingTransfersScreen} options={{ headerShown: false }} />
+      <MoreStack.Screen name="PrinterScreen" component={PrinterScreen} options={{ headerShown: false }} />
+    </MoreStack.Navigator>
+  );
+}
+
+// ─── Kirim Tab Stack (WAREHOUSE role: replaces Savdo tab) ─
+const KirimTabStack = createNativeStackNavigator();
+function KirimTabNavigator(): React.JSX.Element {
+  return (
+    <KirimTabStack.Navigator screenOptions={{ headerShown: false }}>
+      <KirimTabStack.Screen name="KirimMain" component={KirimScreen} />
+    </KirimTabStack.Navigator>
+  );
+}
+
+// ─── Ombor Tab Stack (WAREHOUSE role: replaces Katalog tab) ─
+const OmborTabStack = createNativeStackNavigator<OmborTabStackParamList>();
+function OmborTabNavigator(): React.JSX.Element {
+  return (
+    <OmborTabStack.Navigator screenOptions={{ headerShown: false }}>
+      <OmborTabStack.Screen name="WarehouseDashboard" component={WarehouseDashboardScreen} />
+      <OmborTabStack.Screen name="OmborMain" component={OmborScreen} />
+      <OmborTabStack.Screen
+        name="InvoicesScreen"
+        component={InvoicesScreen}
+        options={{ title: 'Nakladnoylar' }}
+      />
+      <OmborTabStack.Screen
+        name="RestockRequestsScreen"
+        component={RestockRequestsScreen}
+        options={{ title: "To'ldirish so'rovlari" }}
+      />
+      <OmborTabStack.Screen
+        name="SuppliersOmborScreen"
+        component={SuppliersOmborScreen}
+        options={{ title: 'Yetkazib beruvchilar' }}
+      />
+      <OmborTabStack.Screen
+        name="SupplierDetailScreen"
+        component={SupplierDetailScreen}
+        options={{ title: 'Yetkazib beruvchi' }}
+      />
+      <OmborTabStack.Screen
+        name="TransferListScreen"
+        component={TransferListScreen}
+        options={{ title: 'Transferlar' }}
+      />
+      <OmborTabStack.Screen
+        name="TesterScreen"
+        component={TesterScreen}
+        options={{ title: 'Tester' }}
+      />
+    </OmborTabStack.Navigator>
+  );
+}
+
+// ─── Harakatlar Stack (Warehouse movements) ─────────────────
+const MovementsStack = createNativeStackNavigator<MovementsStackParamList>();
+
+function MovementsTabNavigator(): React.JSX.Element {
+  return (
+    <MovementsStack.Navigator screenOptions={{ headerShown: false }}>
+      <MovementsStack.Screen name="MovementsMain" component={StockMovementsScreen} />
+    </MovementsStack.Navigator>
+  );
+}
+
+// ─── Tab icon helper ───────────────────────────────────────
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+function TabIcon(
+  focused: boolean,
+  outlineName: IoniconsName,
+  filledName: IoniconsName,
+  color: string,
+): React.JSX.Element {
+  return (
+    <Ionicons
+      name={focused ? filledName : outlineName}
+      size={ICON_SIZE}
+      color={color}
+    />
+  );
+}
+
+// ─── Bottom Tab Navigator ──────────────────────────────────
+const Tab = createBottomTabNavigator<TabParamList>();
+
+export default function TabNavigator(): React.JSX.Element {
+  const { user } = useAuthStore();
+  const isWarehouse = user?.role === 'WAREHOUSE';
+  const isCashier = user?.role === 'CASHIER';
+  const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
 
   return (
     <Tab.Navigator
@@ -25,118 +262,127 @@ export default function TabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: PRIMARY,
         tabBarInactiveTintColor: INACTIVE,
-        tabBarStyle: {
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#F3F4F6',
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-        },
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
+      {/* Tab 1: Bosh sahifa — har doim */}
       <Tab.Screen
-        name="Dashboard"
-        component={SmenaScreen}
+        name="BoshSahifa"
+        component={DashboardNavigator}
         options={{
-          tabBarLabel: 'Smena',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? 'time' : 'time-outline'}
-              size={22}
-              color={color}
-            />
-          ),
+          tabBarLabel: 'Bosh sahifa',
+          tabBarIcon: ({ focused, color }) =>
+            TabIcon(focused, 'home-outline', 'home', color),
         }}
       />
+
+      {/* Tab 2: Analitika — faqat OWNER / ADMIN */}
+      {isOwnerAdmin && (
+        <Tab.Screen
+          name="Analytics"
+          component={AnalyticsNavigator}
+          options={{
+            tabBarLabel: 'Analitika',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(focused, 'bar-chart-outline', 'bar-chart', color),
+          }}
+        />
+      )}
+
+      {/* Tab 3: Xodimlar — faqat OWNER / ADMIN */}
+      {isOwnerAdmin && (
+        <Tab.Screen
+          name="Xodimlar"
+          component={EmployeesNavigator}
+          options={{
+            tabBarLabel: 'Xodimlar',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(focused, 'people-outline', 'people', color),
+          }}
+        />
+      )}
+
+      {/* Tab 2/3: Savdo (WAREHOUSE: Kirim) — OWNER/ADMIN uchun emas */}
+      {!isOwnerAdmin && (
+        <Tab.Screen
+          name="Savdo"
+          component={isWarehouse ? KirimTabNavigator : SavdoNavigator}
+          options={{
+            tabBarLabel: isWarehouse ? 'Kirim' : 'Savdo',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(
+                focused,
+                isWarehouse ? 'archive-outline' : 'cart-outline',
+                isWarehouse ? 'archive' : 'cart',
+                color,
+              ),
+          }}
+        />
+      )}
+
+      {/* Tab 3/4: Katalog (WAREHOUSE: Ombor) — OWNER/ADMIN uchun emas */}
+      {!isOwnerAdmin && (
+        <Tab.Screen
+          name="Katalog"
+          component={isWarehouse ? OmborTabNavigator : CatalogNavigator}
+          options={{
+            tabBarLabel: isWarehouse ? 'Ombor' : 'Katalog',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(
+                focused,
+                isWarehouse ? 'cube-outline' : 'grid-outline',
+                isWarehouse ? 'cube' : 'grid',
+                color,
+              ),
+          }}
+        />
+      )}
+
+      {/* Tab 4/3: Moliya (WAREHOUSE: Harakatlar, CASHIER: yashirin) */}
+      {!isCashier && (
+        <Tab.Screen
+          name="Moliya"
+          component={isWarehouse ? MovementsTabNavigator : FinanceNavigator}
+          options={{
+            tabBarLabel: isWarehouse ? 'Harakatlar' : 'Moliya',
+            tabBarIcon: ({ focused, color }) =>
+              TabIcon(
+                focused,
+                isWarehouse ? 'swap-horizontal-outline' : 'trending-up-outline',
+                isWarehouse ? 'swap-horizontal' : 'trending-up',
+                color,
+              ),
+          }}
+        />
+      )}
+
+      {/* Tab 5/4: Ko'proq — har doim */}
       <Tab.Screen
-        name="Savdo"
-        component={SavdoScreen}
+        name="Koproq"
+        component={MoreNavigator}
         options={{
-          tabBarLabel: t('savdo.title'),
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? 'cart' : 'cart-outline'}
-              size={22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="SavdoTarixi"
-        component={SalesNavigator}
-        options={{
-          tabBarLabel: 'Tarix',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? 'receipt' : 'receipt-outline'}
-              size={22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Nasiya"
-        component={NasiyaScreen}
-        options={{
-          tabBarLabel: 'Nasiya',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? 'card' : 'card-outline'}
-              size={22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Kirim"
-        component={KirimScreen}
-        options={{
-          tabBarLabel: t('kirim.title'),
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? 'archive' : 'archive-outline'}
-              size={22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Ombor"
-        component={OmborScreen}
-        options={{
-          tabBarLabel: 'Ombor',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? 'cube' : 'cube-outline'}
-              size={22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          tabBarLabel: t('settings.title'),
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? 'settings' : 'settings-outline'}
-              size={22}
-              color={color}
-            />
-          ),
+          tabBarLabel: "Ko'proq",
+          tabBarIcon: ({ focused, color }) =>
+            TabIcon(focused, 'menu-outline', 'menu', color),
         }}
       />
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    height: TAB_HEIGHT,
+    paddingBottom: SPACING_8,
+    paddingTop: SPACING_6,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  tabBarLabel: {
+    fontSize: FONT_SM,
+    fontWeight: '600',
+    marginBottom: SPACING_4,
+  },
+});

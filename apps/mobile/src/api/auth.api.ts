@@ -1,7 +1,7 @@
 import api from './client';
 
 export interface LoginPayload {
-  slug: string;
+  slug?: string;
   email: string;
   password: string;
 }

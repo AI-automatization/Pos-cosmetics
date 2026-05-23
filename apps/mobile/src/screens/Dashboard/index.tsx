@@ -1,19 +1,659 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { DashboardStackParamList, TabParamList } from '../../navigation/types';
+import { useQuery } from '@tanstack/react-query';
+import { alertsApi } from '../../api/alerts.api';
+import useDashboardData from './useDashboardData';
+import ActiveShiftCard from './ActiveShiftCard';
+import MonthlyProfitCard from './MonthlyProfitCard';
+import BranchRevenueCard from './BranchRevenueCard';
+import WarehouseStatsGrid from './WarehouseStatsGrid';
+import SalesStatsGrid from './SalesStatsGrid';
+import RevenueCard from './RevenueCard';
+import WeeklyTrendChart from './WeeklyTrendChart';
+import TopProductsCard from './TopProductsCard';
+import LowStockWidget from './LowStockWidget';
+import ManagerKPICard from './ManagerKPICard';
+import { useShiftStore } from '../../store/shiftStore';
+import SmenaOpenSheet from '../Smena/SmenaOpenSheet';
+import SmenaCloseSheet from '../Smena/SmenaCloseSheet';
+import { useAuthStore } from '../../store/auth.store';
+import { getRoleLevel } from '../../utils/roles';
+
+type DashboardNavProp = CompositeNavigationProp<
+  NativeStackNavigationProp<DashboardStackParamList>,
+  BottomTabNavigationProp<TabParamList>
+>;
+
+const PRIMARY = '#2563EB';
+
+function formatUzbekDate(): string {
+  const now = new Date();
+  const months = [
+    'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+    'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
+  ];
+  const days = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+  return `${now.getDate()} ${months[now.getMonth()]}, ${now.getFullYear()}, ${days[now.getDay()]}`;
+}
+
+interface QuickActionProps {
+  readonly icon: React.ComponentProps<typeof Ionicons>['name'];
+  readonly label: string;
+  readonly color: string;
+  readonly bg: string;
+  readonly onPress: () => void;
+}
+
+function QuickAction({ icon, label, color, bg, onPress }: QuickActionProps) {
+  return (
+    <TouchableOpacity
+      style={[styles.quickCard, { backgroundColor: bg }]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={[styles.quickIconCircle, { backgroundColor: color + '20' }]}>
+        <Ionicons name={icon} size={24} color={color} />
+      </View>
+      <Text style={[styles.quickLabel, { color }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 export default function DashboardScreen() {
+  const navigation = useNavigation<DashboardNavProp>();
+  const { user } = useAuthStore();
+  const isWarehouse = user?.role === 'WAREHOUSE';
+  const isCashier = user?.role === 'CASHIER';
+  const {
+    todaySummary,
+    weeklyRevenue,
+    topProducts,
+    currentShift,
+    nasiyaSummary,
+    lowStock,
+    monthlyProfit,
+    isMonthlyLoading,
+    branchRevenue,
+    isBranchRevenueLoading,
+    isLoading,
+    isRefreshing,
+    refetchAll,
+  } = useDashboardData(isWarehouse, isCashier);
+
+  const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
+  const isManager = user?.role === 'MANAGER';
+  const { openShift, closeShift, syncWithApi } = useShiftStore();
+  const [loading, setLoading] = useState(false);
+  const [openSheetVisible, setOpenSheetVisible] = useState(false);
+  const [closeSheetVisible, setCloseSheetVisible] = useState(false);
+  // Badge — React Query bilan auto-refresh (30 soniya)
+  const { data: activeAlerts, refetch: refetchAlerts } = useQuery({
+    queryKey: ['alerts-active'],
+    queryFn:  () => alertsApi.getActive(),
+    refetchInterval: 30_000,
+    staleTime:       20_000,
+    retry:           false,
+  });
+  const unreadCount = (activeAlerts ?? []).filter((a) => !a.isRead).length;
+
+  // Screen focus bo'lganda ham refresh
+  useFocusEffect(
+    React.useCallback(() => {
+      void refetchAlerts();
+    }, [refetchAlerts]),
+  );
+
+  const shift = currentShift.data ?? null;
+  const summary = todaySummary.data;
+  const weekly = weeklyRevenue.data ?? [];
+  const products = topProducts.data ?? [];
+  const lowStockItems = lowStock.data ?? [];
+
+  const handleOpenConfirm = (openingCash: number) => {
+    setLoading(true);
+    openShift(openingCash)
+      .then(() => {
+        setOpenSheetVisible(false);
+        Alert.alert('Tayyor', 'Smena muvaffaqiyatli ochildi');
+        refetchAll();
+      })
+      .catch((err: unknown) => {
+        let msg = 'Smena ochishda xatolik';
+        if (err && typeof err === 'object' && 'response' in err) {
+          const resp = (err as { response?: { data?: { message?: string | string[]; error?: { message?: string } } } }).response;
+          const serverMsg = resp?.data?.error?.message ?? resp?.data?.message;
+          if (serverMsg) {
+            msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
+            // Agar allaqachon ochiq smena bo'lsa — syncWithApi bilan holatni yangilash
+            if (msg.includes('already has an open shift')) {
+              msg = 'Sizda allaqachon ochiq smena mavjud';
+              void syncWithApi();
+            }
+          }
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
+        Alert.alert('Xatolik', msg);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleCloseConfirm = async (actualCash: number) => {
+    setLoading(true);
+    try {
+      await closeShift(actualCash);
+      setCloseSheetVisible(false);
+      Alert.alert('Tayyor', 'Smena muvaffaqiyatli yopildi');
+      refetchAll();
+    } catch {
+      Alert.alert('Xatolik', 'Smena yopishda xatolik');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.loadingCenter}>
+          <ActivityIndicator size="large" color={PRIMARY} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const avgBasket =
+    summary && summary.orders.count > 0
+      ? summary.orders.grossRevenue / summary.orders.count
+      : 0;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Dashboard</Text>
+    <SafeAreaView style={styles.safe}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>Bosh sahifa</Text>
+          <Text style={styles.headerDate}>{formatUzbekDate()}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.bellBtn}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('NotificationsScreen')}
+        >
+          <Ionicons name="notifications-outline" size={24} color="#374151" />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {unreadCount > 99 ? '99+' : String(unreadCount)}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refetchAll}
+            tintColor={PRIMARY}
+          />
+        }
+      >
+        {/* Smena banner yoki ActiveShiftCard — OWNER/ADMIN uchun emas */}
+        {!isOwnerAdmin && !isWarehouse && (!shift ? (
+          <View style={styles.smenaBanner}>
+            <View style={styles.smenaBannerLeft}>
+              <Ionicons name="time-outline" size={20} color="#D97706" />
+              <Text style={styles.smenaBannerText}>Smena ochilmagan</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.smenaOpenBtn}
+              activeOpacity={0.85}
+              onPress={() => setOpenSheetVisible(true)}
+            >
+              <Text style={styles.smenaOpenBtnText}>Smena ochish</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.section}
+            onPress={() => setCloseSheetVisible(true)}
+            activeOpacity={0.85}
+          >
+            <ActiveShiftCard shift={shift} />
+          </TouchableOpacity>
+        ))}
+
+        {/* Stats 2x2 grid */}
+        {isWarehouse ? (
+          <WarehouseStatsGrid />
+        ) : isCashier ? (
+          <SalesStatsGrid
+            summary={summary}
+            avgBasket={0}
+            nasiyaOverdueCount={0}
+            isCashier
+          />
+        ) : (
+          <SalesStatsGrid
+            summary={summary}
+            avgBasket={avgBasket}
+            nasiyaOverdueCount={nasiyaSummary.data?.overdueCount ?? 0}
+          />
+        )}
+
+        {/* Manager KPI card — faqat MANAGER rol uchun */}
+        {isManager && (
+          <View style={styles.section}>
+            <ManagerKPICard />
+          </View>
+        )}
+
+        {/* Monthly profit — faqat OWNER/ADMIN uchun */}
+        {isOwnerAdmin && (
+          <View style={styles.section}>
+            <MonthlyProfitCard
+              revenue={monthlyProfit?.revenue ?? 0}
+              cogs={monthlyProfit?.cogs ?? 0}
+              grossProfit={monthlyProfit?.grossProfit ?? 0}
+              totalExpenses={monthlyProfit?.totalExpenses ?? 0}
+              netProfit={monthlyProfit?.netProfit ?? 0}
+              loading={isMonthlyLoading}
+            />
+          </View>
+        )}
+
+        {/* Branch revenue — faqat OWNER/ADMIN uchun */}
+        {isOwnerAdmin && (
+          <View style={styles.section}>
+            <BranchRevenueCard
+              branches={(branchRevenue ?? []).map((b) => ({
+                branchId:   b.branchId,
+                branchName: b.branchName,
+                revenue:    b.revenue,
+                orders:     b.orders,
+              }))}
+              loading={isBranchRevenueLoading}
+            />
+          </View>
+        )}
+
+        {/* Weekly chart — CASHIER va WAREHOUSE ko'rmaydi */}
+        {!isWarehouse && !isCashier && (
+          <View style={styles.section}>
+            <WeeklyTrendChart data={weekly} />
+          </View>
+        )}
+
+        {/* Revenue card — CASHIER va WAREHOUSE ko'rmaydi */}
+        {summary !== undefined && !isWarehouse && !isCashier && (
+          <View style={styles.section}>
+            <RevenueCard summary={summary} />
+          </View>
+        )}
+
+        {/* Top products — CASHIER va WAREHOUSE ko'rmaydi */}
+        {products.length > 0 && !isWarehouse && !isCashier && (
+          <View style={styles.section}>
+            <TopProductsCard products={products} />
+          </View>
+        )}
+
+        {/* Low stock warning */}
+        {lowStockItems.length > 0 && (
+          <View style={styles.section}>
+            <LowStockWidget
+              items={lowStockItems}
+              onViewAll={() => navigation.navigate('Koproq', { screen: 'LowStockList' } as any)}
+            />
+          </View>
+        )}
+
+        {/* Quick Actions 2x2 grid */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Tez harakatlar</Text>
+          <View style={styles.quickGrid}>
+            {isOwnerAdmin ? (
+              <>
+                <QuickAction
+                  icon="bar-chart-outline"
+                  label="Analitika"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Analytics')}
+                />
+                <QuickAction
+                  icon="trending-up-outline"
+                  label="Moliya"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Moliya')}
+                />
+                <QuickAction
+                  icon="people-outline"
+                  label="Mijozlar"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="pulse-outline"
+                  label="Sistema"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+              </>
+            ) : isManager ? (
+              <>
+                <QuickAction
+                  icon="cart-outline"
+                  label="Savdo"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Savdo')}
+                />
+                <QuickAction
+                  icon="document-text-outline"
+                  label="Hisobot"
+                  color="#0D9488"
+                  bg="#F0FDFA"
+                  onPress={() => navigation.navigate('Moliya')}
+                />
+                <QuickAction
+                  icon="people-outline"
+                  label="Mijozlar"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="receipt-outline"
+                  label="Buyurtmalar"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+              </>
+            ) : isCashier ? (
+              <>
+                <QuickAction
+                  icon="cart-outline"
+                  label="Savdo"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Savdo')}
+                />
+                <QuickAction
+                  icon="grid-outline"
+                  label="Katalog"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Katalog')}
+                />
+                <QuickAction
+                  icon="people-outline"
+                  label="Mijozlar"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Koproq', { screen: 'CustomersScreen' } as any)}
+                />
+                <QuickAction
+                  icon="settings-outline"
+                  label="Sozlamalar"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Koproq', { screen: 'SettingsScreen' } as any)}
+                />
+              </>
+            ) : isWarehouse ? (
+              <>
+                <QuickAction
+                  icon="list-outline"
+                  label="Zaxira holati"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Katalog')}
+                />
+                <QuickAction
+                  icon="document-text-outline"
+                  label="Nakladnoy"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="notifications-outline"
+                  label="So'rovlar"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="swap-horizontal-outline"
+                  label="Harakatlar"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Moliya')}
+                />
+              </>
+            ) : (
+              <>
+                <QuickAction
+                  icon="cart-outline"
+                  label="Savdo"
+                  color="#2563EB"
+                  bg="#EFF6FF"
+                  onPress={() => navigation.navigate('Savdo')}
+                />
+                <QuickAction
+                  icon="arrow-down-circle-outline"
+                  label="Kirim"
+                  color="#16A34A"
+                  bg="#F0FDF4"
+                  onPress={() => navigation.navigate('Koproq')}
+                />
+                <QuickAction
+                  icon="grid-outline"
+                  label="Katalog"
+                  color="#D97706"
+                  bg="#FFFBEB"
+                  onPress={() => navigation.navigate('Katalog')}
+                />
+                <QuickAction
+                  icon="bar-chart-outline"
+                  label="Hisobot"
+                  color="#7C3AED"
+                  bg="#F5F3FF"
+                  onPress={() => navigation.navigate('Moliya')}
+                />
+              </>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.bottomPad} />
+      </ScrollView>
+
+      <SmenaOpenSheet
+        visible={openSheetVisible}
+        loading={loading}
+        onClose={() => setOpenSheetVisible(false)}
+        onConfirm={handleOpenConfirm}
+      />
+      <SmenaCloseSheet
+        visible={closeSheetVisible}
+        loading={loading}
+        shift={shift}
+        onClose={() => setCloseSheetVisible(false)}
+        onConfirm={handleCloseConfirm}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: '700', color: '#111827' },
+  safe: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  loadingCenter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  headerDate: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  bellBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  // Scroll
+  scroll: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  content: {
+    paddingBottom: 24,
+  },
+
+  // Smena banner
+  smenaBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFBEB',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#D97706',
+  },
+  smenaBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  smenaBannerText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  smenaOpenBtn: {
+    backgroundColor: '#D97706',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  smenaOpenBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // Section
+  section: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+  },
+
+  // Quick actions
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  quickCard: {
+    width: '47%',
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+    gap: 10,
+  },
+  quickIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  bottomPad: {
+    height: 16,
+  },
 });

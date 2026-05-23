@@ -1,19 +1,20 @@
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
     shouldShowBanner: true,
     shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
   }),
 });
 
 export function useNotifications() {
+  const queryClient = useQueryClient();
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
@@ -22,7 +23,8 @@ export function useNotifications() {
 
     notificationListener.current = Notifications.addNotificationReceivedListener(
       (_notification) => {
-        // In-app notification — handled by notification handler above
+        // Notification kelganda dashboard badge query ni invalidate qil
+        queryClient.invalidateQueries({ queryKey: ['alerts-active'] });
       },
     );
 
@@ -58,12 +60,11 @@ async function registerForPushNotifications(): Promise<void> {
 
   if (finalStatus !== 'granted') return;
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
-  const expoPushToken = tokenData.data;
-
   try {
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const expoPushToken = tokenData.data;
     await api.post('/notifications/register-token', { token: expoPushToken });
   } catch {
-    // Token registration fails silently — notifications are non-blocking
+    // EAS projectId yo'q yoki token registration failed — notifications are non-blocking
   }
 }

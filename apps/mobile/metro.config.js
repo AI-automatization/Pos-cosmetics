@@ -1,5 +1,5 @@
-const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
+const { getDefaultConfig } = require('@expo/metro-config');
 
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '../..');
@@ -13,22 +13,17 @@ config.resolver.nodeModulesPaths = [
 ];
 config.resolver.unstable_enableSymlinks = true;
 
-// pnpm fix: root node_modules/@expo/vector-icons → expo@55 (wrong for this expo@54 app).
-// Force resolution from the expo@54-compatible pnpm store entry.
-const EXPO54_PNPM_MODULES = path.resolve(
-  monorepoRoot,
-  'node_modules/.pnpm/@expo+vector-icons@15.1.1_expo-font@14.0.11_expo@54.0.33_react-native@0.81.5_@babel+cor_578ada966b57244f0fb5b55de8754f09/node_modules',
-);
+const MOBILE_NODE_MODULES = path.resolve(projectRoot, 'node_modules');
+
+// pnpm monorepo: deduplicate React + react-native to app-local versions
+config.resolver.extraNodeModules = {
+  'react':                 path.resolve(MOBILE_NODE_MODULES, 'react'),
+  'react-native':          path.resolve(MOBILE_NODE_MODULES, 'react-native'),
+  'react/jsx-runtime':     path.resolve(MOBILE_NODE_MODULES, 'react', 'jsx-runtime'),
+  'react/jsx-dev-runtime': path.resolve(MOBILE_NODE_MODULES, 'react', 'jsx-dev-runtime'),
+};
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  // For @expo/vector-icons, resolve from the expo@54-compatible pnpm entry first
-  if (moduleName === '@expo/vector-icons' || moduleName.startsWith('@expo/vector-icons/')) {
-    return context.resolveRequest(
-      { ...context, nodeModulesPaths: [EXPO54_PNPM_MODULES, ...context.nodeModulesPaths] },
-      moduleName,
-      platform,
-    );
-  }
   // pnpm fix: AppEntry.js tries `../../App` from virtual store path
   if (moduleName === '../../App') {
     return {

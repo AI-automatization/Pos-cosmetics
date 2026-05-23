@@ -7,16 +7,16 @@ type MCIconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 // ─── Colors ────────────────────────────────────────────
 export const C = {
-  bg:        '#F5F5F7',
+  bg:        '#F9FAFB',
   white:     '#FFFFFF',
   text:      '#111827',
   muted:     '#9CA3AF',
   secondary: '#6B7280',
-  border:    '#F3F4F6',
-  primary:   '#5B5BD6',
-  green:     '#10B981',
-  red:       '#EF4444',
-  orange:    '#F59E0B',
+  border:    '#E5E7EB',
+  primary:   '#2563EB',
+  green:     '#16A34A',
+  red:       '#DC2626',
+  orange:    '#D97706',
 };
 
 // ─── Types ─────────────────────────────────────────────
@@ -36,7 +36,7 @@ export interface ShiftRecord {
 }
 
 // ─── Utils ─────────────────────────────────────────────
-export function fmt(n: number) { return n.toLocaleString('ru-RU'); }
+export function fmt(n: number | undefined | null) { return (n ?? 0).toLocaleString('ru-RU'); }
 
 // ─── Stat box ──────────────────────────────────────────
 export function StatBox({

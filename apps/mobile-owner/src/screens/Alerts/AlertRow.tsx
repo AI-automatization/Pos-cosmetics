@@ -19,8 +19,12 @@ const TYPE_CONFIG: Record<NotificationType, { iconName: React.ComponentProps<typ
   LARGE_REFUND:        { iconName: 'return-down-back-outline',  iconColor: Colors.purple,   leftBorder: Colors.purple },
   SUSPICIOUS_ACTIVITY: { iconName: 'warning-outline',           iconColor: Colors.danger,   leftBorder: Colors.danger },
   SHIFT_CLOSED:        { iconName: 'lock-closed-outline',       iconColor: Colors.textMuted, leftBorder: Colors.textMuted },
+  SHIFT_OPENED:        { iconName: 'play-circle-outline',      iconColor: Colors.success,   leftBorder: Colors.success },
   SYSTEM_ERROR:        { iconName: 'bug-outline',               iconColor: Colors.danger,   leftBorder: Colors.danger },
   NASIYA_OVERDUE:      { iconName: 'card-outline',              iconColor: Colors.orange,   leftBorder: Colors.orange },
+  LARGE_SALE:          { iconName: 'trending-up-outline',       iconColor: Colors.success,   leftBorder: Colors.success },
+  NEW_EMPLOYEE:        { iconName: 'person-add-outline',        iconColor: Colors.primary,   leftBorder: Colors.primary },
+  SALE_COMPLETED:      { iconName: 'checkmark-circle-outline',  iconColor: Colors.success,   leftBorder: Colors.success },
 };
 
 export default function AlertRow({ item, onPress }: AlertRowProps) {

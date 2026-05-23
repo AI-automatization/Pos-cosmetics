@@ -2,13 +2,13 @@ import type { CatalogProduct } from '../../../api/catalog.api';
 import type { Product } from '../ProductCard';
 
 export const C = {
-  primary: '#5B5BD6',
-  bg:      '#F5F5F7',
+  primary: '#2563EB',
+  bg:      '#F9FAFB',
   white:   '#FFFFFF',
   text:    '#111827',
   muted:   '#9CA3AF',
   border:  '#E5E7EB',
-  danger:  '#EF4444',
+  danger:  '#DC2626',
 };
 
 export const PLACEHOLDER_COLORS = [

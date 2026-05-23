@@ -8,17 +8,27 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import ProductCard from './ProductCard';
 import ScannerModal from './ScannerModal';
 import PaymentSheet, { type PaymentMethod } from './PaymentSheet';
+import { isOnlineMethod } from './PaymentSheetTypes';
+import OnlinePaymentSheet from './OnlinePaymentSheet';
 import LowStockSheet from './LowStockSheet';
 import { useShiftStore } from '../../store/shiftStore';
 import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import { salesApi } from '../../api/sales.api';
-import { type TabParamList } from '../../navigation/types';
+import { paymentsApi, type PaymentIntentResponse } from '../../api/payments.api';
+import { loyaltyApi } from '../../api/loyalty.api';
+import type { Customer } from '../../api/customers.api';
+import CustomerSearchSheet from './CustomerSearchSheet';
+import { type SavdoStackParamList } from '../../navigation/types';
 import ShiftGuard from '../../components/common/ShiftGuard';
+import { isNetworkOnline } from '../../hooks/useNetworkStatus';
+import { useOfflineQueue } from '../../hooks/useOfflineQueue';
 
 import { C, toProduct, type CartItem } from './components/utils';
 import SavdoHeader from './components/SavdoHeader';
@@ -28,7 +38,7 @@ import CartBar from './components/CartBar';
 
 // ─── Screen ────────────────────────────────────────────
 export default function SavdoScreen() {
-  const navigation = useNavigation<NavigationProp<TabParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<SavdoStackParamList>>();
   const { isShiftOpen, shiftId } = useShiftStore();
 
   const [search, setSearch]               = useState('');
@@ -38,6 +48,13 @@ export default function SavdoScreen() {
   const [paymentVisible, setPaymentVisible]   = useState(false);
   const [lowStockVisible, setLowStockVisible] = useState(false);
   const [orderLoading, setOrderLoading]       = useState(false);
+  const [onlinePaymentVisible, setOnlinePaymentVisible] = useState(false);
+  const [paymentIntent, setPaymentIntent] = useState<PaymentIntentResponse | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerSheetVisible, setCustomerSheetVisible] = useState(false);
+  const [redeemPoints, setRedeemPoints] = useState(0);
+
+  const { pending: pendingCount, refresh: refreshQueue } = useOfflineQueue();
 
   // ─── API ─────────────────────────────────────────────
   const { data: rawProducts = [], isLoading: productsLoading } = useQuery({
@@ -108,6 +125,13 @@ export default function SavdoScreen() {
     });
   };
 
+  // ─── Customer ────────────────────────────────────────
+  const handleSelectCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setCustomerSheetVisible(false);
+    setRedeemPoints(0);
+  };
+
   // ─── Scanner ──────────────────────────────────────────
   const handleScanned = async (barcode: string) => {
     setScannerVisible(false);
@@ -138,15 +162,48 @@ export default function SavdoScreen() {
   // ─── Confirm order ────────────────────────────────────
   const handleConfirm = async (method: PaymentMethod, _received: number) => {
     if (method === 'NASIYA') {
-      navigation.navigate('Nasiya', { openNewDebt: true, amount: totalPrice, products: cart });
+      navigation.navigate('NasiyaScreen', { openNewDebt: true, amount: totalPrice, products: cart });
       setPaymentVisible(false);
       setCart([]);
       return;
     }
+    if (!shiftId) {
+      Alert.alert('Xatolik', 'Smena ochilmagan. Avval smena oching.');
+      return;
+    }
+    // Online payment flow (PAYME / CLICK / UZUM)
+    if (isOnlineMethod(method)) {
+      setOrderLoading(true);
+      try {
+        const order = await salesApi.createOrder({
+          shiftId,
+          items: cart.map((i) => ({
+            productId: i.product.id,
+            quantity: i.qty,
+            unitPrice: i.product.sellPrice,
+          })),
+          notes: `To'lov: ${method}`,
+        });
+        const intent = await paymentsApi.createIntent({
+          orderId: order.id,
+          method,
+          amount: totalPrice,
+        });
+        setPaymentIntent(intent);
+        setPaymentVisible(false);
+        setOnlinePaymentVisible(true);
+      } catch {
+        Alert.alert('Xatolik', "Online to'lov yaratilmadi. Qayta urinib ko'ring.");
+      } finally {
+        setOrderLoading(false);
+      }
+      return;
+    }
+    // Standard payment flow (NAQD / KARTA)
     setOrderLoading(true);
     try {
-      await salesApi.createOrder({
-        shiftId: shiftId ?? undefined,
+      const order = await salesApi.createOrder({
+        shiftId,
         items: cart.map((i) => ({
           productId: i.product.id,
           quantity:  i.qty,
@@ -154,13 +211,57 @@ export default function SavdoScreen() {
         })),
         notes: `To'lov: ${method}`,
       });
+      if (redeemPoints > 0 && selectedCustomer) {
+        try {
+          await loyaltyApi.redeem(selectedCustomer.id, redeemPoints, order.id);
+        } catch {
+          // Don't block sale if loyalty redeem fails
+        }
+      }
       setPaymentVisible(false);
       setCart([]);
+      setSelectedCustomer(null);
+      setRedeemPoints(0);
     } catch {
-      Alert.alert('Xatolik', "Buyurtma saqlanmadi. Qayta urinib ko'ring.");
+      const online = await isNetworkOnline();
+      if (!online) {
+        const { offlineQueueService } = await import('../../services/OfflineQueueService');
+        await offlineQueueService.enqueue({
+          shiftId: shiftId!,
+          items: cart.map((i) => ({
+            productId: i.product.id,
+            quantity: i.qty,
+            unitPrice: i.product.sellPrice,
+          })),
+          notes: `To'lov: ${method}`,
+        });
+        await refreshQueue();
+        Alert.alert('Offline rejim', "Buyurtma saqlandi. Internet ulanganda avtomatik yuboriladi.");
+        setPaymentVisible(false);
+        setCart([]);
+        setSelectedCustomer(null);
+        setRedeemPoints(0);
+      } else {
+        Alert.alert('Xatolik', "Buyurtma saqlanmadi. Qayta urinib ko'ring.");
+      }
     } finally {
       setOrderLoading(false);
     }
+  };
+
+  // ─── Online payment callbacks ─────────────────────────
+  const handleOnlinePaymentSuccess = () => {
+    setOnlinePaymentVisible(false);
+    setPaymentIntent(null);
+    setCart([]);
+  };
+
+  const handleOnlinePaymentCancel = async () => {
+    if (paymentIntent) {
+      try { await paymentsApi.cancelIntent(paymentIntent.id); } catch { /* noop */ }
+    }
+    setOnlinePaymentVisible(false);
+    setPaymentIntent(null);
   };
 
   const cartQty    = (productId: string) => cart.find((i) => i.product.id === productId)?.qty ?? 0;
@@ -172,7 +273,21 @@ export default function SavdoScreen() {
     <ShiftGuard>
       <SafeAreaView style={styles.safe} edges={['top']}>
 
-        <SavdoHeader alertCount={alertCount} onBellPress={() => setLowStockVisible(true)} />
+        <SavdoHeader
+          alertCount={alertCount}
+          isShiftOpen={isShiftOpen}
+          shiftId={shiftId}
+          onBellPress={() => setLowStockVisible(true)}
+        />
+
+        {pendingCount > 0 && (
+          <View style={styles.offlineBadge}>
+            <Ionicons name="cloud-upload-outline" size={14} color="#D97706" />
+            <Text style={styles.offlineBadgeText}>
+              {pendingCount} ta buyurtma yuborilmagan
+            </Text>
+          </View>
+        )}
 
         <SavdoSearchBar
           search={search}
@@ -210,6 +325,7 @@ export default function SavdoScreen() {
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>Mahsulot topilmadi</Text>
+                <Text style={styles.emptySubText}>Qidiruvni o'zgartiring yoki kategoriyani tanlang</Text>
               </View>
             }
           />
@@ -222,6 +338,24 @@ export default function SavdoScreen() {
           onClose={() => setPaymentVisible(false)}
           onRemoveItem={removeFromCart}
           onConfirm={handleConfirm}
+          customerId={selectedCustomer?.id ?? null}
+          customerPhone={selectedCustomer?.phone ?? null}
+          redeemPoints={redeemPoints}
+          onRedeemPointsChange={setRedeemPoints}
+          onSelectCustomer={() => setCustomerSheetVisible(true)}
+        />
+
+        <CustomerSearchSheet
+          visible={customerSheetVisible}
+          onClose={() => setCustomerSheetVisible(false)}
+          onSelect={handleSelectCustomer}
+        />
+
+        <OnlinePaymentSheet
+          visible={onlinePaymentVisible}
+          intent={paymentIntent}
+          onSuccess={handleOnlinePaymentSuccess}
+          onCancel={handleOnlinePaymentCancel}
         />
 
         <ScannerModal
@@ -258,6 +392,25 @@ const styles = StyleSheet.create({
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   flatList:    { flex: 1 },
   grid:        { paddingHorizontal: 11, paddingBottom: 100, flexGrow: 1 },
-  empty:       { paddingTop: 60, alignItems: 'center' },
-  emptyText:   { fontSize: 15, color: C.muted },
+  empty:        { paddingTop: 80, alignItems: 'center', gap: 8 },
+  emptyText:    { fontSize: 15, color: '#6B7280', fontWeight: '500' },
+  emptySubText: { fontSize: 13, color: '#9CA3AF' },
+  offlineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  offlineBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#D97706',
+  },
 });

@@ -5,6 +5,7 @@ import { RootStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
 import { useOnboardingStore } from '../store/onboarding.store';
 import { useBranchStore } from '../store/branch.store';
+import { useNotifications } from '../hooks/useNotifications';
 import AuthNavigator from './AuthNavigator';
 import OnboardingNavigator from './OnboardingNavigator';
 import TabNavigator from './TabNavigator';
@@ -15,6 +16,9 @@ export default function RootNavigator() {
   const { isAuthenticated, isLoading, checkAuth, setLoading } = useAuthStore();
   const { isComplete, loadPersistedState } = useOnboardingStore();
   const loadPersistedBranch = useBranchStore((s) => s.loadPersistedBranch);
+
+  // Register push token when authenticated
+  useNotifications();
 
   useEffect(() => {
     // Hard fallback: if loading takes more than 5s, force it off

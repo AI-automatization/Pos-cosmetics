@@ -18,10 +18,10 @@ type Props = {
   route: RouteProp<RealEstateStackParamList, 'RentalPayments'>;
 };
 
-const PAYMENT_VARIANT: Record<PaymentStatus, 'success' | 'warning' | 'error'> = {
+const PAYMENT_VARIANT: Record<PaymentStatus, 'success' | 'warning' | 'danger'> = {
   PAID: 'success',
   PENDING: 'warning',
-  OVERDUE: 'error',
+  OVERDUE: 'danger',
 };
 
 function PaymentRow({
@@ -76,7 +76,7 @@ export default function RentalPaymentsScreen({ route }: Props): React.JSX.Elemen
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PaymentRow item={item} t={t} />}
         ListEmptyComponent={
-          <EmptyState message={t('realestate.noPayments')} icon="💳" />
+          <EmptyState title={t('realestate.noPayments')} />
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.list}

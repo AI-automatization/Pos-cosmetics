@@ -29,7 +29,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setUser: async (user, accessToken, refreshToken) => {
     await SecureStore.setItemAsync('access_token', accessToken);
-    await SecureStore.setItemAsync('refresh_token', refreshToken);
+    if (refreshToken) {
+      await SecureStore.setItemAsync('refresh_token', refreshToken);
+    }
     await SecureStore.setItemAsync('user', JSON.stringify(user));
     set({ user, isAuthenticated: true });
   },
@@ -49,7 +51,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     try {
       const user = JSON.parse(userStr) as User;
+      // Darhol cached user ni set qil (UI tez ko'rsatish uchun)
       set({ user, isAuthenticated: true });
+
+      // Background da server bilan taqqosla va yangilab qo'y
+      void (async () => {
+        try {
+          const { default: api } = await import('../api/client');
+          const { data } = await api.get<User>('/auth/me');
+          if (data && data.id) {
+            await SecureStore.setItemAsync('user', JSON.stringify(data));
+            set({ user: data });
+          }
+        } catch {
+          // Server xatosi — cached data bilan davom etamiz (offline case)
+        }
+      })();
+
       return true;
     } catch {
       return false;

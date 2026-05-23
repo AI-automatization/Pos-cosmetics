@@ -1,3 +1,5 @@
+import type { CartItem, PaymentMethod } from '../screens/Savdo/PaymentSheetTypes';
+
 export type AuthStackParamList = {
   Login: undefined;
   Biometric: undefined;
@@ -9,10 +11,26 @@ export type SalesStackParamList = {
 };
 
 export type TabParamList = {
-  Dashboard: undefined;
+  BoshSahifa: undefined;
+  Analytics: undefined;
+  Xodimlar: undefined;
   Savdo: undefined;
-  SavdoTarixi: undefined;
-  Nasiya:
+  Katalog: undefined;
+  Moliya: undefined;
+  Koproq: undefined;
+};
+
+// Stack param lists for nested navigators inside tabs
+export type SavdoStackParamList = {
+  SavdoMain: undefined;
+  SmenaScreen: undefined;
+  SalesHistory: undefined;
+  PaymentSuccess: {
+    items: CartItem[];
+    paymentMethod: PaymentMethod;
+    orderNumber: string;
+  };
+  NasiyaScreen:
     | {
         openNewDebt?: boolean;
         amount?: number;
@@ -22,9 +40,67 @@ export type TabParamList = {
         }>;
       }
     | undefined;
-  Kirim: undefined;
-  Ombor: undefined;
-  Settings: undefined;
+};
+
+export type CatalogStackParamList = {
+  CatalogMain: undefined;
+  Categories: undefined;
+  ProductForm: { productId?: string } | undefined;
+  Suppliers: undefined;
+};
+
+export type FinanceStackParamList = {
+  FinanceMain: undefined;
+  DailyRevenue: undefined;
+  Expenses: undefined;
+  PnL: undefined;
+  TopProducts: undefined;
+  PaymentsHistory: undefined;
+  NasiyaAging: undefined;
+  ShiftReports: undefined;
+  ReportsHub: undefined;
+  ExchangeRates: undefined;
+  BranchReports: undefined;
+  ReportBuilder: undefined;
+  Export: undefined;
+};
+
+export type MovementsStackParamList = {
+  MovementsMain: undefined;
+};
+
+export type MoreStackParamList = {
+  MoreMenu: undefined;
+  KirimScreen: undefined;
+  OmborScreen: undefined;
+  SettingsScreen: undefined;
+  BranchesScreen: undefined;
+  AuditLogScreen: undefined;
+  CustomersScreen: undefined;
+  CustomerDetail: { customerId: string; customerName: string };
+  PromotionsScreen: undefined;
+  UsersScreen: undefined;
+  LowStockList: undefined;
+  SuppliersScreen: undefined;
+  SystemHealthScreen: undefined;
+  DebtsScreen: undefined;
+  ShiftsOwnerScreen: undefined;
+  EmployeesScreen: undefined;
+  EmployeeDetailScreen: { employeeId: string; employeeName: string };
+  AddEmployeeScreen: undefined;
+  StockOutScreen: undefined;
+  TransferScreen: undefined;
+  TransferListScreen: undefined;
+  ExpiryScreen: undefined;
+  StockMovementsScreen: undefined;
+  SalesOrdersScreen: undefined;
+  SalesReturnsScreen: undefined;
+  ChegirmaScreen: undefined;
+  BillingScreen: undefined;
+  TasksScreen: undefined;
+  TesterScreen: undefined;
+  IncomingTransfersScreen: undefined;
+  PrinterScreen: undefined;
 };
 
 export type RootStackParamList = {
@@ -40,6 +116,7 @@ export type RootStackParamList = {
 export type DashboardStackParamList = {
   DashboardMain: undefined;
   BranchDetail: { branchId: string; branchName: string };
+  NotificationsScreen: undefined;
 };
 
 export type InventoryStackParamList = {
@@ -52,6 +129,7 @@ export type RealEstateStackParamList = {
   Properties: undefined;
   PropertyDetail: { propertyId: string; propertyName: string };
   RentalPayments: { propertyId: string; propertyName?: string };
+  AddProperty: undefined;
 };
 
 export type SettingsStackParamList = {
@@ -64,4 +142,39 @@ export type SettingsStackParamList = {
 export type NasiyaStackParamList = {
   NasiyaList: undefined;
   DebtDetail: { debtorId: string; customerName: string };
+};
+
+export type EmployeesStackParamList = {
+  EmployeeList: undefined;
+  EmployeeDetail: { employeeId: string; employeeName: string };
+  AddEmployee: undefined;
+};
+
+export type ShiftsOwnerStackParamList = {
+  ShiftList: undefined;
+  ShiftDetail: { shiftId: string };
+};
+
+export type SalesOrdersStackParamList = {
+  SalesOrderList: undefined;
+  SalesOrderDetail: { orderId: string; orderNumber: number };
+};
+
+export type AnalyticsStackParamList = {
+  AnalyticsMain: undefined;
+  AbcAnalysis: undefined;
+  MarginAnalysis: undefined;
+  CashierPerformance: undefined;
+  DeadStock: undefined;
+};
+
+export type OmborTabStackParamList = {
+  WarehouseDashboard: undefined;
+  OmborMain: undefined;
+  InvoicesScreen: undefined;
+  RestockRequestsScreen: undefined;
+  SuppliersOmborScreen: undefined;
+  SupplierDetailScreen: { supplierId: string };
+  TransferListScreen: undefined;
+  TesterScreen: undefined;
 };

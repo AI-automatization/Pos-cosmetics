@@ -6,6 +6,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { DebtRecord } from '../../api/nasiya.api';
 import { formatUZS } from '../../utils/currency';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 
 const C = {
   bg: '#F5F5F7', white: '#FFFFFF', text: '#111827',
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function DebtDetailSheet({ visible, debt, onClose, onPay }: Props) {
+  useScreenProtection();
   if (!debt) return null;
 
   const remaining = Number(debt.remaining);

@@ -72,9 +72,8 @@ export default function OnboardingScreen({ navigation: _navigation }: Props): Re
   const [idx, setIdx] = useState(0);
   const { setOnboardingDone } = useAppStore();
 
-  const slide = SLIDES[idx]!;
   const isLast = idx === SLIDES.length - 1;
-  const ILLUS_H = H * 0.50;
+  const ILLUS_H = H * 0.60;
 
   const finish = (): void => {
     void markDone().then(() => setOnboardingDone(true));
@@ -130,6 +129,16 @@ export default function OnboardingScreen({ navigation: _navigation }: Props): Re
     <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
+      {!isLast && (
+        <TouchableOpacity
+          onPress={finish}
+          accessibilityRole="button"
+          style={styles.skipAbsolute}
+        >
+          <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
+        </TouchableOpacity>
+      )}
+
       <FlatList
         ref={listRef}
         data={SLIDES}
@@ -156,8 +165,8 @@ export default function OnboardingScreen({ navigation: _navigation }: Props): Re
               style={[
                 styles.dot,
                 i === idx
-                  ? { width: 28, height: 8, backgroundColor: slide.accent, borderRadius: 4 }
-                  : { width: 8, height: 8, backgroundColor: '#e5e7eb', borderRadius: 4 },
+                  ? { width: 28, height: 8, backgroundColor: '#2563EB', borderRadius: 4 }
+                  : { width: 8, height: 8, backgroundColor: '#E5E7EB', borderRadius: 4 },
               ]}
             />
           ))}
@@ -167,18 +176,18 @@ export default function OnboardingScreen({ navigation: _navigation }: Props): Re
         <View style={styles.btnRow}>
           {idx > 0 ? (
             <TouchableOpacity
-              style={[styles.backBtn, { borderColor: slide.accent }]}
+              style={[styles.backBtn, { borderColor: '#2563EB' }]}
               onPress={back}
               accessibilityRole="button"
             >
-              <Text style={[styles.backArrow, { color: slide.accent }]}>←</Text>
+              <Text style={[styles.backArrow, { color: '#2563EB' }]}>←</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.backPlaceholder} />
           )}
 
           <TouchableOpacity
-            style={[styles.nextBtn, { backgroundColor: slide.accent }]}
+            style={[styles.nextBtn, { backgroundColor: isLast ? '#16A34A' : '#2563EB' }]}
             onPress={next}
             accessibilityRole="button"
             testID="onboarding-next-btn"
@@ -190,14 +199,6 @@ export default function OnboardingScreen({ navigation: _navigation }: Props): Re
           </TouchableOpacity>
         </View>
 
-        {/* Skip */}
-        {!isLast ? (
-          <TouchableOpacity onPress={finish} accessibilityRole="button" style={styles.skipBtn}>
-            <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.skipBtn} />
-        )}
       </View>
     </View>
   );
@@ -357,5 +358,13 @@ const styles = StyleSheet.create({
   skipText: {
     color: '#9ca3af',
     fontSize: 15,
+  },
+  skipAbsolute: {
+    position: 'absolute',
+    top: 52,
+    right: 20,
+    zIndex: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
   },
 });

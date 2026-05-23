@@ -1,27 +1,33 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { TopProduct } from '@raos/types';
 import Card from '../../components/common/Card';
 import { formatUZS } from '../../utils/currency';
 
 interface TopProductsCardProps {
   readonly products: TopProduct[];
+  readonly onSeeAll?: () => void;
 }
 
-export default function TopProductsCard({ products }: TopProductsCardProps) {
-  const { t } = useTranslation();
-
+export default function TopProductsCard({ products, onSeeAll }: TopProductsCardProps) {
   return (
     <Card>
-      <Text style={styles.sectionLabel}>{t('dashboard.topProducts')}</Text>
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.productId}
-        scrollEnabled={false}
-        renderItem={({ item, index }) => (
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Top mahsulotlar bugun</Text>
+        {onSeeAll && (
+          <TouchableOpacity onPress={onSeeAll} activeOpacity={0.7}>
+            <Text style={styles.seeAll}>Hammasi</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {products.map((item, index) => (
+        <React.Fragment key={item.productId}>
+          {index > 0 && <View style={styles.separator} />}
           <View style={styles.row}>
-            <Text style={styles.rank}>{index + 1}</Text>
+            <View style={styles.rankCircle}>
+              <Text style={styles.rankText}>{index + 1}</Text>
+            </View>
             <Text style={styles.name} numberOfLines={1}>
               {item.productName}
             </Text>
@@ -30,30 +36,47 @@ export default function TopProductsCard({ products }: TopProductsCardProps) {
               <Text style={styles.revenue}>{formatUZS(item.totalRevenue)}</Text>
             </View>
           </View>
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+        </React.Fragment>
+      ))}
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionLabel: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  seeAll: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#2563EB',
     fontWeight: '500',
-    marginBottom: 12,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
+    paddingVertical: 4,
   },
-  rank: {
-    fontSize: 13,
+  rankCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankText: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#6366F1',
-    width: 20,
+    color: '#2563EB',
   },
   name: {
     flex: 1,
@@ -62,17 +85,20 @@ const styles = StyleSheet.create({
   },
   right: {
     alignItems: 'flex-end',
+    gap: 2,
   },
   qty: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
   },
   revenue: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: '#111827',
   },
   separator: {
-    height: 10,
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginVertical: 8,
   },
 });

@@ -4,7 +4,7 @@ import { ENDPOINTS } from '../config/endpoints';
 // ─── Enums / union types ─────────────────────────────────────────────────────
 
 export type EmployeeStatus = 'active' | 'inactive' | 'fired';
-export type EmployeeRole = 'cashier' | 'manager' | 'admin';
+export type EmployeeRole = 'CASHIER' | 'MANAGER' | 'ADMIN' | 'WAREHOUSE';
 
 // ─── Existing interfaces (performance / suspicious) ──────────────────────────
 
@@ -40,21 +40,21 @@ export interface Employee {
   readonly firstName: string;
   readonly lastName: string;
   readonly fullName: string;
-  readonly phone: string;
+  readonly phone: string | null;
   readonly email: string | null;
-  readonly dateOfBirth: string | null;
-  readonly passportId: string | null;
-  readonly address: string | null;
-  readonly hireDate: string;
   readonly role: EmployeeRole;
   readonly branchId: string;
   readonly branchName: string;
   readonly status: EmployeeStatus;
-  readonly login: string;
   readonly photoUrl: string | null;
+  readonly login: string;
   readonly hasPosAccess: boolean;
   readonly hasAdminAccess: boolean;
   readonly hasReportsAccess: boolean;
+  readonly dateOfBirth: string | null;
+  readonly passportId: string | null;
+  readonly address: string | null;
+  readonly hireDate: string | null;
   readonly emergencyContactName: string | null;
   readonly emergencyContactPhone: string | null;
 }
@@ -64,21 +64,16 @@ export interface Employee {
 export interface CreateEmployeeDto {
   firstName: string;
   lastName: string;
-  phone: string;
   email?: string;
-  dateOfBirth?: string;
-  passportId?: string;
-  address?: string;
-  hireDate: string;
-  role: EmployeeRole;
-  branchId: string;
-  login: string;
   password: string;
-  hasPosAccess: boolean;
-  hasAdminAccess: boolean;
-  hasReportsAccess: boolean;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
+  role?: EmployeeRole;
+  phone?: string;
+  login?: string;
+  branchId?: string;
+  hireDate?: string;
+  hasPosAccess?: boolean;
+  hasAdminAccess?: boolean;
+  hasReportsAccess?: boolean;
 }
 
 export interface UpdateEmployeeStatusDto {
