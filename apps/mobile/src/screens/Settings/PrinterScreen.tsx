@@ -126,7 +126,7 @@ export default function PrinterScreen() {
             disabled={isPrinting}
             activeOpacity={0.7}
           >
-            <View style={[styles.menuIcon, { backgroundColor: '#D1FAE5' }]}>
+            <View style={[styles.menuIcon, styles.menuIconGreen]}>
               <Ionicons name="document-text-outline" size={18} color={C.green} />
             </View>
             <Text style={styles.menuLabel}>
@@ -144,7 +144,7 @@ export default function PrinterScreen() {
             onPress={() => { void checkStatus(); }}
             activeOpacity={0.7}
           >
-            <View style={[styles.menuIcon, { backgroundColor: '#EFF6FF' }]}>
+            <View style={[styles.menuIcon, styles.menuIconBlue]}>
               <Ionicons name="refresh-outline" size={18} color="#2563EB" />
             </View>
             <Text style={styles.menuLabel}>
@@ -158,7 +158,7 @@ export default function PrinterScreen() {
         <SectionTitle title={t('printer.settingsSection')} />
         <Card>
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: '#FFF7ED' }]}>
+            <View style={[styles.menuIcon, styles.menuIconOrange]}>
               <Ionicons name="print-outline" size={18} color={C.orange} />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
@@ -173,7 +173,7 @@ export default function PrinterScreen() {
           </View>
           <Divider />
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: '#F5F3FF' }]}>
+            <View style={[styles.menuIcon, styles.menuIconPurple]}>
               <Ionicons name="cut-outline" size={18} color="#7C3AED" />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
@@ -192,7 +192,7 @@ export default function PrinterScreen() {
         <SectionTitle title={t('printer.infoSection')} />
         <Card>
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: '#F3F4F6' }]}>
+            <View style={[styles.menuIcon, styles.menuIconGray]}>
               <Ionicons name="hardware-chip-outline" size={18} color={C.secondary} />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
@@ -202,7 +202,7 @@ export default function PrinterScreen() {
           </View>
           <Divider />
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: '#F3F4F6' }]}>
+            <View style={[styles.menuIcon, styles.menuIconGray]}>
               <Ionicons name="resize-outline" size={18} color={C.secondary} />
             </View>
             <Text style={[styles.menuLabel, styles.menuLabelFlex]}>
@@ -234,6 +234,11 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 12, color: C.red, marginTop: 2 },
   menuRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 13, gap: 12 },
   menuIcon: { width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  menuIconGreen: { backgroundColor: '#D1FAE5' },
+  menuIconBlue: { backgroundColor: '#EFF6FF' },
+  menuIconOrange: { backgroundColor: '#FFF7ED' },
+  menuIconPurple: { backgroundColor: '#F5F3FF' },
+  menuIconGray: { backgroundColor: '#F3F4F6' },
   menuLabel: { fontSize: 15, fontWeight: '500', color: C.text },
   menuLabelFlex: { flex: 1 },
   menuValue: { fontSize: 13, color: C.muted },

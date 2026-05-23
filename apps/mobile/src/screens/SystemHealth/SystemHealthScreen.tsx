@@ -40,7 +40,7 @@ function ServiceCard({ name, svc }: { name: string; svc: ServiceStatus | undefin
   return (
     <View style={s.serviceCard}>
       <Text style={s.serviceName}>{name}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <View style={s.headerRow}>
         {svc.responseMs != null && (
           <Text style={s.responseMs}>{svc.responseMs}ms</Text>
         )}
@@ -95,7 +95,7 @@ export default function SystemHealthScreen(): React.JSX.Element {
           <Ionicons name="chevron-back" size={22} color={C.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Sistema holati</Text>
-        <View style={{ width: 36 }} />
+        <View style={s.spacer} />
       </View>
 
       {health.isLoading ? (
@@ -139,7 +139,7 @@ export default function SystemHealthScreen(): React.JSX.Element {
           <Text style={s.sectionTitle}>So'nggi xatolar</Text>
           <View style={s.card}>
             {errors.isLoading ? (
-              <ActivityIndicator style={{ padding: 20 }} color={C.primary} />
+              <ActivityIndicator style={s.loadingWrap} color={C.primary} />
             ) : (errors.data ?? []).length === 0 ? (
               <View style={s.emptyRow}>
                 <Ionicons name="checkmark-circle-outline" size={24} color={C.green} />
@@ -203,5 +203,8 @@ const s = StyleSheet.create({
   levelText: { fontSize: 10, fontWeight: '700' },
   errMsg: { fontSize: 13, color: C.text, fontWeight: '500', marginBottom: 3 },
   errMeta: { fontSize: 11, color: C.muted },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  spacer: { width: 36 },
+  loadingWrap: { padding: 20 },
   emptyRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 20, justifyContent: 'center' },
 });

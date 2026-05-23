@@ -153,7 +153,7 @@ export default function FinanceScreen() {
           <Text style={styles.headerTitle}>Moliya</Text>
           <Text style={styles.headerSub}>Moliyaviy ko'rsatkichlar</Text>
         </View>
-        <View style={[styles.headerIcon, { backgroundColor: '#EFF6FF' }]}>
+        <View style={[styles.headerIcon, styles.headerIconBlue]}>
           <Ionicons name="bar-chart-outline" size={20} color={C.primary} />
         </View>
       </View>
@@ -421,4 +421,6 @@ const styles = StyleSheet.create({
   },
   navLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: C.text },
   navChevron: { marginLeft: 'auto' },
+
+  headerIconBlue: { backgroundColor: '#EFF6FF' },
 });

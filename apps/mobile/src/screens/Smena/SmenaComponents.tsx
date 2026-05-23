@@ -81,7 +81,7 @@ export function DetailRow({
   return (
     <View style={styles.detailRow}>
       {icon !== undefined ? (
-        <MaterialCommunityIcons name={icon} size={16} color={C.muted} style={{ marginRight: 8 }} />
+        <MaterialCommunityIcons name={icon} size={16} color={C.muted} style={styles.iconMargin} />
       ) : (
         <View style={styles.detailDot} />
       )}
@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 15, fontWeight: '800', color: C.text },
   statLabel: { fontSize: 11, fontWeight: '600', color: C.muted },
   statSub: { fontSize: 11, color: C.secondary },
+  iconMargin: { marginRight: 8 },
   detailRow: { flexDirection: 'row', alignItems: 'center' },
   detailDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.muted, marginRight: 10 },
   detailLabel: { flex: 1, fontSize: 14, color: C.secondary },

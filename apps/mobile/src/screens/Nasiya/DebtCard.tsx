@@ -121,13 +121,13 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
         </View>
         <View style={styles.amountItem}>
           <Text style={styles.amountLabel}>To'langan</Text>
-          <Text style={[styles.amountValue, { color: '#16A34A' }]}>
+          <Text style={[styles.amountValue, styles.amountValueGreen]}>
             {formatUZS(Number(debt.paidAmount))}
           </Text>
         </View>
         <View style={styles.amountItem}>
           <Text style={styles.amountLabel}>Qoldiq</Text>
-          <Text style={[styles.amountValue, { color: '#DC2626', fontWeight: '700' }]}>
+          <Text style={[styles.amountValue, styles.amountValueRed]}>
             {formatUZS(Number(debt.remaining))}
           </Text>
         </View>
@@ -421,4 +421,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+
+  amountValueGreen: { color: '#16A34A' },
+  amountValueRed: { color: '#DC2626', fontWeight: '700' },
 });

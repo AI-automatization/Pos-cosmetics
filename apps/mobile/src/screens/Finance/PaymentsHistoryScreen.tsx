@@ -328,7 +328,7 @@ export default function PaymentsHistoryScreen() {
           <Text style={styles.headerTitle}>To'lovlar tarixi</Text>
           <Text style={styles.headerSub}>{filtered.length} ta yozuv</Text>
         </View>
-        <View style={[styles.headerIcon, { backgroundColor: '#EFF6FF' }]}>
+        <View style={[styles.headerIcon, styles.headerIconBlue]}>
           <Ionicons name="card-outline" size={20} color={C.primary} />
         </View>
       </View>
@@ -586,4 +586,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 2,
   },
+
+  headerIconBlue: { backgroundColor: '#EFF6FF' },
 });

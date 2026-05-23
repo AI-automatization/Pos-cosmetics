@@ -315,7 +315,7 @@ export default function SettingsScreen() {
         <Card>
           {/* Language row */}
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: '#EFF6FF' }]}>
+            <View style={[styles.menuIcon, styles.menuIconBlue]}>
               <Ionicons name="language-outline" size={18} color="#2563EB" />
             </View>
             <View style={styles.menuLabelContainer}>
@@ -332,7 +332,7 @@ export default function SettingsScreen() {
 
           {/* Theme row */}
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: '#F5F3FF' }]}>
+            <View style={[styles.menuIcon, styles.menuIconPurple]}>
               <Ionicons name="moon-outline" size={18} color="#7C3AED" />
             </View>
             <View style={styles.menuLabelContainer}>
@@ -570,6 +570,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  menuIconBlue: {
+    backgroundColor: '#EFF6FF',
+  },
+  menuIconPurple: {
+    backgroundColor: '#F5F3FF',
   },
   menuLabelContainer: {
     flex: 1,

@@ -259,7 +259,7 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
       </View>
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex1}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
@@ -416,6 +416,7 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
 
 // ─── Styles ────────────────────────────────────────────
 const styles = StyleSheet.create({
+  flex1: { flex: 1 },
   safe: { flex: 1, backgroundColor: C.bg },
   header: {
     flexDirection: 'row', alignItems: 'center',

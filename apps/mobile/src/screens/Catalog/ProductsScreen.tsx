@@ -95,7 +95,7 @@ function ProductListCard({
   return (
     <View style={styles.card}>
       {/* Image placeholder */}
-      <View style={[styles.imgBox, { backgroundColor: '#EFF6FF' }]}>
+      <View style={[styles.imgBox, styles.imgBoxBlue]}>
         <Text style={styles.imgInitials}>{initials}</Text>
       </View>
 
@@ -426,4 +426,6 @@ const styles = StyleSheet.create({
     shadowColor: '#2563EB', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
   },
+
+  imgBoxBlue: { backgroundColor: '#EFF6FF' },
 });

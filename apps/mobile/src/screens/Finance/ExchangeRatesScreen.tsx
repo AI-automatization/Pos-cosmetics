@@ -164,7 +164,7 @@ export default function ExchangeRatesScreen() {
             <Text style={styles.syncBtnText}>{isSyncing ? 'Yangilanmoq...' : 'Yangilash'}</Text>
           </TouchableOpacity>
         ) : (
-          <View style={{ width: 36 }} />
+          <View style={styles.spacer} />
         )}
       </View>
 
@@ -408,4 +408,6 @@ const styles = StyleSheet.create({
   // Empty
   empty: { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyText: { fontSize: 15, color: C.muted, fontWeight: '600' },
+
+  spacer: { width: 36 },
 });

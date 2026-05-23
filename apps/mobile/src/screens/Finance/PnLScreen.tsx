@@ -194,7 +194,7 @@ export default function PnLScreen({ onClose }: Props) {
           </TouchableOpacity>
         ) : <View style={styles.headerBtn} />}
         <Text style={styles.headerTitle}>Foyda va Zarar</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.spacer} />
       </View>
 
       <ScrollView
@@ -288,7 +288,7 @@ export default function PnLScreen({ onClose }: Props) {
                 divider
               />
 
-              <View style={[styles.tableSectionHeader, { marginTop: 16 }]}>
+              <View style={[styles.tableSectionHeader, styles.tableSectionHeaderSpaced]}>
                 <Ionicons name="remove-circle-outline" size={14} color={C.orange} />
                 <Text style={styles.tableSectionTitle}>XARAJATLAR</Text>
               </View>
@@ -462,4 +462,7 @@ const styles = StyleSheet.create({
     marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border,
   },
   noDataText: { fontSize: 12, color: C.muted, flex: 1 },
+
+  spacer: { width: 36 },
+  tableSectionHeaderSpaced: { marginTop: 16 },
 });

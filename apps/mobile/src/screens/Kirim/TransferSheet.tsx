@@ -176,7 +176,7 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
               </View>
 
               {/* ── Manzil filial ────────────────────── */}
-              <Text style={[styles.label, { marginTop: 16 }]}>Manzil (kimga)</Text>
+              <Text style={[styles.label, styles.labelMarginTop]}>Manzil (kimga)</Text>
               <View style={styles.branchList}>
                 {branches.map((b) => (
                   <TouchableOpacity
@@ -210,7 +210,7 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
               )}
 
               {/* ── Mahsulotlar ───────────────────────── */}
-              <Text style={[styles.label, { marginTop: 16 }]}>Mahsulotlar</Text>
+              <Text style={[styles.label, styles.labelMarginTop]}>Mahsulotlar</Text>
 
               {items.map((item) => (
                 <View key={item.key} style={styles.itemRow}>
@@ -265,7 +265,7 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
                     </>
                   )}
 
-                  <Text style={[styles.label, { marginTop: 10 }]}>Miqdor</Text>
+                  <Text style={[styles.label, styles.labelMarginTopSm]}>Miqdor</Text>
                   <TextInput
                     style={styles.input}
                     value={newLine.quantity}
@@ -299,7 +299,7 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
               )}
 
               {/* ── Izoh ─────────────────────────────── */}
-              <Text style={[styles.label, { marginTop: 16 }]}>Izoh (ixtiyoriy)</Text>
+              <Text style={[styles.label, styles.labelMarginTop]}>Izoh (ixtiyoriy)</Text>
               <TextInput
                 style={[styles.input, styles.inputMultiline]}
                 value={notes}
@@ -352,6 +352,8 @@ const styles = StyleSheet.create({
   closeBtn:  { width: 30, height: 30, borderRadius: 15, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
   scroll:    { flexShrink: 1 },
   label:     { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
+  labelMarginTop:   { marginTop: 16 },
+  labelMarginTopSm: { marginTop: 10 },
 
   // Branch chips
   branchList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

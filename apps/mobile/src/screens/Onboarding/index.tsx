@@ -176,11 +176,11 @@ export default function OnboardingScreen({ navigation: _navigation }: Props): Re
         <View style={styles.btnRow}>
           {idx > 0 ? (
             <TouchableOpacity
-              style={[styles.backBtn, { borderColor: '#2563EB' }]}
+              style={[styles.backBtn, styles.backBtnBorder]}
               onPress={back}
               accessibilityRole="button"
             >
-              <Text style={[styles.backArrow, { color: '#2563EB' }]}>←</Text>
+              <Text style={[styles.backArrow, styles.backArrowBlue]}>←</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.backPlaceholder} />
@@ -367,4 +367,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 4,
   },
+
+  backBtnBorder: { borderColor: '#2563EB' },
+  backArrowBlue: { color: '#2563EB' },
 });

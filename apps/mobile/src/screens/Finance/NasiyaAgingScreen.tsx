@@ -167,7 +167,7 @@ function QuickPaySheet({
             <View style={sheet.iconCircle}>
               <Ionicons name="cash-outline" size={22} color={C.primary} />
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={sheet.flex1}>
               <Text style={sheet.title}>{record.customer.name}</Text>
               <Text style={sheet.subtitle}>Qolgan qarz: {fmt(remaining)}</Text>
             </View>
@@ -250,7 +250,7 @@ function DebtCard({
               {record.customer.name.slice(0, 2).toUpperCase()}
             </Text>
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={styles.flex1}>
             <Text style={styles.customerName} numberOfLines={1}>{record.customer.name}</Text>
             {record.customer.phone && (
               <View style={styles.phoneRow}>
@@ -371,7 +371,7 @@ export default function NasiyaAgingScreen({ onClose }: Props) {
           </TouchableOpacity>
         ) : <View style={styles.headerBtn} />}
         <Text style={styles.headerTitle}>Nasiya qarzdorlik</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.spacer} />
       </View>
 
       {/* Summary cards */}
@@ -492,6 +492,7 @@ const sheet = StyleSheet.create({
     paddingHorizontal: 14, flexDirection: 'row',
     alignItems: 'center', gap: 10, marginBottom: 16,
   },
+  flex1: { flex: 1 },
   selectText: { flex: 1, fontSize: 15, color: '#111827' },
   payBtn: {
     backgroundColor: '#2563EB', borderRadius: 14, height: 52,
@@ -518,6 +519,8 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
   },
   headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: C.text },
+  flex1: { flex: 1 },
+  spacer: { width: 36 },
 
   summaryRow: {
     flexDirection: 'row',

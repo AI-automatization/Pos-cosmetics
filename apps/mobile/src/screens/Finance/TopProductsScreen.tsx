@@ -192,7 +192,7 @@ export default function TopProductsScreen({ onClose }: Props) {
           </TouchableOpacity>
         ) : <View style={styles.headerBtn} />}
         <Text style={styles.headerTitle}>Top mahsulotlar</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.spacer} />
       </View>
 
       {/* Controls: period + view toggle */}
@@ -443,4 +443,6 @@ const styles = StyleSheet.create({
 
   empty: { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyText: { fontSize: 15, color: C.muted, fontWeight: '600' },
+
+  spacer: { width: 36 },
 });
