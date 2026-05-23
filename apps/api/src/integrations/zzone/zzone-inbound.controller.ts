@@ -44,16 +44,22 @@ export class ZzoneInboundController {
   @ApiOperation({ summary: 'Barcha mahsulotlar', description: 'RAOS dagi barcha faol mahsulotlarni olish. Pagination bilan.' })
   @ApiQuery({ name: 'sellerId', required: true, description: 'Tenant ID (MAJBURIY — multi-tenant isolation)' })
   @ApiQuery({ name: 'page', required: false, description: 'Sahifa raqami (default: 1)' })
+  @ApiQuery({ name: 'updatedAfter', required: false, description: 'ISO date — faqat shu sanadan keyin yangilangan mahsulotlar (incremental sync)' })
   @ApiResponse({ status: 200, description: 'Mahsulotlar ro\'yxati' })
   @ApiResponse({ status: 401, description: 'Noto\'g\'ri API key' })
   async getProducts(
     @Headers('x-api-key') key: string,
     @Query('sellerId') sellerId: string,
     @Query('page') page?: string,
+    @Query('updatedAfter') updatedAfter?: string,
   ) {
     this.validateKey(key);
     if (!sellerId) throw new BadRequestException('sellerId is required');
-    const result = await this.service.getProducts(sellerId, page ? +page : 1);
+    const updatedAfterDate = updatedAfter ? new Date(updatedAfter) : undefined;
+    if (updatedAfter && isNaN(updatedAfterDate!.getTime())) {
+      throw new BadRequestException('updatedAfter must be a valid ISO date');
+    }
+    const result = await this.service.getProducts(sellerId, page ? +page : 1, updatedAfterDate);
     return { success: true, data: result };
   }
 
@@ -289,6 +295,21 @@ export class ZzoneInboundController {
   }
 
   // ─── STORES ──────────────────────────────────────────────────────────
+
+  @Get('stores')
+  @ApiTags('Stores')
+  @ApiOperation({ summary: 'Do\'konlar ro\'yxati', description: 'Seller (tenant) ning barcha filiallari' })
+  @ApiQuery({ name: 'sellerId', required: true, description: 'Tenant ID (MAJBURIY)' })
+  @ApiResponse({ status: 200, description: 'Filiallar ro\'yxati' })
+  async getStores(
+    @Headers('x-api-key') key: string,
+    @Query('sellerId') sellerId: string,
+  ) {
+    this.validateKey(key);
+    if (!sellerId) throw new BadRequestException('sellerId is required');
+    const stores = await this.service.getStores(sellerId);
+    return { success: true, data: stores };
+  }
 
   @Get('stores/:storeId')
   @ApiTags('Stores')

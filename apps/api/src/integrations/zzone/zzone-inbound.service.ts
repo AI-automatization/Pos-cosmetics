@@ -1,6 +1,8 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
+import { ZzoneWebhookService } from './zzone-webhook.service';
 
 /**
  * ZZone → RAOS (Inbound Service)
@@ -12,15 +14,22 @@ import { OrderStatus } from '@prisma/client';
 export class ZzoneInboundService {
   private readonly logger = new Logger(ZzoneInboundService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly webhookService: ZzoneWebhookService,
+  ) {}
 
   // ─── PRODUCTS ────────────────────────────────────────────────────────
 
-  async getProducts(sellerId: string, page = 1) {
+  async getProducts(sellerId: string, page = 1, updatedAfter?: Date) {
     const limit = 50;
     const skip = (page - 1) * limit;
 
-    const where = { deletedAt: null, isActive: true, zzoneVisible: true, tenantId: sellerId };
+    const where: Record<string, unknown> = { deletedAt: null, isActive: true, zzoneVisible: true, tenantId: sellerId };
+    if (updatedAfter) {
+      where.updatedAt = { gte: updatedAfter };
+    }
 
     const [total, products] = await this.prisma.$transaction([
       this.prisma.product.count({ where }),
@@ -227,13 +236,16 @@ export class ZzoneInboundService {
 
     this.logger.log(`[ZZone←] Order created: ${order.id} from ZZone #${data.orderNumber}`);
 
-    return {
-      raosOrderId: order.id,
-      zzoneOrderId: data.zzoneOrderId,
-      status: order.status,
-      total: Number(order.total),
-      createdAt: order.createdAt,
-    };
+    // Emit sale.created to trigger stock deduction via SaleEventListener
+    this.eventEmitter.emit('sale.created', {
+      tenantId: product.tenantId,
+      orderId: order.id,
+      userId: systemUser.id,
+      items: [{ productId: data.productId, quantity: data.quantity }],
+      total: data.totalPrice,
+    });
+
+    return { id: order.id };
   }
 
   async updateOrderStatus(orderId: string, status: string, sellerId: string) {
@@ -252,6 +264,11 @@ export class ZzoneInboundService {
       where: { id: orderId },
       data: { status: status as OrderStatus },
       select: { id: true, status: true, createdAt: true },
+    });
+
+    // Webhook: notify ZZone about status change
+    this.webhookService.sendOrderStatusChanged(orderId, status, sellerId).catch((err) => {
+      this.logger.warn(`Webhook failed for order status: ${(err as Error).message}`);
     });
 
     return { orderId: updated.id, status: updated.status, createdAt: updated.createdAt };
@@ -391,17 +408,65 @@ export class ZzoneInboundService {
       throw new BadRequestException(`Cannot void order in ${order.status} status`);
     }
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'VOIDED' },
+    // Get warehouse for stock restoration
+    const warehouse = await this.prisma.warehouse.findFirst({
+      where: { tenantId: sellerId, isActive: true },
+      orderBy: { createdAt: 'asc' },
     });
 
-    this.logger.log(`[ZZone] Order voided: ${orderId}, items: ${order.items.length}`);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'VOIDED' },
+      });
+
+      // Restore stock — create RETURN_IN movements + update snapshots
+      if (warehouse) {
+        for (const item of order.items) {
+          await tx.stockMovement.create({
+            data: {
+              tenantId: sellerId,
+              warehouseId: warehouse.id,
+              productId: item.productId,
+              type: 'RETURN_IN',
+              quantity: item.quantity,
+              refId: orderId,
+              refType: 'ZZONE_VOID',
+            },
+          });
+
+          await tx.stockSnapshot.upsert({
+            where: {
+              tenantId_warehouseId_productId: {
+                tenantId: sellerId,
+                warehouseId: warehouse.id,
+                productId: item.productId,
+              },
+            },
+            update: { quantity: { increment: item.quantity }, calculatedAt: new Date() },
+            create: {
+              tenantId: sellerId,
+              warehouseId: warehouse.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              calculatedAt: new Date(),
+            },
+          });
+        }
+      }
+    });
+
+    this.logger.log(`[ZZone] Order voided: ${orderId}, items: ${order.items.length}, stock restored: ${!!warehouse}`);
+
+    // Webhook: notify ZZone about void
+    this.webhookService.sendOrderStatusChanged(orderId, 'VOIDED', sellerId).catch((err) => {
+      this.logger.warn(`Webhook failed for order void: ${(err as Error).message}`);
+    });
 
     return {
       id: orderId,
       status: 'VOIDED',
-      stockRestored: true,
+      stockRestored: !!warehouse,
       voidedAt: new Date(),
     };
   }
@@ -468,12 +533,33 @@ export class ZzoneInboundService {
 
     this.logger.log(`[ZZone] Seller deactivated: ${sellerId}, products hidden: ${count}`);
 
+    // Webhook: notify ZZone about seller deactivation
+    this.webhookService.sendSellerDeactivated(sellerId).catch((err) => {
+      this.logger.warn(`Webhook failed for seller deactivation: ${(err as Error).message}`);
+    });
+
     return {
       id: sellerId,
       isActive: false,
       productsHidden: count,
       deactivatedAt: new Date(),
     };
+  }
+
+  async getStores(sellerId: string) {
+    const branches = await this.prisma.branch.findMany({
+      where: { tenantId: sellerId, isActive: true },
+      select: { id: true, name: true, address: true, tenantId: true, isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    return branches.map((b) => ({
+      id: b.id,
+      sellerId: b.tenantId,
+      name: b.name,
+      address: b.address,
+      isActive: b.isActive,
+    }));
   }
 
   async getStore(storeId: string) {
