@@ -158,76 +158,76 @@ export class ZzoneInboundService {
   // ─── ORDERS ──────────────────────────────────────────────────────────
 
   async createOrderFromZzone(data: CreateZzoneOrderDto) {
-    // Idempotency: check if order with same zzoneOrderId already exists
+    const sellerId = data.sellerId;
+
+    // Idempotency: check by zzoneOrderId in notes (tenant-scoped)
     const existing = await this.prisma.order.findFirst({
-      where: { origin: 'ZZONE', notes: { contains: `ZZone #${data.orderNumber}` } },
+      where: { tenantId: sellerId, origin: 'ZZONE', notes: { contains: `ZZone #${data.orderNumber}` } },
       select: { id: true },
     });
     if (existing) {
-      throw new ConflictException(`Order with ZZone #${data.orderNumber} already exists (RAOS ID: ${existing.id})`);
+      return { id: existing.id };
     }
 
     const product = await this.prisma.product.findFirst({
-      where: { id: data.productId, deletedAt: null },
+      where: { id: data.productId, tenantId: sellerId, deletedAt: null },
       select: { id: true, tenantId: true, name: true },
     });
     if (!product) throw new NotFoundException('Product not found');
 
-    // Check available stock
-    const snapshot = await this.prisma.stockSnapshot.findFirst({
-      where: { productId: data.productId, tenantId: product.tenantId },
-      orderBy: { calculatedAt: 'desc' },
-      select: { quantity: true },
+    const systemUser = await this.prisma.user.findFirst({
+      where: { tenantId: sellerId, role: 'OWNER' },
+      select: { id: true },
     });
-    const available = snapshot ? Number(snapshot.quantity) : 0;
-    if (available < data.quantity) {
-      throw new BadRequestException(`Insufficient stock: available ${available}, requested ${data.quantity}`);
-    }
-
-    const [systemUser, lastOrder] = await Promise.all([
-      this.prisma.user.findFirst({
-        where: { tenantId: product.tenantId, role: 'OWNER' },
-        select: { id: true },
-      }),
-      this.prisma.order.findFirst({
-        where: { tenantId: product.tenantId },
-        orderBy: { orderNumber: 'desc' },
-        select: { orderNumber: true },
-      }),
-    ]);
-
     if (!systemUser) throw new NotFoundException('Tenant has no owner user');
 
-    const nextOrderNumber = (lastOrder?.orderNumber ?? 0) + 1;
+    // Atomic: stock check + order creation inside transaction
+    const order = await this.prisma.$transaction(async (tx) => {
+      const snapshot = await tx.stockSnapshot.findFirst({
+        where: { productId: data.productId, tenantId: sellerId },
+        orderBy: { calculatedAt: 'desc' },
+        select: { quantity: true },
+      });
+      const available = snapshot ? Number(snapshot.quantity) : 0;
+      if (available < data.quantity) {
+        throw new BadRequestException(`Insufficient stock: available ${available}, requested ${data.quantity}`);
+      }
 
-    const order = await this.prisma.order.create({
-      data: {
-        tenantId: product.tenantId,
-        userId: systemUser.id,
-        orderNumber: nextOrderNumber,
-        origin: 'ZZONE',
-        status: 'PENDING',
-        subtotal: data.totalPrice,
-        total: data.totalPrice,
-        notes: `ZZone #${data.orderNumber} | ${data.clientName ?? ''} | ${data.clientPhone ?? ''} | ${data.deliveryAddress ?? ''}`,
-        items: {
-          create: {
-            productId: data.productId,
-            productName: product.name,
-            quantity: data.quantity,
-            unitPrice: data.unitPrice,
-            total: data.totalPrice,
+      const lastOrder = await tx.order.findFirst({
+        where: { tenantId: sellerId },
+        orderBy: { orderNumber: 'desc' },
+        select: { orderNumber: true },
+      });
+      const nextOrderNumber = (lastOrder?.orderNumber ?? 0) + 1;
+
+      return tx.order.create({
+        data: {
+          tenantId: sellerId,
+          userId: systemUser.id,
+          orderNumber: nextOrderNumber,
+          origin: 'ZZONE',
+          status: 'PENDING',
+          subtotal: data.totalPrice,
+          total: data.totalPrice,
+          notes: `ZZone #${data.orderNumber} | ${data.clientName ?? ''} | ${data.clientPhone ?? ''} | ${data.deliveryAddress ?? ''}`,
+          items: {
+            create: {
+              productId: data.productId,
+              productName: product.name,
+              quantity: data.quantity,
+              unitPrice: data.unitPrice,
+              total: data.totalPrice,
+            },
           },
         },
-      },
-      select: { id: true },
+        select: { id: true },
+      });
     });
 
     this.logger.log(`[ZZone←] Order created: ${order.id} from ZZone #${data.orderNumber}`);
 
-    // Emit sale.created to trigger stock deduction
     this.eventEmitter.emit('sale.created', {
-      tenantId: product.tenantId,
+      tenantId: sellerId,
       orderId: order.id,
       userId: systemUser.id,
       items: [{ productId: data.productId, quantity: data.quantity }],
@@ -300,9 +300,9 @@ export class ZzoneInboundService {
     }));
   }
 
-  async getOrder(orderId: string) {
+  async getOrder(sellerId: string, orderId: string) {
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, origin: 'ZZONE' },
+      where: { id: orderId, tenantId: sellerId, origin: 'ZZONE' },
       select: {
         id: true,
         tenantId: true,

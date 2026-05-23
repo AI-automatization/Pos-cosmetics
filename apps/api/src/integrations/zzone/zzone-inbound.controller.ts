@@ -162,12 +162,15 @@ export class ZzoneInboundController {
   @Get('orders/:orderId')
   @ApiTags('Orders')
   @ApiOperation({ summary: 'Bitta buyurtma' })
+  @ApiQuery({ name: 'sellerId', required: true })
   async getOrder(
     @Headers('x-api-key') key: string,
     @Param('orderId') orderId: string,
+    @Query('sellerId') sellerId: string,
   ) {
     this.validateKey(key);
-    const order = await this.service.getOrder(orderId);
+    this.requireSellerId(sellerId);
+    const order = await this.service.getOrder(sellerId, orderId);
     return { success: true, data: order };
   }
 

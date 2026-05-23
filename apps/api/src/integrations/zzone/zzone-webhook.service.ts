@@ -89,8 +89,10 @@ export class ZzoneWebhookService {
 
   private async storeFailedWebhook(payload: WebhookPayload, statusCode: number): Promise<void> {
     try {
+      const tenantId = (payload.data.sellerId as string) ?? null;
       await this.prisma.webhookLog.create({
         data: {
+          tenantId,
           provider: 'ZZONE',
           event: payload.event,
           payload: payload as unknown as Parameters<typeof this.prisma.webhookLog.create>[0]['data']['payload'],

@@ -2,6 +2,10 @@ import { IsString, IsNumber, IsOptional, IsBoolean, Min, IsUUID } from 'class-va
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateZzoneOrderDto {
+  @ApiProperty({ description: 'Seller (tenant) ID' })
+  @IsUUID()
+  sellerId!: string;
+
   @ApiProperty({ description: 'ZZone order ID (idempotency key)' })
   @IsString()
   zzoneOrderId!: string;
