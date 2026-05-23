@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -12,7 +13,6 @@ import {
   History,
   Truck,
   ChevronRight,
-  Warehouse,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -50,14 +50,14 @@ export function WarehouseSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: b
       'fixed inset-y-0 left-0 z-50 transition-transform duration-200 md:static md:translate-x-0',
       mobileOpen ? 'translate-x-0' : '-translate-x-full',
     )}>
-      {/* Logo */}
+      {/* Logo — RAOS canonical cyan icon (amber role accent retained on label) */}
       <div className="flex h-14 items-center gap-3 border-b border-gray-200 px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-600">
-          <Warehouse className="h-4 w-4 text-white" />
+        <div className="flex h-7 w-7 overflow-hidden rounded-lg shadow-sm shadow-raos-cyan/30 ring-1 ring-raos-cyan/20">
+          <Image src="/icon.png" alt="RAOS" width={28} height={28} priority />
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">RAOS</p>
-          <p className="text-xs text-gray-400">{t('nav.warehousePanel')}</p>
+          <p className="text-xs text-blue-600 font-medium">{t('nav.warehousePanel')}</p>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export function WarehouseSidebar({ mobileOpen, onMobileClose }: { mobileOpen?: b
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
                   active
-                    ? 'bg-amber-50 text-amber-700'
+                    ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
                 )}
               >

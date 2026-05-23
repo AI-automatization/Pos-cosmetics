@@ -45,14 +45,14 @@ export function StockInItemsTable({
       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-700">{t('warehouse.goods')}</span>
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
             {items.length}
           </span>
         </div>
         <button
           type="button"
           onClick={onAddRow}
-          className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
         >
           <Plus className="h-4 w-4" />
           {t('warehouse.addRow')}
@@ -114,7 +114,7 @@ export function StockInItemsTable({
                         <button
                           type="button"
                           onClick={() => onCreateProduct(row._key)}
-                          className="mt-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                          className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
                         >
                           {t('warehouse.createNewProduct')}
                         </button>

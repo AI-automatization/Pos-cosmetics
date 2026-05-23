@@ -1,0 +1,14 @@
+{
+  "name": "@raos/brand-kit",
+  "version": "0.1.0",
+  "description": "RAOS canonical brand kit — colors, typography, spacing, logo paths. Single source of truth across web + mobile + content.",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

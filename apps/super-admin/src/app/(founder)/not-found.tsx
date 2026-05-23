@@ -11,7 +11,7 @@ export default function FounderNotFound() {
         </p>
         <Link
           href="/founder/overview"
-          className="mt-6 inline-flex items-center rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-violet-700"
+          className="mt-6 inline-flex items-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
         >
           ← Вернуться в панель
         </Link>

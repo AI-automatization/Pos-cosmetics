@@ -33,8 +33,7 @@ export interface PushPayload {
 @Injectable()
 export class PushService {
   private readonly logger = new Logger(PushService.name);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private firebaseApp: any = null;
+  private firebaseApp: unknown = null;
   private initialized = false;
 
   constructor(

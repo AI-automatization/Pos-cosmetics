@@ -4,6 +4,7 @@ import { InventoryController } from './inventory.controller';
 import { SaleEventListener } from '../events/sale-event.listener';
 import { TransferService } from './transfer.service';
 import { WarehouseInvoiceService } from './warehouse-invoice.service';
+import { WarehouseDashboardService } from './warehouse-dashboard.service';
 import { WarehouseInvoiceController } from './warehouse-invoice.controller';
 import { WriteOffController } from './write-off.controller';
 import { StockLevelService } from './stock-level.service';
@@ -22,7 +23,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
     SaleEventListener,
     TransferService,
     WarehouseInvoiceService,
+    WarehouseDashboardService,
   ],
-  exports: [InventoryService, TransferService, WarehouseInvoiceService],
+  exports: [InventoryService, TransferService, WarehouseInvoiceService, WarehouseDashboardService, ExpiryTrackingService],
 })
 export class InventoryModule {}

@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
     networks: [raos_network]
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus:/etc/prometheus:ro
       - prometheus_data:/prometheus
@@ -28,7 +28,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=30d'
-      - '--web.enable-lifecycle'
+      - '--web.enable-lifecycle=false'
     labels:
       - "traefik.enable=false"
 
@@ -39,10 +39,10 @@ services:
     restart: unless-stopped
     networks: [raos_network]
     ports:
-      - "3002:3000"
+      - "127.0.0.1:3002:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?Set GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD}
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3002}
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"

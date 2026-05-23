@@ -27,10 +27,10 @@ interface TenantUser {
 }
 
 const ROLE_BADGES: Record<string, string> = {
-  OWNER: 'bg-violet-100 text-violet-700',
+  OWNER: 'bg-blue-100 text-blue-700',
   ADMIN: 'bg-blue-100 text-blue-700',
   MANAGER: 'bg-emerald-100 text-emerald-700',
-  CASHIER: 'bg-amber-100 text-amber-700',
+  CASHIER: 'bg-blue-100 text-blue-700',
   VIEWER: 'bg-gray-100 text-gray-600',
 };
 
@@ -84,7 +84,7 @@ function ResetPasswordModal({ user, tenantId, onClose }: ResetPasswordModalProps
   };
 
   const inputCls =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 pr-20';
+    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 pr-20';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -92,8 +92,8 @@ function ResetPasswordModal({ user, tenantId, onClose }: ResetPasswordModalProps
       <div className="relative z-10 w-full max-w-md rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-gray-200 px-6 py-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
-            <KeyRound className="h-5 w-5 text-amber-600" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100">
+            <KeyRound className="h-5 w-5 text-blue-600" />
           </div>
           <div>
             <h2 className="text-base font-semibold text-gray-900">Сброс пароля</h2>
@@ -145,7 +145,7 @@ function ResetPasswordModal({ user, tenantId, onClose }: ResetPasswordModalProps
           <button
             type="button"
             onClick={handleGenerate}
-            className="flex items-center gap-2 self-start rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:border-violet-400 hover:text-violet-600"
+            className="flex items-center gap-2 self-start rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:border-blue-400 hover:text-blue-600"
           >
             <RefreshCw className="h-4 w-4" />
             Сгенерировать пароль
@@ -164,7 +164,7 @@ function ResetPasswordModal({ user, tenantId, onClose }: ResetPasswordModalProps
               disabled={!password.trim() || resetMut.isPending}
               className={cn(
                 'flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white transition',
-                'bg-amber-500 hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50',
+                'bg-blue-500 hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50',
               )}
             >
               <KeyRound className="h-4 w-4" />
@@ -216,7 +216,7 @@ export function UsersTab({ tenantId, tenantName }: UsersTabProps) {
         <button
           type="button"
           onClick={() => setShowAddOwner(true)}
-          className="flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
         >
           <UserPlus className="h-4 w-4" />
           Добавить Owner
@@ -291,7 +291,7 @@ export function UsersTab({ tenantId, tenantName }: UsersTabProps) {
                       type="button"
                       onClick={() => setResetPasswordUser(user)}
                       title="Сбросить пароль"
-                      className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-500 transition hover:border-amber-300 hover:text-amber-600"
+                      className="flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-500 transition hover:border-blue-300 hover:text-blue-600"
                     >
                       <KeyRound className="h-3.5 w-3.5" />
                       Пароль

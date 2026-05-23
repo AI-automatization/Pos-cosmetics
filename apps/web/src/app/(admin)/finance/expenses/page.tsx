@@ -32,8 +32,20 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
     defaultValues: { category: 'RENT', description: '', amount: 0, date: todayDate },
   });
   const categoryValue = watch('category');
+  const [customCategory, setCustomCategory] = useState('');
+
+  const categoryLabels: Record<ExpenseCategory, string> = {
+    RENT: t('finance.catRent'),
+    SALARY: t('finance.catSalary'),
+    DELIVERY: t('finance.catDelivery'),
+    UTILITIES: t('finance.catUtilities'),
+    OTHER: t('finance.catOther'),
+  };
 
   const onSubmit = (data: ExpenseForm) => {
+    if (data.category === 'OTHER' && customCategory.trim()) {
+      data.description = `[${customCategory.trim()}] ${data.description}`;
+    }
     create(data, { onSuccess: onClose });
   };
 
@@ -53,21 +65,32 @@ function CreateExpenseModal({ onClose, todayDate }: { onClose: () => void; today
             <SearchableDropdown
               options={(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((cat) => ({
                 value: cat,
-                label: EXPENSE_CATEGORY_LABELS[cat],
+                label: categoryLabels[cat],
               }))}
               value={categoryValue}
               onChange={(val) => setValue('category', val as ExpenseCategory)}
-              placeholder="Kategoriya tanlang"
+              placeholder={t('finance.selectCategory')}
               searchable={false}
               clearable={false}
               required
             />
           </div>
+          {categoryValue === 'OTHER' && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('finance.customCategory')}</label>
+              <input
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder={t('finance.customCategoryPlaceholder')}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+          )}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">{t('common.description')}</label>
             <input
               {...register('description')}
-              placeholder="Xarajat haqida qisqacha..."
+              placeholder={t('finance.expenseDescPlaceholder')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>}
@@ -144,7 +167,7 @@ export default function ExpensesPage() {
   const totalExpenses = expenses?.reduce((s, e) => s + e.amount, 0) ?? 0;
 
   return (
-    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
+    <div className="flex flex-col gap-4 sm:gap-6 h-full overflow-y-auto p-3 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -266,7 +289,7 @@ export default function ExpensesPage() {
                         type="button"
                         onClick={() => deleteExpense(exp.id)}
                         className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                        title="O'chirish"
+                        title={t('common.delete')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

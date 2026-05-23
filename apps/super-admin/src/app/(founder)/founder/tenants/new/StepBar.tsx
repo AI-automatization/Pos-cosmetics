@@ -27,8 +27,8 @@ export function StepBar({ steps, current }: StepBarProps) {
             <div
               className={cn(
                 'flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition',
-                done && 'border-violet-600 bg-violet-600 text-white',
-                active && 'border-violet-600 bg-white text-violet-600',
+                done && 'border-blue-600 bg-blue-600 text-white',
+                active && 'border-blue-600 bg-white text-blue-600',
                 !done && !active && 'border-gray-300 bg-white text-gray-400',
               )}
             >
@@ -37,7 +37,7 @@ export function StepBar({ steps, current }: StepBarProps) {
             <span
               className={cn(
                 'ml-2 hidden text-sm font-medium sm:inline',
-                active ? 'text-violet-700' : done ? 'text-violet-500' : 'text-gray-400',
+                active ? 'text-blue-700' : done ? 'text-blue-500' : 'text-gray-400',
               )}
             >
               {step.label}

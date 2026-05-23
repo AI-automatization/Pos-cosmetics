@@ -12,7 +12,7 @@ import {
   RedeemPointsDto,
   AdjustPointsDto,
 } from './dto/loyalty.dto';
-import { LoyaltyTxType } from '@prisma/client';
+import { LoyaltyTxType, Prisma } from '@prisma/client';
 
 @Injectable()
 export class LoyaltyService {
@@ -181,6 +181,104 @@ export class LoyaltyService {
       { tenantId },
     );
     return { adjusted: dto.points, newBalance };
+  }
+
+  // ─── LIST ACCOUNTS ────────────────────────────────────────────
+
+  async listAccounts(
+    tenantId: string,
+    page = 1,
+    limit = 20,
+    minPoints?: number,
+  ) {
+    const where: Prisma.LoyaltyAccountWhereInput = { tenantId };
+    if (minPoints !== undefined) where.points = { gte: minPoints };
+
+    const [items, total] = await Promise.all([
+      this.prisma.loyaltyAccount.findMany({
+        where,
+        include: {
+          customer: { select: { id: true, name: true, phone: true } },
+        },
+        orderBy: { points: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.loyaltyAccount.count({ where }),
+    ]);
+    return { items, total, page, limit };
+  }
+
+  // ─── LIST TRANSACTIONS ────────────────────────────────────────
+
+  async listTransactions(
+    tenantId: string,
+    page = 1,
+    limit = 20,
+    type?: string,
+    customerId?: string,
+  ) {
+    const where: Prisma.LoyaltyTransactionWhereInput = { tenantId };
+    if (type) where.type = type as LoyaltyTxType;
+    if (customerId) where.account = { customerId };
+
+    const [items, total] = await Promise.all([
+      this.prisma.loyaltyTransaction.findMany({
+        where,
+        include: {
+          account: {
+            include: {
+              customer: { select: { name: true, phone: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.loyaltyTransaction.count({ where }),
+    ]);
+    return { items, total, page, limit };
+  }
+
+  // ─── STATS ────────────────────────────────────────────────────
+
+  async getStats(tenantId: string) {
+    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
+
+    const [totalAccounts, totalPoints, todayEarned, todayRedeemed] =
+      await Promise.all([
+        this.prisma.loyaltyAccount.count({
+          where: { tenantId, points: { gt: 0 } },
+        }),
+        this.prisma.loyaltyAccount.aggregate({
+          where: { tenantId },
+          _sum: { points: true },
+        }),
+        this.prisma.loyaltyTransaction.aggregate({
+          where: {
+            tenantId,
+            type: LoyaltyTxType.EARN,
+            createdAt: { gte: todayStart },
+          },
+          _sum: { points: true },
+        }),
+        this.prisma.loyaltyTransaction.aggregate({
+          where: {
+            tenantId,
+            type: LoyaltyTxType.REDEEM,
+            createdAt: { gte: todayStart },
+          },
+          _sum: { points: true },
+        }),
+      ]);
+
+    return {
+      activeCustomers: totalAccounts,
+      totalPoints: totalPoints._sum.points ?? 0,
+      todayEarned: todayEarned._sum.points ?? 0,
+      todayRedeemed: Math.abs(todayRedeemed._sum.points ?? 0),
+    };
   }
 
   // ─── EVENT LISTENER ───────────────────────────────────────────

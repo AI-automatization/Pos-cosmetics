@@ -31,6 +31,19 @@ const DEFAULT_UNITS = [
   { name: 'Gram', shortName: 'g' },
 ];
 
+const AUTO_PARTS_CATEGORIES = [
+  'Filtrlar',
+  'Tormoz tizimlari',
+  'Motor ehtiyot qismlari',
+  'Transmissiya',
+  'Elektrika',
+  'Kuzov qismlari',
+  'Yonilg\'i tizimi',
+  'Podveska (Suspension)',
+  'Aksessuarlar',
+  'Moylar va suyuqliklar',
+];
+
 const APP_LOGIN_URL = process.env.APP_LOGIN_URL ?? 'https://raos.uz/login';
 
 @Injectable()
@@ -283,13 +296,27 @@ export class AdminTenantHelper {
         },
       });
 
+      const categories = dto.businessType === 'AUTO_PARTS' ? AUTO_PARTS_CATEGORIES : DEFAULT_CATEGORIES;
       await tx.category.createMany({
-        data: DEFAULT_CATEGORIES.map((name, i) => ({
+        data: categories.map((name, i) => ({
           tenantId: tenant.id,
           name,
           sortOrder: i,
         })),
       });
+
+      // Auto-provision ZZone integration for AUTO_PARTS tenants
+      if (dto.businessType === 'AUTO_PARTS') {
+        await tx.integrationConfig.create({
+          data: {
+            tenantId: tenant.id,
+            provider: 'ZZONE',
+            config: { token: '', productMappings: {} },
+            isActive: false,
+          },
+        });
+        this.logger.log(`ZZone IntegrationConfig auto-created for tenant ${dto.slug}`);
+      }
 
       await tx.unit.createMany({
         data: DEFAULT_UNITS.map((u) => ({

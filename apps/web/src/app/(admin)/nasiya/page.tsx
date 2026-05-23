@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useDebts, useNasiyaSummary } from '@/hooks/customers/useDebts';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { formatPrice, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import type { Debt } from '@/types/debt';

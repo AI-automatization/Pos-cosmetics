@@ -46,7 +46,7 @@ export default function WarehouseInvoicesPage() {
         </div>
         <Link
           href="/warehouse/stock-in"
-          className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
         >
           <Plus className="h-4 w-4" />
           {t('warehouse.newInvoice')}
@@ -62,20 +62,20 @@ export default function WarehouseInvoicesPage() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder={t('warehouse.invoiceSearchPlaceholder')}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
           <input
             type="date"
             value={from}
             onChange={(e) => { setFrom(e.target.value); setPage(1); }}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="date"
             value={to}
             onChange={(e) => { setTo(e.target.value); setPage(1); }}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
         {hasFilters && (
@@ -101,7 +101,7 @@ export default function WarehouseInvoicesPage() {
           <div className="py-16 flex flex-col items-center gap-2 text-gray-400">
             <FileText className="h-10 w-10 text-gray-300" />
             <p className="text-sm">{t('warehouse.noInvoices')}</p>
-            <Link href="/warehouse/stock-in" className="mt-2 text-sm text-amber-600 hover:underline">
+            <Link href="/warehouse/stock-in" className="mt-2 text-sm text-blue-600 hover:underline">
               {t('warehouse.createFirstInvoice')}
             </Link>
           </div>
@@ -122,7 +122,7 @@ export default function WarehouseInvoicesPage() {
                 {filtered.map((inv) => (
                   <tr
                     key={inv.id}
-                    className="hover:bg-amber-50/50 transition-colors cursor-pointer"
+                    className="hover:bg-blue-50/50 transition-colors cursor-pointer"
                     onClick={() => window.location.href = `/warehouse/invoices/${inv.id}`}
                   >
                     <td className="px-4 py-3 font-medium text-gray-900">
@@ -140,7 +140,7 @@ export default function WarehouseInvoicesPage() {
                     <td className="px-4 py-3 text-right font-semibold text-gray-900 tabular-nums">
                       {formatPrice(Number(inv.totalCost))}
                     </td>
-                    <td className="px-4 py-3 text-amber-500">
+                    <td className="px-4 py-3 text-blue-500">
                       <ChevronRight className="h-4 w-4" />
                     </td>
                   </tr>

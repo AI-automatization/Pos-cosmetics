@@ -3,376 +3,238 @@
 
 ---
 
-## T-477 | 2026-05-20 | [MOBILE] | Label Print — Bluetooth thermal printer orqali
-- **Yechim:** `react-native-bluetooth-escpos-printer` paketi + safe dynamic import. `tsplBuilder.ts` — TSPL command generator (30x20, 40x30, 58x40mm, CODE128 barcode). `useBtPrinter.ts` hook — BT scan, connect, print. `BtDeviceList.tsx` — qurilma tanlash UI. `LabelPrintSheet.tsx` — dual mode: "Tizim" (expo-print/AirPrint) + "Bluetooth" (TSPL thermal). Android BT permissions (BLUETOOTH, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION).
-- **Fayl:** `apps/mobile/src/lib/tsplBuilder.ts`, `apps/mobile/src/hooks/useBtPrinter.ts`, `apps/mobile/src/screens/Catalog/BtDeviceList.tsx`, `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`, `apps/mobile/app.json`, `apps/mobile/package.json`
+## T-430 | 2026-05-20 | [BACKEND] | Expiry tracking — cron alert + bot + Web UI
+
+- **Yechim:**
+  - Cron (06:00): har tenant uchun 30 kun ichida tugaydigan mahsulotlarni tekshiradi → Telegram alert (top 5) + DB notification (EXPIRY_WARNING)
+  - Bot: `/muddat` (top 10 expiring), `/muddati_otgan` (expired in stock)
+  - Web UI `/inventory/expiry`: stats cards, color-coded table, days filter (7-90), CSV export, tabs (expiring/expired)
+  - API client + React Query hooks
+- **Fayllar:** `cron.service.ts`, `cron.module.ts`, `inventory.module.ts`, `expiry.handler.ts`, `expiry.service.ts`, `inventory/expiry/page.tsx`, `useExpiry.ts`, `inventory.api.ts`
 
 ---
 
-## T-503 | 2026-05-19 | [MOBILE] | App version check — minimum versiya tekshiruvi + force update
-- **Yechim:** `useVersionCheck` hook — `GET /app/min-version` endpoint dan semver tekshirish. `ForceUpdateScreen` — eski versiya bo'lsa Store ga yo'naltiradi. LoginScreen dagi hardcoded `v1.0.0` → `Constants.expoConfig.version` (dinamik). `expo-constants` dependency qo'shildi.
-- **Fayl:** `apps/mobile/src/hooks/useVersionCheck.ts`, `apps/mobile/src/screens/Auth/ForceUpdateScreen.tsx`, `apps/mobile/src/screens/Auth/LoginScreen.tsx`, `apps/mobile/src/App.tsx`
+## T-417 | 2026-05-20 | [SECURITY] | Audit topilgan o'rta masalalar
+
+- **Yechim:**
+  - MinIO default creds — upload disabled mode agar kalit yo'q (oldin qilingan)
+  - Seed password — `throw Error` agar `SEED_PASSWORD` yo'q (oldin qilingan)
+  - Payment webhooks — `@Throttle(30/min)` to'rtala endpointda (oldin qilingan)
+  - **Yangi fixlar (2026-05-20 audit):**
+  - ZZone controller: `@Throttle(60/min)` + `console.warn` → NestJS Logger
+  - `POST /auth/refresh`: `@Throttle(10/min)` — brute-force himoya
+  - `POST /auth/register`: `@Throttle(5/min)` — spam himoya
+  - `POST /notifications/telegram/verify`: `@Throttle(10/min)`
+  - `assertTableAllowed`: regex `/^[a-z_][a-z0-9_]*$/` — SQL injection defense-in-depth
+- **Fayllar:** `zzone-inbound.controller.ts`, `auth.controller.ts`, `notifications.controller.ts`, `admin-db-constants.ts`
 
 ---
 
-## T-502 | 2026-05-19 | [MOBILE] | Deep link validation — URL scheme whitelist
-- **Yechim:** `app.json` da `scheme: "raos"`, iOS `associatedDomains`, Android `intentFilters` (autoVerify). `linking.ts` — URL whitelist + path validation (javascript:, data:, path traversal bloklangan). Faqat `SaleDetail` va `AlertDetail` deep link orqali ochiladi. Auth/Finance TAQIQLANGAN.
-- **Fayl:** `apps/mobile/app.json`, `apps/mobile/src/navigation/linking.ts`, `apps/mobile/src/App.tsx`
+## T-458 | 2026-05-20 | [IKKALASI] | Demo tenant yaratish
+
+- **Yechim:** seed.ts kengaytirildi — 50 mahsulot (5 kategoriya), 20 mijoz, loyalty config + ballar
+- **Fayllar:** `apps/api/prisma/seed.ts`
+- **Demo login:** `demo@raos.uz` (OWNER role)
+- **Tarkib:** 4 filial, ~100 buyurtma, 6 nasiya, 8 bildirishnoma, loyalty 50-500 ball
 
 ---
 
-## T-501 | 2026-05-19 | [SECURITY] | Screenshot protection — maxfiy ekranlarda bloklash
-- **Yechim:** `expo-screen-capture` + `useScreenProtection` hook (`useFocusEffect` based). 13 ta sensitive ekranga qo'shildi: Login, Biometric, PaymentSheet, PaymentSuccess, PnL, OrderDetail, NasiyaAging, PaymentsHistory, DebtDetail, PayModal, EmployeeDetail, CustomerDetail, ShiftDetail. Dev da skip, production da screenshot + recording bloklangan.
-- **Fayl:** `apps/mobile/src/hooks/useScreenProtection.ts` + 13 ta screen fayl
+## T-459 | 2026-05-20 | [SECURITY] | Security audit — 44 test + EXPLAIN ANALYZE fix
+
+- **Yechim:**
+  - 24 test: `admin-sql-console.service.spec.ts` — DDL blocking, multi-statement, EXPLAIN ANALYZE DML bypass (DELETE/UPDATE/INSERT), CTE+DML, production restrictions, data masking
+  - 20 test: `admin-db-constants.spec.ts` — column name SQL injection, table whitelist, data masking, bcrypt hashing, BigInt/Date serialization
+  - **BUG TOPILDI VA TUZILDI:** `EXPLAIN ANALYZE DELETE FROM orders` — isDestructiveDml faqat `startsWith('DELETE')` tekshirardi, `EXPLAIN` boshlanuvchi SQL o'tib ketardi. Hozir SQL ichida DELETE/UPDATE borligini tekshiradi.
+- **Fayllar:** `apps/api/src/admin/test/`, `apps/api/src/admin/admin-sql-console.service.ts`
 
 ---
 
-## T-500 | 2026-05-19 | [SECURITY] | Biometric auth — server-side re-validation kuchaytirildi
-- **Yechim:** BiometricScreen — `loadFromStorage()` cache early return olib tashlandi, `authApi.me()` HAR DOIM chaqiriladi, `refreshToken` saqlanadi (bo'sh string emas). `useRequireReauth` hook yaratildi — sensitive operatsiyalar uchun 5 daqiqalik biometric re-auth.
-- **Fayl:** `apps/mobile/src/screens/Auth/BiometricScreen.tsx`, `apps/mobile/src/hooks/useRequireReauth.ts`
+## T-460 | 2026-05-20 | [FRONTEND] | Loyalty Web UI — 4 sahifa + 3 backend endpoint
+
+- **Yechim:**
+  - Backend: `GET /loyalty/stats`, `GET /loyalty/accounts`, `GET /loyalty/transactions`
+  - Frontend: `/loyalty` (dashboard), `/loyalty/settings`, `/loyalty/customers` (adjust modal), `/loyalty/history` (CSV export)
+  - 8 React Query hook, API client 6 yangi metod
+- **Fayllar:** `apps/api/src/loyalty/`, `apps/web/src/app/(admin)/loyalty/`, `apps/web/src/hooks/loyalty/`, `apps/web/src/api/loyalty.api.ts`
 
 ---
 
-## T-499 | 2026-05-19 | [SECURITY] | Jailbreak/Root detection — rooted qurilma tekshiruvi
-- **Yechim:** `jail-monkey` v3.0.0 (New Arch support). `useSecurityCheck` hook — `isJailBroken()` + `trustFall()`. `CompromisedDeviceScreen` — ogohlantirish + logout. AppState listener — background dan qaytganda qayta tekshiradi. Dev da skip.
-- **Fayl:** `apps/mobile/src/hooks/useSecurityCheck.ts`, `apps/mobile/src/screens/Auth/CompromisedDeviceScreen.tsx`, `apps/mobile/src/App.tsx`
+## T-461 | 2026-05-20 | [IKKALASI] | Loyalty POS integratsiya — chek + toast
+
+- **Yechim:**
+  - ReceiptTemplate: loyalty earned + balance sektsiya
+  - useCompleteSale: sotuv keyin toast ("Aziza: +15 ball yig'ildi")
+  - Order type: customer, loyaltyEarned, loyaltyBalance optional maydonlar
+  - (BonusSection, ball ishlatish, split payment — oldin tayyor edi)
+- **Fayllar:** `ReceiptTemplate.tsx`, `useCompleteSale.ts`, `types/sales.ts`
 
 ---
 
-## T-498 | 2026-05-19 | [SECURITY] | Mobile SSL Certificate Pinning — MITM himoyasi
-- **Yechim:** `react-native-ssl-public-key-pinning` v1.2.6. `sslPinning.ts` — `setupSslPinning()` + error listener. `app.json` da `expo-build-properties` — iOS network inspector o'chirildi. Dev da skip, production da barcha Axios so'rovlar pinned cert orqali. Placeholder hash lar — deploy oldidan haqiqiy hash qo'yish kerak.
-- **Fayl:** `apps/mobile/src/lib/sslPinning.ts`, `apps/mobile/app.json`, `apps/mobile/src/App.tsx`
+## T-462 | 2026-05-20 | [BACKEND] | SMS gateway research — 5 provider solishtirish
+
+- **Yechim:** 5 provider (PlayMobile, GetSMS, DevSMS, Eskiz, OperSMS) tahlil qilindi
+  - Eskiz: 50 so'm/SMS (eng arzon, CLAUDE.md da taqiqlangan)
+  - GetSMS: 84 so'm/SMS
+  - PlayMobile: ~80-120 so'm/SMS (eng ishonchli)
+  - **Tavsiya:** PlayMobile (primary) — AbdulazizYormatov tasdiqi kutilmoqda
+- **Fayllar:** `docs/sms-gateway-research.md`
 
 ---
 
-## T-480 | 2026-05-16 | [MOBILE] | Transfer 2-tab layout (yangi + ro'yxat)
-- **Yechim:** StockTransfer/index.tsx da 2 tab: "Yangi transfer" (create) + "Ro'yxat" (TransferListView). Statistics row, search, NewTransferSheet modal.
-- **Fayl:** `apps/mobile/src/screens/StockTransfer/index.tsx`, `TransferListView.tsx`
+## T-465 | 2026-05-20 | [BACKEND] | Product Import — template + Web UI
+
+- **Yechim:**
+  - Backend: `GET /catalog/products/import/template` — XLSX shablon (styled headers + 2 namuna)
+  - Frontend: `/catalog/import` — drag-and-drop, progress, natija, export (XLSX/CSV)
+  - API client: `import.api.ts` — upload, template, export (blob auth)
+- **Fayllar:** `apps/api/src/catalog/import-export/`, `apps/web/src/app/(admin)/catalog/import/`, `apps/web/src/api/import.api.ts`
 
 ---
 
-## T-479 | 2026-05-16 | [MOBILE] | Dashboard lowStock widget
-- **Yechim:** LowStockWidget komponent yaratildi — max 5 item, color-coded, "Barchasi" tugmasi → LowStockList. Dashboard da `{lowStockItems.length > 0 && <LowStockWidget />}` bilan render.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/LowStockWidget.tsx`, `Dashboard/index.tsx`
+## T-466 | 2026-05-20 | [BACKEND] | Loyalty Telegram Bot — /ballar, /ball_tarix, /loyalty
+
+- **Yechim:**
+  - `/ballar <telefon>` — mijoz ballari + so'm qiymati
+  - `/ball_tarix <telefon>` — oxirgi 10 tranzaksiya jadvali
+  - `/loyalty` — admin statistika (faol mijozlar, bugun berildi/ishlatildi)
+  - `ballarim <telefon>` — matnli trigger (slash kerak emas)
+  - Telefon normalizatsiya: 901234567, +998901234567, 998901234567
+- **Fayllar:** `apps/bot/src/handlers/loyalty.handler.ts`, `apps/bot/src/services/loyalty.service.ts`, `apps/bot/src/handlers/commands.ts`
 
 ---
 
-## T-478 | 2026-05-16 | [MOBILE] | OmborProductCard "Kirim so'rash" — useMutation wired
-- **Yechim:** `useMutation` → `inventoryApi.sendRestockRequest()` to'liq wired. Confirmation Alert, notifiedCount, loading state, error handling.
-- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`
+## T-467 | 2026-05-20 | [IKKALASI] | Promo kod moduli — full stack CRUD + validate
+
+- **Yechim:**
+  - Prisma: `PromoCode` model + `PromoType` enum (PERCENT/FIXED) + migration
+  - Backend: 7 endpoint (`/promotions/codes` — list, get, create, update, delete, validate, apply)
+  - Auto-gen: `RAOS-XXXX` agar kod berilmasa
+  - Validate: active/expired/depleted/minPurchase tekshiruvlari
+  - Frontend: `/promotions/codes` — jadval + CreatePromoCodeModal
+  - POS: `PromoCodeInput` komponenti
+  - 10 unit test (promo-code.service.spec.ts)
+- **Fayllar:** `schema.prisma`, `apps/api/src/sales/promotions/promo-code.*`, `apps/web/src/app/(admin)/promotions/codes/`, `apps/web/src/app/(pos)/pos/PromoCodeInput.tsx`
 
 ---
 
-## T-476 | 2026-05-16 | [MOBILE] | Movement History CSV/Share export
-- **Yechim:** StockMovementsScreen da export button + `handleExport()` — 9 ustunli CSV generatsiya, `Share.share()` orqali native share menu.
-- **Fayl:** `apps/mobile/src/screens/StockMovements/index.tsx`
+## T-415-partial | 2026-05-15 | [IKKALASI] | Per-tenant payment provider management
+
+- **Yechim:**
+  - `PaymentProviderConfig` model — per-tenant, AES-256-GCM encrypted credentials
+  - `EncryptionService` — `apps/api/src/common/encryption/` (ENCRYPTION_MASTER_KEY)
+  - `PaymentConfigService` + `PaymentConfigController` — CRUD + verify
+  - Owner Panel: Settings → To'lov usullari (Terminal/Payme/Click modals)
+  - Per-tenant webhook routing: orderId → tenantId → credentials → verify
+  - POS PaymentPanel: dynamic methods (faqat verified provayderlar)
+  - Strict verification: Payme (24 hex), Click (raqamlar), email rejection
+  - i18n: uz/ru/en — 45+ kalit
+- **Fayllar:**
+  - Backend: `encryption.service.ts`, `payment-config.service.ts`, `payment-config.controller.ts`, `payment-config.dto.ts`, `uz-banks.ts`
+  - Modified: `payme.provider.ts`, `click.provider.ts`, `payments.controller.ts`, `payments.module.ts`, `schema.prisma`
+  - Frontend: `payment-config.api.ts`, `usePaymentConfig.ts`, `payment-methods/page.tsx`, `TerminalConfigModal.tsx`, `OnlineProviderModal.tsx`
+  - Modified: `PaymentPanel.tsx`, `Sidebar.tsx`, `uz.json`, `ru.json`, `en.json`
 
 ---
 
-## T-475 | 2026-05-16 | [MOBILE] | Product Stock Detail — movement history
-- **Yechim:** ProductStockDetailSheet — current stock, min level, warehouse breakdown, oxirgi 20 ta movement (type, qty, date, notes). 8 ta movement type color-coded.
-- **Fayl:** `apps/mobile/src/screens/Ombor/ProductStockDetailSheet.tsx`
+## T-389 | 2026-05-14 | [IKKALASI] | Cookie namespace isolation super-admin ↔ web
+
+- **Yechim:**
+  - `sa_` prefix — T-387 da qilingan (client.ts, middleware.ts, login/page.tsx)
+  - `useAuth.ts` — allaqachon `SA_*` konstantalarini import qiladi
+  - **Backend logout endpoint:** `POST /admin/auth/logout` — `res.clearCookie('sa_access_token')`
+  - **useAuth.ts logout:** backend endpoint chaqirib httpOnly cookie tozalaydi
+  - **client.ts clearAuthAndRedirect:** ham backend logout chaqiradi
+  - Web app (`session_active`, `user_role`) va super-admin (`sa_*`) — **collision yo'q**
+- **Fayl:** `admin-auth.controller.ts`, `useAuth.ts`, `client.ts`
 
 ---
 
-## T-474 | 2026-05-16 | [MOBILE] | Tester / Sample Tracking
-- **Yechim:** TesterScreen (list + summary) + NewTesterSheet (product select, warehouse, qty, cost, note). `inventoryApi.openTester()` mutation. Form validation.
-- **Fayl:** `apps/mobile/src/screens/Ombor/TesterScreen.tsx`, `NewTesterSheet.tsx`
+## T-388 | 2026-05-14 | [BACKEND] | Fiscal worker — idempotency + enum filter + tsc fix
+
+- **Yechim:**
+  - `jobId: fiscal:${orderId}` — double publish = same job (BullMQ idempotency)
+  - `findFirst` filter: `status: COMPLETED, fiscalStatus: { in: [PENDING, NONE, FAILED] }` — REVERSED/VOIDED skip
+  - `Number(item.quantity)` — Decimal → number tsc fix (edi fail bo'layotgan edi)
+  - tenantId in updateMany, FAILED on final attempt, retry 3x exponential — allaqachon qilingan edi
+- **Fayl:** `fiscal.worker.ts`, `queue.service.ts`
 
 ---
 
-## T-473 | 2026-05-16 | [MOBILE] | Transfer Status Lifecycle
-- **Yechim:** TransferListView — 6 status filter tab (ALL/REQUESTED/APPROVED/SHIPPED/RECEIVED/CANCELLED). Dynamic action buttons: approve/ship/receive/cancel. Confirmation dialogs, loading states, auto-refetch.
-- **Fayl:** `apps/mobile/src/screens/StockTransfer/TransferListView.tsx`
+## T-387 | 2026-05-14 | [SECURITY] | Super Admin panel — hardening (4/4 done)
+
+- **Yechim:**
+  1. **SQL console hardening:**
+     - Multi-statement block (`;` ichki qismda) — string literal ni e'tiborsiz qoldiradi
+     - DELETE/UPDATE without WHERE → `x-confirm-destructive: yes` header talab qiladi
+     - `admin_sql_audit_log` jadval (immutable) — har SQL query + adminId + timestamp
+     - DDL taqiqlangan (DROP, ALTER, TRUNCATE, CREATE)
+  2. **JWT httpOnly cookie:**
+     - Backend login: `res.cookie('sa_access_token', token, { httpOnly, secure, sameSite: strict })`
+     - JwtStrategy: `fromExtractors([bearerHeader, cookie fallback])`
+     - Middleware: httpOnly cookie primary check, client cookie fallback
+  3. **DLQ endpoints:** Allaqachon `@UseGuards(JwtAuthGuard, SuperAdminGuard)` — o'zgarish kerak emas
+  4. **Rate-limit:** Allaqachon `@Throttle` login (5/min) va bootstrap (3/min) da bor
+- **Fayl:** `admin-database.service.ts`, `admin-database.controller.ts`, `admin-auth.controller.ts`, `jwt.strategy.ts`, `super-admin/middleware.ts`, `super-admin/api/client.ts`, `super-admin/app/login/page.tsx`, migration `20260514140000`
 
 ---
 
-## T-472 | 2026-05-16 | [MOBILE] | Supplier Management CRUD
-- **Yechim:** SuppliersOmborScreen (list + search + active/inactive filter) + SupplierDetailScreen (kontakt, linked products, edit, status toggle) + NewSupplierSheet (create/edit).
-- **Fayl:** `apps/mobile/src/screens/Ombor/SuppliersOmborScreen.tsx`, `SupplierDetailScreen.tsx`, `NewSupplierSheet.tsx`
+## T-397 | 2026-05-14 | [SECURITY] | Webhooks — rate limit + IP logging
+
+- **Yechim:**
+  - `@Throttle({ default: { limit: 120, ttl: 60000 } })` — 3 ta webhook endpoint (Payme, Click Prepare, Click Complete)
+  - `req.ip` + `x-request-id` har webhook kirganida log qilinadi
+  - Auth fail → warn log + IP
+  - `timingSafeEqual` va null guard T-393/T-394 da qilingan edi
+- **Fayl:** `payments.controller.ts`
 
 ---
 
-## T-471 | 2026-05-16 | [MOBILE] | Warehouse Dashboard — stat cards + movements + restock
-- **Yechim:** WarehouseDashboardScreen — 4 stat card (jami, kam zaxira, muddati, bugungi harakatlar), quick navigation chips, expired alert banner, low stock section, recent movements, restock requests (vibration), expiry items. OmborTabStack da birinchi screen.
-- **Fayl:** `apps/mobile/src/screens/Ombor/WarehouseDashboardScreen.tsx`, `WarehouseDashboardParts.tsx`, `useWarehouseDashboard.ts`
+## T-393 | 2026-05-14 | [BACKEND] | Payme provider — mock o'rniga real JSON-RPC logika
+
+- **Yechim:**
+  - `PaymeTransaction` Prisma modeli qo'shildi (payme_id unique, state lifecycle)
+  - 5 ta JSON-RPC method real logika: order validation, amount sverka, PaymentIntent create/settle/reverse
+  - JSON-RPC 2.0 format (`jsonrpc: "2.0"`, `id`) controller da
+  - Tenant resolution orderId orqali
+  - Idempotency: PaymeTransaction.paymeId unique
+  - `timingSafeEqual` auth tekshiruvda
+  - 12 soat timeout + auto-expire
+- **Fayl:** `payme.provider.ts`, `payments.controller.ts`, `schema.prisma`, migration `20260514120000`
 
 ---
 
-## T-378 | 2026-05-16 | [MOBILE] | mobile-owner: EmployeeRole UPPERCASE fix
-- **Yechim:** `EmployeeRole` type va RoleSelector UPPERCASE ('CASHIER', 'MANAGER', 'ADMIN', 'WAREHOUSE') — backend Prisma enum bilan mos.
-- **Fayl:** `apps/mobile-owner/src/api/employees.api.ts`, `RoleSelector.tsx`
+## T-394 | 2026-05-14 | [SECURITY] | Click — verifySignature chaqiruvi + timing-safe
+
+- **Yechim:**
+  - Controller: `verifySignature(body)` har ikkala Click webhook (prepare/complete) da chaqiriladi
+  - `timingSafeEqual` MD5 signature tekshiruvda (`===` o'rniga)
+  - `handleComplete` error codes: `-1` → cancelled (`-9`), `-4` → already paid, boshqa → probroska
+  - PII redaction: `card_number`, `phone`, `email` → `[REDACTED]` log da
+  - Typed `ClickWebhookBody` interface
+- **Fayl:** `click.provider.ts`, `payments.controller.ts`
 
 ---
 
-## T-379 | 2026-05-16 | [MOBILE] | mobile-owner: AddEmployeeScreen DTO fix
-- **Yechim:** Form fields backend CreateEmployeeDto bilan to'liq mos: firstName, lastName, email, password, role, phone. Qo'shimcha fieldlar olib tashlandi.
-- **Fayl:** `apps/mobile-owner/src/screens/Employees/AddEmployeeScreen.tsx`
+## T-395 | 2026-05-14 | [BACKEND] | Payment webhooks — Idempotency + Ledger (Click)
+
+- **Yechim:**
+  - `PaymentWebhookEvent` Prisma modeli (`@@unique([provider, externalTxId])`)
+  - Click `handlePrepare`: order validation, amount check, PaymentIntent create, idempotency
+  - Click `handleComplete`: settle → `payment.settled` event → LedgerService double-entry; cancel → FAILED
+  - Takroriy webhook → idempotent javob (DB dan)
+  - PrismaService + PaymentsService DI inject
+- **Fayl:** `click.provider.ts`, `payments.controller.ts`, `schema.prisma`, migration `20260514130000`
 
 ---
 
-## T-497 | 2026-05-16 | [MOBILE] | CASHIER: Kelgan transferni qabul qilish (Receive)
-- **Yechim:** `IncomingTransfersScreen` yaratildi — `listTransfers({status:'SHIPPED'})` bilan kelgan transferlarni ko'rsatadi. Har card: yuboruvchi filial, sana, mahsulotlar ro'yxati (nom + miqdor), "Qabul qilish" tugmasi. `receiveTransfer(id)` mutation. Ko'proq → Inventar → "Kelgan mahsulotlar" CASHIER menyusiga qo'shildi.
-- **Fayl:** `apps/mobile/src/screens/IncomingTransfers/IncomingTransfersScreen.tsx`, navigation, MoreMenu
-
----
-
-## T-496 | 2026-05-16 | [MOBILE] | CASHIER: Katta omborga "mahsulot kerak" so'rovi
-- **Yechim:** Allaqachon T-478 (commit 58668f4) da bajarilgan. OmborProductCard da `useMutation` → `inventoryApi.sendRestockRequest()` to'liq wired: confirmation Alert, notifiedCount, error handling, loading state. CASHIER Ombor ekraniga kirganda ishlaydi.
-- **Fayl:** `apps/mobile/src/screens/Ombor/OmborProductCard.tsx`
-
----
-
-## T-495 | 2026-05-16 | [MOBILE] | CASHIER: useDashboardData — moliyaviy querylar disabled
-- **Yechim:** `skipFinancial = isWarehouse || isCashier` qo'shildi. Barcha 7 ta moliyaviy query (todaySummary, weeklyRevenue, topProducts, currentShift, nasiyaOverdue, monthlyProfit, branchRevenue) CASHIER uchun disabled bo'ldi. Faqat `lowStock` query qoldi.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/useDashboardData.ts`
-
----
-
-## T-494 | 2026-05-16 | [MOBILE] | CASHIER: Dashboard Haftalik trend yashirildi
-- **Yechim:** `{!isWarehouse && !isCashier && <WeeklyTrendChart />}` guard qo'shildi.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-493 | 2026-05-16 | [MOBILE] | CASHIER: Dashboard Foyda tahlili + stat cards guard
-- **Yechim:** RevenueCard va TopProductsCard ga `!isCashier` guard qo'shildi. SalesStatsGrid ga `isCashier` prop — faqat Buyurtmalar soni ko'rsatiladi (Daromad, O'rtacha chek, Nasiya yashirildi).
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`, `apps/mobile/src/screens/Dashboard/SalesStatsGrid.tsx`
-
----
-
-## T-492 | 2026-05-16 | [MOBILE] | CASHIER: Dashboard Quick Actions — Savdo, Katalog, Mijozlar, Sozlamalar
-- **Yechim:** `isCashier` branch qo'shildi — 4 ta kassir-specific tugma: Savdo, Katalog, Mijozlar, Sozlamalar. Kirim va Hisobot olib tashlandi.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-491 | 2026-05-16 | [MOBILE] | CASHIER: Ko'proq BIZNES — Moliya, Nasiya, Hisobotlar yashirildi
-- **Yechim:** `isCashier` guard qo'shildi — BIZNES guruhidan faqat Mijozlar va Aksiyalar qoldi. Moliya, Nasiya, Hisobotlar yashirildi.
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
-
----
-
-## T-490 | 2026-05-16 | [MOBILE] | CASHIER: Ko'proq INVENTAR — Kirim yashirildi
-- **Yechim:** `isCashier` guard qo'shildi — INVENTAR guruhi to'liq yashirildi (Kirim va Ombor). Ombor zaxirasini ko'rish uchun Katalog tab yetarli.
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx`
-
----
-
-## T-489 | 2026-05-16 | [MOBILE] | CASHIER: Moliya tab yashirildi (P0)
-- **Yechim:** `{!isCashier && <Tab.Screen name="Moliya" />}` guard qo'shildi. CASHIER uchun bottom tab 4 taga tushdi: Bosh sahifa, Savdo, Katalog, Ko'proq.
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`
-
----
-
-## T-487 | 2026-05-16 | [MOBILE] | Ko'proq menu BIZNES group — WAREHOUSE guard
-- **Yechim:** BIZNES guruhi WAREHOUSE uchun yashirildi (`user?.role === 'WAREHOUSE' ? [] : [BIZNES]`). WAREHOUSE_GROUP ga 2 ta yangi item qo'shildi: "Transfer ro'yxati" (TransferListScreen) va "Harakatlar tarixi" (StockMovementsScreen).
-- **Fayl:** apps/mobile/src/screens/MoreMenu/index.tsx
-
----
-
-## T-486 | 2026-05-16 | [MOBILE] | Dashboard Quick Actions — WAREHOUSE branch
-- **Yechim:** `isWarehouse` branch qo'shildi — 4 ta warehouse-specific tugma: Zaxira holati, Nakladnoy, So'rovlar, Harakatlar. CASHIER/VIEWER else branch saqlanib qoldi.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-485 | 2026-05-16 | [MOBILE] | Dashboard TopProductsCard — WAREHOUSE guard
-
-- **Yechim:** `{products.length > 0 && !isWarehouse && (...)}` guard qo'shildi — WAREHOUSE foydalanuvchi TopProductsCard ni ko'rmaydi
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-484 | 2026-05-16 | [MOBILE] | Dashboard RevenueCard — WAREHOUSE guard
-
-- **Yechim:** `{summary !== undefined && !isWarehouse && (...)}` guard qo'shildi — WAREHOUSE foydalanuvchi RevenueCard ni ko'rmaydi
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-464 | 2026-05-12 | [MOBILE] | Settings — Foydalanuvchi parolini tiklash
-
-- **Yechim:** UsersScreen da PasswordResetSheet modal + UserCard da "Parol tiklash" action. `usersApi.resetPassword(id, newPassword)` → `POST /users/:id/reset-password`. Faqat OWNER/ADMIN ko'radi, o'z parolini tiklash taqiqlangan. Min 6 belgi validatsiya, show/hide toggle.
-- **Fayl:** `apps/mobile/src/screens/Settings/UsersScreen.tsx`, `apps/mobile/src/screens/Settings/UserCard.tsx`, `apps/mobile/src/api/users.api.ts`
-
----
-
-## T-463 | 2026-05-12 | [MOBILE] | Analytics — Dead stock (harakatsiz mahsulotlar) ekrani
-
-- **Yechim:** DeadStockScreen.tsx — 30/90/180 kun threshold selector, search (nomi/SKU), sort (zarar/kunlar/zaxira), summary kartalar, color-coded idle badges. `analyticsApi.getDeadStock(days)` → `GET /analytics/dead-stock`.
-- **Fayl:** `apps/mobile/src/screens/Analytics/DeadStockScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
-
----
-
-## T-462 | 2026-05-12 | [MOBILE] | Analytics — Kassir performance ekrani
-
-- **Yechim:** CashierPerformanceScreen.tsx — ranked list (medal badges top 3), revenue bar, 7/30/90 kun davr, search. Per-kassir: orders, avgBasket, returns, shifts. `analyticsApi.getCashierPerformance()` → `GET /analytics/cashier-performance`.
-- **Fayl:** `apps/mobile/src/screens/Analytics/CashierPerformanceScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
-
----
-
-## T-461 | 2026-05-12 | [MOBILE] | Analytics — Marja tahlili ekrani
-
-- **Yechim:** MarginAnalysisScreen.tsx — margin% bo'yicha sorted list, 7/30/90 kun davr, sort (margin%/profit/revenue), color-coded badges (green ≥30%, amber ≥15%, red <15%). Summary: avg margin, total profit, total revenue. `analyticsApi.getMarginAnalysis()` → `GET /analytics/margin`.
-- **Fayl:** `apps/mobile/src/screens/Analytics/MarginAnalysisScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
-
----
-
-## T-460 | 2026-05-12 | [MOBILE] | Analytics — ABC tahlil ekrani
-
-- **Yechim:** AbcAnalysisScreen.tsx — A/B/C guruhlar (expandable cards), revenue share %, product ranking, 7/30/90 kun davr. `analyticsApi.getAbcAnalysis()` → `GET /analytics/abc`. mapAbcGroups() helper.
-- **Fayl:** `apps/mobile/src/screens/Analytics/AbcAnalysisScreen.tsx`, `apps/mobile/src/api/analytics.api.ts`
-
----
-
-## T-423 (mobile) | 2026-05-12 | [MOBILE] | PaymentsHistoryScreen — client-side sana + method filtri
-
-- **Yechim:** Backend hali `from`/`to` qo'llab-quvvatlamaydi (T-423 backend qismi Ibrat uchun ochiq). Mobile da client-side workaround: `filtered` useMemo da `createdAt` bo'yicha `from`/`to` orasini tekshirish. Method filter (Naqd/Karta/Nasiya/Click/Payme) faollashtirildi — `paymentMethod` field bo'yicha client-side filtrlash. Limit 200→500.
-- **Fayl:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
-
----
-
-## T-470 | 2026-05-12 | [MOBILE] | StockOutScreen — WAREHOUSE roli qo'shildi
-
-- **Yechim:** `STOCK_OUT_ROLES` ga `'WAREHOUSE'` qo'shildi. Lock screen matniga "Omborchi" qo'shildi.
-- **Fayl:** `apps/mobile/src/screens/StockOut/StockOutColors.ts`, `apps/mobile/src/screens/StockOut/index.tsx`
-
----
-
-## T-469 | 2026-05-12 | [MOBILE] | LowStockList — rol guard + search qo'shildi
-
-- **Yechim:** `ALLOWED_ROLES = ['OWNER', 'ADMIN', 'MANAGER']` role guard + lock screen UI. Search bar (product name/SKU client-side filter). `enabled: hasAccess` query optimization.
-- **Fayl:** `apps/mobile/src/screens/Inventory/LowStockList.tsx`
-
----
-
-## T-468 | 2026-05-12 | [MOBILE] | InvoicesScreen — search, status filter, Cancel tugmasi
-
-- **Yechim:** Search bar (invoice number + supplier name). Status filter tabs (ALL/PENDING/RECEIVED/CANCELLED) + count badges. InvoiceDetailSheet ga `rejectMutation` + "Bekor qilish" red button qo'shildi.
-- **Fayl:** `apps/mobile/src/screens/Ombor/InvoicesScreen.tsx`, `apps/mobile/src/screens/Ombor/InvoiceDetailSheet.tsx`, `apps/mobile/src/api/inventory.api.ts`
-
----
-
-## T-467 | 2026-05-12 | [MOBILE] | StockMovementsScreen — infinite scroll pagination
-
-- **Yechim:** `useQuery` → `useInfiniteQuery` ga o'tkazildi. `getNextPageParam` bilan sahifalar avtomatik yuklanadi. `FlatList` da `onEndReached` + `onEndReachedThreshold(0.5)` + loading footer.
-- **Fayl:** `apps/mobile/src/screens/StockMovements/useStockMovementData.ts`, `apps/mobile/src/screens/StockMovements/index.tsx`
-
----
-
-## T-466 | 2026-05-12 | [MOBILE] | StockTransfer — tanlangan mahsulot sheet ga uzatildi
-
-- **Yechim:** `selectedItem` state qo'shildi. `onSelect` da item capture qilinadi. `NewTransferSheet` ga `selectedProduct` prop + `useEffect` auto-population.
-- **Fayl:** `apps/mobile/src/screens/StockTransfer/index.tsx`, `apps/mobile/src/screens/StockTransfer/NewTransferSheet.tsx`
-
----
-
-## T-465 | 2026-05-12 | [MOBILE] | Ombor — Restock request (kassir + ombor tomoni)
-
-- **Yechim:** Kassir: LowStockList da "So'rov" button + `sendRestockRequest` mutation. Ombor: `RestockRequestsScreen.tsx` yaratildi (LOW_STOCK notificationlar, Yangi/Barchasi/Qabul qilingan filter, "Qabul qildim" button). OmborHeader ga notifications icon. Navigation wired.
-- **Fayl:** `apps/mobile/src/screens/Inventory/LowStockList.tsx`, `apps/mobile/src/screens/Ombor/RestockRequestsScreen.tsx`, `apps/mobile/src/screens/Ombor/OmborHeader.tsx`, `apps/mobile/src/screens/Ombor/index.tsx`, `apps/mobile/src/api/alerts.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
-
----
-
-## T-459 | 2026-05-07 | [MOBILE] | ShiftReportsScreen — FlatList filter o'zgarganda scroll pozitsiyasi reset bo'lmasdi
-
-- **Yechim:** `FlatList` ga `key={period}` qo'shildi — period o'zgarganda list remount bo'lib yuqoridan boshlanadi
-- **Fayl:** `apps/mobile/src/screens/Finance/ShiftReportsScreen.tsx`
-
----
-
-## T-458 | 2026-05-07 | [MOBILE] | ShiftReportsScreen — Filter pills text qisqarib ketadi (data yuklanganda)
-
-- **Sabab:** `pillsScroll` da `flexShrink: 1` default — summary strip paydo bo'lganda layout recalculation pills ni squeeze qilardi
-- **Yechim:** `pillsScroll` ga `flexShrink: 0`, `pillsContent` ga `flexDirection: 'row'`, `pill` ga `flexShrink: 0` qo'shildi
-- **Fayl:** `apps/mobile/src/screens/Finance/ShiftReportsScreen.tsx`
-
----
-
-## T-453 | 2026-05-07 | [MOBILE] | Etiketka chop — AirPrint/Share printer support
-
-- **Yechim:** `LabelPrintSheet.tsx` bottom sheet modal yaratildi. 3 ta label o'lcham (30×20, 40×30, 58×40 mm), nusxa soni (1–99), live preview (mahsulot nomi, SKU, barcode `||| ||| ` ko'rinishida, narx). `expo-print` mavjud bo'lsa → native AirPrint/Android print dialog; yo'q bo'lsa → `Share.share()` fallback. `ProductsScreen.tsx` da context menu "Etiketka chop" orqali integratsiya.
-- **Fayl:** `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`
-
----
-
-## T-457 | 2026-05-06 | [MOBILE] | Dashboard — Real-time savdo badge/push notification
-
-- **Yechim:** Dashboard bell badge `useState+useEffect` (bir martali) → React Query `['alerts-active']` + `refetchInterval: 30_000` (30 soniyada bir) + `useFocusEffect` (screen fokusida). `useNotifications.ts` da `addNotificationReceivedListener` → `queryClient.invalidateQueries(['alerts-active'])` — push notification kelganda badge darhol yangilanadi.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/index.tsx`, `apps/mobile/src/hooks/useNotifications.ts`
-
----
-
-## T-456 | 2026-05-06 | [MOBILE] | Dashboard — Filiallar daromadi (30 kunlik trend)
-
-- **Yechim:** `BranchRevenueCard.tsx` yangi komponent (filial ro'yxati + progress bar, % of max revenue, compact fmt 1M/500K). `analytics.api.ts` ga `getSalesTrend(params)` method + `SalesTrendPoint` type qo'shildi. `useDashboardData.ts` ga `branchRevenue` query (`getBranchComparison()`). `Dashboard/index.tsx` da `isOwnerAdmin` uchun `BranchRevenueCard` qo'shildi.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/BranchRevenueCard.tsx`, `apps/mobile/src/api/analytics.api.ts`, `apps/mobile/src/screens/Dashboard/useDashboardData.ts`, `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-455 | 2026-05-06 | [MOBILE] | Dashboard — Oylik moliyaviy xulosa karta
-
-- **Yechim:** `MonthlyProfitCard.tsx` yangi komponent (Daromad/Tannarx/Xarajatlar/Sof foyda breakdown, sof foyda manfiy bo'lsa qizil + ogohlantirish). `reports.api.ts` ga `getProfitReport(from, to)` → `GET /reports/profit` qo'shildi. `useDashboardData.ts` ga oylik profit query (30 kunlik). `Dashboard/index.tsx` ga `isOwnerAdmin` uchun `MonthlyProfitCard` qo'shildi.
-- **Fayl:** `apps/mobile/src/screens/Dashboard/MonthlyProfitCard.tsx`, `apps/mobile/src/api/reports.api.ts`, `apps/mobile/src/screens/Dashboard/useDashboardData.ts`, `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-454 | 2026-05-06 | [MOBILE] | Warehouse — Nakladnoy/Invoice ko'rish va detail
-
-- **Yechim:** `InvoicesScreen.tsx` (ro'yxat: FlatList, status badge PENDING/RECEIVED/CANCELLED, pull-to-refresh) va `InvoiceDetailSheet.tsx` (bottom sheet modal: items, supplier, summa, "Tasdiqlash" button PENDING uchun) yaratildi. `inventory.api.ts` ga `listInvoices`, `getInvoice`, `approveInvoice` methodlari qo'shildi. `TabNavigator.tsx` da `OmborTabStack` ga `InvoicesScreen` qo'shildi, `OmborHeader.tsx` da document-text icon tugma qo'shildi.
-- **Fayl:** `apps/mobile/src/screens/Ombor/InvoicesScreen.tsx`, `apps/mobile/src/screens/Ombor/InvoiceDetailSheet.tsx`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/Ombor/OmborHeader.tsx`, `apps/mobile/src/screens/Ombor/index.tsx`
-
----
-
-## T-453 | 2026-05-06 | [MOBILE] | Etiketka chop — Bluetooth/AirPrint printer support
-
-- **Yechim:** `LabelPrintSheet.tsx` yangi komponent (30×20/40×30/58×40 mm o'lcham, nusxa soni, preview, expo-print → Share fallback). `ProductsScreen.tsx` 3-dot menu ga "Etiketka chop" qo'shildi. i18n kalitlari (uz/ru/en) qo'shildi.
-- **Eslatma:** Real AirPrint uchun `expo-print` kerak: `pnpm --filter mobile add expo-print`
-- **Fayl:** `apps/mobile/src/screens/Catalog/LabelPrintSheet.tsx`, `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`, `apps/mobile/src/i18n/`
-
----
-
-## T-451 | 2026-05-07 | [MOBILE] | Kategoriyalar — Unlimited depth ierarhik tree view
-
-- **Yechim (2026-05-07 — unlimited depth):** `TreeNode.children: CatalogCategory[]` → `TreeNode[]` (recursive). `FlatItem.isChild: boolean` → `depth: number`. `flatItems` useMemo recursive flatten (cheksiz chuqurlik). `CategoryRow` dinamik `paddingLeft = 16 + depth * 20` — har level 20px indent. Web parity.
-- **Yechim (2026-05-06 — CRUD):** `createCategory`, `updateCategory`, `deleteCategory` real API. `useMutation` + Alert confirm.
-- **Fayl:** `apps/mobile/src/screens/Catalog/CategoriesScreen.tsx`, `apps/mobile/src/api/catalog.api.ts`
-
----
-
-## T-448 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — Order detail modal
-
-- **Yechim:** `OrderDetailSheet.tsx` yangi komponent yaratildi (items, subtotal/chegirma/soliq/jami, notes, status badge, API: `salesApi.getOrderById`). `PaymentsHistoryScreen.tsx` da `PaymentCard` `TouchableOpacity` ga o'raldi, `selectedOrderId` state va `OrderDetailSheet` integratsiya qilindi.
-- **Fayl:** `apps/mobile/src/screens/Finance/OrderDetailSheet.tsx`, `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
-
----
-
-## T-447 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — Stat kartalar (Naqd/Karta/Nasiya)
-
-- **Yechim:** `sales.api.ts` ga `OrderWithMethod` type qo'shildi (`Order & { paymentMethod?: string | null }`). `PaymentsHistoryScreen.tsx` ga `StatCard` komponenti, `statCards` useMemo (NAQD/CASH→Naqd, KARTA/CARD/TERMINAL→Karta, NASIYA/DEBT→Nasiya) va 3 ta stat karta render qo'shildi. T-423 hal bo'lguncha kartalar 0 ko'rsatadi.
-- **Fayl:** `apps/mobile/src/api/sales.api.ts`, `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
-
----
-
-## T-452 | 2026-05-06 | [MOBILE] | Yetkazib beruvchilar — CRUD (Create/Update/Delete)
-
-- **Yechim:** Audit natijasida `SuppliersScreen.tsx` da CRUD allaqachon to'liq implement qilingan — BottomSheet forma (name, phone, company, address), 3-dot menu (tahrirlash/o'chirish), delete confirmation dialog, real-time search. Yangi kod yozilmadi.
-- **Fayl:** `apps/mobile/src/screens/Catalog/SuppliersScreen.tsx`, `apps/mobile/src/api/catalog.api.ts`
-
----
-
-## T-450 | 2026-05-06 | [MOBILE] | Mijoz profili — Faol qarzlar ro'yxati + To'lash modal
-
-- **Yechim:** `nasiya.api.ts` ga `getByCustomer(customerId)` qo'shildi. `useCustomerDebts.ts` hook yaratildi. `DebtPaySheet.tsx` yangi komponent (amount, 50%/to'liq, CASH/CARD/TRANSFER, note, CARD→TERMINAL mapping). `CustomerDetailScreen.tsx` ga "FAOL QARZLAR" seksiyasi + aging badge (joriy/0-30/31-60/61-90/90+) + DebtPaySheet integratsiya.
-- **Fayl:** `apps/mobile/src/api/nasiya.api.ts`, `apps/mobile/src/hooks/customers/useCustomerDebts.ts`, `apps/mobile/src/screens/Customers/DebtPaySheet.tsx`, `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`
-
----
-
-## T-449 | 2026-05-06 | [MOBILE] | Mijozlar — Nasiya limiti (debtLimit) va progress bar
-
-- **Yechim:** Commit `3bb5355` — `customers.api.ts` da `CreateCustomerDto` qo'shildi (`debtLimit` field bilan), `create()` metodi yangilandi. `nasiya.api.ts` yangi DTO pattern bilan moslashtirildi. `CustomerDetailScreen.tsx` da nasiya limiti progress bar qo'shildi (ko'k = limit ichida, qizil = oshgan).
-- **Fayl:** `apps/mobile/src/api/customers.api.ts`, `apps/mobile/src/api/nasiya.api.ts`, `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`
+## T-396 | 2026-05-14 | [BACKEND] | Payment webhooks — tenant resolution orderId orqali
+
+- **Yechim:** T-393 va T-395 ichida amalga oshirildi:
+  - Payme: `params.account.order_id` → `prisma.order.findUnique` → `tenantId`
+  - Click: `body.merchant_trans_id` → `prisma.order.findUnique` → `tenantId`
+  - Order topilmasa: Payme `-31050`, Click `-5`
+  - Amount sverka: Payme tiyin vs DB so'm*100, Click so'm vs DB so'm
+- **Fayl:** `payme.provider.ts`, `click.provider.ts`
 
 ---
 
@@ -723,389 +585,6 @@
 
 ---
 
-## T-424 | 2026-05-06 | [MOBILE] | PaymentsHistoryScreen — To'lov usuli filtri disabled
-
-- **Yechim:** Naqd/Karta/Nasiya/Click/Payme tugmalari `disabled` qilindi (`opacity: 0.35`, `onPress` bloklanди) — T-423 `paymentMethod` API da paydo bo'lguncha. `useMemo` deps ga `method` qo'shildi.
-- **Fayllar:** `apps/mobile/src/screens/Finance/PaymentsHistoryScreen.tsx`
-
-## T-446 | 2026-05-05 | [MOBILE] | Vazifalar (Tasks) boshqaruvi
-
-- **Yechim:** `TasksScreen.tsx` (238 qator) + `TaskCard.tsx` (96 qator, React.memo) yaratildi — status filter pills (Barchasi/Kutilmoqda/Jarayonda/Bajarildi), FlatList, status cycling (PENDING→IN_PROGRESS→DONE), create modal, delete confirm. `tasks.api.ts` yaratildi (list/create/update/remove). MoreMenu BIZNES_GROUP da "Vazifalar" (roleLevel≥3). Navigation yangilandi.
-- **Fayllar:** `apps/mobile/src/screens/Tasks/TasksScreen.tsx`, `apps/mobile/src/screens/Tasks/TaskCard.tsx`, `apps/mobile/src/api/tasks.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-
-## T-445 | 2026-05-05 | [MOBILE] | Billing/Obuna boshqaruvi
-
-- **Yechim:** `BillingScreen.tsx` (214 qator) yaratildi — joriy obuna holati (status badge, tarif nomi, muddat), foydalanish progress bars (filiallar/mahsulotlar/xodimlar), mavjud tariflar ro'yxati. `billing.api.ts` yaratildi (getSubscription/getPlans/getUsage). Settings da OWNER uchun "Obuna va tarif" bo'limi. Navigation yangilandi.
-- **Fayllar:** `apps/mobile/src/screens/Billing/BillingScreen.tsx`, `apps/mobile/src/api/billing.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/Settings/index.tsx`
-
-## T-444 | 2026-05-05 | [MOBILE] | Hisobot eksport (CSV/Excel)
-
-- **Yechim:** `ExportScreen.tsx` (203 qator) + `ExportCard.tsx` (91 qator, React.memo) yaratildi — 6 eksport turi (sales/order-items/products/inventory/customers/debts), period pills (7/30/90 kun), FlatList, `Share.share()` orqali CSV yuborish. `reports.api.ts` ga `ExportType` va `exportDownload()` (arraybuffer→TextDecoder) qo'shildi. `ReportsHubScreen` da OWNER/ADMIN uchun "Eksport (CSV)" kartasi. Navigation va TabNavigator yangilandi. CLAUDE_MOBILE.md audit: backBtn 40→48dp tuzatildi.
-- **Fayllar:** `apps/mobile/src/screens/Finance/ExportScreen.tsx`, `apps/mobile/src/screens/Finance/ExportCard.tsx`, `apps/mobile/src/api/reports.api.ts`, `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
-
-## T-443 | 2026-05-05 | [MOBILE] | Hisobot yaratuvchi (Report Builder)
-
-- **Yechim:** `ReportBuilderScreen.tsx` yaratildi — dimension (Mahsulot/Sana/Kassir) va period (7/30/90 kun) tanlash, "Ishga tushirish" → lazy fetch, dinamik natija jadvali (sarlavha, qatorlar, jami). `reports.api.ts` ga `getEmployeeActivity()` va `EmployeeActivity` qo'shildi. `ReportsHubScreen` da OWNER/ADMIN uchun "Hisobot yaratish" kartasi. Navigation va TabNavigator yangilandi.
-- **Fayllar:** `apps/mobile/src/screens/Finance/ReportBuilderScreen.tsx`, `apps/mobile/src/api/reports.api.ts`, `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
-
-## T-442 | 2026-05-05 | [MOBILE] | Manager Dashboard — KPI va tez harakatlar
-
-- **Yechim:** `ManagerKPICard.tsx` yaratildi — bugungi smena statistikasi (smenalar soni, buyurtmalar, daromad, o'rtacha smena) `shiftsApi.getShiftSummary` orqali. `Dashboard/index.tsx` ga `isManager` qo'shildi — MANAGER uchun alohida quick actions (Savdo, Hisobot, Mijozlar, Buyurtmalar) va ManagerKPICard stats grid dan keyin ko'rsatiladi.
-- **Fayllar:** `apps/mobile/src/screens/Dashboard/ManagerKPICard.tsx`, `apps/mobile/src/screens/Dashboard/index.tsx`
-
-## T-440 | 2026-05-05 | [MOBILE] | Chegirmalar (Discounts) ekrani
-
-- **Yechim:** `ChegirmaScreen.tsx` yaratildi — PERCENT/FIXED promotions ro'yxati, 3 tab filter (Barchasi/Faol/Yakunlangan), Modal create form (nom, tur toggle, qiymat, sana). `promotionsApi.create()` va `update()` metodlari qo'shildi. MoreMenu BIZNES_GROUP da "Chegirmalar" OWNER/ADMIN uchun (roleLevel≥4). `MoreStackParamList` va `MoreNavigator` yangilandi.
-- **Fayllar:** `apps/mobile/src/screens/Chegirmalar/ChegirmaScreen.tsx`, `apps/mobile/src/api/promotions.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-
-## T-439 | 2026-05-05 | [MOBILE] | Filial hisobotlari (Branch Reports) — Finance hub
-
-- **Yechim:** `BranchReportsScreen.tsx` yaratildi — period filter (Hafta/Oy/Yil), FlatList branch cards (revenue, orders, stockValue, trend badge). `ReportsHubScreen` ga "Filial hisobotlari" kartasi OWNER/ADMIN uchun qo'shildi (`getRoleLevel >= 4`). `FinanceStackParamList` ga `BranchReports` qo'shildi. `FinanceNavigator` da screen ro'yxatdan o'tkazildi.
-- **Fayllar:** `apps/mobile/src/screens/Finance/BranchReportsScreen.tsx`, `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
-
-## T-438 | 2026-05-05 | [MOBILE] | Qaytarish (Sales Returns) ekrani
-
-- **Yechim:** `SalesReturns/index.tsx` yaratildi — COMPLETED orderlar ro'yxati, order tanlash → `salesApi.getById()` bilan to'liq detail (productId bilan), `ReturnScreen` modal, `onConfirm` → `salesApi.returnOrder(orderId, { items, reason })`. `sales.api.ts` ga `returnOrder` metodi qo'shildi. `MoreStackParamList` ga `SalesReturnsScreen` qo'shildi. MoreMenu `BIZNES_GROUP` da "Qaytarish" (MANAGER+).
-- **Fayllar:** `apps/mobile/src/screens/SalesReturns/index.tsx`, `apps/mobile/src/api/sales.api.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **TypeScript:** 0 xato
-- **Commit:** pending
-
----
-
-## T-437 | 2026-05-05 | [MOBILE] | Buyurtmalar (Sales Orders) admin ko'rinishi
-
-- **Yechim:** `SalesOrders/` stack navigator yaratildi — `SalesOrderList` (status filter: Barchasi/Bajarilgan/Qaytarilgan/Bekor) + `SalesOrderDetail`. `useSalesOrdersData` hook `salesApi.getOrders({ limit: 100 })`. `MoreStackParamList` ga `SalesOrdersScreen` qo'shildi. `TabNavigator` MoreNavigator ga screen ulandi. MoreMenu `BIZNES_GROUP` da roleLevel ≥ 3 (MANAGER+) uchun "Buyurtmalar" item qo'shildi.
-- **Fayllar:** `apps/mobile/src/screens/SalesOrders/index.tsx`, `SalesOrderList.tsx`, `SalesOrderRow.tsx`, `SalesOrderDetailScreen.tsx`, `useSalesOrdersData.ts`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Eslatma:** Sana filtri T-423 (backend from/to) fix bo'lgandan keyin to'liq ishlaydi.
-- **Commit:** pending
-
----
-
-## T-420 | 2026-05-05 | [MOBILE] | mobile-owner → mobile merge: role-based UI
-
-- **Yechim:** To'liq amalga oshirilgan. API (`debts.api.ts`, `employees.api.ts`, `shifts.api.ts`), config (`theme.ts`, `endpoints.ts`, `queryKeys.ts`), hooks (`useDebts`, `useEmployees`, `useShifts`), screenlar (`Debts/`, `Employees/`, `HR/`, `ShiftsOwner/`) — barchasi `apps/mobile` da mavjud. `TabNavigator`: `isOwnerAdmin` (roleLevel ≥ 4) → Analytics + Xodimlar tab; boshqalar → Savdo + Katalog. `MoreMenu`: `OWNER_GROUP` → Smenlar + Qarzdorlik. i18n kalitlari va navigation types to'liq.
-- **Fayllar:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/EmployeesNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`, `apps/mobile/src/screens/Debts/`, `apps/mobile/src/screens/Employees/`, `apps/mobile/src/screens/HR/`, `apps/mobile/src/screens/ShiftsOwner/`
-- **Commit:** (oldingi sessiyalarda yozilgan)
-
----
-
-## T-441 | 2026-05-05 | [MOBILE] | To'liq Warehouse moduli — Kirim + WriteOff
-
-- **Yechim:** `Kirim/` screen: hisobvaraqlar list (`GET /inventory/receipts`), `KirimDetailSheet` (detail + qabul/bekor). `StockOut/` screen: `POST /inventory/write-off` to'liq ulangan — miqdor, sabab (DAMAGED/EXPIRED/LOST/OTHER), izoh. MoreMenu da `WAREHOUSE_GROUP` da mavjud.
-- **Fayllar:** `apps/mobile/src/screens/Kirim/`, `apps/mobile/src/screens/StockOut/`
-- **Commit:** (oldingi sessiyalarda yozilgan)
-
----
-
-## T-427 | 2026-05-05 | [MOBILE] | Nasiya PayModal — Alert/onClose tartib xatosi
-
-- **Yechim:** `Alert.alert('', msg, [{ text: 'OK', onPress: () => { onSuccess?.(); onClose(); } }])` — onSuccess va onClose faqat OK tugmasi bosilganda chaqiriladi. iOS modal konflikti yo'qoldi.
-- **Fayllar:** `apps/mobile/src/screens/Nasiya/PayModal.tsx`
-- **Commit:** (oldingi sessiyada yozilgan)
-
----
-
-## T-426 | 2026-05-05 | [MOBILE] | Nasiya PayModal — parseInt bilan katta summa parse xatosi
-
-- **Yechim:** `parseInt` → `parseFloat(amount.replace(/[\s,]/g, ''))`. Katta summalar (1,000,000) to'g'ri parse qilinadi. `isNaN` tekshiruvi qo'shilgan.
-- **Fayllar:** `apps/mobile/src/screens/Nasiya/PayModal.tsx`
-- **Commit:** (oldingi sessiyada yozilgan)
-
----
-
-## T-425 | 2026-05-05 | [MOBILE] | Nasiya — nasiyaApi.pay() CASH hardcoded
-
-- **Yechim:** `pay(id, amount, method?, notes?)` — method alohida parametr sifatida qo'shildi. Backend ga `{ amount, method: method ?? 'CASH', notes }` yuboriladi. PayModal `nasiyaApi.pay(debt.id, parsed, method)` to'g'ri signature bilan chaqiradi.
-- **Fayllar:** `apps/mobile/src/api/nasiya.api.ts`, `apps/mobile/src/screens/Nasiya/PayModal.tsx`
-- **Commit:** (oldingi sessiyada yozilgan)
-
----
-
-## T-432 | 2026-05-05 | [MOBILE] | Settings — Kassir filialni ko'ra olmasligi
-
-- **Yechim:** `const isAdmin = user?.role === 'OWNER' || user?.role === 'ADMIN'` — Branches MenuRow `{isAdmin && ...}` shartli render. CASHIER/VIEWER/WAREHOUSE/MANAGER ko'ra olmaydi.
-- **Fayllar:** `apps/mobile/src/screens/Settings/index.tsx`
-- **Commit:** (oldingi sessiyada yozilgan)
-
----
-
-## T-422 | 2026-05-05 | [MOBILE] | client.ts — CONFIG.API_URL default port 3003 → 3000
-
-- **Yechim:** `apps/mobile/src/config/index.ts` da `'http://localhost:3003/api/v1'` → `'http://localhost:3000/api/v1'`. iOS/Android simulatorda `EXPO_PUBLIC_API_URL` set qilinmasa to'g'ri portga ulandi.
-- **Fayllar:** `apps/mobile/src/config/index.ts`
-- **Commit:** (oldingi sessiyada yozilgan)
-
----
-
-## T-421 | 2026-05-05 | [IKKALASI] | ExpensesScreen — Backend response key mismatch
-
-- **Yechim:** `expenses.api.ts` da `data.data` → `data.items`. `PaginatedExpenses` interfeysi `items` kalit bilan yangilandi. `ExpensesScreen.tsx` da `data?.data` → `data?.items`. `GET /finance/expenses` response `{ items, total, page, limit }` to'g'ri o'qiladi.
-- **Fayllar:** `apps/mobile/src/api/expenses.api.ts`, `apps/mobile/src/screens/Finance/ExpensesScreen.tsx`
-- **Commit:** (oldingi sessiyada yozilgan)
-
----
-
-## T-429 | 2026-05-05 | [MOBILE] | InventoryScreen — barcha mahsulotlar ko'rsatilishi
-
-- **Yechim:** `useInventoryData` hook `getInventoryItems({ limit: 100 })` → `GET /inventory/items` (status filtr yo'q = BARCHA mahsulotlar). `STATUS_SORT_ORDER` orqali: `out_of_stock` → `low` → `expiring` → `expired` → `normal`. `LowStockItem` komponenti `InventoryItem` type qabul qiladi.
-- **Fayllar:** `apps/mobile/src/screens/Inventory/useInventoryData.ts`, `apps/mobile/src/screens/Inventory/LowStockItem.tsx`, `apps/mobile/src/screens/Inventory/index.tsx`
-- **Commit:** (allaqachon kod ichida tayyor)
-
----
-
-## T-428 | 2026-05-05 | [MOBILE] | OmborRequestSheet "Yuborish" tugmasi API integratsiyasi
-
-- **Yechim:** `handleSubmit` `inventoryApi.sendRestockRequest()` orqali `POST /inventory/restock-request` ga to'liq ulangan. `loading` state `RequestFooter` ga uzatilgan (ActivityIndicator + disabled). Checked mahsulotlar uchun `{ productId, productName, currentStock }` payload yuboriladi, success/error Alert ko'rsatiladi.
-- **Fayllar:** `apps/mobile/src/screens/Ombor/OmborRequestSheet.tsx`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/screens/Ombor/components/RequestFooter.tsx`
-- **Commit:** (allaqachon kod ichida tayyor, alohida commit yo'q)
-
----
-
-## T-436 | 2026-05-05 | [MOBILE] | Stock harakatlari tarixi (StockMovements) ekrani qo'shildi
-
-- **Yechim:** `StockMovementsScreen` to'liq implementatsiya qilindi — filtrlash (sana, tur, mahsulot), `GET /inventory/movements` API integratsiyasi, `useStockMovementData` hook, `StockMovementCard`, `StockMovementHeader`, `StockMovementListHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
-- **Fayllar:** `apps/mobile/src/screens/StockMovements/index.tsx`, `StockMovementCard.tsx`, `StockMovementColors.ts`, `StockMovementHeader.tsx`, `StockMovementListHeader.tsx`, `StockMovementTypes.ts`, `useStockMovementData.ts`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `8ec446d`
-
----
-
-## T-435 | 2026-05-05 | [MOBILE] | Muddati o'tish (Expiry) kuzatuvi ekrani qo'shildi
-
-- **Yechim:** `ExpiryScreen` to'liq implementatsiya qilindi — muddati yaqinlashgan va o'tgan mahsulotlar ro'yxati, `GET /inventory/expiry` API integratsiyasi, `useExpiryData` hook, `ExpiryProductCard`, `ExpiryHeader`, `ExpiryListHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
-- **Fayllar:** `apps/mobile/src/screens/Expiry/index.tsx`, `ExpiryColors.ts`, `ExpiryHeader.tsx`, `ExpiryListHeader.tsx`, `ExpiryProductCard.tsx`, `ExpiryTypes.ts`, `useExpiryData.ts`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `dcb9560`
-
----
-
-## T-434 | 2026-05-05 | [MOBILE] | Stock Transfer (O'tkazma) ekrani qo'shildi
-
-- **Yechim:** `StockTransferScreen` to'liq implementatsiya qilindi — omborlar/filiallar o'rtasida mahsulot ko'chirish, `POST /inventory/transfers` API integratsiyasi, `NewTransferSheet` bottom sheet, `useStockTransferData` hook, `StockTransferProductCard`, `StockTransferHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
-- **Fayllar:** `apps/mobile/src/screens/StockTransfer/index.tsx`, `NewTransferSheet.tsx`, `StockTransferColors.ts`, `StockTransferHeader.tsx`, `StockTransferProductCard.tsx`, `StockTransferTypes.ts`, `useStockTransferData.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `6b7934d`
-
----
-
-## T-433 | 2026-05-05 | [MOBILE] | Stock Out (Hisobdan chiqarish) ekrani qo'shildi
-
-- **Yechim:** `StockOutScreen` to'liq implementatsiya qilindi — mahsulotdan miqdor chiqarish, `POST /inventory/movements` (type: OUT) API integratsiyasi, `NewStockOutSheet` bottom sheet, `useStockOutData` hook, `StockOutProductCard`, `StockOutHeader`, `StockOutListHeader` komponentlari. `MoreMenu` va `TabNavigator` ga ulandi.
-- **Fayllar:** `apps/mobile/src/screens/StockOut/index.tsx`, `NewStockOutSheet.tsx`, `StockOutColors.ts`, `StockOutHeader.tsx`, `StockOutListHeader.tsx`, `StockOutProductCard.tsx`, `StockOutTypes.ts`, `useStockOutData.ts`, `apps/mobile/src/api/inventory.api.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `428cae9`
-
----
-
-## T-405 | 2026-04-30 | [MOBILE] | Staff app — WAREHOUSE roli uchun ombor-focused UI
-
-- **Yechim:** TabNavigator da WAREHOUSE roli uchun tab almashtirish implementatsiya qilindi — Savdo tabi Kirim (stock-in) ga, Katalog tabi Inventarizatsiya (stock count) ga almashdi; Ko'proq menusida WAREHOUSE_GROUP ekranlar qo'shildi
-- **Fayllar:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `feat(mobile): T-405 — WAREHOUSE roli uchun ombor-focused UI`
-
----
-
-## T-404 | 2026-04-30 | [MOBILE] | Staff app — MANAGER roli LowStockList qo'shildi
-
-- **Yechim:** LowStockList MoreNavigator ga qo'shildi; Ko'proq menusida INVENTAR_GROUP roleLevel >= 3 shartida ko'rinadi
-- **Fayllar:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `feat(mobile): T-404 — MANAGER roli uchun LowStockList qo'shildi`
-
----
-
-## T-403 | 2026-04-30 | [MOBILE] | Staff app — Role-based UI ADMIN/CASHIER farqi
-
-- **Yechim:** `utils/roles.ts` shared utility yaratildi; `ProductsScreen` da FAB va Tahrirlash tugmalari role-based ko'rsatiladi — ADMIN ko'radi, CASHIER ko'rmaydi
-- **Fayllar:** `apps/mobile/src/utils/roles.ts`, `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
-- **Commit:** `feat(mobile): T-403 — Role-based UI ADMIN/CASHIER farqi`
-
----
-
-## T-402 | 2026-04-30 | [MOBILE] | Staff app — Ko'proq menusida Foydalanuvchilar UsersScreen ga ulandi
-
-- **Yechim:** `MoreStackParamList` ga `UsersScreen` qo'shildi; Ko'proq menusidagi "Foydalanuvchilar" elementi "Tez orada" badge o'chirildi, to'g'ridan-to'g'ri `UsersScreen` ga navigatsiya ishlaydi
-- **Fayllar:** `apps/mobile/src/navigation/MoreNavigator.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `fix(mobile): T-402 — Foydalanuvchilar MoreMenu → UsersScreen navigatsiya`
-
----
-
-## T-400 | 2026-04-30 | [MOBILE] | Staff app — Valyuta kurslari (Exchange Rates) ekrani qo'shildi
-
-- **Yechim:** `ExchangeRatesScreen` yaratildi; `exchange.api.ts` API integratsiyasi; `FinanceScreen` da NavCard qo'shildi
-- **Fayllar:** `apps/mobile/src/screens/Finance/ExchangeRatesScreen.tsx`, `apps/mobile/src/api/exchange.api.ts`, `apps/mobile/src/screens/Finance/FinanceScreen.tsx`
-- **Commit:** `feat(mobile): T-400 — Valyuta kurslari (Exchange Rates) ekrani qo'shildi`
-
----
-
-## T-399 | 2026-04-30 | [MOBILE] | Staff app — ReportsHub back button + MoreMenu Hisobotlar
-
-- **Yechim:** `ReportsHubScreen` ga back button qo'shildi; typed navigation parametrlari tuzatildi; Ko'proq menusida "Hisobotlar" elementi ReportsHub ga navigatsiya qiladi
-- **Fayllar:** `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `fix(mobile): T-399 — ReportsHub back button + MoreMenu Hisobotlar`
-
----
-
-## T-398 | 2026-04-30 | [MOBILE] | Staff app — Aksiyalar (Promotions) ekrani qo'shildi
-
-- **Yechim:** `PromotionsScreen` yaratildi; `promotions.api.ts` API integratsiyasi; Ko'proq menusiga qo'shildi
-- **Fayllar:** `apps/mobile/src/screens/Promotions/PromotionsScreen.tsx`, `apps/mobile/src/api/promotions.api.ts`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `feat(mobile): T-398 — Aksiyalar (Promotions) ekrani qo'shildi`
-
----
-
-## T-397 | 2026-04-30 | [MOBILE] | Staff app — Mijozlar (Customers) ekrani qo'shildi
-
-- **Yechim:** `CustomersScreen` va `CustomerDetailScreen` yaratildi; Ko'proq menusiga qo'shildi
-- **Fayllar:** `apps/mobile/src/screens/Customers/CustomersScreen.tsx`, `apps/mobile/src/screens/Customers/CustomerDetailScreen.tsx`, `apps/mobile/src/screens/MoreMenu/index.tsx`
-- **Commit:** `feat(mobile): T-397 — Mijozlar (Customers) ekrani qo'shildi`
-
----
-
-## T-379 | 2026-04-30 | [MOBILE] | mobile-owner: AddEmployeeScreen — backend DTO bilan sinxronlashtirildi
-
-- **Yechim:** `CreateEmployeeDto` backendga moslashtirildi — 11 ta ortiqcha field (`login`, `dateOfBirth`, `passportId`, `address` va boshqalar) olib tashlandi; faqat `{ firstName, lastName, email, password, role, phone }` qoldi
-- **Fayllar:** `apps/mobile-owner/src/screens/Employees/AddEmployeeScreen.tsx`, `apps/mobile-owner/src/api/employees.api.ts`
-- **Commit:** `fix(mobile): T-379 — sync AddEmployeeScreen DTO with backend`
-
----
-
-## T-418 | 2026-04-29 | [MOBILE] | Ko'chmas mulk — handleAddProperty informative alert
-
-- **Yechim:** Ko'chmas mulk ekranida `handleAddProperty` TODO placeholder o'rniga foydalanuvchiga `POST /real-estate/properties` backend endpoint hali yo'qligi haqida informative `Alert` qo'shildi
-- **Fayllar:** `apps/mobile-owner/src/screens/RealEstate/RealEstateScreen.tsx`
-- **Commit:** `fix(mobile): T-418 — handleAddProperty TODO → informative alert`
-
----
-
-## T-416 | 2026-04-29 | [MOBILE] | Mahsulot tahrirlash — ProductFormScreen edit mode navigatsiyasi
-
-- **Yechim:** `catalog.api.ts` ga `getProductById` + `updateProduct` qo'shildi; `ProductFormScreen` edit mode qo'llab-quvvatlaydi; `ProductsScreen` da `handleEdit` navigation ishlaydi
-- **Fayllar:** `apps/mobile/src/api/catalog.api.ts`, `apps/mobile/src/screens/Catalog/ProductFormScreen.tsx`, `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
-- **Commit:** `feat(mobile): T-416 — Tahrirlash navigates to ProductFormScreen with edit mode`
-
----
-
-## T-415 | 2026-04-29 | [MOBILE] | Mahsulotlar — FAB placeholder real ProductFormScreen navigatsiyasiga aylandi
-
-- **Yechim:** FAB endi `ProductFormScreen` ga navigate qiladi (yangi mahsulot qo'shish rejimi), `Alert.alert` placeholder o'chirildi
-- **Fayllar:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
-- **Commit:** `fix(mobile): T-415 — FAB placeholder → real navigation`
-
----
-
-## T-414 | 2026-04-29 | [MOBILE] | Mahsulotlar — O'chirish dialog real API call bilan ishlaydi
-
-- **Yechim:** `Alert.alert` da "O'chirish" tugmasi `DELETE /catalog/products/:id` API chaqiradi, so'ng `queryClient.invalidateQueries` bilan ro'yxat yangilanadi
-- **Fayllar:** `apps/mobile/src/screens/Catalog/ProductsScreen.tsx`
-- **Commit:** `fix(mobile): T-414 — O'chirish dialog`
-
----
-
-## T-412 | 2026-04-29 | [MOBILE] | Buyurtmalar tarixi — Calendar filter implementatsiya qilindi
-
-- **Yechim:** `SalesHistoryScreen` da calendar filter implementatsiya qilindi — DatePicker modal, sana oraliq tanlash, `GET /sales/orders?from=&to=` so'rovi
-- **Fayllar:** `apps/mobile/src/screens/Sales/index.tsx`
-- **Commit:** `fix(mobile): T-412 — Calendar filter button`
-
----
-
-## T-407 | 2026-04-29 | [MOBILE] | Finance ekranlar — ErrorView error state qo'shildi
-
-- **Yechim:** `FinanceScreen`, `PnLScreen`, `DailyRevenueScreen`, `TopProductsScreen`, `PaymentsHistoryScreen`, `NasiyaAgingScreen`, `ShiftReportsScreen` — barchaga `ErrorView` import va `isError` guard qo'shildi
-- **Fayllar:** `apps/mobile/src/screens/Finance/FinanceScreen.tsx`, `PnLScreen.tsx`, `DailyRevenueScreen.tsx`, `TopProductsScreen.tsx`, `PaymentsHistoryScreen.tsx`, `NasiyaAgingScreen.tsx`, `ShiftReportsScreen.tsx`
-- **Commit:** `fix(mobile): T-407 — add ErrorView error state to all Finance screens`
-
----
-
-## T-417 | fix(mobile) | 2026-04-28
-
-- **Muammo:** Ko'proq menyu "Nasiya" → `Savdo/NasiyaScreen` navigatsiyasi noto'g'ri (ekran yo'q)
-- **Yechim:** `Savdo/NasiyaScreen` → `Moliya/NasiyaAging` (to'g'ri stack va ekran nomi)
-- **Fayl:** `apps/mobile/src/screens/MoreMenu/index.tsx:190`
-- **Commit:** `fix(mobile): correct Nasiya navigation in MoreMenu`
-
----
-
-## T-413 | fix(mobile) | 2026-04-28
-
-- **Muammo:** "Chekni chop etish" button `onPress={() => {}}` — hech narsa qilmaydi
-- **Yechim:** `Share.share()` (react-native built-in) — matnli chek generatsiya: mahsulotlar, QQS 12%, to'lov usuli, buyurtma raqami
-- **Fayl:** `apps/mobile/src/screens/Savdo/PaymentSuccessScreen.tsx`
-- **Commit:** `fix(mobile): implement receipt sharing on PaymentSuccessScreen`
-
----
-
-## T-410 | fix(mobile) | 2026-04-28
-
-- **Muammo:** iOS Simulator da axios timeout localhost uchun ishlamaydi — `.catch()` hech qachon chaqirilmadi, Alert ko'rsatilmadi
-- **Yechim:** `Promise.race` + `setTimeout(15_000)` — `openShift` va `closeShift` da manual timeout wrapper
-- **Fayl:** `apps/mobile/src/store/shiftStore.ts`
-- **Commit:** `fix(mobile): add manual timeout to openShift/closeShift for iOS`
-
----
-
-## T-409 | fix(mobile) | 2026-04-28
-
-- **Muammo:** Loading paytida backdrop tap `onClose()` ni chaqirib, modal yopilardi
-- **Yechim:** `onRequestClose` va backdrop `onPress` → `loading ? undefined : onClose`
-- **Fayl:** `apps/mobile/src/screens/Smena/SmenaOpenSheet.tsx:27-28`
-- **Commit:** `fix(mobile): disable SmenaOpenSheet dismiss during loading`
-
----
-
-## T-406 | fix(mobile) | 2026-04-28
-
-- **Muammo:** `nasiyaApi.recordPayment` noto'g'ri URL: `/nasiya/debtors/:id/pay` → 404
-- **Yechim:** URL to'g'irlandi: `/nasiya/:id/pay` (backend `@Post(':id/pay')` bilan mos)
-- **Fayl:** `apps/mobile/src/api/nasiya.api.ts:81`
-- **Commit:** `fix(mobile): correct nasiyaApi.recordPayment URL path`
-
----
-
-## T-408 | DONE | [MOBILE] | Staff app — ReportsHubScreen navigatsiya bugi tuzatildi
-- **Bajarildi:** 2026-04-28
-- **Muammo:** `ReportsHubScreen` `onNavigate?: (screen) => void` prop ishlatgan — bu prop hech qachon berilmagan, barcha kartochkalar tap qilsa hech narsa bo'lmagan
-- **Yechim:** `useNavigation()` hook qo'shildi, `navigation.navigate(screen as never)` ishlatildi
-- **Fayl:** `apps/mobile/src/screens/Finance/ReportsHubScreen.tsx`
-
----
-
-## T-396 | DONE | [MOBILE] | Staff app — Sozlamalar i18n keylari tuzatildi
-- **Bajarildi:** 2026-04-28
-- **Yechim:** uz.ts, ru.ts, en.ts fayllariga 21 ta settings va 1 ta common.comingSoon kaliti qo'shildi. i18n/index.ts .ts fayllarni import qiladi (json emas), shuning uchun .ts fayllarni to'ldirish kerak edi.
-- **Fayllar:** apps/mobile/src/i18n/uz.ts, apps/mobile/src/i18n/ru.ts, apps/mobile/src/i18n/en.ts
-
----
-
-## T-395 | DONE | [MOBILE] | Staff app — Moliya tabi FinanceNavigator ga ulandi
-- **Bajarildi:** 2026-04-27
-- **Yechim:** FinanceNavigator (9 screen) TabNavigator.tsx ga to'liq ulandi — FinanceScreen hub, DailyRevenue, Expenses, PnL, TopProducts, PaymentsHistory, NasiyaAging, ShiftReports, ReportsHub. Ko'proq menusidan Moliya/Nasiya navigatsiyasi ham ishlaydi.
-- **Fayllar:** apps/mobile/src/navigation/TabNavigator.tsx, apps/mobile/src/screens/Finance/*.tsx, apps/mobile/src/screens/MoreMenu/index.tsx
-
----
-
-## T-401 | DONE | [MOBILE] | Ko'proq menusida Moliya va Nasiya navigatsiyasi ulandi
-- **Bajarildi:** 2026-04-27
-- **Yechim:** MoreMenu/index.tsx da handlePress orqali Moliya → tab navigation (getParent().navigate('Moliya')), Nasiya → Savdo stack (getParent().navigate('Savdo', {screen: 'NasiyaScreen'})). Badge olib tashlandi, chevron ko'rsatiladi.
-- **Fayllar:** apps/mobile/src/screens/MoreMenu/index.tsx
-
----
-
-## T-393 | 2026-04-26 | [MOBILE] | Staff app — Smena holati inconsistency tuzatildi
-
-- **Yechim:** Dashboard API dan (react-query), Savdo esa Zustand store dan smena holatini olayotgan edi. Store app ishga tushganda HECH QACHON sync qilinmas edi (`isShiftOpen: false` default). 2 joyda fix:
-  1. `App.tsx` — startup da `useShiftStore.getState().syncWithApi()` chaqirildi (auth load dan keyin)
-  2. `ShiftGuard.tsx` — fallback: agar `isShiftOpen === false` bo'lsa, `syncWithApi()` chaqirib qayta tekshiradi
-- **Fayl:** `apps/mobile/src/App.tsx`, `apps/mobile/src/components/common/ShiftGuard.tsx`
-
----
-
-## T-394 | 2026-04-26 | [MOBILE] | Staff app — Katalog tabi CatalogNavigator ga ulandi
-
-- **Yechim:** CatalogPlaceholder (`[grid]`) o'rniga haqiqiy CatalogNavigator (stack) yaratildi. 4 ta tayyor ekran ulandi: ProductsScreen (CatalogMain), CategoriesScreen, ProductFormScreen, SuppliersScreen.
-- **Fayl:** `apps/mobile/src/navigation/TabNavigator.tsx`, `apps/mobile/src/navigation/types.ts`
-- **O'zgarishlar:**
-  1. `types.ts` — `CatalogStackParamList` type qo'shildi (CatalogMain, Categories, ProductForm, Suppliers)
-  2. `TabNavigator.tsx` — CatalogPlaceholder o'chirildi, CatalogNavigator (createNativeStackNavigator) yaratildi, 4 Catalog screen importlari qo'shildi, Tab.Screen component CatalogNavigator ga o'zgartirildi
-
----
-
 ## T-381 | 2026-04-22 | [FRONTEND] | Super Admin — 7 qolgan sahifalar
 
 - **Yechim:** 7 ta yangi sahifa yaratildi, Playwright orqali har biri tekshirildi:
@@ -1431,7 +910,6 @@
 
 | # | Sana | Tur | Muammo va yechim | Fayl |
 |---|------|-----|-----------------|------|
-| T-345 | 2026-04-21 | MOBILE | Badge `'error'` variant qo'shildi (`danger` bilan bir xil rang). EmptyState ga `message` prop qo'shildi (`title` aliasi, `title` optional qilindi). 8+ ekran avtomatik tuzaladi. | Badge.tsx, EmptyState.tsx |
 | B-038 | 2026-03-29 | SCHEMA | `warehouse_invoice_items` + `ticket_messages`: `tenant_id NOT NULL` + `@@index` qo'shildi; `onDelete: Restrict`. Railway migrate deploy. | schema.prisma, migration |
 | B-040 | 2026-03-29 | FRONTEND | cashierName "--": `user.firstName+lastName → cashierName` mapping | orders.api.ts, shifts.api.ts |
 | B-041 | 2026-03-29 | BACKEND | POST /warehouse/invoices 500: items da `tenantId` yo'q → qo'shildi | warehouse-invoice.service.ts |
@@ -1440,10 +918,6 @@
 | B-044 | 2026-03-29 | BACKEND | "Jami qarz" 0: `findAll` `debtRecord.groupBy` aggregation qo'shildi | customers.service.ts |
 | B-045 | 2026-03-29 | FRONTEND | POS stock salbiy: `Math.max(0, currentStock)` | ProductSearch.tsx |
 | B-046 | 2026-03-29 | FRONTEND | split 400: nol miqdorli to'lovlar filter `p.amount > 0` | sales.api.ts |
-| B-047 | 2026-04-25 | MOBILE | `metro.config.js` Expo 54 hardcoded path lari Expo 55 ga yangilandi — `@expo+metro-config@54.0.14` → `@expo/metro-config` (package resolution), RN 0.81.5 force paths o'chirildi, `extraNodeModules` soddalashtirildi | apps/mobile/metro.config.js |
-| B-048 | 2026-04-25 | MOBILE | `@react-native-async-storage/async-storage@2.2.0` `package.json` da yo'q edi — `npx expo install` + `pod install` bajarildi, NativeModule null xatosi bartaraf etildi | apps/mobile/package.json, apps/mobile/ios/ |
-| B-049 | 2026-04-25 | MOBILE | T-350: Login slug bundle muammosi — `expo run:ios` rebuild, `main.ts` `0.0.0.0` bind, `.env.local` IP yangilandi (`172.20.10.3`→`10.29.141.253`), login muvaffaqiyatli | apps/mobile/.env.local, apps/api/src/main.ts |
-| B-050 | 2026-04-25 | MOBILE | T-351: DEV skip login tugmasi `{__DEV__ && (...)}` allaqachon to'g'ri o'ralgan — tasdiqlandi, o'zgartirish kerak emas | apps/mobile/src/screens/Auth/LoginScreen.tsx |
 | BUG-001 | 2026-03-02 | BACKEND | `::uuid` cast xatosi: Prisma $queryRaw da `${tenantId}::uuid` → DB TEXT type bilan mos kelmaydi. Barcha `::uuid` castlar olib tashlandi | inventory.service.ts |
 | BUG-002 | 2026-03-02 | BACKEND | Noto'g'ri ustun nomlari: `oi.total_price` → `oi.total`, `o.total_amount` → `o.total` | ai.service.ts |
 | BUG-003 | 2026-03-02 | BACKEND | OrderStatus enum: `CANCELLED` yo'q, raw SQL da `enum::text` cast kerak. `NOT IN ('CANCELLED','VOIDED')` → `::text = 'COMPLETED'` | ai.service.ts, reports.service.ts, cron.service.ts |
@@ -1784,27 +1258,11 @@
 
 *docs/Done.md | RAOS*
 
-## T-345 | 2026-04-21 | [MOBILE] | Badge 'error' variant + EmptyState 'message' prop — type mismatch tuzatildi
-
-- **Yechim:** `Badge` komponentiga `'error'` variant qo'shildi (`danger` bilan bir xil rang, backward-compat). `EmptyState` ga `message` prop qo'shildi (`title` aliasi sifatida, `title` optional qilindi). 8+ ekran (TrendCard, AlertDetail, Alerts/index, BranchDetail, LowStockItem, RealEstate/index, PropertyDetail, RentalPayments) avtomatik tuzaladi.
-- **Fayllar:** `apps/mobile/src/components/common/Badge.tsx`, `apps/mobile/src/components/common/EmptyState.tsx`
-- **Commit:** `0a1c5fa`
-
----
-
 ## T-062 | 2026-03-19 | [BACKEND] | Outbox pattern — Server-side sync endpoint
 
 - **Yechim:** `SyncModule`, `SyncService`, `SyncController` yaratildi. `POST /sync/inbound` — POS dan kelgan batch events qabul qiladi (idempotency_key orqali duplicate reject). `GET /sync/outbound?since=timestamp` — server dan yangilangan mahsulotlar, narxlar, kategoriyalarni qaytaradi. `GET /sync/status` — pending queue holati.
 - **Fayllar:** `apps/api/src/sync/sync.controller.ts`, `apps/api/src/sync/sync.service.ts`, `apps/api/src/sync/sync.module.ts`
 - **Commit:** (sessiya 14)
-
----
-
-## T-378 | 2026-04-26 | [MOBILE] | mobile-owner: EmployeeRole type mismatch — lowercase → UPPERCASE
-
-- **Yechim:** `EmployeeRole` type `'cashier' | 'manager' | 'admin'` → `'CASHIER' | 'MANAGER' | 'ADMIN' | 'WAREHOUSE'` ga o'zgartirildi. 7 ta faylda barcha lowercase role qiymatlari UPPERCASE ga yangilandi. WAREHOUSE (`Omborchi`) roli RoleSelector va HRInviteSheet ga qo'shildi.
-- **Fayllar:** `employees.api.ts`, `RoleSelector.tsx`, `HRInviteSheet.tsx`, `AddEmployeeScreen.tsx`, `EmployeeDetailScreen.tsx`, `useHRData.ts`, `types.ts`
-- **Commit:** (sessiya — 2026-04-26)
 
 ---
 
@@ -2332,67 +1790,6 @@
 | T-367 | 2026-04-20 | [FRONTEND] | Kontragent yaratish formasiga mahsulotlar bo'limi — mahsulot search + chip tanlash, saqlashdan keyin `suppliersApi.linkProduct()` orqali bog'lash | `warehouse/stock-in/page.tsx`, `api/suppliers.api.ts` |
 | T-368 | 2026-04-20 | [FRONTEND] | Aralash to'lov bonus bug — hardcoded `bonusPoints * 100` → `bonusPoints * redeemRate` (loyaltyConfig dan). `useLoyaltyConfig()` hook `useCompleteSale` va `PaymentPanel` ga qo'shildi | `useCompleteSale.ts`, `PaymentPanel.tsx` |
 | T-369 | 2026-04-20 | [FRONTEND] | Sidebar — Sozlamalar bo'limidan "Filiallar" o'chirildi (Boshqaruv bo'limida qoldi) | `Sidebar.tsx` |
-| T-411 | 2026-04-29 | [MOBILE] | Dashboard bell tugmasiga onPress + NotificationsScreen + unread badge (qizil doira, 99+). DashboardNavigator stack yaratildi. | `Dashboard/index.tsx`, `DashboardNavigator.tsx`, `screens/Notifications/index.tsx`, `types.ts`, `TabNavigator.tsx` |
-
----
-
-## 2026-05-16 SESSIYA — WAREHOUSE ROL UI AUDIT (T-481..T-488)
-
----
-
-## T-488 | [MOBILE] | useDashboardData — WAREHOUSE uchun keraksiz API query guard
-- **Sana:** 2026-05-16
-- **Yechim:** `useDashboardData()` ga `isWarehouse` parametr qo'shildi, 7 ta sales/finance query (todaySummary, weeklyRevenue, topProducts, currentShift, nasiyaOverdue, monthlyProfit, branchRevenue) `enabled: !isWarehouse` bilan guard qilindi, lowStock query doim faol
-- **Fayllar:** `apps/mobile/src/screens/Dashboard/useDashboardData.ts`, `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-481 | [MOBILE] | Dashboard stat cards — WAREHOUSE uchun ombor stat cards
-- **Sana:** 2026-05-16
-- **Yechim:** Dashboard stat cards — WAREHOUSE uchun 4 ta ombor stat card (WarehouseStatsGrid: Jami mahsulot, Kam zaxira, Muddati tugayotgan, Bugungi harakatlar), boshqa rollar uchun 4 ta savdo card (SalesStatsGrid) alohida komponentlarga ajratildi
-- **Fayllar:** `apps/mobile/src/screens/Dashboard/WarehouseStatsGrid.tsx` (yangi), `apps/mobile/src/screens/Dashboard/SalesStatsGrid.tsx` (yangi), `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-482 | [MOBILE] | Moliya tab — WAREHOUSE uchun "Harakatlar" tab
-- **Sana:** 2026-05-16
-- **Yechim:** Moliya tab WAREHOUSE uchun "Harakatlar" (StockMovementsScreen) bilan almashtirildi, MovementsTabNavigator yaratildi. `TabNavigator.tsx` da: `component={isWarehouse ? MovementsTabNavigator : FinanceNavigator}`, `tabBarLabel: isWarehouse ? 'Harakatlar' : 'Moliya'`
-- **Fayllar:** `apps/mobile/src/navigation/types.ts`, `apps/mobile/src/navigation/TabNavigator.tsx`
-
----
-
-## T-483 | [MOBILE] | Dashboard WeeklyTrendChart — WAREHOUSE guard
-- **Sana:** 2026-05-16
-- **Yechim:** WeeklyTrendChart ga `!isWarehouse` guard qo'shildi — WAREHOUSE rolida haftalik savdo chart yashiriladi
-- **Fayllar:** `apps/mobile/src/screens/Dashboard/index.tsx`
-
----
-
-## T-484 | [MOBILE] | Ko'proq menu — WAREHOUSE uchun "Sotuvlar" yashirish
-- **Sana:** 2026-05-16
-- **Yechim:** Ko'proq (More) menu da "Sotuvlar" bo'limi WAREHOUSE roli uchun yashirildi — `isWarehouse` guard bilan sales-related menu itemlar filtrlandi
-- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
-
----
-
-## T-485 | [MOBILE] | Ko'proq menu MOLIYA group — WAREHOUSE guard
-- **Sana:** 2026-05-16
-- **Yechim:** Ko'proq menu MOLIYA guruhidagi elementlar (Xarajatlar, Moliya hisoboti, Foyda/zarar) WAREHOUSE roli uchun yashirildi — finance endpointlarga WAREHOUSE kirishi taqiqlangan
-- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
-
----
-
-## T-486 | [MOBILE] | Ko'proq menu SAVDO group — WAREHOUSE guard
-- **Sana:** 2026-05-16
-- **Yechim:** Ko'proq menu SAVDO guruhidagi elementlar (To'lovlar tarixi, Chegirmalar, Promosiyalar) WAREHOUSE roli uchun yashirildi
-- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
-
----
-
-## T-487 | [MOBILE] | Ko'proq menu BIZNES group — WAREHOUSE guard
-- **Sana:** 2026-05-16
-- **Yechim:** Ko'proq menu BIZNES guruhidagi elementlar (Filiallar, Mijozlar, Audit jurnali) WAREHOUSE roli uchun yashirildi — WAREHOUSE faqat ombor operatsiyalariga kirishi kerak
-- **Fayllar:** `apps/mobile/src/screens/More/index.tsx`
 
 ---
 

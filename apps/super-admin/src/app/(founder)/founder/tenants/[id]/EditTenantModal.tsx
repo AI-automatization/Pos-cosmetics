@@ -50,7 +50,7 @@ export function EditTenantModal({ isOpen, onClose, onSave, isPending, tenant }: 
   if (!isOpen) return null;
 
   const inputCls =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100';
+    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -59,7 +59,7 @@ export function EditTenantModal({ isOpen, onClose, onSave, isPending, tenant }: 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
@@ -155,7 +155,7 @@ export function EditTenantModal({ isOpen, onClose, onSave, isPending, tenant }: 
               disabled={!name.trim() || !slug.trim() || isPending}
               className={cn(
                 'flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white transition',
-                'bg-violet-600 hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50',
+                'bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50',
               )}
             >
               <Save className="h-4 w-4" />

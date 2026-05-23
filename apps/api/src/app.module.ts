@@ -43,6 +43,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
 import { EmployeesModule } from './employees/employees.module';
 import { UploadModule } from './upload/upload.module';
+import { EncryptionModule } from './common/encryption/encryption.module';
+import { ZzoneModule } from './integrations/zzone/zzone.module';
 
 @Module({
   imports: [
@@ -59,6 +61,7 @@ import { UploadModule } from './upload/upload.module';
     ExchangeRateModule,
     CircuitBreakerModule,
     QueueModule,
+    EncryptionModule,
 
     // Feature modules
     HealthModule,
@@ -90,6 +93,7 @@ import { UploadModule } from './upload/upload.module';
     FeatureFlagsModule,
     SupportModule,
     TasksModule,
+    ZzoneModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)

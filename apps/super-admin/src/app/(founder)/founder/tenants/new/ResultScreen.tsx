@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Copy, Store, Mail, MailX } from 'lucide-react';
+import { CheckCircle, Copy, Mail, MailX } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TenantResult {
@@ -100,7 +100,7 @@ export function ResultScreen({ result }: ResultScreenProps) {
         <button
           type="button"
           onClick={() => router.push('/founder/tenants/new')}
-          className="flex-1 rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+          className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
         >
           Добавить ещё тенант
         </button>

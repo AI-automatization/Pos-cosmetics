@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService, CACHE_TTL } from '../common/cache/cache.service';
 import {
@@ -8,6 +9,7 @@ import {
   AddBundleComponentDto,
 } from './dto';
 import { Prisma } from '@prisma/client';
+import { PRODUCT_CREATED, PRODUCT_UPDATED, PRODUCT_DELETED } from '../events/domain-events';
 
 @Injectable()
 export class CatalogProductHelper {
@@ -16,6 +18,7 @@ export class CatalogProductHelper {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // ─── PRODUCTS ─────────────────────────────────────────────────
@@ -229,6 +232,19 @@ export class CatalogProductHelper {
       });
       await this.cache.invalidatePattern(CacheService.key.products(tenantId, '*'));
       await this.cache.invalidatePattern(CacheService.key.stockLevels(tenantId, '*'));
+
+      this.eventEmitter.emit(PRODUCT_CREATED, {
+        tenantId,
+        productId: product.id,
+        product: {
+          name: product.name,
+          sku: product.sku,
+          sellPrice: Number(product.sellPrice),
+          description: product.description,
+          imageUrl: product.imageUrl,
+        },
+      });
+
       return product;
     });
   }
@@ -284,6 +300,13 @@ export class CatalogProductHelper {
 
       this.logger.log(`Product updated: ${id}`, { tenantId, productId: id });
       await this.cache.invalidatePattern(CacheService.key.products(tenantId, '*'));
+
+      this.eventEmitter.emit(PRODUCT_UPDATED, {
+        tenantId,
+        productId: id,
+        changes: dto,
+      });
+
       return updated;
     });
   }
@@ -296,6 +319,12 @@ export class CatalogProductHelper {
     });
     this.logger.log(`Product soft-deleted: ${id}`, { tenantId });
     await this.cache.invalidatePattern(CacheService.key.products(tenantId, '*'));
+
+    this.eventEmitter.emit(PRODUCT_DELETED, {
+      tenantId,
+      productId: id,
+    });
+
     return { success: true };
   }
 

@@ -38,7 +38,7 @@ export default function AdminsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
-            <UserCog className="h-6 w-6 text-violet-600" />
+            <UserCog className="h-6 w-6 text-blue-600" />
             Администраторы
           </h1>
           <p className="mt-1 text-sm text-gray-500">Управление Super Admin аккаунтами</p>
@@ -46,7 +46,7 @@ export default function AdminsPage() {
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-700"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
           Новый админ
@@ -74,7 +74,7 @@ export default function AdminsPage() {
                   <td className="px-4 py-3 font-medium text-gray-900">{String(admin['name'] ?? '—')}</td>
                   <td className="px-4 py-3 text-gray-600">{String(admin['email'] ?? '—')}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
                       <Shield className="h-3 w-3" />
                       {String(admin['role'] ?? 'SUPER_ADMIN')}
                     </span>
@@ -160,7 +160,7 @@ function CreateAdminModal({ onClose }: { onClose: () => void }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
             />
           </div>
           <div>
@@ -170,7 +170,7 @@ function CreateAdminModal({ onClose }: { onClose: () => void }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
             />
           </div>
           <div>
@@ -181,7 +181,7 @@ function CreateAdminModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -191,7 +191,7 @@ function CreateAdminModal({ onClose }: { onClose: () => void }) {
             <button
               type="submit"
               disabled={createMut.isPending || !name || !email || !password}
-              className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-xs font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {createMut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Создать

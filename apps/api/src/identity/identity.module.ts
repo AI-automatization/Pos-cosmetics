@@ -4,6 +4,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
+import { PinController } from './pin.controller';
+import { BiometricController } from './biometric.controller';
+import { ApiKeyController } from './api-key.controller';
+import { PasswordController } from './password.controller';
 import { UsersController } from './users.controller';
 import { IdentityInfoController } from './identity-info.controller';
 import { TenantSettingsController } from './tenant-settings.controller';
@@ -12,6 +16,7 @@ import { IdentityService } from './identity.service';
 import { TokenHelper } from './token.helper';
 import { LockoutHelper } from './lockout.helper';
 import { UserManagementHelper } from './user-management.helper';
+import { PasswordResetService } from './password-reset.service';
 import { TenantInfoHelper } from './tenant-info.helper';
 import { PinService } from './pin.service';
 import { SessionService } from './session.service';
@@ -22,10 +27,12 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { TenantGuard } from './guards/tenant.guard';
 import { AuditModule } from '../audit/audit.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     AuditModule,
+    NotificationsModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -38,12 +45,22 @@ import { AuditModule } from '../audit/audit.module';
       }),
     }),
   ],
-  controllers: [AuthController, UsersController, IdentityInfoController, TenantSettingsController],
+  controllers: [
+    AuthController,
+    PinController,
+    BiometricController,
+    ApiKeyController,
+    PasswordController,
+    UsersController,
+    IdentityInfoController,
+    TenantSettingsController,
+  ],
   providers: [
     IdentityService,
     TokenHelper,
     LockoutHelper,
     UserManagementHelper,
+    PasswordResetService,
     TenantInfoHelper,
     TenantSettingsService,
     PinService,

@@ -5,15 +5,19 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { ExchangeRateService } from '../currency/exchange-rate.service';
 import { NotifyService } from '../../notifications/notify.service';
+import { ExpiryTrackingService } from '../../inventory/expiry-tracking.service';
+import { TelegramNotifyService } from '../../notifications/telegram-notify.service';
 
 const VOID_THRESHOLD = 3; // 1 soatda 3+ void = shubhali
+const EXPIRY_DAYS = 30;
+const EXPIRY_TOP_ITEMS = 5;
 
 /**
  * RAOS Scheduled Tasks (T-088)
  *
  * Cron jadval (Asia/Tashkent):
  *   - Soatlik:     Stock snapshot invalidation
- *   - 06:00:       Expiry alert log
+ *   - 06:00:       Expiry alert + Telegram notification
  *   - 08:00:       Nasiya reminders
  *   - 00:05:       Kunlik audit cleanup (30+ kunlik)
  *   - Haftalik Dushanba: Dead stock report
@@ -29,6 +33,8 @@ export class CronService {
     private readonly exchangeRate: ExchangeRateService,
     private readonly emitter: EventEmitter2,
     private readonly notify: NotifyService,
+    private readonly expiryService: ExpiryTrackingService,
+    private readonly telegram: TelegramNotifyService,
   ) {}
 
   // ─── SOATLIK: Stock snapshot materialization (T-075) ────────────
@@ -68,15 +74,15 @@ export class CronService {
     }
   }
 
-  // ─── 06:00: Muddati yaqin mahsulotlar tekshirish ───────────────
+  // ─── 06:00: Muddati yaqin mahsulotlar tekshirish + Telegram alert ──
   @Cron('0 6 * * *', { name: 'expiry-check', timeZone: 'Asia/Tashkent' })
   async checkExpiringProducts() {
     try {
       const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() + 30); // 30 kun ichida
+      cutoff.setDate(cutoff.getDate() + EXPIRY_DAYS);
 
-      const result = await this.prisma.$queryRaw<{ tenantId: string; count: number }[]>`
-        SELECT tenant_id AS "tenantId", COUNT(*) AS count
+      const tenantRows = await this.prisma.$queryRaw<{ tenantId: string; cnt: number }[]>`
+        SELECT tenant_id AS "tenantId", COUNT(*)::int AS cnt
         FROM stock_movements
         WHERE expiry_date IS NOT NULL
           AND expiry_date <= ${cutoff}
@@ -84,11 +90,59 @@ export class CronService {
         GROUP BY tenant_id
       `;
 
-      for (const row of result) {
-        this.logger.warn(`[CRON] Expiry: tenant=${row.tenantId} has ${row.count} expiring batches in 30 days`);
+      let notifiedCount = 0;
+
+      for (const row of tenantRows) {
+        const items = await this.expiryService.getExpiringProducts(row.tenantId, EXPIRY_DAYS);
+        if (items.length === 0) continue;
+
+        // Build Telegram message with top urgent items
+        const topItems = items
+          .slice(0, EXPIRY_TOP_ITEMS)
+          .map((i) => `  \u2022 ${i.productName} (${i.daysLeft} kun)`)
+          .join('\n');
+        const msg =
+          `\u26A0\uFE0F ${items.length} ta mahsulotning muddati tugayapti (${EXPIRY_DAYS} kun ichida):\n${topItems}` +
+          (items.length > EXPIRY_TOP_ITEMS ? `\n  ... va yana ${items.length - EXPIRY_TOP_ITEMS} ta` : '');
+
+        // Send Telegram to tenant OWNER/ADMIN users
+        const ownerUsers = await this.prisma.user.findMany({
+          where: {
+            tenantId: row.tenantId,
+            role: { in: ['OWNER', 'ADMIN'] },
+            isActive: true,
+            telegramChatId: { not: null },
+          },
+          select: { id: true, telegramChatId: true },
+        });
+
+        for (const user of ownerUsers) {
+          if (!user.telegramChatId) continue;
+          const sent = await this.telegram.sendMessage(user.telegramChatId, msg);
+          if (sent) notifiedCount++;
+
+          // Create Notification record in DB
+          await this.prisma.notification.create({
+            data: {
+              tenantId: row.tenantId,
+              userId: user.id,
+              type: 'EXPIRY_WARNING',
+              title: `${items.length} ta mahsulot muddati yaqin`,
+              body: msg,
+              data: { totalExpiring: items.length, days: EXPIRY_DAYS },
+            },
+          });
+        }
+
+        this.logger.warn(`[CRON] Expiry: tenant=${row.tenantId} has ${items.length} expiring batches`, {
+          tenantId: row.tenantId,
+          count: items.length,
+        });
       }
 
-      this.logger.log(`[CRON] Expiry check done: ${result.length} tenants have expiring products`);
+      this.logger.log(
+        `[CRON] Expiry check done: ${tenantRows.length} tenants, ${notifiedCount} notifications sent`,
+      );
     } catch (err) {
       this.logger.error('[CRON] Expiry check error', { error: (err as Error).message });
     }

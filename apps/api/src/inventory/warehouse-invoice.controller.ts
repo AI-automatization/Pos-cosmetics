@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { WarehouseInvoiceService } from './warehouse-invoice.service';
+import { WarehouseDashboardService } from './warehouse-dashboard.service';
 import { CreateInvoiceDto } from './dto/warehouse-invoice.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -15,7 +16,10 @@ import { RolesGuard } from '../identity/guards/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('warehouse')
 export class WarehouseInvoiceController {
-  constructor(private readonly svc: WarehouseInvoiceService) {}
+  constructor(
+    private readonly svc: WarehouseInvoiceService,
+    private readonly dashboard: WarehouseDashboardService,
+  ) {}
 
   // ─── T-327: POST /warehouse/invoices ─────────────────────────────────────
 
@@ -106,7 +110,7 @@ export class WarehouseInvoiceController {
   @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'T-319/T-320: Ombor dashboard (stats, low stock, expiry, movements)' })
   getDashboard(@CurrentUser('tenantId') tenantId: string) {
-    return this.svc.getDashboard(tenantId);
+    return this.dashboard.getDashboard(tenantId);
   }
 
   @Get('movements')
@@ -129,20 +133,20 @@ export class WarehouseInvoiceController {
     @Query('page',  new DefaultValuePipe(1),  ParseIntPipe) page  = 1,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit = 50,
   ) {
-    return this.svc.listMovements(tenantId, { productId, type, userId, from, to, page, limit });
+    return this.dashboard.listMovements(tenantId, { productId, type, userId, from, to, page, limit });
   }
 
   @Get('movements/today')
   @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'T-320: Bugungi harakatlar' })
   getTodayMovements(@CurrentUser('tenantId') tenantId: string) {
-    return this.svc.getTodayMovements(tenantId);
+    return this.dashboard.getTodayMovements(tenantId);
   }
 
   @Get('alerts')
   @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
   @ApiOperation({ summary: 'T-320: Kritik ogohlantirishlar (muddati o\'tgan/yaqin)' })
   getAlerts(@CurrentUser('tenantId') tenantId: string) {
-    return this.svc.getAlerts(tenantId);
+    return this.dashboard.getAlerts(tenantId);
   }
 }

@@ -7,7 +7,6 @@ const API_BASE = process.env.INTERNAL_API_URL || RAILWAY_API;
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  eslint: { ignoreDuringBuilds: true },
   outputFileTracingRoot: path.join(__dirname, '../../'),
   async rewrites() {
     return [

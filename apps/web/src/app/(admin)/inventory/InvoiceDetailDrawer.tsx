@@ -1,6 +1,6 @@
 'use client';
 
-import { X, CheckCircle, Loader2, Package } from 'lucide-react';
+import { X, CheckCircle, Loader2 } from 'lucide-react';
 import { useInvoice, useApproveInvoice } from '@/hooks/inventory/useInventory';
 import { formatPrice, cn } from '@/lib/utils';
 

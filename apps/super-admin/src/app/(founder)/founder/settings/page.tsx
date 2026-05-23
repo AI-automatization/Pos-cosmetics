@@ -39,7 +39,7 @@ export default function SettingsPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
-          <Settings className="h-6 w-6 text-violet-600" />
+          <Settings className="h-6 w-6 text-blue-600" />
           Настройки платформы
         </h1>
         <p className="mt-1 text-sm text-gray-500">Тарифные планы и конфигурация</p>
@@ -63,7 +63,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => { setEditPlan(null); setShowPlanForm(true); }}
-          className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
           Новый план
@@ -88,7 +88,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex gap-1">
                     <button type="button" onClick={() => { setEditPlan(plan); setShowPlanForm(true); }}
-                      className="rounded p-1.5 text-gray-400 hover:bg-violet-50 hover:text-violet-600" title="Редактировать">
+                      className="rounded p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-600" title="Редактировать">
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button type="button" onClick={() => { if (confirm(`Удалить план "${plan['name']}"?`)) deletePlanMut.mutate(String(plan['id'])); }}
@@ -100,7 +100,7 @@ export default function SettingsPage() {
 
                 {/* Price */}
                 <div className="border-b border-gray-100 px-5 py-4">
-                  <p className="text-2xl font-bold text-violet-600">
+                  <p className="text-2xl font-bold text-blue-600">
                     {isFree ? 'Бесплатно' : `${price.toLocaleString('ru')} сум`}
                   </p>
                   {!isFree && <p className="text-xs text-gray-400">в месяц</p>}
@@ -181,7 +181,7 @@ function PlanFormModal({ plan, onClose }: { plan: Record<string, unknown> | null
     onError: (err) => toast.error(extractErrorMessage(err)),
   });
 
-  const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100';
+  const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -189,7 +189,7 @@ function PlanFormModal({ plan, onClose }: { plan: Record<string, unknown> | null
       <div className="relative z-10 w-full max-w-md rounded-xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-violet-600" />
+            <CreditCard className="h-5 w-5 text-blue-600" />
             <h3 className="font-semibold text-gray-900">{isEdit ? 'Редактировать план' : 'Новый тарифный план'}</h3>
           </div>
           <button type="button" onClick={onClose} className="rounded p-1 text-gray-400 hover:bg-gray-100"><X className="h-4 w-4" /></button>
@@ -219,7 +219,7 @@ function PlanFormModal({ plan, onClose }: { plan: Record<string, unknown> | null
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Отмена</button>
             <button type="submit" disabled={saveMut.isPending || !name || !slug}
-              className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50">
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
               {saveMut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isEdit ? 'Сохранить' : 'Создать'}
             </button>

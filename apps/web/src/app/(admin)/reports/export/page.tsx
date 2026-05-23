@@ -91,7 +91,7 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
+    <div className="flex flex-col gap-4 sm:gap-6 h-full overflow-y-auto p-3 sm:p-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">{t('reports.exportTitle')}</h1>
         <p className="mt-0.5 text-sm text-gray-500">{t('reports.exportSubtitle')}</p>

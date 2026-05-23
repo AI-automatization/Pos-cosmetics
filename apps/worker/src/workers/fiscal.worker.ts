@@ -70,8 +70,14 @@ export function createFiscalWorker(): Worker {
 
       const { tenantId, orderId } = job.data;
 
+      // T-388: Only process COMPLETED orders with PENDING/FAILED fiscal status
       const order = await prisma.order.findFirst({
-        where: { id: orderId, tenantId },
+        where: {
+          id: orderId,
+          tenantId,
+          status: 'COMPLETED',
+          fiscalStatus: { in: ['PENDING', 'NONE', 'FAILED'] },
+        },
         select: {
           id: true,
           orderNumber: true,
@@ -115,7 +121,7 @@ export function createFiscalWorker(): Worker {
           taxRate: 0.12,
           items: order.items.map((item) => ({
             name: item.productName,
-            qty: item.quantity,
+            qty: Number(item.quantity),
             price: Number(item.unitPrice),
             total: Number(item.total),
             vatRate: 0.12,

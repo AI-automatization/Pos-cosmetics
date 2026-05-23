@@ -67,7 +67,7 @@ export default function SystemPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
-          <Server className="h-6 w-6 text-violet-600" />
+          <Server className="h-6 w-6 text-blue-600" />
           Мониторинг системы
         </h1>
         <p className="mt-1 text-sm text-gray-500">
@@ -154,7 +154,7 @@ export default function SystemPage() {
               <tbody className="divide-y divide-gray-100">
                 {dlqJobs.map((job) => (
                   <tr key={`${job.queue}-${job.id}`} className="hover:bg-gray-50">
-                    <td className="px-4 py-2.5 font-mono text-violet-600">{job.queue}</td>
+                    <td className="px-4 py-2.5 font-mono text-blue-600">{job.queue}</td>
                     <td className="px-4 py-2.5 font-medium text-gray-800">{job.name}</td>
                     <td className="max-w-xs truncate px-4 py-2.5 text-red-600">{job.failedReason}</td>
                     <td className="whitespace-nowrap px-4 py-2.5 text-gray-500">
@@ -166,7 +166,7 @@ export default function SystemPage() {
                           type="button"
                           onClick={() => retryMut.mutate({ queue: job.queue, jobId: job.id })}
                           disabled={retryMut.isPending}
-                          className="rounded p-1.5 text-gray-400 transition hover:bg-violet-50 hover:text-violet-600"
+                          className="rounded p-1.5 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
                           title="Повторить"
                         >
                           {retryMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}

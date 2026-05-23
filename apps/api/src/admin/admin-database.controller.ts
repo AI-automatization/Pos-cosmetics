@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -20,15 +21,19 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { AdminDatabaseService } from './admin-database.service';
+import { AdminSqlConsoleService } from './admin-sql-console.service';
 
-interface AdminRequest { user?: { role?: string } }
+interface AdminRequest { user?: { role?: string; userId?: string } }
 
 @ApiTags('Super Admin — Database')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
 @Controller('admin/db')
 export class AdminDatabaseController {
-  constructor(private readonly dbService: AdminDatabaseService) {}
+  constructor(
+    private readonly dbService: AdminDatabaseService,
+    private readonly sqlConsole: AdminSqlConsoleService,
+  ) {}
 
   // ─── READ ──────────────────────────────────────────────────────────────────
 
@@ -205,11 +210,16 @@ export class AdminDatabaseController {
       },
     },
   })
-  executeQuery(@Body('sql') sql: string, @Req() req: AdminRequest) {
+  executeQuery(
+    @Body('sql') sql: string,
+    @Req() req: AdminRequest,
+    @Headers('x-confirm-destructive') confirmDestructive?: string,
+  ) {
     // T-391: SUPPORT role — SQL console taqiqlangan
     if (req.user?.role === 'SUPPORT') {
       throw new BadRequestException('SUPPORT role uchun SQL console taqiqlangan. Faqat SUPER_ADMIN ishlatishi mumkin.');
     }
-    return this.dbService.executeQuery(sql);
+    const adminId = req.user?.userId ?? 'unknown';
+    return this.sqlConsole.executeQuery(sql, adminId, confirmDestructive === 'yes');
   }
 }

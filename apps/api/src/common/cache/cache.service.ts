@@ -30,7 +30,29 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     // Support REDIS_URL (Railway auto-inject) or REDIS_HOST/PORT (manual config)
     const redisUrl = this.config.get<string>('REDIS_URL');
-    const baseOpts = { maxRetriesPerRequest: 3, lazyConnect: true, enableOfflineQueue: false };
+    const MAX_RETRY_DELAY = 30_000; // 30s max between retries
+
+    const baseOpts = {
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      retryStrategy: (times: number) => {
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s, 30s, ...
+        const delay = Math.min(times * 1000, MAX_RETRY_DELAY);
+        if (times === 1) {
+          this.logger.warn(`Redis disconnected — reconnecting in ${delay}ms`);
+        }
+        if (times % 10 === 0) {
+          this.logger.warn(`Redis reconnect attempt #${times}, next in ${delay}ms`);
+        }
+        return delay;
+      },
+      reconnectOnError: (err: Error) => {
+        // Only reconnect on connection errors, not auth/protocol errors
+        return err.message.includes('ECONNRESET') || err.message.includes('EPIPE')
+          || err.message.includes('ECONNREFUSED') || err.message.includes('ETIMEDOUT');
+      },
+    };
 
     if (redisUrl) {
       this.client = new Redis(redisUrl, baseOpts);
@@ -49,13 +71,19 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.client.on('error', (err) => {
+      if (this.connected) {
+        this.logger.warn(`Redis error: ${err.message}`);
+      }
       this.connected = false;
-      this.logger.warn(`Redis error: ${err.message}`);
+    });
+
+    this.client.on('close', () => {
+      this.connected = false;
     });
 
     // Ulanishga urinish (xato bo'lsa ham API ishlaydi — cache miss)
     this.client.connect().catch((err) => {
-      this.logger.warn(`Redis initial connect failed: ${err.message}. Cache disabled.`);
+      this.logger.warn(`Redis initial connect failed: ${err.message}. Cache disabled — API continues without cache.`);
     });
   }
 

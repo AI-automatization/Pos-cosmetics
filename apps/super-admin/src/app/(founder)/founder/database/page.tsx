@@ -111,10 +111,10 @@ export default function FounderDatabasePage() {
 
   const STAT_CARDS = stats
     ? [
-        { label: 'Размер БД', value: `${stats.dbSizeMb} MB`, icon: HardDrive, color: 'text-violet-600', bg: 'bg-violet-50' },
+        { label: 'Размер БД', value: `${stats.dbSizeMb} MB`, icon: HardDrive, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Соединения', value: `${stats.activeConnections}/${stats.maxConnections}`, icon: Plug, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Таблицы', value: String(stats.tablesCount), icon: Table2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Uptime', value: stats.uptime, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'Uptime', value: stats.uptime, icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
       ]
     : [];
 
@@ -123,7 +123,7 @@ export default function FounderDatabasePage() {
       {/* Header */}
       <div>
         <h1 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-          <Database className="h-5 w-5 text-violet-500" />
+          <Database className="h-5 w-5 text-blue-500" />
           Database Manager
         </h1>
         <p className="mt-0.5 text-sm text-gray-500">PostgreSQL {stats?.version ?? ''}</p>
@@ -138,7 +138,7 @@ export default function FounderDatabasePage() {
             onClick={() => setTab(t.key)}
             className={cn(
               'rounded-md px-4 py-2 text-sm font-medium transition',
-              tab === t.key ? 'bg-violet-600 text-white' : 'text-gray-500 hover:text-gray-700',
+              tab === t.key ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-700',
             )}
           >
             {t.label}
@@ -178,7 +178,7 @@ export default function FounderDatabasePage() {
                     value={tableSearch}
                     onChange={(e) => setTableSearch(e.target.value)}
                     placeholder="Поиск таблицы..."
-                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-xs text-gray-700 outline-none placeholder:text-gray-400 focus:border-violet-400"
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-xs text-gray-700 outline-none placeholder:text-gray-400 focus:border-blue-400"
                   />
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function FounderDatabasePage() {
                           className={cn(
                             'flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs transition',
                             selectedTable === t.name
-                              ? 'bg-violet-50 text-violet-700 font-medium'
+                              ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-600 hover:bg-gray-50',
                           )}
                         >

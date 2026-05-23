@@ -8,16 +8,25 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { timingSafeEqual } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminLoginDto, AdminCreateDto } from './dto/admin-login.dto';
 import { AdminTenantHelper } from './admin-tenant.helper';
 import { AdminSubscriptionHelper } from './admin-subscription.helper';
 
 const BCRYPT_ROUNDS = 12;
+const ADMIN_MAX_ATTEMPTS = 5;
+const ADMIN_LOCKOUT_MS = 15 * 60 * 1000; // 15 min
+
+interface AdminLockEntry {
+  attempts: number;
+  lockedUntil: number | null;
+}
 
 @Injectable()
 export class AdminAuthService {
   private readonly logger = new Logger(AdminAuthService.name);
+  private readonly lockMap = new Map<string, AdminLockEntry>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -32,19 +41,25 @@ export class AdminAuthService {
    * JWT payload: { sub, tenantId: null, role: SUPER_ADMIN, isAdmin: true }
    */
   async login(dto: AdminLoginDto) {
+    this.checkAdminLock(dto.email);
+
     const admin = await this.prisma.adminUser.findUnique({
       where: { email: dto.email },
     });
 
     if (!admin || !admin.isActive) {
+      this.recordAdminFailure(dto.email);
       throw new UnauthorizedException("Email yoki parol noto'g'ri");
     }
 
     const passwordValid = await bcrypt.compare(dto.password, admin.passwordHash);
     if (!passwordValid) {
+      this.recordAdminFailure(dto.email);
       this.logger.warn(`Failed admin login attempt: ${dto.email}`);
       throw new UnauthorizedException("Email yoki parol noto'g'ri");
     }
+
+    this.lockMap.delete(dto.email);
 
     const payload = {
       sub: admin.id,
@@ -55,7 +70,7 @@ export class AdminAuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '24h',
+      expiresIn: '30m',
     } as Parameters<typeof this.jwtService.signAsync>[1]);
 
     this.logger.log(`Admin login: ${admin.email} (${admin.role})`);
@@ -76,7 +91,7 @@ export class AdminAuthService {
    */
   async bootstrap(dto: AdminCreateDto, secret: string) {
     const expected = this.config.get<string>('ADMIN_BOOTSTRAP_SECRET');
-    if (!expected || secret !== expected) {
+    if (!expected || !this.secretsEqual(secret, expected)) {
       throw new UnauthorizedException("Noto'g'ri bootstrap secret");
     }
     return this.createAdmin(dto);
@@ -84,7 +99,7 @@ export class AdminAuthService {
 
   async resetUserPassword(email: string, newPassword: string, secret: string) {
     const expected = this.config.get<string>('ADMIN_BOOTSTRAP_SECRET');
-    if (!expected || secret !== expected) {
+    if (!expected || !this.secretsEqual(secret, expected)) {
       throw new UnauthorizedException("Noto'g'ri bootstrap secret");
     }
 
@@ -157,7 +172,7 @@ export class AdminAuthService {
     };
 
     const token = await this.jwtService.signAsync(payload, {
-      expiresIn: '1h',
+      expiresIn: '30m',
     } as Parameters<typeof this.jwtService.signAsync>[1]);
 
     await this.prisma.auditLog.create({
@@ -280,5 +295,103 @@ export class AdminAuthService {
 
   getTenantAuditLog(tenantId: string, opts: { page: number; limit: number }) {
     return this.subscriptionHelper.getTenantAuditLog(tenantId, opts);
+  }
+
+  // ─── ZZONE CONFIG ────────────────────────────────────────────────────
+
+  async getZzoneConfig(tenantId: string) {
+    const config = await this.prisma.integrationConfig.findUnique({
+      where: { tenantId_provider: { tenantId, provider: 'ZZONE' } },
+    });
+
+    if (!config) return { exists: false, isActive: false, token: '', productCount: 0 };
+
+    const zzoneConfig = (config.config ?? {}) as { token?: string; productMappings?: Record<string, string> };
+    const productCount = Object.keys(zzoneConfig.productMappings ?? {}).length;
+
+    return {
+      exists: true,
+      isActive: config.isActive,
+      token: zzoneConfig.token ? '***' + zzoneConfig.token.slice(-4) : '',
+      productCount,
+      createdAt: config.createdAt,
+    };
+  }
+
+  async updateZzoneConfig(tenantId: string, data: { token?: string; isActive?: boolean }) {
+    const config = await this.prisma.integrationConfig.findUnique({
+      where: { tenantId_provider: { tenantId, provider: 'ZZONE' } },
+    });
+
+    if (!config) {
+      // Create if doesn't exist
+      await this.prisma.integrationConfig.create({
+        data: {
+          tenantId,
+          provider: 'ZZONE',
+          config: { token: data.token ?? '', productMappings: {} },
+          isActive: data.isActive ?? false,
+        },
+      });
+      return { success: true, created: true };
+    }
+
+    const currentConfig = (config.config ?? {}) as Record<string, unknown>;
+    if (data.token !== undefined) currentConfig.token = data.token;
+
+    await this.prisma.integrationConfig.update({
+      where: { id: config.id },
+      data: {
+        config: currentConfig as object,
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      },
+    });
+
+    return { success: true, updated: true };
+  }
+
+  async triggerZzoneSync(tenantId: string) {
+    const products = await this.prisma.product.findMany({
+      where: { tenantId, isActive: true, deletedAt: null },
+      select: { id: true, name: true },
+    });
+
+    // Note: actual sync happens via ZzoneSyncListener on product events
+    return {
+      success: true,
+      message: `Sync triggered for ${products.length} products`,
+      productCount: products.length,
+    };
+  }
+
+  // ─── Security helpers ──────────────────────────────────────────────────
+
+  private secretsEqual(a: string, b: string): boolean {
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
+    if (bufA.length !== bufB.length) return false;
+    return timingSafeEqual(bufA, bufB);
+  }
+
+  private checkAdminLock(email: string): void {
+    const entry = this.lockMap.get(email);
+    if (!entry?.lockedUntil) return;
+    if (Date.now() < entry.lockedUntil) {
+      const remainMin = Math.ceil((entry.lockedUntil - Date.now()) / 60000);
+      throw new UnauthorizedException(
+        `Admin hisob ${remainMin} daqiqa bloklangan. Keyinroq urinib ko'ring.`,
+      );
+    }
+    this.lockMap.delete(email);
+  }
+
+  private recordAdminFailure(email: string): void {
+    const entry = this.lockMap.get(email) ?? { attempts: 0, lockedUntil: null };
+    entry.attempts += 1;
+    if (entry.attempts >= ADMIN_MAX_ATTEMPTS) {
+      entry.lockedUntil = Date.now() + ADMIN_LOCKOUT_MS;
+      this.logger.warn(`Admin locked for 15min: ${email} (${entry.attempts} failed attempts)`);
+    }
+    this.lockMap.set(email, entry);
   }
 }

@@ -53,7 +53,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         paymentMethod === 'bonus' ||
         (paymentMethod === 'split' && (splitNasiyaAmount > 0 || bonusPoints > 0));
 
-      const orderPayload = {
+      const orderPayload: import('@/types/sales').CreateOrderDto = {
         shiftId: shiftId ?? '',
         items: items.map((item) => ({
           productId: item.productId,
@@ -78,7 +78,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
           id: crypto.randomUUID(),
           label,
           createdAt: new Date().toISOString(),
-          payload: orderPayload as Record<string, unknown>,
+          payload: orderPayload as unknown as Record<string, unknown>,
         });
         const { total: totalAmt } = totals();
         const cash = paymentMethod === 'cash' ? totalAmt : paymentMethod === 'split' ? cashAmount : 0;
@@ -123,6 +123,17 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         );
       } else {
         toast.success(`Sotuv #${order.orderNumber ?? order.id?.slice(0, 8) ?? '—'} yakunlandi!`);
+      }
+
+      // Loyalty: show earned points toast if customer selected
+      if (selectedCustomer && loyaltyConfig?.isActive) {
+        const earnRate = loyaltyConfig.earnRate ?? DEFAULT_LOYALTY_CONFIG.earnRate;
+        const earned = Math.floor(total / earnRate);
+        if (earned > 0) {
+          toast.info(`⭐ ${selectedCustomer.name}: +${earned} ball yig'ildi`, { duration: 5000 });
+          // Attach to order for receipt display
+          order.loyaltyEarned = earned;
+        }
       }
 
       // Low-stock check — success toast dan keyin ko'rinsin

@@ -44,7 +44,7 @@ function UsageBar({ label, used, max }: { label: string; used: number; max: numb
         <div
           className={cn(
             'h-2.5 rounded-full transition-all',
-            isHigh ? 'bg-red-500' : pct > 50 ? 'bg-amber-400' : 'bg-violet-500',
+            isHigh ? 'bg-red-500' : pct > 50 ? 'bg-blue-400' : 'bg-blue-500',
           )}
           style={{ width: `${pct}%` }}
         />
@@ -103,12 +103,12 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
   const PLAN_COLORS: Record<string, string> = {
     FREE: 'bg-gray-100 text-gray-600',
     BASIC: 'bg-blue-100 text-blue-700',
-    PRO: 'bg-violet-100 text-violet-700',
-    ENTERPRISE: 'bg-amber-100 text-amber-700',
+    PRO: 'bg-blue-100 text-blue-700',
+    ENTERPRISE: 'bg-blue-100 text-blue-700',
   };
 
   const inputCls =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100';
+    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
 
   return (
     <div className="flex flex-col gap-6">
@@ -116,8 +116,8 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
       <div className="rounded-xl border border-gray-200 bg-white p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50">
-              <Crown className="h-6 w-6 text-violet-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+              <Crown className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Текущий план</p>
@@ -139,7 +139,7 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
           <button
             type="button"
             onClick={() => setShowOverride(!showOverride)}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-500 transition hover:border-violet-400 hover:text-violet-600"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-500 transition hover:border-blue-400 hover:text-blue-600"
           >
             <Settings className="h-4 w-4" />
             Override
@@ -159,7 +159,7 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
       {/* Usage bars */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">
         <div className="mb-4 flex items-center gap-2">
-          <Zap className="h-5 w-5 text-violet-500" />
+          <Zap className="h-5 w-5 text-blue-500" />
           <h3 className="font-semibold text-gray-700">Использование</h3>
         </div>
         <div className="flex flex-col gap-5">
@@ -183,13 +183,13 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
 
       {/* Override form */}
       {showOverride && (
-        <div className="rounded-xl border border-violet-200 bg-violet-50 p-6">
-          <h3 className="mb-4 font-semibold text-violet-800">
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
+          <h3 className="mb-4 font-semibold text-blue-800">
             Override подписки — {tenantName}
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-violet-700">План</label>
+              <label className="text-sm font-medium text-blue-700">План</label>
               <select
                 value={newPlan}
                 onChange={(e) => setNewPlan(e.target.value)}
@@ -203,7 +203,7 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-violet-700">Макс. филиалов</label>
+              <label className="text-sm font-medium text-blue-700">Макс. филиалов</label>
               <input
                 type="number"
                 value={newMaxBranches}
@@ -213,7 +213,7 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-violet-700">Макс. товаров</label>
+              <label className="text-sm font-medium text-blue-700">Макс. товаров</label>
               <input
                 type="number"
                 value={newMaxProducts}
@@ -223,7 +223,7 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-violet-700">Макс. пользователей</label>
+              <label className="text-sm font-medium text-blue-700">Макс. пользователей</label>
               <input
                 type="number"
                 value={newMaxUsers}
@@ -245,7 +245,7 @@ export function SubscriptionTab({ tenantId, tenantName }: SubscriptionTabProps) 
               type="button"
               onClick={handleOverride}
               disabled={overrideMut.isPending}
-              className="rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+              className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {overrideMut.isPending ? 'Сохранение...' : 'Сохранить'}
             </button>

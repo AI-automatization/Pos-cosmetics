@@ -37,17 +37,26 @@ async function buildXlsx(
   rows: (string | number | null | undefined)[][],
   logger: Logger,
 ): Promise<Buffer | null> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let ExcelJS: any;
+  let mod: Record<string, unknown>;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    ExcelJS = require('exceljs');
+    mod = require('exceljs') as Record<string, unknown>;
   } catch {
     logger.warn('[Export] exceljs not installed — falling back to CSV');
     return null;
   }
 
-  const wb = new ExcelJS.Workbook();
+  const Workbook = mod['Workbook'] as new () => {
+    creator: string;
+    addWorksheet(name: string): {
+      addRow(data: unknown[]): unknown;
+      getRow(n: number): { font: object; fill: object; border: object };
+      columns: Array<{ width: number; eachCell(opts: object, cb: (cell: { value: unknown }) => void): void }>;
+    };
+    xlsx: { writeBuffer(): Promise<Buffer> };
+  };
+
+  const wb = new Workbook();
   wb.creator = 'RAOS';
   const ws = wb.addWorksheet('Data');
 
@@ -64,18 +73,16 @@ async function buildXlsx(
   }
 
   // Auto-width
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ws.columns.forEach((col: any) => {
+  ws.columns.forEach((col) => {
     let maxLen = 10;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    col.eachCell({ includeEmpty: true }, (cell: any) => {
+    col.eachCell({ includeEmpty: true }, (cell) => {
       const val = cell.value ? String(cell.value) : '';
       maxLen = Math.max(maxLen, val.length);
     });
     col.width = Math.min(maxLen + 2, 60);
   });
 
-  return wb.xlsx.writeBuffer() as Promise<Buffer>;
+  return wb.xlsx.writeBuffer();
 }
 
 // ─── ExportService ────────────────────────────────────────────────────────────

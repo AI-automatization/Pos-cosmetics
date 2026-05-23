@@ -49,7 +49,7 @@ export function SplitPaymentForm({
     if (!splitEnabled.nasiya && splitNasiyaAmount !== 0) setSplitNasiyaAmount(0);
     if (!splitEnabled.cash && cashAmount !== 0) setCashAmount(0);
     if (!splitEnabled.card && cardAmount !== 0) setCardAmount(0);
-  }, [splitEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [splitEnabled]);
 
   const { data: loyaltyAccount } = useLoyaltyAccount(
     splitEnabled.bonus ? selectedCustomer?.id ?? null : null,

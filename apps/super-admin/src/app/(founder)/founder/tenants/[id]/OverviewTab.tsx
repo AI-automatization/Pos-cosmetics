@@ -114,17 +114,17 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
         </h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-            <Clock className={cn('h-5 w-5', isRecentlyActive ? 'text-green-500' : 'text-amber-500')} />
+            <Clock className={cn('h-5 w-5', isRecentlyActive ? 'text-green-500' : 'text-blue-500')} />
             <div>
               <p className="text-xs text-gray-500">Последняя продажа</p>
-              <p className={cn('text-sm font-medium', isRecentlyActive ? 'text-green-700' : 'text-amber-700')}>
+              <p className={cn('text-sm font-medium', isRecentlyActive ? 'text-green-700' : 'text-blue-700')}>
                 {health?.lastSaleAt ? activityText : '—'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-            <Store className="h-5 w-5 text-violet-500" />
+            <Store className="h-5 w-5 text-blue-500" />
             <div>
               <p className="text-xs text-gray-500">Статус</p>
               <p
@@ -177,7 +177,7 @@ export function OverviewTab({ tenant, revenue }: OverviewTabProps) {
                   'Выручка',
                 ]}
               />
-              <Bar dataKey="revenueM" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenueM" fill="#2563eb" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (

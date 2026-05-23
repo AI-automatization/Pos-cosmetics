@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+/* ─── RAOS Brand Tokens (cyan era 2026-05-18) ───
+   Canonical source: @raos/brand-kit (packages/brand-kit)
+   Memory: raos-brand-color-rule.md
+*/
+@theme {
+  --color-raos-cyan: #24D4F4;
+  --color-raos-cyan-light: #5FEEFB;
+  --color-raos-cyan-dark: #0FA8C8;
+  --color-raos-bg-deep: #0E1530;
+  --color-raos-bg-main: #0F1733;
+  --color-raos-bg-highlight: #112F4B;
+  --color-raos-bg-elevated: #1A2342;
+  --color-raos-bg-overlay: #0A0F1C;
+  --color-raos-text-primary: #FFFFFF;
+  --color-raos-text-secondary: #C0C8D8;
+  --color-raos-text-muted: #8090B0;
+}
+
+:root {
+  /* CSS custom properties for non-Tailwind consumers (vanilla CSS, inline styles) */
+  --raos-cyan: #24D4F4;
+  --raos-cyan-light: #5FEEFB;
+  --raos-cyan-dark: #0FA8C8;
+  --raos-bg-deep: #0E1530;
+  --raos-bg-main: #0F1733;
+  --raos-bg-highlight: #112F4B;
+  --raos-bg-elevated: #1A2342;
+  --raos-text-primary: #FFFFFF;
+  --raos-text-secondary: #C0C8D8;
+  --raos-gradient-r-letter: linear-gradient(180deg, #5FEEFB 0%, #24D4F4 50%, #0FA8C8 100%);
+  --raos-gradient-hero: radial-gradient(circle at 25% 25%, #112F4B 0%, #0E1530 70%);
+  --raos-gradient-cta: linear-gradient(180deg, #5FEEFB 0%, #24D4F4 100%);
+}
+
 /* ─── Volumetric 3D Cards ─── */
 .card-3d {
   background: linear-gradient(145deg, #ffffff, #f8fafc);

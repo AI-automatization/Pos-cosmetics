@@ -19,8 +19,12 @@ export const RT_EVENTS = {
   ERROR_NEW: 'error:new',
 } as const;
 
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
+  : ['http://localhost:3001'];
+
 @WebSocketGateway({
-  cors: { origin: '*' },   // Production da env dan o'qiladi
+  cors: { origin: corsOrigin },
   namespace: '/realtime',
 })
 export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect {

@@ -69,6 +69,9 @@ export interface Order {
   payments: PaymentEntry[];
   status: 'COMPLETED' | 'PENDING' | 'CANCELLED';
   createdAt: string;
+  customer?: { id: string; name: string; phone?: string } | null;
+  loyaltyEarned?: number | null;
+  loyaltyBalance?: number | null;
 }
 
 export interface OrderItem {

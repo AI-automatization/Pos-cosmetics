@@ -13,8 +13,8 @@ type SortDir = 'asc' | 'desc';
 function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol; sortDir: SortDir }) {
   if (sortCol !== col) return <ChevronsUpDown className="inline ml-1 h-3 w-3 text-gray-300" />;
   return sortDir === 'asc'
-    ? <ChevronUp className="inline ml-1 h-3 w-3 text-amber-500" />
-    : <ChevronDown className="inline ml-1 h-3 w-3 text-amber-500" />;
+    ? <ChevronUp className="inline ml-1 h-3 w-3 text-blue-500" />
+    : <ChevronDown className="inline ml-1 h-3 w-3 text-blue-500" />;
 }
 
 export default function LowStockPage() {
@@ -115,7 +115,7 @@ export default function LowStockPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t('warehouse.nameOrSkuPlaceholder')}
-          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>
 

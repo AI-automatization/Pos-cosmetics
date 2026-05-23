@@ -14,7 +14,7 @@ async function bootstrap() {
     level: 'info',
     event: 'worker_start',
     ts: new Date().toISOString(),
-    redis: `${process.env.REDIS_HOST ?? 'localhost'}:${process.env.REDIS_PORT ?? 6379}`,
+    redis: process.env.REDIS_URL ? '(REDIS_URL set)' : `${process.env.REDIS_HOST ?? 'localhost'}:${process.env.REDIS_PORT ?? 6379}`,
   }));
 
   const workers = [
@@ -25,6 +25,18 @@ async function bootstrap() {
     createDataExportWorker(),
     createSyncProcessWorker(),
   ];
+
+  // Throttle Redis error logs to avoid log flooding
+  let lastErrorLog = 0;
+  for (const worker of workers) {
+    worker.on('error', (err) => {
+      const now = Date.now();
+      if (now - lastErrorLog > 30_000) {
+        console.log(JSON.stringify({ level: 'warn', event: 'worker_error', error: err.message, ts: new Date().toISOString() }));
+        lastErrorLog = now;
+      }
+    });
+  }
 
   console.log(JSON.stringify({
     level: 'info',

@@ -48,7 +48,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
                 required
                 autoFocus
                 placeholder={t('auth.minChars')}
-                className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-raos-cyan focus:ring-2 focus:ring-raos-cyan/20"
               />
               <button
                 type="button"
@@ -66,7 +66,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
             <button
               type="submit"
               disabled={newPassword.length < 6 || isPending}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-raos-cyan px-4 py-2 text-sm font-semibold text-raos-bg-deep shadow-md shadow-raos-cyan/30 hover:bg-raos-cyan-light disabled:opacity-50"
             >
               {isPending ? t('common.saving') : t('common.save')}
             </button>
@@ -143,7 +143,7 @@ function LangSwitcher() {
           className={cn(
             'rounded-md px-2 py-1 text-xs font-semibold transition-all',
             locale === value
-              ? 'bg-white text-blue-700 shadow-sm'
+              ? 'bg-white text-raos-cyan-dark shadow-sm'
               : 'text-gray-500 hover:text-gray-700',
           )}
         >
@@ -183,8 +183,8 @@ function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 transition hover:bg-gray-50"
       >
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100">
-          <User className="h-4 w-4 text-blue-600" />
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-raos-cyan/15 ring-1 ring-raos-cyan/30">
+          <User className="h-4 w-4 text-raos-cyan-dark" />
         </div>
         <div className="hidden text-left md:block">
           <p className="text-sm font-medium text-gray-700 leading-tight">{displayName}</p>
@@ -206,7 +206,7 @@ function UserMenu() {
               <p className="text-sm font-medium text-gray-900">{displayName}</p>
               <p className="text-xs text-gray-400 truncate">{user.email}</p>
               {user.tenant && (
-                <p className="mt-1 text-xs text-blue-600 font-medium">{user.tenant.name}</p>
+                <p className="mt-1 text-xs text-raos-cyan-dark font-medium">{user.tenant.name}</p>
               )}
             </div>
           )}

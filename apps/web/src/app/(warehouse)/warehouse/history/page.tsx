@@ -75,7 +75,7 @@ export default function WarehouseHistoryPage() {
     from:  filters.from  || undefined,
     to:    filters.to    || undefined,
     page,
-    limit: 50,
+    limit: 10,
   };
 
   const { data, isLoading, isFetching } = useWarehouseMovements(queryParams);

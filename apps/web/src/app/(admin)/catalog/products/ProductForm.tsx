@@ -147,16 +147,16 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
             {/* Row 1: Name full width */}
-            <Field label="Nomi" error={errors.name?.message} required className="col-span-1 sm:col-span-2 lg:col-span-3">
+            <Field label={t('products.productName')} error={errors.name?.message} required className="col-span-1 sm:col-span-2 lg:col-span-3">
               <input
                 {...register('name')}
-                placeholder="Masalan: Nivea krem 100ml"
+                placeholder={t('products.productNamePlaceholder')}
                 className={errors.name ? inputErrorCls : inputCls}
               />
             </Field>
 
             {/* Row 2: Category | Supplier | SKU */}
-            <Field label="Kategoriya" error={errors.categoryId?.message} required>
+            <Field label={t('products.category')} error={errors.categoryId?.message} required>
               <Controller
                 control={control}
                 name="categoryId"
@@ -166,8 +166,8 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                     value={field.value ?? ''}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
-                    placeholder="Kategoriya..."
-                    searchPlaceholder="Qidirish..."
+                    placeholder={t('products.categoryPlaceholder')}
+                    searchPlaceholder={t('common.search')}
                     required
                   />
                 )}
@@ -183,8 +183,8 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                     options={supplierOptions}
                     value={field.value ?? ''}
                     onChange={field.onChange}
-                    placeholder="Kontragent..."
-                    searchPlaceholder="Nomi..."
+                    placeholder={t('products.supplierPlaceholder')}
+                    searchPlaceholder={t('common.search')}
                     clearable
                   />
                 )}
@@ -216,7 +216,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                     className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-300 px-3 py-2.5 text-sm text-gray-500 transition-colors hover:border-blue-400 hover:text-blue-600"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    SKU qo&apos;shish
+                    {t('products.addSku')}
                   </button>
                 </div>
               )}
@@ -280,7 +280,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               <div className="col-span-1 sm:col-span-2 lg:col-span-3 grid grid-cols-2 gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Nomi <span className="text-red-500">*</span>
+                    {t('common.name')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -292,7 +292,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Qisqa nom <span className="text-red-500">*</span>
+                    {t('products.shortName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -306,11 +306,11 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             )}
 
             {/* Row 4: Description (span-2) | Image (span-1) */}
-            <Field label="Tavsif" error={errors.description?.message} className="col-span-2">
+            <Field label={t('products.description')} error={errors.description?.message} className="col-span-2">
               <textarea
                 {...register('description')}
                 rows={2}
-                placeholder="Mahsulot haqida qisqacha ma'lumot..."
+                placeholder={t('products.descriptionPlaceholder')}
                 className={`${inputCls} resize-none`}
               />
             </Field>
@@ -318,7 +318,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             <ImageUpload value={imageUrl} onChange={setImageUrl} className="col-span-1" />
 
             {/* Row 5: Cost | Sell | Margin */}
-            <Field label="Kelish narxi (so'm)" error={errors.costPrice?.message} required>
+            <Field label={t('products.costPrice')} error={errors.costPrice?.message} required>
               <input
                 {...register('costPrice')}
                 type="number"
@@ -328,7 +328,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
               />
             </Field>
 
-            <Field label="Sotuv narxi (so'm)" error={errors.sellPrice?.message} required>
+            <Field label={t('products.sellPrice')} error={errors.sellPrice?.message} required>
               <input
                 {...register('sellPrice')}
                 type="number"
@@ -345,7 +345,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             />
 
             {/* Row 6: Min stock | Initial stock */}
-            <Field label="Minimal zaxira" error={errors.minStockLevel?.message}>
+            <Field label={t('products.minStock')} error={errors.minStockLevel?.message}>
               <input
                 {...register('minStockLevel')}
                 type="number"
@@ -355,7 +355,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
             </Field>
 
             {!product && (
-              <Field label={t('products.initialStock')} error={errors.initialStock?.message} className="col-span-2">
+              <Field label={t('products.initialStock')} error={errors.initialStock?.message}>
                 <input
                   {...register('initialStock')}
                   type="number"
@@ -365,6 +365,14 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
                 />
               </Field>
             )}
+
+            <Field label={t('products.expiryDate')} error={errors.expiryDate?.message}>
+              <input
+                {...register('expiryDate')}
+                type="date"
+                className={inputCls}
+              />
+            </Field>
 
           </div>
 

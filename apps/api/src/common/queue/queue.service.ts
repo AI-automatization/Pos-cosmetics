@@ -96,19 +96,37 @@ export class QueueService implements OnModuleDestroy {
   private initQueues() {
     // Railway provides REDIS_URL; fallback to host/port for local dev
     const redisUrl = this.config.get<string>('REDIS_URL');
+    const MAX_RETRY_DELAY = 30_000;
+
     const connection = redisUrl
-      ? { url: redisUrl }
+      ? {
+          url: redisUrl,
+          maxRetriesPerRequest: null as unknown as number, // BullMQ requires null for workers/queues
+          retryStrategy: (times: number) => Math.min(times * 1000, MAX_RETRY_DELAY),
+          enableOfflineQueue: false,
+        }
       : {
           host: this.config.get<string>('REDIS_HOST', 'localhost'),
           port: this.config.get<number>('REDIS_PORT', 6379),
           password: this.config.get<string>('REDIS_PASSWORD'),
+          maxRetriesPerRequest: null as unknown as number,
+          retryStrategy: (times: number) => Math.min(times * 1000, MAX_RETRY_DELAY),
+          enableOfflineQueue: false,
         };
+
+    // Track last error log time to avoid log flooding
+    let lastQueueErrorLog = 0;
 
     for (const name of Object.values(QUEUE_NAMES)) {
       const queue = new Queue(name, { connection });
       // Handle Redis connection errors gracefully — unhandled 'error' events crash Node.js
       queue.on('error', (err) => {
-        this.logger.warn(`Queue "${name}" error: ${err.message}`);
+        const now = Date.now();
+        // Log at most once per 30 seconds to prevent log flooding
+        if (now - lastQueueErrorLog > 30_000) {
+          this.logger.warn(`Queue "${name}" error: ${err.message}`);
+          lastQueueErrorLog = now;
+        }
       });
       this.queues.set(name, queue);
     }
@@ -126,6 +144,8 @@ export class QueueService implements OnModuleDestroy {
 
   async addFiscalReceiptJob(data: FiscalReceiptJob) {
     return this.getQueue(QUEUE_NAMES.FISCAL_RECEIPT).add('send-receipt', data, {
+      // T-388: Idempotency — same orderId = same job, prevents double fiscal receipts
+      jobId: `fiscal:${data.orderId}`,
       attempts: 3,
       backoff: { type: 'exponential', delay: 2000 },
       removeOnComplete: 100,

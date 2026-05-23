@@ -12,14 +12,15 @@ const SESSION_COOKIE = 'session_active';
 const ROLE_COOKIE = 'user_role';
 const USERID_COOKIE = 'user_id';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
+const SECURE_FLAG = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
 
 function setSessionCookie(role?: string, userId?: string) {
-  document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${SECURE_FLAG}`;
   if (role) {
-    document.cookie = `${ROLE_COOKIE}=${role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    document.cookie = `${ROLE_COOKIE}=${role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${SECURE_FLAG}`;
   }
   if (userId) {
-    document.cookie = `${USERID_COOKIE}=${userId}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    document.cookie = `${USERID_COOKIE}=${userId}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${SECURE_FLAG}`;
   }
 }
 

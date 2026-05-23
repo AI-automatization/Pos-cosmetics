@@ -128,6 +128,12 @@ export class OrderService {
 
       const orderItemsInsert = orderItemsData.map(({ isTaxable: _t, ...rest }) => rest);
 
+      // POS flow: payment is already confirmed by cashier before calling createOrder.
+      // Use PENDING for deferred/online orders, COMPLETED for immediate POS sales.
+      const initialStatus = dto.customerId && !resolvedShiftId
+        ? OrderStatus.PENDING
+        : OrderStatus.COMPLETED;
+
       const order = await tx.order.create({
         data: {
           tenantId,
@@ -136,7 +142,7 @@ export class OrderService {
           branchId: resolvedBranchId,
           customerId: dto.customerId,
           orderNumber,
-          status: OrderStatus.COMPLETED,
+          status: initialStatus,
           subtotal,
           discountAmount,
           discountType: dto.discountType ?? 'FIXED',
@@ -266,10 +272,8 @@ export class OrderService {
     return {
       orderNumber: order.orderNumber,
       date: order.createdAt,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cashier: `${(order as any).user?.firstName} ${(order as any).user?.lastName}`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      customer: (order as any).customer?.name ?? null,
+      cashier: `${order.user?.firstName ?? ''} ${order.user?.lastName ?? ''}`.trim(),
+      customer: order.customer?.name ?? null,
       items: order.items.map((i) => ({
         name: i.productName,
         qty: i.quantity,
@@ -280,8 +284,7 @@ export class OrderService {
       discount: order.discountAmount,
       tax: order.taxAmount,
       total: order.total,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payments: (order as any).paymentIntents?.map((p: any) => ({
+      payments: order.paymentIntents?.map((p) => ({
         method: p.method,
         amount: p.amount,
       })),

@@ -43,8 +43,9 @@ model Tenant {
   suppliers      Supplier[]
   zReports       ZReport[]
   notifications  Notification[]
-  subscription   TenantSubscription?
-  sessions            Session[]
+  subscription    TenantSubscription?
+  billingPayments BillingPayment[]
+  sessions             Session[]
   apiKeys             ApiKey[]
   StockMovement       StockMovement[]
   stockTransfers      StockTransfer[]
@@ -62,6 +63,9 @@ model Tenant {
   expenses            Expense[]
   reminderLogs        ReminderLog[]
   clientErrorLogs     ClientErrorLog[]
+  paymeTransactions       PaymeTransaction[]
+  paymentProviderConfigs  PaymentProviderConfig[]
+  promoCodes              PromoCode[]
 
   @@map("tenants")
 }
@@ -206,6 +210,7 @@ model Product {
   description    String?
   expiryTracking Boolean   @default(false) @map("expiry_tracking")
   isTaxable      Boolean   @default(true)  @map("is_taxable")  // T-078: QQS (НДС 12%)
+  zzoneVisible   Boolean   @default(false) @map("zzone_visible") // ZZone marketplace visibility
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")
@@ -225,6 +230,7 @@ model Product {
   transferItems    StockTransferItem[]
   certificates     ProductCertificate[]
   priceChanges     PriceChange[]
+  vehicleCompats   ProductVehicleCompatibility[]
 
   @@unique([tenantId, sku])
   @@unique([tenantId, barcode])
@@ -247,6 +253,44 @@ model ProductBarcode {
   @@index([barcode])
   @@index([productId])
   @@map("product_barcodes")
+}
+
+// ============================================
+// VEHICLE COMPATIBILITY (ZZone auto-parts)
+// ============================================
+
+model Vehicle {
+  id        String   @id @default(uuid())
+  brand     String   // Toyota, Chevrolet, Audi
+  model     String   // Camry, Cobalt, A6
+  yearFrom  Int      @map("year_from")
+  yearTo    Int?     @map("year_to") // null = current
+  bodyType  String?  @map("body_type") // sedan, hatchback, suv, wagon
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  productCompats ProductVehicleCompatibility[]
+
+  @@unique([brand, model, yearFrom])
+  @@index([brand])
+  @@index([brand, model])
+  @@map("vehicles")
+}
+
+model ProductVehicleCompatibility {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  vehicleId String   @map("vehicle_id")
+  notes     String?  // "Only 2.4L engine", "Front only"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, vehicleId])
+  @@index([vehicleId])
+  @@index([productId])
+  @@map("product_vehicle_compatibilities")
 }
 
 // ============================================
@@ -499,6 +543,7 @@ model Order {
   taxAmount      Decimal      @default(0) @map("tax_amount") @db.Decimal(15, 2)
   total          Decimal      @db.Decimal(15, 2)
   notes          String?
+  origin         String       @default("POS") @map("origin") // POS | ZZONE | MANUAL
   fiscalStatus   FiscalStatus @default(NONE) @map("fiscal_status")
   fiscalId       String?      @map("fiscal_id")
   fiscalQr       String?      @map("fiscal_qr")
@@ -509,9 +554,10 @@ model Order {
   user           User            @relation(fields: [userId], references: [id])
   branch         Branch?         @relation(fields: [branchId], references: [id])
   customer       Customer?       @relation(fields: [customerId], references: [id])
-  items          OrderItem[]
-  returns        Return[]
-  paymentIntents PaymentIntent[]
+  items              OrderItem[]
+  returns            Return[]
+  paymentIntents     PaymentIntent[]
+  paymeTransactions  PaymeTransaction[]
 
   @@unique([tenantId, orderNumber])
   @@index([tenantId])
@@ -606,6 +652,78 @@ model PaymentIntent {
   @@index([tenantId, orderId])
   @@index([status])
   @@map("payment_intents")
+}
+
+// T-393: Payme transaction tracking (JSON-RPC lifecycle)
+model PaymeTransaction {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  paymeId         String   @unique @map("payme_id")
+  orderId         String   @map("order_id")
+  paymentIntentId String?  @map("payment_intent_id")
+  amount          Int      // tiyin (1 UZS = 100 tiyin)
+  state           Int      @default(1) // 1=created, 2=completed, -1=cancelled_before, -2=cancelled_after
+  reason          Int?     // cancel reason (1-5)
+  createTime      BigInt   @map("create_time")
+  performTime     BigInt?  @map("perform_time")
+  cancelTime      BigInt?  @map("cancel_time")
+  createdAt       DateTime @default(now()) @map("created_at")
+  // updatedAt YO'Q — state o'zgarishi faqat aniq method orqali
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id])
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@map("payme_transactions")
+}
+
+// T-395: Webhook idempotency — har provider + externalTxId juftligi unique
+model PaymentWebhookEvent {
+  id           String   @id @default(uuid())
+  provider     String   // PAYME, CLICK, UZUM
+  externalTxId String   @map("external_tx_id")
+  tenantId     String?  @map("tenant_id")
+  action       String?  // prepare, complete, perform, cancel
+  payload      Json?    // raw webhook body (PII redacted)
+  processedAt  DateTime @default(now()) @map("processed_at")
+
+  @@unique([provider, externalTxId])
+  @@index([tenantId])
+  @@map("payment_webhook_events")
+}
+
+// T-415: Per-tenant payment provider credentials (encrypted)
+model PaymentProviderConfig {
+  id                   String              @id @default(uuid())
+  tenantId             String              @map("tenant_id")
+  provider             PaymentProviderType
+  isActive             Boolean             @default(true) @map("is_active")
+  encryptedCredentials String?             @map("encrypted_credentials") @db.Text
+  settings             Json                @default("{}")
+  verifiedAt           DateTime?           @map("verified_at")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, provider])
+  @@index([tenantId])
+  @@map("payment_provider_configs")
+}
+
+// T-387: Super Admin SQL console audit log (immutable)
+model AdminSqlAuditLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  sqlType    String   @map("sql_type") // SELECT, DML
+  query      String   // truncated to 2000 chars
+  executedAt DateTime @default(now()) @map("executed_at")
+  // updatedAt YO'Q — IMMUTABLE
+
+  @@index([adminId])
+  @@index([executedAt])
+  @@map("admin_sql_audit_log")
 }
 
 // ============================================
@@ -848,6 +966,8 @@ enum ShiftStatus {
 }
 
 enum OrderStatus {
+  PENDING
+  CONFIRMED
   COMPLETED
   RETURNED
   VOIDED
@@ -876,8 +996,16 @@ enum PaymentMethod {
   TERMINAL
   CLICK
   PAYME
+  UZUM
   TRANSFER
   DEBT
+}
+
+enum PaymentProviderType {
+  TERMINAL
+  PAYME
+  CLICK
+  UZUM
 }
 
 enum PaymentIntentStatus {
@@ -1215,7 +1343,8 @@ model SubscriptionPlan {
   isActive     Boolean @default(true) @map("is_active")
   sortOrder    Int     @default(0) @map("sort_order")
 
-  subscriptions TenantSubscription[]
+  subscriptions   TenantSubscription[]
+  billingPayments BillingPayment[]
 
   @@map("subscription_plans")
 }
@@ -1240,6 +1369,47 @@ model TenantSubscription {
   @@index([status])
   @@index([expiresAt])
   @@map("tenant_subscriptions")
+}
+
+// ─── Billing Payments (Tezcode platform merchant — NOT tenant merchant) ──────
+
+enum BillingPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum BillingProvider {
+  PAYME
+  CLICK
+  UZUM
+}
+
+model BillingPayment {
+  id             String               @id @default(uuid())
+  tenantId       String               @map("tenant_id")
+  planId         String               @map("plan_id")
+  months         Int                  @default(1)
+  amount         Decimal              @db.Decimal(15, 2) // so'm
+  provider       BillingProvider
+  status         BillingPaymentStatus @default(PENDING)
+  providerTxId   String?              @map("provider_tx_id") // Payme/Click/Uzum transaction ID
+  checkoutUrl    String?              @map("checkout_url")
+  paidAt         DateTime?            @map("paid_at")
+  failedAt       DateTime?            @map("failed_at")
+  failReason     String?              @map("fail_reason")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id])
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([providerTxId])
+  @@map("billing_payments")
 }
 
 // ─── T-069: Session management ─────────────────────────────────
@@ -1938,4 +2108,50 @@ model AiProviderHealth {
 
   @@unique([provider, model])
   @@map("ai_provider_health")
+}
+
+model IntegrationConfig {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  provider  String
+  config    Json     @default("{}")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, provider], name: "tenantId_provider")
+  @@index([tenantId])
+  @@map("integration_configs")
+}
+
+// ============================================
+// PROMO CODES (T-467)
+// ============================================
+
+enum PromoType {
+  PERCENT
+  FIXED
+}
+
+model PromoCode {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  code        String
+  type        PromoType @default(PERCENT)
+  value       Decimal   @default(0)
+  usageLimit  Int       @default(0) @map("usage_limit")   // 0 = unlimited
+  usageCount  Int       @default(0) @map("usage_count")
+  minPurchase Decimal   @default(0) @map("min_purchase")
+  validFrom   DateTime  @map("valid_from")
+  validTo     DateTime? @map("valid_to")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, code], name: "tenantId_code")
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@map("promo_codes")
 }

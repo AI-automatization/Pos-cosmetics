@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, Eye, EyeOff, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useLogin } from '@/hooks/auth/useAuth';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
@@ -35,11 +36,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/30">
-            <ShoppingBag className="h-7 w-7 text-white" />
+          <div className="inline-flex h-16 w-16 overflow-hidden rounded-2xl shadow-lg shadow-raos-cyan/30 ring-1 ring-white/10">
+            <Image src="/icon.png" alt="RAOS" width={64} height={64} priority />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-white">RAOS</h1>
-          <p className="mt-1 text-sm text-blue-300">Retail & Asset Operating System</p>
+          <p className="mt-1 text-sm text-raos-cyan-light">Retail & Asset Operating System</p>
         </div>
 
         {/* Card */}
@@ -49,7 +50,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
             {/* Email */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-blue-200">
+              <label className="mb-1.5 block text-sm font-medium text-white/80">
                 Email
               </label>
               <input
@@ -60,10 +61,10 @@ export default function LoginPage() {
                 autoComplete="email"
                 className={cn(
                   'w-full rounded-xl border bg-white/10 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition',
-                  'focus:ring-2 focus:ring-blue-500',
+                  'focus:ring-2 focus:ring-raos-cyan',
                   errors.email
                     ? 'border-red-400/60 focus:border-red-400'
-                    : 'border-white/10 focus:border-blue-500',
+                    : 'border-white/10 focus:border-raos-cyan',
                 )}
               />
               {errors.email && (
@@ -73,7 +74,7 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-blue-200">
+              <label className="mb-1.5 block text-sm font-medium text-white/80">
                 Parol
               </label>
               <div className="relative">
@@ -85,10 +86,10 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   className={cn(
                     'w-full rounded-xl border bg-white/10 px-4 py-3 pr-11 text-sm text-white placeholder-white/30 outline-none transition',
-                    'focus:ring-2 focus:ring-blue-500',
+                    'focus:ring-2 focus:ring-raos-cyan',
                     errors.password
                       ? 'border-red-400/60 focus:border-red-400'
-                      : 'border-white/10 focus:border-blue-500',
+                      : 'border-white/10 focus:border-raos-cyan',
                   )}
                 />
                 <button
@@ -112,8 +113,8 @@ export default function LoginPage() {
               disabled={isPending}
               className={cn(
                 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition',
-                'bg-blue-600 text-white shadow-lg shadow-blue-600/30',
-                'hover:bg-blue-500 active:scale-98',
+                'bg-raos-cyan text-raos-bg-deep shadow-lg shadow-raos-cyan/30',
+                'hover:bg-raos-cyan-light active:scale-98',
                 'disabled:cursor-not-allowed disabled:opacity-60',
               )}
             >
@@ -127,6 +128,12 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+
+          <div className="mt-4 text-center">
+            <a href="/forgot-password" className="text-sm text-raos-cyan hover:text-raos-cyan-light transition-colors">
+              {t('auth.forgotPassword')}
+            </a>
+          </div>
 
         </div>
 

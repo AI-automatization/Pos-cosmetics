@@ -40,7 +40,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         <div className="text-center">
           <Truck className="mx-auto mb-3 h-12 w-12 text-gray-300" />
           <p className="text-lg font-semibold text-gray-700">{t('warehouse.supplierNotFound')}</p>
-          <Link href="/warehouse/suppliers" className="mt-3 inline-block text-sm text-amber-600 hover:text-amber-700">
+          <Link href="/warehouse/suppliers" className="mt-3 inline-block text-sm text-blue-600 hover:text-blue-700">
             {t('common.goBack')}
           </Link>
         </div>
@@ -124,7 +124,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
               </div>
               <div>
                 <p className="text-xs text-gray-400">{t('warehouse.phone')}</p>
-                <a href={`tel:${supplier.phone}`} className="font-medium text-gray-900 hover:text-amber-600 transition">
+                <a href={`tel:${supplier.phone}`} className="font-medium text-gray-900 hover:text-blue-600 transition">
                   {supplier.phone}
                 </a>
               </div>
@@ -174,13 +174,13 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-gray-400" />
             <h2 className="text-sm font-semibold text-gray-700">{t('warehouse.linkedProducts')}</h2>
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
               {linkedProducts.length}
             </span>
           </div>
           <Link
             href="/warehouse/inventory"
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-amber-600 transition"
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             {t('inventory.title')}

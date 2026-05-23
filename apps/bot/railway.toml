@@ -1,5 +1,14 @@
 [build]
 dockerfilePath = "apps/bot/Dockerfile"
+watchPatterns = [
+  "apps/bot/**",
+  "apps/api/prisma/**",
+  "packages/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc"
+]
 
 [deploy]
 startCommand = "node dist/main.js"

@@ -75,7 +75,7 @@ export default function StockInPage() {
       setItems(newRows);
       setBannerDismissed(true);
     }
-  }, [supplierDetail]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [supplierDetail]);
   const supplierProducts = supplierDetail?.productSuppliers?.filter((ps) => ps.product.isActive) ?? [];
   const showBanner = !!supplierId && !bannerDismissed && supplierProducts.length > 0
     && !supplierProducts.every((ps) => items.some((r) => r.productId === ps.product.id));
@@ -204,8 +204,8 @@ export default function StockInPage() {
     <div className="h-full overflow-y-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100">
-          <Package className="h-5 w-5 text-amber-600" />
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100">
+          <Package className="h-5 w-5 text-blue-600" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('warehouse.stockInTitle')}</h1>
@@ -280,7 +280,7 @@ export default function StockInPage() {
               disabled={isPending || items.every((r) => !r.productId)}
               className={cn(
                 'flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition',
-                'bg-amber-600 hover:bg-amber-700 active:scale-[0.98]',
+                'bg-blue-600 hover:bg-blue-700 active:scale-[0.98]',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}
             >

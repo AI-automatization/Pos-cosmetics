@@ -46,7 +46,7 @@ export default function ExchangeRatesPage() {
   const isLoading = latestLoading || historyLoading;
 
   return (
-    <div className="flex flex-col gap-6 h-full overflow-y-auto p-6">
+    <div className="flex flex-col gap-4 sm:gap-6 h-full overflow-y-auto p-3 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -74,7 +74,7 @@ export default function ExchangeRatesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="col-span-1 rounded-xl border border-green-200 bg-green-50 p-5">
             <p className="text-xs font-medium text-green-600">Joriy kurs (CBU)</p>
-            <p className="mt-2 text-3xl font-bold text-green-700">
+            <p className="mt-2 text-xl sm:text-3xl font-bold text-green-700">
               {formatRate(latest.usdUzs)} <span className="text-base font-normal">so'm</span>
             </p>
             <p className="mt-1 text-xs text-green-500">1 USD = {formatRate(latest.usdUzs)} UZS</p>

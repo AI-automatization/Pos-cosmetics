@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  apiClient,
   SA_TOKEN_KEY,
   SA_ADMIN_ID_KEY,
   SA_ADMIN_ROLE_KEY,
@@ -9,7 +10,15 @@ import {
 } from '@/api/client';
 
 export function useLogout() {
-  const logout = () => {
+  const logout = async () => {
+    // T-389: Clear httpOnly cookie via backend
+    try {
+      await apiClient.post('/admin/auth/logout');
+    } catch {
+      // Ignore — redirect anyway
+    }
+
+    // Clear client-side storage
     localStorage.removeItem(SA_TOKEN_KEY);
     localStorage.removeItem(SA_ADMIN_ID_KEY);
     localStorage.removeItem(SA_ADMIN_ROLE_KEY);

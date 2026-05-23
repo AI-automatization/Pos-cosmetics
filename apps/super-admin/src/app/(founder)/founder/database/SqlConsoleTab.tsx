@@ -50,7 +50,7 @@ export function SqlConsoleTab() {
           onKeyDown={handleKeyDown}
           rows={6}
           placeholder="SELECT * FROM tenants LIMIT 10;"
-          className="w-full rounded-lg border border-gray-200 bg-gray-900 px-4 py-3 font-mono text-sm text-green-400 outline-none placeholder:text-gray-600 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+          className="w-full rounded-lg border border-gray-200 bg-gray-900 px-4 py-3 font-mono text-sm text-green-400 outline-none placeholder:text-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
         <div className="mt-3 flex items-center gap-3">
           <button
@@ -60,8 +60,8 @@ export function SqlConsoleTab() {
             className={cn(
               'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition',
               executeMutation.isPending
-                ? 'cursor-not-allowed bg-violet-400'
-                : 'bg-violet-600 hover:bg-violet-700',
+                ? 'cursor-not-allowed bg-blue-400'
+                : 'bg-blue-600 hover:bg-blue-700',
             )}
           >
             <Play className="h-4 w-4" />

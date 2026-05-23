@@ -138,7 +138,7 @@ export default function ChegirmaPage() {
               <Tag className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-3xl font-black">{activeCount}</p>
+          <p className="text-xl sm:text-3xl font-black">{activeCount}</p>
           <p className="text-xs opacity-75">{t('discounts.activeSubtitle')}</p>
         </div>
 
@@ -160,7 +160,7 @@ export default function ChegirmaPage() {
               <BarChart3 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-3xl font-black">{totalUsed}</p>
+          <p className="text-xl sm:text-3xl font-black">{totalUsed}</p>
           <p className="text-xs opacity-75">{t('discounts.forAll')}</p>
         </div>
       </div>

@@ -12,14 +12,14 @@ export class RequestIdMiddleware implements NestMiddleware {
     res.setHeader('X-Request-Id', requestId);
 
     const user = (req as unknown as Record<string, unknown>).user as
-      | { tenant_id?: string; sub?: string }
+      | { tenantId?: string; userId?: string }
       | undefined;
 
     this.requestContext.run(
       {
         requestId,
-        tenantId: user?.tenant_id ?? null,
-        userId: user?.sub ?? null,
+        tenantId: user?.tenantId ?? null,
+        userId: user?.userId ?? null,
         ip: req.ip ?? req.socket.remoteAddress ?? 'unknown',
       },
       () => next(),

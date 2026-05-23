@@ -70,7 +70,7 @@ export default function FounderTenantsPage() {
         </div>
         <Link
           href="/founder/tenants/new"
-          className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+          className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
         >
           <PlusCircle className="h-4 w-4" />
           Новый магазин
@@ -88,7 +88,7 @@ export default function FounderTenantsPage() {
               className={cn(
                 'rounded-md px-3 py-1.5 text-sm font-medium transition',
                 statusFilter === f.key
-                  ? 'bg-violet-600 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'text-gray-500 hover:text-gray-700',
               )}
             >
@@ -104,7 +104,7 @@ export default function FounderTenantsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Название или slug..."
-            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           />
         </div>
       </div>
@@ -171,7 +171,7 @@ export default function FounderTenantsPage() {
                     <td className="px-4 py-3 text-center">
                       <Link
                         href={`/founder/tenants/${tenant.id}`}
-                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:border-violet-400 hover:text-violet-600"
+                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:border-blue-400 hover:text-blue-600"
                       >
                         Детали
                       </Link>

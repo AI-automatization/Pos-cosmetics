@@ -184,7 +184,7 @@ export function TableDataPanel({ selectedTable, tableInfo }: TableDataPanelProps
             <button
               type="button"
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-violet-700"
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-blue-700"
             >
               <Plus className="h-3.5 w-3.5" />
               Добавить
@@ -202,7 +202,7 @@ export function TableDataPanel({ selectedTable, tableInfo }: TableDataPanelProps
                 setPage(1);
               }}
               placeholder="Tenant ID..."
-              className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-700 outline-none placeholder:text-gray-400 focus:border-violet-400"
+              className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-700 outline-none placeholder:text-gray-400 focus:border-blue-400"
             />
           )}
           <div className="flex items-center gap-1.5">
@@ -213,7 +213,7 @@ export function TableDataPanel({ selectedTable, tableInfo }: TableDataPanelProps
                 setSortField(e.target.value);
                 setPage(1);
               }}
-              className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 outline-none focus:border-violet-400"
+              className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 outline-none focus:border-blue-400"
             >
               {columns.map((c) => (
                 <option key={c} value={c}>
@@ -274,11 +274,11 @@ export function TableDataPanel({ selectedTable, tableInfo }: TableDataPanelProps
                 {tableData?.rows.map((row, idx) => {
                   const rowId = String(row['id'] ?? idx);
                   const isSelected = selectedRows.has(rowId);
-                  const bg = isSelected ? 'bg-violet-50' : 'bg-white';
+                  const bg = isSelected ? 'bg-blue-50' : 'bg-white';
                   return (
                     <tr
                       key={rowId}
-                      className={cn('hover:bg-gray-50', isSelected && 'bg-violet-50')}
+                      className={cn('hover:bg-gray-50', isSelected && 'bg-blue-50')}
                     >
                       <td className={cn('sticky left-0 z-10 w-8 px-2 py-1.5', bg)}>
                         <input
@@ -340,7 +340,7 @@ export function TableDataPanel({ selectedTable, tableInfo }: TableDataPanelProps
                                   }
                                   handleInlineSave();
                                 }}
-                                className="w-full rounded border border-violet-400 bg-white px-1.5 py-0.5 text-xs outline-none"
+                                className="w-full rounded border border-blue-400 bg-white px-1.5 py-0.5 text-xs outline-none"
                               />
                             ) : (
                               <CellValue value={row[col]} />
@@ -354,7 +354,7 @@ export function TableDataPanel({ selectedTable, tableInfo }: TableDataPanelProps
                           <button
                             type="button"
                             onClick={() => setEditRow(row)}
-                            className="rounded p-1 text-gray-400 transition hover:bg-violet-50 hover:text-violet-600"
+                            className="rounded p-1 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
                             title="Редактировать"
                           >
                             <Pencil className="h-3.5 w-3.5" />

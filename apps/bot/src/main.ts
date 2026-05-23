@@ -1,4 +1,4 @@
-// ─── RAOS Telegram Bot — grammY ──────────────────────────────
+// ─── RAOS Telegram Bot — grammY (@raos_store_bot) ────────────
 // Ishga tushirish tartibi:
 //   1. .env fayldan config yuklash
 //   2. Prisma ulanishi tekshirish

@@ -18,8 +18,8 @@ type SortDir = 'asc' | 'desc';
 function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol; sortDir: SortDir }) {
   if (sortCol !== col) return <ChevronsUpDown className="inline ml-1 h-3 w-3 text-gray-300" />;
   return sortDir === 'asc'
-    ? <ChevronUp className="inline ml-1 h-3 w-3 text-amber-500" />
-    : <ChevronDown className="inline ml-1 h-3 w-3 text-amber-500" />;
+    ? <ChevronUp className="inline ml-1 h-3 w-3 text-blue-500" />
+    : <ChevronDown className="inline ml-1 h-3 w-3 text-blue-500" />;
 }
 
 export default function WarehouseInventoryPage() {
@@ -126,8 +126,8 @@ export default function WarehouseInventoryPage() {
     <div className="h-full overflow-y-auto p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100">
-          <Package className="h-5 w-5 text-amber-600" />
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100">
+          <Package className="h-5 w-5 text-blue-600" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('inventory.title')}</h1>
@@ -181,7 +181,7 @@ export default function WarehouseInventoryPage() {
             placeholder={t('warehouse.nameOrSkuPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+            className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
           />
         </div>
         <div className="flex gap-1">
@@ -192,7 +192,7 @@ export default function WarehouseInventoryPage() {
               className={cn(
                 'rounded-lg px-3 py-2 text-xs font-medium transition',
                 filter === f
-                  ? 'bg-amber-600 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
               )}
             >
@@ -279,7 +279,7 @@ export default function WarehouseInventoryPage() {
                           <button
                             type="button"
                             onClick={() => setEditProduct(p)}
-                            className="opacity-0 group-hover:opacity-100 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600 transition"
+                            className="opacity-0 group-hover:opacity-100 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-blue-600 transition"
                             title={t('common.edit')}
                           >
                             <Pencil className="h-3.5 w-3.5" />

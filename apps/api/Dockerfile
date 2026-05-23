@@ -1,4 +1,5 @@
 # ─── Stage 1: builder ─────────────────────────────────────────
+# cache-bust: 2026-05-17
 FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
@@ -75,5 +76,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:3000/api/v1/health/live || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-# Migration runs at startup — failure is logged but non-fatal (Railway may run migrations separately)
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && echo '[startup] Migration OK' || echo '[startup] WARNING: Migration failed — check DB'; node dist/main"]
+# Migration runs at startup — failure stops the container (prevents schema/code mismatch)
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && echo '[startup] Migration OK' && node dist/main || { echo '[startup] FATAL: Migration failed — container will NOT start'; exit 1; }"]

@@ -45,7 +45,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         <div className="text-center">
           <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300" />
           <p className="text-lg font-semibold text-gray-700">{t('warehouse.invoiceNotFound')}</p>
-          <Link href="/warehouse/invoices" className="mt-3 inline-block text-sm text-amber-600 hover:text-amber-700">
+          <Link href="/warehouse/invoices" className="mt-3 inline-block text-sm text-blue-600 hover:text-blue-700">
             {t('common.goBack')}
           </Link>
         </div>
@@ -95,7 +95,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               type="button"
               onClick={saveEdit}
               disabled={isSaving}
-              className="flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
               <Check className="h-4 w-4" />
               {t('common.save')}
@@ -118,7 +118,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   type="text"
                   value={editNumber}
                   onChange={(e) => setEditNumber(e.target.value)}
-                  className="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1 text-sm font-semibold outline-none focus:border-amber-500"
+                  className="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1 text-sm font-semibold outline-none focus:border-blue-500"
                 />
               ) : (
                 <p className="font-semibold text-gray-900">{invoice.invoiceNumber || '—'}</p>
@@ -150,8 +150,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-              <Package className="h-4 w-4 text-amber-500" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+              <Package className="h-4 w-4 text-blue-500" />
             </div>
             <div>
               <p className="text-xs text-gray-500">{t('warehouse.totalAmount')}</p>
@@ -169,7 +169,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 value={editNote}
                 onChange={(e) => setEditNote(e.target.value)}
                 placeholder={t('warehouse.additionalNote')}
-                className="ml-1 w-64 rounded-lg border border-gray-300 px-2 py-1 text-sm outline-none focus:border-amber-500"
+                className="ml-1 w-64 rounded-lg border border-gray-300 px-2 py-1 text-sm outline-none focus:border-blue-500"
               />
             ) : (
               invoice.note
@@ -184,7 +184,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-gray-400" />
             <h2 className="text-sm font-semibold text-gray-700">{t('warehouse.goods')}</h2>
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
               {invoice.items.length}
             </span>
           </div>

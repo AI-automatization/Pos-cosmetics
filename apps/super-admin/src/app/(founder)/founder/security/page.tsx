@@ -7,7 +7,6 @@ import {
   Ban,
   Search,
   Unlock,
-  Clock,
   AlertTriangle,
   UserX,
   Eye,
@@ -85,7 +84,7 @@ export default function SecurityPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
-          <Shield className="h-6 w-6 text-violet-600" />
+          <Shield className="h-6 w-6 text-blue-600" />
           Безопасность
         </h1>
         <p className="mt-1 text-sm text-gray-500">
@@ -144,7 +143,7 @@ export default function SecurityPage() {
                             setCheckIp(entry.ip);
                             handleCheckIp(entry.ip);
                           }}
-                          className="rounded px-2 py-1 text-[11px] font-medium text-violet-600 transition hover:bg-violet-50"
+                          className="rounded px-2 py-1 text-[11px] font-medium text-blue-600 transition hover:bg-blue-50"
                         >
                           <Eye className="mr-0.5 inline h-3 w-3" />
                           Статус
@@ -187,14 +186,14 @@ export default function SecurityPage() {
                 value={checkIp}
                 onChange={(e) => { setCheckIp(e.target.value); setCheckedResult(null); }}
                 placeholder="192.168.1.100"
-                className="w-48 rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono outline-none focus:border-violet-400"
+                className="w-48 rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono outline-none focus:border-blue-400"
               />
             </div>
             <button
               type="button"
               onClick={handleCheck}
               disabled={!checkIp.trim()}
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-700 disabled:opacity-50"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
             >
               <Eye className="mr-1 inline h-3.5 w-3.5" />
               Проверить

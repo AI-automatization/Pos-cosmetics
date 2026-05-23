@@ -131,6 +131,20 @@ export const inventoryApi = {
     return apiClient.get<{ items: unknown[]; totalCost: number; count: number }>('/inventory/testers', { params }).then((r) => r.data);
   },
 
+  // ─── Expiry Tracking (T-430) ───
+
+  getExpiringProducts(days = 30) {
+    return apiClient
+      .get<ExpiryProduct[]>('/inventory/expiring', { params: { days } })
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
+  getExpiredProducts() {
+    return apiClient
+      .get<ExpiredProduct[]>('/inventory/expired')
+      .then((r) => (Array.isArray(r.data) ? r.data : []));
+  },
+
   // ─── Invoices (Nakладные) ───
 
   listInvoices(params: { page?: number; limit?: number; supplierId?: string; from?: string; to?: string } = {}) {
@@ -178,4 +192,25 @@ export interface InvoiceItem {
   costPrice: number;
   batchNumber: string | null;
   expiryDate: string | null;
+}
+
+// ─── Expiry types (T-430) ───────────────────────────────────────────────────
+
+export interface ExpiryProduct {
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  warehouseName: string;
+  batchNumber: string | null;
+  expiryDate: string;
+  qty: number;
+  daysLeft: number;
+}
+
+export interface ExpiredProduct {
+  productId: string;
+  productName: string;
+  batchNumber: string | null;
+  expiryDate: string;
+  qty: number;
 }
