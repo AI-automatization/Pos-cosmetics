@@ -40,20 +40,11 @@ export const metadata: Metadata = {
     siteName: 'RAOS',
     locale: 'uz_UZ',
     alternateLocale: ['ru_RU', 'en_US'],
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'RAOS — Smart POS tizimi',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: "RAOS — POS tizimi O'zbekiston do'konlari uchun",
     description: "Kassa dasturi: 30 kun bepul sinov. Offline ishlaydi. Soliq.uz integratsiya. Karta kerak emas.",
-    images: ['/og-image.png'],
   },
   robots: {
     index: true,
@@ -66,8 +57,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: '/icon',
+    apple: '/apple-icon',
   },
   // verification: { google: 'REAL_TOKEN_HERE' }, // TODO: получить реальный токен из Google Search Console
 }
