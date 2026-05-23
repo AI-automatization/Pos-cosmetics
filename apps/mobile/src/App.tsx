@@ -18,6 +18,7 @@ import { setupSslPinning, registerSslPinningErrorListener } from './lib/sslPinni
 import CompromisedDeviceScreen from './screens/Auth/CompromisedDeviceScreen';
 import ForceUpdateScreen from './screens/Auth/ForceUpdateScreen';
 import OfflineBanner from './components/common/OfflineBanner';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,7 +82,9 @@ export default function App() {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <AppContent />
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
