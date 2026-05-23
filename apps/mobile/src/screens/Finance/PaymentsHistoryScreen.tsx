@@ -3,11 +3,9 @@ import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,209 +14,20 @@ import { salesApi } from '../../api/sales.api';
 import SearchBar from '../../components/common/SearchBar';
 import ErrorView from '@/components/common/ErrorView';
 import OrderDetailSheet from './OrderDetailSheet';
-import type { OrderStatus } from '@raos/types';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
-
-// ─── Colors ────────────────────────────────────────────
-const C = {
-  bg:      '#F9FAFB',
-  white:   '#FFFFFF',
-  text:    '#111827',
-  muted:   '#9CA3AF',
-  border:  '#E5E7EB',
-  primary: '#2563EB',
-  green:   '#16A34A',
-  red:     '#DC2626',
-  orange:  '#D97706',
-};
-
-// ─── Period config ─────────────────────────────────────
-type PeriodKey = 'today' | '7d' | '30d' | '90d';
-
-const PERIODS: { key: PeriodKey; label: string }[] = [
-  { key: 'today', label: 'Bugun' },
-  { key: '7d',    label: '7 kun' },
-  { key: '30d',   label: '30 kun' },
-  { key: '90d',   label: '90 kun' },
-];
-
-function getPeriodDates(key: PeriodKey): { from: string; to: string } {
-  const now = new Date();
-  const to = now.toISOString().split('T')[0]!;
-  const from = new Date(now);
-  switch (key) {
-    case 'today': from.setHours(0, 0, 0, 0); break;
-    case '7d':    from.setDate(now.getDate() - 6); break;
-    case '30d':   from.setDate(now.getDate() - 29); break;
-    case '90d':   from.setDate(now.getDate() - 89); break;
-  }
-  return { from: from.toISOString().split('T')[0]!, to };
-}
-
-// ─── Method filter ─────────────────────────────────────
-type MethodKey = 'Barchasi' | 'Naqd' | 'Karta' | 'Nasiya' | 'Click' | 'Payme';
-
-const METHODS: { key: MethodKey; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [
-  { key: 'Barchasi', icon: 'apps-outline' },
-  { key: 'Naqd',    icon: 'cash-outline' },
-  { key: 'Karta',   icon: 'card-outline' },
-  { key: 'Nasiya',  icon: 'time-outline' },
-  { key: 'Click',   icon: 'phone-portrait-outline' },
-  { key: 'Payme',   icon: 'logo-bitcoin' },
-];
-
-// ─── Status config ─────────────────────────────────────
-const STATUS_STYLE: Record<OrderStatus, { label: string; color: string; bg: string }> = {
-  COMPLETED: { label: 'Bajarildi', color: C.green,   bg: '#F0FDF4' },
-  RETURNED:  { label: 'Qaytarildi', color: C.orange, bg: '#FFFBEB' },
-  VOIDED:    { label: 'Bekor',      color: C.red,    bg: '#FEF2F2' },
-};
-
-// ─── Helpers ───────────────────────────────────────────
-
-/** Space-separated thousands formatter (Hermes-safe, no toLocaleString) */
-function fmt(n: number): string {
-  const abs = Math.abs(n);
-  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  return (n < 0 ? '-' : '') + formatted + ' UZS';
-}
-
-/**
- * Compact number formatter for stat cards (small space).
- * < 1 000        → "950"
- * < 1 000 000    → "42 500" (space-separated thousands)
- * < 1 000 000 000 → "42.5 mln"
- * >= 1 000 000 000 → "1.2 mlrd"
- */
-function fmtCompact(n: number): string {
-  const abs = Math.abs(n);
-  const sign = n < 0 ? '-' : '';
-
-  if (abs >= 1_000_000_000) {
-    const val = abs / 1_000_000_000;
-    const rounded = Math.round(val * 10) / 10;
-    return sign + rounded.toString().replace('.', ',') + ' mlrd';
-  }
-  if (abs >= 1_000_000) {
-    const val = abs / 1_000_000;
-    const rounded = Math.round(val * 10) / 10;
-    return sign + rounded.toString().replace('.', ',') + ' mln';
-  }
-  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  return sign + formatted;
-}
-
-function formatDate(d: Date | string): string {
-  const date = typeof d === 'string' ? new Date(d) : d;
-  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' });
-}
-
-function formatTime(d: Date | string): string {
-  const date = typeof d === 'string' ? new Date(d) : d;
-  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-}
-
-const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
-
-// ─── PaymentCard ───────────────────────────────────────
-function PaymentCard({
-  orderNumber,
-  status,
-  total,
-  createdAt,
-  customerId,
-}: {
-  orderNumber: number;
-  status: OrderStatus;
-  total: number;
-  createdAt: Date | string;
-  customerId: string | null;
-}) {
-  const s = STATUS_STYLE[status];
-  const isReturn = status === 'RETURNED';
-
-  return (
-    <View style={styles.card}>
-      {/* Left: icon */}
-      <View style={[styles.cardIcon, { backgroundColor: s.bg }]}>
-        <Ionicons
-          name={status === 'COMPLETED' ? 'checkmark-circle-outline' : status === 'RETURNED' ? 'return-down-back-outline' : 'close-circle-outline'}
-          size={20}
-          color={s.color}
-        />
-      </View>
-
-      {/* Middle: info */}
-      <View style={styles.cardBody}>
-        <View style={styles.cardTop}>
-          <Text style={styles.cardOrderNum}>
-            #{String(orderNumber).padStart(4, '0')}
-          </Text>
-          <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
-            <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
-          </View>
-        </View>
-        <View style={styles.cardMeta}>
-          <Ionicons name="time-outline" size={12} color={C.muted} />
-          <Text style={styles.cardMetaText}>{formatDate(createdAt)} {formatTime(createdAt)}</Text>
-        </View>
-        {customerId && (
-          <View style={styles.cardMeta}>
-            <Ionicons name="person-outline" size={12} color={C.muted} />
-            <Text style={styles.cardMetaText} numberOfLines={1}>
-              Mijoz: {customerId.slice(0, 8)}…
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Right: amount */}
-      <Text style={[styles.cardAmount, { color: isReturn ? C.red : C.text }]}>
-        {isReturn ? '−' : ''}{fmt(total)}
-      </Text>
-    </View>
-  );
-}
-
-// ─── OrderWithMethod type ──────────────────────────────
-type OrderWithMethod = { paymentMethod?: string | null } & {
-  id: string;
-  orderNumber: number;
-  status: OrderStatus;
-  total: number;
-  createdAt: Date | string;
-  customerId: string | null;
-};
-
-// ─── StatCard ──────────────────────────────────────────
-function StatCard({
-  label,
-  sum,
-  count,
-  color,
-  bg,
-}: {
-  readonly label: string;
-  readonly sum: number;
-  readonly count: number;
-  readonly color: string;
-  readonly bg: string;
-}) {
-  return (
-    <View style={[styles.statCard, { backgroundColor: bg }]}>
-      <Text style={[styles.statLabel, { color }]}>{label}</Text>
-      <Text
-        style={[styles.statSum, { color }]}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
-      >
-        {fmtCompact(sum)} so'm
-      </Text>
-      <Text style={styles.statCount}>{count} ta</Text>
-    </View>
-  );
-}
+import {
+  C,
+  PERIODS,
+  METHODS,
+  getPeriodDates,
+  fmt,
+  type PeriodKey,
+  type MethodKey,
+  type OrderWithMethod,
+} from './paymentsHistory.helpers';
+import { PaymentCard } from './PaymentCard';
+import { PaymentsStatCard } from './PaymentsStatCard';
+import { styles } from './PaymentsHistoryScreen.styles';
 
 // ─── PaymentsHistoryScreen ─────────────────────────────
 export default function PaymentsHistoryScreen() {
@@ -255,7 +64,7 @@ export default function PaymentsHistoryScreen() {
       list = list.filter((o) => String(o.orderNumber).includes(q));
     }
 
-    // method filter (client-side — paymentMethod mavjud bo'lsa ishlaydi)
+    // method filter (client-side -- paymentMethod mavjud bo'lsa ishlaydi)
     if (method !== 'Barchasi') {
       const methodMap: Record<string, string[]> = {
         Naqd:  ['NAQD', 'CASH'],
@@ -273,7 +82,7 @@ export default function PaymentsHistoryScreen() {
     return list;
   }, [orders, search, method, from, to]);
 
-  // Stat cards — payment method bo'yicha
+  // Stat cards -- payment method bo'yicha
   const statCards = useMemo(() => {
     const cash = filtered.filter((o) =>
       ['NAQD', 'CASH'].includes((o as OrderWithMethod).paymentMethod ?? ''),
@@ -428,7 +237,7 @@ export default function PaymentsHistoryScreen() {
               {/* Stat cards */}
               <View style={styles.statRow}>
                 {statCards.map((c) => (
-                  <StatCard key={c.label} {...c} />
+                  <PaymentsStatCard key={c.label} {...c} />
                 ))}
               </View>
 
@@ -472,120 +281,3 @@ export default function PaymentsHistoryScreen() {
     </SafeAreaView>
   );
 }
-
-// ─── Styles ────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
-  headerSub: { fontSize: 12, color: C.muted, marginTop: 2 },
-  headerIcon: {
-    width: 40, height: 40, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center',
-  },
-
-  searchWrap: {
-    paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-
-  pillsScroll: { flexGrow: 0, backgroundColor: C.white },
-  pillsRow: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
-  pill: {
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: 20, borderWidth: 1.5, borderColor: C.border,
-    backgroundColor: C.white,
-  },
-  pillActive: { backgroundColor: C.primary, borderColor: C.primary },
-  pillText: { fontSize: 13, fontWeight: '600', color: C.muted },
-  pillTextActive: { color: C.white },
-
-  methodPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: 20, borderWidth: 1.5, borderColor: C.border,
-    backgroundColor: C.white,
-  },
-  methodPillActive: { backgroundColor: '#111827', borderColor: '#111827' },
-  methodPillText: { fontSize: 12, fontWeight: '600', color: C.muted },
-  methodPillTextActive: { color: C.white },
-
-  summaryStrip: {
-    flexDirection: 'row',
-    backgroundColor: C.white,
-    borderRadius: 12,
-    borderWidth: 1, borderColor: C.border,
-    paddingVertical: 10,
-    marginBottom: 12,
-  },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: 11, color: C.muted, fontWeight: '600' },
-  summaryValue: { fontSize: 14, fontWeight: '800', color: C.text, marginTop: 2 },
-  summaryDivider: { width: 1, backgroundColor: C.border, marginVertical: 2 },
-
-  flatList: { flex: 1 },
-  loader: { marginTop: 40 },
-  listContent: { paddingHorizontal: 16, paddingBottom: 40 },
-  separator: { height: 10 },
-
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: C.white, borderRadius: 14,
-    borderWidth: 1, borderColor: C.border,
-    padding: 14, gap: 12,
-  },
-  cardIcon: {
-    width: 44, height: 44, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  cardBody: { flex: 1, gap: 4 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardOrderNum: {
-    fontSize: 14, fontWeight: '800', color: C.primary,
-    fontFamily: MONO,
-  },
-  statusBadge: {
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
-  },
-  statusText: { fontSize: 11, fontWeight: '700' },
-  cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardMetaText: { fontSize: 12, color: C.muted },
-  cardAmount: { fontSize: 14, fontWeight: '800' },
-
-  empty: { alignItems: 'center', paddingVertical: 60, gap: 8 },
-  emptyTitle: { fontSize: 15, color: C.muted, fontWeight: '600' },
-  emptySub: { fontSize: 12, color: C.muted },
-
-  statRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
-    marginTop: 12,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: 12,
-    padding: 12,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  statSum: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  statCount: {
-    fontSize: 11,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-
-  headerIconBlue: { backgroundColor: '#EFF6FF' },
-});

@@ -1,71 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { DebtRecord, DebtStatus } from '../../api/nasiya.api';
+import type { DebtRecord } from '../../api/nasiya.api';
 import { formatUZS } from '../../utils/currency';
 import ReminderActionSheet from './ReminderActionSheet';
+import { styles } from './DebtCard.styles';
+import {
+  STATUS_COLORS,
+  PROGRESS_COLOR,
+  statusLabel,
+  overdueDays,
+  formatDueDate,
+  ageBucket,
+} from './DebtCard.helpers';
 
 interface Props {
   debt: DebtRecord;
   onPay: (debt: DebtRecord) => void;
   onPress?: (debt: DebtRecord) => void;
-}
-
-const STATUS_COLORS: Record<DebtStatus, { bg: string; text: string }> = {
-  ACTIVE:    { bg: '#EFF6FF', text: '#2563EB' },
-  PARTIAL:   { bg: '#FFFBEB', text: '#D97706' },
-  PAID:      { bg: '#F0FDF4', text: '#16A34A' },
-  OVERDUE:   { bg: '#FEF2F2', text: '#DC2626' },
-  CANCELLED: { bg: '#F3F4F6', text: '#6B7280' },
-};
-
-const PROGRESS_COLOR: Record<DebtStatus, string> = {
-  ACTIVE:    '#2563EB',
-  PARTIAL:   '#D97706',
-  PAID:      '#16A34A',
-  OVERDUE:   '#DC2626',
-  CANCELLED: '#9CA3AF',
-};
-
-const STATUS_LABEL: Record<DebtStatus, string> = {
-  ACTIVE:    'Faol',
-  PARTIAL:   'Qisman',
-  PAID:      "To'langan",
-  OVERDUE:   "Muddati o'tgan",
-  CANCELLED: 'Bekor qilindi',
-};
-
-function statusLabel(status: DebtStatus): string {
-  return STATUS_LABEL[status];
-}
-
-function overdueDays(dueDate: string | null): number {
-  if (!dueDate) return 0;
-  const diff = Date.now() - new Date(dueDate).getTime();
-  return diff > 0 ? Math.floor(diff / 86_400_000) : 0;
-}
-
-function formatDueDate(dueDate: string | null): string {
-  if (!dueDate) return 'Muddat belgilanmagan';
-  return new Date(dueDate).toLocaleDateString('uz-UZ', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-  });
-}
-
-interface AgeBucket {
-  label: string;
-  bg: string;
-  text: string;
-}
-
-function ageBucket(dueDate: string | null): AgeBucket {
-  if (!dueDate) return { label: 'Joriy', bg: '#F0FDF4', text: '#16A34A' };
-  const days = Math.floor((Date.now() - new Date(dueDate).getTime()) / 86_400_000);
-  if (days <= 0) return { label: 'Joriy', bg: '#F0FDF4', text: '#16A34A' };
-  if (days <= 30) return { label: `${days} kun`, bg: '#FFFBEB', text: '#D97706' };
-  if (days <= 60) return { label: `${days} kun`, bg: '#FEF3C7', text: '#B45309' };
-  if (days <= 90) return { label: `${days} kun`, bg: '#FFEDD5', text: '#EA580C' };
-  return { label: `${days} kun`, bg: '#FEF2F2', text: '#DC2626' };
 }
 
 export default function DebtCard({ debt, onPay, onPress }: Props) {
@@ -113,7 +65,7 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
         </View>
       </View>
 
-      {/* Amounts — 3-ustunli grid */}
+      {/* Amounts -- 3-ustunli grid */}
       <View style={styles.amounts}>
         <View style={styles.amountItem}>
           <Text style={styles.amountLabel}>Jami</Text>
@@ -158,7 +110,7 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
           <Text style={styles.historyToggleText}>
             To'lovlar tarixi ({debt.payments.length} ta)
           </Text>
-          <Text style={styles.historyChevron}>{paymentsExpanded ? '▲' : '▼'}</Text>
+          <Text style={styles.historyChevron}>{paymentsExpanded ? '\u25B2' : '\u25BC'}</Text>
         </TouchableOpacity>
       )}
 
@@ -180,7 +132,7 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
         </View>
       )}
 
-      {/* Footer — due date + age badge + buttons */}
+      {/* Footer -- due date + age badge + buttons */}
       <View style={styles.footer}>
         <View style={styles.footerLeft}>
           <Text style={[styles.dueDate, isOverdue && styles.dueDateOverdue]}>
@@ -224,204 +176,3 @@ export default function DebtCard({ debt, onPay, onPress }: Props) {
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  customerInfo: {
-    flex: 1,
-    marginRight: 8,
-  },
-  customerName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
-  phone: {
-    fontSize: 13,
-    color: '#2563EB',
-    textDecorationLine: 'underline',
-  },
-  badge: {
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  amounts: {
-    flexDirection: 'row',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-  },
-  amountItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  amountLabel: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    marginBottom: 3,
-  },
-  amountValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#374151',
-  },
-  progressWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 6,
-    borderRadius: 3,
-  },
-  progressPct: {
-    fontSize: 11,
-    fontWeight: '600',
-    minWidth: 80,
-    textAlign: 'right',
-  },
-  historyToggle: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginBottom: 2,
-  },
-  historyToggleText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  historyChevron: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
-  historyList: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginBottom: 10,
-    gap: 6,
-  },
-  historyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  historyDate: {
-    fontSize: 11,
-    color: '#6B7280',
-    flex: 1,
-  },
-  historyMethod: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#374151',
-    marginHorizontal: 8,
-  },
-  historyAmount: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#16A34A',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginTop: 4,
-  },
-  footerLeft: {
-    flex: 1,
-    marginRight: 8,
-    gap: 6,
-  },
-  dueDate: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  dueDateOverdue: {
-    color: '#DC2626',
-    fontWeight: '600',
-  },
-  ageBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-  ageBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  btnRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  reminderBtn: {
-    borderWidth: 1,
-    borderColor: '#D97706',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  reminderBtnText: {
-    color: '#D97706',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  payBtn: {
-    backgroundColor: '#2563EB',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-  },
-  payBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-
-  amountValueGreen: { color: '#16A34A' },
-  amountValueRed: { color: '#DC2626', fontWeight: '700' },
-});

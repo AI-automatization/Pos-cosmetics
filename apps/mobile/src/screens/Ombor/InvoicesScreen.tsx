@@ -7,30 +7,20 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { inventoryApi } from '../../api/inventory.api';
-import type { InvoiceListItem } from '../../api/inventory.api';
 import InvoiceDetailSheet from './InvoiceDetailSheet';
+import InvoiceCard from './InvoiceCard';
 import { C } from './OmborColors';
+import { styles } from './InvoicesScreen.styles';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
-
 type InvoiceStatus = 'PENDING' | 'RECEIVED' | 'CANCELLED';
-
-const STATUS_CFG: Record<InvoiceStatus, { bg: string; color: string; label: string }> = {
-  PENDING:   { bg: '#FEF3C7', color: '#D97706', label: 'Kutilmoqda' },
-  RECEIVED:  { bg: '#DCFCE7', color: '#16A34A', label: 'Qabul qilindi' },
-  CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Bekor' },
-};
-
 type StatusFilter = 'ALL' | InvoiceStatus;
 
 const FILTER_TABS: { key: StatusFilter; label: string }[] = [
@@ -39,72 +29,6 @@ const FILTER_TABS: { key: StatusFilter; label: string }[] = [
   { key: 'RECEIVED',  label: 'Qabul qilingan' },
   { key: 'CANCELLED', label: 'Bekor qilingan' },
 ];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmt(n: number): string {
-  return n.toLocaleString('uz-UZ') + " so'm";
-}
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString('uz-UZ', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
-
-// ─── InvoiceCard ──────────────────────────────────────────────────────────────
-
-interface InvoiceCardProps {
-  readonly item: InvoiceListItem;
-  readonly onPress: (id: string) => void;
-}
-
-const InvoiceCard = React.memo(function InvoiceCard({
-  item,
-  onPress,
-}: InvoiceCardProps) {
-  const statusKey =
-    item.status in STATUS_CFG
-      ? (item.status as InvoiceStatus)
-      : 'PENDING';
-  const cfg = STATUS_CFG[statusKey];
-
-  return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onPress(item.id)}
-      activeOpacity={0.8}
-    >
-      {/* Row 1: invoice number + status badge */}
-      <View style={styles.cardRowBetween}>
-        <Text style={[styles.invoiceNumber, { fontFamily: MONO }]}>
-          #{item.invoiceNumber ?? 'N/A'}
-        </Text>
-        <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
-          <Text style={[styles.statusText, { color: cfg.color }]}>
-            {cfg.label}
-          </Text>
-        </View>
-      </View>
-
-      {/* Row 2: supplier + items count */}
-      <View style={styles.cardRowGap}>
-        <Text style={styles.cardMeta} numberOfLines={1}>
-          {item.supplier?.name ?? "Yetkazib beruvchi yo'q"}
-        </Text>
-        <Text style={styles.cardMeta}>{item.itemsCount} mahsulot</Text>
-      </View>
-
-      {/* Row 3: date + total */}
-      <View style={styles.cardRowBetween}>
-        <Text style={styles.cardDate}>{formatDate(item.createdAt)}</Text>
-        <Text style={styles.cardTotal}>{fmt(item.totalCost)}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-});
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -263,208 +187,3 @@ export default function InvoicesScreen() {
     </SafeAreaView>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: C.bg,
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: C.white,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: C.text,
-  },
-  headerCount: {
-    fontSize: 14,
-    color: C.muted,
-  },
-
-  // Search
-  searchRow: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-    backgroundColor: C.white,
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: C.bg,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: C.border,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: C.text,
-    padding: 0,
-  },
-
-  // Filter tabs
-  filterRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-    backgroundColor: C.white,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  filterTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-  },
-  filterTabActive: {
-    backgroundColor: C.primary,
-  },
-  filterTabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: C.muted,
-  },
-  filterTabTextActive: {
-    color: C.white,
-  },
-  filterBadge: {
-    minWidth: 20,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-  },
-  filterBadgeActive: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-  },
-  filterBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: C.secondary,
-  },
-  filterBadgeTextActive: {
-    color: C.white,
-  },
-
-  resultCount: {
-    fontSize: 12,
-    color: C.muted,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-
-  // List
-  listContent: {
-    padding: 16,
-  },
-
-  // Card
-  card: {
-    backgroundColor: C.white,
-    borderRadius: 12,
-    marginBottom: 10,
-    padding: 16,
-    gap: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
-  },
-  cardRowBetween: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardRowGap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  invoiceNumber: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: C.primary,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  cardMeta: {
-    fontSize: 13,
-    color: C.muted,
-  },
-  cardDate: {
-    fontSize: 12,
-    color: C.muted,
-  },
-  cardTotal: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: C.primary,
-  },
-
-  // States
-  centerFill: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    paddingTop: 80,
-  },
-  errorText: {
-    fontSize: 15,
-    color: C.muted,
-  },
-  retryBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: C.primary,
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: C.white,
-  },
-  emptyState: {
-    paddingTop: 60,
-    alignItems: 'center',
-    gap: 12,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: C.muted,
-  },
-});

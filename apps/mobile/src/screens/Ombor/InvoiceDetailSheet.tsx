@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Modal,
-  StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
   ScrollView,
@@ -13,97 +12,20 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inventoryApi } from '../../api/inventory.api';
-import type { InvoiceDetail, InvoiceDetailItem } from '../../api/inventory.api';
+import type { InvoiceDetail } from '../../api/inventory.api';
 import { C } from './OmborColors';
+import { styles } from './InvoiceDetailSheet.styles';
+import { StatusBadge, InfoRow, ItemRow, fmt, formatDateTime } from './InvoiceDetailParts';
 
 // ─── Constants ───────────────────────────────────────────
 const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
 
 type InvoiceStatus = 'PENDING' | 'RECEIVED' | 'CANCELLED';
 
-const STATUS_CFG: Record<InvoiceStatus, { bg: string; color: string; label: string }> = {
-  PENDING:   { bg: '#FEF3C7', color: '#D97706', label: 'Kutilmoqda' },
-  RECEIVED:  { bg: '#DCFCE7', color: '#16A34A', label: 'Qabul qilindi' },
-  CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Bekor' },
-};
-
-// ─── Helpers ─────────────────────────────────────────────
-function fmt(n: number): string {
-  return n.toLocaleString('uz-UZ') + " so'm";
-}
-
-function formatDateTime(d: string): string {
-  const date = new Date(d);
-  return (
-    date.toLocaleDateString('uz-UZ', {
-      day:   '2-digit',
-      month: '2-digit',
-      year:  'numeric',
-    }) +
-    ' · ' +
-    date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
-  );
-}
-
 // ─── Props ───────────────────────────────────────────────
 interface InvoiceDetailSheetProps {
   readonly invoiceId: string | null;
   readonly onClose: () => void;
-}
-
-// ─── StatusBadge ─────────────────────────────────────────
-interface StatusBadgeProps {
-  readonly status: string;
-}
-
-function StatusBadge({ status }: StatusBadgeProps) {
-  const cfg = STATUS_CFG[status as InvoiceStatus] ?? STATUS_CFG.CANCELLED;
-  return (
-    <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
-      <Text style={[styles.statusText, { color: cfg.color }]}>{cfg.label}</Text>
-    </View>
-  );
-}
-
-// ─── InfoRow ─────────────────────────────────────────────
-interface InfoRowProps {
-  readonly label: string;
-  readonly value: string;
-}
-
-function InfoRow({ label, value }: InfoRowProps) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue} numberOfLines={3}>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-// ─── ItemRow ─────────────────────────────────────────────
-interface ItemRowProps {
-  readonly item: InvoiceDetailItem;
-}
-
-function ItemRow({ item }: ItemRowProps) {
-  return (
-    <View style={styles.itemRow}>
-      <View style={styles.itemLeft}>
-        <Text style={styles.itemName} numberOfLines={2}>
-          {item.productName}
-        </Text>
-        <Text style={styles.itemMeta}>
-          {item.quantity} dona × {fmt(item.purchasePrice)}
-        </Text>
-        {item.batchNumber !== null && item.batchNumber !== undefined && (
-          <Text style={styles.itemBatch}>Batch: {item.batchNumber}</Text>
-        )}
-      </View>
-      <Text style={styles.itemTotal}>{fmt(item.totalCost)}</Text>
-    </View>
-  );
 }
 
 // ─── InvoiceDetailSheet ──────────────────────────────────
@@ -187,7 +109,7 @@ export default function InvoiceDetailSheet({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Meta row: invoice number · status badge · date */}
+            {/* Meta row: invoice number, status badge, date */}
             <View style={styles.metaRow}>
               <Text style={[styles.invoiceNumber, { fontFamily: MONO }]}>
                 #{data.invoiceNumber ?? 'N/A'}
@@ -204,14 +126,14 @@ export default function InvoiceDetailSheet({
             <View style={styles.infoBlock}>
               <InfoRow
                 label="Yetkazib beruvchi"
-                value={data.supplier?.name ?? '—'}
+                value={data.supplier?.name ?? '\u2014'}
               />
               <InfoRow
                 label="Yaratdi"
                 value={
                   data.createdBy
                     ? `${data.createdBy.firstName} ${data.createdBy.lastName}`.trim()
-                    : '—'
+                    : '\u2014'
                 }
               />
               {data.note !== null && data.note !== undefined && data.note !== '' && (
@@ -281,237 +203,3 @@ export default function InvoiceDetailSheet({
     </Modal>
   );
 }
-
-// ─── Styles ──────────────────────────────────────────────
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-
-  sheet: {
-    backgroundColor: C.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '85%',
-    paddingBottom: 36,
-    elevation: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-  },
-
-  dragHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: C.border,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-  },
-
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  sheetTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: C.text,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: C.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  loaderWrap: {
-    paddingVertical: 48,
-    alignItems: 'center',
-  },
-
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 16,
-  },
-
-  // ─── Meta row ──────────────────────────────────
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingVertical: 14,
-  },
-  invoiceNumber: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: C.primary,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  invoiceDate: {
-    fontSize: 12,
-    color: C.muted,
-    marginLeft: 'auto',
-  },
-
-  // ─── Divider ───────────────────────────────────
-  divider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginVertical: 4,
-  },
-  dividerMt: {
-    marginTop: 12,
-  },
-
-  // ─── Info block ────────────────────────────────
-  infoBlock: {
-    backgroundColor: C.bg,
-    borderRadius: 10,
-    padding: 12,
-    gap: 8,
-    marginTop: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: C.muted,
-    flexShrink: 0,
-  },
-  infoValue: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: C.text,
-    flex: 1,
-    textAlign: 'right',
-  },
-
-  // ─── Section label ─────────────────────────────
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: C.muted,
-    letterSpacing: 0.8,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-
-  // ─── Item rows ─────────────────────────────────
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    gap: 12,
-  },
-  itemLeft: {
-    flex: 1,
-    gap: 2,
-  },
-  itemName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: C.text,
-  },
-  itemMeta: {
-    fontSize: 12,
-    color: C.muted,
-  },
-  itemBatch: {
-    fontSize: 11,
-    color: C.muted,
-  },
-  itemTotal: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: C.text,
-  },
-
-  emptyItems: {
-    fontSize: 13,
-    color: C.muted,
-    paddingVertical: 12,
-    textAlign: 'center',
-  },
-
-  // ─── Total row ─────────────────────────────────
-  totalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-  totalLabel: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: C.text,
-  },
-  totalValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: C.text,
-  },
-
-  // ─── Action buttons ────────────────────────────
-  actionRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  approveBtn: {
-    flex: 2,
-    backgroundColor: C.green,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  rejectBtn: {
-    flex: 1,
-    backgroundColor: C.red,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  approveBtnDisabled: {
-    opacity: 0.6,
-  },
-  approveBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: C.white,
-  },
-  rejectBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: C.white,
-  },
-});
