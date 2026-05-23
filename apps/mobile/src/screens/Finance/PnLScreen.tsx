@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
@@ -13,19 +12,8 @@ import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../../api/reports.api';
 import ErrorView from '@/components/common/ErrorView';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
-
-// ─── Colors ────────────────────────────────────────────
-const C = {
-  bg:      '#F9FAFB',
-  white:   '#FFFFFF',
-  text:    '#111827',
-  muted:   '#9CA3AF',
-  border:  '#E5E7EB',
-  primary: '#2563EB',
-  green:   '#16A34A',
-  red:     '#DC2626',
-  orange:  '#D97706',
-};
+import { KpiCard, TableRow, SegmentBar } from './PnLComponents';
+import { styles, C } from './PnLScreen.styles';
 
 // ─── Period config ─────────────────────────────────────
 type PeriodKey = 'today' | '7d' | '30d' | '90d' | '1y';
@@ -64,90 +52,6 @@ function fmtShort(n: number): string {
   if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + ' mln';
   if (n >= 1_000)         return (n / 1_000).toFixed(0) + ' ming';
   return n.toString();
-}
-
-// ─── KpiCard ───────────────────────────────────────────
-function KpiCard({
-  label,
-  value,
-  sub,
-  color,
-  iconName,
-  iconBg,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  color: string;
-  iconName: React.ComponentProps<typeof Ionicons>['name'];
-  iconBg: string;
-}) {
-  return (
-    <View style={styles.kpiCard}>
-      <View style={[styles.kpiIcon, { backgroundColor: iconBg }]}>
-        <Ionicons name={iconName} size={18} color={color} />
-      </View>
-      <Text style={styles.kpiLabel}>{label}</Text>
-      <Text style={[styles.kpiValue, { color }]}>{value}</Text>
-      {sub ? <Text style={styles.kpiSub}>{sub}</Text> : null}
-    </View>
-  );
-}
-
-// ─── TableRow ──────────────────────────────────────────
-function TableRow({
-  label,
-  value,
-  color,
-  bold,
-  indent,
-  divider,
-}: {
-  label: string;
-  value: string;
-  color?: string;
-  bold?: boolean;
-  indent?: boolean;
-  divider?: boolean;
-}) {
-  return (
-    <>
-      {divider && <View style={styles.tableDivider} />}
-      <View style={[styles.tableRow, indent && styles.tableRowIndent]}>
-        <Text style={[styles.tableLabel, bold && styles.tableLabelBold, indent && styles.tableLabelIndent]}>
-          {label}
-        </Text>
-        <Text style={[styles.tableValue, bold && styles.tableValueBold, color ? { color } : null]}>
-          {value}
-        </Text>
-      </View>
-    </>
-  );
-}
-
-// ─── SegmentBar ────────────────────────────────────────
-function SegmentBar({ segments }: { segments: { value: number; color: string }[] }) {
-  const total = segments.reduce((s, x) => s + x.value, 0);
-  if (total <= 0) return null;
-  return (
-    <View style={styles.segBar}>
-      {segments.map((seg, i) => {
-        const pct = (seg.value / total) * 100;
-        if (pct <= 0) return null;
-        return (
-          <View
-            key={i}
-            style={[
-              styles.segSlice,
-              { flex: pct, backgroundColor: seg.color },
-              i === 0 && styles.segFirst,
-              i === segments.length - 1 && styles.segLast,
-            ]}
-          />
-        );
-      })}
-    </View>
-  );
 }
 
 // ─── PnLScreen ─────────────────────────────────────────
@@ -194,7 +98,7 @@ export default function PnLScreen({ onClose }: Props) {
           </TouchableOpacity>
         ) : <View style={styles.headerBtn} />}
         <Text style={styles.headerTitle}>Foyda va Zarar</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.spacer} />
       </View>
 
       <ScrollView
@@ -234,7 +138,7 @@ export default function PnLScreen({ onClose }: Props) {
           </View>
         ) : (
           <>
-            {/* KPI cards 2×2 */}
+            {/* KPI cards 2x2 */}
             <Text style={styles.sectionLabel}>ASOSIY KO'RSATKICHLAR</Text>
             <View style={styles.kpiGrid}>
               <KpiCard
@@ -278,8 +182,8 @@ export default function PnLScreen({ onClose }: Props) {
                 <Text style={styles.tableSectionTitle}>DAROMAD</Text>
               </View>
               <TableRow label="Yalpi tushum"      value={fmt(grossRevenue)} />
-              <TableRow label="− Chegirmalar"      value={`−${fmt(discount)}`}  indent color={C.orange} />
-              <TableRow label="− Qaytarishlar"     value={`−${fmt(returnsAmt)}`} indent color={C.red} />
+              <TableRow label="- Chegirmalar"      value={`-${fmt(discount)}`}  indent color={C.orange} />
+              <TableRow label="- Qaytarishlar"     value={`-${fmt(returnsAmt)}`} indent color={C.red} />
               <TableRow
                 label="Sof tushum"
                 value={fmt(netRevenue)}
@@ -288,7 +192,7 @@ export default function PnLScreen({ onClose }: Props) {
                 divider
               />
 
-              <View style={[styles.tableSectionHeader, { marginTop: 16 }]}>
+              <View style={[styles.tableSectionHeader, styles.tableSectionHeaderSpaced]}>
                 <Ionicons name="remove-circle-outline" size={14} color={C.orange} />
                 <Text style={styles.tableSectionTitle}>XARAJATLAR</Text>
               </View>
@@ -305,7 +209,7 @@ export default function PnLScreen({ onClose }: Props) {
               <View style={styles.netRow}>
                 <Text style={styles.netLabel}>SOF DAROMAD</Text>
                 <Text style={[styles.netValue, { color: grossProfit >= 0 ? C.green : C.red }]}>
-                  {grossProfit >= 0 ? '' : '−'}{fmt(Math.abs(grossProfit))}
+                  {grossProfit >= 0 ? '' : '-'}{fmt(Math.abs(grossProfit))}
                 </Text>
               </View>
             </View>
@@ -342,124 +246,3 @@ export default function PnLScreen({ onClose }: Props) {
     </SafeAreaView>
   );
 }
-
-// ─── Styles ────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 12,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
-    gap: 10,
-  },
-  headerBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
-  },
-  headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: C.text },
-
-  content: { paddingBottom: 40 },
-
-  pillsRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  pill: {
-    paddingHorizontal: 14, paddingVertical: 7,
-    borderRadius: 20, borderWidth: 1.5, borderColor: C.border,
-    backgroundColor: C.white,
-  },
-  pillActive: { backgroundColor: C.primary, borderColor: C.primary },
-  pillText: { fontSize: 13, fontWeight: '600', color: C.muted },
-  pillTextActive: { color: C.white },
-
-  loader: { marginTop: 40 },
-
-  emptyContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60,
-  },
-  emptyText: { fontSize: 15, color: '#9CA3AF' },
-
-  sectionLabel: {
-    fontSize: 11, fontWeight: '700', color: C.muted,
-    letterSpacing: 1, paddingHorizontal: 16, marginTop: 16, marginBottom: 8,
-  },
-
-  // KPI
-  kpiGrid: {
-    flexDirection: 'row', flexWrap: 'wrap',
-    paddingHorizontal: 12, gap: 8,
-  },
-  kpiCard: {
-    width: '47%', flexGrow: 1,
-    backgroundColor: C.white, borderRadius: 14,
-    borderWidth: 1, borderColor: C.border,
-    padding: 14,
-  },
-  kpiIcon: {
-    width: 36, height: 36, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 10,
-  },
-  kpiLabel: { fontSize: 11, fontWeight: '600', color: C.muted, marginBottom: 4 },
-  kpiValue: { fontSize: 18, fontWeight: '800' },
-  kpiSub: { fontSize: 11, color: C.muted, marginTop: 3 },
-
-  // Table
-  tableCard: {
-    marginHorizontal: 16,
-    backgroundColor: C.white, borderRadius: 14,
-    borderWidth: 1, borderColor: C.border,
-    paddingHorizontal: 14, paddingVertical: 12,
-  },
-  tableSectionHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8,
-  },
-  tableSectionTitle: {
-    fontSize: 10, fontWeight: '700', color: C.muted, letterSpacing: 1,
-  },
-  tableRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    paddingVertical: 8,
-  },
-  tableRowIndent: { paddingLeft: 12 },
-  tableLabel: { fontSize: 14, color: C.text, flex: 1 },
-  tableLabelBold: { fontWeight: '700' },
-  tableLabelIndent: { color: C.muted, fontSize: 13 },
-  tableValue: { fontSize: 14, color: C.text, fontWeight: '500' },
-  tableValueBold: { fontWeight: '800', fontSize: 15 },
-  tableDivider: { height: 1, backgroundColor: C.border, marginVertical: 4 },
-
-  netRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginTop: 12, paddingTop: 12,
-    borderTopWidth: 2, borderTopColor: C.border,
-  },
-  netLabel: { fontSize: 13, fontWeight: '800', color: C.text, letterSpacing: 0.5 },
-  netValue: { fontSize: 18, fontWeight: '800' },
-
-  // Segment bar
-  segCard: {
-    marginHorizontal: 16,
-    backgroundColor: C.white, borderRadius: 14,
-    borderWidth: 1, borderColor: C.border,
-    padding: 16,
-  },
-  segBar: {
-    flexDirection: 'row', height: 12, borderRadius: 6,
-    overflow: 'hidden', backgroundColor: C.border, marginBottom: 16,
-  },
-  segSlice: { height: '100%' },
-  segFirst: { borderTopLeftRadius: 6, borderBottomLeftRadius: 6 },
-  segLast: { borderTopRightRadius: 6, borderBottomRightRadius: 6 },
-
-  legend: { gap: 10 },
-  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendLabel: { flex: 1, fontSize: 13, color: C.text, fontWeight: '500' },
-  legendValue: { fontSize: 13, fontWeight: '700' },
-
-  noDataRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border,
-  },
-  noDataText: { fontSize: 12, color: C.muted, flex: 1 },
-});

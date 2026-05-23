@@ -7,13 +7,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  FlatList,
 } from 'react-native';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
@@ -23,13 +21,13 @@ import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import type { CreateTransferBody, CreateTransferResponse } from '../../api/inventory.api';
 import { extractErrorMessage } from '../../utils/error';
 import { C } from './KirimColors';
-
-interface TransferLine {
-  key: string;
-  productId: string;
-  productName: string;
-  quantity: string;
-}
+import { styles } from './TransferSheet.styles';
+import {
+  TransferItemRow,
+  AddItemForm,
+  EMPTY_LINE,
+} from './TransferSheet.components';
+import type { TransferLine } from './TransferSheet.components';
 
 interface Props {
   visible: boolean;
@@ -37,12 +35,6 @@ interface Props {
   onSuccess: () => void;
   transferMutation: UseMutationResult<CreateTransferResponse, Error, CreateTransferBody>;
 }
-
-const EMPTY_LINE: Omit<TransferLine, 'key'> = {
-  productId: '',
-  productName: '',
-  quantity: '1',
-};
 
 export default function TransferSheet({ visible, onClose, onSuccess, transferMutation }: Props) {
   const [fromBranchId, setFromBranchId] = useState('');
@@ -132,6 +124,12 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
   const fromBranch = branches.find((b) => b.id === fromBranchId);
   const toBranch   = branches.find((b) => b.id === toBranchId);
 
+  const handleCancelAddItem = () => {
+    setAddingItem(false);
+    setNewLine(EMPTY_LINE);
+    setProductSearch('');
+  };
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <View style={styles.overlay}>
@@ -158,7 +156,7 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
               keyboardShouldPersistTaps="always"
               style={styles.scroll}
             >
-              {/* ── Manba filial ─────────────────────── */}
+              {/* Manba filial */}
               <Text style={styles.label}>Manba (kimdan)</Text>
               <View style={styles.branchList}>
                 {branches.map((b) => (
@@ -175,8 +173,8 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
                 ))}
               </View>
 
-              {/* ── Manzil filial ────────────────────── */}
-              <Text style={[styles.label, { marginTop: 16 }]}>Manzil (kimga)</Text>
+              {/* Manzil filial */}
+              <Text style={[styles.label, styles.labelMarginTop]}>Manzil (kimga)</Text>
               <View style={styles.branchList}>
                 {branches.map((b) => (
                   <TouchableOpacity
@@ -200,7 +198,7 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
                 ))}
               </View>
 
-              {/* ── Yo'nalish ko'rsatkich ────────────── */}
+              {/* Yo'nalish ko'rsatkich */}
               {fromBranch && toBranch && (
                 <View style={styles.routeRow}>
                   <Text style={styles.routeText} numberOfLines={1}>{fromBranch.name}</Text>
@@ -209,84 +207,30 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
                 </View>
               )}
 
-              {/* ── Mahsulotlar ───────────────────────── */}
-              <Text style={[styles.label, { marginTop: 16 }]}>Mahsulotlar</Text>
+              {/* Mahsulotlar */}
+              <Text style={[styles.label, styles.labelMarginTop]}>Mahsulotlar</Text>
 
               {items.map((item) => (
-                <View key={item.key} style={styles.itemRow}>
-                  <View style={styles.itemInfo}>
-                    <Text style={styles.itemName} numberOfLines={1}>{item.productName}</Text>
-                    <Text style={styles.itemQty}>{item.quantity} dona</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => handleRemoveItem(item.key)} disabled={loading}>
-                    <Ionicons name="close-circle" size={20} color={C.red} />
-                  </TouchableOpacity>
-                </View>
+                <TransferItemRow
+                  key={item.key}
+                  item={item}
+                  onRemove={handleRemoveItem}
+                  disabled={loading}
+                />
               ))}
 
-              {/* ── Mahsulot qo'shish formi ────────────── */}
+              {/* Mahsulot qo'shish formi */}
               {addingItem ? (
-                <View style={styles.addForm}>
-                  <Text style={styles.addFormTitle}>Mahsulot qo'shish</Text>
-
-                  {newLine.productId ? (
-                    <View style={styles.selectedProduct}>
-                      <Text style={styles.selectedProductName} numberOfLines={1}>{newLine.productName}</Text>
-                      <TouchableOpacity onPress={() => setNewLine(EMPTY_LINE)}>
-                        <Ionicons name="close-circle" size={18} color={C.muted} />
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <>
-                      <TextInput
-                        style={styles.input}
-                        value={productSearch}
-                        onChangeText={setProductSearch}
-                        placeholder="Mahsulot nomi yoki SKU..."
-                        placeholderTextColor={C.muted}
-                        autoFocus
-                      />
-                      {filteredProducts.length > 0 && (
-                        <FlatList
-                          data={filteredProducts}
-                          keyExtractor={(p) => p.id}
-                          scrollEnabled={false}
-                          renderItem={({ item: p }) => (
-                            <TouchableOpacity
-                              style={styles.productSuggestion}
-                              onPress={() => handleSelectProduct(p)}
-                            >
-                              <Text style={styles.productSuggestionName}>{p.name}</Text>
-                              <Text style={styles.productSuggestionSku}>{p.sku}</Text>
-                            </TouchableOpacity>
-                          )}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  <Text style={[styles.label, { marginTop: 10 }]}>Miqdor</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={newLine.quantity}
-                    onChangeText={(v) => setNewLine((prev) => ({ ...prev, quantity: v }))}
-                    placeholder="1"
-                    placeholderTextColor={C.muted}
-                    keyboardType="numeric"
-                  />
-
-                  <View style={styles.addFormBtns}>
-                    <TouchableOpacity
-                      style={styles.cancelSmallBtn}
-                      onPress={() => { setAddingItem(false); setNewLine(EMPTY_LINE); setProductSearch(''); }}
-                    >
-                      <Text style={styles.cancelSmallBtnText}>Bekor</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.addSmallBtn} onPress={handleAddItem}>
-                      <Text style={styles.addSmallBtnText}>Qo'shish</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <AddItemForm
+                  newLine={newLine}
+                  productSearch={productSearch}
+                  filteredProducts={filteredProducts}
+                  onChangeNewLine={setNewLine}
+                  onProductSearchChange={setProductSearch}
+                  onSelectProduct={handleSelectProduct}
+                  onAdd={handleAddItem}
+                  onCancel={handleCancelAddItem}
+                />
               ) : (
                 <TouchableOpacity
                   style={styles.addItemBtn}
@@ -298,8 +242,8 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
                 </TouchableOpacity>
               )}
 
-              {/* ── Izoh ─────────────────────────────── */}
-              <Text style={[styles.label, { marginTop: 16 }]}>Izoh (ixtiyoriy)</Text>
+              {/* Izoh */}
+              <Text style={[styles.label, styles.labelMarginTop]}>Izoh (ixtiyoriy)</Text>
               <TextInput
                 style={[styles.input, styles.inputMultiline]}
                 value={notes}
@@ -312,7 +256,7 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
               />
             </ScrollView>
 
-            {/* ── Actions ─────────────────────────────── */}
+            {/* Actions */}
             <View style={styles.actions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={handleClose} disabled={loading}>
                 <Text style={styles.cancelBtnText}>Bekor</Text>
@@ -333,148 +277,3 @@ export default function TransferSheet({ visible, onClose, onSuccess, transferMut
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  kav:       { width: '100%' },
-  sheet: {
-    backgroundColor:      C.white,
-    borderTopLeftRadius:  24,
-    borderTopRightRadius: 24,
-    padding:              24,
-    paddingBottom:        40,
-    maxHeight:            '92%' as const,
-  },
-  handle:    { width: 40, height: 5, borderRadius: 2.5, backgroundColor: '#E5E7EB', alignSelf: 'center', marginBottom: 16 },
-  titleRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  titleLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title:     { fontSize: 20, fontWeight: '800', color: C.text },
-  closeBtn:  { width: 30, height: 30, borderRadius: 15, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  scroll:    { flexShrink: 1 },
-  label:     { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
-
-  // Branch chips
-  branchList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  branchChip: {
-    paddingHorizontal: 14,
-    paddingVertical:   8,
-    borderRadius:      20,
-    borderWidth:       1.5,
-    borderColor:       '#E5E7EB',
-    backgroundColor:   C.white,
-  },
-  branchChipActive:       { borderColor: C.primary, backgroundColor: C.primary + '15' },
-  branchChipDisabled:     { opacity: 0.35 },
-  branchChipText:         { fontSize: 13, color: C.secondary, fontWeight: '500' },
-  branchChipTextActive:   { color: C.primary, fontWeight: '700' },
-  branchChipTextDisabled: { color: C.muted },
-
-  // Route indicator
-  routeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    backgroundColor: C.primary + '0D',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  routeText: { flex: 1, fontSize: 13, fontWeight: '600', color: C.primary, textAlign: 'center' },
-
-  // Items
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 8,
-  },
-  itemInfo: { flex: 1 },
-  itemName: { fontSize: 14, fontWeight: '600', color: C.text },
-  itemQty:  { fontSize: 12, color: C.muted, marginTop: 2 },
-
-  // Add form
-  addForm: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-  },
-  addFormTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 10 },
-  selectedProduct: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: C.primary + '15',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 8,
-  },
-  selectedProductName: { flex: 1, fontSize: 14, fontWeight: '600', color: C.primary },
-  productSuggestion: {
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  productSuggestionName: { fontSize: 14, color: C.text, fontWeight: '500' },
-  productSuggestionSku:  { fontSize: 12, color: C.muted },
-  addFormBtns: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  cancelSmallBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  cancelSmallBtnText: { fontSize: 14, color: C.secondary, fontWeight: '600' },
-  addSmallBtn: {
-    flex: 2,
-    backgroundColor: C.primary,
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  addSmallBtnText: { fontSize: 14, color: C.white, fontWeight: '700' },
-
-  // Add item button
-  addItemBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 1.5,
-    borderColor: C.primary,
-    borderStyle: 'dashed',
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginBottom: 8,
-  },
-  addItemBtnText: { fontSize: 14, color: C.primary, fontWeight: '600' },
-
-  // Input
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: C.text,
-    backgroundColor: C.white,
-  },
-  inputMultiline: { height: 72, textAlignVertical: 'top', paddingTop: 12 },
-
-  // Actions
-  actions:       { flexDirection: 'row', gap: 12, marginTop: 20 },
-  cancelBtn:     { flex: 1, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  cancelBtnText: { fontSize: 15, fontWeight: '600', color: C.secondary },
-  submitBtn:     { flex: 2, backgroundColor: C.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
-  btnDisabled:   { opacity: 0.6 },
-  submitBtnText: { fontSize: 15, fontWeight: '700', color: C.white },
-});

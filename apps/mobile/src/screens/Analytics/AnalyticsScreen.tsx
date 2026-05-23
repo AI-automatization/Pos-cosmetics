@@ -161,7 +161,7 @@ export default function AnalyticsScreen(): React.JSX.Element {
               activeOpacity={0.7}
               onPress={() => navigation.navigate('AbcAnalysis')}
             >
-              <View style={[s.toolIcon, { backgroundColor: '#DCFCE7' }]}>
+              <View style={[s.toolIcon, s.toolIconGreen]}>
                 <Ionicons name="pie-chart" size={20} color="#16A34A" />
               </View>
               <View style={s.toolInfo}>
@@ -175,7 +175,7 @@ export default function AnalyticsScreen(): React.JSX.Element {
               activeOpacity={0.7}
               onPress={() => navigation.navigate('MarginAnalysis')}
             >
-              <View style={[s.toolIcon, { backgroundColor: '#FEF9C3' }]}>
+              <View style={[s.toolIcon, s.toolIconYellow]}>
                 <Ionicons name="trending-up" size={20} color="#CA8A04" />
               </View>
               <View style={s.toolInfo}>
@@ -189,7 +189,7 @@ export default function AnalyticsScreen(): React.JSX.Element {
               activeOpacity={0.7}
               onPress={() => navigation.navigate('CashierPerformance')}
             >
-              <View style={[s.toolIcon, { backgroundColor: '#EFF6FF' }]}>
+              <View style={[s.toolIcon, s.toolIconBlue]}>
                 <Ionicons name="people" size={20} color="#2563EB" />
               </View>
               <View style={s.toolInfo}>
@@ -203,7 +203,7 @@ export default function AnalyticsScreen(): React.JSX.Element {
               activeOpacity={0.7}
               onPress={() => navigation.navigate('DeadStock')}
             >
-              <View style={[s.toolIcon, { backgroundColor: '#FEE2E2' }]}>
+              <View style={[s.toolIcon, s.toolIconRed]}>
                 <Ionicons name="archive" size={20} color="#DC2626" />
               </View>
               <View style={s.toolInfo}>
@@ -283,6 +283,10 @@ const s = StyleSheet.create({
     width: 40, height: 40, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
   },
+  toolIconGreen: { backgroundColor: '#DCFCE7' },
+  toolIconYellow: { backgroundColor: '#FEF9C3' },
+  toolIconBlue: { backgroundColor: '#EFF6FF' },
+  toolIconRed: { backgroundColor: '#FEE2E2' },
   toolInfo: { flex: 1 },
   toolTitle: { fontSize: 14, fontWeight: '700', color: C.text },
   toolDesc: { fontSize: 12, color: C.muted, marginTop: 2 },

@@ -5,13 +5,8 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Modal,
-  TextInput,
-  TouchableWithoutFeedback,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,12 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   expensesApi,
-  ExpenseCategory,
+  type ExpenseCategory,
   EXPENSE_CATEGORY_LABELS,
   EXPENSE_CATEGORIES,
-  Expense,
-  CreateExpensePayload,
+  type Expense,
+  type CreateExpensePayload,
 } from '../../api/expenses.api';
+import ExpenseFormSheet from './ExpenseFormSheet';
+import ExpenseCard from './ExpenseCard';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -56,190 +53,6 @@ function fmt(n: number): string {
   const abs = Math.abs(Number(n));
   const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   return (Number(n) < 0 ? '-' : '') + formatted + ' UZS';
-}
-
-function todayStr(): string {
-  return new Date().toISOString().split('T')[0]!;
-}
-
-// ─── ExpenseFormSheet ──────────────────────────────────
-function ExpenseFormSheet({
-  visible,
-  expense,
-  onClose,
-  onSaved,
-}: {
-  visible: boolean;
-  expense: Expense | null;
-  onClose: () => void;
-  onSaved: (data: CreateExpensePayload) => void;
-}) {
-  const [date, setDate]         = useState(todayStr());
-  const [category, setCategory] = useState<ExpenseCategory>('OTHER');
-  const [description, setDesc]  = useState('');
-  const [amount, setAmount]     = useState('');
-
-  React.useEffect(() => {
-    if (visible) {
-      setDate(expense?.date ?? todayStr());
-      setCategory(expense?.category ?? 'OTHER');
-      setDesc(expense?.description ?? '');
-      setAmount(expense ? String(expense.amount) : '');
-    }
-  }, [visible, expense]);
-
-  const canSave = description.trim().length > 0 && parseFloat(amount) > 0;
-
-  const handleCategoryPick = () => {
-    Alert.alert('Kategoriyani tanlang', undefined, [
-      ...EXPENSE_CATEGORIES.map((c) => ({
-        text: EXPENSE_CATEGORY_LABELS[c],
-        onPress: () => setCategory(c),
-      })),
-      { text: 'Bekor qilish', style: 'cancel' as const },
-    ]);
-  };
-
-  const handleSave = () => {
-    if (!canSave) return;
-    onSaved({
-      date,
-      category,
-      description: description.trim(),
-      amount: parseFloat(amount),
-    });
-  };
-
-  const cfg = CAT_CONFIG[category];
-
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={sheet.backdrop} />
-      </TouchableWithoutFeedback>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={sheet.wrapper}
-      >
-        <View style={sheet.panel}>
-          <View style={sheet.handle} />
-
-          <View style={sheet.header}>
-            <View style={[sheet.iconCircle, { backgroundColor: cfg.bg }]}>
-              <Ionicons name={cfg.icon} size={22} color={cfg.color} />
-            </View>
-            <Text style={sheet.title}>
-              {expense ? 'Xarajatni tahrirlash' : 'Yangi xarajat'}
-            </Text>
-          </View>
-
-          {/* Date */}
-          <Text style={sheet.label}>SANA</Text>
-          <TextInput
-            style={sheet.input}
-            value={date}
-            onChangeText={setDate}
-            placeholder="2026-04-14"
-            placeholderTextColor={C.muted}
-          />
-
-          {/* Category */}
-          <Text style={sheet.label}>KATEGORIYA</Text>
-          <TouchableOpacity style={sheet.selectRow} onPress={handleCategoryPick}>
-            <Ionicons name={cfg.icon} size={18} color={cfg.color} />
-            <Text style={sheet.selectText}>{EXPENSE_CATEGORY_LABELS[category]}</Text>
-            <Ionicons name="chevron-forward" size={16} color={C.muted} />
-          </TouchableOpacity>
-
-          {/* Description */}
-          <Text style={sheet.label}>TAVSIF</Text>
-          <TextInput
-            style={sheet.input}
-            value={description}
-            onChangeText={setDesc}
-            placeholder="Masalan: Fevral oyi ijarasi"
-            placeholderTextColor={C.muted}
-          />
-
-          {/* Amount */}
-          <Text style={sheet.label}>MIQDOR (UZS)</Text>
-          <TextInput
-            style={sheet.input}
-            value={amount}
-            onChangeText={setAmount}
-            placeholder="0"
-            placeholderTextColor={C.muted}
-            keyboardType="numeric"
-          />
-
-          <TouchableOpacity
-            style={[sheet.saveBtn, !canSave && sheet.saveBtnDisabled]}
-            onPress={handleSave}
-            activeOpacity={0.85}
-            disabled={!canSave}
-          >
-            <Text style={sheet.saveBtnText}>{expense ? 'Saqlash' : "Qo'shish"}</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
-// ─── ExpenseCard ───────────────────────────────────────
-function ExpenseCard({
-  expense,
-  onDelete,
-}: {
-  expense: Expense;
-  onDelete: (id: string) => void;
-}) {
-  const cfg = CAT_CONFIG[expense.category];
-  const label = EXPENSE_CATEGORY_LABELS[expense.category];
-
-  const handleMenu = () => {
-    Alert.alert(expense.description ?? label, undefined, [
-      {
-        text: "O'chirish",
-        style: 'destructive',
-        onPress: () =>
-          Alert.alert(
-            "O'chirishni tasdiqlang",
-            `"${expense.description ?? label}" o'chirilsinmi?`,
-            [
-              { text: 'Bekor', style: 'cancel' },
-              { text: "O'chirish", style: 'destructive', onPress: () => onDelete(expense.id) },
-            ],
-          ),
-      },
-      { text: 'Bekor qilish', style: 'cancel' },
-    ]);
-  };
-
-  return (
-    <View style={styles.card}>
-      <View style={[styles.cardIcon, { backgroundColor: cfg.bg }]}>
-        <Ionicons name={cfg.icon} size={20} color={cfg.color} />
-      </View>
-      <View style={styles.cardBody}>
-        <Text style={styles.cardDesc} numberOfLines={1}>
-          {expense.description ?? label}
-        </Text>
-        <View style={styles.cardMeta}>
-          <View style={[styles.catBadge, { backgroundColor: cfg.bg }]}>
-            <Text style={[styles.catBadgeText, { color: cfg.color }]}>{label}</Text>
-          </View>
-          <Text style={styles.cardDate}>{expense.date}</Text>
-        </View>
-      </View>
-      <View style={styles.cardRight}>
-        <Text style={styles.cardAmount}>−{fmt(expense.amount)}</Text>
-        <TouchableOpacity style={styles.menuBtn} onPress={handleMenu} activeOpacity={0.7}>
-          <Ionicons name="ellipsis-vertical" size={16} color={C.muted} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 }
 
 // ─── ExpensesScreen ────────────────────────────────────
@@ -419,52 +232,6 @@ export default function ExpensesScreen() {
   );
 }
 
-// ─── Sheet styles ───────────────────────────────────────
-const sheet = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  wrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
-  panel: {
-    backgroundColor: C.white,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    paddingHorizontal: 20, paddingBottom: 40, paddingTop: 12,
-  },
-  handle: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: C.border, alignSelf: 'center', marginBottom: 20,
-  },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  iconCircle: {
-    width: 44, height: 44, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  title: { flex: 1, fontSize: 16, fontWeight: '800', color: C.text },
-  label: {
-    fontSize: 11, fontWeight: '700', color: C.muted,
-    letterSpacing: 1, marginBottom: 6,
-  },
-  input: {
-    height: 48, backgroundColor: C.bg, borderRadius: 12,
-    borderWidth: 1.5, borderColor: C.border,
-    paddingHorizontal: 14, fontSize: 15, color: C.text,
-    marginBottom: 14,
-  },
-  selectRow: {
-    height: 48, backgroundColor: C.bg, borderRadius: 12,
-    borderWidth: 1.5, borderColor: C.border,
-    paddingHorizontal: 14, flexDirection: 'row',
-    alignItems: 'center', gap: 10, marginBottom: 14,
-  },
-  selectText: { flex: 1, fontSize: 15, color: C.text },
-  saveBtn: {
-    backgroundColor: C.red, borderRadius: 14, height: 52,
-    alignItems: 'center', justifyContent: 'center', marginTop: 4,
-    shadowColor: C.red, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
-  },
-  saveBtnDisabled: { backgroundColor: '#E5E7EB', shadowOpacity: 0, elevation: 0 },
-  saveBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-});
-
 // ─── Screen styles ──────────────────────────────────────
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
@@ -513,30 +280,6 @@ const styles = StyleSheet.create({
 
   listContent: { padding: 16, paddingBottom: 40 },
   separator: { height: 10 },
-
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: C.white, borderRadius: 14,
-    borderWidth: 1, borderColor: C.border,
-    padding: 14, gap: 12,
-  },
-  cardIcon: {
-    width: 44, height: 44, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  cardBody: { flex: 1, gap: 5 },
-  cardDesc: { fontSize: 14, fontWeight: '700', color: C.text },
-  cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  catBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  catBadgeText: { fontSize: 11, fontWeight: '700' },
-  cardDate: { fontSize: 11, color: C.muted },
-
-  cardRight: { alignItems: 'flex-end', gap: 4 },
-  cardAmount: { fontSize: 14, fontWeight: '800', color: C.red },
-  menuBtn: {
-    width: 28, height: 28, borderRadius: 8,
-    alignItems: 'center', justifyContent: 'center',
-  },
 
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   errorText: { fontSize: 15, color: C.muted, fontWeight: '600' },

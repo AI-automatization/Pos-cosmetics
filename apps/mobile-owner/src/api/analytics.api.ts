@@ -1,5 +1,9 @@
 import { apiClient } from './client';
 import { ENDPOINTS } from '../config/endpoints';
+import type { AbcRawRow, AbcGroup, BranchComparisonItem, DeadStockItem } from '@raos/types';
+import { mapAbcGroups } from '@raos/types';
+
+export type { AbcGroup, DeadStockItem, BranchComparisonItem } from '@raos/types';
 
 export interface AnalyticsParams {
   branchId?: string | null;
@@ -39,14 +43,6 @@ export interface SalesTrendPoint {
   orders: number;
 }
 
-export interface BranchComparisonItem {
-  branchId: string;
-  branchName: string;
-  revenue: number;
-  orders: number;
-  avgOrderValue: number;
-}
-
 export interface TopProduct {
   productId: string;
   name: string;
@@ -60,65 +56,6 @@ export interface BranchRevenueItem {
   revenue: number;
   stockValue: number;
   orders: number;
-}
-
-// ─── ABC Analysis types ──────────────────────────────────
-interface AbcRawRow {
-  productId: string;
-  productName: string;
-  revenue: number;
-  revenuePct: number;
-  cumulativePct: number;
-  category: 'A' | 'B' | 'C';
-}
-
-export interface AbcProduct {
-  readonly productId: string;
-  readonly productName: string;
-  readonly revenue: number;
-  readonly pct: number;
-}
-
-export interface AbcGroup {
-  readonly group: 'A' | 'B' | 'C';
-  readonly products: AbcProduct[];
-  readonly totalRevenue: number;
-  readonly revenueShare: number;
-}
-
-function mapAbcGroups(rows: AbcRawRow[]): AbcGroup[] {
-  const grouped: Record<string, AbcProduct[]> = { A: [], B: [], C: [] };
-  for (const r of rows) {
-    const key = r.category ?? 'C';
-    (grouped[key] ??= []).push({
-      productId: r.productId,
-      productName: r.productName,
-      revenue: Number(r.revenue ?? 0),
-      pct: Number(r.revenuePct ?? 0),
-    });
-  }
-  const grandTotal = rows.reduce((s, r) => s + Number(r.revenue ?? 0), 0);
-  return (['A', 'B', 'C'] as const).map((g) => {
-    const products = grouped[g] ?? [];
-    const totalRevenue = products.reduce((s, p) => s + p.revenue, 0);
-    return {
-      group: g,
-      products,
-      totalRevenue,
-      revenueShare: grandTotal > 0 ? (totalRevenue / grandTotal) * 100 : 0,
-    };
-  });
-}
-
-// ─── Dead Stock types ───────────────────────────────────
-export interface DeadStockItem {
-  readonly productId: string;
-  readonly productName: string;
-  readonly sku: string | null;
-  readonly totalStock: number;
-  readonly lastSoldAt: string | null;
-  readonly carryingCost: number;
-  readonly daysIdle: number;
 }
 
 /** Branch comparison report item for owner reports */
