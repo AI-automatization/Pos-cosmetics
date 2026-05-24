@@ -216,6 +216,37 @@ Sync работает **только** для tenant'ов с:
 
 ---
 
+## Webhooks (RAOS → ZZone)
+
+RAOS отправляет POST webhook при следующих событиях:
+
+**URL:** `POST https://api.zzone.uz/api/raos/webhook`
+**Header:** `X-ZZone-Api-Key: {ZZONE_WEBHOOK_SECRET}`
+
+| Event | Trigger | Payload |
+|-------|---------|---------|
+| `order_status_changed` | Статус заказа изменён | `{ orderId, sellerId, status }` |
+| `stock_updated` | Продажа или приход/расход | `{ productId, sellerId, stock }` |
+| `product_synced` | Товар создан/изменён/удалён | `{ productId, sellerId, action }` |
+| `seller_deactivated` | Seller деактивирован | `{ sellerId }` |
+
+**Формат тела запроса:**
+```json
+{
+  "event": "order_status_changed",
+  "timestamp": "2026-05-23T12:00:00.000Z",
+  "data": { "orderId": "uuid", "sellerId": "uuid", "status": "CONFIRMED" }
+}
+```
+
+**Retry:** При ошибке — сохраняется в `webhook_logs` таблицу (3 попытки).
+
+**ENV переменные:**
+- `ZZONE_WEBHOOK_URL` — URL для webhook (default: `https://api.zzone.uz/api/raos/webhook`)
+- `ZZONE_WEBHOOK_SECRET` — API ключ (ZZone предоставляет)
+
+---
+
 ## Database Models
 
 ### Vehicle (global)
@@ -266,12 +297,13 @@ isActive: boolean
 
 | Group | Endpoints | Description |
 |-------|-----------|-------------|
-| Products | 5 | CRUD + stock check |
-| Orders | 6 | CRUD + status + void |
+| Products | 5 | CRUD + stock check + `updatedAfter` filter |
+| Orders | 6 | CRUD + status + void (stock restored) |
 | Sellers | 3 | Read + update + deactivate |
-| Stores | 3 | Read + update + deactivate |
+| Stores | 4 | **List** + Read + update + deactivate |
 | Vehicles | 7 | CRUD + compatibility |
 | Health | 1 | Status check |
-| **Total ZZone API** | **25** | |
+| **Total ZZone API** | **26** | |
 | Admin (JWT) | 3 | ZZone config management |
 | Auto-sync | 5 events | Product lifecycle + stock |
+| Webhooks | 4 events | order_status, stock, product, seller |
