@@ -70,8 +70,8 @@ function getDateRange(days: number): { from: string; to: string } {
   const from = new Date();
   from.setDate(from.getDate() - days);
   return {
-    from: from.toISOString().split('T')[0],
-    to: to.toISOString().split('T')[0],
+    from: from.toISOString().split('T')[0] ?? '',
+    to: to.toISOString().split('T')[0] ?? '',
   };
 }
 

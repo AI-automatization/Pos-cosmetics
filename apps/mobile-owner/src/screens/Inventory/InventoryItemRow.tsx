@@ -10,8 +10,10 @@ interface InventoryItemRowProps {
   item: InventoryItem;
 }
 
+const NORMAL_BADGE = { bg: Colors.successLight,  text: Colors.success, labelKey: 'inventory.statusNormal' } as const;
+
 const STATUS_BADGE: Record<string, { bg: string; text: string; labelKey: string }> = {
-  normal:       { bg: Colors.successLight,  text: Colors.success, labelKey: 'inventory.statusNormal' },
+  normal:       NORMAL_BADGE,
   low:          { bg: Colors.warningLight,  text: Colors.warning, labelKey: 'inventory.statusLow' },
   out_of_stock: { bg: Colors.dangerLight,   text: Colors.danger,  labelKey: 'inventory.statusOut' },
   expiring:     { bg: Colors.orangeLight,   text: Colors.orange,  labelKey: 'inventory.statusExpiring' },
@@ -20,7 +22,7 @@ const STATUS_BADGE: Record<string, { bg: string; text: string; labelKey: string 
 
 export default function InventoryItemRow({ item }: InventoryItemRowProps) {
   const { t } = useTranslation();
-  const badge = STATUS_BADGE[item.status] ?? STATUS_BADGE.normal;
+  const badge = STATUS_BADGE[item.status] ?? NORMAL_BADGE;
 
   return (
     <View style={styles.row}>

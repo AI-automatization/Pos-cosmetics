@@ -7,8 +7,10 @@ export async function registerPushNotifications(tenantId: string, userId: string
   // Push token registration is not supported in Expo Go (removed in SDK 53)
   if (Constants.appOwnership === 'expo') return;
 
-  const { status } = await Notifications.requestPermissionsAsync();
-  if (status !== 'granted') return;
+  // expo-modules-core PermissionResponse tipi pnpm hoisting tufayli resolve bo'lmaydi
+  type PermissionResult = Notifications.NotificationPermissionsStatus & { granted: boolean };
+  const permission = (await Notifications.requestPermissionsAsync()) as PermissionResult;
+  if (!permission.granted) return;
 
   const tokenData = await Notifications.getExpoPushTokenAsync();
 

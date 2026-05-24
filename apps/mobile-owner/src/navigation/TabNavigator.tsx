@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabParamList } from './types';
-import { useAlertsStore } from '../store/alerts.store';
 import { useAuthStore } from '../store/auth.store';
 import { setNavigationRef } from '../notifications/handler';
 import {
@@ -28,40 +26,6 @@ import SystemHealthScreen from '../screens/SystemHealth';
 const Tab = createBottomTabNavigator<TabParamList>();
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
-
-const styles = StyleSheet.create({
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -6,
-    backgroundColor: Colors.danger,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  badgeText: {
-    color: Colors.textWhite,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-});
-
-function AlertsBellTabIcon({ color, size }: { color: string; size: number }) {
-  const unreadCount = useAlertsStore((s) => s.unreadCount);
-  return (
-    <View>
-      <Ionicons name="notifications-outline" size={size} color={color} />
-      {unreadCount > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : String(unreadCount)}</Text>
-        </View>
-      )}
-    </View>
-  );
-}
 
 export default function TabNavigator() {
   const { user } = useAuthStore();

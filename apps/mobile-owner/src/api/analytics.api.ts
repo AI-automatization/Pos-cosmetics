@@ -3,7 +3,7 @@ import { ENDPOINTS } from '../config/endpoints';
 import type { AbcRawRow, AbcGroup, BranchComparisonItem, DeadStockItem } from '@raos/types';
 import { mapAbcGroups } from '@raos/types';
 
-export type { AbcGroup, DeadStockItem, BranchComparisonItem } from '@raos/types';
+export type { AbcGroup, AbcProduct, DeadStockItem, BranchComparisonItem } from '@raos/types';
 
 export interface AnalyticsParams {
   branchId?: string | null;

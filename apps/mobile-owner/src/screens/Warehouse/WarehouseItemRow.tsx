@@ -9,8 +9,10 @@ interface Props {
   item: InventoryItem;
 }
 
+const NORMAL_BADGE = { bg: Colors.successLight, text: Colors.success, label: 'Normal' } as const;
+
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  normal:       { bg: Colors.successLight, text: Colors.success, label: 'Normal' },
+  normal:       NORMAL_BADGE,
   low:          { bg: Colors.warningLight, text: Colors.warning, label: 'Kam' },
   out_of_stock: { bg: Colors.dangerLight,  text: Colors.danger,  label: 'Tugagan' },
   expiring:     { bg: Colors.orangeLight,  text: Colors.orange,  label: 'Muddati yaqin' },
@@ -19,7 +21,7 @@ const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> 
 
 export default function WarehouseItemRow({ item }: Props) {
   const { t } = useTranslation();
-  const badge = STATUS_BADGE[item.status] ?? STATUS_BADGE.normal;
+  const badge = STATUS_BADGE[item.status] ?? NORMAL_BADGE;
   const isLowOrOut = item.status === 'low' || item.status === 'out_of_stock';
   const isExpiryWarning = item.status === 'expiring' || item.status === 'expired';
 

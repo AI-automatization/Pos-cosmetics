@@ -10,7 +10,11 @@ interface SuspiciousActivityListProps {
   data: SuspiciousActivityAlert[];
 }
 
-const SEVERITY_CONFIG: Record<string, { bg: string; text: string; iconColor: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
+type SeverityCfg = { bg: string; text: string; iconColor: string; icon: React.ComponentProps<typeof Ionicons>['name'] };
+
+const DEFAULT_SEVERITY: SeverityCfg = { bg: Colors.infoLight, text: Colors.info, iconColor: Colors.info, icon: 'information-circle' };
+
+const SEVERITY_CONFIG: Record<string, SeverityCfg> = {
   high:   { bg: Colors.dangerLight,  text: Colors.danger,  iconColor: Colors.danger,  icon: 'alert-circle' },
   medium: { bg: Colors.warningLight, text: Colors.warning, iconColor: Colors.warning, icon: 'warning' },
   low:    { bg: Colors.infoLight,    text: Colors.info,    iconColor: Colors.info,    icon: 'information-circle' },
@@ -25,7 +29,7 @@ export default function SuspiciousActivityList({ data }: SuspiciousActivityListP
       <Text style={styles.sectionTitle}>{t('employees.suspiciousActivity')}</Text>
       <View style={styles.list}>
         {data.map((item) => {
-          const cfg = SEVERITY_CONFIG[item.severity] ?? SEVERITY_CONFIG.low;
+          const cfg = SEVERITY_CONFIG[item.severity] ?? DEFAULT_SEVERITY;
           return (
             <View key={item.id} style={[styles.card, { borderLeftColor: cfg.iconColor }]}>
               <View style={styles.iconBox}>

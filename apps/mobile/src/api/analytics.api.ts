@@ -2,7 +2,7 @@ import { api } from './client';
 import type { AbcRawRow, AbcGroup, BranchComparisonItem, DeadStockItem } from '@raos/types';
 import { mapAbcGroups } from '@raos/types';
 
-export type { AbcGroup, DeadStockItem, BranchComparisonItem } from '@raos/types';
+export type { AbcGroup, AbcProduct, DeadStockItem, BranchComparisonItem } from '@raos/types';
 
 export interface RevenueData {
   period: 'daily' | 'weekly' | 'monthly';

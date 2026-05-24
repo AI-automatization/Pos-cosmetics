@@ -42,21 +42,28 @@ function buildPaths(
     y: PAD.top + innerH - ((p.y - minY) / rangeY) * innerH,
   }));
 
-  let line = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
+  const first = coords[0];
+  if (!first) return { line: '', area: '' };
+
+  let line = `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
   for (let i = 1; i < coords.length; i++) {
     const prev = coords[i - 1];
     const curr = coords[i];
+    if (!prev || !curr) continue;
     const cpX = ((prev.x + curr.x) / 2).toFixed(1);
     line += ` C ${cpX} ${prev.y.toFixed(1)} ${cpX} ${curr.y.toFixed(1)} ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
   }
 
+  const last = coords[coords.length - 1];
+  if (!last) return { line, area: '' };
+
   const bottomY = (PAD.top + innerH).toFixed(1);
-  const area = `${line} L ${coords[coords.length - 1].x.toFixed(1)} ${bottomY} L ${PAD.left.toFixed(1)} ${bottomY} Z`;
+  const area = `${line} L ${last.x.toFixed(1)} ${bottomY} L ${PAD.left.toFixed(1)} ${bottomY} Z`;
 
   return { line, area };
 }
 
-export default function LineChartWidget({ data, title, height = 160 }: LineChartWidgetProps) {
+export default function LineChartWidget({ data, title }: LineChartWidgetProps) {
   const displayData = data && data.length >= 2 ? data : MOCK_DATA;
   const chartWidth = SCREEN_WIDTH - 64;
   const { line, area } = buildPaths(displayData, chartWidth, CHART_H);

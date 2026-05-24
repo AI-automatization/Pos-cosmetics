@@ -50,15 +50,19 @@ async function registerForPushNotifications(): Promise<void> {
     });
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
+  // expo-modules-core PermissionResponse tipi pnpm hoisting tufayli
+  // NotificationPermissionsStatus ichida resolve bo'lmaydi —
+  // shuning uchun granted property ga type assertion kerak
+  type PermissionResult = Notifications.NotificationPermissionsStatus & { granted: boolean };
+  const existingPermission = (await Notifications.getPermissionsAsync()) as PermissionResult;
+  let isGranted = existingPermission.granted;
 
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
+  if (!isGranted) {
+    const newPermission = (await Notifications.requestPermissionsAsync()) as PermissionResult;
+    isGranted = newPermission.granted;
   }
 
-  if (finalStatus !== 'granted') return;
+  if (!isGranted) return;
 
   try {
     const tokenData = await Notifications.getExpoPushTokenAsync();

@@ -16,8 +16,10 @@ export function useNotifications() {
     if (!user || isExpoGo) return;
 
     void (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') return;
+      // expo-modules-core PermissionResponse tipi pnpm hoisting tufayli resolve bo'lmaydi
+      type PermissionResult = Notifications.NotificationPermissionsStatus & { granted: boolean };
+      const permission = (await Notifications.requestPermissionsAsync()) as PermissionResult;
+      if (!permission.granted) return;
 
       const tokenData = await Notifications.getExpoPushTokenAsync();
 
