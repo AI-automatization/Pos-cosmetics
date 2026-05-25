@@ -5,7 +5,6 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
-  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,56 +12,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { reportsApi, DailyRevenuePoint } from '../../api/reports.api';
 import { useBranchStore } from '../../store/branch.store';
-import { Colors, Radii, Shadows, Typography } from '../../config/theme';
+import { Colors } from '../../config/theme';
 import SkeletonList from '../../components/common/SkeletonList';
-
-type PeriodKey = '7d' | '30d' | '90d';
-
-const PERIODS: { key: PeriodKey; label: string; days: number }[] = [
-  { key: '7d', label: '7 kun', days: 7 },
-  { key: '30d', label: '30 kun', days: 30 },
-  { key: '90d', label: '90 kun', days: 90 },
-];
-
-function formatAmount(amount: number): string {
-  if (Math.abs(amount) >= 1_000_000_000) {
-    return `${(amount / 1_000_000_000).toFixed(1)}B UZS`;
-  }
-  if (Math.abs(amount) >= 1_000_000) {
-    return `${(amount / 1_000_000).toFixed(1)}M UZS`;
-  }
-  if (Math.abs(amount) >= 1_000) {
-    return `${(amount / 1_000).toFixed(1)}K UZS`;
-  }
-  return `${amount.toLocaleString('uz-UZ')} UZS`;
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    const day = d.getDate();
-    const months = [
-      'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun',
-      'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek',
-    ];
-    const month = months[d.getMonth()];
-    const weekDays = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
-    const weekDay = weekDays[d.getDay()];
-    return `${weekDay}, ${day}-${month}`;
-  } catch {
-    return dateStr;
-  }
-}
-
-function getDateRange(days: number): { from: string; to: string } {
-  const to = new Date();
-  const from = new Date();
-  from.setDate(from.getDate() - days);
-  return {
-    from: from.toISOString().split('T')[0] ?? '',
-    to: to.toISOString().split('T')[0] ?? '',
-  };
-}
+import { styles } from './DailyRevenueScreen.styles';
+import { type PeriodKey, PERIODS, formatAmount, formatDate, getDateRange } from './daily-revenue.utils';
+import { DailyRevenueHeader, SummaryCard } from './DailyRevenueHeader';
 
 export default function DailyRevenueScreen() {
   const navigation = useNavigation();
@@ -84,7 +38,6 @@ export default function DailyRevenueScreen() {
 
   const items = data ?? [];
 
-  // Compute summary
   const summary = useMemo(() => {
     const totalRevenue = items.reduce((sum, d) => sum + d.revenue, 0);
     const totalOrders = items.reduce((sum, d) => sum + d.orders, 0);
@@ -93,7 +46,6 @@ export default function DailyRevenueScreen() {
     return { totalRevenue, totalOrders, avgPerDay };
   }, [items]);
 
-  // Determine "high" threshold for color coding (top 25%)
   const highThreshold = useMemo(() => {
     if (items.length === 0) return 0;
     const sorted = [...items].sort((a, b) => b.revenue - a.revenue);
@@ -104,7 +56,7 @@ export default function DailyRevenueScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <Header onBack={() => navigation.goBack()} />
+        <DailyRevenueHeader onBack={() => navigation.goBack()} />
         <SkeletonList count={6} />
       </SafeAreaView>
     );
@@ -143,7 +95,7 @@ export default function DailyRevenueScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Header onBack={() => navigation.goBack()} />
+      <DailyRevenueHeader onBack={() => navigation.goBack()} />
 
       <FlatList
         data={items}
@@ -214,206 +166,3 @@ export default function DailyRevenueScreen() {
     </SafeAreaView>
   );
 }
-
-/* ---------- Sub-components ---------- */
-
-function Header({ onBack }: { onBack: () => void }) {
-  return (
-    <View style={styles.header}>
-      <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.7}>
-        <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>Kunlik daromad</Text>
-      <View style={styles.headerSpacer} />
-    </View>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  icon,
-  color,
-  bgColor,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
-  bgColor: string;
-}) {
-  return (
-    <View style={styles.summaryCard}>
-      <View style={[styles.summaryIcon, { backgroundColor: bgColor }]}>
-        <Ionicons name={icon} size={16} color={color} />
-      </View>
-      <Text style={styles.summaryLabel}>{label}</Text>
-      <Text style={styles.summaryValue}>{value}</Text>
-    </View>
-  );
-}
-
-/* ---------- Styles ---------- */
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.bgApp,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: Colors.bgSurface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    ...Shadows.card,
-  },
-  backBtn: {
-    marginRight: 12,
-    padding: 4,
-  },
-  headerTitle: {
-    ...Typography.h3,
-    color: Colors.primary,
-    flex: 1,
-  },
-  headerSpacer: { width: 34 },
-  listContent: {
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-
-  /* Period selector */
-  periodRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    gap: 8,
-  },
-  periodBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: Radii.md,
-    backgroundColor: Colors.bgSurface,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  periodBtnActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  periodText: {
-    ...Typography.captionMedium,
-    color: Colors.textSecondary,
-  },
-  periodTextActive: {
-    color: Colors.textWhite,
-  },
-
-  /* Summary cards */
-  summaryRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 8,
-    marginBottom: 16,
-  },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radii.lg,
-    padding: 12,
-    alignItems: 'center',
-    gap: 4,
-    ...Shadows.card,
-  },
-  summaryIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: Radii.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
-  },
-  summaryLabel: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  summaryValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-
-  /* Section title */
-  sectionTitle: {
-    ...Typography.h4,
-    color: Colors.textPrimary,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
-
-  /* Day cards */
-  dayCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radii.lg,
-    padding: 14,
-    ...Shadows.card,
-  },
-  dayCardHigh: {
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.success,
-  },
-  dayLeft: {
-    flex: 1,
-    gap: 4,
-  },
-  dayDate: {
-    ...Typography.bodyMedium,
-    color: Colors.textPrimary,
-  },
-  dayMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  dayMetaText: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    marginRight: 6,
-  },
-  dayRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  dayRevenue: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  dayRevenueHigh: {
-    color: Colors.success,
-  },
-  separator: { height: 8 },
-
-  /* Empty */
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    gap: 12,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textMuted,
-  },
-});

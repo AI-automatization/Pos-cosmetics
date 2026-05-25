@@ -1,5 +1,19 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-20
+# Yangilangan: 2026-05-25
+
+---
+
+## T-378 | 2026-05-25 | [MOBILE] | mobile-owner: EmployeeRole type mismatch — lowercase → UPPERCASE
+
+- **Yechim:** `EmployeeRole` type UPPERCASE ga o'zgartirildi: `'CASHIER' | 'MANAGER' | 'ADMIN' | 'WAREHOUSE'`. RoleSelector, AddEmployeeScreen, HRInviteSheet — barchasi UPPERCASE.
+- **Fayllar:** `employees.api.ts`, `RoleSelector.tsx`, `AddEmployeeScreen.tsx`, `HRInviteSheet.tsx`, `types.ts`
+
+---
+
+## T-379 | 2026-05-25 | [MOBILE] | mobile-owner: AddEmployeeScreen — backend DTO mos emas
+
+- **Yechim:** EmergencySection, AccessSection olib tashlandi (backend qo'llab-quvvatlamaydi). Form faqat backend DTO fieldlarni yuboradi: `firstName, lastName, email, password, role?, phone?`.
+- **Fayllar:** `AddEmployeeScreen.tsx`, `employees.api.ts` (`CreateEmployeeDto`)
 
 ---
 

@@ -698,20 +698,6 @@
 
 ---
 
-## T-378 | P2 | [MOBILE] | mobile-owner: EmployeeRole type mismatch — lowercase → UPPERCASE
-
-- **Sana:** 2026-04-21
-- **Mas'ul:** Abdulaziz
-- **Kutilgan:** `POST /employees` muvaffaqiyatli ishlaydi
-
----
-
-## T-379 | P2 | [MOBILE] | mobile-owner: AddEmployeeScreen — backend DTO mos emas
-
-- **Sana:** 2026-04-21
-- **Mas'ul:** Abdulaziz
-- **Kutilgan:** DTO backend bilan mos, form faqat real saqlanadigan fieldlarni so'raydi
-
 ---
 
 ## ════════════════════════════════════════════════════════════════

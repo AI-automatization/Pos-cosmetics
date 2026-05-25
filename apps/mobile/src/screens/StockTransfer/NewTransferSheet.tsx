@@ -7,8 +7,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,14 +14,21 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { extractErrorMessage } from '../../utils/error';
 import { C } from './StockTransferColors';
-import type { StockLevel, TransferItem } from './StockTransferTypes';
+import type { StockLevel } from './StockTransferTypes';
 import type { Branch } from '../../api/branches.api';
 import type { CreateTransferBody, CreateTransferResponse } from '../../api/inventory.api';
 import { styles } from './NewTransferSheet.styles';
 import ProductSearchPanel from './ProductSearchPanel';
 import AddedItemsList from './AddedItemsList';
+import BranchChipSelector from './BranchChipSelector';
+import TransferActions from './TransferActions';
+import {
+  type AddedItem,
+  validateTransferForm,
+  buildTransferPayload,
+  handleTransferError,
+} from './new-transfer.utils';
 
 interface NewTransferSheetProps {
   readonly visible:          boolean;
@@ -33,10 +38,6 @@ interface NewTransferSheetProps {
   readonly branches:         UseQueryResult<Branch[]>;
   readonly createTransfer:   UseMutationResult<CreateTransferResponse, Error, CreateTransferBody>;
   readonly selectedProduct?: StockLevel | null;
-}
-
-interface AddedItem extends TransferItem {
-  key: string;
 }
 
 export default function NewTransferSheet({
@@ -154,68 +155,17 @@ export default function NewTransferSheet({
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!fromBranchId) {
-      Alert.alert('Xatolik', "Qayerdan filialini tanlang");
-      return;
-    }
-    if (!toBranchId) {
-      Alert.alert('Xatolik', "Qayerga filialini tanlang");
-      return;
-    }
-    if (fromBranchId === toBranchId) {
-      Alert.alert('Xatolik', "Bir xil filialga o'tkazib bo'lmaydi");
-      return;
-    }
-    if (addedItems.length === 0) {
-      Alert.alert('Xatolik', "Kamida bitta mahsulot qo'shing");
-      return;
-    }
+    if (!validateTransferForm(fromBranchId, toBranchId, addedItems, qtyInputMap)) return;
 
-    // Har bir mahsulot miqdorini tekshirish
-    for (const item of addedItems) {
-      const rawQty = qtyInputMap[item.key] ?? '';
-      const parsed = parseFloat(rawQty.replace(',', '.'));
-      if (!rawQty.trim() || isNaN(parsed) || parsed <= 0) {
-        Alert.alert('Xatolik', `"${item.productName}" uchun miqdor kiriting`);
-        return;
-      }
-      if (parsed > item.availableQty) {
-        Alert.alert(
-          'Xatolik',
-          `"${item.productName}" uchun miqdor mavjud qoldiqdan oshib ketdi. Maksimal: ${item.availableQty} dona`,
-        );
-        return;
-      }
-    }
-
-    const payload: CreateTransferBody = {
-      fromBranchId,
-      toBranchId,
-      items: addedItems.map((i) => ({
-        productId:   i.productId,
-        quantity:    i.quantity,
-        warehouseId: i.warehouseId || undefined,
-      })),
-      notes: notes.trim() || undefined,
-    };
-
+    const payload = buildTransferPayload(fromBranchId, toBranchId, addedItems, notes);
     try {
       await createTransfer.mutateAsync(payload);
       resetForm();
       onSuccess();
     } catch (err) {
-      Alert.alert('Xatolik', extractErrorMessage(err));
+      handleTransferError(err);
     }
-  }, [
-    fromBranchId,
-    toBranchId,
-    addedItems,
-    qtyInputMap,
-    notes,
-    createTransfer,
-    resetForm,
-    onSuccess,
-  ]);
+  }, [fromBranchId, toBranchId, addedItems, qtyInputMap, notes, createTransfer, resetForm, onSuccess]);
 
   const branchList = branches.data ?? [];
 
@@ -253,68 +203,26 @@ export default function NewTransferSheet({
               style={styles.scroll}
             >
               {/* Qaydan filiali */}
-              <Text style={styles.label}>Qaydan:</Text>
-              {branches.isLoading ? (
-                <ActivityIndicator size="small" color={C.primary} style={styles.branchLoader} />
-              ) : (
-                <View style={styles.chipRow}>
-                  {branchList.map((b) => (
-                    <TouchableOpacity
-                      key={b.id}
-                      style={[
-                        styles.chip,
-                        fromBranchId === b.id && styles.chipActive,
-                      ]}
-                      onPress={() => setFromBranchId(b.id)}
-                      disabled={loading}
-                      activeOpacity={0.75}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          fromBranchId === b.id && styles.chipTextActive,
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {b.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+              <BranchChipSelector
+                label="Qaydan:"
+                branches={branchList}
+                isLoading={branches.isLoading}
+                selectedId={fromBranchId}
+                onSelect={setFromBranchId}
+                disabled={loading}
+              />
 
               {/* Qayerga filiali */}
-              <Text style={[styles.label, styles.labelTop]}>Qayga:</Text>
-              {branches.isLoading ? (
-                <ActivityIndicator size="small" color={C.primary} style={styles.branchLoader} />
-              ) : (
-                <View style={styles.chipRow}>
-                  {branchList.map((b) => (
-                    <TouchableOpacity
-                      key={b.id}
-                      style={[
-                        styles.chip,
-                        toBranchId === b.id && styles.chipActive,
-                        fromBranchId === b.id && styles.chipSameDisabled,
-                      ]}
-                      onPress={() => setToBranchId(b.id)}
-                      disabled={loading || fromBranchId === b.id}
-                      activeOpacity={0.75}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          toBranchId === b.id && styles.chipTextActive,
-                          fromBranchId === b.id && styles.chipTextDisabled,
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {b.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+              <BranchChipSelector
+                label="Qayga:"
+                branches={branchList}
+                isLoading={branches.isLoading}
+                selectedId={toBranchId}
+                onSelect={setToBranchId}
+                disabled={loading}
+                disabledId={fromBranchId}
+                showTopMargin
+              />
 
               {/* Qo'shilgan mahsulotlar */}
               <AddedItemsList
@@ -368,30 +276,11 @@ export default function NewTransferSheet({
               />
             </ScrollView>
 
-            {/* Harakat tugmalari */}
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={handleClose}
-                disabled={loading}
-              >
-                <Text style={styles.cancelBtnText}>Bekor</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
-                onPress={() => { void handleSubmit(); }}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color={C.white} size="small" />
-                ) : (
-                  <>
-                    <Ionicons name="swap-horizontal-outline" size={16} color={C.white} />
-                    <Text style={styles.submitBtnText}>O'tkazish</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+            <TransferActions
+              loading={loading}
+              onCancel={handleClose}
+              onSubmit={() => { void handleSubmit(); }}
+            />
           </View>
         </KeyboardAvoidingView>
       </View>

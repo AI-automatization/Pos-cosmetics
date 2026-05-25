@@ -4,57 +4,60 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import ProductCard from './ProductCard';
 import ScannerModal from './ScannerModal';
-import PaymentSheet, { type PaymentMethod } from './PaymentSheet';
-import { isOnlineMethod } from './PaymentSheetTypes';
+import PaymentSheet from './PaymentSheet';
 import OnlinePaymentSheet from './OnlinePaymentSheet';
 import LowStockSheet from './LowStockSheet';
+import CustomerSearchSheet from './CustomerSearchSheet';
+import ShiftGuard from '../../components/common/ShiftGuard';
 import { useShiftStore } from '../../store/shiftStore';
 import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
-import { salesApi } from '../../api/sales.api';
-import { paymentsApi, type PaymentIntentResponse } from '../../api/payments.api';
-import { loyaltyApi } from '../../api/loyalty.api';
 import type { Customer } from '../../api/customers.api';
-import CustomerSearchSheet from './CustomerSearchSheet';
-import { type SavdoStackParamList } from '../../navigation/types';
-import ShiftGuard from '../../components/common/ShiftGuard';
-import { isNetworkOnline } from '../../hooks/useNetworkStatus';
 import { useOfflineQueue } from '../../hooks/useOfflineQueue';
-
-import { C, toProduct, type CartItem } from './components/utils';
+import { C, toProduct } from './components/utils';
 import SavdoHeader from './components/SavdoHeader';
 import SavdoSearchBar from './components/SavdoSearchBar';
 import CategoryTabs from './components/CategoryTabs';
 import CartBar from './components/CartBar';
 import { styles } from './styles';
+import useSavdoCart from './useSavdoCart';
+import useSavdoOrder from './useSavdoOrder';
 
 // ─── Screen ────────────────────────────────────────────
 export default function SavdoScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<SavdoStackParamList>>();
   const { isShiftOpen, shiftId } = useShiftStore();
 
   const [search, setSearch]               = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [cart, setCart]                   = useState<CartItem[]>([]);
   const [scannerVisible, setScannerVisible]   = useState(false);
   const [paymentVisible, setPaymentVisible]   = useState(false);
   const [lowStockVisible, setLowStockVisible] = useState(false);
-  const [orderLoading, setOrderLoading]       = useState(false);
-  const [onlinePaymentVisible, setOnlinePaymentVisible] = useState(false);
-  const [paymentIntent, setPaymentIntent] = useState<PaymentIntentResponse | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerSheetVisible, setCustomerSheetVisible] = useState(false);
   const [redeemPoints, setRedeemPoints] = useState(0);
 
   const { pending: pendingCount, refresh: refreshQueue } = useOfflineQueue();
+
+  const {
+    cart, addToCart, removeFromCart, decrementFromCart,
+    clearCart, cartQty, totalItems, totalPrice,
+  } = useSavdoCart();
+
+  const closePayment = () => setPaymentVisible(false);
+  const resetCustomer = () => { setSelectedCustomer(null); setRedeemPoints(0); };
+
+  const {
+    orderLoading, onlinePaymentVisible, paymentIntent,
+    handleConfirm, handleOnlinePaymentSuccess, handleOnlinePaymentCancel,
+  } = useSavdoOrder({
+    cart, totalPrice, shiftId, selectedCustomer, redeemPoints,
+    clearCart, closePayment, resetCustomer, refreshQueue,
+  });
 
   // ─── API ─────────────────────────────────────────────
   const { data: rawProducts = [], isLoading: productsLoading } = useQuery({
@@ -89,42 +92,6 @@ export default function SavdoScreen() {
   const outOfStockProducts = allProducts.filter((p) => p.stockQty === 0);
   const alertCount        = lowStockProducts.length + outOfStockProducts.length;
 
-  // ─── Cart helpers ─────────────────────────────────────
-  const addToCart = (product: CartItem['product']) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i,
-        );
-      }
-      return [...prev, { product, qty: 1 }];
-    });
-  };
-
-  const removeFromCart = (productId: string) => {
-    setCart((prev) => {
-      const updated = prev.filter((i) => i.product.id !== productId);
-      if (updated.length === 0) setPaymentVisible(false);
-      return updated;
-    });
-  };
-
-  const decrementFromCart = (product: CartItem['product']) => {
-    setCart((prev) => {
-      const item = prev.find((i) => i.product.id === product.id);
-      if (!item) return prev;
-      if (item.qty === 1) {
-        const updated = prev.filter((i) => i.product.id !== product.id);
-        if (updated.length === 0) setPaymentVisible(false);
-        return updated;
-      }
-      return prev.map((i) =>
-        i.product.id === product.id ? { ...i, qty: i.qty - 1 } : i,
-      );
-    });
-  };
-
   // ─── Customer ────────────────────────────────────────
   const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -158,115 +125,6 @@ export default function SavdoScreen() {
       setSearch(barcode);
     }
   };
-
-  // ─── Confirm order ────────────────────────────────────
-  const handleConfirm = async (method: PaymentMethod, _received: number) => {
-    if (method === 'NASIYA') {
-      navigation.navigate('NasiyaScreen', { openNewDebt: true, amount: totalPrice, products: cart });
-      setPaymentVisible(false);
-      setCart([]);
-      return;
-    }
-    if (!shiftId) {
-      Alert.alert('Xatolik', 'Smena ochilmagan. Avval smena oching.');
-      return;
-    }
-    // Online payment flow (PAYME / CLICK / UZUM)
-    if (isOnlineMethod(method)) {
-      setOrderLoading(true);
-      try {
-        const order = await salesApi.createOrder({
-          shiftId,
-          items: cart.map((i) => ({
-            productId: i.product.id,
-            quantity: i.qty,
-            unitPrice: i.product.sellPrice,
-          })),
-          notes: `To'lov: ${method}`,
-        });
-        const intent = await paymentsApi.createIntent({
-          orderId: order.id,
-          method,
-          amount: totalPrice,
-        });
-        setPaymentIntent(intent);
-        setPaymentVisible(false);
-        setOnlinePaymentVisible(true);
-      } catch {
-        Alert.alert('Xatolik', "Online to'lov yaratilmadi. Qayta urinib ko'ring.");
-      } finally {
-        setOrderLoading(false);
-      }
-      return;
-    }
-    // Standard payment flow (NAQD / KARTA)
-    setOrderLoading(true);
-    try {
-      const order = await salesApi.createOrder({
-        shiftId,
-        items: cart.map((i) => ({
-          productId: i.product.id,
-          quantity:  i.qty,
-          unitPrice: i.product.sellPrice,
-        })),
-        notes: `To'lov: ${method}`,
-      });
-      if (redeemPoints > 0 && selectedCustomer) {
-        try {
-          await loyaltyApi.redeem(selectedCustomer.id, redeemPoints, order.id);
-        } catch {
-          // Don't block sale if loyalty redeem fails
-        }
-      }
-      setPaymentVisible(false);
-      setCart([]);
-      setSelectedCustomer(null);
-      setRedeemPoints(0);
-    } catch {
-      const online = await isNetworkOnline();
-      if (!online) {
-        const { offlineQueueService } = await import('../../services/OfflineQueueService');
-        await offlineQueueService.enqueue({
-          shiftId: shiftId!,
-          items: cart.map((i) => ({
-            productId: i.product.id,
-            quantity: i.qty,
-            unitPrice: i.product.sellPrice,
-          })),
-          notes: `To'lov: ${method}`,
-        });
-        await refreshQueue();
-        Alert.alert('Offline rejim', "Buyurtma saqlandi. Internet ulanganda avtomatik yuboriladi.");
-        setPaymentVisible(false);
-        setCart([]);
-        setSelectedCustomer(null);
-        setRedeemPoints(0);
-      } else {
-        Alert.alert('Xatolik', "Buyurtma saqlanmadi. Qayta urinib ko'ring.");
-      }
-    } finally {
-      setOrderLoading(false);
-    }
-  };
-
-  // ─── Online payment callbacks ─────────────────────────
-  const handleOnlinePaymentSuccess = () => {
-    setOnlinePaymentVisible(false);
-    setPaymentIntent(null);
-    setCart([]);
-  };
-
-  const handleOnlinePaymentCancel = async () => {
-    if (paymentIntent) {
-      try { await paymentsApi.cancelIntent(paymentIntent.id); } catch { /* noop */ }
-    }
-    setOnlinePaymentVisible(false);
-    setPaymentIntent(null);
-  };
-
-  const cartQty    = (productId: string) => cart.find((i) => i.product.id === productId)?.qty ?? 0;
-  const totalItems = cart.reduce((s, i) => s + i.qty, 0);
-  const totalPrice = cart.reduce((s, i) => s + i.product.sellPrice * i.qty, 0);
 
   // ─── Render ───────────────────────────────────────────
   return (
@@ -319,7 +177,7 @@ export default function SavdoScreen() {
                 product={item}
                 cartQty={cartQty(item.id)}
                 onPress={addToCart}
-                onDecrement={decrementFromCart}
+                onDecrement={(p) => decrementFromCart(p, closePayment)}
               />
             )}
             ListEmptyComponent={
@@ -335,8 +193,8 @@ export default function SavdoScreen() {
           visible={paymentVisible}
           cart={cart}
           total={totalPrice}
-          onClose={() => setPaymentVisible(false)}
-          onRemoveItem={removeFromCart}
+          onClose={closePayment}
+          onRemoveItem={(id) => removeFromCart(id, closePayment)}
           onConfirm={handleConfirm}
           customerId={selectedCustomer?.id ?? null}
           customerPhone={selectedCustomer?.phone ?? null}
@@ -385,4 +243,3 @@ export default function SavdoScreen() {
     </ShiftGuard>
   );
 }
-

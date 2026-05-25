@@ -4,67 +4,27 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { TabParamList, SavdoStackParamList, CatalogStackParamList, FinanceStackParamList, MovementsStackParamList, MoreStackParamList, OmborTabStackParamList } from './types';
+import type { TabParamList, SavdoStackParamList, CatalogStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
+import { getRoleLevel } from '../utils/roles';
 
-// Navigators
+// Extracted navigators
 import DashboardNavigator from './DashboardNavigator';
+import AnalyticsNavigator from './AnalyticsNavigator';
+import EmployeesNavigator from './EmployeesNavigator';
+import FinanceNavigator from './FinanceNavigator';
+import MoreNavigator from './MoreNavigator';
+import { KirimTabNavigator, OmborTabNavigator, MovementsTabNavigator } from './WarehouseNavigators';
+
+// Screens for inline navigators
+import SalesNavigator from './SalesNavigator';
 import SavdoScreen from '../screens/Savdo';
 import SmenaScreen from '../screens/Smena';
-import SalesNavigator from './SalesNavigator';
 import NasiyaScreen from '../screens/Nasiya';
-import KirimScreen from '../screens/Kirim';
-import OmborScreen from '../screens/Ombor';
-import SettingsScreen from '../screens/Settings';
-import MoreMenuScreen from '../screens/MoreMenu';
-import BranchesScreen from '../screens/Settings/BranchesScreen';
-import AuditLogScreen from '../screens/Settings/AuditLogScreen';
-import CustomersScreen from '../screens/Customers/CustomersScreen';
-import CustomerDetailScreen from '../screens/Customers/CustomerDetailScreen';
-import PromotionsScreen from '../screens/Promotions/PromotionsScreen';
-import UsersScreen from '../screens/Settings/UsersScreen';
-import LowStockScreen from '../screens/Inventory/LowStockList';
 import ProductsScreen from '../screens/Catalog/ProductsScreen';
 import CategoriesScreen from '../screens/Catalog/CategoriesScreen';
 import ProductFormScreen from '../screens/Catalog/ProductFormScreen';
 import SuppliersScreen from '../screens/Catalog/SuppliersScreen';
-import FinanceScreen from '../screens/Finance/FinanceScreen';
-import DailyRevenueScreen from '../screens/Finance/DailyRevenueScreen';
-import ExpensesScreen from '../screens/Finance/ExpensesScreen';
-import PnLScreen from '../screens/Finance/PnLScreen';
-import TopProductsScreen from '../screens/Finance/TopProductsScreen';
-import PaymentsHistoryScreen from '../screens/Finance/PaymentsHistoryScreen';
-import NasiyaAgingScreen from '../screens/Finance/NasiyaAgingScreen';
-import ShiftReportsScreen from '../screens/Finance/ShiftReportsScreen';
-import ReportsHubScreen from '../screens/Finance/ReportsHubScreen';
-import ExchangeRatesScreen from '../screens/Finance/ExchangeRatesScreen';
-import BranchReportsScreen from '../screens/Finance/BranchReportsScreen';
-import ReportBuilderScreen from '../screens/Finance/ReportBuilderScreen';
-import ExportScreen from '../screens/Finance/ExportScreen';
-import AnalyticsNavigator from './AnalyticsNavigator';
-import SystemHealthScreen from '../screens/SystemHealth/SystemHealthScreen';
-import EmployeesNavigator from './EmployeesNavigator';
-import DebtsScreen from '../screens/Debts';
-import ShiftsOwnerScreen from '../screens/ShiftsOwner';
-import StockOutScreen from '../screens/StockOut';
-import StockTransferScreen from '../screens/StockTransfer';
-import TransferListScreen from '../screens/StockTransfer/TransferListScreen';
-import TesterScreen from '../screens/Ombor/TesterScreen';
-import ExpiryScreen from '../screens/Expiry';
-import WarehouseDashboardScreen from '../screens/Ombor/WarehouseDashboardScreen';
-import InvoicesScreen from '../screens/Ombor/InvoicesScreen';
-import RestockRequestsScreen from '../screens/Ombor/RestockRequestsScreen';
-import SuppliersOmborScreen from '../screens/Ombor/SuppliersOmborScreen';
-import SupplierDetailScreen from '../screens/Ombor/SupplierDetailScreen';
-import StockMovementsScreen from '../screens/StockMovements';
-import SalesOrdersScreen from '../screens/SalesOrders';
-import SalesReturnsScreen from '../screens/SalesReturns';
-import ChegirmaScreen from '../screens/Chegirmalar/ChegirmaScreen';
-import BillingScreen from '../screens/Billing/BillingScreen';
-import TasksScreen from '../screens/Tasks/TasksScreen';
-import IncomingTransfersScreen from '../screens/IncomingTransfers/IncomingTransfersScreen';
-import PrinterScreen from '../screens/Settings/PrinterScreen';
-import { getRoleLevel } from '../utils/roles';
 
 // ─── Colors ───────────────────────────────────────────────
 const PRIMARY = '#2563EB';
@@ -92,29 +52,6 @@ function CatalogNavigator(): React.JSX.Element {
   );
 }
 
-// ─── Moliya Stack (Finance screens) ─────────────────────────
-const FinanceStack = createNativeStackNavigator<FinanceStackParamList>();
-
-function FinanceNavigator(): React.JSX.Element {
-  return (
-    <FinanceStack.Navigator screenOptions={{ headerShown: false }}>
-      <FinanceStack.Screen name="FinanceMain" component={FinanceScreen} />
-      <FinanceStack.Screen name="DailyRevenue" component={DailyRevenueScreen} />
-      <FinanceStack.Screen name="Expenses" component={ExpensesScreen} />
-      <FinanceStack.Screen name="PnL" component={PnLScreen} />
-      <FinanceStack.Screen name="TopProducts" component={TopProductsScreen} />
-      <FinanceStack.Screen name="PaymentsHistory" component={PaymentsHistoryScreen} />
-      <FinanceStack.Screen name="NasiyaAging" component={NasiyaAgingScreen} />
-      <FinanceStack.Screen name="ShiftReports" component={ShiftReportsScreen} />
-      <FinanceStack.Screen name="ReportsHub" component={ReportsHubScreen} />
-      <FinanceStack.Screen name="ExchangeRates" component={ExchangeRatesScreen} options={{ headerShown: false }} />
-      <FinanceStack.Screen name="BranchReports" component={BranchReportsScreen} options={{ headerShown: false }} />
-      <FinanceStack.Screen name="ReportBuilder" component={ReportBuilderScreen} />
-      <FinanceStack.Screen name="Export" component={ExportScreen} />
-    </FinanceStack.Navigator>
-  );
-}
-
 // ─── Savdo Stack (SavdoMain + nested screens) ──────────────
 const SavdoStack = createNativeStackNavigator<SavdoStackParamList>();
 
@@ -126,106 +63,6 @@ function SavdoNavigator(): React.JSX.Element {
       <SavdoStack.Screen name="SalesHistory" component={SalesNavigator} />
       <SavdoStack.Screen name="NasiyaScreen" component={NasiyaScreen} />
     </SavdoStack.Navigator>
-  );
-}
-
-// ─── Ko'proq Stack (MoreMenu + nested screens) ─────────────
-const MoreStack = createNativeStackNavigator<MoreStackParamList>();
-
-function MoreNavigator(): React.JSX.Element {
-  return (
-    <MoreStack.Navigator screenOptions={{ headerShown: false }}>
-      <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} />
-      <MoreStack.Screen name="KirimScreen" component={KirimScreen} />
-      <MoreStack.Screen name="OmborScreen" component={OmborScreen} />
-      <MoreStack.Screen name="SettingsScreen" component={SettingsScreen} />
-      <MoreStack.Screen name="BranchesScreen" component={BranchesScreen} />
-      <MoreStack.Screen name="AuditLogScreen" component={AuditLogScreen} />
-      <MoreStack.Screen name="CustomersScreen" component={CustomersScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="CustomerDetail" component={CustomerDetailScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="PromotionsScreen" component={PromotionsScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="UsersScreen" component={UsersScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="LowStockList" component={LowStockScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="SuppliersScreen" component={SuppliersScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="SystemHealthScreen" component={SystemHealthScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="DebtsScreen" component={DebtsScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="ShiftsOwnerScreen" component={ShiftsOwnerScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="StockOutScreen" component={StockOutScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="TransferScreen" component={StockTransferScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="TransferListScreen" component={TransferListScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="ExpiryScreen" component={ExpiryScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="StockMovementsScreen" component={StockMovementsScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="SalesOrdersScreen" component={SalesOrdersScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="SalesReturnsScreen" component={SalesReturnsScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="ChegirmaScreen" component={ChegirmaScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="BillingScreen" component={BillingScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="TasksScreen" component={TasksScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="TesterScreen" component={TesterScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="IncomingTransfersScreen" component={IncomingTransfersScreen} options={{ headerShown: false }} />
-      <MoreStack.Screen name="PrinterScreen" component={PrinterScreen} options={{ headerShown: false }} />
-    </MoreStack.Navigator>
-  );
-}
-
-// ─── Kirim Tab Stack (WAREHOUSE role: replaces Savdo tab) ─
-const KirimTabStack = createNativeStackNavigator();
-function KirimTabNavigator(): React.JSX.Element {
-  return (
-    <KirimTabStack.Navigator screenOptions={{ headerShown: false }}>
-      <KirimTabStack.Screen name="KirimMain" component={KirimScreen} />
-    </KirimTabStack.Navigator>
-  );
-}
-
-// ─── Ombor Tab Stack (WAREHOUSE role: replaces Katalog tab) ─
-const OmborTabStack = createNativeStackNavigator<OmborTabStackParamList>();
-function OmborTabNavigator(): React.JSX.Element {
-  return (
-    <OmborTabStack.Navigator screenOptions={{ headerShown: false }}>
-      <OmborTabStack.Screen name="WarehouseDashboard" component={WarehouseDashboardScreen} />
-      <OmborTabStack.Screen name="OmborMain" component={OmborScreen} />
-      <OmborTabStack.Screen
-        name="InvoicesScreen"
-        component={InvoicesScreen}
-        options={{ title: 'Nakladnoylar' }}
-      />
-      <OmborTabStack.Screen
-        name="RestockRequestsScreen"
-        component={RestockRequestsScreen}
-        options={{ title: "To'ldirish so'rovlari" }}
-      />
-      <OmborTabStack.Screen
-        name="SuppliersOmborScreen"
-        component={SuppliersOmborScreen}
-        options={{ title: 'Yetkazib beruvchilar' }}
-      />
-      <OmborTabStack.Screen
-        name="SupplierDetailScreen"
-        component={SupplierDetailScreen}
-        options={{ title: 'Yetkazib beruvchi' }}
-      />
-      <OmborTabStack.Screen
-        name="TransferListScreen"
-        component={TransferListScreen}
-        options={{ title: 'Transferlar' }}
-      />
-      <OmborTabStack.Screen
-        name="TesterScreen"
-        component={TesterScreen}
-        options={{ title: 'Tester' }}
-      />
-    </OmborTabStack.Navigator>
-  );
-}
-
-// ─── Harakatlar Stack (Warehouse movements) ─────────────────
-const MovementsStack = createNativeStackNavigator<MovementsStackParamList>();
-
-function MovementsTabNavigator(): React.JSX.Element {
-  return (
-    <MovementsStack.Navigator screenOptions={{ headerShown: false }}>
-      <MovementsStack.Screen name="MovementsMain" component={StockMovementsScreen} />
-    </MovementsStack.Navigator>
   );
 }
 

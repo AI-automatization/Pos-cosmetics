@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -17,7 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { debtsApi, CustomerDebt } from '../../api/debts.api';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { Colors, Radii } from '../../config/theme';
+import { Colors } from '../../config/theme';
+import { styles } from './QuickPaySheet.styles';
+import QuickPayCustomerInfo from './QuickPayCustomerInfo';
 
 // ─── Payment method types ───────────────────────────────
 type PayMethod = 'CASH' | 'TERMINAL' | 'TRANSFER';
@@ -119,38 +120,8 @@ export default function QuickPaySheet({ visible, customer, onClose, onSuccess }:
               {/* Title */}
               <Text style={styles.title}>Tez to'lov</Text>
 
-              {/* Customer info */}
-              <View style={styles.customerInfo}>
-                <View style={styles.customerAvatar}>
-                  <Text style={styles.customerAvatarText}>
-                    {customer.customerName
-                      .split(' ')
-                      .slice(0, 2)
-                      .map((w) => w[0]?.toUpperCase() ?? '')
-                      .join('')}
-                  </Text>
-                </View>
-                <View style={styles.customerDetails}>
-                  <Text style={styles.customerName}>{customer.customerName}</Text>
-                  <Text style={styles.customerBranch}>{customer.branchName}</Text>
-                </View>
-              </View>
-
-              {/* Debt info box */}
-              <View style={styles.debtInfoBox}>
-                <View style={styles.debtInfoRow}>
-                  <View style={styles.debtInfoItem}>
-                    <Text style={styles.debtInfoLabel}>Jami qarz</Text>
-                    <Text style={styles.debtInfoAmount}>{formatCurrency(customer.totalDebt)}</Text>
-                  </View>
-                  {customer.overdueAmount > 0 && (
-                    <View style={styles.debtInfoItem}>
-                      <Text style={styles.debtInfoLabelDanger}>Muddati o'tgan</Text>
-                      <Text style={styles.debtInfoAmountDanger}>{formatCurrency(customer.overdueAmount)}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
+              {/* Customer + Debt info */}
+              <QuickPayCustomerInfo customer={customer} />
 
               {/* Payment method selector */}
               <Text style={styles.sectionLabel}>To'lov usuli</Text>
@@ -256,236 +227,3 @@ export default function QuickPaySheet({ visible, customer, onClose, onSuccess }:
     </Modal>
   );
 }
-
-// ─── Styles ─────────────────────────────────────────────
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  kav: {
-    width: '100%',
-  },
-  sheet: {
-    backgroundColor: Colors.bgSurface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 16,
-  },
-
-  // Customer info
-  customerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-  },
-  customerAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: Radii.pill,
-    backgroundColor: Colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  customerAvatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-  customerDetails: {
-    flex: 1,
-  },
-  customerName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  customerBranch: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-
-  // Debt info
-  debtInfoBox: {
-    backgroundColor: Colors.warningLight,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    borderRadius: Radii.md,
-    padding: 14,
-    marginBottom: 16,
-  },
-  debtInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  debtInfoItem: {
-    gap: 2,
-  },
-  debtInfoLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: Colors.warning,
-  },
-  debtInfoAmount: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.warning,
-  },
-  debtInfoLabelDanger: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: Colors.danger,
-  },
-  debtInfoAmountDanger: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.danger,
-  },
-
-  // Section labels
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-  },
-
-  // Method selector
-  methodRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  methodBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 11,
-    borderRadius: Radii.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bgSurface,
-  },
-  methodBtnActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  methodBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  methodBtnTextActive: {
-    color: '#FFFFFF',
-  },
-
-  // Amount input
-  amountInput: {
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderRadius: Radii.md,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    backgroundColor: Colors.bgSubtle,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-
-  // Quick fill
-  quickFillRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  quickFillBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: Radii.pill,
-    backgroundColor: Colors.primaryLight,
-  },
-  quickFillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-
-  // Note input
-  noteInput: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radii.md,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.bgSubtle,
-    marginBottom: 20,
-    textAlignVertical: 'top',
-    minHeight: 50,
-  },
-
-  // Action buttons
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  cancelBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  payBtn: {
-    flex: 2,
-    flexDirection: 'row',
-    backgroundColor: Colors.success,
-    borderRadius: Radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: Colors.success,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  payBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-});
