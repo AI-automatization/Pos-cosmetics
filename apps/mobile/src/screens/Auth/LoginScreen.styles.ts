@@ -24,10 +24,11 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    flexGrow: 1,
+    flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 32,
+    paddingTop: 48,
+    paddingBottom: 24,
+    justifyContent: 'center',
   },
 
   // ── Logo ──

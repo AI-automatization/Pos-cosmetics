@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,22 +46,6 @@ export default function LoginScreen({ navigation }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Focus styling — ref-based to avoid re-renders that dismiss keyboard
-  const emailWrapperRef = useRef<View>(null);
-  const passwordWrapperRef = useRef<View>(null);
-
-  const applyFocusStyle = useCallback((ref: React.RefObject<View | null>) => {
-    ref.current?.setNativeProps({
-      style: { borderColor: COLORS.borderFocus, elevation: 2 },
-    });
-  }, []);
-
-  const removeFocusStyle = useCallback((ref: React.RefObject<View | null>) => {
-    ref.current?.setNativeProps({
-      style: { borderColor: COLORS.border, elevation: 0 },
-    });
-  }, []);
-
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Xatolik', "Barcha maydonlarni to'ldiring");
@@ -75,8 +60,6 @@ export default function LoginScreen({ navigation }: Props) {
       const me = await authApi.me();
       await setUser(me, res.accessToken, res.refreshToken);
     } catch (err) {
-      // Agar token saqlangan bo'lsa lekin me() muvaffaqiyatsiz bo'lsa — eski state bilan
-      // aralash holat qoldirmaslik uchun access_token o'chirib tashla
       if (tokenStored) {
         await SecureStore.deleteItemAsync('access_token');
       }
@@ -96,12 +79,11 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="always"
-          keyboardDismissMode="none"
-          showsVerticalScrollIndicator={false}
-        >
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.container}>
           {/* ── Logo ── */}
           <View style={styles.logoArea}>
             <Image source={raosLogo} style={styles.logoImage} />
@@ -114,7 +96,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Email */}
             <Text style={styles.label}>Elektron pochta</Text>
-            <View ref={emailWrapperRef} style={styles.inputWrapper}>
+            <View style={styles.inputWrapper}>
               <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -126,8 +108,7 @@ export default function LoginScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!loading}
-                onFocus={() => applyFocusStyle(emailWrapperRef)}
-                onBlur={() => removeFocusStyle(emailWrapperRef)}
+                returnKeyType="next"
               />
             </View>
 
@@ -138,7 +119,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotText}>Parolni unutdingizmi?</Text>
               </TouchableOpacity>
             </View>
-            <View ref={passwordWrapperRef} style={styles.inputWrapper}>
+            <View style={styles.inputWrapper}>
               <Feather name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, styles.inputPasswordField]}
@@ -148,8 +129,8 @@ export default function LoginScreen({ navigation }: Props) {
                 placeholderTextColor={COLORS.textMuted}
                 secureTextEntry={!showPassword}
                 editable={!loading}
-                onFocus={() => applyFocusStyle(passwordWrapperRef)}
-                onBlur={() => removeFocusStyle(passwordWrapperRef)}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword((v) => !v)}
@@ -255,7 +236,8 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={styles.demoText}>Demo kirish</Text>
             </TouchableOpacity>
           )}
-        </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
