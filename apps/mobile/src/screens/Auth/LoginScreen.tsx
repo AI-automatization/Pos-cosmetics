@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -44,7 +44,22 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Focus styling — ref-based to avoid re-renders that dismiss keyboard
+  const emailWrapperRef = useRef<View>(null);
+  const passwordWrapperRef = useRef<View>(null);
+
+  const applyFocusStyle = useCallback((ref: React.RefObject<View | null>) => {
+    ref.current?.setNativeProps({
+      style: { borderColor: COLORS.borderFocus, elevation: 2 },
+    });
+  }, []);
+
+  const removeFocusStyle = useCallback((ref: React.RefObject<View | null>) => {
+    ref.current?.setNativeProps({
+      style: { borderColor: COLORS.border, elevation: 0 },
+    });
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -99,7 +114,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Email */}
             <Text style={styles.label}>Elektron pochta</Text>
-            <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputWrapperFocused]}>
+            <View ref={emailWrapperRef} style={styles.inputWrapper}>
               <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -111,8 +126,8 @@ export default function LoginScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!loading}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => applyFocusStyle(emailWrapperRef)}
+                onBlur={() => removeFocusStyle(emailWrapperRef)}
               />
             </View>
 
@@ -123,7 +138,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotText}>Parolni unutdingizmi?</Text>
               </TouchableOpacity>
             </View>
-            <View style={[styles.inputWrapper, focusedField === 'password' && styles.inputWrapperFocused]}>
+            <View ref={passwordWrapperRef} style={styles.inputWrapper}>
               <Feather name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, styles.inputPasswordField]}
@@ -133,8 +148,8 @@ export default function LoginScreen({ navigation }: Props) {
                 placeholderTextColor={COLORS.textMuted}
                 secureTextEntry={!showPassword}
                 editable={!loading}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => applyFocusStyle(passwordWrapperRef)}
+                onBlur={() => removeFocusStyle(passwordWrapperRef)}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword((v) => !v)}
