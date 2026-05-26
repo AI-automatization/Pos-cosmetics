@@ -16,6 +16,7 @@ import {
   type StockTransferListItem,
   type TransferStatus,
 } from '../../api/inventory.api';
+import { useAuthStore } from '../../store/auth.store';
 import { C } from './StockTransferColors';
 import { s } from './TransferListView.styles';
 import TransferCard from './TransferCard';
@@ -44,6 +45,7 @@ interface TransferListViewProps {
 
 export default function TransferListView({ style }: TransferListViewProps) {
   const queryClient = useQueryClient();
+  const userRole = useAuthStore((s) => s.user?.role);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [actingId, setActingId] = useState<string | null>(null);
 
@@ -110,9 +112,9 @@ export default function TransferListView({ style }: TransferListViewProps) {
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<StockTransferListItem>) => (
-      <TransferCard item={item} actingId={actingId} onAction={handleAction} />
+      <TransferCard item={item} actingId={actingId} onAction={handleAction} userRole={userRole} />
     ),
-    [actingId, handleAction],
+    [actingId, handleAction, userRole],
   );
 
   const keyExtractor = useCallback(

@@ -30,5 +30,13 @@ export function useWarehouseDashboard() {
     refetchInterval: 30_000,
   });
 
-  return { dashboard, alerts, restockRequests };
+  // REQUESTED transfer so'rovlari soni (ombor ishchisi uchun)
+  const transferRequests = useQuery({
+    queryKey: ['stock-transfers', 'REQUESTED'],
+    queryFn: () => inventoryApi.listTransfers({ status: 'REQUESTED' }),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  return { dashboard, alerts, restockRequests, transferRequests };
 }

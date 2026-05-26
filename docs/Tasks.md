@@ -776,3 +776,43 @@
 - **Kutilgan:** Mijoz 5 daqiqada 1000+ tovar qo'sha oladi
 - **Muddat:** 2 hafta
 - **Raqib:** YesPOS 700K+ tayyor baza — RAOS javob: smart import tool
+
+---
+
+## T-469 | P1 | [BACKEND] | Branch.isWarehouse flag — Katta ombor belgisi
+
+- **Sana:** 2026-05-26
+- **Mas'ul:** Ibrat
+- **Fayl:** `prisma/schema.prisma`, `apps/api/src/identity/identity.service.ts`
+- **Muammo:** Hozirda barcha branchlar bir xil — "katta ombor" tushunchasi yo'q. Filial → ombor so'rov funksiyasi uchun zarur.
+- **Vazifa:**
+  1. `prisma/schema.prisma` → Branch modelga: `isWarehouse Boolean @default(false) @map("is_warehouse")`
+  2. Migration: `npx prisma migrate dev --name add-branch-is-warehouse`
+  3. Seed da bitta branchni `isWarehouse: true` qilish
+- **Kutilgan:** Branch jadvalida `is_warehouse` ustun; API da branch.isWarehouse qaytadi
+
+## T-470 | P1 | [BACKEND] | WAREHOUSE roli — transfer endpointlarga write ruxsat
+
+- **Sana:** 2026-05-26
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/common/guards/warehouse-read-only.guard.ts`
+- **Muammo:** WAREHOUSE roli faqat read-only. Transfer yaratish/tasdiqlash uchun write ruxsat kerak.
+- **Vazifa:**
+  1. WHITELIST ga qo'shish:
+     - `{ method: 'POST',  pathIncludes: '/inventory/transfers' }`
+     - `{ method: 'PATCH', pathIncludes: '/inventory/transfers' }`
+- **Kutilgan:** WAREHOUSE roli transfer CRUD endpointlarga kira oladi
+
+## T-471 | P1 | [BACKEND] | Auth /me javobiga branchId + branch qo'shish
+
+- **Sana:** 2026-05-26
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/identity/identity.service.ts`
+- **Muammo:** Mobileda user qaysi filialda ishlashini bilish kerak. Hozir `/me` javobida `branchId` yo'q.
+- **Vazifa:**
+  1. `getProfile()` select ga qo'shish:
+     ```typescript
+     branchId: true,
+     branch: { select: { id: true, name: true, isWarehouse: true } },
+     ```
+- **Kutilgan:** `/me` javobida `branchId`, `branch: { id, name, isWarehouse }` qaytadi

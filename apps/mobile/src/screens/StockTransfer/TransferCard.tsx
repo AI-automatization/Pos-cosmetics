@@ -25,18 +25,28 @@ interface ActionBtnConfig {
   action: ActionType;
 }
 
-function getActionButtons(status: TransferStatus): ActionBtnConfig[] {
+const APPROVE_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE'] as const;
+
+function getActionButtons(status: TransferStatus, userRole?: string): ActionBtnConfig[] {
+  const canApprove = APPROVE_ROLES.includes(userRole as typeof APPROVE_ROLES[number]);
+
   switch (status) {
     case 'REQUESTED':
-      return [
-        { label: 'Tasdiqlash', color: C.primary, action: 'approve' },
-        { label: 'Bekor qilish', color: C.red, action: 'cancel' },
-      ];
+      if (canApprove) {
+        return [
+          { label: 'Tasdiqlash', color: C.primary, action: 'approve' },
+          { label: 'Bekor qilish', color: C.red, action: 'cancel' },
+        ];
+      }
+      return [{ label: 'Bekor qilish', color: C.red, action: 'cancel' }];
     case 'APPROVED':
-      return [
-        { label: "Jo'natish", color: C.primary, action: 'ship' },
-        { label: 'Bekor qilish', color: C.red, action: 'cancel' },
-      ];
+      if (canApprove) {
+        return [
+          { label: "Jo'natish", color: C.primary, action: 'ship' },
+          { label: 'Bekor qilish', color: C.red, action: 'cancel' },
+        ];
+      }
+      return [];
     case 'SHIPPED':
       return [{ label: 'Qabul qilish', color: C.green, action: 'receive' }];
     default:
@@ -58,15 +68,17 @@ interface TransferCardProps {
   readonly item: StockTransferListItem;
   readonly actingId: string | null;
   readonly onAction: (id: string, action: ActionType) => void;
+  readonly userRole?: string;
 }
 
 const TransferCard = React.memo(function TransferCard({
   item,
   actingId,
   onAction,
+  userRole,
 }: TransferCardProps) {
   const cfg = STATUS_CFG[item.status];
-  const buttons = getActionButtons(item.status);
+  const buttons = getActionButtons(item.status, userRole);
   const isActing = actingId === item.id;
   const visibleItems = item.items.slice(0, MAX_VISIBLE_ITEMS);
   const hiddenCount = item.items.length - MAX_VISIBLE_ITEMS;

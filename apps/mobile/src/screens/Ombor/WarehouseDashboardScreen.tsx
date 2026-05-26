@@ -37,7 +37,7 @@ const MAX_MOVEMENTS = 10;
 export default function WarehouseDashboardScreen() {
   const navigation = useNavigation<Nav>();
   const queryClient = useQueryClient();
-  const { dashboard, alerts, restockRequests } = useWarehouseDashboard();
+  const { dashboard, alerts, restockRequests, transferRequests } = useWarehouseDashboard();
 
   // Vibrate on new restock requests
   const prevCountRef = useRef(0);
@@ -63,8 +63,9 @@ export default function WarehouseDashboardScreen() {
       dashboard.refetch(),
       alerts.refetch(),
       restockRequests.refetch(),
+      transferRequests.refetch(),
     ]);
-  }, [dashboard, alerts, restockRequests]);
+  }, [dashboard, alerts, restockRequests, transferRequests]);
 
   // Loading
   if (dashboard.isLoading) {
@@ -90,6 +91,7 @@ export default function WarehouseDashboardScreen() {
   const expiredCount = alerts.data?.expired ?? 0;
   const restockList = restockRequests.data ?? [];
   const todayTotal = (stats?.todayMovementsIn ?? 0) + (stats?.todayMovementsOut ?? 0);
+  const transferRequestCount = transferRequests.data?.items?.length ?? 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -142,6 +144,12 @@ export default function WarehouseDashboardScreen() {
             icon="notifications-outline"
             onPress={() => navigation.navigate('RestockRequestsScreen')}
             badge={restockList.length}
+          />
+          <QuickChip
+            label="Transferlar"
+            icon="swap-horizontal-outline"
+            onPress={() => navigation.navigate('OmborMain')}
+            badge={transferRequestCount}
           />
           <QuickChip label="Kirim" icon="add-circle-outline" onPress={() => navigation.navigate('OmborMain')} />
           <QuickChip label="Muddatlar" icon="time-outline" onPress={() => navigation.navigate('OmborMain')} />

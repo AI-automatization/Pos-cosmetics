@@ -7,6 +7,7 @@ export interface Branch {
   name: string;
   address: string;
   isActive: boolean;
+  isWarehouse?: boolean;
   phone?: string;
   createdAt?: string;
 }
@@ -26,6 +27,7 @@ interface BranchApiResponse {
   name?: string;
   address?: string;
   isActive?: boolean;
+  isWarehouse?: boolean;
   phone?: string;
   createdAt?: string;
 }
@@ -38,6 +40,7 @@ function mapBranch(b: BranchApiResponse, fallback?: CreateBranchBody): Branch {
     name: b.name ?? fallback?.name ?? '',
     address: b.address ?? fallback?.address ?? '',
     isActive: b.isActive ?? true,
+    isWarehouse: b.isWarehouse ?? false,
     phone: b.phone ?? fallback?.phone,
     createdAt: b.createdAt,
   };
@@ -68,5 +71,10 @@ export const branchesApi = {
 
   remove: async (id: string): Promise<void> => {
     await api.delete(`/branches/${id}`);
+  },
+
+  getWarehouseBranch: async (): Promise<Branch | null> => {
+    const all = await branchesApi.getAll();
+    return all.find((b) => b.isWarehouse) ?? null;
   },
 };

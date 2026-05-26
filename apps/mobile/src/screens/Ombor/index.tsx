@@ -25,16 +25,21 @@ import OmborEmptyState from './OmborEmptyState';
 import OmborListHeader from './OmborListHeader';
 import ProductStockDetailSheet from './ProductStockDetailSheet';
 import LabelPrintSheet from '../Catalog/LabelPrintSheet';
+import StockRequestSheet from '../StockTransfer/StockRequestSheet';
+import { useAuthStore } from '../../store/auth.store';
 import type { LowStockItem } from '../../api/inventory.api';
 
 type OmborNav = NativeStackNavigationProp<OmborTabStackParamList, 'OmborMain'>;
 
 export default function OmborScreen() {
   const navigation = useNavigation<OmborNav>();
+  const user = useAuthStore((s) => s.user);
+  const isWarehouse = user?.role === 'WAREHOUSE';
   const [search, setSearch]                 = useState('');
   const [activeTab, setActiveTab]           = useState<FilterTab>('ALL');
   const [activeWarehouse, setActiveWarehouse] = useState<string | null>(null);
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
+  const [showRequestSheet, setShowRequestSheet] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<LowStockItem | null>(null);
   const [printProduct, setPrintProduct] = useState<{
@@ -79,6 +84,8 @@ export default function OmborScreen() {
       onFilterPress={() => setShowWarehouseModal(true)}
       onInvoicesPress={() => navigation.navigate('InvoicesScreen')}
       onRestockRequestsPress={() => navigation.navigate('RestockRequestsScreen')}
+      onStockRequestPress={() => setShowRequestSheet(true)}
+      showStockRequest={!isWarehouse}
     />
   );
 
@@ -206,6 +213,11 @@ export default function OmborScreen() {
       <LabelPrintSheet
         product={printProduct}
         onClose={() => setPrintProduct(null)}
+      />
+
+      <StockRequestSheet
+        visible={showRequestSheet}
+        onClose={() => setShowRequestSheet(false)}
       />
     </SafeAreaView>
   );

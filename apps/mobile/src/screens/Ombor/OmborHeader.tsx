@@ -9,9 +9,11 @@ interface Props {
   onFilterPress?: () => void;
   onInvoicesPress?: () => void;
   onRestockRequestsPress?: () => void;
+  onStockRequestPress?: () => void;
+  showStockRequest?: boolean;
 }
 
-export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPress, onRestockRequestsPress }: Props) {
+export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPress, onRestockRequestsPress, onStockRequestPress, showStockRequest }: Props) {
   return (
     <View style={styles.header}>
       <View>
@@ -19,6 +21,12 @@ export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPres
         <Text style={styles.headerSub}>Zaxira holati</Text>
       </View>
       <View style={styles.actions}>
+        {showStockRequest && (
+          <TouchableOpacity style={styles.requestBtn} onPress={onStockRequestPress} activeOpacity={0.75}>
+            <Ionicons name="arrow-up-circle-outline" size={16} color={C.white} />
+            <Text style={styles.requestBtnText}>So'rov</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.iconBtn} onPress={onRestockRequestsPress} activeOpacity={0.75}>
           <Ionicons name="notifications-outline" size={20} color={C.primary} />
         </TouchableOpacity>
@@ -68,5 +76,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  requestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: C.primary,
+  },
+  requestBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.white,
   },
 });

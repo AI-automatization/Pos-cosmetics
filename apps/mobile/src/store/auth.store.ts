@@ -8,10 +8,16 @@ interface User {
   lastName: string;
   role: string;
   tenantId: string;
+  branchId?: string;
   tenant?: {
     id: string;
     name: string;
     slug: string;
+  };
+  branch?: {
+    id: string;
+    name: string;
+    isWarehouse?: boolean;
   };
 }
 

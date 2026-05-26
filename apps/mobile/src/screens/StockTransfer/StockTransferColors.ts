@@ -1,6 +1,6 @@
 // StockTransferColors.ts — rang konstantalari va ruxsat etilgan rollar
 
-export const TRANSFER_ROLES = ['OWNER', 'ADMIN', 'MANAGER'] as const;
+export const TRANSFER_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER'] as const;
 
 export const C = {
   bg:        '#F9FAFB',
