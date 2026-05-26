@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import type { SalesSummary, DailyRevenue, TopProduct } from '@raos/types';
+import type { ProfitReport } from '../../api/reports.api';
 import { reportsApi, salesApi, inventoryApi, nasiyaApi } from '../../api';
+import { analyticsApi } from '../../api/analytics.api';
+import type { BranchRevenueItem } from '../../api/analytics.api';
 import { todayISO, daysAgoISO } from '../../utils/date';
 import { CONFIG } from '../../config';
 
@@ -35,7 +38,8 @@ function makeDemoTopProducts(): TopProduct[] {
   ];
 }
 
-export function useDashboardData() {
+export default function useDashboardData(isWarehouse = false, isCashier = false) {
+  const skipFinancial = isWarehouse || isCashier;
   const today = todayISO();
   const sevenDaysAgo = daysAgoISO(6);
 
@@ -43,12 +47,14 @@ export function useDashboardData() {
     queryKey: ['reports', 'summary', today],
     queryFn: async () => {
       try {
-        return await reportsApi.getSalesSummary(today, today);
+        const data = await reportsApi.getSalesSummary(today, today);
+        return data.orders.count > 0 ? data : makeDemoSummary(today);
       } catch {
         return makeDemoSummary(today);
       }
     },
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const weeklyRevenue = useQuery({
@@ -62,6 +68,7 @@ export function useDashboardData() {
       }
     },
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const topProducts = useQuery({
@@ -75,17 +82,19 @@ export function useDashboardData() {
       }
     },
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const currentShift = useQuery({
     queryKey: ['sales', 'shift', 'current'],
     queryFn: salesApi.getCurrentShift,
     refetchInterval: CONFIG.ALERTS_REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
   });
 
   const lowStock = useQuery({
     queryKey: ['inventory', 'low-stock'],
-    queryFn: () => inventoryApi.getLowStock(),
+    queryFn: () => inventoryApi.getStockLevels({ lowStock: true }),
     refetchInterval: CONFIG.ALERTS_REFETCH_INTERVAL_MS,
   });
 
@@ -93,6 +102,30 @@ export function useDashboardData() {
     queryKey: ['nasiya', 'overdue'],
     queryFn: nasiyaApi.getOverdue,
     refetchInterval: CONFIG.REFETCH_INTERVAL_MS,
+    enabled: !skipFinancial,
+  });
+
+  // Oylik profit (30 kun)
+  const thirtyDaysAgoDate = new Date();
+  thirtyDaysAgoDate.setDate(thirtyDaysAgoDate.getDate() - 30);
+  const thirtyDaysAgoStr = thirtyDaysAgoDate.toISOString().split('T')[0] ?? today;
+  const todayStr = today;
+
+  const { data: monthlyProfit, isLoading: isMonthlyLoading } = useQuery<ProfitReport>({
+    queryKey: ['dashboard-monthly-profit', thirtyDaysAgoStr, todayStr],
+    queryFn:  () => reportsApi.getProfitReport(thirtyDaysAgoStr, todayStr),
+    staleTime: 5 * 60_000,
+    retry: false,
+    enabled: !skipFinancial,
+  });
+
+  // Branch daromadi (getRevenueByBranch — robust field normalization)
+  const { data: branchRevenue, isLoading: isBranchRevenueLoading } = useQuery<BranchRevenueItem[]>({
+    queryKey: ['dashboard-branch-revenue'],
+    queryFn: () => analyticsApi.getRevenueByBranch('30d'),
+    staleTime: 5 * 60_000,
+    retry: false,
+    enabled: !skipFinancial,
   });
 
   // Derive summary from overdue list
@@ -110,26 +143,30 @@ export function useDashboardData() {
   };
 
   const refetchAll = () => {
-    todaySummary.refetch();
-    weeklyRevenue.refetch();
-    topProducts.refetch();
-    currentShift.refetch();
     lowStock.refetch();
-    nasiyaOverdue.refetch();
+    if (!skipFinancial) {
+      todaySummary.refetch();
+      weeklyRevenue.refetch();
+      topProducts.refetch();
+      currentShift.refetch();
+      nasiyaOverdue.refetch();
+    }
   };
 
-  const isLoading =
-    todaySummary.isLoading ||
-    weeklyRevenue.isLoading ||
-    currentShift.isLoading;
+  const isLoading = skipFinancial
+    ? lowStock.isLoading
+    : todaySummary.isLoading ||
+      weeklyRevenue.isLoading ||
+      currentShift.isLoading;
 
-  const isRefreshing =
-    todaySummary.isFetching ||
-    weeklyRevenue.isFetching ||
-    currentShift.isFetching ||
-    topProducts.isFetching ||
-    lowStock.isFetching ||
-    nasiyaOverdue.isFetching;
+  const isRefreshing = skipFinancial
+    ? lowStock.isFetching
+    : todaySummary.isFetching ||
+      weeklyRevenue.isFetching ||
+      currentShift.isFetching ||
+      topProducts.isFetching ||
+      lowStock.isFetching ||
+      nasiyaOverdue.isFetching;
 
   return {
     todaySummary,
@@ -138,6 +175,10 @@ export function useDashboardData() {
     currentShift,
     lowStock,
     nasiyaSummary,
+    monthlyProfit,
+    isMonthlyLoading,
+    branchRevenue,
+    isBranchRevenueLoading,
     isLoading,
     isRefreshing,
     refetchAll,

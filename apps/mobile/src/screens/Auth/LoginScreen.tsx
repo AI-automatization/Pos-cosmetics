@@ -4,9 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Alert,
   ScrollView,
@@ -21,18 +18,9 @@ import { authApi } from '../../api';
 import { useAuthStore } from '../../store/auth.store';
 import { extractErrorMessage } from '../../utils/error';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
-
-const COLORS = {
-  primary: '#5B5BD6',
-  primaryLight: 'rgba(91, 91, 214, 0.1)',
-  background: '#F5F5F7',
-  white: '#FFFFFF',
-  textPrimary: '#111827',
-  textSecondary: '#6B7280',
-  textMuted: '#9CA3AF',
-  border: '#E5E7EB',
-  label: '#374151',
-};
+import { useScreenProtection } from '../../hooks/useScreenProtection';
+import Constants from 'expo-constants';
+import { styles, COLORS } from './LoginScreen.styles';
 
 const LANGS = [
   { code: 'uz', label: "O'ZBEK" },
@@ -43,6 +31,7 @@ const LANGS = [
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
+  useScreenProtection();
   const { i18n } = useTranslation();
   const { isAvailable: biometricAvailable } = useBiometricAuth();
   const setUser = useAuthStore((s) => s.setUser);
@@ -51,31 +40,43 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) return;
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Xatolik', "Barcha maydonlarni to'ldiring");
+      return;
+    }
     setLoading(true);
+    let tokenStored = false;
     try {
-      // slug — tenant kodi, keyinchalik QR yoki settings orqali konfiguratsiya qilinadi
-      const slug = await SecureStore.getItemAsync('tenant_slug') ?? '';
-      const res = await authApi.login({ slug, email: email.trim(), password });
+      const res = await authApi.login({ email: email.trim(), password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
+      tokenStored = true;
       const me = await authApi.me();
       await setUser(me, res.accessToken, res.refreshToken);
     } catch (err) {
+      // Agar token saqlangan bo'lsa lekin me() muvaffaqiyatsiz bo'lsa — eski state bilan
+      // aralash holat qoldirmaslik uchun access_token o'chirib tashla
+      if (tokenStored) {
+        await SecureStore.deleteItemAsync('access_token');
+      }
       const msg = extractErrorMessage(err);
-      Alert.alert('Xatolik', msg);
+      if (msg === 'SLUG_REQUIRED') {
+        Alert.alert(
+          'Xatolik',
+          "Bir nechta tashkilotda ro'yxatdan o'tgansiz. Slug kerak.",
+        );
+      } else {
+        Alert.alert('Xatolik', msg);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
@@ -87,7 +88,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={styles.logoLetter}>R</Text>
             </View>
             <Text style={styles.logoText}>RAOS</Text>
-            <Text style={styles.subtitle}>Savdo tizimiga xush kelibsiz</Text>
+            <Text style={styles.subtitle}>Biznesingizni boshqaring</Text>
           </View>
 
           {/* ── Form ── */}
@@ -95,7 +96,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Email */}
             <Text style={styles.label}>Elektron pochta</Text>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputWrapperFocused]}>
               <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -107,6 +108,8 @@ export default function LoginScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!loading}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
 
@@ -117,7 +120,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotText}>Parolni unutdingizmi?</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, focusedField === 'password' && styles.inputWrapperFocused]}>
               <Feather name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, styles.inputPasswordField]}
@@ -127,6 +130,8 @@ export default function LoginScreen({ navigation }: Props) {
                 placeholderTextColor={COLORS.textMuted}
                 secureTextEntry={!showPassword}
                 editable={!loading}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword((v) => !v)}
@@ -151,7 +156,7 @@ export default function LoginScreen({ navigation }: Props) {
               {loading ? (
                 <ActivityIndicator color={COLORS.white} />
               ) : (
-                <Text style={styles.loginButtonText}>Kirish →</Text>
+                <Text style={styles.loginButtonText}>Kirish</Text>
               )}
             </TouchableOpacity>
 
@@ -205,243 +210,34 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
           </View>
 
-          {/* DEV only */}
+          <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '0.0.0'}</Text>
+
+          {/* DEV only — haqiqiy API bilan demo login */}
           {__DEV__ && (
             <TouchableOpacity
               style={styles.demoButton}
-              onPress={() =>
-                setUser(
-                  {
-                    id: 'demo',
-                    email: 'demo@raos.uz',
-                    firstName: 'Demo',
-                    lastName: 'User',
-                    role: 'OWNER',
-                    tenantId: 'demo-tenant',
-                    tenant: { id: 'demo-tenant', name: "Demo Do'kon", slug: 'demo' },
-                  },
-                  'demo-access-token',
-                  'demo-refresh-token',
-                )
-              }
+              disabled={loading}
+              onPress={async () => {
+                setLoading(true);
+                try {
+                  const demoEmail = 'owner@raos.uz';
+                  const demoPass = 'Demo1234!';
+                  const res = await authApi.login({ email: demoEmail, password: demoPass });
+                  await SecureStore.setItemAsync('access_token', res.accessToken);
+                  const me = await authApi.me();
+                  await setUser(me, res.accessToken, res.refreshToken);
+                } catch (err) {
+                  const msg = extractErrorMessage(err);
+                  Alert.alert('Demo kirish xatosi', msg);
+                } finally {
+                  setLoading(false);
+                }
+              }}
             >
-              <Text style={styles.demoText}>🧪 Demo kirish</Text>
+              <Text style={styles.demoText}>Demo kirish</Text>
             </TouchableOpacity>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-  },
-
-  // ── Logo ──
-  logoArea: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoBox: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  logoLetter: {
-    color: COLORS.white,
-    fontSize: 34,
-    fontWeight: '800',
-  },
-  logoText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: 3,
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-
-  // ── Form ──
-  form: {
-    gap: 0,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.label,
-    marginBottom: 8,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  forgotText: {
-    fontSize: 13,
-    color: COLORS.primary,
-    fontWeight: '500',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 52,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.textPrimary,
-  },
-  inputPasswordField: {
-    paddingRight: 4,
-  },
-  eyeButton: {
-    paddingLeft: 8,
-  },
-
-  // ── Login Button ──
-  loginButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  loginButtonDisabled: {
-    opacity: 0.65,
-  },
-  loginButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-
-  // ── Divider ──
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border,
-  },
-  dividerLabel: {
-    marginHorizontal: 12,
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-  },
-
-  // ── Biometric ──
-  biometricButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    height: 52,
-    gap: 10,
-    backgroundColor: COLORS.white,
-  },
-  biometricText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-
-  // ── Register ──
-  registerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  registerText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  registerLink: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-
-  // ── Language ──
-  langRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 24,
-    gap: 10,
-  },
-  langSep: {
-    color: COLORS.border,
-    fontSize: 13,
-  },
-  langText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
-  langTextActive: {
-    color: COLORS.primary,
-    fontWeight: '700',
-  },
-
-  // ── Dev Demo ──
-  demoButton: {
-    alignItems: 'center',
-    paddingVertical: 14,
-    marginTop: 16,
-  },
-  demoText: {
-    color: COLORS.textMuted,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-});

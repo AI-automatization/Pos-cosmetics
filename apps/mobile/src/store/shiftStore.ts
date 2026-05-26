@@ -14,14 +14,38 @@ export const useShiftStore = create<ShiftState>((set, get) => ({
   shiftId: null,
 
   openShift: async (openingCash = 0) => {
-    const shift = await salesApi.openShiftApi({ openingCash });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Ulanish vaqti tugadi. Internetni tekshiring.')), 15_000),
+    );
+    const shift = await Promise.race([
+      salesApi.openShiftApi({ openingCash }),
+      timeoutPromise,
+    ]);
     set({ isShiftOpen: true, shiftId: shift.id });
   },
 
   closeShift: async (closingCash = 0) => {
+    // Avval API dan yangi holatni olib kelamiz (stale shiftId dan himoya)
+    try {
+      const current = await salesApi.getCurrentShift();
+      if (current && current.id) {
+        set({ shiftId: current.id, isShiftOpen: true });
+      }
+    } catch {
+      // Offline — mavjud shiftId bilan davom etamiz
+    }
+
     const { shiftId } = get();
-    if (!shiftId) return;
-    await salesApi.closeShiftApi(shiftId, { closingCash });
+    if (!shiftId) {
+      throw new Error('Faol smena topilmadi. Iltimos, avval smena oching.');
+    }
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Ulanish vaqti tugadi. Internetni tekshiring.')), 15_000),
+    );
+    await Promise.race([
+      salesApi.closeShiftApi(shiftId, { closingCash }),
+      timeoutPromise,
+    ]);
     set({ isShiftOpen: false, shiftId: null });
   },
 

@@ -3,25 +3,51 @@
     "name": "RAOS",
     "entryPoint": "./index.js",
     "slug": "raos-mobile",
+    "scheme": "raos",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "uz.raos.mobile"
+      "bundleIdentifier": "uz.raos.mobile",
+      "associatedDomains": [
+        "applinks:raos.uz",
+        "applinks:www.raos.uz"
+      ]
     },
     "android": {
       "package": "uz.raos.mobile",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0E1530"
-      }
-    },
-    "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0E1530"
+        "backgroundColor": "#6366F1"
+      },
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "raos.uz",
+              "pathPrefix": "/app"
+            },
+            {
+              "scheme": "https",
+              "host": "www.raos.uz",
+              "pathPrefix": "/app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
       "expo-secure-store",
@@ -29,16 +55,24 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
-          "color": "#24D4F4"
+          "icon": "./src/assets/notification-icon.png",
+          "color": "#6366F1"
         }
       ],
-      "@config-plugins/detox"
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "networkInspector": false
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
-        "projectId": "raos-mobile"
+        "projectId": "a7b6eeff-ea24-4713-a3ca-12887bc805fb"
       }
-    }
+    },
+    "owner": "mirzaevv077"
   }
 }

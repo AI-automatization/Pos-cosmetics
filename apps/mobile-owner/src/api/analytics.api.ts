@@ -1,5 +1,9 @@
 import { apiClient } from './client';
 import { ENDPOINTS } from '../config/endpoints';
+import type { AbcRawRow, AbcGroup, BranchComparisonItem, DeadStockItem } from '@raos/types';
+import { mapAbcGroups } from '@raos/types';
+
+export type { AbcGroup, DeadStockItem, BranchComparisonItem } from '@raos/types';
 
 export interface AnalyticsParams {
   branchId?: string | null;
@@ -39,14 +43,6 @@ export interface SalesTrendPoint {
   orders: number;
 }
 
-export interface BranchComparisonItem {
-  branchId: string;
-  branchName: string;
-  revenue: number;
-  orders: number;
-  avgOrderValue: number;
-}
-
 export interface TopProduct {
   productId: string;
   name: string;
@@ -60,6 +56,16 @@ export interface BranchRevenueItem {
   revenue: number;
   stockValue: number;
   orders: number;
+}
+
+/** Branch comparison report item for owner reports */
+export interface BranchReport {
+  readonly branchId: string;
+  readonly branchName: string;
+  readonly revenue: number;
+  readonly orders: number;
+  readonly avgOrderValue: number;
+  readonly growth: number;
 }
 
 export const analyticsApi = {
@@ -132,5 +138,51 @@ export const analyticsApi = {
       },
     });
     return data;
+  },
+
+  async getBranchReport(period?: string): Promise<BranchReport[]> {
+    try {
+      const { data } = await apiClient.get<BranchReport[] | { items: BranchReport[] }>(
+        ENDPOINTS.ANALYTICS_REVENUE_BY_BRANCH,
+        { params: { period } },
+      );
+      if (Array.isArray(data)) return data;
+      if (Array.isArray((data as { items: BranchReport[] }).items)) {
+        return (data as { items: BranchReport[] }).items;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async getAbcAnalysis(from?: string, to?: string): Promise<AbcGroup[]> {
+    try {
+      const { data } = await apiClient.get<AbcRawRow[]>('/analytics/abc', {
+        params: { from, to },
+      });
+      const rows = Array.isArray(data) ? data : [];
+      return mapAbcGroups(rows);
+    } catch {
+      return [];
+    }
+  },
+
+  async getDeadStock(days = 90): Promise<DeadStockItem[]> {
+    try {
+      const res = await apiClient.get('/analytics/dead-stock', { params: { days } });
+      const raw = Array.isArray(res.data) ? res.data : [];
+      return raw.map((r: Record<string, unknown>) => ({
+        productId: String(r.productId ?? ''),
+        productName: String(r.productName ?? ''),
+        sku: r.sku != null ? String(r.sku) : null,
+        totalStock: Number(r.totalStock ?? 0),
+        lastSoldAt: r.lastSoldAt != null ? String(r.lastSoldAt) : null,
+        carryingCost: Number(r.carryingCost ?? 0),
+        daysIdle: Number(r.daysIdle ?? 0),
+      }));
+    } catch {
+      return [];
+    }
   },
 };

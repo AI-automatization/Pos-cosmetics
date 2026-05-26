@@ -35,6 +35,7 @@ POLAT_PROGRESS.txt
 
 # Claude Code (local only)
 .claude/settings.local.json
+.claude/session-context.md
 .playwright-mcp/
 
 # GStack security reports (local only)
@@ -99,6 +100,10 @@ apps/mobile/js_errors.txt
 
 # Playwright MCP
 .playwright-mcp/
+
+# Telegram Bot secrets (use .env files only)
+*.bot.env
+.env.tg
 
 # Security — never commit credentials/cookies
 cookies.txt

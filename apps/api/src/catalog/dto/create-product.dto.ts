@@ -7,7 +7,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { IsNumber, Min } from 'class-validator';
+import { IsNumber, Min, IsIn } from 'class-validator';
 import { IsValidBarcode } from '../../common/pipes';
 
 export class CreateProductDto {
@@ -235,9 +235,9 @@ export class ProductFilterDto {
   @Min(1)
   limit?: number;
 
-  @ApiPropertyOptional({ default: 'createdAt' })
+  @ApiPropertyOptional({ default: 'createdAt', enum: ['createdAt', 'name', 'sellPrice', 'sku', 'updatedAt'] })
   @IsOptional()
-  @IsString()
+  @IsIn(['createdAt', 'name', 'sellPrice', 'sku', 'updatedAt'])
   sort?: string;
 
   @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'desc' })

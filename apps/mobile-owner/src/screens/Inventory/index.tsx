@@ -3,9 +3,10 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import ScreenLayout from '../../components/layout/ScreenLayout';
 import InventoryList from './InventoryList';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ErrorView from '../../components/common/ErrorView';
 import { useInventory, InventoryTabStatus } from '../../hooks/useInventory';
 import { Colors, Radii } from '../../config/theme';
-import { InventoryItem } from '../../api/inventory.api';
 
 type Tab = { key: InventoryTabStatus; labelKey: string };
 
@@ -17,33 +18,29 @@ const TABS: Tab[] = [
   { key: 'expired', labelKey: 'inventory.expired' },
 ];
 
-const MOCK_ITEMS: InventoryItem[] = [
-  { id: 'm1', productName: 'Chanel No.5 EDP 100ml', barcode: '3145891253317', quantity: 8, unit: 'dona', branchName: 'Chilonzor', branchId: 'b1', costPrice: 320_000, stockValue: 2_560_000, reorderLevel: 5, expiryDate: '2026-12-01', status: 'normal' },
-  { id: 'm2', productName: 'Dior Sauvage EDT 60ml', barcode: '3348901419610', quantity: 3, unit: 'dona', branchName: 'Yunusabad', branchId: 'b2', costPrice: 285_000, stockValue: 855_000, reorderLevel: 5, expiryDate: '2026-08-15', status: 'low' },
-  { id: 'm3', productName: "L'Oreal Elvive Shampoo", barcode: '3600523562985', quantity: 0, unit: 'dona', branchName: 'Chilonzor', branchId: 'b1', costPrice: 42_000, stockValue: 0, reorderLevel: 10, expiryDate: null, status: 'out_of_stock' },
-  { id: 'm4', productName: 'Nivea Moisturizing Cream', barcode: '4005900134141', quantity: 12, unit: 'dona', branchName: 'Sergeli', branchId: 'b3', costPrice: 28_000, stockValue: 336_000, reorderLevel: 15, expiryDate: '2026-04-10', status: 'expiring' },
-  { id: 'm5', productName: "MAC Studio Fix Foundation", barcode: '0773602519606', quantity: 4, unit: 'dona', branchName: 'Mirzo Ulug\'bek', branchId: 'b4', costPrice: 195_000, stockValue: 780_000, reorderLevel: 5, expiryDate: '2025-12-01', status: 'expired' },
-  { id: 'm6', productName: 'Versace Eros EDT 100ml', barcode: '8011003818303', quantity: 15, unit: 'dona', branchName: 'Yunusabad', branchId: 'b2', costPrice: 310_000, stockValue: 4_650_000, reorderLevel: 5, expiryDate: '2027-03-20', status: 'normal' },
-  { id: 'm7', productName: 'Garnier Micellar Water', barcode: '3600541520097', quantity: 2, unit: 'dona', branchName: 'Chilonzor', branchId: 'b1', costPrice: 35_000, stockValue: 70_000, reorderLevel: 8, expiryDate: null, status: 'low' },
-  { id: 'm8', productName: 'NYX Matte Lipstick', barcode: '0800897155681', quantity: 22, unit: 'dona', branchName: 'Mirzo Ulug\'bek', branchId: 'b4', costPrice: 58_000, stockValue: 1_276_000, reorderLevel: 10, expiryDate: null, status: 'normal' },
-];
-
-const MOCK_BY_STATUS: Record<InventoryTabStatus, InventoryItem[]> = {
-  all: MOCK_ITEMS,
-  normal: MOCK_ITEMS.filter((i) => i.status === 'normal'),
-  low: MOCK_ITEMS.filter((i) => i.status === 'low'),
-  out_of_stock: MOCK_ITEMS.filter((i) => i.status === 'out_of_stock'),
-  expiring: MOCK_ITEMS.filter((i) => i.status === 'expiring'),
-  expired: MOCK_ITEMS.filter((i) => i.status === 'expired'),
-};
-
 export default function InventoryScreen() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<InventoryTabStatus>('all');
   const { stock } = useInventory(activeTab);
 
-  // Use real data if available, fall back to mock
-  const displayItems = stock.data?.items ?? MOCK_BY_STATUS[activeTab];
+  const displayItems = stock.data?.items ?? [];
+  const totalCount = stock.data?.total ?? 0;
+
+  if (stock.isLoading) {
+    return (
+      <ScreenLayout title={t('inventory.title')}>
+        <LoadingSpinner />
+      </ScreenLayout>
+    );
+  }
+
+  if (stock.isError) {
+    return (
+      <ScreenLayout title={t('inventory.title')}>
+        <ErrorView error={stock.error} onRetry={() => { void stock.refetch(); }} />
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout title={t('inventory.title')}>
@@ -60,6 +57,14 @@ export default function InventoryScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {totalCount > 0 && (
+        <View style={styles.countBar}>
+          <Text style={styles.countText}>
+            {t('inventory.totalFound', { count: totalCount })}
+          </Text>
+        </View>
+      )}
 
       <InventoryList
         items={displayItems}
@@ -91,4 +96,14 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: Colors.primary },
   tabText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
   tabTextActive: { color: Colors.textWhite },
+  countBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: Colors.bgSubtle,
+  },
+  countText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
 });

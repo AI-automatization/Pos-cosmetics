@@ -9,15 +9,15 @@ export const SHEET_MAX_HEIGHT     = '92%' as const;
 
 // Colors
 export const C = {
-  bg:        '#F5F5F7',
+  bg:        '#F9FAFB',
   white:     '#FFFFFF',
   text:      '#111827',
   muted:     '#9CA3AF',
   secondary: '#6B7280',
-  border:    '#F3F4F6',
-  primary:   '#5B5BD6',
-  red:       '#EF4444',
-  green:     '#10B981',
+  border:    '#E5E7EB',
+  primary:   '#2563EB',
+  red:       '#DC2626',
+  green:     '#16A34A',
   label:     '#374151',
 };
 

@@ -3,6 +3,8 @@ import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-nativ
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../../components/layout/ScreenLayout';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ErrorView from '../../components/common/ErrorView';
 import WarehouseList from './WarehouseList';
 import { useWarehouseData, WarehouseTab } from './useWarehouseData';
 import { Colors, Radii } from '../../config/theme';
@@ -22,6 +24,22 @@ export default function WarehouseScreen() {
   const { stock } = useWarehouseData(activeTab);
 
   const items = stock.data ?? [];
+
+  if (stock.isLoading) {
+    return (
+      <ScreenLayout title={t('warehouse.title', 'Ombor')}>
+        <LoadingSpinner />
+      </ScreenLayout>
+    );
+  }
+
+  if (stock.isError) {
+    return (
+      <ScreenLayout title={t('warehouse.title', 'Ombor')}>
+        <ErrorView error={stock.error} onRetry={() => { void stock.refetch(); }} />
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout title={t('warehouse.title', 'Ombor')}>
@@ -57,6 +75,14 @@ export default function WarehouseScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {items.length > 0 && (
+        <View style={styles.countBar}>
+          <Text style={styles.countText}>
+            {t('warehouse.itemCount', '{{count}} ta mahsulot', { count: items.length })}
+          </Text>
+        </View>
+      )}
 
       <WarehouseList
         items={items}
@@ -107,4 +133,14 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: Colors.primary },
   tabText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
   tabTextActive: { color: Colors.textWhite },
+  countBar: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.bgSurface,
+  },
+  countText: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    fontWeight: '500',
+  },
 });

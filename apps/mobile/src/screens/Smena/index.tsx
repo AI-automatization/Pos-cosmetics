@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   Alert,
   ActivityIndicator,
@@ -15,6 +14,9 @@ import { useShiftStore } from '../../store/shiftStore';
 import { useAuthStore } from '../../store/auth.store';
 import { salesApi } from '../../api/sales.api';
 import { C, ShiftRecord, fmt, StatBox, DetailRow, HistoryCard } from './SmenaComponents';
+import SmenaOpenSheet from './SmenaOpenSheet';
+import SmenaCloseSheet from './SmenaCloseSheet';
+import { styles } from './styles';
 
 // ─── Utils ─────────────────────────────────────────────
 function formatTime(date: Date | string | null | undefined): string {
@@ -43,7 +45,9 @@ function duration(openedAt: Date | string): string {
 export default function SmenaScreen() {
   const { isShiftOpen, shiftId, openShift, closeShift, syncWithApi } = useShiftStore();
   const { user } = useAuthStore();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [openSheetVisible, setOpenSheetVisible]   = useState(false);
+  const [closeSheetVisible, setCloseSheetVisible] = useState(false);
 
   const cashierName = user ? `${user.firstName} ${user.lastName}` : 'Kassir';
 
@@ -78,9 +82,9 @@ export default function SmenaScreen() {
               : cashierName,
           openedAt: formatTime(shiftDetail.openedAt),
           closedAt: shiftDetail.closedAt ? formatTime(shiftDetail.closedAt) : null,
-          openingCash: shiftDetail.openingCash,
-          closingCash: shiftDetail.closingCash ?? null,
-          totalRevenue: shiftDetail.totalRevenue ?? 0,
+          openingCash: Number(shiftDetail.openingCash ?? 0),
+          closingCash: shiftDetail.closedAt ? Number(shiftDetail.closingCash ?? 0) : null,
+          totalRevenue: Number(shiftDetail.totalRevenue ?? 0),
           totalOrders: shiftDetail.totalOrders ?? 0,
           cashAmount: shiftDetail.cashAmount ?? 0,
           cardAmount: shiftDetail.cardAmount ?? 0,
@@ -91,7 +95,7 @@ export default function SmenaScreen() {
 
   // Yopilgan smenalar tarixi
   const historyShifts: ShiftRecord[] = (shiftsData?.items ?? [])
-    .filter((s) => s.status === 'CLOSED')
+    .filter((s) => s.status?.toUpperCase() === 'CLOSED')
     .slice(0, 3)
     .map((s) => ({
       id: s.id,
@@ -116,38 +120,62 @@ export default function SmenaScreen() {
 
   const handleToggleShift = () => {
     if (isShiftOpen) {
-      Alert.alert(
-        'Smenani yopish',
-        'Joriy smenani yopmoqchimisiz?',
-        [
-          { text: 'Bekor', style: 'cancel' },
-          {
-            text: 'Yopish',
-            style: 'destructive',
-            onPress: async () => {
-              setLoading(true);
-              try {
-                await closeShift(0);
-                void refetchDetail();
-              } catch {
-                Alert.alert('Xatolik', 'Smena yopishda xatolik yuz berdi');
-              } finally {
-                setLoading(false);
-              }
-            },
-          },
-        ],
-      );
+      setCloseSheetVisible(true);
     } else {
-      setLoading(true);
-      openShift(0)
-        .then(() => {
-          setLoading(false);
-        })
-        .catch(() => {
-          setLoading(false);
-          Alert.alert('Xatolik', 'Smena ochishda xatolik yuz berdi');
-        });
+      setOpenSheetVisible(true);
+    }
+  };
+
+  const handleOpenConfirm = (openingCash: number) => {
+    setLoading(true);
+    openShift(openingCash)
+      .then(() => {
+        setOpenSheetVisible(false);
+      })
+      .catch((err: unknown) => {
+        let msg = 'Smena ochishda xatolik yuz berdi';
+        if (err && typeof err === 'object' && 'response' in err) {
+          const resp = (err as { response?: { data?: { message?: string; error?: { message?: string } }; status?: number } }).response;
+          const serverMsg = resp?.data?.error?.message ?? resp?.data?.message;
+          if (serverMsg) {
+            msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
+            if (msg.includes('already has an open shift')) {
+              msg = 'Sizda allaqachon ochiq smena mavjud';
+              void syncWithApi();
+            }
+          } else if (resp?.status) {
+            msg = `Xatolik ${resp.status}: ${msg}`;
+          }
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
+        Alert.alert('Xatolik', msg);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleCloseConfirm = async (actualCash: number) => {
+    setLoading(true);
+    try {
+      await closeShift(actualCash);
+      setCloseSheetVisible(false);
+      void refetchDetail();
+    } catch (err: unknown) {
+      let msg = 'Smena yopishda xatolik yuz berdi';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const resp = (err as { response?: { data?: { message?: string | string[] }; status?: number } }).response;
+        const serverMsg = resp?.data?.message;
+        if (serverMsg) {
+          msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
+        } else if (resp?.status) {
+          msg = `Xatolik ${resp.status}: ${msg}`;
+        }
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      Alert.alert('Xatolik', msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -187,7 +215,7 @@ export default function SmenaScreen() {
                 </View>
                 <View style={styles.shiftCashBox}>
                   <Text style={styles.shiftCashLabel}>Ochilish naqdi</Text>
-                  <Text style={styles.shiftCashValue}>{fmt(shiftDetail.openingCash)}</Text>
+                  <Text style={styles.shiftCashValue}>{fmt(Number(shiftDetail.openingCash ?? 0))}</Text>
                 </View>
               </View>
             </View>
@@ -286,6 +314,20 @@ export default function SmenaScreen() {
 
       </ScrollView>
 
+      <SmenaOpenSheet
+        visible={openSheetVisible}
+        loading={loading}
+        onClose={() => setOpenSheetVisible(false)}
+        onConfirm={handleOpenConfirm}
+      />
+      <SmenaCloseSheet
+        visible={closeSheetVisible}
+        loading={loading}
+        shift={shift}
+        onClose={() => setCloseSheetVisible(false)}
+        onConfirm={(cash) => { void handleCloseConfirm(cash); }}
+      />
+
       {/* Open / Close button */}
       <View style={styles.footer}>
         <TouchableOpacity
@@ -313,101 +355,3 @@ export default function SmenaScreen() {
     </SafeAreaView>
   );
 }
-
-// ─── Styles ────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-
-  // Header
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: C.text },
-  headerDate: { fontSize: 12, color: C.muted, marginTop: 2 },
-  statusPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
-  },
-  statusPillActive: { backgroundColor: '#D1FAE5' },
-  statusPillClosed: { backgroundColor: C.border },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  statusText: { fontSize: 13, fontWeight: '700' },
-
-  scroll: { paddingBottom: 120, gap: 16, paddingTop: 16 },
-
-  // Active shift card
-  shiftCard: {
-    marginHorizontal: 16,
-    backgroundColor: C.white, borderRadius: 14,
-    borderLeftWidth: 4, borderLeftColor: C.green,
-    padding: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
-  },
-  shiftCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  shiftLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  shiftDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.green },
-  shiftCashier: { fontSize: 15, fontWeight: '700', color: C.text },
-  shiftTime: { fontSize: 12, color: C.secondary, marginTop: 2 },
-  shiftCashBox: { alignItems: 'flex-end' },
-  shiftCashLabel: { fontSize: 11, color: C.muted },
-  shiftCashValue: { fontSize: 14, fontWeight: '700', color: C.text, marginTop: 2 },
-
-  // Stats grid (2x2)
-  statsGrid: {
-    marginHorizontal: 16,
-    flexDirection: 'row', flexWrap: 'wrap', gap: 10,
-  },
-
-  // Detailed report
-  reportCard: {
-    marginHorizontal: 16,
-    backgroundColor: C.white, borderRadius: 14, padding: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
-    gap: 10,
-  },
-  reportTitle: { fontSize: 16, fontWeight: '800', color: C.text, marginBottom: 2 },
-  reportDivider: { height: 1, backgroundColor: C.border },
-  netRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  netLabel: { fontSize: 15, fontWeight: '700', color: C.text },
-  netValue: { fontSize: 18, fontWeight: '800', color: C.green },
-
-  // No shift
-  noShift: { alignItems: 'center', paddingVertical: 40, gap: 12, marginHorizontal: 16 },
-  noShiftIcon: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: C.border, alignItems: 'center', justifyContent: 'center',
-  },
-  noShiftTitle: { fontSize: 18, fontWeight: '700', color: C.text },
-  noShiftSub: { fontSize: 14, color: C.muted, textAlign: 'center' },
-
-  // History
-  historySection: { marginHorizontal: 16, gap: 10 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: C.text },
-
-  // Footer button
-  footer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: C.white, paddingHorizontal: 16,
-    paddingTop: 12, paddingBottom: 34,
-    borderTopWidth: 1, borderTopColor: C.border,
-  },
-  toggleBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderRadius: 14, height: 54, gap: 10,
-  },
-  toggleBtnOpen: {
-    backgroundColor: C.green,
-    shadowColor: C.green, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35, shadowRadius: 8, elevation: 4,
-  },
-  toggleBtnClose: {
-    backgroundColor: C.red,
-    shadowColor: C.red, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
-  },
-  toggleBtnText: { fontSize: 16, fontWeight: '800', color: C.white },
-});

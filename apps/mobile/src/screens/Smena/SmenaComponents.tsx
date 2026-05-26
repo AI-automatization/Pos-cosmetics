@@ -7,16 +7,16 @@ type MCIconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 // ─── Colors ────────────────────────────────────────────
 export const C = {
-  bg:        '#F5F5F7',
+  bg:        '#F9FAFB',
   white:     '#FFFFFF',
   text:      '#111827',
   muted:     '#9CA3AF',
   secondary: '#6B7280',
-  border:    '#F3F4F6',
-  primary:   '#5B5BD6',
-  green:     '#10B981',
-  red:       '#EF4444',
-  orange:    '#F59E0B',
+  border:    '#E5E7EB',
+  primary:   '#2563EB',
+  green:     '#16A34A',
+  red:       '#DC2626',
+  orange:    '#D97706',
 };
 
 // ─── Types ─────────────────────────────────────────────
@@ -36,7 +36,7 @@ export interface ShiftRecord {
 }
 
 // ─── Utils ─────────────────────────────────────────────
-export function fmt(n: number) { return n.toLocaleString('ru-RU'); }
+export function fmt(n: number | undefined | null) { return (n ?? 0).toLocaleString('ru-RU'); }
 
 // ─── Stat box ──────────────────────────────────────────
 export function StatBox({
@@ -81,7 +81,7 @@ export function DetailRow({
   return (
     <View style={styles.detailRow}>
       {icon !== undefined ? (
-        <MaterialCommunityIcons name={icon} size={16} color={C.muted} style={{ marginRight: 8 }} />
+        <MaterialCommunityIcons name={icon} size={16} color={C.muted} style={styles.iconMargin} />
       ) : (
         <View style={styles.detailDot} />
       )}
@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 15, fontWeight: '800', color: C.text },
   statLabel: { fontSize: 11, fontWeight: '600', color: C.muted },
   statSub: { fontSize: 11, color: C.secondary },
+  iconMargin: { marginRight: 8 },
   detailRow: { flexDirection: 'row', alignItems: 'center' },
   detailDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.muted, marginRight: 10 },
   detailLabel: { flex: 1, fontSize: 14, color: C.secondary },

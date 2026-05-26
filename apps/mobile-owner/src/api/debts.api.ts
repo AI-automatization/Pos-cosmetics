@@ -43,6 +43,13 @@ export interface DebtCustomersParams {
   limit?: number;
 }
 
+export interface RecordPaymentParams {
+  debtId: string;
+  amount: number;
+  method: string;
+  note?: string;
+}
+
 export const debtsApi = {
   async getSummary(branchId?: string | null): Promise<DebtSummary> {
     const { data } = await apiClient.get<DebtSummary>(ENDPOINTS.DEBTS_SUMMARY, {
@@ -74,5 +81,13 @@ export const debtsApi = {
   async getCustomerById(id: string): Promise<CustomerDebt> {
     const { data } = await apiClient.get<CustomerDebt>(`${ENDPOINTS.DEBTS_CUSTOMERS}/${id}`);
     return data;
+  },
+
+  async recordPayment(params: RecordPaymentParams): Promise<void> {
+    await apiClient.post(`/nasiya/${params.debtId}/pay`, {
+      amount: params.amount,
+      paymentMethod: params.method,
+      note: params.note,
+    });
   },
 };

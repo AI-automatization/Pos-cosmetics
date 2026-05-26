@@ -42,8 +42,8 @@ export default function AlertDetailScreen({ route }: Props): React.JSX.Element {
   if (isLoading) return <LoadingSpinner message={t('common.loading')} />;
   if (error || !alert) return <ErrorView error={error} onRetry={() => void refetch()} />;
 
-  const priorityVariant: Record<string, 'error' | 'warning' | 'info'> = {
-    HIGH: 'error',
+  const priorityVariant: Record<string, 'danger' | 'warning' | 'info'> = {
+    HIGH: 'danger',
     MEDIUM: 'warning',
     LOW: 'info',
   };

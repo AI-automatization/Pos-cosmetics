@@ -2,7 +2,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { nasiyaApi } from '../../api/nasiya.api';
 import type { DebtRecord, DebtListResponse } from '../../api/nasiya.api';
 
-export type FilterTab = 'ALL' | 'OVERDUE' | 'PAID';
+export type FilterTab = 'ALL' | 'ACTIVE' | 'OVERDUE' | 'PAID';
 
 export function useNasiyaData(activeTab: FilterTab) {
   const qc = useQueryClient();
@@ -30,12 +30,14 @@ export function useNasiyaData(activeTab: FilterTab) {
   };
 
   const isLoading =
-    activeTab === 'ALL' ? allLoading :
+    activeTab === 'ALL'     ? allLoading :
+    activeTab === 'ACTIVE'  ? allLoading :
     activeTab === 'OVERDUE' ? overdueLoading :
     paidLoading;
 
   const isFetching =
-    activeTab === 'ALL' ? allFetching :
+    activeTab === 'ALL'     ? allFetching :
+    activeTab === 'ACTIVE'  ? allFetching :
     activeTab === 'OVERDUE' ? overdueFetching :
     paidFetching;
 
@@ -50,8 +52,13 @@ export function useNasiyaData(activeTab: FilterTab) {
   const overdueAmount = overdueItems.reduce((sum, d) => sum + Number(d.remaining), 0);
   const totalCount = allItems.length;
 
+  const activeOnlyItems = allItems.filter(
+    (d) => d.status === 'ACTIVE' || d.status === 'PARTIAL',
+  );
+
   const currentItems: DebtRecord[] =
-    activeTab === 'ALL' ? allItems :
+    activeTab === 'ALL'     ? allItems :
+    activeTab === 'ACTIVE'  ? activeOnlyItems :
     activeTab === 'OVERDUE' ? overdueItems :
     (paidData?.items ?? []);
 

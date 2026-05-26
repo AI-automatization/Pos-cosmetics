@@ -9,10 +9,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, useNavigation, type RouteProp, type NavigationProp } from '@react-navigation/native';
-import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRoute, useNavigation, type RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import type { DebtRecord } from '../../api/nasiya.api';
-import type { TabParamList } from '../../navigation/types';
+import type { SavdoStackParamList } from '../../navigation/types';
 import { useNasiyaData, FilterTab } from './useNasiyaData';
 import DebtCard from './DebtCard';
 import PayModal from './PayModal';
@@ -23,19 +24,20 @@ import ShiftGuard from '../../components/common/ShiftGuard';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
-  bg:       '#F5F5F7',
-  white:    '#FFFFFF',
-  text:     '#111827',
-  muted:    '#9CA3AF',
-  secondary:'#6B7280',
-  border:   '#F3F4F6',
-  primary:  '#5B5BD6',
-  red:      '#EF4444',
+  bg:        '#F9FAFB',
+  white:     '#FFFFFF',
+  text:      '#111827',
+  muted:     '#9CA3AF',
+  secondary: '#6B7280',
+  border:    '#E5E7EB',
+  primary:   '#2563EB',
+  red:       '#DC2626',
 };
 
 // ─── Tabs ──────────────────────────────────────────────
 const TABS: { key: FilterTab; label: string }[] = [
-  { key: 'ALL',     label: 'Hammasi'         },
+  { key: 'ALL',     label: 'Barchasi'        },
+  { key: 'ACTIVE',  label: 'Faol'            },
   { key: 'OVERDUE', label: "Muddati o'tgan"  },
   { key: 'PAID',    label: "To'langan"       },
 ];
@@ -79,16 +81,16 @@ function SummaryCard({
 
 // ─── Main Screen ───────────────────────────────────────
 export default function NasiyaScreen() {
-  const [activeTab, setActiveTab]       = useState<FilterTab>('ALL');
-  const [search, setSearch]             = useState('');
-  const [selectedDebt, setSelectedDebt]   = useState<DebtRecord | null>(null);
-  const [payVisible, setPayVisible]       = useState(false);
+  const [activeTab, setActiveTab]           = useState<FilterTab>('ALL');
+  const [search, setSearch]                 = useState('');
+  const [selectedDebt, setSelectedDebt]     = useState<DebtRecord | null>(null);
+  const [payVisible, setPayVisible]         = useState(false);
   const [newDebtVisible, setNewDebtVisible] = useState(false);
-  const [detailDebt, setDetailDebt]       = useState<DebtRecord | null>(null);
-  const [detailVisible, setDetailVisible] = useState(false);
+  const [detailDebt, setDetailDebt]         = useState<DebtRecord | null>(null);
+  const [detailVisible, setDetailVisible]   = useState(false);
 
-  const route = useRoute<RouteProp<TabParamList, 'Nasiya'>>();
-  const navigation = useNavigation<NavigationProp<TabParamList>>();
+  const route = useRoute<RouteProp<SavdoStackParamList, 'NasiyaScreen'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<SavdoStackParamList>>();
 
   // Auto-open from Savdo NASIYA payment
   useEffect(() => {
@@ -139,7 +141,7 @@ export default function NasiyaScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Nasiya</Text>
         <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
-          <Ionicons name="filter-outline" size={20} color={C.text} />
+          <Ionicons name="filter-outline" size={20} color={C.primary} />
         </TouchableOpacity>
       </View>
 
@@ -163,17 +165,17 @@ export default function NasiyaScreen() {
 
               {/* Search */}
               <View style={styles.searchRow}>
-                <Feather name="search" size={16} color={C.muted} style={{ marginRight: 8 }} />
+                <Ionicons name="search-outline" size={16} color={C.muted} style={styles.searchIcon} />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Mijoz qidirish..."
+                  placeholder="Xaridor ismi..."
                   placeholderTextColor={C.muted}
                   value={search}
                   onChangeText={setSearch}
                 />
                 {search.length > 0 && (
                   <TouchableOpacity onPress={() => setSearch('')}>
-                    <Feather name="x" size={16} color={C.muted} />
+                    <Ionicons name="close-circle" size={16} color={C.muted} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -208,10 +210,10 @@ export default function NasiyaScreen() {
               onPress={handleDebtPress}
             />
           )}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <MaterialCommunityIcons name="account-off-outline" size={48} color={C.muted} />
+              <Ionicons name="people-outline" size={48} color={C.muted} />
               <Text style={styles.emptyText}>Nasiya topilmadi</Text>
             </View>
           }
@@ -231,8 +233,8 @@ export default function NasiyaScreen() {
         visible={newDebtVisible}
         onClose={() => setNewDebtVisible(false)}
         onSuccess={() => { setNewDebtVisible(false); refetchAll(); }}
-        initialAmount={route.params?.amount}
-        initialProducts={route.params?.products}
+        initialAmount={(route.params as SavdoStackParamList['NasiyaScreen'])?.amount}
+        initialProducts={(route.params as SavdoStackParamList['NasiyaScreen'])?.products}
       />
 
       {/* Debt Detail Sheet */}
@@ -265,17 +267,19 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '800', color: C.text },
   headerIcon: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center', justifyContent: 'center',
   },
 
   // List
   content: { paddingBottom: 100 },
   listHeader: { gap: 12, paddingBottom: 4 },
+  separator: { height: 10 },
 
-  // Summary card (purple)
+  // Summary card (blue)
   summaryCard: {
     margin: 16, marginBottom: 0,
-    backgroundColor: C.primary,
+    backgroundColor: '#2563EB',
     borderRadius: 16, padding: 20,
     flexDirection: 'row', alignItems: 'center', gap: 16,
   },
@@ -287,11 +291,11 @@ const styles = StyleSheet.create({
   summaryOverdue: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   overdueBadge: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: 'rgba(239,68,68,0.3)',
+    backgroundColor: 'rgba(220,38,38,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
   overdueBadgeText: { color: '#FECACA', fontSize: 14, fontWeight: '800' },
-  overdueLabel: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
+  overdueLabel: { fontSize: 11, color: 'rgba(255,255,255,0.75)' },
   overdueAmount: { fontSize: 14, fontWeight: '700', color: C.white },
   overdueCount: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
 
@@ -302,6 +306,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, height: 44,
     marginHorizontal: 16, borderWidth: 1, borderColor: C.border,
   },
+  searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, fontSize: 14, color: C.text },
 
   // Tabs
@@ -311,7 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  tabActive: { backgroundColor: C.primary, borderColor: C.primary },
+  tabActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
   tabText: { fontSize: 14, fontWeight: '600', color: C.secondary },
   tabTextActive: { color: C.white },
   resultCount: { fontSize: 12, color: C.muted, paddingHorizontal: 16, paddingTop: 4 },

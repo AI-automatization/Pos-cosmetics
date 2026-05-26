@@ -20,8 +20,8 @@ import { QUERY_STALE_TIMES, REFETCH_INTERVALS } from '@/config/constants';
 type Props = NativeStackScreenProps<DashboardStackParamList, 'BranchDetail'>;
 
 function AlertRow({ item }: { item: Alert }): React.JSX.Element {
-  const priorityVariant: Record<string, 'error' | 'warning' | 'info'> = {
-    HIGH: 'error',
+  const priorityVariant: Record<string, 'danger' | 'warning' | 'info'> = {
+    HIGH: 'danger',
     MEDIUM: 'warning',
     LOW: 'info',
   };
@@ -72,7 +72,7 @@ export default function BranchDetailScreen({ route }: Props): React.JSX.Element 
 
   const stock = useQuery({
     queryKey: ['branch-detail', 'stock', branchId],
-    queryFn: () => inventoryApi.getStock(branchId),
+    queryFn: () => inventoryApi.getStockLevels({ branchId }),
     staleTime: QUERY_STALE_TIMES.INVENTORY,
   });
 
@@ -142,10 +142,10 @@ export default function BranchDetailScreen({ route }: Props): React.JSX.Element 
       <Text style={styles.sectionTitle}>{t('inventory.lowStock')}</Text>
       {stock.isLoading ? (
         <SkeletonList count={3} />
-      ) : stock.data?.data && stock.data.data.filter((s) => s.isLow).length > 0 ? (
+      ) : stock.data && stock.data.filter((s) => s.isLow).length > 0 ? (
         <Card>
           <FlatList
-            data={stock.data.data.filter((s) => s.isLow)}
+            data={stock.data.filter((s) => s.isLow)}
             keyExtractor={(item) => item.productId}
             renderItem={({ item }) => <StockRow item={item} />}
             scrollEnabled={false}
@@ -153,7 +153,7 @@ export default function BranchDetailScreen({ route }: Props): React.JSX.Element 
           />
         </Card>
       ) : (
-        <EmptyState message={t('common.noData')} icon="📦" />
+        <EmptyState title={t('common.noData')} />
       )}
     </ScreenLayout>
   );

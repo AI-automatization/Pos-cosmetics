@@ -1,0 +1,85 @@
+import api from './client';
+import type { AppUser, UserRole } from '../screens/Settings/UserCard';
+
+// ─── Request body types ────────────────────────────────
+
+export interface CreateUserBody {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface UpdateUserBody {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  role?: UserRole;
+}
+
+// ─── API response shape (server dan keladi) ────────────
+
+interface UserApiResponse {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+  isActive?: boolean;
+  lastLoginAt?: string;
+  lastLogin?: string;
+  createdAt?: string;
+}
+
+// ─── Mapper ───────────────────────────────────────────
+
+function mapUser(u: UserApiResponse, fallback?: CreateUserBody): AppUser {
+  return {
+    id: u.id,
+    firstName: u.firstName ?? fallback?.firstName ?? '',
+    lastName: u.lastName ?? fallback?.lastName ?? '',
+    email: u.email ?? fallback?.email ?? '',
+    phone: u.phone ?? fallback?.phone ?? null,
+    role: (u.role as UserRole) ?? fallback?.role ?? 'VIEWER',
+    isActive: u.isActive ?? true,
+    lastLogin: u.lastLoginAt ?? u.lastLogin ?? null,
+    createdAt: u.createdAt ?? new Date().toISOString(),
+  };
+}
+
+// ─── usersApi ─────────────────────────────────────────
+
+interface PaginatedUsersResponse {
+  data: UserApiResponse[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
+export const usersApi = {
+  getAll: async (): Promise<AppUser[]> => {
+    const { data: res } = await api.get<PaginatedUsersResponse | UserApiResponse[]>('/users', {
+      params: { limit: 200 },
+    });
+    const items = Array.isArray(res) ? res : (res as PaginatedUsersResponse).data ?? [];
+    return items.map((u) => mapUser(u));
+  },
+
+  create: async (body: CreateUserBody): Promise<AppUser> => {
+    const { data } = await api.post<UserApiResponse>('/users', body);
+    return mapUser(data, body);
+  },
+
+  update: async (id: string, body: UpdateUserBody): Promise<void> => {
+    await api.patch(`/users/${id}`, body);
+  },
+
+  toggleActive: async (id: string, isActive: boolean): Promise<void> => {
+    await api.patch(`/users/${id}`, { isActive });
+  },
+
+  resetPassword: async (id: string, newPassword: string): Promise<void> => {
+    await api.post(`/users/${id}/reset-password`, { newPassword });
+  },
+};

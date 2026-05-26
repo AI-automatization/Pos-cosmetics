@@ -1,0 +1,344 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { catalogApi, type CatalogProduct, type CatalogCategory, type CreateProductDto } from '../../api/catalog.api';
+import type { CatalogStackParamList } from '../../navigation/types';
+import { SectionTitle, FormField, Input } from './ProductFormFields';
+import { styles, C } from './ProductFormScreen.styles';
+
+// ─── Navigation types ──────────────────────────────────
+type RouteProps = RouteProp<CatalogStackParamList, 'ProductForm'>;
+type NavProp = NativeStackNavigationProp<CatalogStackParamList>;
+
+// ─── Props ─────────────────────────────────────────────
+interface Props {
+  product?: CatalogProduct;
+  onClose?: () => void;
+  onSaved?: () => void;
+}
+
+// ─── Main Component ────────────────────────────────────
+export default function ProductFormScreen({ product, onClose, onSaved }: Props) {
+  const navigation = useNavigation<NavProp>();
+  const route = useRoute<RouteProps>();
+  const routeProductId = route.params?.productId;
+  const handleClose = onClose ?? (() => navigation.goBack());
+  const isEdit = !!(product ?? routeProductId);
+
+  const [name, setName]               = useState(product?.name ?? '');
+  const [sku, setSku]                 = useState(product?.sku ?? '');
+  const [categoryId, setCategoryId]   = useState(product?.categoryId ?? '');
+  const [description, setDescription] = useState('');
+  const [costPrice, setCostPrice]     = useState(String(product?.costPrice ?? ''));
+  const [sellPrice, setSellPrice]     = useState(String(product?.sellPrice ?? ''));
+  const [minStock, setMinStock]       = useState(String(product?.minStockLevel ?? '0'));
+  const [barcode, setBarcode]         = useState(product?.barcode ?? '');
+  const [isActive, setIsActive]       = useState(product?.isActive ?? true);
+  const [loading, setLoading]         = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['catalog-categories'],
+    queryFn: catalogApi.getCategories,
+    staleTime: 5 * 60_000,
+  });
+
+  // Edit mode: routeProductId orqali kelganda mahsulot ma'lumotlarini yukla
+  const { data: editProduct } = useQuery({
+    queryKey: ['catalog-product', routeProductId],
+    queryFn: () => catalogApi.getProductById(routeProductId!),
+    enabled: !!routeProductId && !product,
+    staleTime: 30_000,
+  });
+
+  useEffect(() => {
+    const p = product ?? editProduct;
+    if (!p) return;
+    setName(p.name);
+    setSku(p.sku ?? '');
+    setCategoryId(p.categoryId ?? '');
+    setCostPrice(String(p.costPrice));
+    setSellPrice(String(p.sellPrice));
+    setMinStock(String(p.minStockLevel ?? 0));
+    setBarcode(p.barcode ?? '');
+    setIsActive(p.isActive);
+  }, [product, editProduct]);
+
+  const costNum = parseFloat(costPrice.replace(/\s/g, '')) || 0;
+  const sellNum = parseFloat(sellPrice.replace(/\s/g, '')) || 0;
+  const margin  = costNum > 0
+    ? Math.round(((sellNum - costNum) / costNum) * 100)
+    : 0;
+  const marginColor = margin > 0 ? C.green : margin < 0 ? C.red : C.muted;
+
+  const selectedCategory = useMemo(
+    () => categories.find((c: CatalogCategory) => c.id === categoryId),
+    [categories, categoryId],
+  );
+
+  const canSave = name.trim().length > 0 && sellNum > 0;
+
+  const handleSave = () => {
+    if (!canSave) return;
+    setLoading(true);
+
+    const dto: CreateProductDto = {
+      name: name.trim(),
+      sku: sku.trim() || undefined,
+      categoryId: categoryId || undefined,
+      costPrice: costNum,
+      sellPrice: sellNum,
+      minStockLevel: parseInt(minStock, 10) || 0,
+      barcode: barcode.trim() || undefined,
+      isActive,
+      description: description.trim() || undefined,
+    };
+
+    const editId = product?.id ?? routeProductId;
+
+    if (isEdit && editId) {
+      catalogApi.updateProduct(editId, dto)
+        .then(() => {
+          void queryClient.invalidateQueries({ queryKey: ['catalog-products'] });
+          void queryClient.invalidateQueries({ queryKey: ['catalog-product', editId] });
+          Alert.alert('Muvaffaqiyat', `"${name}" yangilandi`, [
+            { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
+          ]);
+        })
+        .catch((err: unknown) => {
+          const msg =
+            (err as { response?: { data?: { message?: string } } })
+              ?.response?.data?.message ??
+            'Mahsulot yangilashda xatolik yuz berdi.';
+          const text = Array.isArray(msg) ? (msg as string[]).join('\n') : String(msg);
+          Alert.alert('Xatolik', text);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      catalogApi.createProduct(dto)
+        .then(() => {
+          void queryClient.invalidateQueries({ queryKey: ['catalog-products'] });
+          Alert.alert('Muvaffaqiyat', `"${name}" qo'shildi`, [
+            { text: 'OK', onPress: () => { onSaved?.(); handleClose(); } },
+          ]);
+        })
+        .catch((err: unknown) => {
+          const msg =
+            (err as { response?: { data?: { message?: string } } })
+              ?.response?.data?.message ??
+            'Mahsulot qo\'shishda xatolik yuz berdi.';
+          const text = Array.isArray(msg) ? (msg as string[]).join('\n') : String(msg);
+          Alert.alert('Xatolik', text);
+        })
+        .finally(() => setLoading(false));
+    }
+  };
+
+  const handleCategoryPick = () => {
+    if (categories.length === 0) return;
+    Alert.alert(
+      'Kategoriyani tanlang',
+      undefined,
+      [
+        ...categories.map((cat: CatalogCategory) => ({
+          text: cat.name,
+          onPress: () => setCategoryId(cat.id),
+        })),
+        { text: 'Bekor qilish', style: 'cancel' as const },
+      ],
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerBtn} onPress={handleClose} activeOpacity={0.75}>
+          <Ionicons name="arrow-back" size={20} color={C.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          {isEdit ? 'Tahrirlash' : 'Yangi mahsulot'}
+        </Text>
+        <TouchableOpacity
+          style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
+          onPress={handleSave}
+          activeOpacity={0.8}
+          disabled={!canSave || loading}
+        >
+          {loading
+            ? <ActivityIndicator size="small" color="#FFFFFF" />
+            : <Text style={styles.saveBtnText}>Saqlash</Text>
+          }
+        </TouchableOpacity>
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.flex1}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+        >
+          {/* Image picker */}
+          <TouchableOpacity style={styles.imagePicker} activeOpacity={0.75}>
+            <View style={styles.imageCircle}>
+              <Ionicons name="camera-outline" size={28} color={C.muted} />
+            </View>
+            <Text style={styles.imageLabel}>Rasm qo'shish</Text>
+            <Text style={styles.imageHint}>JPG, PNG · maks 5MB</Text>
+          </TouchableOpacity>
+
+          {/* Section: Asosiy ma'lumot */}
+          <SectionTitle>ASOSIY MA'LUMOT</SectionTitle>
+          <View style={styles.card}>
+            <FormField label="Mahsulot nomi" required>
+              <Input value={name} onChangeText={setName} placeholder="Masalan: Nivea krem 200ml" />
+            </FormField>
+            <View style={styles.fieldDivider} />
+            <FormField label="SKU (Artikul)">
+              <Input value={sku} onChangeText={setSku} placeholder="SKU-001" />
+            </FormField>
+            <View style={styles.fieldDivider} />
+            <FormField label="Kategoriya">
+              <TouchableOpacity style={styles.selectRow} onPress={handleCategoryPick}>
+                <Text style={[styles.selectText, !selectedCategory && styles.selectPlaceholder]}>
+                  {selectedCategory?.name ?? 'Kategoriya tanlang'}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={C.muted} />
+              </TouchableOpacity>
+            </FormField>
+            <View style={styles.fieldDivider} />
+            <FormField label="Tavsif">
+              <Input
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Mahsulot haqida qisqacha..."
+                multiline
+              />
+            </FormField>
+          </View>
+
+          {/* Section: Narxlar */}
+          <SectionTitle>NARXLAR</SectionTitle>
+          <View style={styles.card}>
+            <View style={styles.priceRow}>
+              <FormField label="Kelish narxi">
+                <Input
+                  value={costPrice}
+                  onChangeText={setCostPrice}
+                  placeholder="0"
+                  keyboardType="numeric"
+                />
+              </FormField>
+              <FormField label="Sotuv narxi" required>
+                <Input
+                  value={sellPrice}
+                  onChangeText={setSellPrice}
+                  placeholder="0"
+                  keyboardType="numeric"
+                />
+              </FormField>
+            </View>
+            {costNum > 0 && sellNum > 0 && (
+              <View style={styles.marginRow}>
+                <Text style={styles.marginLabel}>Marja</Text>
+                <View style={[styles.marginBadge, { backgroundColor: marginColor + '18' }]}>
+                  <Text style={[styles.marginText, { color: marginColor }]}>
+                    {margin > 0 ? '+' : ''}{margin}%
+                  </Text>
+                </View>
+                <Text style={styles.marginHint}>
+                  = {(sellNum - costNum).toLocaleString('ru-RU')} UZS
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Section: Zaxira */}
+          <SectionTitle>ZAXIRA</SectionTitle>
+          <View style={styles.card}>
+            <FormField label="Minimal zaxira">
+              <Input value={minStock} onChangeText={setMinStock} keyboardType="numeric" placeholder="5" />
+            </FormField>
+            {isEdit && (
+              <>
+                <View style={styles.fieldDivider} />
+                <FormField label="Joriy zaxira (o'qish uchun)">
+                  <Input value={String(product?.stockQuantity ?? 0)} editable={false} />
+                </FormField>
+              </>
+            )}
+          </View>
+
+          {/* Section: Barcode */}
+          <SectionTitle>BARCODE</SectionTitle>
+          <View style={styles.card}>
+            <FormField label="Asosiy barcode">
+              <View style={styles.barcodeRow}>
+                <Input value={barcode} onChangeText={setBarcode} placeholder="8600000000000" keyboardType="numeric" />
+                <TouchableOpacity style={styles.scanBtn}>
+                  <Ionicons name="scan-outline" size={20} color={C.primary} />
+                </TouchableOpacity>
+              </View>
+            </FormField>
+          </View>
+
+          {/* Section: Holat */}
+          <SectionTitle>HOLAT</SectionTitle>
+          <View style={styles.card}>
+            <View style={styles.toggleRow}>
+              <View>
+                <Text style={styles.toggleLabel}>Faol mahsulot</Text>
+                <Text style={styles.toggleHint}>
+                  {isActive ? 'Savdoda ko\'rinadi' : 'Savdoda ko\'rinmaydi'}
+                </Text>
+              </View>
+              <Switch
+                value={isActive}
+                onValueChange={setIsActive}
+                trackColor={{ false: C.border, true: '#2563EB' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+
+          {/* Bottom save button */}
+          <TouchableOpacity
+            style={[styles.bottomBtn, !canSave && styles.bottomBtnDisabled]}
+            onPress={handleSave}
+            activeOpacity={0.85}
+            disabled={!canSave || loading}
+          >
+            {loading
+              ? <ActivityIndicator size="small" color="#FFFFFF" />
+              : (
+                <>
+                  <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.bottomBtnText}>
+                    {isEdit ? 'O\'zgarishlarni saqlash' : 'Mahsulot qo\'shish'}
+                  </Text>
+                </>
+              )
+            }
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
