@@ -33,11 +33,6 @@ export default function Footer() {
                     {t.nav.pricing}
                   </a>
                 </li>
-                <li>
-                  <a href="#comparison" className="text-slate-400 hover:text-[#24D4F4] text-sm transition-colors">
-                    {t.nav.comparison}
-                  </a>
-                </li>
               </ul>
             </div>
             <div>
