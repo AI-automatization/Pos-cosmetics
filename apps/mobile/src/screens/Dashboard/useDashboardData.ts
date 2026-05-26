@@ -89,7 +89,7 @@ export default function useDashboardData(isWarehouse = false, isCashier = false)
     queryKey: ['sales', 'shift', 'current'],
     queryFn: salesApi.getCurrentShift,
     refetchInterval: CONFIG.ALERTS_REFETCH_INTERVAL_MS,
-    enabled: !skipFinancial,
+    enabled: !isWarehouse, // Cashier uchun ham shift query kerak!
   });
 
   const lowStock = useQuery({

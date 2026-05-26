@@ -167,10 +167,10 @@ export const salesApi = {
 
   getCurrentShift: async (): Promise<Shift | null> => {
     try {
-      const { data } = await api.get<Shift>('/sales/shifts/current');
-      return data;
+      const { data } = await api.get<Shift | null>('/sales/shifts/current');
+      return data ?? null; // Backend null qaytarsa → shift yo'q
     } catch {
-      return null;
+      return null; // Network xato → null (React Query v5 undefined taqiqlaydi)
     }
   },
 

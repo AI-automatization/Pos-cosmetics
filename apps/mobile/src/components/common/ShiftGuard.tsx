@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useShiftStore } from '../../store/shiftStore';
 import { type TabParamList } from '../../navigation/types';
@@ -14,11 +15,12 @@ export default function ShiftGuard({ children }: ShiftGuardProps) {
   const { isShiftOpen } = useShiftStore();
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
-  useEffect(() => {
-    if (!isShiftOpen) {
+  // Har safar screen focus bo'lganda shift holatini tekshirish
+  useFocusEffect(
+    useCallback(() => {
       useShiftStore.getState().syncWithApi();
-    }
-  }, [isShiftOpen]);
+    }, []),
+  );
 
   if (isShiftOpen) {
     return <>{children}</>;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import { useFocusEffect } from '@react-navigation/native';
 import { useShiftStore } from '../../store/shiftStore';
 import { useAuthStore } from '../../store/auth.store';
 import { salesApi } from '../../api/sales.api';
@@ -51,10 +52,12 @@ export default function SmenaScreen() {
 
   const cashierName = user ? `${user.firstName} ${user.lastName}` : 'Kassir';
 
-  // App ochilganda API bilan sinxronlashtirish
-  useEffect(() => {
-    void syncWithApi();
-  }, []);
+  // Har safar screen ga kirganda API bilan sinxronlashtirish
+  useFocusEffect(
+    useCallback(() => {
+      void syncWithApi();
+    }, [syncWithApi]),
+  );
 
   // Joriy smena detallari
   const { data: shiftDetail, refetch: refetchDetail } = useQuery({

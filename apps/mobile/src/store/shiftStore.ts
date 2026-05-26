@@ -52,9 +52,10 @@ export const useShiftStore = create<ShiftState>((set, get) => ({
   syncWithApi: async () => {
     try {
       const shift = await salesApi.getCurrentShift();
-      if (shift && shift.status === 'OPEN') {
+      if (shift && shift.status?.toUpperCase() === 'OPEN') {
         set({ isShiftOpen: true, shiftId: shift.id });
-      } else {
+      } else if (shift === null) {
+        // Faqat aniq null javob bo'lganda reset (network xato emas)
         set({ isShiftOpen: false, shiftId: null });
       }
     } catch {
