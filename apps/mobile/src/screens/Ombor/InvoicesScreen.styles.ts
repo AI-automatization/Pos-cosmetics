@@ -54,10 +54,15 @@ export const styles = StyleSheet.create({
   },
 
   // Filter tabs
+  filterScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   filterRow: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 8,
+    alignItems: 'center',
     backgroundColor: C.white,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
@@ -65,9 +70,10 @@ export const styles = StyleSheet.create({
   filterTab: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
+    height: 36,
     paddingHorizontal: 14,
-    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: '#F3F4F6',
   },

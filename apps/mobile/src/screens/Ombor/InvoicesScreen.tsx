@@ -122,6 +122,7 @@ export default function InvoicesScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
         {FILTER_TABS.map((tab) => {
