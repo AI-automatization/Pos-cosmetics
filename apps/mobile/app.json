@@ -30,6 +30,7 @@
         "android.permission.BLUETOOTH_SCAN",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
+      "softwareKeyboardLayoutMode": "pan",
       "intentFilters": [
         {
           "action": "VIEW",

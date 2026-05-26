@@ -83,7 +83,8 @@ export default function LoginScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScrollView
           contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
           showsVerticalScrollIndicator={false}
         >
           {/* ── Logo ── */}
