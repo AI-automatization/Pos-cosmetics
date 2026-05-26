@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +22,9 @@ import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
 import Constants from 'expo-constants';
 import { styles, COLORS } from './LoginScreen.styles';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const raosLogo = require('../../assets/raos-logo.png');
 
 const LANGS = [
   { code: 'uz', label: "O'ZBEK" },
@@ -84,9 +88,7 @@ export default function LoginScreen({ navigation }: Props) {
         >
           {/* ── Logo ── */}
           <View style={styles.logoArea}>
-            <View style={styles.logoBox}>
-              <Text style={styles.logoLetter}>R</Text>
-            </View>
+            <Image source={raosLogo} style={styles.logoImage} />
             <Text style={styles.logoText}>RAOS</Text>
             <Text style={styles.subtitle}>Biznesingizni boshqaring</Text>
           </View>

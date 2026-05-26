@@ -35,24 +35,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  logoBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImage: {
+    width: 88,
+    height: 88,
+    borderRadius: 20,
     marginBottom: 16,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  logoLetter: {
-    color: COLORS.white,
-    fontSize: 34,
-    fontWeight: '800',
   },
   logoText: {
     fontSize: 28,

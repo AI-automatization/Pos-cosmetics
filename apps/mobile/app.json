@@ -15,10 +15,12 @@
         "applinks:www.raos.uz"
       ]
     },
+    "icon": "./src/assets/icon.png",
     "android": {
       "package": "uz.raos.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#6366F1"
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
       },
       "permissions": [
         "android.permission.USE_BIOMETRIC",
