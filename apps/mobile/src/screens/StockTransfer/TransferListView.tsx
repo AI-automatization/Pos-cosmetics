@@ -144,6 +144,7 @@ export default function TransferListView({ style }: TransferListViewProps) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={s.filterScroll}
         contentContainerStyle={s.filterRow}
       >
         {FILTER_TABS.map((tab) => {

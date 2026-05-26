@@ -30,19 +30,26 @@ export const s = StyleSheet.create({
   },
 
   // Filter
+  filterScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   filterRow: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     gap: 8,
     flexDirection: 'row',
+    alignItems: 'center',
   },
   filterTab: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    height: 36,
+    paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: C.white,
     borderWidth: 1,
     borderColor: C.border,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterTabActive: {
     backgroundColor: C.primary,

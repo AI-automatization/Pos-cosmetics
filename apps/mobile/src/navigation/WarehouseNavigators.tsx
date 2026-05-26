@@ -54,7 +54,7 @@ export function OmborTabNavigator(): React.JSX.Element {
       <OmborTabStack.Screen
         name="TransferListScreen"
         component={TransferListScreen}
-        options={{ title: 'Transferlar' }}
+        options={{ headerShown: false }}
       />
       <OmborTabStack.Screen
         name="TesterScreen"
