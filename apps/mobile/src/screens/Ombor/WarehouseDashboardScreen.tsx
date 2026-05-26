@@ -148,7 +148,7 @@ export default function WarehouseDashboardScreen() {
           <QuickChip
             label="Transferlar"
             icon="swap-horizontal-outline"
-            onPress={() => navigation.navigate('OmborMain')}
+            onPress={() => navigation.navigate('TransferListScreen')}
             badge={transferRequestCount}
           />
           <QuickChip label="Kirim" icon="add-circle-outline" onPress={() => navigation.navigate('OmborMain')} />
