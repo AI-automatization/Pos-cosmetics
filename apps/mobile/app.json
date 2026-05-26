@@ -1,7 +1,6 @@
 {
   "expo": {
     "name": "RAOS",
-    "entryPoint": "./index.js",
     "slug": "raos-mobile",
     "scheme": "raos",
     "version": "1.0.0",
@@ -47,7 +46,10 @@
               "pathPrefix": "/app"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -68,7 +70,8 @@
             "networkInspector": false
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
