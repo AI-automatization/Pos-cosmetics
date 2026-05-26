@@ -1,0 +1,7 @@
+{
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_LOGIN_URL": "https://app.raos.uz/login",
+    "NEXT_PUBLIC_APP_URL": "https://app.raos.uz"
+  }
+}

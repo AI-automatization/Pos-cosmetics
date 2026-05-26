@@ -123,7 +123,7 @@ export default function Header() {
           {/* Desktop right: login + CTA + lang */}
           <div className="hidden md:flex items-center gap-3">
             <a
-              href={`${process.env.NEXT_PUBLIC_LOGIN_URL}`}
+              href={process.env.NEXT_PUBLIC_LOGIN_URL || 'https://app.raos.uz/login'}
               className="text-slate-300 hover:text-[#24D4F4] transition-colors text-sm font-medium"
             >
               {t.nav.login}
@@ -170,7 +170,7 @@ export default function Header() {
             </a>
           ))}
           <a
-            href={`${process.env.NEXT_PUBLIC_LOGIN_URL}`}
+            href={process.env.NEXT_PUBLIC_LOGIN_URL || 'https://app.raos.uz/login'}
             onClick={handleNavClick}
             className="text-slate-300 hover:text-[#24D4F4] transition-colors text-base font-medium py-1"
           >
