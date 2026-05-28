@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException, NotFoundException } from '@nes
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { BillingService } from './billing.service';
+import { BillingInvoiceService } from './billing-invoice.service';
 import { BillingProvider } from '@prisma/client';
 import { timingSafeEqual, createHash } from 'node:crypto';
 
@@ -21,6 +22,7 @@ export class BillingPaymentService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly billingService: BillingService,
+    private readonly billingInvoice: BillingInvoiceService,
   ) {
     this.paymeMerchantId = this.config.get<string>('PAYME_BILLING_MERCHANT_ID', '');
     this.paymeSecretKey = this.config.get<string>('PAYME_BILLING_SECRET_KEY', '');
@@ -249,6 +251,8 @@ export class BillingPaymentService {
     });
 
     await this.billingService.upgradePlan(payment.tenantId, payment.plan.slug, payment.months);
+
+    await this.billingInvoice.createInvoice(paymentId);
 
     this.logger.log(
       `BILLING PAID: tenant=${payment.tenantId} plan=${payment.plan.name} months=${payment.months} amount=${payment.amount} provider=${payment.provider}`,

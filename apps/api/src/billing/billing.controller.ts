@@ -21,6 +21,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
 import { BillingService } from './billing.service';
 import { BillingPaymentService } from './billing-payment.service';
+import { BillingInvoiceService } from './billing-invoice.service';
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,7 @@ export class BillingController {
   constructor(
     private readonly billing: BillingService,
     private readonly billingPayment: BillingPaymentService,
+    private readonly billingInvoice: BillingInvoiceService,
   ) {}
 
   // ─── Plans ────────────────────────────────────────────────────────────────
@@ -189,5 +191,19 @@ export class BillingController {
       return { error: -1, error_note: 'SIGN CHECK FAILED!' };
     }
     return this.billingPayment.handleClickComplete(body);
+  }
+
+  // ─── Invoices ──────────────────────────────────────────────────────────
+
+  @Get('invoices')
+  @ApiOperation({ summary: 'List billing invoices for current tenant' })
+  getInvoices(@CurrentUser('tenantId') tenantId: string) {
+    return this.billingInvoice.getInvoicesByTenant(tenantId);
+  }
+
+  @Get('invoices/:id')
+  @ApiOperation({ summary: 'Get billing invoice details' })
+  getInvoice(@Param('id') id: string) {
+    return this.billingInvoice.getInvoice(id);
   }
 }

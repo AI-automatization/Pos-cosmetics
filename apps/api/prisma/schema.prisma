@@ -45,6 +45,7 @@ model Tenant {
   notifications  Notification[]
   subscription    TenantSubscription?
   billingPayments BillingPayment[]
+  billingInvoices BillingInvoice[]
   sessions             Session[]
   apiKeys             ApiKey[]
   StockMovement       StockMovement[]
@@ -1403,13 +1404,39 @@ model BillingPayment {
   createdAt      DateTime             @default(now()) @map("created_at")
   updatedAt      DateTime             @updatedAt @map("updated_at")
 
-  tenant Tenant           @relation(fields: [tenantId], references: [id])
-  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+  tenant  Tenant           @relation(fields: [tenantId], references: [id])
+  plan    SubscriptionPlan @relation(fields: [planId], references: [id])
+  invoice BillingInvoice?
 
   @@index([tenantId])
   @@index([status])
   @@index([providerTxId])
   @@map("billing_payments")
+}
+
+// ─── Billing Invoices (generated after payment settlement) ──────────────────
+
+model BillingInvoice {
+  id            String          @id @default(uuid())
+  invoiceNumber String          @unique @map("invoice_number") // INV-RAOS-202605-00001
+  tenantId      String          @map("tenant_id")
+  paymentId     String          @unique @map("payment_id")
+  planName      String          @map("plan_name") // snapshot at time of payment
+  planSlug      String          @map("plan_slug")
+  months        Int             @default(1)
+  amount        Decimal         @db.Decimal(15, 2)
+  provider      BillingProvider
+  companyName   String?         @map("company_name") // tenant snapshot
+  companyStir   String?         @map("company_stir") // tenant STIR/INN snapshot
+  issuedAt      DateTime        @default(now()) @map("issued_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id])
+  payment BillingPayment @relation(fields: [paymentId], references: [id])
+
+  @@index([tenantId])
+  @@index([issuedAt])
+  @@map("billing_invoices")
 }
 
 // ─── T-069: Session management ─────────────────────────────────
