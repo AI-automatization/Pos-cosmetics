@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 30,
   },
+  async redirects() {
+    return [
+      {
+        source: '/login',
+        destination: 'https://app.raos.uz/login',
+        permanent: false,
+      },
+    ]
+  },
   async headers() {
     return [
       {
