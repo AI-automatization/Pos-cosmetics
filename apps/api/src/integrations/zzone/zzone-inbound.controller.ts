@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { timingSafeEqual } from 'node:crypto';
 import { Throttle } from '@nestjs/throttler';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ApiTags, ApiOperation, ApiHeader, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../../common/decorators';
