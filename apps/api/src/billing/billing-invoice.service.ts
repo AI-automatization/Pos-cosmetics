@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { BillingProvider, BillingInvoice } from '@prisma/client';
+import { BillingInvoice } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
 @Injectable()
