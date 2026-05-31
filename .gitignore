@@ -63,6 +63,14 @@ apps/pos/src-tauri/target/
 apps/mobile/android/app/build/
 apps/mobile/ios/Pods/
 apps/mobile/.expo/
+apps/mobile/src/**/*.js
+apps/mobile/src/**/*.js.map
+apps/mobile/src/**/*.d.ts
+apps/mobile/src/**/*.d.ts.map
+apps/mobile-owner/src/**/*.js
+apps/mobile-owner/src/**/*.js.map
+apps/mobile-owner/src/**/*.d.ts
+apps/mobile-owner/src/**/*.d.ts.map
 
 # MinIO data
 minio-data/

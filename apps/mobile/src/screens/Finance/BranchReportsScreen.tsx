@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
@@ -16,84 +15,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { analyticsApi } from '../../api/analytics.api';
 import type { BranchRevenueItem, BranchComparisonItem } from '../../api/analytics.api';
 import type { FinanceStackParamList } from '../../navigation/types';
-
-// ─── Colors ────────────────────────────────────────────
-const C = {
-  bg:      '#F9FAFB',
-  white:   '#FFFFFF',
-  text:    '#111827',
-  muted:   '#9CA3AF',
-  border:  '#E5E7EB',
-  primary: '#2563EB',
-  green:   '#16A34A',
-  red:     '#DC2626',
-  teal:    '#0D9488',
-};
-
-// ─── Period config ─────────────────────────────────────
-type PeriodKey = 'week' | 'month' | 'year';
-
-const PERIODS: { key: PeriodKey; label: string }[] = [
-  { key: 'week',  label: 'Hafta' },
-  { key: 'month', label: 'Oy'    },
-  { key: 'year',  label: 'Yil'   },
-];
-
-// ─── Helpers ───────────────────────────────────────────
-function fmtUzs(n: number): string {
-  const abs = Math.abs(Number(n));
-  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  return (Number(n) < 0 ? '-' : '') + formatted + ' UZS';
-}
-
-// ─── TrendBadge ────────────────────────────────────────
-interface TrendBadgeProps {
-  readonly trend: number;
-}
-
-function TrendBadge({ trend }: TrendBadgeProps) {
-  const isPositive = trend >= 0;
-  const label = isPositive
-    ? `\u25b2 ${trend.toFixed(1)}%`
-    : `\u25bc ${Math.abs(trend).toFixed(1)}%`;
-  return (
-    <View style={[styles.trendBadge, isPositive ? styles.trendBadgeGreen : styles.trendBadgeRed]}>
-      <Text style={[styles.trendText, isPositive ? styles.trendTextGreen : styles.trendTextRed]}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-// ─── BranchCard ────────────────────────────────────────
-interface BranchCardProps {
-  readonly item: BranchRevenueItem;
-  readonly trend: number | undefined;
-}
-
-const BranchCard = React.memo(function BranchCard({ item, trend }: BranchCardProps) {
-  return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardIconWrap}>
-          <Ionicons name="business-outline" size={18} color={C.teal} />
-        </View>
-        <Text style={styles.branchName} numberOfLines={1}>{item.branchName}</Text>
-        {trend !== undefined && <TrendBadge trend={trend} />}
-      </View>
-
-      <Text style={styles.revenueValue}>{fmtUzs(item.revenue)}</Text>
-
-      <View style={styles.cardFooter}>
-        <View style={styles.footerItem}>
-          <Ionicons name="receipt-outline" size={14} color={C.muted} />
-          <Text style={styles.footerText}>{item.orders} ta buyurtma</Text>
-        </View>
-        <Text style={styles.stockValue}>Ombor: {fmtUzs(item.stockValue)}</Text>
-      </View>
-    </View>
-  );
-});
+import BranchCard from './BranchCard';
+import BranchSummaryCard from './BranchSummaryCard';
+import { C, styles, PERIODS, type PeriodKey } from './BranchReportsScreen.styles';
 
 // ─── BranchReportsScreen ───────────────────────────────
 export default function BranchReportsScreen() {
@@ -217,11 +141,10 @@ export default function BranchReportsScreen() {
           }
           ListHeaderComponent={
             branchRevenue.length > 0 ? (
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryLabel}>Jami tushum (barcha filiallar)</Text>
-                <Text style={styles.summaryValue}>{fmtUzs(totalRevenue)}</Text>
-                <Text style={styles.summaryMeta}>{branchRevenue.length} ta filial</Text>
-              </View>
+              <BranchSummaryCard
+                totalRevenue={totalRevenue}
+                branchCount={branchRevenue.length}
+              />
             ) : null
           }
           ListEmptyComponent={
@@ -235,119 +158,3 @@ export default function BranchReportsScreen() {
     </SafeAreaView>
   );
 }
-
-// ─── Styles ────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: C.white,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-    gap: 10,
-  },
-  headerBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: C.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: C.text },
-  headerSpacer: { width: 36 },
-
-  pillsBar: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: C.white,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  pill: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: C.border,
-    backgroundColor: C.white,
-  },
-  pillActive: { backgroundColor: C.primary, borderColor: C.primary },
-  pillText: { fontSize: 13, fontWeight: '600', color: C.muted },
-  pillTextActive: { color: C.white },
-
-  loader: { marginTop: 40 },
-
-  listContent: { padding: 16, paddingBottom: 40 },
-  separator: { height: 10 },
-
-  // Summary card
-  summaryCard: {
-    backgroundColor: C.primary,
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-  },
-  summaryLabel: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
-  summaryValue: { fontSize: 24, fontWeight: '800', color: C.white, marginTop: 4 },
-  summaryMeta: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 4 },
-
-  // Branch card
-  card: {
-    backgroundColor: C.white,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
-    padding: 14,
-    gap: 8,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  cardIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#F0FDFA',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  branchName: { flex: 1, fontSize: 15, fontWeight: '700', color: C.text },
-
-  revenueValue: { fontSize: 20, fontWeight: '800', color: C.text },
-
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 2,
-  },
-  footerItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  footerText: { fontSize: 13, color: C.muted, fontWeight: '500' },
-  stockValue: { fontSize: 12, color: C.muted, fontWeight: '500' },
-
-  // Trend badge
-  trendBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-  trendBadgeGreen: { backgroundColor: '#F0FDF4' },
-  trendBadgeRed: { backgroundColor: '#FEF2F2' },
-  trendText: { fontSize: 12, fontWeight: '700' },
-  trendTextGreen: { color: C.green },
-  trendTextRed: { color: C.red },
-
-  // Empty
-  empty: { alignItems: 'center', paddingVertical: 60, gap: 10 },
-  emptyText: { fontSize: 15, color: C.muted, fontWeight: '600' },
-});

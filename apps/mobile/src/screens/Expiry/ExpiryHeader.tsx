@@ -3,6 +3,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from './ExpiryColors';
 
 interface ExpiryHeaderProps {
@@ -12,6 +13,7 @@ interface ExpiryHeaderProps {
 export const ExpiryHeader = React.memo(function ExpiryHeader({
   onBack,
 }: ExpiryHeaderProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.header}>
       <TouchableOpacity
@@ -23,7 +25,7 @@ export const ExpiryHeader = React.memo(function ExpiryHeader({
         <Ionicons name="chevron-back" size={22} color={C.text} />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Muddati o'tganlar</Text>
+      <Text style={styles.title}>{t('warehouse.expiredProducts')}</Text>
 
       <View style={styles.iconWrapper}>
         <Ionicons name="time-outline" size={22} color={C.primary} />

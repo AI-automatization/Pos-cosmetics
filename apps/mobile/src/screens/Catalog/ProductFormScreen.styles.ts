@@ -107,4 +107,5 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB', shadowOpacity: 0, elevation: 0,
   },
   bottomBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  errorText: { fontSize: 12, color: '#DC2626', marginTop: 4 },
 });

@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Modal,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,19 +14,14 @@ import {
 } from 'react-native';
 import { nasiyaApi } from '../../api/nasiya.api';
 import { extractErrorMessage } from '../../utils/error';
-
-// ─── Colors ────────────────────────────────────────────
-const C = {
-  bg:        '#F5F5F7',
-  white:     '#FFFFFF',
-  text:      '#111827',
-  muted:     '#9CA3AF',
-  secondary: '#6B7280',
-  border:    '#F3F4F6',
-  primary:   '#5B5BD6',
-  red:       '#EF4444',
-  label:     '#374151',
-};
+import {
+  newDebtSchema,
+  extractFieldErrors,
+  type NewDebtFieldErrors,
+} from '../../validation/nasiya.schema';
+import ProductsList from './ProductsList';
+import DebtFormFields from './DebtFormFields';
+import { styles, C } from './NewDebtSheet.styles';
 
 interface ProductItem {
   product: { id: string; name: string; sellPrice: number };
@@ -65,10 +58,11 @@ export default function NewDebtSheet({
 }: Props) {
   const [form, setForm]       = useState<FormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<NewDebtFieldErrors>({});
 
-  // Unified effect: pre-fill on open, reset on close
   React.useEffect(() => {
     if (visible) {
+      setFieldErrors({});
       if (initialAmount !== undefined && initialAmount > 0) {
         setForm({ ...EMPTY_FORM, totalAmount: String(initialAmount) });
       } else {
@@ -76,38 +70,52 @@ export default function NewDebtSheet({
       }
     } else {
       setForm(EMPTY_FORM);
+      setFieldErrors({});
     }
   }, [visible, initialAmount, initialProducts]);
 
-  const set = (key: keyof FormState) => (value: string) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const setField = useCallback(
+    (key: keyof FormState) => (value: string) => {
+      setForm((prev) => ({ ...prev, [key]: value }));
+      setFieldErrors((prev) => {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    },
+    [],
+  );
 
-  const resetAndClose = () => {
+  const resetAndClose = useCallback(() => {
     setForm(EMPTY_FORM);
+    setFieldErrors({});
     onClose();
-  };
+  }, [onClose]);
 
-  const handleSave = async () => {
-    const name = form.customerName.trim();
-    if (!name) {
-      Alert.alert('Xatolik', "Mijoz ismi bo'sh bo'lishi mumkin emas");
+  const handleSave = useCallback(async () => {
+    const result = newDebtSchema.safeParse({
+      customerName: form.customerName.trim(),
+      phone:        form.phone.trim() || undefined,
+      totalAmount:  form.totalAmount,
+      dueDate:      form.dueDate.trim() || undefined,
+      notes:        form.notes.trim() || undefined,
+    });
+
+    if (!result.success) {
+      setFieldErrors(extractFieldErrors(result.error));
       return;
     }
 
-    const amount = parseInt(form.totalAmount.replace(/\s/g, ''), 10);
-    if (!amount || amount <= 0) {
-      Alert.alert('Xatolik', "Summa 0 dan katta bo'lishi kerak");
-      return;
-    }
-
+    setFieldErrors({});
     setLoading(true);
     try {
       await nasiyaApi.create({
-        customerName: name,
-        phone:        form.phone.trim() || undefined,
-        totalAmount:  amount,
-        dueDate:      form.dueDate.trim() || undefined,
-        notes:        form.notes.trim() || undefined,
+        customerName: result.data.customerName,
+        phone:        result.data.phone,
+        totalAmount:  result.data.totalAmount,
+        dueDate:      result.data.dueDate,
+        notes:        result.data.notes,
       });
       setForm(EMPTY_FORM);
       onSuccess();
@@ -116,7 +124,7 @@ export default function NewDebtSheet({
     } finally {
       setLoading(false);
     }
-  };
+  }, [form, onSuccess]);
 
   return (
     <Modal
@@ -133,7 +141,6 @@ export default function NewDebtSheet({
           >
             <View style={styles.sheet}>
               <View style={styles.handle} />
-
               <Text style={styles.title}>Yangi nasiya</Text>
 
               <ScrollView
@@ -141,88 +148,16 @@ export default function NewDebtSheet({
                 keyboardShouldPersistTaps="handled"
               >
                 {initialProducts && initialProducts.length > 0 && (
-                  <View style={styles.productsBox}>
-                    <Text style={styles.productsTitle}>Mahsulotlar</Text>
-                    {initialProducts.map((item) => (
-                      <View key={item.product.id} style={styles.productRow}>
-                        <Text style={styles.productName} numberOfLines={1}>
-                          {item.product.name}
-                        </Text>
-                        <Text style={styles.productDetail}>
-                          {item.qty} × {item.product.sellPrice.toLocaleString('ru-RU')} ={' '}
-                          {(item.qty * item.product.sellPrice).toLocaleString('ru-RU')} UZS
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
+                  <ProductsList items={initialProducts} />
                 )}
-
-                {/* Mijoz ismi */}
-                <Text style={styles.label}>Mijoz ismi *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={form.customerName}
-                  onChangeText={set('customerName')}
-                  placeholder="Ismi familiyasi"
-                  placeholderTextColor={C.muted}
-                  editable={!loading}
-                  returnKeyType="next"
-                />
-
-                {/* Telefon */}
-                <Text style={styles.label}>Telefon raqami</Text>
-                <TextInput
-                  style={styles.input}
-                  value={form.phone}
-                  onChangeText={set('phone')}
-                  placeholder="+998 90 000 00 00"
-                  placeholderTextColor={C.muted}
-                  keyboardType="phone-pad"
-                  editable={!loading}
-                  returnKeyType="next"
-                />
-
-                {/* Summa */}
-                <Text style={styles.label}>Summa (UZS) *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={form.totalAmount}
-                  onChangeText={set('totalAmount')}
-                  placeholder="0"
-                  placeholderTextColor={C.muted}
-                  keyboardType="numeric"
-                  editable={!loading}
-                  returnKeyType="next"
-                />
-
-                {/* Muddat sanasi */}
-                <Text style={styles.label}>Muddat sanasi</Text>
-                <TextInput
-                  style={styles.input}
-                  value={form.dueDate}
-                  onChangeText={set('dueDate')}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={C.muted}
-                  editable={!loading}
-                  returnKeyType="next"
-                />
-
-                {/* Izoh */}
-                <Text style={styles.label}>Izoh</Text>
-                <TextInput
-                  style={[styles.input, styles.inputMultiline]}
-                  value={form.notes}
-                  onChangeText={set('notes')}
-                  placeholder="Qo'shimcha ma'lumot..."
-                  placeholderTextColor={C.muted}
-                  multiline
-                  numberOfLines={3}
-                  editable={!loading}
-                  returnKeyType="done"
+                <DebtFormFields
+                  form={form}
+                  onChangeField={setField}
+                  disabled={loading}
+                  errors={fieldErrors}
                 />
               </ScrollView>
 
-              {/* Actions */}
               <View style={styles.actions}>
                 <TouchableOpacity
                   style={styles.cancelBtn}
@@ -251,118 +186,3 @@ export default function NewDebtSheet({
     </Modal>
   );
 }
-
-// ─── Styles ────────────────────────────────────────────
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  kav: { width: '100%' },
-  sheet: {
-    backgroundColor: C.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-    maxHeight: '90%',
-  },
-  handle: {
-    width: 40,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#E5E7EB',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: C.text,
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: C.label,
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: C.text,
-    backgroundColor: C.bg,
-  },
-  inputMultiline: {
-    height: 80,
-    textAlignVertical: 'top',
-    paddingTop: 12,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-  },
-  cancelBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: C.secondary,
-  },
-  saveBtn: {
-    flex: 2,
-    backgroundColor: C.primary,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnDisabled: { opacity: 0.6 },
-  saveBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: C.white,
-  },
-  productsBox: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    padding: 12,
-    marginBottom: 12,
-  },
-  productsTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  productRow: {
-    paddingVertical: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  productName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  productDetail: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 2,
-  },
-});

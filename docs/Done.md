@@ -1,5 +1,59 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-25
+# Yangilangan: 2026-05-31
+
+---
+
+## T-472 | 2026-05-31 | [MOBILE] | `any` type va `@ts-ignore` ni bartaraf etish
+
+- **Yechim:** 18 ta `any` va 1 ta `@ts-ignore` to'liq olib tashlandi. Raw interface yaratildi (BranchComparisonRaw, DeadStockRaw, CashierPerfRaw, MarginRaw, RawStockLevelItem). `isAxiosError()` type guard, `as unknown as {...}` pattern, static import (expo-print).
+- **Fayllar:** `analytics.api.ts`, `inventory.api.ts`, `EmployeeDetailScreen.tsx`, `LabelPrintSheet.tsx`, `shift-reports.utils.ts`, `ShiftReportCard.tsx`, `ShiftReportsScreen.tsx`, `AnalyticsScreen.tsx`, `Dashboard/index.tsx`
+
+---
+
+## T-473 | 2026-05-31 | [MOBILE] | `inventory.api.ts` ni bo'lish — 575→237 qator
+
+- **Yechim:** 3 faylga bo'lindi: `inventory.types.ts` (374 qator — barcha interfeys/typlar), `warehouse.api.ts` (60 qator — dashboard, invoices, testers), `inventory.api.ts` (237 qator — core CRUD). `export *` re-export orqali backward compat saqlandi.
+- **Fayllar:** `inventory.types.ts` (yangi), `warehouse.api.ts` (yangi), `inventory.api.ts` (qayta yozildi)
+
+---
+
+## T-474 | 2026-05-31 | [MOBILE] | Katta screen fayllarni refactor — top 4 ta
+
+- **Yechim:** Top 4 eng katta fayllar styles + sub-komponentlarga bo'lindi:
+  - `WarehouseDashboardScreen` (381→184) + styles + WarehouseDashboardSections
+  - `StockTransfer/index` (379→202) + styles + StockListHeader
+  - `DailyRevenueScreen` (379→198) + styles + RevenueBarChart
+  - `Alerts/index` (379→121) + styles + AlertRow + FilterPills
+- **Fayllar:** 12 ta fayl (4 screen + 4 styles + 4 sub-komponent)
+
+---
+
+## T-477 | 2026-05-31 | [MOBILE] | Security yaxshilash — demo creds, HTTPS, refresh mutex
+
+- **Yechim:** 3 ta xavfsizlik yaxshilash:
+  1. Demo credentials `process.env.EXPO_PUBLIC_DEMO_*` ga ko'chirildi + `.env.example` yaratildi. Env yo'q = demo tugma ko'rinmaydi.
+  2. `config/index.ts` — 3 bosqichli URL: env → `__DEV__` localhost → production HTTPS (`https://api.raos.uz/api/v1`)
+  3. `api/client.ts` — refresh token mutex (shared promise pattern). Parallel 401 larda 1 ta refresh, barchasi kutadi.
+- **Fayllar:** `LoginScreen.tsx`, `.env.example` (yangi), `config/index.ts`, `api/client.ts`
+
+---
+
+## T-476 | 2026-05-31 | [MOBILE] | Zod validation — 5 ta formga schema qo'shildi
+
+- **Yechim:** `zod` o'rnatildi. 5 ta validation schema yaratildi (`validation/` papkada). Har formda `safeParse()` + field-level error ko'rsatish (qizil border + xato matni). Eski `trim()`/`if` tekshiruvlar zod bilan almashtirildi.
+- **Fayllar:**
+  - `validation/auth.schema.ts` → `LoginScreen.tsx` + `LoginScreen.styles.ts`
+  - `validation/nasiya.schema.ts` → `NewDebtSheet.tsx` + `DebtFormFields.tsx`
+  - `validation/product.schema.ts` → `useProductForm.ts` + `ProductFormSections.tsx` + `ProductFormFields.tsx` + `ProductFormScreen.styles.ts`
+  - `validation/expense.schema.ts` → `ExpenseFormSheet.tsx`
+  - `validation/user.schema.ts` → `UserFormSheet.tsx`
+
+---
+
+## T-475 | 2026-05-31 | [MOBILE] | i18n coverage — 60+ hardcoded matn `t()` ga ko'chirildi
+
+- **Yechim:** 20+ screen/hook faylda hardcoded o'zbekcha matnlar `t()` bilan almashtirildi. `uz.ts`, `ru.ts`, `en.ts` ga 100+ kalit qo'shildi: billing, hrInvite, notifications, analytics, warehouse, discounts, transfers, printer sectionlar.
+- **Fayllar:** `i18n/uz.ts`, `ru.ts`, `en.ts` + BillingScreen, HRInviteSheet, Notifications/index, MarginAnalysisScreen, AbcAnalysisScreen, CashierPerformanceScreen, DeadStockScreen, WarehouseDashboard*, StockMovementHeader, Expiry/*, ChegirmaScreen, DiscountCard, CreateDiscountModal, IncomingTransfersScreen, useBtPrinter
 
 ---
 

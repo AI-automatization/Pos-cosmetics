@@ -19,6 +19,7 @@ import {
   type Expense,
   type CreateExpensePayload,
 } from '../../api/expenses.api';
+import { expenseSchema, getFieldErrors, type ExpenseFormData } from '../../validation/expense.schema';
 
 // ─── Colors ────────────────────────────────────────────
 const C = {
@@ -58,6 +59,7 @@ export default function ExpenseFormSheet({ visible, expense, onClose, onSaved }:
   const [category, setCategory] = useState<ExpenseCategory>('OTHER');
   const [description, setDesc]  = useState('');
   const [amount, setAmount]     = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ExpenseFormData, string>>>({});
 
   React.useEffect(() => {
     if (visible) {
@@ -65,28 +67,46 @@ export default function ExpenseFormSheet({ visible, expense, onClose, onSaved }:
       setCategory(expense?.category ?? 'OTHER');
       setDesc(expense?.description ?? '');
       setAmount(expense ? String(expense.amount) : '');
+      setFieldErrors({});
     }
   }, [visible, expense]);
-
-  const canSave = description.trim().length > 0 && parseFloat(amount) > 0;
 
   const handleCategoryPick = () => {
     Alert.alert('Kategoriyani tanlang', undefined, [
       ...EXPENSE_CATEGORIES.map((c) => ({
         text: EXPENSE_CATEGORY_LABELS[c],
-        onPress: () => setCategory(c),
+        onPress: () => {
+          setCategory(c);
+          setFieldErrors((prev) => ({ ...prev, category: undefined }));
+        },
       })),
       { text: 'Bekor qilish', style: 'cancel' as const },
     ]);
   };
 
   const handleSave = () => {
-    if (!canSave) return;
-    onSaved({
-      date,
-      category,
+    const parsed = parseFloat(amount);
+    const formData = {
       description: description.trim(),
-      amount: parseFloat(amount),
+      amount: Number.isNaN(parsed) ? 0 : parsed,
+      category,
+      date: date || undefined,
+    };
+
+    const result = expenseSchema.safeParse(formData);
+    const errors = getFieldErrors(result);
+
+    if (!result.success) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+    onSaved({
+      date: result.data.date ?? todayStr(),
+      category: result.data.category as ExpenseCategory,
+      description: result.data.description,
+      amount: result.data.amount,
     });
   };
 
@@ -125,38 +145,55 @@ export default function ExpenseFormSheet({ visible, expense, onClose, onSaved }:
 
           {/* Category */}
           <Text style={sheet.label}>KATEGORIYA</Text>
-          <TouchableOpacity style={sheet.selectRow} onPress={handleCategoryPick}>
+          <TouchableOpacity
+            style={[sheet.selectRow, fieldErrors.category ? sheet.inputError : undefined]}
+            onPress={handleCategoryPick}
+          >
             <Ionicons name={cfg.icon} size={18} color={cfg.color} />
             <Text style={sheet.selectText}>{EXPENSE_CATEGORY_LABELS[category]}</Text>
             <Ionicons name="chevron-forward" size={16} color={C.muted} />
           </TouchableOpacity>
+          {fieldErrors.category ? (
+            <Text style={sheet.errorText}>{fieldErrors.category}</Text>
+          ) : null}
 
           {/* Description */}
           <Text style={sheet.label}>TAVSIF</Text>
           <TextInput
-            style={sheet.input}
+            style={[sheet.input, fieldErrors.description ? sheet.inputError : undefined]}
             value={description}
-            onChangeText={setDesc}
+            onChangeText={(v) => {
+              setDesc(v);
+              setFieldErrors((prev) => ({ ...prev, description: undefined }));
+            }}
             placeholder="Masalan: Fevral oyi ijarasi"
             placeholderTextColor={C.muted}
           />
+          {fieldErrors.description ? (
+            <Text style={sheet.errorText}>{fieldErrors.description}</Text>
+          ) : null}
 
           {/* Amount */}
           <Text style={sheet.label}>MIQDOR (UZS)</Text>
           <TextInput
-            style={sheet.input}
+            style={[sheet.input, fieldErrors.amount ? sheet.inputError : undefined]}
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={(v) => {
+              setAmount(v);
+              setFieldErrors((prev) => ({ ...prev, amount: undefined }));
+            }}
             placeholder="0"
             placeholderTextColor={C.muted}
             keyboardType="numeric"
           />
+          {fieldErrors.amount ? (
+            <Text style={sheet.errorText}>{fieldErrors.amount}</Text>
+          ) : null}
 
           <TouchableOpacity
-            style={[sheet.saveBtn, !canSave && sheet.saveBtnDisabled]}
+            style={sheet.saveBtn}
             onPress={handleSave}
             activeOpacity={0.85}
-            disabled={!canSave}
           >
             <Text style={sheet.saveBtnText}>{expense ? 'Saqlash' : "Qo'shish"}</Text>
           </TouchableOpacity>
@@ -208,6 +245,13 @@ const sheet = StyleSheet.create({
     shadowColor: C.red, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
   },
-  saveBtnDisabled: { backgroundColor: '#E5E7EB', shadowOpacity: 0, elevation: 0 },
   saveBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  inputError: { borderColor: C.red },
+  errorText: {
+    fontSize: 12,
+    color: C.red,
+    marginTop: -10,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
 });

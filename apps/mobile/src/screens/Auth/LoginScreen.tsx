@@ -21,6 +21,8 @@ import { useAuthStore } from '../../store/auth.store';
 import { extractErrorMessage } from '../../utils/error';
 import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
+import { loginSchema, formatZodErrors } from '../../validation/auth.schema';
+import type { LoginFormData } from '../../validation/auth.schema';
 import Constants from 'expo-constants';
 import { styles, COLORS } from './LoginScreen.styles';
 
@@ -45,16 +47,38 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
+
+  const clearFieldError = (field: keyof LoginFormData) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    clearFieldError('email');
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    clearFieldError('password');
+  };
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Xatolik', "Barcha maydonlarni to'ldiring");
+    const result = loginSchema.safeParse({ email: email.trim(), password });
+    if (!result.success) {
+      setFieldErrors(formatZodErrors(result.error));
       return;
     }
+    setFieldErrors({});
     setLoading(true);
     let tokenStored = false;
     try {
-      const res = await authApi.login({ email: email.trim(), password });
+      const res = await authApi.login({ email: result.data.email, password: result.data.password });
       await SecureStore.setItemAsync('access_token', res.accessToken);
       tokenStored = true;
       const me = await authApi.me();
@@ -96,12 +120,12 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Email */}
             <Text style={styles.label}>Elektron pochta</Text>
-            <View style={styles.inputWrapper}>
-              <Feather name="mail" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
+            <View style={[styles.inputWrapper, fieldErrors.email && styles.inputWrapperError]}>
+              <Feather name="mail" size={18} color={fieldErrors.email ? COLORS.error : COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={handleEmailChange}
                 placeholder="example@mail.com"
                 placeholderTextColor={COLORS.textMuted}
                 keyboardType="email-address"
@@ -111,6 +135,9 @@ export default function LoginScreen({ navigation }: Props) {
                 returnKeyType="next"
               />
             </View>
+            {fieldErrors.email && (
+              <Text style={styles.fieldError}>{fieldErrors.email}</Text>
+            )}
 
             {/* Password */}
             <View style={styles.labelRow}>
@@ -119,12 +146,12 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={styles.forgotText}>Parolni unutdingizmi?</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.inputWrapper}>
-              <Feather name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
+            <View style={[styles.inputWrapper, fieldErrors.password && styles.inputWrapperError]}>
+              <Feather name="lock" size={18} color={fieldErrors.password ? COLORS.error : COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, styles.inputPasswordField]}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={handlePasswordChange}
                 placeholder="••••••••"
                 placeholderTextColor={COLORS.textMuted}
                 secureTextEntry={!showPassword}
@@ -144,6 +171,9 @@ export default function LoginScreen({ navigation }: Props) {
                 />
               </TouchableOpacity>
             </View>
+            {fieldErrors.password && (
+              <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+            )}
 
             {/* Login button */}
             <TouchableOpacity
@@ -212,15 +242,17 @@ export default function LoginScreen({ navigation }: Props) {
           <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '0.0.0'}</Text>
 
           {/* DEV only — haqiqiy API bilan demo login */}
-          {__DEV__ && (
+          {__DEV__ &&
+            !!process.env.EXPO_PUBLIC_DEMO_EMAIL &&
+            !!process.env.EXPO_PUBLIC_DEMO_PASSWORD && (
             <TouchableOpacity
               style={styles.demoButton}
               disabled={loading}
               onPress={async () => {
                 setLoading(true);
                 try {
-                  const demoEmail = 'owner@raos.uz';
-                  const demoPass = 'Demo1234!';
+                  const demoEmail = process.env.EXPO_PUBLIC_DEMO_EMAIL as string;
+                  const demoPass = process.env.EXPO_PUBLIC_DEMO_PASSWORD as string;
                   const res = await authApi.login({ email: demoEmail, password: demoPass });
                   await SecureStore.setItemAsync('access_token', res.accessToken);
                   const me = await authApi.me();

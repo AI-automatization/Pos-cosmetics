@@ -3,6 +3,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from './ExpiryColors';
 import { getStatusConfig } from './ExpiryTypes';
 import type { ExpiryItem, ExpiredItem, ExpiryTab } from './ExpiryTypes';
@@ -21,7 +22,11 @@ function formatExpiryDate(dateStr: string): string {
 }
 
 function ExpiringCard({ item }: { readonly item: ExpiryItem }) {
+  const { t } = useTranslation();
   const status = getStatusConfig(item.daysLeft);
+  const statusLabel = item.daysLeft < 0
+    ? t('warehouse.daysOverdue', { count: Math.abs(item.daysLeft) })
+    : t('warehouse.daysLeft', { count: item.daysLeft });
 
   return (
     <View style={styles.card}>
@@ -31,7 +36,7 @@ function ExpiringCard({ item }: { readonly item: ExpiryItem }) {
         </Text>
         <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
           <Text style={[styles.statusText, { color: status.text }]}>
-            {status.label}
+            {statusLabel}
           </Text>
         </View>
       </View>
@@ -44,7 +49,7 @@ function ExpiringCard({ item }: { readonly item: ExpiryItem }) {
       {item.batchNumber !== null && item.batchNumber !== undefined && (
         <View style={styles.infoRow}>
           <Ionicons name="barcode-outline" size={14} color={C.secondary} />
-          <Text style={styles.infoText}>Partiya: {item.batchNumber}</Text>
+          <Text style={styles.infoText}>{t('warehouse.batch', { number: item.batchNumber })}</Text>
         </View>
       )}
 
@@ -54,7 +59,7 @@ function ExpiringCard({ item }: { readonly item: ExpiryItem }) {
           <Text style={styles.infoText}>{formatExpiryDate(item.expiryDate)}</Text>
         </View>
         <View style={styles.qtyBadge}>
-          <Text style={styles.qtyText}>{item.qty} dona</Text>
+          <Text style={styles.qtyText}>{item.qty} {t('warehouse.unit')}</Text>
         </View>
       </View>
     </View>
@@ -62,6 +67,7 @@ function ExpiringCard({ item }: { readonly item: ExpiryItem }) {
 }
 
 function ExpiredCard({ item }: { readonly item: ExpiredItem }) {
+  const { t } = useTranslation();
   const expiredAt = new Date(item.expiryDate);
   const today     = new Date();
   const diffMs    = today.getTime() - expiredAt.getTime();
@@ -78,16 +84,16 @@ function ExpiredCard({ item }: { readonly item: ExpiredItem }) {
         {item.batchNumber !== null && item.batchNumber !== undefined && (
           <View style={styles.infoRow}>
             <Ionicons name="barcode-outline" size={14} color={C.secondary} />
-            <Text style={styles.infoText}>Partiya: {item.batchNumber}</Text>
+            <Text style={styles.infoText}>{t('warehouse.batch', { number: item.batchNumber })}</Text>
           </View>
         )}
 
         <View style={styles.footer}>
           <Text style={styles.expiredAgoText}>
-            {daysAgo > 0 ? `${daysAgo} kun oldin muddati o'tgan` : 'Bugun muddati o\'tgan'}
+            {daysAgo > 0 ? t('warehouse.daysExpired', { count: daysAgo }) : t('warehouse.todayExpired')}
           </Text>
           <View style={styles.qtyBadge}>
-            <Text style={styles.qtyText}>{item.qty} dona</Text>
+            <Text style={styles.qtyText}>{item.qty} {t('warehouse.unit')}</Text>
           </View>
         </View>
       </View>

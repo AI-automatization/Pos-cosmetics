@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { analyticsApi, type CashierPerfItem } from '../../api/analytics.api';
 
 // ─── Constants ────────────────────────────────────────────
@@ -23,11 +24,8 @@ const C = {
 };
 
 type DayRange = 7 | 30 | 90;
-const RANGES: { key: DayRange; label: string }[] = [
-  { key: 7,  label: '7 kun' },
-  { key: 30, label: '30 kun' },
-  { key: 90, label: '90 kun' },
-];
+const RANGE_KEYS: DayRange[] = [7, 30, 90];
+const RANGE_I18N: Record<DayRange, string> = { 7: 'analytics.days7', 30: 'analytics.days30', 90: 'analytics.days90' };
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -57,8 +55,9 @@ function getInitials(name: string): string {
 const MEDAL_COLORS = [C.gold, C.silver, C.bronze];
 
 // ─── Cashier Card ─────────────────────────────────────────
-function CashierCard({ item, rank, maxRevenue }: {
+function CashierCard({ item, rank, maxRevenue, t }: {
   item: CashierPerfItem; rank: number; maxRevenue: number;
+  t: (key: string) => string;
 }) {
   const barPct = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
   const medalColor = rank <= 3 ? MEDAL_COLORS[rank - 1] : undefined;
@@ -78,7 +77,7 @@ function CashierCard({ item, rank, maxRevenue }: {
 
         <View style={s.cardInfo}>
           <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
-          <Text style={s.cardSub}>{item.ordersCount} buyurtma  •  {item.shiftsCount} smena</Text>
+          <Text style={s.cardSub}>{item.ordersCount} {t('analytics.cashier.ordersSub')}  •  {item.shiftsCount} {t('analytics.cashier.shiftsSub')}</Text>
         </View>
 
         <View style={s.cardRight}>
@@ -97,24 +96,24 @@ function CashierCard({ item, rank, maxRevenue }: {
         <View style={s.statItem}>
           <Ionicons name="cart-outline" size={14} color={C.muted} />
           <Text style={s.statValue}>{item.ordersCount}</Text>
-          <Text style={s.statLabel}>Buyurtma</Text>
+          <Text style={s.statLabel}>{t('analytics.cashier.orders')}</Text>
         </View>
         <View style={s.statItem}>
           <Ionicons name="wallet-outline" size={14} color={C.muted} />
           <Text style={s.statValue}>{fmt(item.avgBasket)}</Text>
-          <Text style={s.statLabel}>O'rt. chek</Text>
+          <Text style={s.statLabel}>{t('analytics.cashier.avgBasket')}</Text>
         </View>
         <View style={s.statItem}>
           <Ionicons name="refresh-outline" size={14} color={item.returnsCount > 0 ? C.red : C.muted} />
           <Text style={[s.statValue, item.returnsCount > 0 && { color: C.red }]}>
             {item.returnsCount}
           </Text>
-          <Text style={s.statLabel}>Qaytarish</Text>
+          <Text style={s.statLabel}>{t('analytics.cashier.returns')}</Text>
         </View>
         <View style={s.statItem}>
           <Ionicons name="time-outline" size={14} color={C.muted} />
           <Text style={s.statValue}>{item.shiftsCount}</Text>
-          <Text style={s.statLabel}>Smena</Text>
+          <Text style={s.statLabel}>{t('analytics.cashier.shifts')}</Text>
         </View>
       </View>
     </View>
@@ -123,6 +122,7 @@ function CashierCard({ item, rank, maxRevenue }: {
 
 // ─── Main Screen ──────────────────────────────────────────
 export default function CashierPerformanceScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [days, setDays] = useState<DayRange>(30);
   const [search, setSearch] = useState('');
@@ -155,8 +155,8 @@ export default function CashierPerformanceScreen() {
   );
 
   const renderItem = useCallback(({ item, index }: { item: CashierPerfItem; index: number }) => (
-    <CashierCard item={item} rank={index + 1} maxRevenue={maxRevenue} />
-  ), [maxRevenue]);
+    <CashierCard item={item} rank={index + 1} maxRevenue={maxRevenue} t={t} />
+  ), [maxRevenue, t]);
 
   const keyExtractor = useCallback((item: CashierPerfItem) => item.userId, []);
 
@@ -165,17 +165,17 @@ export default function CashierPerformanceScreen() {
       {/* Summary */}
       <View style={s.summaryRow}>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>Kassirlar</Text>
+          <Text style={s.summaryLabel}>{t('analytics.cashier.cashiers')}</Text>
           <Text style={s.summaryValue}>{items.length}</Text>
           <Text style={s.summarySub}>ta</Text>
         </View>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>Jami daromad</Text>
+          <Text style={s.summaryLabel}>{t('analytics.totalRevenue')}</Text>
           <Text style={s.summaryValue}>{fmt(totalRevenue)}</Text>
           <Text style={s.summarySub}>UZS</Text>
         </View>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>O'rt. chek</Text>
+          <Text style={s.summaryLabel}>{t('analytics.cashier.avgBasket')}</Text>
           <Text style={s.summaryValue}>{fmt(avgBasket)}</Text>
           <Text style={s.summarySub}>UZS</Text>
         </View>
@@ -187,7 +187,7 @@ export default function CashierPerformanceScreen() {
           <Ionicons name="search-outline" size={18} color={C.muted} />
           <TextInput
             style={s.searchInput}
-            placeholder="Kassir qidirish..."
+            placeholder={t('analytics.cashier.searchPlaceholder')}
             placeholderTextColor={C.muted}
             value={search}
             onChangeText={setSearch}
@@ -200,7 +200,7 @@ export default function CashierPerformanceScreen() {
         </View>
       </View>
     </>
-  ), [items.length, totalRevenue, avgBasket, search]);
+  ), [items.length, totalRevenue, avgBasket, search, t]);
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -209,20 +209,20 @@ export default function CashierPerformanceScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color={C.text} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Kassir Samaradorligi</Text>
+        <Text style={s.headerTitle}>{t('analytics.cashier.title')}</Text>
         <View style={s.backBtn} />
       </View>
 
       {/* Period selector */}
       <View style={s.periodRow}>
-        {RANGES.map((r) => (
+        {RANGE_KEYS.map((r) => (
           <TouchableOpacity
-            key={r.key}
-            style={[s.periodTab, days === r.key && s.periodTabActive]}
-            onPress={() => setDays(r.key)}
+            key={r}
+            style={[s.periodTab, days === r && s.periodTabActive]}
+            onPress={() => setDays(r)}
             activeOpacity={0.75}
           >
-            <Text style={[s.periodText, days === r.key && s.periodTextActive]}>{r.label}</Text>
+            <Text style={[s.periodText, days === r && s.periodTextActive]}>{t(RANGE_I18N[r])}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -241,7 +241,7 @@ export default function CashierPerformanceScreen() {
           ListEmptyComponent={
             <View style={s.empty}>
               <Ionicons name="people-outline" size={48} color={C.muted} />
-              <Text style={s.emptyText}>{search ? 'Natija topilmadi' : "Ma'lumot yo'q"}</Text>
+              <Text style={s.emptyText}>{search ? t('analytics.cashier.noResults') : t('analytics.noData')}</Text>
             </View>
           }
         />

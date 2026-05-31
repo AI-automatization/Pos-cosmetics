@@ -2,6 +2,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { C } from './OmborColors';
 import type { DashboardMovement } from '../../api/inventory.api';
 import type { Alert } from '../../api/alerts.api';
@@ -11,14 +13,14 @@ import type { Alert } from '../../api/alerts.api';
 const PURPLE = '#7C3AED';
 const MONTHS = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'];
 
-export const MOVEMENT_CFG: Record<string, { color: string; label: string }> = {
-  IN:           { color: C.green,    label: 'Kirim' },
-  OUT:          { color: C.red,      label: 'Chiqim' },
-  WRITE_OFF:    { color: C.orange,   label: 'Spisanie' },
-  TRANSFER_IN:  { color: C.primary,  label: 'Transfer +' },
-  TRANSFER_OUT: { color: PURPLE,     label: 'Transfer -' },
-  ADJUSTMENT:   { color: C.secondary, label: 'Tuzatish' },
-  RETURN_IN:    { color: C.green,    label: 'Qaytarish' },
+export const MOVEMENT_CFG: Record<string, { color: string; labelKey: string }> = {
+  IN:           { color: C.green,    labelKey: 'warehouse.movementIn' },
+  OUT:          { color: C.red,      labelKey: 'warehouse.movementOut' },
+  WRITE_OFF:    { color: C.orange,   labelKey: 'warehouse.movementWriteOff' },
+  TRANSFER_IN:  { color: C.primary,  labelKey: 'warehouse.movementTransferIn' },
+  TRANSFER_OUT: { color: PURPLE,     labelKey: 'warehouse.movementTransferOut' },
+  ADJUSTMENT:   { color: C.secondary, labelKey: 'warehouse.movementAdjustment' },
+  RETURN_IN:    { color: C.green,    labelKey: 'warehouse.movementReturnIn' },
 };
 
 // ── Helpers ────────────────────────────────────────────────
@@ -38,13 +40,13 @@ export function formatUzbekDate(): string {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-export function relativeTime(iso: string): string {
+export function relativeTime(iso: string, t: TFunction): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return 'Hozirgina';
-  if (mins < 60) return `${mins} daqiqa oldin`;
+  if (mins < 1) return t('warehouse.justNow');
+  if (mins < 60) return t('warehouse.minutesAgo', { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} soat oldin`;
+  if (hours < 24) return t('warehouse.hoursAgo', { count: hours });
   return formatDate(iso);
 }
 
@@ -98,15 +100,16 @@ export function QuickChip({ label, icon, onPress, badge }: QuickChipProps) {
 
 // ── MovementRow ────────────────────────────────────────────
 
-const DEFAULT_MOVEMENT_CFG = { color: C.secondary, label: 'Boshqa' } as const;
+const DEFAULT_MOVEMENT_CFG = { color: C.secondary, labelKey: 'warehouse.movementOther' } as const;
 
 export function MovementRow({ item }: { readonly item: DashboardMovement }) {
+  const { t } = useTranslation();
   const cfg = MOVEMENT_CFG[item.type] ?? DEFAULT_MOVEMENT_CFG;
   const isNegative = item.type === 'OUT' || item.type === 'TRANSFER_OUT' || item.type === 'WRITE_OFF';
   return (
     <View style={styles.movementRow}>
       <View style={[styles.movementBadge, { backgroundColor: cfg.color + '18' }]}>
-        <Text style={[styles.movementBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+        <Text style={[styles.movementBadgeText, { color: cfg.color }]}>{t(cfg.labelKey)}</Text>
       </View>
       <View style={styles.movementInfo}>
         <Text style={styles.movementName} numberOfLines={1}>{item.product.name}</Text>
@@ -128,12 +131,13 @@ interface RestockCardProps {
 }
 
 export function RestockCard({ item, onMarkRead, isMarking }: RestockCardProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.restockCard}>
       <View style={styles.restockHeader}>
         <Ionicons name="arrow-up-circle" size={18} color={C.orange} />
         <Text style={styles.restockTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.restockTime}>{relativeTime(item.createdAt)}</Text>
+        <Text style={styles.restockTime}>{relativeTime(item.createdAt, t)}</Text>
       </View>
       <Text style={styles.restockBody} numberOfLines={2}>{item.message}</Text>
       <TouchableOpacity
@@ -143,7 +147,7 @@ export function RestockCard({ item, onMarkRead, isMarking }: RestockCardProps) {
         activeOpacity={0.7}
       >
         <Ionicons name="checkmark-circle-outline" size={14} color={C.white} />
-        <Text style={styles.markReadBtnText}>Qabul qildim</Text>
+        <Text style={styles.markReadBtnText}>{t('warehouse.markDone')}</Text>
       </TouchableOpacity>
     </View>
   );

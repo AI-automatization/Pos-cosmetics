@@ -11,7 +11,9 @@ export const COLORS = {
   textMuted: '#9CA3AF',
   border: '#E5E7EB',
   borderFocus: '#2563EB',
+  borderError: '#EF4444',
   label: '#374151',
+  error: '#DC2626',
 };
 
 // ─── Styles ────────────────────────────────────────────
@@ -107,6 +109,15 @@ export const styles = StyleSheet.create({
   },
   eyeButton: {
     paddingLeft: 8,
+  },
+  inputWrapperError: {
+    borderColor: COLORS.borderError,
+  },
+  fieldError: {
+    fontSize: 12,
+    color: COLORS.error,
+    marginTop: 4,
+    marginLeft: 4,
   },
 
   // ── Login Button ──

@@ -29,6 +29,7 @@ import {
   EmployeeSuspiciousCard,
   EmployeeActionButtons,
 } from './components/detail';
+import { isAxiosError } from 'axios';
 import { useAuthStore } from '../../store/auth.store';
 import { getRoleLevel } from '../../utils/roles';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
@@ -126,7 +127,7 @@ export default function EmployeeDetailScreen() {
           {
             onSuccess: () => Alert.alert(t('common.done'), t('employees.fired')),
             onError: (err: unknown) => {
-              const status = (err as any)?.response?.status;
+              const status = isAxiosError(err) ? err.response?.status : undefined;
               if (status === 403) {
                 Alert.alert(t('common.error'), t('common.forbidden'));
               } else if (status === 404) {
@@ -152,7 +153,7 @@ export default function EmployeeDetailScreen() {
             navigation.goBack();
           },
           onError: (err: unknown) => {
-            const status = (err as any)?.response?.status;
+            const status = isAxiosError(err) ? err.response?.status : undefined;
             if (status === 403) {
               Alert.alert(t('common.error'), t('common.forbidden'));
             } else if (status === 404) {

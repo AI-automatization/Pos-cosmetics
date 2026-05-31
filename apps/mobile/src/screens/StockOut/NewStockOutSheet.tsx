@@ -7,7 +7,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,10 +17,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { extractErrorMessage } from '../../utils/error';
 import { C } from './StockOutColors';
-import { STATUS_CFG } from './StockOutTypes';
 import type { StockLevel, WriteOffPayload, WriteOffResponse, WriteOffReason } from './StockOutTypes';
-
-const REASONS: ReadonlyArray<WriteOffReason> = ['DAMAGED', 'EXPIRED', 'LOST', 'OTHER'];
+import ProductInfoCard from './ProductInfoCard';
+import ReasonPicker from './ReasonPicker';
+import { styles } from './NewStockOutSheet.styles';
 
 interface NewStockOutSheetProps {
   readonly visible:          boolean;
@@ -128,19 +127,7 @@ export default function NewStockOutSheet({
               style={styles.scroll}
             >
               {/* Tanlangan mahsulot */}
-              <View style={styles.productCard}>
-                <Ionicons name="cube-outline" size={18} color={C.primary} />
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName} numberOfLines={1}>
-                    {selectedItem.name}
-                  </Text>
-                  <Text style={styles.productMeta}>
-                    {selectedItem.warehouseName} · Qoldiq: {selectedItem.totalQty % 1 === 0
-                      ? String(selectedItem.totalQty)
-                      : selectedItem.totalQty.toFixed(2)} dona
-                  </Text>
-                </View>
-              </View>
+              <ProductInfoCard item={selectedItem} />
 
               {/* Miqdor */}
               <Text style={styles.label}>Chiqariladigan miqdor (dona)</Text>
@@ -157,38 +144,11 @@ export default function NewStockOutSheet({
 
               {/* Sabab tanlash */}
               <Text style={[styles.label, styles.labelTop]}>Sabab</Text>
-              <View style={styles.reasonGrid}>
-                {REASONS.map((r) => {
-                  const cfg      = STATUS_CFG[r];
-                  const isActive = reason === r;
-                  return (
-                    <TouchableOpacity
-                      key={r}
-                      style={[
-                        styles.reasonBtn,
-                        isActive && { backgroundColor: cfg.bg, borderColor: cfg.text },
-                      ]}
-                      onPress={() => setReason(r)}
-                      activeOpacity={0.75}
-                      disabled={loading}
-                    >
-                      <Ionicons
-                        name={cfg.icon as 'warning-outline'}
-                        size={16}
-                        color={isActive ? cfg.text : C.muted}
-                      />
-                      <Text
-                        style={[
-                          styles.reasonText,
-                          isActive && { color: cfg.text, fontWeight: '700' },
-                        ]}
-                      >
-                        {cfg.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              <ReasonPicker
+                value={reason}
+                onChange={setReason}
+                disabled={loading}
+              />
 
               {/* Izoh (ixtiyoriy) */}
               <Text style={[styles.label, styles.labelTop]}>Izoh (ixtiyoriy)</Text>
@@ -236,142 +196,3 @@ export default function NewStockOutSheet({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex:            1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent:  'flex-end',
-  },
-  kav:   { width: '100%' },
-  sheet: {
-    backgroundColor:      C.white,
-    borderTopLeftRadius:  20,
-    borderTopRightRadius: 20,
-    paddingHorizontal:    20,
-    paddingTop:           12,
-    paddingBottom:        40,
-    maxHeight:            '90%' as const,
-  },
-  handle: {
-    width:        36,
-    height:       4,
-    borderRadius: 2,
-    backgroundColor: C.border,
-    alignSelf:    'center',
-    marginBottom: 14,
-  },
-  titleRow: {
-    flexDirection:  'row',
-    alignItems:     'center',
-    justifyContent: 'space-between',
-    marginBottom:   16,
-  },
-  title: {
-    fontSize:   18,
-    fontWeight: '800',
-    color:      C.text,
-  },
-  closeBtn: {
-    width:           32,
-    height:          32,
-    borderRadius:    16,
-    backgroundColor: C.bg,
-    borderWidth:     1,
-    borderColor:     C.border,
-    alignItems:      'center',
-    justifyContent:  'center',
-  },
-  scroll: { flexShrink: 1 },
-  productCard: {
-    flexDirection:   'row',
-    alignItems:      'center',
-    gap:             10,
-    backgroundColor: C.bg,
-    borderRadius:    12,
-    padding:         14,
-    borderWidth:     1,
-    borderColor:     C.border,
-    marginBottom:    16,
-  },
-  productInfo:  { flex: 1, gap: 2 },
-  productName:  { fontSize: 15, fontWeight: '700', color: C.text },
-  productMeta:  { fontSize: 12, color: C.secondary },
-  label: {
-    fontSize:   13,
-    fontWeight: '600',
-    color:      '#374151',
-    marginBottom: 6,
-  },
-  labelTop: { marginTop: 16 },
-  input: {
-    borderWidth:       1,
-    borderColor:       C.border,
-    borderRadius:      10,
-    paddingHorizontal: 14,
-    paddingVertical:   12,
-    fontSize:          15,
-    color:             C.text,
-    backgroundColor:   C.bg,
-  },
-  inputMultiline: {
-    height:       80,
-    paddingTop:   12,
-  },
-  reasonGrid: {
-    flexDirection: 'row',
-    flexWrap:      'wrap',
-    gap:           8,
-  },
-  reasonBtn: {
-    flexDirection:    'row',
-    alignItems:       'center',
-    gap:              6,
-    paddingHorizontal: 12,
-    paddingVertical:  10,
-    borderRadius:     10,
-    borderWidth:      1,
-    borderColor:      C.border,
-    backgroundColor:  C.white,
-    minWidth:         '45%' as const,
-  },
-  reasonText: {
-    fontSize:   13,
-    fontWeight: '500',
-    color:      C.secondary,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap:           10,
-    marginTop:     20,
-  },
-  cancelBtn: {
-    flex:          1,
-    borderWidth:   1,
-    borderColor:   C.border,
-    borderRadius:  12,
-    paddingVertical: 14,
-    alignItems:    'center',
-  },
-  cancelBtnText: {
-    fontSize:   15,
-    fontWeight: '600',
-    color:      C.secondary,
-  },
-  submitBtn: {
-    flex:           2,
-    flexDirection:  'row',
-    alignItems:     'center',
-    justifyContent: 'center',
-    gap:            6,
-    backgroundColor: C.red,
-    borderRadius:   12,
-    paddingVertical: 14,
-  },
-  submitBtnDisabled: { opacity: 0.6 },
-  submitBtnText: {
-    fontSize:   15,
-    fontWeight: '700',
-    color:      C.white,
-  },
-});

@@ -36,8 +36,9 @@ export default function ShiftReportsScreen({ onClose }: Props) {
   const allShifts: ShiftDetail[] = (() => {
     if (!data) return [];
     if (Array.isArray(data)) return data as ShiftDetail[];
-    if (Array.isArray((data as any).items)) return (data as any).items as ShiftDetail[];
-    if (Array.isArray((data as any).data))  return (data as any).data  as ShiftDetail[];
+    const d = data as Record<string, unknown>;
+    if (Array.isArray(d.items)) return d.items as ShiftDetail[];
+    if (Array.isArray(d.data))  return d.data  as ShiftDetail[];
     return [];
   })();
 

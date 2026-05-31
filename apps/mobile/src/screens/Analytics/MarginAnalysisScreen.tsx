@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { analyticsApi, type MarginItem } from '../../api/analytics.api';
 
 // ─── Constants ────────────────────────────────────────────
@@ -22,17 +23,14 @@ const C = {
 };
 
 type DayRange = 7 | 30 | 90;
-const RANGES: { key: DayRange; label: string }[] = [
-  { key: 7,  label: '7 kun' },
-  { key: 30, label: '30 kun' },
-  { key: 90, label: '90 kun' },
-];
+const RANGE_KEYS: DayRange[] = [7, 30, 90];
+const RANGE_I18N: Record<DayRange, string> = { 7: 'analytics.days7', 30: 'analytics.days30', 90: 'analytics.days90' };
 
 type SortKey = 'marginPct' | 'grossProfit' | 'revenue';
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'marginPct',   label: 'Marja %' },
-  { key: 'grossProfit', label: 'Foyda' },
-  { key: 'revenue',     label: 'Daromad' },
+const SORT_KEYS: { key: SortKey; i18n: string }[] = [
+  { key: 'marginPct',   i18n: 'analytics.margin.sortMargin' },
+  { key: 'grossProfit', i18n: 'analytics.margin.sortProfit' },
+  { key: 'revenue',     i18n: 'analytics.margin.sortRevenue' },
 ];
 
 function fmt(n: number): string {
@@ -58,8 +56,9 @@ function marginColor(pct: number): { bg: string; text: string } {
 }
 
 // ─── Product Row ──────────────────────────────────────────
-function ProductRow({ item, rank, maxProfit }: {
+function ProductRow({ item, rank, maxProfit, t }: {
   item: MarginItem; rank: number; maxProfit: number;
+  t: (key: string) => string;
 }) {
   const mc = marginColor(item.marginPct);
   const barPct = maxProfit > 0 ? (item.grossProfit / maxProfit) * 100 : 0;
@@ -87,21 +86,21 @@ function ProductRow({ item, rank, maxProfit }: {
       {/* Details row */}
       <View style={s.detailRow}>
         <View style={s.detailItem}>
-          <Text style={s.detailLabel}>Daromad</Text>
+          <Text style={s.detailLabel}>{t('analytics.margin.revenue')}</Text>
           <Text style={s.detailValue}>{fmt(item.revenue)}</Text>
         </View>
         <View style={s.detailItem}>
-          <Text style={s.detailLabel}>Tannarx</Text>
+          <Text style={s.detailLabel}>{t('analytics.margin.cost')}</Text>
           <Text style={s.detailValue}>{fmt(item.costTotal)}</Text>
         </View>
         <View style={s.detailItem}>
-          <Text style={s.detailLabel}>Foyda</Text>
+          <Text style={s.detailLabel}>{t('analytics.margin.profit')}</Text>
           <Text style={[s.detailValue, { color: item.grossProfit >= 0 ? C.green : C.red }]}>
             {fmt(item.grossProfit)}
           </Text>
         </View>
         <View style={s.detailItem}>
-          <Text style={s.detailLabel}>Sotildi</Text>
+          <Text style={s.detailLabel}>{t('analytics.margin.sold')}</Text>
           <Text style={s.detailValue}>{item.qtySold}</Text>
         </View>
       </View>
@@ -111,6 +110,7 @@ function ProductRow({ item, rank, maxProfit }: {
 
 // ─── Main Screen ──────────────────────────────────────────
 export default function MarginAnalysisScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [days, setDays] = useState<DayRange>(30);
   const [sortBy, setSortBy] = useState<SortKey>('marginPct');
@@ -150,8 +150,8 @@ export default function MarginAnalysisScreen() {
   );
 
   const renderItem = useCallback(({ item, index }: { item: MarginItem; index: number }) => (
-    <ProductRow item={item} rank={index + 1} maxProfit={maxProfit} />
-  ), [maxProfit]);
+    <ProductRow item={item} rank={index + 1} maxProfit={maxProfit} t={t} />
+  ), [maxProfit, t]);
 
   const keyExtractor = useCallback((item: MarginItem) => item.productId, []);
 
@@ -162,16 +162,16 @@ export default function MarginAnalysisScreen() {
       {/* Summary cards */}
       <View style={s.summaryRow}>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>O'rtacha marja</Text>
+          <Text style={s.summaryLabel}>{t('analytics.margin.avgMargin')}</Text>
           <Text style={[s.summaryValue, { color: avgMc.text }]}>{avgMargin.toFixed(1)}%</Text>
         </View>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>Jami foyda</Text>
+          <Text style={s.summaryLabel}>{t('analytics.margin.totalProfit')}</Text>
           <Text style={s.summaryValue}>{fmt(totalProfit)}</Text>
           <Text style={s.summarySub}>UZS</Text>
         </View>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>Jami daromad</Text>
+          <Text style={s.summaryLabel}>{t('analytics.totalRevenue')}</Text>
           <Text style={s.summaryValue}>{fmt(totalRevenue)}</Text>
           <Text style={s.summarySub}>UZS</Text>
         </View>
@@ -179,20 +179,20 @@ export default function MarginAnalysisScreen() {
 
       {/* Sort selector */}
       <View style={s.sortRow}>
-        <Text style={s.sortLabel}>Saralash:</Text>
-        {SORT_OPTIONS.map((o) => (
+        <Text style={s.sortLabel}>{t('analytics.sortLabel')}</Text>
+        {SORT_KEYS.map((o) => (
           <TouchableOpacity
             key={o.key}
             style={[s.sortTab, sortBy === o.key && s.sortTabActive]}
             onPress={() => setSortBy(o.key)}
             activeOpacity={0.75}
           >
-            <Text style={[s.sortText, sortBy === o.key && s.sortTextActive]}>{o.label}</Text>
+            <Text style={[s.sortText, sortBy === o.key && s.sortTextActive]}>{t(o.i18n)}</Text>
           </TouchableOpacity>
         ))}
       </View>
     </>
-  ), [avgMargin, avgMc.text, totalProfit, totalRevenue, sortBy]);
+  ), [avgMargin, avgMc.text, totalProfit, totalRevenue, sortBy, t]);
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -201,20 +201,20 @@ export default function MarginAnalysisScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color={C.text} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Marja Tahlili</Text>
+        <Text style={s.headerTitle}>{t('analytics.margin.title')}</Text>
         <View style={s.backBtn} />
       </View>
 
       {/* Period selector */}
       <View style={s.periodRow}>
-        {RANGES.map((r) => (
+        {RANGE_KEYS.map((r) => (
           <TouchableOpacity
-            key={r.key}
-            style={[s.periodTab, days === r.key && s.periodTabActive]}
-            onPress={() => setDays(r.key)}
+            key={r}
+            style={[s.periodTab, days === r && s.periodTabActive]}
+            onPress={() => setDays(r)}
             activeOpacity={0.75}
           >
-            <Text style={[s.periodText, days === r.key && s.periodTextActive]}>{r.label}</Text>
+            <Text style={[s.periodText, days === r && s.periodTextActive]}>{t(RANGE_I18N[r])}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -233,7 +233,7 @@ export default function MarginAnalysisScreen() {
           ListEmptyComponent={
             <View style={s.empty}>
               <Ionicons name="analytics-outline" size={48} color={C.muted} />
-              <Text style={s.emptyText}>Ma'lumot yo'q</Text>
+              <Text style={s.emptyText}>{t('analytics.noData')}</Text>
             </View>
           }
         />

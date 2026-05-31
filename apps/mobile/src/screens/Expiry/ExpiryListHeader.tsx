@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { C } from './ExpiryColors';
 import type { ExpiryTab, DaysFilter } from './ExpiryTypes';
 
@@ -37,6 +38,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
   expiredCount,
   resultCount,
 }: ExpiryListHeaderProps) {
+  const { t } = useTranslation();
   const handleTabExpiring = useCallback(() => onTabChange('EXPIRING'), [onTabChange]);
   const handleTabExpired  = useCallback(() => onTabChange('EXPIRED'), [onTabChange]);
 
@@ -56,7 +58,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
         <View style={styles.alertBannerRed}>
           <Ionicons name="warning-outline" size={16} color={C.red} />
           <Text style={styles.alertBannerRedText}>
-            {expiredCount} ta mahsulot muddati o'tgan — darhol olib tashlang!
+            {t('warehouse.expiredRemoveAlert', { count: expiredCount })}
           </Text>
         </View>
       )}
@@ -65,7 +67,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
         <View style={styles.alertBannerYellow}>
           <Ionicons name="time-outline" size={16} color={C.yellow} />
           <Text style={styles.alertBannerYellowText}>
-            {expiringCount} ta mahsulot {daysFilter} kun ichida muddati tugaydi
+            {t('warehouse.expiringInDays', { count: expiringCount, days: daysFilter })}
           </Text>
         </View>
       )}
@@ -77,7 +79,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
           activeOpacity={0.75}
         >
           <Text style={[styles.tabText, tab === 'EXPIRING' && styles.tabTextActive]}>
-            Muddati yaqin
+            {t('warehouse.tabExpiring')}
           </Text>
           {expiringCount > 0 && (
             <View style={[styles.tabBadge, tab === 'EXPIRING' && styles.tabBadgeActive]}>
@@ -94,7 +96,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
           activeOpacity={0.75}
         >
           <Text style={[styles.tabText, tab === 'EXPIRED' && styles.tabTextActiveRed]}>
-            Muddati o'tgan
+            {t('warehouse.tabExpired')}
           </Text>
           {expiredCount > 0 && (
             <View style={[styles.tabBadge, tab === 'EXPIRED' && styles.tabBadgeActiveRed]}>
@@ -116,7 +118,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
               activeOpacity={0.75}
             >
               <Text style={[styles.daysBtnText, daysFilter === d && styles.daysBtnTextActive]}>
-                {d} kun
+                {t('warehouse.daysLabel', { count: d })}
               </Text>
             </TouchableOpacity>
           ))}
@@ -127,7 +129,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
         <Ionicons name="search-outline" size={18} color={C.muted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Mahsulot yoki partiya izlash..."
+          placeholder={t('warehouse.searchPlaceholder')}
           placeholderTextColor={C.muted}
           value={search}
           onChangeText={onSearchChange}
@@ -146,7 +148,7 @@ export const ExpiryListHeader = React.memo(function ExpiryListHeader({
       </View>
 
       <View style={styles.resultRow}>
-        <Text style={styles.resultText}>{resultCount} ta mahsulot</Text>
+        <Text style={styles.resultText}>{t('warehouse.productsCount', { count: resultCount })}</Text>
       </View>
     </View>
   );

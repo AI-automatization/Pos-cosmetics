@@ -45,6 +45,71 @@ export interface SalesTrendPoint {
   avgBasket: number;
 }
 
+// ─── Raw API response types (backend field mapping) ─────
+/** Raw shape returned by GET /analytics/branch-comparison */
+interface BranchComparisonRaw {
+  readonly branchId?: string;
+  readonly id?: string;
+  readonly branchName?: string;
+  readonly name?: string;
+  readonly revenue?: number;
+  readonly orders?: number;
+  readonly orderCount?: number;
+  readonly avgOrderValue?: number;
+}
+
+/** Raw shape returned by GET /analytics/revenue-by-branch */
+interface RevenueByBranchRaw {
+  readonly branchId?: string;
+  readonly id?: string;
+  readonly branchName?: string;
+  readonly name?: string;
+  readonly revenue?: number;
+  readonly totalRevenue?: number;
+  readonly total?: number;
+  readonly sales?: number;
+  readonly orders?: number;
+  readonly orderCount?: number;
+  readonly count?: number;
+  readonly stockValue?: number;
+  readonly stock?: number;
+}
+
+/** Raw shape returned by GET /analytics/dead-stock */
+interface DeadStockRaw {
+  readonly productId?: string;
+  readonly productName?: string;
+  readonly sku?: string | null;
+  readonly totalStock?: number | string;
+  readonly lastSoldAt?: string | null;
+  readonly carryingCost?: number | string;
+  readonly daysIdle?: number | string;
+}
+
+/** Raw shape returned by GET /analytics/cashier-performance */
+interface CashierPerfRaw {
+  readonly userId?: string;
+  readonly firstName?: string;
+  readonly lastName?: string;
+  readonly ordersCount?: number | string;
+  readonly revenue?: number | string;
+  readonly avgBasket?: number | string;
+  readonly returnsCount?: number | string;
+  readonly shiftsCount?: number | string;
+}
+
+/** Raw shape returned by GET /analytics/margin */
+interface MarginRaw {
+  readonly productId?: string;
+  readonly productName?: string;
+  readonly categoryName?: string | null;
+  readonly revenue?: number | string;
+  readonly costTotal?: number | string;
+  readonly grossProfit?: number | string;
+  readonly marginPct?: number | string;
+  readonly qtySold?: number | string;
+}
+
 // ─── Margin Analysis types ──────────────────────────────
 export interface MarginItem {
   readonly productId: string;
@@ -79,7 +144,7 @@ export const analyticsApi = {
   getBranchComparison: async (): Promise<BranchComparisonItem[]> => {
     const res = await api.get('/analytics/branch-comparison');
     const raw = Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.items ?? []);
-    return raw.map((b: any) => ({
+    return raw.map((b: BranchComparisonRaw) => ({
       branchId:      b.branchId      ?? b.id      ?? '',
       branchName:    b.branchName    ?? b.name    ?? '',
       revenue:       b.revenue       ?? 0,
@@ -99,7 +164,7 @@ export const analyticsApi = {
     try {
       const res = await api.get('/analytics/revenue-by-branch', { params: { period } });
       const raw = Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.items ?? []);
-      return raw.map((b: any) => ({
+      return raw.map((b: RevenueByBranchRaw) => ({
         branchId:   b.branchId   ?? b.id   ?? '',
         branchName: b.branchName ?? b.name ?? '',
         revenue:    b.revenue    ?? b.totalRevenue ?? b.total ?? b.sales ?? 0,
@@ -127,7 +192,7 @@ export const analyticsApi = {
     try {
       const res = await api.get('/analytics/dead-stock', { params: { days } });
       const raw = Array.isArray(res.data) ? res.data : [];
-      return raw.map((r: any) => ({
+      return raw.map((r: DeadStockRaw) => ({
         productId: r.productId ?? '',
         productName: r.productName ?? '',
         sku: r.sku ?? null,
@@ -145,7 +210,7 @@ export const analyticsApi = {
     try {
       const res = await api.get('/analytics/cashier-performance', { params: { from, to } });
       const raw = Array.isArray(res.data) ? res.data : [];
-      return raw.map((r: any) => ({
+      return raw.map((r: CashierPerfRaw) => ({
         userId: r.userId ?? '',
         name: [r.firstName, r.lastName].filter(Boolean).join(' ') || 'Nomsiz',
         ordersCount: Number(r.ordersCount ?? 0),
@@ -163,7 +228,7 @@ export const analyticsApi = {
     try {
       const res = await api.get('/analytics/margin', { params: { from, to } });
       const raw = Array.isArray(res.data) ? res.data : [];
-      return raw.map((r: any) => ({
+      return raw.map((r: MarginRaw) => ({
         productId: r.productId ?? '',
         productName: r.productName ?? '',
         categoryName: r.categoryName ?? null,

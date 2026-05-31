@@ -14,3 +14,4 @@ export { promotionsApi } from './promotions.api';
 export type { Promotion, PromotionType, ApplyPromotionsDto, ApplyPromotionsResult, CreateDiscountDto } from './promotions.api';
 export { exchangeApi } from './exchange.api';
 export type { ExchangeRate, ExchangeRateHistory } from './exchange.api';
+export { warehouseApi } from './warehouse.api';

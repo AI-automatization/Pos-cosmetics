@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { analyticsApi, type DeadStockItem } from '../../api/analytics.api';
 
 // ─── Constants ────────────────────────────────────────────
@@ -23,17 +24,18 @@ const C = {
 };
 
 type DaysThreshold = 30 | 90 | 180;
-const THRESHOLDS: { key: DaysThreshold; label: string }[] = [
-  { key: 30,  label: '30+ kun' },
-  { key: 90,  label: '90+ kun' },
-  { key: 180, label: '180+ kun' },
-];
+const THRESHOLD_KEYS: DaysThreshold[] = [30, 90, 180];
+const THRESHOLD_I18N: Record<DaysThreshold, string> = {
+  30: 'analytics.deadStock.days30',
+  90: 'analytics.deadStock.days90',
+  180: 'analytics.deadStock.days180',
+};
 
 type SortKey = 'carryingCost' | 'daysIdle' | 'totalStock';
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'carryingCost', label: 'Zarar' },
-  { key: 'daysIdle',     label: 'Kunlar' },
-  { key: 'totalStock',   label: 'Zaxira' },
+const SORT_KEYS: { key: SortKey; i18n: string }[] = [
+  { key: 'carryingCost', i18n: 'analytics.deadStock.sortLoss' },
+  { key: 'daysIdle',     i18n: 'analytics.deadStock.sortDays' },
+  { key: 'totalStock',   i18n: 'analytics.deadStock.sortStock' },
 ];
 
 function fmt(n: number): string {
@@ -48,14 +50,17 @@ function idleColor(days: number): { bg: string; text: string } {
   return { bg: '#F3F4F6', text: C.muted };
 }
 
-function formatDate(iso: string | null): string {
-  if (!iso) return 'Hech qachon';
+function formatDateLocal(iso: string | null, neverLabel: string): string {
+  if (!iso) return neverLabel;
   const d = new Date(iso);
   return d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 // ─── Product Card ─────────────────────────────────────────
-function DeadStockCard({ item, rank }: { item: DeadStockItem; rank: number }) {
+function DeadStockCard({ item, rank, t }: {
+  item: DeadStockItem; rank: number;
+  t: (key: string) => string;
+}) {
   const ic = idleColor(item.daysIdle);
 
   return (
@@ -73,15 +78,15 @@ function DeadStockCard({ item, rank }: { item: DeadStockItem; rank: number }) {
 
       <View style={s.detailRow}>
         <View style={s.detailItem}>
-          <Text style={s.detailLabel}>Zaxira</Text>
+          <Text style={s.detailLabel}>{t('analytics.deadStock.stock')}</Text>
           <Text style={s.detailValue}>{item.totalStock.toFixed(0)}</Text>
         </View>
         <View style={s.detailItem}>
-          <Text style={s.detailLabel}>Oxirgi sotuv</Text>
-          <Text style={s.detailValue}>{formatDate(item.lastSoldAt)}</Text>
+          <Text style={s.detailLabel}>{t('analytics.deadStock.lastSold')}</Text>
+          <Text style={s.detailValue}>{formatDateLocal(item.lastSoldAt, t('analytics.deadStock.never'))}</Text>
         </View>
         <View style={s.detailItem}>
-          <Text style={s.detailLabel}>Zarar</Text>
+          <Text style={s.detailLabel}>{t('analytics.deadStock.loss')}</Text>
           <Text style={[s.detailValue, { color: C.red }]}>{fmt(item.carryingCost)}</Text>
         </View>
       </View>
@@ -91,6 +96,7 @@ function DeadStockCard({ item, rank }: { item: DeadStockItem; rank: number }) {
 
 // ─── Main Screen ──────────────────────────────────────────
 export default function DeadStockScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [threshold, setThreshold] = useState<DaysThreshold>(90);
   const [sortBy, setSortBy] = useState<SortKey>('carryingCost');
@@ -125,8 +131,8 @@ export default function DeadStockScreen() {
   );
 
   const renderItem = useCallback(({ item, index }: { item: DeadStockItem; index: number }) => (
-    <DeadStockCard item={item} rank={index + 1} />
-  ), []);
+    <DeadStockCard item={item} rank={index + 1} t={t} />
+  ), [t]);
 
   const keyExtractor = useCallback((item: DeadStockItem) => item.productId, []);
 
@@ -137,8 +143,8 @@ export default function DeadStockScreen() {
         <View style={s.alertCard}>
           <Ionicons name="warning" size={20} color={C.amber} />
           <View style={s.alertInfo}>
-            <Text style={s.alertTitle}>{items.length} ta mahsulot {threshold}+ kun sotilmagan</Text>
-            <Text style={s.alertSub}>Umumiy zarar: {fmt(totalCarryingCost)} UZS</Text>
+            <Text style={s.alertTitle}>{t('analytics.deadStock.alertTitle', { count: items.length, days: threshold })}</Text>
+            <Text style={s.alertSub}>{t('analytics.deadStock.alertSub', { amount: fmt(totalCarryingCost) })}</Text>
           </View>
         </View>
       )}
@@ -146,17 +152,17 @@ export default function DeadStockScreen() {
       {/* Summary */}
       <View style={s.summaryRow}>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>Mahsulotlar</Text>
+          <Text style={s.summaryLabel}>{t('analytics.products')}</Text>
           <Text style={s.summaryValue}>{items.length}</Text>
           <Text style={s.summarySub}>ta</Text>
         </View>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>Jami zaxira</Text>
+          <Text style={s.summaryLabel}>{t('analytics.deadStock.totalStock')}</Text>
           <Text style={s.summaryValue}>{totalStock.toFixed(0)}</Text>
-          <Text style={s.summarySub}>dona</Text>
+          <Text style={s.summarySub}>{t('analytics.deadStock.unit')}</Text>
         </View>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLabel}>Jami zarar</Text>
+          <Text style={s.summaryLabel}>{t('analytics.deadStock.totalLoss')}</Text>
           <Text style={[s.summaryValue, { color: C.red }]}>{fmt(totalCarryingCost)}</Text>
           <Text style={s.summarySub}>UZS</Text>
         </View>
@@ -168,7 +174,7 @@ export default function DeadStockScreen() {
           <Ionicons name="search-outline" size={18} color={C.muted} />
           <TextInput
             style={s.searchInput}
-            placeholder="Mahsulot qidirish..."
+            placeholder={t('analytics.deadStock.searchPlaceholder')}
             placeholderTextColor={C.muted}
             value={search}
             onChangeText={setSearch}
@@ -183,20 +189,20 @@ export default function DeadStockScreen() {
 
       {/* Sort */}
       <View style={s.sortRow}>
-        <Text style={s.sortLabel}>Saralash:</Text>
-        {SORT_OPTIONS.map((o) => (
+        <Text style={s.sortLabel}>{t('analytics.sortLabel')}</Text>
+        {SORT_KEYS.map((o) => (
           <TouchableOpacity
             key={o.key}
             style={[s.sortTab, sortBy === o.key && s.sortTabActive]}
             onPress={() => setSortBy(o.key)}
             activeOpacity={0.75}
           >
-            <Text style={[s.sortText, sortBy === o.key && s.sortTextActive]}>{o.label}</Text>
+            <Text style={[s.sortText, sortBy === o.key && s.sortTextActive]}>{t(o.i18n)}</Text>
           </TouchableOpacity>
         ))}
       </View>
     </>
-  ), [items.length, threshold, totalCarryingCost, totalStock, search, sortBy]);
+  ), [items.length, threshold, totalCarryingCost, totalStock, search, sortBy, t]);
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -205,20 +211,20 @@ export default function DeadStockScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color={C.text} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Harakatsiz Tovarlar</Text>
+        <Text style={s.headerTitle}>{t('analytics.deadStock.title')}</Text>
         <View style={s.backBtn} />
       </View>
 
       {/* Threshold selector */}
       <View style={s.periodRow}>
-        {THRESHOLDS.map((t) => (
+        {THRESHOLD_KEYS.map((tk) => (
           <TouchableOpacity
-            key={t.key}
-            style={[s.periodTab, threshold === t.key && s.periodTabActive]}
-            onPress={() => setThreshold(t.key)}
+            key={tk}
+            style={[s.periodTab, threshold === tk && s.periodTabActive]}
+            onPress={() => setThreshold(tk)}
             activeOpacity={0.75}
           >
-            <Text style={[s.periodText, threshold === t.key && s.periodTextActive]}>{t.label}</Text>
+            <Text style={[s.periodText, threshold === tk && s.periodTextActive]}>{t(THRESHOLD_I18N[tk])}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -237,8 +243,8 @@ export default function DeadStockScreen() {
           ListEmptyComponent={
             <View style={s.empty}>
               <Ionicons name="checkmark-circle" size={48} color="#16A34A" />
-              <Text style={s.emptyTextGreen}>Barcha tovarlar faol!</Text>
-              <Text style={s.emptyTextSub}>{threshold}+ kun sotilmagan mahsulot yo'q</Text>
+              <Text style={s.emptyTextGreen}>{t('analytics.deadStock.allActive')}</Text>
+              <Text style={s.emptyTextSub}>{t('analytics.deadStock.noDeadStock', { days: threshold })}</Text>
             </View>
           }
         />

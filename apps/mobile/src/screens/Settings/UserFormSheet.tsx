@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { AppUser, UserRole, ROLE_CONFIG } from './UserCard';
 import { CreateUserBody } from '../../api/users.api';
+import { userSchema, extractFieldErrors } from '../../validation/user.schema';
 
 // ─── FormField ────────────────────────────────────────
 
@@ -28,6 +29,7 @@ interface FormFieldProps {
   readonly placeholder: string;
   readonly keyboardType?: TextInputProps['keyboardType'];
   readonly secureTextEntry?: boolean;
+  readonly error?: string;
 }
 
 function FormField({
@@ -37,12 +39,13 @@ function FormField({
   placeholder,
   keyboardType,
   secureTextEntry,
+  error,
 }: FormFieldProps) {
   return (
     <View style={fStyles.fieldWrap}>
       <Text style={fStyles.fieldLabel}>{label}</Text>
       <TextInput
-        style={fStyles.fieldInput}
+        style={[fStyles.fieldInput, error ? fStyles.fieldInputError : undefined]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -50,6 +53,7 @@ function FormField({
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
       />
+      {error ? <Text style={fStyles.fieldError}>{error}</Text> : null}
     </View>
   );
 }
@@ -76,6 +80,7 @@ function UserFormSheet({
   const [phone, setPhone]         = useState('');
   const [password, setPassword]   = useState('');
   const [role, setRole]           = useState<UserRole>('CASHIER');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (visible) {
@@ -84,14 +89,40 @@ function UserFormSheet({
       setPhone(user?.phone ?? '');
       setPassword('');
       setRole(user?.role ?? 'CASHIER');
+      setFieldErrors({});
     }
   }, [visible, user]);
 
   const isNew = !user;
-  const canSave =
-    firstName.trim().length > 0 &&
-    lastName.trim().length > 0 &&
-    (isNew ? password.trim().length > 0 : true);
+
+  const clearFieldError = useCallback((field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
+
+  const handleFirstNameChange = useCallback((text: string) => {
+    setFirstName(text);
+    clearFieldError('firstName');
+  }, [clearFieldError]);
+
+  const handleLastNameChange = useCallback((text: string) => {
+    setLastName(text);
+    clearFieldError('lastName');
+  }, [clearFieldError]);
+
+  const handlePhoneChange = useCallback((text: string) => {
+    setPhone(text);
+    clearFieldError('phone');
+  }, [clearFieldError]);
+
+  const handlePasswordChange = useCallback((text: string) => {
+    setPassword(text);
+    clearFieldError('password');
+  }, [clearFieldError]);
 
   const pickRole = () => {
     const roles: UserRole[] = ['OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'];
@@ -109,13 +140,42 @@ function UserFormSheet({
   };
 
   const handleSave = () => {
-    if (!canSave) return;
-    onSave({
+    const formData = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       email: '',
       phone: phone.trim() || undefined,
-      password,
+      password: password || undefined,
+      role,
+    };
+
+    const result = userSchema.safeParse(formData);
+
+    if (!result.success) {
+      const errors = extractFieldErrors(result.error);
+
+      // Yangi user uchun parol majburiy -- zod schema da optional bo'lgani uchun alohida tekshiramiz
+      if (isNew && !password.trim()) {
+        errors.password = 'Parol kiritilishi shart';
+      }
+
+      setFieldErrors(errors);
+      return;
+    }
+
+    // Yangi user uchun parol majburiy -- alohida tekshiruv
+    if (isNew && !password.trim()) {
+      setFieldErrors({ password: 'Parol kiritilishi shart' });
+      return;
+    }
+
+    setFieldErrors({});
+    onSave({
+      firstName: result.data.firstName,
+      lastName: result.data.lastName,
+      email: result.data.email ?? '',
+      phone: result.data.phone || undefined,
+      password: password,
       role,
     });
   };
@@ -149,29 +209,33 @@ function UserFormSheet({
                 <FormField
                   label="Ism"
                   value={firstName}
-                  onChangeText={setFirstName}
+                  onChangeText={handleFirstNameChange}
                   placeholder="Ism kiriting"
+                  error={fieldErrors.firstName}
                 />
                 <FormField
                   label="Familiya"
                   value={lastName}
-                  onChangeText={setLastName}
+                  onChangeText={handleLastNameChange}
                   placeholder="Familiya kiriting"
+                  error={fieldErrors.lastName}
                 />
                 <FormField
                   label="Telefon"
                   value={phone}
-                  onChangeText={setPhone}
+                  onChangeText={handlePhoneChange}
                   placeholder="+998901234567"
                   keyboardType="phone-pad"
+                  error={fieldErrors.phone}
                 />
                 {isNew && (
                   <FormField
                     label="Parol"
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={handlePasswordChange}
                     placeholder="Parol kiriting"
                     secureTextEntry
+                    error={fieldErrors.password}
                   />
                 )}
 
@@ -202,10 +266,10 @@ function UserFormSheet({
                 <TouchableOpacity
                   style={[
                     fStyles.saveBtn,
-                    (!canSave || isSaving) && fStyles.saveBtnDisabled,
+                    isSaving && fStyles.saveBtnDisabled,
                   ]}
                   onPress={handleSave}
-                  disabled={!canSave || isSaving}
+                  disabled={isSaving}
                   activeOpacity={0.8}
                 >
                   {isSaving ? (
@@ -291,6 +355,16 @@ export const fStyles = StyleSheet.create({
     fontSize: 15,
     color: '#111827',
     backgroundColor: '#FAFAFA',
+  },
+  fieldInputError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  fieldError: {
+    fontSize: 12,
+    color: '#EF4444',
+    marginTop: 4,
+    fontWeight: '500',
   },
   rolePicker: {
     flexDirection: 'row',

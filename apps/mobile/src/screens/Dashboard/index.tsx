@@ -1,15 +1,12 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   RefreshControl,
-  TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -17,8 +14,11 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { DashboardStackParamList, TabParamList } from '../../navigation/types';
 import { useQuery } from '@tanstack/react-query';
 import { alertsApi } from '../../api/alerts.api';
+import { useAuthStore } from '../../store/auth.store';
+import { getRoleLevel } from '../../utils/roles';
 import useDashboardData from './useDashboardData';
-import ActiveShiftCard from './ActiveShiftCard';
+import DashboardHeader from './DashboardHeader';
+import ShiftBanner from './ShiftBanner';
 import MonthlyProfitCard from './MonthlyProfitCard';
 import BranchRevenueCard from './BranchRevenueCard';
 import WarehouseStatsGrid from './WarehouseStatsGrid';
@@ -28,11 +28,6 @@ import WeeklyTrendChart from './WeeklyTrendChart';
 import TopProductsCard from './TopProductsCard';
 import LowStockWidget from './LowStockWidget';
 import ManagerKPICard from './ManagerKPICard';
-import { useShiftStore } from '../../store/shiftStore';
-import SmenaOpenSheet from '../Smena/SmenaOpenSheet';
-import SmenaCloseSheet from '../Smena/SmenaCloseSheet';
-import { useAuthStore } from '../../store/auth.store';
-import { getRoleLevel } from '../../utils/roles';
 import QuickAction from './QuickAction';
 import { getActionsForRole } from './quickActions';
 import { styles, PRIMARY } from './styles';
@@ -41,16 +36,6 @@ type DashboardNavProp = CompositeNavigationProp<
   NativeStackNavigationProp<DashboardStackParamList>,
   BottomTabNavigationProp<TabParamList>
 >;
-
-function formatUzbekDate(): string {
-  const now = new Date();
-  const months = [
-    'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
-    'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
-  ];
-  const days = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
-  return `${now.getDate()} ${months[now.getMonth()]}, ${now.getFullYear()}, ${days[now.getDay()]}`;
-}
 
 export default function DashboardScreen() {
   const navigation = useNavigation<DashboardNavProp>();
@@ -75,10 +60,6 @@ export default function DashboardScreen() {
 
   const isOwnerAdmin = getRoleLevel(user?.role) >= 4;
   const isManager = user?.role === 'MANAGER';
-  const { openShift, closeShift, syncWithApi } = useShiftStore();
-  const [loading, setLoading] = useState(false);
-  const [openSheetVisible, setOpenSheetVisible] = useState(false);
-  const [closeSheetVisible, setCloseSheetVisible] = useState(false);
 
   // Badge — React Query bilan auto-refresh (30 soniya)
   const { data: activeAlerts, refetch: refetchAlerts } = useQuery({
@@ -109,47 +90,10 @@ export default function DashboardScreen() {
     [user?.role, isOwnerAdmin],
   );
 
-  const handleOpenConfirm = useCallback((openingCash: number) => {
-    setLoading(true);
-    openShift(openingCash)
-      .then(() => {
-        setOpenSheetVisible(false);
-        Alert.alert('Tayyor', 'Smena muvaffaqiyatli ochildi');
-        refetchAll();
-      })
-      .catch((err: unknown) => {
-        let msg = 'Smena ochishda xatolik';
-        if (err && typeof err === 'object' && 'response' in err) {
-          const resp = (err as { response?: { data?: { message?: string | string[]; error?: { message?: string } } } }).response;
-          const serverMsg = resp?.data?.error?.message ?? resp?.data?.message;
-          if (serverMsg) {
-            msg = Array.isArray(serverMsg) ? serverMsg.join('\n') : String(serverMsg);
-            if (msg.includes('already has an open shift')) {
-              msg = 'Sizda allaqachon ochiq smena mavjud';
-              void syncWithApi();
-            }
-          }
-        } else if (err instanceof Error) {
-          msg = err.message;
-        }
-        Alert.alert('Xatolik', msg);
-      })
-      .finally(() => setLoading(false));
-  }, [openShift, refetchAll, syncWithApi]);
-
-  const handleCloseConfirm = useCallback(async (actualCash: number) => {
-    setLoading(true);
-    try {
-      await closeShift(actualCash);
-      setCloseSheetVisible(false);
-      Alert.alert('Tayyor', 'Smena muvaffaqiyatli yopildi');
-      refetchAll();
-    } catch {
-      Alert.alert('Xatolik', 'Smena yopishda xatolik');
-    } finally {
-      setLoading(false);
-    }
-  }, [closeShift, refetchAll]);
+  const avgBasket =
+    summary && summary.orders.count > 0
+      ? summary.orders.grossRevenue / summary.orders.count
+      : 0;
 
   if (isLoading) {
     return (
@@ -161,34 +105,12 @@ export default function DashboardScreen() {
     );
   }
 
-  const avgBasket =
-    summary && summary.orders.count > 0
-      ? summary.orders.grossRevenue / summary.orders.count
-      : 0;
-
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Bosh sahifa</Text>
-          <Text style={styles.headerDate}>{formatUzbekDate()}</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.bellBtn}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('NotificationsScreen')}
-        >
-          <Ionicons name="notifications-outline" size={24} color="#374151" />
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {unreadCount > 99 ? '99+' : String(unreadCount)}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      <DashboardHeader
+        unreadCount={unreadCount}
+        onBellPress={() => navigation.navigate('NotificationsScreen')}
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -202,30 +124,10 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Smena banner yoki ActiveShiftCard — OWNER/ADMIN uchun emas */}
-        {!isOwnerAdmin && !isWarehouse && (!shift ? (
-          <View style={styles.smenaBanner}>
-            <View style={styles.smenaBannerLeft}>
-              <Ionicons name="time-outline" size={20} color="#D97706" />
-              <Text style={styles.smenaBannerText}>Smena ochilmagan</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.smenaOpenBtn}
-              activeOpacity={0.85}
-              onPress={() => setOpenSheetVisible(true)}
-            >
-              <Text style={styles.smenaOpenBtnText}>Smena ochish</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.section}
-            onPress={() => setCloseSheetVisible(true)}
-            activeOpacity={0.85}
-          >
-            <ActiveShiftCard shift={shift} />
-          </TouchableOpacity>
-        ))}
+        {/* Smena banner — OWNER/ADMIN va WAREHOUSE uchun emas */}
+        {!isOwnerAdmin && !isWarehouse && (
+          <ShiftBanner shift={shift} onRefresh={refetchAll} />
+        )}
 
         {/* Stats 2x2 grid */}
         {isWarehouse ? (
@@ -307,7 +209,7 @@ export default function DashboardScreen() {
           <View style={styles.section}>
             <LowStockWidget
               items={lowStockItems}
-              onViewAll={() => navigation.navigate('Koproq', { screen: 'LowStockList' } as any)}
+              onViewAll={() => navigation.navigate('Koproq' as keyof TabParamList, { screen: 'LowStockList' } as never)}
             />
           </View>
         )}
@@ -325,8 +227,8 @@ export default function DashboardScreen() {
                 bg={action.bg}
                 onPress={() =>
                   action.routeParams
-                    ? navigation.navigate(action.route as any, action.routeParams as any)
-                    : navigation.navigate(action.route as any)
+                    ? navigation.navigate(action.route as keyof TabParamList, action.routeParams as never)
+                    : navigation.navigate(action.route as keyof TabParamList)
                 }
               />
             ))}
@@ -335,20 +237,6 @@ export default function DashboardScreen() {
 
         <View style={styles.bottomPad} />
       </ScrollView>
-
-      <SmenaOpenSheet
-        visible={openSheetVisible}
-        loading={loading}
-        onClose={() => setOpenSheetVisible(false)}
-        onConfirm={handleOpenConfirm}
-      />
-      <SmenaCloseSheet
-        visible={closeSheetVisible}
-        loading={loading}
-        shift={shift}
-        onClose={() => setCloseSheetVisible(false)}
-        onConfirm={handleCloseConfirm}
-      />
     </SafeAreaView>
   );
 }

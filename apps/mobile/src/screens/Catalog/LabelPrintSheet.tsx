@@ -7,10 +7,10 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
   ScrollView,
-  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { printAsync } from 'expo-print';
 import { useBtPrinter } from '../../hooks/useBtPrinter';
 import { buildTsplLabel } from '../../lib/tsplBuilder';
 import type { LabelSize as TsplLabelSize } from '../../lib/tsplBuilder';
@@ -25,16 +25,6 @@ import {
   buildLabelHtml,
 } from './LabelPrintConstants';
 import type { LabelSize, PrintMode, LabelPrintSheetProps } from './LabelPrintConstants';
-
-// ─── expo-print dynamic import ────────────────────────────────────────────────
-// expo-print o'rnatilmagan muhitlarda xatolik chiqmasligi uchun lazy require
-let expoPrint: { printAsync: (opts: { html: string }) => Promise<void> } | null = null;
-try {
-  // @ts-ignore
-  expoPrint = require('expo-print');
-} catch {
-  // expo-print mavjud emas — Share sheet fallback ishlatiladi
-}
 
 // ─── LabelPrintSheet ──────────────────────────────────────────────────────────
 export function LabelPrintSheet({ product, onClose }: LabelPrintSheetProps) {
@@ -81,14 +71,7 @@ export function LabelPrintSheet({ product, onClose }: LabelPrintSheetProps) {
     setLoading(true);
     try {
       const html = buildLabelHtml(product, selectedSize, copies);
-      if (expoPrint) {
-        await expoPrint.printAsync({ html });
-      } else {
-        await Share.share({
-          message: `${product.name} — ${product.sellPrice.toLocaleString('uz-UZ')} so'm`,
-          title: t('catalog.labelPrint.shareTitle'),
-        });
-      }
+      await printAsync({ html });
     } catch {
       // Foydalanuvchi print dialog ni yopdi yoki xatolik — silent
     } finally {

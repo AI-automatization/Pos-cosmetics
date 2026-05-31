@@ -19,7 +19,7 @@ export default function ShiftReportCard({ shift, index }: { shift: ShiftDetail; 
   const dur      = duration(shift.openedAt, shift.closedAt);
   const cashier  = cashierName(shift);
 
-  const pb: any = (shift as any).paymentBreakdown ?? {};
+  const pb = ((shift as unknown as { paymentBreakdown?: Record<string, number> }).paymentBreakdown) ?? {} as Record<string, number>;
   const cashAmt   = shift.cashAmount  ?? pb.cash  ?? pb.CASH  ?? 0;
   const cardAmt   = shift.cardAmount  ?? pb.card  ?? pb.CARD  ?? pb.terminal ?? 0;
   const nasiyaAmt = shift.nasiyaAmount ?? pb.nasiya ?? pb.NASIYA ?? pb.credit ?? 0;

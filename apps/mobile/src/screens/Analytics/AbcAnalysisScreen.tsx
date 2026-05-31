@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { analyticsApi, type AbcGroup, type AbcProduct } from '../../api/analytics.api';
 
 // ─── Constants ────────────────────────────────────────────
@@ -20,18 +21,21 @@ const C = {
   secondary: '#6B7280', border: '#E5E7EB', primary: '#2563EB',
 };
 
-const GROUP_COLORS: Record<string, { bg: string; text: string; bar: string; label: string }> = {
-  A: { bg: '#DCFCE7', text: '#16A34A', bar: '#22C55E', label: 'Yuqori daromad' },
-  B: { bg: '#FEF9C3', text: '#CA8A04', bar: '#F59E0B', label: "O'rta daromad" },
-  C: { bg: '#F1F5F9', text: '#64748B', bar: '#94A3B8', label: 'Past daromad' },
+const GROUP_LABEL_KEYS: Record<string, string> = {
+  A: 'analytics.abc.highRevenue',
+  B: 'analytics.abc.midRevenue',
+  C: 'analytics.abc.lowRevenue',
+};
+
+const GROUP_STYLES: Record<string, { bg: string; text: string; bar: string }> = {
+  A: { bg: '#DCFCE7', text: '#16A34A', bar: '#22C55E' },
+  B: { bg: '#FEF9C3', text: '#CA8A04', bar: '#F59E0B' },
+  C: { bg: '#F1F5F9', text: '#64748B', bar: '#94A3B8' },
 };
 
 type DayRange = 7 | 30 | 90;
-const RANGES: { key: DayRange; label: string }[] = [
-  { key: 7,  label: '7 kun' },
-  { key: 30, label: '30 kun' },
-  { key: 90, label: '90 kun' },
-];
+const RANGE_KEYS: DayRange[] = [7, 30, 90];
+const RANGE_I18N: Record<DayRange, string> = { 7: 'analytics.days7', 30: 'analytics.days30', 90: 'analytics.days90' };
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -50,13 +54,15 @@ function todayIso(): string {
 }
 
 // ─── Group Card ───────────────────────────────────────────
-function GroupCard({ group, expanded, onToggle }: {
+function GroupCard({ group, expanded, onToggle, t }: {
   group: AbcGroup;
   expanded: boolean;
   onToggle: () => void;
+  t: (key: string) => string;
 }) {
-  const defaultColors = { bg: '#F1F5F9', text: '#64748B', bar: '#94A3B8', label: 'Past daromad' } as const;
-  const colors = GROUP_COLORS[group.group] ?? defaultColors;
+  const defaultStyles = { bg: '#F1F5F9', text: '#64748B', bar: '#94A3B8' } as const;
+  const colors = GROUP_STYLES[group.group] ?? defaultStyles;
+  const labelKey = GROUP_LABEL_KEYS[group.group] ?? 'analytics.abc.lowRevenue';
   return (
     <View style={s.groupCard}>
       <TouchableOpacity style={s.groupHeader} onPress={onToggle} activeOpacity={0.7}>
@@ -64,9 +70,9 @@ function GroupCard({ group, expanded, onToggle }: {
           <Text style={[s.groupLetter, { color: colors.text }]}>{group.group}</Text>
         </View>
         <View style={s.groupInfo}>
-          <Text style={s.groupLabel}>{colors.label}</Text>
+          <Text style={s.groupLabel}>{t(labelKey)}</Text>
           <Text style={s.groupSub}>
-            {group.products.length} mahsulot  •  {group.revenueShare.toFixed(0)}% ulush
+            {group.products.length} {t('analytics.abc.productCount')}  •  {group.revenueShare.toFixed(0)}% {t('analytics.abc.share')}
           </Text>
         </View>
         <View style={s.groupRight}>
@@ -120,6 +126,7 @@ function ProductRow({ product, rank, barColor, maxRevenue }: {
 
 // ─── Main Screen ──────────────────────────────────────────
 export default function AbcAnalysisScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [days, setDays] = useState<DayRange>(30);
   const [expandedGroup, setExpandedGroup] = useState<string | null>('A');
@@ -151,30 +158,31 @@ export default function AbcAnalysisScreen() {
       group={item}
       expanded={expandedGroup === item.group}
       onToggle={() => toggleGroup(item.group)}
+      t={t}
     />
-  ), [expandedGroup, toggleGroup]);
+  ), [expandedGroup, toggleGroup, t]);
 
   const keyExtractor = useCallback((item: AbcGroup) => item.group, []);
 
   const ListHeader = useMemo(() => (
     <View style={s.summaryRow}>
       <View style={s.summaryCard}>
-        <Text style={s.summaryLabel}>Jami daromad</Text>
+        <Text style={s.summaryLabel}>{t('analytics.totalRevenue')}</Text>
         <Text style={s.summaryValue}>{fmt(grandTotal)}</Text>
         <Text style={s.summarySub}>UZS</Text>
       </View>
       <View style={s.summaryCard}>
-        <Text style={s.summaryLabel}>Mahsulotlar</Text>
+        <Text style={s.summaryLabel}>{t('analytics.products')}</Text>
         <Text style={s.summaryValue}>{totalProducts}</Text>
         <Text style={s.summarySub}>ta</Text>
       </View>
       <View style={s.summaryCard}>
-        <Text style={s.summaryLabel}>Guruhlar</Text>
+        <Text style={s.summaryLabel}>{t('analytics.abc.groups')}</Text>
         <Text style={s.summaryValue}>A / B / C</Text>
-        <Text style={s.summarySub}>3 ta</Text>
+        <Text style={s.summarySub}>{t('analytics.abc.groupCount')}</Text>
       </View>
     </View>
-  ), [grandTotal, totalProducts]);
+  ), [grandTotal, totalProducts, t]);
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -183,20 +191,20 @@ export default function AbcAnalysisScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color={C.text} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>ABC Tahlil</Text>
+        <Text style={s.headerTitle}>{t('analytics.abc.title')}</Text>
         <View style={s.backBtn} />
       </View>
 
       {/* Period selector */}
       <View style={s.periodRow}>
-        {RANGES.map((r) => (
+        {RANGE_KEYS.map((r) => (
           <TouchableOpacity
-            key={r.key}
-            style={[s.periodTab, days === r.key && s.periodTabActive]}
-            onPress={() => setDays(r.key)}
+            key={r}
+            style={[s.periodTab, days === r && s.periodTabActive]}
+            onPress={() => setDays(r)}
             activeOpacity={0.75}
           >
-            <Text style={[s.periodText, days === r.key && s.periodTextActive]}>{r.label}</Text>
+            <Text style={[s.periodText, days === r && s.periodTextActive]}>{t(RANGE_I18N[r])}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -215,7 +223,7 @@ export default function AbcAnalysisScreen() {
           ListEmptyComponent={
             <View style={s.empty}>
               <Ionicons name="pie-chart-outline" size={48} color={C.muted} />
-              <Text style={s.emptyText}>Ma'lumot yo'q</Text>
+              <Text style={s.emptyText}>{t('analytics.noData')}</Text>
             </View>
           }
         />

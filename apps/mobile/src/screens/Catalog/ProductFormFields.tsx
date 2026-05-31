@@ -11,10 +11,11 @@ export function SectionTitle({ children }: { readonly children: string }) {
 interface FormFieldProps {
   readonly label: string;
   readonly required?: boolean;
+  readonly error?: string;
   readonly children: React.ReactNode;
 }
 
-export function FormField({ label, required, children }: FormFieldProps) {
+export function FormField({ label, required, error, children }: FormFieldProps) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>
@@ -22,6 +23,7 @@ export function FormField({ label, required, children }: FormFieldProps) {
         {required && <Text style={styles.required}> *</Text>}
       </Text>
       {children}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }

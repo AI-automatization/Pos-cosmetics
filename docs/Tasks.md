@@ -816,3 +816,20 @@
      branch: { select: { id: true, name: true, isWarehouse: true } },
      ```
 - **Kutilgan:** `/me` javobida `branchId`, `branch: { id, name, isWarehouse }` qaytadi
+
+---
+
+# ══════════════════════════════════════════════════════════════
+# MOBILE AUDIT NATIJALARI (2026-05-31)
+# Mas'ul: Abdulaziz | Audit: Claude Code
+# ══════════════════════════════════════════════════════════════
+
+*(T-472, T-473, T-474, T-475 — BAJARILDI, Done.md 2026-05-31)*
+
+---
+
+*(T-476 — BAJARILDI, Done.md 2026-05-31)*
+
+---
+
+*(T-477 — BAJARILDI, Done.md 2026-05-31)*

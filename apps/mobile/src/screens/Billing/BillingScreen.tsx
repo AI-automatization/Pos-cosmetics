@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { billingApi } from '../../api/billing.api';
 import type { SubscriptionStatus } from '../../api/billing.api';
 
@@ -26,12 +27,12 @@ const C = {
 } as const;
 
 // ─── Status config ─────────────────────────────────────────
-const STATUS_LABELS: Record<SubscriptionStatus, string> = {
-  TRIAL:     'Sinov davri',
-  ACTIVE:    'Faol',
-  PAST_DUE:  "To'lov kechikkan",
-  CANCELLED: 'Bekor qilingan',
-  EXPIRED:   'Muddati tugagan',
+const STATUS_I18N_KEYS: Record<SubscriptionStatus, string> = {
+  TRIAL:     'billing.statusTrial',
+  ACTIVE:    'billing.statusActive',
+  PAST_DUE:  'billing.statusPastDue',
+  CANCELLED: 'billing.statusCancelled',
+  EXPIRED:   'billing.statusExpired',
 };
 const STATUS_COLOR: Record<SubscriptionStatus, string> = {
   TRIAL:     '#2563EB',
@@ -43,17 +44,18 @@ const STATUS_COLOR: Record<SubscriptionStatus, string> = {
 
 // ─── Helpers ───────────────────────────────────────────────
 function fmtDate(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return '\u2014';
   return new Date(iso).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-function fmtPrice(amount: number): string {
-  return amount.toLocaleString('ru-RU') + ' so\'m/oy';
+function fmtPrice(amount: number, unit: string): string {
+  return amount.toLocaleString('ru-RU') + ' ' + unit;
 }
 
 // ─── BillingScreen ─────────────────────────────────────────
 export default function BillingScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const { data: sub, isLoading: subLoading } =
     useQuery({ queryKey: ['billing', 'subscription'], queryFn: billingApi.getSubscription });
@@ -74,8 +76,8 @@ export default function BillingScreen() {
           <Ionicons name="arrow-back" size={24} color={C.text} />
         </TouchableOpacity>
         <View style={styles.headerText}>
-          <Text style={styles.headerTitle}>Hisob va tarif</Text>
-          <Text style={styles.headerSub}>Obuna holati va limitar</Text>
+          <Text style={styles.headerTitle}>{t('billing.title')}</Text>
+          <Text style={styles.headerSub}>{t('billing.subtitle')}</Text>
         </View>
         <View style={styles.headerIcon}>
           <Ionicons name="card-outline" size={20} color={C.purple} />
@@ -93,20 +95,20 @@ export default function BillingScreen() {
           {sub && (
             <View style={styles.card}>
               <View style={styles.cardRow}>
-                <Text style={styles.label}>Joriy tarif</Text>
+                <Text style={styles.label}>{t('billing.currentPlan')}</Text>
                 <View style={[styles.badge, { backgroundColor: STATUS_COLOR[sub.status] + '20' }]}>
                   <Text style={[styles.badgeText, { color: STATUS_COLOR[sub.status] }]}>
-                    {STATUS_LABELS[sub.status]}
+                    {t(STATUS_I18N_KEYS[sub.status])}
                   </Text>
                 </View>
               </View>
               <Text style={styles.planName}>{sub.plan.name}</Text>
-              <Text style={styles.planPrice}>{fmtPrice(sub.plan.priceMonthly)}</Text>
+              <Text style={styles.planPrice}>{fmtPrice(sub.plan.priceMonthly, t('billing.pricePerMonth'))}</Text>
               <View style={styles.divider} />
               <View style={styles.cardRow}>
-                <Text style={styles.meta}>Boshlangan: {fmtDate(sub.startedAt)}</Text>
+                <Text style={styles.meta}>{t('billing.startedAt')}: {fmtDate(sub.startedAt)}</Text>
                 <Text style={styles.meta}>
-                  {sub.status === 'TRIAL' ? 'Sinov tugaydi' : "Tugash"}: {fmtDate(sub.expiresAt ?? sub.trialEndsAt)}
+                  {sub.status === 'TRIAL' ? t('billing.trialEndsAt') : t('billing.expiresAt')}: {fmtDate(sub.expiresAt ?? sub.trialEndsAt)}
                 </Text>
               </View>
             </View>
@@ -115,11 +117,11 @@ export default function BillingScreen() {
           {/* Usage */}
           {usage && (
             <View style={styles.card}>
-              <Text style={styles.sectionTitle}>FOYDALANISH</Text>
+              <Text style={styles.sectionTitle}>{t('billing.usageTitle')}</Text>
               {([
-                { icon: 'business-outline', label: 'Filiallar', ...usage.branches },
-                { icon: 'cube-outline',     label: 'Mahsulotlar', ...usage.products },
-                { icon: 'person-outline',   label: 'Foydalanuvchilar', ...usage.users },
+                { icon: 'business-outline', label: t('billing.branches'), ...usage.branches },
+                { icon: 'cube-outline',     label: t('billing.products'), ...usage.products },
+                { icon: 'person-outline',   label: t('billing.users'), ...usage.users },
               ] as const).map((row) => {
                 const pct = row.max > 0 ? Math.min(row.used / row.max, 1) : 0;
                 const color = pct >= 0.9 ? '#DC2626' : pct >= 0.7 ? '#D97706' : C.primary;
@@ -142,7 +144,7 @@ export default function BillingScreen() {
           {/* Plans */}
           {plans && plans.filter(p => p.isActive).length > 0 && (
             <View style={styles.card}>
-              <Text style={styles.sectionTitle}>MAVJUD TARIFLAR</Text>
+              <Text style={styles.sectionTitle}>{t('billing.availablePlans')}</Text>
               {plans.filter(p => p.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map((plan, i) => (
                 <View key={plan.id}>
                   {i > 0 && <View style={styles.divider} />}
@@ -150,7 +152,7 @@ export default function BillingScreen() {
                     <View style={styles.planInfo}>
                       <Text style={styles.planRowName}>{plan.name}</Text>
                       <Text style={styles.planRowMeta}>
-                        {plan.maxBranches} filial · {plan.maxProducts} tovar · {plan.maxUsers} xodim
+                        {plan.maxBranches} {t('billing.planBranches')} {'\u00B7'} {plan.maxProducts} {t('billing.planProducts')} {'\u00B7'} {plan.maxUsers} {t('billing.planUsers')}
                       </Text>
                     </View>
                     <Text style={styles.planRowPrice}>{(plan.priceMonthly / 1000).toFixed(0)}K</Text>

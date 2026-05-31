@@ -67,7 +67,7 @@ export function duration(openedAt: Date | string, closedAt: Date | string | null
 
 export function cashierName(shift: ShiftDetail): string {
   if (shift.user) return `${shift.user.firstName} ${shift.user.lastName}`.trim();
-  const cn = (shift as any).cashierName as string | undefined;
+  const cn = (shift as unknown as { cashierName?: string }).cashierName;
   if (cn && cn.trim()) return cn.trim();
   return 'Kassir';
 }

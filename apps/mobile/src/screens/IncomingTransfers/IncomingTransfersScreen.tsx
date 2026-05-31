@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inventoryApi } from '../../api/inventory.api';
 import type { StockTransferListItem } from '../../api/inventory.api';
@@ -30,6 +31,7 @@ const C = {
 };
 
 export default function IncomingTransfersScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const [actingId, setActingId] = useState<string | null>(null);
@@ -48,10 +50,10 @@ export default function IncomingTransfersScreen() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['incoming-transfers'] });
       void queryClient.invalidateQueries({ queryKey: ['stock-transfers'] });
-      Alert.alert('Qabul qilindi', 'Mahsulotlar zaxiraga kiritildi');
+      Alert.alert(t('transfers.receiveSuccess'), t('transfers.receiveSuccessMessage'));
     },
     onError: () => {
-      Alert.alert('Xatolik', 'Qabul qilishda xatolik. Qayta urinib ko\'ring.');
+      Alert.alert(t('common.error'), t('transfers.receiveError'));
     },
     onSettled: () => {
       setActingId(null);
@@ -60,18 +62,18 @@ export default function IncomingTransfersScreen() {
 
   const handleReceive = useCallback((transfer: StockTransferListItem) => {
     const itemCount = transfer.items.length;
-    const msg = `${transfer.fromBranch.name} dan ${itemCount} ta mahsulot qabul qilinsinmi?`;
-    Alert.alert('Qabul qilish', msg, [
-      { text: 'Bekor', style: 'cancel' },
+    const msg = t('transfers.receiveConfirm', { from: transfer.fromBranch.name, count: itemCount });
+    Alert.alert(t('transfers.receiveTitle'), msg, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Qabul qilish',
+        text: t('transfers.accept'),
         onPress: () => {
           setActingId(transfer.id);
           receiveMutation.mutate(transfer.id);
         },
       },
     ]);
-  }, [receiveMutation]);
+  }, [receiveMutation, t]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -97,7 +99,7 @@ export default function IncomingTransfersScreen() {
           {item.items.map((p) => (
             <View key={p.id} style={styles.productRow}>
               <Text style={styles.productName} numberOfLines={1}>{p.product.name}</Text>
-              <Text style={styles.productQty}>{p.quantity} dona</Text>
+              <Text style={styles.productQty}>{p.quantity} {t('transfers.unit')}</Text>
             </View>
           ))}
         </View>
@@ -119,7 +121,7 @@ export default function IncomingTransfersScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-circle-outline" size={18} color={C.white} />
-              <Text style={styles.receiveBtnText}>Qabul qilish</Text>
+              <Text style={styles.receiveBtnText}>{t('transfers.accept')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -136,7 +138,7 @@ export default function IncomingTransfersScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={C.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Kelgan mahsulotlar</Text>
+        <Text style={styles.headerTitle}>{t('transfers.incoming')}</Text>
         <View style={styles.headerRight}>
           {items.length > 0 && (
             <View style={styles.countBadge}>
@@ -167,8 +169,8 @@ export default function IncomingTransfersScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="cube-outline" size={48} color={C.muted} />
-              <Text style={styles.emptyTitle}>Kutilayotgan mahsulot yo'q</Text>
-              <Text style={styles.emptySubtitle}>Katta ombordan yuborilgan mahsulotlar shu yerda ko'rinadi</Text>
+              <Text style={styles.emptyTitle}>{t('transfers.emptyTitle')}</Text>
+              <Text style={styles.emptySubtitle}>{t('transfers.emptySubtitle')}</Text>
             </View>
           }
         />

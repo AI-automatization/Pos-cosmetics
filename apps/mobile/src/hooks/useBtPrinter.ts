@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 // ─── Safe dynamic import ────────────────────────────────────────────────────
 // react-native-bluetooth-escpos-printer mavjud bo'lmasligi mumkin (Expo Go)
@@ -58,6 +59,7 @@ function extractMsg(err: unknown, fallback: string): string {
 
 // ─── Hook ───────────────────────────────────────────────────────────────────
 export function useBtPrinter() {
+  const { t } = useTranslation();
   const [isScanning, setIsScanning] = useState(false);
   const [devices, setDevices] = useState<BtDevice[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<BtDevice | null>(null);
@@ -77,7 +79,7 @@ export function useBtPrinter() {
   }, []);
 
   const scan = useCallback(async () => {
-    if (!BtManager) { setError('Bluetooth printer module mavjud emas'); return; }
+    if (!BtManager) { setError(t('printer.btNotAvailable')); return; }
     setError(null);
     setIsScanning(true);
     try {
@@ -86,21 +88,21 @@ export function useBtPrinter() {
         if (Platform.OS === 'android') {
           await BtManager.enableBluetooth();
         } else {
-          setError('Bluetooth yoqilmagan. Iltimos, sozlamalardan yoqing.');
+          setError(t('printer.btDisabled'));
           setIsScanning(false);
           return;
         }
       }
       setDevices(parseScanResult(await BtManager.scanDevices()));
     } catch (err) {
-      setError(extractMsg(err, 'Qurilmalarni qidirish xatosi'));
+      setError(extractMsg(err, t('printer.scanError')));
     } finally {
       setIsScanning(false);
     }
-  }, []);
+  }, [t]);
 
   const connect = useCallback(async (address: string) => {
-    if (!BtManager) { setError('Bluetooth printer module mavjud emas'); return; }
+    if (!BtManager) { setError(t('printer.btNotAvailable')); return; }
     setError(null);
     try {
       await BtManager.connect(address);
@@ -108,10 +110,10 @@ export function useBtPrinter() {
         ?? { name: address, address };
       setConnectedDevice(device);
     } catch (err) {
-      setError(extractMsg(err, 'Ulanish xatosi'));
+      setError(extractMsg(err, t('printer.connectError')));
       setConnectedDevice(null);
     }
-  }, [devices]);
+  }, [devices, t]);
 
   const disconnect = useCallback(async () => {
     setError(null);
@@ -119,18 +121,18 @@ export function useBtPrinter() {
   }, []);
 
   const printTspl = useCallback(async (commands: string) => {
-    if (!BtPrinter) { setError('Bluetooth printer module mavjud emas'); return; }
-    if (!connectedDevice) { setError('Printer ulanmagan'); return; }
+    if (!BtPrinter) { setError(t('printer.btNotAvailable')); return; }
+    if (!connectedDevice) { setError(t('printer.notConnected')); return; }
     setError(null);
     setIsPrinting(true);
     try {
       await BtPrinter.printRawData(commands);
     } catch (err) {
-      setError(extractMsg(err, 'Chop etish xatosi'));
+      setError(extractMsg(err, t('printer.printError')));
     } finally {
       setIsPrinting(false);
     }
-  }, [connectedDevice]);
+  }, [connectedDevice, t]);
 
   return {
     isAvailable, isScanning, devices, connectedDevice,

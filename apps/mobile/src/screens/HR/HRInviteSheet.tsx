@@ -4,6 +4,7 @@ import {
   Modal, ScrollView, StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { CreateEmployeeDto, EmployeeRole } from '../../api/employees.api';
 import { useBranchStore } from '../../store/branch.store';
 import { Colors, Radii } from '../../config/theme';
@@ -15,14 +16,15 @@ interface Props {
   isLoading: boolean;
 }
 
-const ROLES: { value: EmployeeRole; label: string }[] = [
-  { value: 'CASHIER', label: 'Kassir' },
-  { value: 'MANAGER', label: 'Menejer' },
-  { value: 'ADMIN', label: 'Admin' },
-  { value: 'WAREHOUSE', label: 'Omborchi' },
+const ROLE_KEYS: { value: EmployeeRole; labelKey: string }[] = [
+  { value: 'CASHIER', labelKey: 'hrInvite.roleCashier' },
+  { value: 'MANAGER', labelKey: 'hrInvite.roleManager' },
+  { value: 'ADMIN', labelKey: 'hrInvite.roleAdmin' },
+  { value: 'WAREHOUSE', labelKey: 'hrInvite.roleWarehouse' },
 ];
 
 export default function HRInviteSheet({ visible, onClose, onSubmit, isLoading }: Props) {
+  const { t } = useTranslation();
   const branches = useBranchStore((s) => s.branches);
   const selectedBranchId = useBranchStore((s) => s.selectedBranchId);
 
@@ -64,41 +66,41 @@ export default function HRInviteSheet({ visible, onClose, onSubmit, isLoading }:
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Xodim qo'shish</Text>
+          <Text style={styles.title}>{t('hrInvite.title')}</Text>
           <TouchableOpacity onPress={handleClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Ionicons name="close" size={24} color={Colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
-          <Text style={styles.label}>Ism *</Text>
-          <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} placeholder="Ism" placeholderTextColor={Colors.textMuted} />
+          <Text style={styles.label}>{t('hrInvite.firstNameRequired')}</Text>
+          <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} placeholder={t('hrInvite.firstName')} placeholderTextColor={Colors.textMuted} />
 
-          <Text style={styles.label}>Familiya *</Text>
-          <TextInput style={styles.input} value={lastName} onChangeText={setLastName} placeholder="Familiya" placeholderTextColor={Colors.textMuted} />
+          <Text style={styles.label}>{t('hrInvite.lastNameRequired')}</Text>
+          <TextInput style={styles.input} value={lastName} onChangeText={setLastName} placeholder={t('hrInvite.lastName')} placeholderTextColor={Colors.textMuted} />
 
-          <Text style={styles.label}>Telefon *</Text>
+          <Text style={styles.label}>{t('hrInvite.phoneRequired')}</Text>
           <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="+998901234567" placeholderTextColor={Colors.textMuted} keyboardType="phone-pad" />
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>{t('hrInvite.email')}</Text>
           <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="email@example.com" placeholderTextColor={Colors.textMuted} keyboardType="email-address" autoCapitalize="none" />
 
-          <Text style={styles.label}>Rol</Text>
+          <Text style={styles.label}>{t('hrInvite.role')}</Text>
           <View style={styles.chipRow}>
-            {ROLES.map((r) => (
+            {ROLE_KEYS.map((r) => (
               <TouchableOpacity
                 key={r.value}
                 style={[styles.chip, role === r.value && styles.chipActive]}
                 onPress={() => setRole(r.value)}
               >
-                <Text style={[styles.chipText, role === r.value && styles.chipTextActive]}>{r.label}</Text>
+                <Text style={[styles.chipText, role === r.value && styles.chipTextActive]}>{t(r.labelKey)}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {branches.length > 0 && (
             <>
-              <Text style={styles.label}>Filial</Text>
+              <Text style={styles.label}>{t('hrInvite.branch')}</Text>
               <View style={styles.chipRow}>
                 {branches.map((b) => (
                   <TouchableOpacity
@@ -115,20 +117,20 @@ export default function HRInviteSheet({ visible, onClose, onSubmit, isLoading }:
 
           <View style={styles.inviteNote}>
             <Ionicons name="paper-plane-outline" size={16} color={Colors.primary} />
-            <Text style={styles.noteText}>Xodimga Telegram orqali invite link yuboriladi</Text>
+            <Text style={styles.noteText}>{t('hrInvite.inviteNote')}</Text>
           </View>
         </ScrollView>
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.cancelBtn} onPress={handleClose}>
-            <Text style={styles.cancelText}>Bekor qilish</Text>
+            <Text style={styles.cancelText}>{t('hrInvite.cancel')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.submitBtn, (!canSubmit || isLoading) && styles.submitDisabled]}
             onPress={handleSubmit}
             disabled={!canSubmit || isLoading}
           >
-            <Text style={styles.submitText}>{isLoading ? 'Yuborilmoqda...' : "Qo'shish & Invite"}</Text>
+            <Text style={styles.submitText}>{isLoading ? t('hrInvite.submitting') : t('hrInvite.submitButton')}</Text>
           </TouchableOpacity>
         </View>
       </View>

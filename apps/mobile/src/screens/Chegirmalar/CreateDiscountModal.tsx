@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { promotionsApi } from '@/api';
 import type { CreateDiscountDto } from '@/api';
@@ -32,6 +33,7 @@ interface CreateDiscountModalProps {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function CreateDiscountModal({ visible, onClose, onSuccess }: CreateDiscountModalProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [name, setName]         = useState('');
   const [type, setType]         = useState<DiscountType>('PERCENT');
@@ -87,20 +89,20 @@ export default function CreateDiscountModal({ visible, onClose, onSuccess }: Cre
           <View style={styles.modalHandle} />
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={styles.modalTitle}>Yangi chegirma</Text>
+            <Text style={styles.modalTitle}>{t('discounts.createTitle')}</Text>
 
             {/* Name */}
-            <Text style={styles.fieldLabel}>Nomi</Text>
+            <Text style={styles.fieldLabel}>{t('discounts.fieldName')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Chegirma nomi"
+              placeholder={t('discounts.namePlaceholder')}
               placeholderTextColor={C.muted}
               value={name}
               onChangeText={setName}
             />
 
             {/* Type toggle */}
-            <Text style={styles.fieldLabel}>Turi</Text>
+            <Text style={styles.fieldLabel}>{t('discounts.fieldType')}</Text>
             <View style={styles.toggleRow}>
               <TouchableOpacity
                 style={[styles.toggleBtn, type === 'PERCENT' && styles.toggleBtnActive]}
@@ -108,7 +110,7 @@ export default function CreateDiscountModal({ visible, onClose, onSuccess }: Cre
                 activeOpacity={0.75}
               >
                 <Text style={[styles.toggleText, type === 'PERCENT' && styles.toggleTextActive]}>
-                  Foiz (%)
+                  {t('discounts.typePercent')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -117,18 +119,18 @@ export default function CreateDiscountModal({ visible, onClose, onSuccess }: Cre
                 activeOpacity={0.75}
               >
                 <Text style={[styles.toggleText, type === 'FIXED' && styles.toggleTextActive]}>
-                  Miqdor (so'm)
+                  {t('discounts.typeFixed')}
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* Value */}
             <Text style={styles.fieldLabel}>
-              {type === 'PERCENT' ? 'Foiz miqdori (1–100)' : "So'm miqdori (UZS)"}
+              {type === 'PERCENT' ? t('discounts.valuePercentLabel') : t('discounts.valueFixedLabel')}
             </Text>
             <TextInput
               style={styles.input}
-              placeholder={type === 'PERCENT' ? 'Masalan: 15' : 'Masalan: 5000'}
+              placeholder={type === 'PERCENT' ? t('discounts.valuePlaceholderPercent') : t('discounts.valuePlaceholderFixed')}
               placeholderTextColor={C.muted}
               keyboardType="numeric"
               value={value}
@@ -136,7 +138,7 @@ export default function CreateDiscountModal({ visible, onClose, onSuccess }: Cre
             />
 
             {/* Valid from */}
-            <Text style={styles.fieldLabel}>Boshlanish sanasi</Text>
+            <Text style={styles.fieldLabel}>{t('discounts.validFrom')}</Text>
             <TextInput
               style={styles.input}
               placeholder="YYYY-MM-DD"
@@ -146,7 +148,7 @@ export default function CreateDiscountModal({ visible, onClose, onSuccess }: Cre
             />
 
             {/* Valid to */}
-            <Text style={styles.fieldLabel}>Tugash sanasi (ixtiyoriy)</Text>
+            <Text style={styles.fieldLabel}>{t('discounts.validTo')}</Text>
             <TextInput
               style={styles.input}
               placeholder="YYYY-MM-DD"
@@ -158,7 +160,7 @@ export default function CreateDiscountModal({ visible, onClose, onSuccess }: Cre
             {/* Actions */}
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={handleClose} activeOpacity={0.75}>
-                <Text style={styles.cancelBtnText}>Bekor</Text>
+                <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.saveBtn, isPending && styles.saveBtnDisabled]}
@@ -168,7 +170,7 @@ export default function CreateDiscountModal({ visible, onClose, onSuccess }: Cre
               >
                 {isPending
                   ? <ActivityIndicator size="small" color={C.white} />
-                  : <Text style={styles.saveBtnText}>Saqlash</Text>
+                  : <Text style={styles.saveBtnText}>{t('discounts.save')}</Text>
                 }
               </TouchableOpacity>
             </View>

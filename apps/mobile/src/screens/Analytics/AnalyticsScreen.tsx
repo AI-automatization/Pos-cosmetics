@@ -48,7 +48,7 @@ function BranchCard({ item, maxRevenue, rank }: {
         <Text style={s.branchRevenue}>{fmt(item.revenue)} UZS</Text>
       </View>
       <View style={s.barBg}>
-        <View style={[s.barFill, { width: `${Math.max(pct * 100, 2)}%` as any, backgroundColor: barColor }]} />
+        <View style={[s.barFill, { width: `${Math.max(pct * 100, 2)}%`, backgroundColor: barColor }]} />
       </View>
       <View style={s.branchMeta}>
         <Text style={s.metaText}>{item.orders} buyurtma</Text>

@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MoreStackParamList } from '../../navigation/types';
 import { useAuthStore } from '../../store/auth.store';
@@ -35,6 +36,7 @@ function keyExtractor(item: ExpiryItem | ExpiredItem, tab: ExpiryTab): string {
 
 export default function ExpiryScreen() {
   const navigation = useNavigation<NavProp>();
+  const { t } = useTranslation();
   const { user }   = useAuthStore();
 
   const [tab, setTab]               = useState<ExpiryTab>('EXPIRING');
@@ -80,7 +82,7 @@ export default function ExpiryScreen() {
 
   const handleBack      = useCallback(() => navigation.goBack(), [navigation]);
   const handleRetry     = useCallback(() => { void refetch(); }, [refetch]);
-  const handleTabChange = useCallback((t: ExpiryTab) => setTab(t), []);
+  const handleTabChange = useCallback((newTab: ExpiryTab) => setTab(newTab), []);
   const handleDaysChange = useCallback((d: DaysFilter) => setDaysFilter(d), []);
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
 
@@ -107,8 +109,8 @@ export default function ExpiryScreen() {
         <Ionicons name="checkmark-circle-outline" size={48} color={C.green} />
         <Text style={styles.emptyText}>
           {tab === 'EXPIRING'
-            ? "Muddati yaqin mahsulot yo'q"
-            : "Muddati o'tgan mahsulot yo'q"}
+            ? t('warehouse.expiringNoItems')
+            : t('warehouse.expiredNoItems')}
         </Text>
       </View>
     ),
@@ -143,7 +145,7 @@ export default function ExpiryScreen() {
         <ExpiryHeader onBack={handleBack} />
         <View style={styles.centerFill}>
           <Ionicons name="lock-closed-outline" size={48} color={C.muted} />
-          <Text style={styles.errorText}>Bu bo'lim uchun ruxsat yo'q</Text>
+          <Text style={styles.errorText}>{t('warehouse.noPermission')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -166,13 +168,13 @@ export default function ExpiryScreen() {
         <ExpiryHeader onBack={handleBack} />
         <View style={styles.centerFill}>
           <Ionicons name="alert-circle-outline" size={48} color={C.muted} />
-          <Text style={styles.errorText}>Ma'lumot yuklanmadi</Text>
+          <Text style={styles.errorText}>{t('warehouse.dataLoadError')}</Text>
           <TouchableOpacity
             style={styles.retryBtn}
             onPress={handleRetry}
             activeOpacity={0.75}
           >
-            <Text style={styles.retryBtnText}>Qayta urinish</Text>
+            <Text style={styles.retryBtnText}>{t('warehouse.retry')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
