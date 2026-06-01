@@ -11,11 +11,17 @@ const VIDEO_IDS: Record<number, string | null> = {
   2: null,
 }
 
+const DEMO_SRCS: Record<number, string | null> = {
+  0: '/demos/demo-1.html',
+  1: null,
+  2: null,
+}
+
 export default function TutorialsPreview() {
   const sectionRef = useRef<HTMLElement>(null)
   const { t } = useLang()
   const tr = t.tutorials
-  const [modal, setModal] = useState<{ title: string; videoId: string | null } | null>(null)
+  const [modal, setModal] = useState<{ title: string; videoId: string | null; src?: string | null } | null>(null)
 
   const preview = tr.items.filter((item) => item.free).slice(0, 3)
 
@@ -62,7 +68,7 @@ export default function TutorialsPreview() {
           {preview.map((item, idx) => (
             <button
               key={idx}
-              onClick={() => setModal({ title: item.title, videoId: VIDEO_IDS[idx] ?? null })}
+              onClick={() => setModal({ title: item.title, videoId: VIDEO_IDS[idx] ?? null, src: DEMO_SRCS[idx] ?? null })}
               className="fade-up glass rounded-2xl overflow-hidden group hover:border-[#24D4F4]/40 hover:shadow-[0_0_24px_rgba(36,212,244,0.12)] transition-all duration-300 text-left"
               style={{ animationDelay: `${0.1 + idx * 0.15}s` }}
             >
@@ -116,6 +122,7 @@ export default function TutorialsPreview() {
         <VideoModal
           title={modal.title}
           videoId={modal.videoId}
+          src={modal.src}
           onClose={() => setModal(null)}
         />
       )}

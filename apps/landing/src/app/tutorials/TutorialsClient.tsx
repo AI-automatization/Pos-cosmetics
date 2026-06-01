@@ -19,7 +19,11 @@ const DIFFICULTY_COLOR = {
 
 export default function TutorialsClient() {
   const { t } = useLang()
-  const [modal, setModal] = useState<{ title: string; videoId: string | null } | null>(null)
+  const [modal, setModal] = useState<{ title: string; videoId: string | null; src?: string | null } | null>(null)
+
+  const DEMO_SRCS: Record<number, string | null> = {
+    0: '/demos/demo-1.html',
+  }
   const tr = t.tutorials
   const [activeCategory, setActiveCategory] = useState<string>(tr.all)
 
@@ -98,7 +102,7 @@ export default function TutorialsClient() {
                     item={item}
                     tr={tr}
                     idx={idx}
-                    onPlay={() => setModal({ title: item.title, videoId: null })}
+                    onPlay={() => setModal({ title: item.title, videoId: null, src: DEMO_SRCS[idx] ?? null })}
                   />
                 ))}
             </div>
@@ -128,6 +132,7 @@ export default function TutorialsClient() {
         <VideoModal
           title={modal.title}
           videoId={modal.videoId}
+          src={modal.src}
           onClose={() => setModal(null)}
         />
       )}

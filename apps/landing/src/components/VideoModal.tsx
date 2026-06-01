@@ -6,10 +6,11 @@ import { X } from 'lucide-react'
 interface Props {
   title: string
   videoId: string | null
+  src?: string | null
   onClose: () => void
 }
 
-export default function VideoModal({ title, videoId, onClose }: Props) {
+export default function VideoModal({ title, videoId, src, onClose }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
@@ -53,6 +54,12 @@ export default function VideoModal({ title, videoId, onClose }: Props) {
               title={title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+            />
+          ) : src ? (
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={src}
+              title={title}
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#112F4B]">

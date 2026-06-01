@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAOS — 1-darslik: Ro'yxatdan o'tish va sozlash</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #24D4F4;
+    --cyan2: #5FEEFB;
+    --navy: #0E1530;
+    --navy2: #112F4B;
+    --navy3: #0a1228;
+    --glass: rgba(36,212,244,0.07);
+    --border: rgba(36,212,244,0.18);
+  }
+
+  body {
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  /* ───── TOP BAR ───── */
+  .topbar {
+    width: 100%;
+    background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--cyan);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; color: var(--navy);
+  }
+  .logo-text { font-weight: 800; font-size: 18px; color: #fff; }
+  .lesson-badge {
+    background: rgba(36,212,244,0.12);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+  }
+  .topbar-right {
+    display: flex; align-items: center; gap: 16px;
+    font-size: 13px; color: #94a3b8;
+  }
+  .topbar-right span { display: flex; align-items: center; gap: 6px; }
+
+  /* ───── HERO / TITLE ───── */
+  .hero {
+    width: 100%;
+    max-width: 900px;
+    padding: 40px 24px 24px;
+    text-align: center;
+  }
+  .lesson-number {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--cyan); }
+  .hero-sub {
+    font-size: 15px;
+    color: #94a3b8;
+    max-width: 500px;
+    margin: 0 auto 24px;
+  }
+  .meta-pills {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+  .pill svg { width: 13px; height: 13px; }
+  .pill.green { color: #34d399; border-color: rgba(52,211,153,0.25); background: rgba(52,211,153,0.07); }
+
+  /* ───── PROGRESS BAR ───── */
+  .progress-wrap {
+    width: 100%;
+    max-width: 900px;
+    padding: 0 24px 8px;
+  }
+  .progress-steps {
+    display: flex; gap: 8px; margin-bottom: 12px;
+    align-items: center;
+  }
+  .step-dot {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(36,212,244,0.25);
+    font-size: 13px; font-weight: 700; color: #475569;
+    transition: all 0.4s;
+    cursor: pointer;
+    position: relative;
+  }
+  .step-dot.active {
+    border-color: var(--cyan);
+    background: rgba(36,212,244,0.15);
+    color: var(--cyan);
+    box-shadow: 0 0 16px rgba(36,212,244,0.35);
+  }
+  .step-dot.done {
+    border-color: rgba(52,211,153,0.5);
+    background: rgba(52,211,153,0.12);
+    color: #34d399;
+  }
+  .step-dot.done::after {
+    content: '✓';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .step-dot.done span { display: none; }
+  .step-line {
+    flex: 1; height: 2px;
+    background: rgba(36,212,244,0.1);
+    border-radius: 1px;
+    position: relative; overflow: hidden;
+  }
+  .step-line-fill {
+    height: 100%;
+    background: var(--cyan);
+    border-radius: 1px;
+    transition: width 0.6s ease;
+  }
+  .progress-label {
+    font-size: 12px; color: #64748b;
+    display: flex; justify-content: space-between;
+  }
+  .progress-label strong { color: var(--cyan); }
+
+  /* ───── MAIN DEMO AREA ───── */
+  .demo-area {
+    width: 100%;
+    max-width: 900px;
+    padding: 0 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Screen mockup */
+  .screen-wrap {
+    width: 100%;
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(36,212,244,0.08);
+  }
+  .screen-bar {
+    background: var(--navy3);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .screen-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .screen-dot:nth-child(1) { background: #ef4444; }
+  .screen-dot:nth-child(2) { background: #f59e0b; }
+  .screen-dot:nth-child(3) { background: #22c55e; }
+  .screen-url {
+    flex: 1; background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px; color: #64748b;
+    margin: 0 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .screen-url span { color: var(--cyan); }
+  .screen-content {
+    min-height: 360px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Scenes ── */
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+  .scene.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Scene 1: Landing / Registration form */
+  .s1-wrap {
+    display: flex; height: 100%;
+  }
+  .s1-left {
+    flex: 1;
+    padding: 32px;
+    display: flex; flex-direction: column; justify-content: center;
+    border-right: 1px solid var(--border);
+  }
+  .s1-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.25);
+    color: #34d399;
+    font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .s1-left h2 {
+    font-size: 22px; font-weight: 900;
+    line-height: 1.3; margin-bottom: 8px;
+  }
+  .s1-left h2 em { color: var(--cyan); font-style: normal; }
+  .s1-left p { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+  .s1-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 13px;
+    padding: 10px 20px; border-radius: 10px;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-outline {
+    background: transparent; color: var(--cyan);
+    border: 1px solid var(--border); font-weight: 700; font-size: 13px;
+    padding: 10px 20px; border-radius: 10px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .s1-right {
+    width: 280px;
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .form-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .form-sub { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+  .form-row label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: #94a3b8; margin-bottom: 4px;
+  }
+  .form-input {
+    width: 100%; background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; color: #fff;
+    outline: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-input.typing { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(36,212,244,0.15); }
+  .cursor {
+    display: inline-block; width: 2px; height: 14px;
+    background: var(--cyan); margin-left: 1px;
+    animation: blink 0.8s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .form-select {
+    width: 100%; background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; color: #94a3b8;
+  }
+  .form-submit {
+    width: 100%;
+    background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 13px;
+    padding: 11px; border-radius: 10px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  /* Scene 2: SMS / Phone verify */
+  .s2-wrap {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; flex-direction: column; gap: 24px;
+    padding: 32px;
+  }
+  .phone-icon {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: rgba(36,212,244,0.1);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .s2-title { font-size: 20px; font-weight: 800; text-align: center; }
+  .s2-sub { font-size: 13px; color: #94a3b8; text-align: center; }
+  .code-boxes {
+    display: flex; gap: 10px;
+  }
+  .code-box {
+    width: 44px; height: 52px;
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800; color: var(--cyan);
+    transition: all 0.3s;
+  }
+  .code-box.filled { border-color: var(--cyan); background: rgba(36,212,244,0.12); }
+  .code-box.active { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(36,212,244,0.2); }
+  .sms-note { font-size: 11px; color: #475569; }
+  .verify-btn {
+    background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 14px;
+    padding: 12px 40px; border-radius: 12px;
+    cursor: pointer; opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .verify-btn.show { opacity: 1; }
+
+  /* Scene 3: Shop setup */
+  .s3-wrap {
+    display: flex; height: 100%;
+  }
+  .s3-sidebar {
+    width: 200px;
+    background: var(--navy3);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .s3-sidebar-logo {
+    padding: 0 20px 16px;
+    font-weight: 900; font-size: 16px; color: var(--cyan);
+  }
+  .s3-nav-item {
+    padding: 10px 20px;
+    font-size: 13px; color: #475569;
+    display: flex; align-items: center; gap: 10px;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .s3-nav-item.active {
+    color: var(--cyan);
+    background: rgba(36,212,244,0.07);
+    border-left-color: var(--cyan);
+  }
+  .s3-nav-item svg { width: 16px; height: 16px; }
+  .s3-main { flex: 1; padding: 24px; overflow: auto; }
+  .s3-step-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .s3-step-sub { font-size: 12px; color: #64748b; margin-bottom: 20px; }
+  .setup-progress {
+    display: flex; gap: 6px; margin-bottom: 24px;
+  }
+  .setup-step {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: rgba(36,212,244,0.1);
+    transition: background 0.4s;
+  }
+  .setup-step.done { background: #34d399; }
+  .setup-step.active { background: var(--cyan); }
+  .setup-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .setup-card {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .setup-card-label { font-size: 11px; font-weight: 600; color: #94a3b8; }
+  .setup-input {
+    background: var(--navy3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; color: #fff;
+    width: 100%;
+  }
+  .setup-input.highlight {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 2px rgba(36,212,244,0.15);
+  }
+
+  /* Scene 4: Success / Dashboard */
+  .s4-wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; gap: 20px; padding: 32px;
+    position: relative; overflow: hidden;
+  }
+  .s4-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 60%, rgba(36,212,244,0.06) 0%, transparent 70%);
+  }
+  .success-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(52,211,153,0.12);
+    border: 2px solid rgba(52,211,153,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    position: relative; z-index: 1;
+    animation: popIn 0.5s ease both;
+  }
+  @keyframes popIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .s4-title {
+    font-size: 24px; font-weight: 900;
+    text-align: center; position: relative; z-index: 1;
+  }
+  .s4-title span { color: var(--cyan); }
+  .s4-sub { font-size: 13px; color: #94a3b8; text-align: center; max-width: 340px; position: relative; z-index: 1; }
+  .s4-stats {
+    display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    position: relative; z-index: 1;
+  }
+  .s4-stat {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 20px; text-align: center;
+    min-width: 100px;
+  }
+  .s4-stat-val { font-size: 20px; font-weight: 900; color: var(--cyan); }
+  .s4-stat-lbl { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .s4-action {
+    display: flex; gap: 10px; position: relative; z-index: 1;
+  }
+  .confetti {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    animation: fall 3s ease-in forwards;
+    opacity: 0;
+  }
+  @keyframes fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(400px) rotate(720deg); opacity: 0; }
+  }
+
+  /* ───── TOOLTIP OVERLAY ───── */
+  .tooltip-box {
+    background: var(--navy2);
+    border: 1px solid var(--cyan);
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 0 32px rgba(36,212,244,0.2);
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: all 0.4s ease;
+  }
+  .tooltip-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(36,212,244,0.12);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .tooltip-text h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tooltip-text p { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+  /* ───── CONTROLS ───── */
+  .controls {
+    width: 100%;
+    max-width: 900px;
+    padding: 0 24px 40px;
+  }
+  .timeline {
+    width: 100%;
+    height: 4px;
+    background: rgba(36,212,244,0.1);
+    border-radius: 2px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    position: relative;
+  }
+  .timeline-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--cyan2));
+    border-radius: 2px;
+    transition: width 0.15s linear;
+  }
+  .timeline-thumb {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 12px rgba(36,212,244,0.5);
+    transition: left 0.15s linear;
+  }
+  .ctrl-row {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .ctrl-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--glass); border: 1px solid var(--border);
+    color: #cbd5e1; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .ctrl-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .ctrl-btn.main {
+    width: 48px; height: 48px; font-size: 20px;
+    background: var(--cyan); color: var(--navy);
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(36,212,244,0.3);
+  }
+  .ctrl-btn.main:hover { background: #0FA8C8; }
+  .time-display {
+    font-size: 13px; font-weight: 600; color: #64748b;
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+  }
+  .ctrl-right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .speed-btn {
+    background: var(--glass); border: 1px solid var(--border);
+    color: #94a3b8; font-size: 12px; font-weight: 700;
+    padding: 5px 10px; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .speed-btn.active { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ───── STEP DESCRIPTIONS ───── */
+  .step-info {
+    width: 100%;
+    max-width: 900px;
+    padding: 0 24px;
+  }
+  .step-cards {
+    display: flex; gap: 10px;
+  }
+  .step-card {
+    flex: 1; padding: 14px 16px;
+    background: var(--glass);
+    border: 1px solid rgba(36,212,244,0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0.5;
+  }
+  .step-card.active {
+    border-color: var(--cyan);
+    background: rgba(36,212,244,0.07);
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(36,212,244,0.1);
+  }
+  .step-card-num {
+    font-size: 11px; font-weight: 700; color: var(--cyan);
+    margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+  }
+  .step-card-num .done-icon { display: none; }
+  .step-card.done .done-icon { display: inline; }
+  .step-card.done .num-val { display: none; }
+  .step-card h5 { font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 3px; }
+  .step-card p { font-size: 11px; color: #64748b; }
+
+  .spacer { height: 24px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <span class="logo-text">RAOS</span>
+  </div>
+  <div class="lesson-badge">1-darslik • Boshlash</div>
+  <div class="topbar-right">
+    <span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      3 daqiqa
+    </span>
+    <span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      4 qadam
+    </span>
+    <span style="color:#34d399">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      BEPUL
+    </span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="lesson-number">📚 1-DARSLIK</div>
+  <h1>Ro'yxatdan o'tish va<br><span>do'koningizni sozlash</span></h1>
+  <p class="hero-sub">RAOS ga ro'yxatdan o'ting va do'koningizni atigi 2 daqiqada ishga tushiring. Karta kerak emas.</p>
+  <div class="meta-pills">
+    <div class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      3 daqiqa
+    </div>
+    <div class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+      4 qadam
+    </div>
+    <div class="pill green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      Boshlang'ich daraja
+    </div>
+    <div class="pill" style="color:#34d399;border-color:rgba(52,211,153,0.25);background:rgba(52,211,153,0.07)">
+      Bepul darslik
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps" id="progressSteps">
+    <div class="step-dot active" data-step="0"><span>1</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line1" style="width:0%"></div></div>
+    <div class="step-dot" data-step="1"><span>2</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line2" style="width:0%"></div></div>
+    <div class="step-dot" data-step="2"><span>3</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line3" style="width:0%"></div></div>
+    <div class="step-dot" data-step="3"><span>4</span></div>
+  </div>
+  <div class="progress-label">
+    <span id="stepLabel">1-qadam: Ro'yxatdan o'tish</span>
+    <strong id="stepCount">1 / 4</strong>
+  </div>
+</div>
+
+<!-- STEP CARDS -->
+<div class="step-info">
+  <div class="step-cards">
+    <div class="step-card active" id="scard0" onclick="goToStep(0)">
+      <div class="step-card-num"><span class="num-val">01</span><span class="done-icon">✓</span></div>
+      <h5>Ro'yxatdan o'tish</h5>
+      <p>Telefon raqami bilan</p>
+    </div>
+    <div class="step-card" id="scard1" onclick="goToStep(1)">
+      <div class="step-card-num"><span class="num-val">02</span><span class="done-icon">✓</span></div>
+      <h5>Kodni tasdiqlash</h5>
+      <p>SMS orqali</p>
+    </div>
+    <div class="step-card" id="scard2" onclick="goToStep(2)">
+      <div class="step-card-num"><span class="num-val">03</span><span class="done-icon">✓</span></div>
+      <h5>Do'konni sozlash</h5>
+      <p>Nom va filial</p>
+    </div>
+    <div class="step-card" id="scard3" onclick="goToStep(3)">
+      <div class="step-card-num"><span class="num-val">04</span><span class="done-icon">✓</span></div>
+      <h5>Tayyor!</h5>
+      <p>Dashboard ochildi</p>
+    </div>
+  </div>
+</div>
+<div class="spacer"></div>
+
+<!-- DEMO AREA -->
+<div class="demo-area">
+
+  <!-- SCREEN -->
+  <div class="screen-wrap">
+    <div class="screen-bar">
+      <div class="screen-dot"></div>
+      <div class="screen-dot"></div>
+      <div class="screen-dot"></div>
+      <div class="screen-url">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span>app.raos.uz</span>
+        /register
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- SCENE 1: Registration form -->
+      <div class="scene active" id="scene0">
+        <div class="s1-wrap">
+          <div class="s1-left">
+            <div class="s1-badge">✨ 30 kun BEPUL — karta kerak emas</div>
+            <h2>O'zbekiston do'konlari uchun<br><em>POS tizimi va kassa dasturi</em></h2>
+            <p>Kassa. Sklad. Soliq.uz. Hisobot. Bitta joyda.<br>Offline ishlaydi. 30 kun bepul sinab ko'ring.</p>
+            <div class="s1-btns">
+              <button class="btn-primary">30 kun bepul sinov →</button>
+              <button class="btn-outline">Demo ko'rish</button>
+            </div>
+          </div>
+          <div class="s1-right">
+            <div class="form-title">Bepul sinov boshlang</div>
+            <div class="form-sub">30 daqiqada bog'lanamiz</div>
+            <div class="form-row">
+              <label>Do'kon turi</label>
+              <div class="form-select" style="background:rgba(36,212,244,0.05);border:1px solid rgba(36,212,244,0.2);border-radius:8px;padding:8px 12px;font-size:13px;color:#94a3b8">
+                Kosmetika do'koni ▾
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Do'kon nomi</label>
+              <div class="form-input typing" id="inp-shopname">
+                <span id="typed-shop"></span><span class="cursor"></span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Telefon raqami</label>
+              <div class="form-input" id="inp-phone" style="color:#94a3b8">+998</div>
+            </div>
+            <div class="form-row">
+              <label>Ismingiz</label>
+              <div class="form-input" id="inp-name" style="color:#94a3b8"></div>
+            </div>
+            <button class="form-submit" id="submitBtn" style="opacity:0.4">Bepul sinov boshlash</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 2: SMS verify -->
+      <div class="scene" id="scene1">
+        <div class="s2-wrap">
+          <div class="phone-icon">📱</div>
+          <div class="s2-title">SMS kod yuborildi</div>
+          <div class="s2-sub">+998 90 123 45 67 raqamiga 6 xonali kod yuborildi</div>
+          <div class="code-boxes">
+            <div class="code-box active" id="cb0"></div>
+            <div class="code-box" id="cb1"></div>
+            <div class="code-box" id="cb2"></div>
+            <div class="code-box" id="cb3"></div>
+            <div class="code-box" id="cb4"></div>
+            <div class="code-box" id="cb5"></div>
+          </div>
+          <div class="sms-note">Kodni olmadingizmi? <span style="color:var(--cyan);cursor:pointer">Qayta yuborish</span></div>
+          <button class="verify-btn" id="verifyBtn">Tasdiqlash →</button>
+        </div>
+      </div>
+
+      <!-- SCENE 3: Shop setup -->
+      <div class="scene" id="scene2">
+        <div class="s3-wrap">
+          <div class="s3-sidebar">
+            <div class="s3-sidebar-logo">RAOS</div>
+            <div class="s3-nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              Asosiy
+            </div>
+            <div class="s3-nav-item active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              Do'kon sozlash
+            </div>
+            <div class="s3-nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              Kassa
+            </div>
+            <div class="s3-nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+              Sklad
+            </div>
+          </div>
+          <div class="s3-main">
+            <div class="s3-step-title">Do'koningizni sozlang</div>
+            <div class="s3-step-sub">Faqat 2 daqiqa kerak — keyin o'zgartirishingiz mumkin</div>
+            <div class="setup-progress">
+              <div class="setup-step done"></div>
+              <div class="setup-step active"></div>
+              <div class="setup-step"></div>
+            </div>
+            <div class="setup-grid">
+              <div class="setup-card">
+                <div class="setup-card-label">Do'kon nomi</div>
+                <div class="setup-input highlight" style="font-size:13px;color:#fff">Gulsanam Parfumeriya<span class="cursor"></span></div>
+              </div>
+              <div class="setup-card">
+                <div class="setup-card-label">Do'kon turi</div>
+                <div class="setup-input" style="color:#94a3b8">Kosmetika / Parfumeriya ▾</div>
+              </div>
+              <div class="setup-card">
+                <div class="setup-card-label">Filiallar soni</div>
+                <div class="setup-input" style="color:#94a3b8">1 ta filial ▾</div>
+              </div>
+              <div class="setup-card">
+                <div class="setup-card-label">Valyuta</div>
+                <div class="setup-input" style="color:#94a3b8">O'zbek so'mi (UZS) ▾</div>
+              </div>
+              <div class="setup-card" style="grid-column:span 2">
+                <div class="setup-card-label">Manzil</div>
+                <div class="setup-input" style="color:#94a3b8">Toshkent sh., Yunusobod t.</div>
+              </div>
+            </div>
+            <div style="margin-top:16px">
+              <button class="btn-primary" style="font-size:12px;padding:10px 24px">
+                Keyingi qadam →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 4: Success -->
+      <div class="scene" id="scene3">
+        <div class="s4-wrap">
+          <div class="confetti" id="confetti"></div>
+          <div class="s4-bg"></div>
+          <div class="success-icon">🎉</div>
+          <div class="s4-title">Do'koningiz tayyor!<br><span>Xush kelibsiz, RAOS ga!</span></div>
+          <div class="s4-sub">Gulsanam Parfumeriya muvaffaqiyatli sozlandi. Endi sotishni boshlashingiz mumkin.</div>
+          <div class="s4-stats">
+            <div class="s4-stat">
+              <div class="s4-stat-val">30</div>
+              <div class="s4-stat-lbl">kun bepul</div>
+            </div>
+            <div class="s4-stat">
+              <div class="s4-stat-val">0</div>
+              <div class="s4-stat-lbl">karta talab</div>
+            </div>
+            <div class="s4-stat">
+              <div class="s4-stat-val">24/7</div>
+              <div class="s4-stat-lbl">Telegram yordam</div>
+            </div>
+          </div>
+          <div class="s4-action">
+            <button class="btn-primary">Kassani ochish →</button>
+            <button class="btn-outline">Tovar qo'shish</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOOLTIP -->
+  <div class="tooltip-box" id="tooltip">
+    <div class="tooltip-icon" id="tip-icon">💡</div>
+    <div class="tooltip-text">
+      <h4 id="tip-title">RAOS saytiga o'ting</h4>
+      <p id="tip-desc">app.raos.uz yoki raos.uz saytiga kiring. "30 kun bepul sinov" tugmasini bosing — hech qanday karta kerak emas!</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="timeline" id="timeline" onclick="seekClick(event)">
+    <div class="timeline-fill" id="timelineFill" style="width:0%"></div>
+    <div class="timeline-thumb" id="timelineThumb" style="left:0%"></div>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" onclick="skipBack()" title="10s orqaga">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.46"/><text x="8" y="16" font-size="7" fill="currentColor" stroke="none">10</text></svg>
+    </button>
+    <button class="ctrl-btn main" id="playBtn" onclick="togglePlay()">▶</button>
+    <button class="ctrl-btn" onclick="skipFwd()" title="10s oldinga">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.46"/></svg>
+    </button>
+    <span class="time-display" id="timeDisplay">0:00 / 3:00</span>
+    <div class="ctrl-right">
+      <button class="speed-btn" onclick="setSpeed(0.5)" id="sp05">0.5×</button>
+      <button class="speed-btn active" onclick="setSpeed(1)" id="sp1">1×</button>
+      <button class="speed-btn" onclick="setSpeed(1.5)" id="sp15">1.5×</button>
+      <button class="speed-btn" onclick="setSpeed(2)" id="sp2">2×</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+const TOTAL = 180; // 3 minutes in seconds
+let current = 0;
+let playing = false;
+let speed = 1;
+let timer = null;
+let animStarted = [false, false, false, false];
+
+const STEPS = [
+  { time: 0,  end: 45,  label: "1-qadam: Ro'yxatdan o'tish" },
+  { time: 45, end: 90,  label: "2-qadam: SMS kodni tasdiqlash" },
+  { time: 90, end: 135, label: "3-qadam: Do'konni sozlash" },
+  { time: 135,end: 180, label: "4-qadam: Tayyor — Dashboard!" },
+];
+
+const TIPS = [
+  { icon: '💡', title: "Maslahat: Ro'yxatdan o'tish", desc: "app.raos.uz ga kiring va \"30 kun bepul sinov\" tugmasini bosing. Hech qanday kredit karta kerak emas — faqat telefon raqamingiz!" },
+  { icon: '🔐', title: "Maslahat: SMS kod", desc: "6 xonali tasdiqlash kodi telefon raqamingizga 30 soniyada keladi. Kelmasa — \"Qayta yuborish\" tugmasini bosing." },
+  { icon: '🏪', title: "Maslahat: Do'kon sozlash", desc: "Do'kon nomi, turi va manzilini kiriting. Bularni keyinchalik ham o'zgartirish mumkin. Filiallar sonini to'g'ri tanlang!" },
+  { icon: '🚀', title: "Maslahat: Keyingi qadam", desc: "Tabriklaymiz! Endi 2-darsga o'ting: tovarlarni qo'shish. Excel fayldan yoki shtrix-kod orqali barcha tovarlarni 5 daqiqada kiriting." },
+];
+
+// ── Typing animations ──
+let shopTyped = '';
+const shopText = 'Gulsanam Parfumeriya';
+let phoneTyped = '+998';
+let nameTyped = '';
+const phoneText = '+998 90 123 45 67';
+const nameText = 'Gulsanam Normatova';
+
+function getCurrentStep() {
+  for (let i = STEPS.length - 1; i >= 0; i--) {
+    if (current >= STEPS[i].time) return i;
+  }
+  return 0;
+}
+
+function updateUI() {
+  const step = getCurrentStep();
+  const pct = (current / TOTAL) * 100;
+
+  // Timeline
+  document.getElementById('timelineFill').style.width = pct + '%';
+  document.getElementById('timelineThumb').style.left = `calc(${pct}% - 7px)`;
+
+  // Time display
+  const m = Math.floor(current / 60);
+  const s = Math.floor(current % 60);
+  document.getElementById('timeDisplay').textContent =
+    `${m}:${s.toString().padStart(2,'0')} / 3:00`;
+
+  // Step dots
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.remove('active','done');
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  });
+
+  // Step lines
+  for (let i = 0; i < 3; i++) {
+    const stepStart = STEPS[i].time, stepEnd = STEPS[i+1].time;
+    let w = 0;
+    if (current >= stepEnd) w = 100;
+    else if (current > stepStart) w = ((current - stepStart) / (stepEnd - stepStart)) * 100;
+    document.getElementById('line' + (i+1)).style.width = w + '%';
+  }
+
+  // Progress label
+  document.getElementById('stepLabel').textContent = STEPS[step].label;
+  document.getElementById('stepCount').textContent = (step+1) + ' / 4';
+
+  // Step cards
+  document.querySelectorAll('.step-card').forEach((c, i) => {
+    c.classList.remove('active','done');
+    if (i < step) c.classList.add('done');
+    else if (i === step) c.classList.add('active');
+  });
+
+  // Scenes
+  document.querySelectorAll('.scene').forEach((s, i) => {
+    s.classList.toggle('active', i === step);
+  });
+
+  // URL
+  const urls = ['/register', '/verify', '/setup', '/dashboard'];
+  const urlEl = document.querySelector('.screen-url');
+  urlEl.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>app.raos.uz</span>${urls[step]}`;
+
+  // Tooltip
+  const tip = TIPS[step];
+  document.getElementById('tip-icon').textContent = tip.icon;
+  document.getElementById('tip-title').textContent = tip.title;
+  document.getElementById('tip-desc').textContent = tip.desc;
+
+  // Scene-specific animations
+  runSceneAnim(step);
+}
+
+function runSceneAnim(step) {
+  if (step === 0) {
+    // typing in form
+    const prog = (current - STEPS[0].time) / (STEPS[0].end - STEPS[0].time);
+    const shopLen = Math.floor(prog * shopText.length * 1.2);
+    shopTyped = shopText.slice(0, Math.min(shopLen, shopText.length));
+    document.getElementById('typed-shop').textContent = shopTyped;
+
+    const phoneLen = Math.floor(Math.max(0, prog - 0.5) * 2 * (phoneText.length - 4));
+    phoneTyped = '+998' + phoneText.slice(4, 4 + phoneLen);
+    document.getElementById('inp-phone').innerHTML = `<span style="color:#fff">${phoneTyped}</span>`;
+
+    const nameLen = Math.floor(Math.max(0, prog - 0.75) * 4 * nameText.length);
+    nameTyped = nameText.slice(0, nameLen);
+    document.getElementById('inp-name').innerHTML = `<span style="color:#fff">${nameTyped}</span>`;
+
+    const submitOpacity = prog > 0.85 ? Math.min(1, (prog - 0.85) * 6) : 0.4;
+    document.getElementById('submitBtn').style.opacity = Math.max(0.4, submitOpacity);
+
+  } else if (step === 1) {
+    // SMS code boxes
+    const prog = (current - STEPS[1].time) / (STEPS[1].end - STEPS[1].time);
+    const digits = ['4','2','7','8','1','3'];
+    for (let i = 0; i < 6; i++) {
+      const el = document.getElementById('cb' + i);
+      const threshold = (i / 6) * 0.6;
+      if (prog > threshold) {
+        el.textContent = digits[i];
+        el.classList.add('filled');
+        el.classList.remove('active');
+      } else {
+        el.textContent = '';
+        el.classList.remove('filled');
+        el.classList.toggle('active', Math.floor(prog * 10) % 2 === 0 && i === Math.floor(prog * 6));
+      }
+    }
+    const btnEl = document.getElementById('verifyBtn');
+    btnEl.classList.toggle('show', prog > 0.65);
+
+  } else if (step === 3) {
+    // Confetti on first enter
+    if (!animStarted[3]) {
+      animStarted[3] = true;
+      launchConfetti();
+    }
+  }
+}
+
+function launchConfetti() {
+  const container = document.getElementById('confetti');
+  container.innerHTML = '';
+  const colors = ['#24D4F4','#5FEEFB','#34d399','#f59e0b','#a78bfa','#f472b6'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + '%';
+    el.style.top = '-20px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDelay = Math.random() * 1.5 + 's';
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    el.style.transform = `rotate(${Math.random() * 360}deg)`;
+    container.appendChild(el);
+  }
+}
+
+// ── Controls ──
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('playBtn').textContent = playing ? '⏸' : '▶';
+  if (playing) startTimer();
+  else stopTimer();
+}
+
+function startTimer() {
+  stopTimer();
+  timer = setInterval(() => {
+    current += 0.1 * speed;
+    if (current >= TOTAL) {
+      current = TOTAL;
+      playing = false;
+      document.getElementById('playBtn').textContent = '▶';
+      stopTimer();
+    }
+    updateUI();
+  }, 100);
+}
+
+function stopTimer() {
+  if (timer) { clearInterval(timer); timer = null; }
+}
+
+function skipBack() {
+  current = Math.max(0, current - 10);
+  updateUI();
+}
+
+function skipFwd() {
+  current = Math.min(TOTAL, current + 10);
+  updateUI();
+}
+
+function setSpeed(s) {
+  speed = s;
+  ['sp05','sp1','sp15','sp2'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const ids = {0.5:'sp05',1:'sp1',1.5:'sp15',2:'sp2'};
+  document.getElementById(ids[s]).classList.add('active');
+  if (playing) { stopTimer(); startTimer(); }
+}
+
+function seekClick(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  current = pct * TOTAL;
+  updateUI();
+}
+
+function goToStep(s) {
+  current = STEPS[s].time;
+  animStarted[3] = false;
+  updateUI();
+}
+
+// ── Step dot clicks ──
+document.querySelectorAll('.step-dot').forEach(d => {
+  d.addEventListener('click', () => {
+    const s = parseInt(d.dataset.step);
+    animStarted[3] = false;
+    goToStep(s);
+  });
+});
+
+// Init
+updateUI();
+</script>
+</body>
+</html>
