@@ -73,22 +73,36 @@ export default function TutorialsPreview() {
               style={{ animationDelay: `${0.1 + idx * 0.15}s` }}
             >
               {/* Thumbnail */}
-              <div className="relative bg-gradient-to-br from-[#112F4B] to-[#0a1228] h-36 flex items-center justify-center overflow-hidden">
+              <div className="relative bg-gradient-to-br from-[#0d2240] via-[#112F4B] to-[#0a1228] h-44 flex items-center justify-center overflow-hidden">
                 <div
-                  className="absolute inset-0 opacity-20"
+                  className="absolute inset-0 opacity-25"
                   style={{
                     backgroundImage:
                       'radial-gradient(circle at 20% 50%, #24D4F4 0%, transparent 50%), radial-gradient(circle at 80% 20%, #5FEEFB 0%, transparent 40%)',
                   }}
                 />
-                <div className="w-12 h-12 rounded-full bg-[#24D4F4]/20 border border-[#24D4F4]/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_20px_rgba(36,212,244,0.2)]">
-                  <Play size={18} className="text-[#24D4F4] fill-[#24D4F4] ml-0.5" />
+                {/* Top badges */}
+                <div className="absolute top-2.5 left-3 right-3 flex justify-between items-center z-10">
+                  <span className="bg-[#0E1530]/80 backdrop-blur-sm text-[#24D4F4] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[rgba(36,212,244,0.3)]">
+                    {item.category}
+                  </span>
+                  <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                    {tr.free}
+                  </span>
                 </div>
-                <div className="absolute bottom-2 left-3 bg-[#0E1530]/70 backdrop-blur-sm text-slate-400 text-[10px] px-2 py-0.5 rounded-full border border-[rgba(36,212,244,0.15)]">
-                  {item.category}
+                {/* Play button */}
+                <div className="w-14 h-14 rounded-full bg-[#24D4F4]/20 border border-[#24D4F4]/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_24px_rgba(36,212,244,0.3)] z-10">
+                  <Play size={22} className="text-[#24D4F4] fill-[#24D4F4] ml-1" />
                 </div>
-                <div className="absolute top-2 right-2 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  {tr.free}
+                {/* Bottom overlay — title + duration */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a1228]/95 via-[#0a1228]/60 to-transparent px-3 pt-8 pb-2.5 z-10">
+                  <p className="text-white text-xs font-semibold leading-snug line-clamp-2">
+                    {item.title}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Clock size={10} className="text-slate-400" />
+                    <span className="text-slate-400 text-[10px]">{item.duration} {tr.duration}</span>
+                  </div>
                 </div>
               </div>
 

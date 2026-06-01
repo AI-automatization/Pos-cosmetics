@@ -31,11 +31,11 @@ export default function VideoModal({ title, videoId, src, onClose }: Props) {
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-3xl bg-[#0E1530] border border-[rgba(36,212,244,0.2)] rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(36,212,244,0.15)]"
+        className="relative w-full h-[92vh] max-w-[98vw] bg-[#0E1530] border border-[rgba(36,212,244,0.2)] rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(36,212,244,0.15)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(36,212,244,0.1)]">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[rgba(36,212,244,0.1)] shrink-0">
           <h3 className="text-white font-bold text-base">{title}</h3>
           <button
             onClick={onClose}
@@ -45,11 +45,11 @@ export default function VideoModal({ title, videoId, src, onClose }: Props) {
           </button>
         </div>
 
-        {/* Video */}
-        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+        {/* Video — fills remaining height */}
+        <div className="flex-1 min-h-0">
           {videoId ? (
             <iframe
-              className="absolute inset-0 w-full h-full"
+              className="w-full h-full"
               src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
               title={title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -57,12 +57,13 @@ export default function VideoModal({ title, videoId, src, onClose }: Props) {
             />
           ) : src ? (
             <iframe
-              className="absolute inset-0 w-full h-full"
+              className="w-full h-full"
               src={src}
               title={title}
+              allowFullScreen
             />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#112F4B]">
+            <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-[#112F4B]">
               <div className="w-16 h-16 rounded-full bg-[#24D4F4]/10 border border-[#24D4F4]/30 flex items-center justify-center">
                 <span className="text-[#24D4F4] text-3xl">🎬</span>
               </div>
