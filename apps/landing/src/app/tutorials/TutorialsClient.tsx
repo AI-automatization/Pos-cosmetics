@@ -17,17 +17,18 @@ const DIFFICULTY_COLOR = {
   hard: 'text-red-400 bg-red-400/10 border-red-400/20',
 }
 
+const DEMO_SRCS: Record<number, string | null> = {
+  0: '/demos/demo-1.html',
+}
+
 export default function TutorialsClient() {
   const { t } = useLang()
   const [modal, setModal] = useState<{ title: string; videoId: string | null; src?: string | null } | null>(null)
-
-  const DEMO_SRCS: Record<number, string | null> = {
-    0: '/demos/demo-1.html',
-  }
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const tr = t.tutorials
-  const [activeCategory, setActiveCategory] = useState<string>(tr.all)
 
   const allCategories = [tr.all, ...tr.categories]
+  const isAll = activeCategory === null || !tr.categories.includes(activeCategory)
 
   return (
     <>
@@ -77,10 +78,10 @@ export default function TutorialsClient() {
               {allCategories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => setActiveCategory(cat === tr.all ? null : cat)}
                   className={clsx(
                     'px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200',
-                    activeCategory === cat
+                    (cat === tr.all ? isAll : activeCategory === cat)
                       ? 'bg-[#24D4F4] text-[#0E1530] border-[#24D4F4] shadow-[0_0_16px_rgba(36,212,244,0.3)]'
                       : 'bg-transparent text-slate-400 border-[rgba(36,212,244,0.2)] hover:border-[#24D4F4]/50 hover:text-white',
                   )}
@@ -94,7 +95,7 @@ export default function TutorialsClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {tr.items
                 .filter((item) =>
-                  activeCategory === tr.all ? true : item.category === activeCategory,
+                  isAll ? true : item.category === activeCategory,
                 )
                 .map((item, idx) => (
                   <TutorialCard
