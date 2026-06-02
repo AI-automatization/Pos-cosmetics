@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppUser } from './UserCard';
-import { fStyles } from './UserFormSheet';
+import { fStyles } from './UserFormSheet.styles';
 
 // ─── PasswordResetSheet ──────────────────────────────
 
