@@ -1,26 +1,30 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
-
-/**
- * ZZone → RAOS (Inbound Service)
- *
- * Handles requests FROM ZZone — queries products, stock, creates orders.
- */
+import { ZzoneWebhookService } from './zzone-webhook.service';
+import type { CreateZzoneOrderDto, UpdateProductDto } from './dto/zzone.dto';
 
 @Injectable()
 export class ZzoneInboundService {
   private readonly logger = new Logger(ZzoneInboundService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly webhookService: ZzoneWebhookService,
+  ) {}
 
   // ─── PRODUCTS ────────────────────────────────────────────────────────
 
-  async getProducts(sellerId: string, page = 1) {
+  async getProducts(sellerId: string, page = 1, updatedAfter?: Date) {
     const limit = 50;
     const skip = (page - 1) * limit;
 
-    const where = { deletedAt: null, isActive: true, zzoneVisible: true, tenantId: sellerId };
+    const where: Record<string, unknown> = { deletedAt: null, isActive: true, zzoneVisible: true, tenantId: sellerId };
+    if (updatedAfter) {
+      where.updatedAt = { gte: updatedAfter };
+    }
 
     const [total, products] = await this.prisma.$transaction([
       this.prisma.product.count({ where }),
@@ -58,9 +62,9 @@ export class ZzoneInboundService {
     };
   }
 
-  async getProduct(productId: string) {
+  async getProduct(sellerId: string, productId: string) {
     const product = await this.prisma.product.findFirst({
-      where: { id: productId, deletedAt: null },
+      where: { id: productId, tenantId: sellerId, deletedAt: null },
       select: {
         id: true,
         tenantId: true,
@@ -68,7 +72,6 @@ export class ZzoneInboundService {
         sku: true,
         barcode: true,
         sellPrice: true,
-        costPrice: true,
         description: true,
         imageUrl: true,
         isActive: true,
@@ -92,9 +95,9 @@ export class ZzoneInboundService {
     };
   }
 
-  async getProductStock(productId: string) {
+  async getProductStock(sellerId: string, productId: string) {
     const snapshot = await this.prisma.stockSnapshot.findFirst({
-      where: { productId },
+      where: { productId, tenantId: sellerId },
       orderBy: { calculatedAt: 'desc' },
       select: { quantity: true, calculatedAt: true },
     });
@@ -106,16 +109,9 @@ export class ZzoneInboundService {
     };
   }
 
-  async updateProduct(productId: string, data: {
-    name?: string;
-    price?: number;
-    description?: string;
-    imageUrl?: string;
-    category?: string;
-    isActive?: boolean;
-  }) {
+  async updateProduct(sellerId: string, productId: string, data: UpdateProductDto) {
     const product = await this.prisma.product.findFirst({
-      where: { id: productId, deletedAt: null },
+      where: { id: productId, tenantId: sellerId, deletedAt: null },
     });
     if (!product) throw new NotFoundException('Product not found');
 
@@ -143,9 +139,9 @@ export class ZzoneInboundService {
     };
   }
 
-  async deleteProduct(productId: string) {
+  async deleteProduct(sellerId: string, productId: string) {
     const product = await this.prisma.product.findFirst({
-      where: { id: productId, deletedAt: null },
+      where: { id: productId, tenantId: sellerId, deletedAt: null },
     });
     if (!product) throw new NotFoundException('Product not found');
 
@@ -156,91 +152,95 @@ export class ZzoneInboundService {
 
     this.logger.log(`[ZZone] Product soft-deleted: ${productId}`);
 
-    return {
-      id: productId,
-      deleted: true,
-      deletedAt: new Date(),
-    };
+    return { id: productId, deleted: true, deletedAt: new Date() };
   }
 
   // ─── ORDERS ──────────────────────────────────────────────────────────
 
-  async createOrderFromZzone(data: {
-    zzoneOrderId: string;
-    orderNumber: string;
-    productId: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-    paymentMethod: string;
-    clientName?: string;
-    clientPhone?: string;
-    deliveryAddress?: string;
-  }) {
-    // Get product to find tenantId
-    const product = await this.prisma.product.findFirst({
-      where: { id: data.productId, deletedAt: null },
-      select: { id: true, tenantId: true, name: true },
-    });
+  async createOrderFromZzone(data: CreateZzoneOrderDto) {
+    const sellerId = data.sellerId;
 
-    if (!product) throw new NotFoundException('Product not found');
-
-    // Get first user of this tenant (system user for ZZone orders)
-    const systemUser = await this.prisma.user.findFirst({
-      where: { tenantId: product.tenantId, role: 'OWNER' },
+    // Idempotency: check by zzoneOrderId (tenant-scoped, exact prefix match with delimiter)
+    const existing = await this.prisma.order.findFirst({
+      where: { tenantId: sellerId, origin: 'ZZONE', notes: { startsWith: `ZZone #${data.orderNumber} |` } },
       select: { id: true },
     });
+    if (existing) {
+      return { id: existing.id };
+    }
 
+    const product = await this.prisma.product.findFirst({
+      where: { id: data.productId, tenantId: sellerId, deletedAt: null },
+      select: { id: true, tenantId: true, name: true },
+    });
+    if (!product) throw new NotFoundException('Product not found');
+
+    const systemUser = await this.prisma.user.findFirst({
+      where: { tenantId: sellerId, role: 'OWNER' },
+      select: { id: true },
+    });
     if (!systemUser) throw new NotFoundException('Tenant has no owner user');
 
-    // Get next order number
-    const lastOrder = await this.prisma.order.findFirst({
-      where: { tenantId: product.tenantId },
-      orderBy: { orderNumber: 'desc' },
-      select: { orderNumber: true },
-    });
-    const nextOrderNumber = (lastOrder?.orderNumber ?? 0) + 1;
+    // Atomic: stock check + order creation inside transaction
+    const order = await this.prisma.$transaction(async (tx) => {
+      const snapshot = await tx.stockSnapshot.findFirst({
+        where: { productId: data.productId, tenantId: sellerId },
+        orderBy: { calculatedAt: 'desc' },
+        select: { quantity: true },
+      });
+      const available = snapshot ? Number(snapshot.quantity) : 0;
+      if (available < data.quantity) {
+        throw new BadRequestException(`Insufficient stock: available ${available}, requested ${data.quantity}`);
+      }
 
-    // Create order in RAOS
-    const order = await this.prisma.order.create({
-      data: {
-        tenantId: product.tenantId,
-        userId: systemUser.id,
-        orderNumber: nextOrderNumber,
-        origin: 'ZZONE',
-        status: 'PENDING',
-        subtotal: data.totalPrice,
-        total: data.totalPrice,
-        notes: `ZZone #${data.orderNumber} | ${data.clientName ?? ''} | ${data.clientPhone ?? ''} | ${data.deliveryAddress ?? ''}`,
-        items: {
-          create: {
-            productId: data.productId,
-            productName: product.name,
-            quantity: data.quantity,
-            unitPrice: data.unitPrice,
-            total: data.totalPrice,
+      const lastOrder = await tx.order.findFirst({
+        where: { tenantId: sellerId },
+        orderBy: { orderNumber: 'desc' },
+        select: { orderNumber: true },
+      });
+      const nextOrderNumber = (lastOrder?.orderNumber ?? 0) + 1;
+
+      return tx.order.create({
+        data: {
+          tenantId: sellerId,
+          userId: systemUser.id,
+          orderNumber: nextOrderNumber,
+          origin: 'ZZONE',
+          status: 'PENDING',
+          subtotal: data.totalPrice,
+          total: data.totalPrice,
+          notes: `ZZone #${data.orderNumber} | ${data.clientName ?? ''} | ${data.clientPhone ?? ''} | ${data.deliveryAddress ?? ''}`,
+          items: {
+            create: {
+              productId: data.productId,
+              productName: product.name,
+              quantity: data.quantity,
+              unitPrice: data.unitPrice,
+              total: data.totalPrice,
+            },
           },
         },
-      },
-      select: { id: true, status: true, total: true, createdAt: true },
+        select: { id: true },
+      });
     });
 
     this.logger.log(`[ZZone←] Order created: ${order.id} from ZZone #${data.orderNumber}`);
 
-    return {
-      raosOrderId: order.id,
-      zzoneOrderId: data.zzoneOrderId,
-      status: order.status,
-      total: Number(order.total),
-      createdAt: order.createdAt,
-    };
+    this.eventEmitter.emit('sale.created', {
+      tenantId: sellerId,
+      orderId: order.id,
+      userId: systemUser.id,
+      items: [{ productId: data.productId, quantity: data.quantity }],
+      total: data.totalPrice,
+    });
+
+    return { id: order.id };
   }
 
   async updateOrderStatus(orderId: string, status: string, sellerId: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId: sellerId },
     });
-
     if (!order) throw new NotFoundException('Order not found');
 
     const validStatuses = Object.values(OrderStatus);
@@ -252,6 +252,10 @@ export class ZzoneInboundService {
       where: { id: orderId },
       data: { status: status as OrderStatus },
       select: { id: true, status: true, createdAt: true },
+    });
+
+    this.webhookService.sendOrderStatusChanged(orderId, status, sellerId).catch((err) => {
+      this.logger.warn(`Webhook failed for order status: ${(err as Error).message}`);
     });
 
     return { orderId: updated.id, status: updated.status, createdAt: updated.createdAt };
@@ -276,11 +280,7 @@ export class ZzoneInboundService {
         notes: true,
         createdAt: true,
         items: {
-          select: {
-            productId: true,
-            quantity: true,
-            unitPrice: true,
-          },
+          select: { productId: true, quantity: true, unitPrice: true },
         },
       },
     });
@@ -300,9 +300,9 @@ export class ZzoneInboundService {
     }));
   }
 
-  async getOrder(orderId: string) {
+  async getOrder(sellerId: string, orderId: string) {
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, origin: 'ZZONE' },
+      where: { id: orderId, tenantId: sellerId, origin: 'ZZONE' },
       select: {
         id: true,
         tenantId: true,
@@ -311,16 +311,10 @@ export class ZzoneInboundService {
         notes: true,
         createdAt: true,
         items: {
-          select: {
-            productId: true,
-            productName: true,
-            quantity: true,
-            unitPrice: true,
-          },
+          select: { productId: true, productName: true, quantity: true, unitPrice: true },
         },
       },
     });
-
     if (!order) throw new NotFoundException('Order not found');
 
     return {
@@ -360,8 +354,9 @@ export class ZzoneInboundService {
     }
     if (data.deliveryAddress !== undefined || data.clientPhone !== undefined) {
       const parts = (order.notes ?? '').split(' | ');
-      if (data.clientPhone !== undefined && parts.length >= 3) parts[2] = data.clientPhone;
-      if (data.deliveryAddress !== undefined && parts.length >= 4) parts[3] = data.deliveryAddress;
+      while (parts.length < 4) parts.push('');
+      if (data.clientPhone !== undefined) parts[2] = data.clientPhone;
+      if (data.deliveryAddress !== undefined) parts[3] = data.deliveryAddress;
       updateData.notes = parts.join(' | ');
     }
 
@@ -391,38 +386,70 @@ export class ZzoneInboundService {
       throw new BadRequestException(`Cannot void order in ${order.status} status`);
     }
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'VOIDED' },
+    const warehouse = await this.prisma.warehouse.findFirst({
+      where: { tenantId: sellerId, isActive: true },
+      orderBy: { createdAt: 'asc' },
     });
 
-    this.logger.log(`[ZZone] Order voided: ${orderId}, items: ${order.items.length}`);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'VOIDED' },
+      });
 
-    return {
-      id: orderId,
-      status: 'VOIDED',
-      stockRestored: true,
-      voidedAt: new Date(),
-    };
+      if (warehouse) {
+        const movementData = order.items.map((item) => ({
+          tenantId: sellerId,
+          warehouseId: warehouse.id,
+          productId: item.productId,
+          type: 'RETURN_IN' as const,
+          quantity: item.quantity,
+          refId: orderId,
+          refType: 'ZZONE_VOID',
+        }));
+        await tx.stockMovement.createMany({ data: movementData });
+
+        for (const item of order.items) {
+          await tx.stockSnapshot.upsert({
+            where: {
+              tenantId_warehouseId_productId: {
+                tenantId: sellerId,
+                warehouseId: warehouse.id,
+                productId: item.productId,
+              },
+            },
+            update: { quantity: { increment: item.quantity }, calculatedAt: new Date() },
+            create: {
+              tenantId: sellerId,
+              warehouseId: warehouse.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              calculatedAt: new Date(),
+            },
+          });
+        }
+      }
+    });
+
+    this.logger.log(`[ZZone] Order voided: ${orderId}, stock restored: ${!!warehouse}`);
+
+    this.webhookService.sendOrderStatusChanged(orderId, 'VOIDED', sellerId).catch((err) => {
+      this.logger.warn(`Webhook failed for order void: ${(err as Error).message}`);
+    });
+
+    return { id: orderId, status: 'VOIDED', stockRestored: !!warehouse, voidedAt: new Date() };
   }
 
-  // ─── SELLERS / STORES ────────────────────────────────────────────────
+  // ─── SELLERS ─────────────────────────────────────────────────────────
 
   async getSeller(sellerId: string) {
     const tenant = await this.prisma.tenant.findFirst({
       where: { id: sellerId },
       select: { id: true, name: true, slug: true, phone: true, city: true },
     });
-
     if (!tenant) throw new NotFoundException('Seller not found');
 
-    return {
-      id: tenant.id,
-      name: tenant.name,
-      slug: tenant.slug,
-      phone: tenant.phone,
-      city: tenant.city,
-    };
+    return { id: tenant.id, name: tenant.name, slug: tenant.slug, phone: tenant.phone, city: tenant.city };
   }
 
   async updateSeller(sellerId: string, data: { name?: string; phone?: string; city?: string }) {
@@ -441,60 +468,55 @@ export class ZzoneInboundService {
     });
 
     this.logger.log(`[ZZone] Seller updated: ${sellerId}`);
-
-    return {
-      id: updated.id,
-      name: updated.name,
-      phone: updated.phone,
-      city: updated.city,
-      updatedAt: updated.updatedAt,
-    };
+    return { id: updated.id, name: updated.name, phone: updated.phone, city: updated.city, updatedAt: updated.updatedAt };
   }
 
   async deactivateSeller(sellerId: string) {
     const tenant = await this.prisma.tenant.findFirst({ where: { id: sellerId } });
     if (!tenant) throw new NotFoundException('Seller not found');
 
-    // Скрыть все товары этого seller'а
     const { count } = await this.prisma.product.updateMany({
       where: { tenantId: sellerId, isActive: true, deletedAt: null },
       data: { isActive: false },
     });
 
-    await this.prisma.tenant.update({
-      where: { id: sellerId },
-      data: { isActive: false },
-    });
+    await this.prisma.tenant.update({ where: { id: sellerId }, data: { isActive: false } });
 
     this.logger.log(`[ZZone] Seller deactivated: ${sellerId}, products hidden: ${count}`);
 
-    return {
-      id: sellerId,
-      isActive: false,
-      productsHidden: count,
-      deactivatedAt: new Date(),
-    };
-  }
-
-  async getStore(storeId: string) {
-    const branch = await this.prisma.branch.findFirst({
-      where: { id: storeId },
-      select: { id: true, name: true, address: true, tenantId: true, isActive: true },
+    this.webhookService.sendSellerDeactivated(sellerId).catch((err) => {
+      this.logger.warn(`Webhook failed for seller deactivation: ${(err as Error).message}`);
     });
 
-    if (!branch) throw new NotFoundException('Store not found');
-
-    return {
-      id: branch.id,
-      sellerId: branch.tenantId,
-      name: branch.name,
-      address: branch.address,
-      isActive: branch.isActive,
-    };
+    return { id: sellerId, isActive: false, productsHidden: count, deactivatedAt: new Date() };
   }
 
-  async updateStore(storeId: string, data: { name?: string; address?: string }) {
-    const branch = await this.prisma.branch.findFirst({ where: { id: storeId } });
+  // ─── STORES ──────────────────────────────────────────────────────────
+
+  async getStores(sellerId: string) {
+    const branches = await this.prisma.branch.findMany({
+      where: { tenantId: sellerId, isActive: true },
+      select: { id: true, name: true, address: true, tenantId: true, isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    return branches.map((b) => ({
+      id: b.id, sellerId: b.tenantId, name: b.name, address: b.address, isActive: b.isActive,
+    }));
+  }
+
+  async getStore(sellerId: string, storeId: string) {
+    const branch = await this.prisma.branch.findFirst({
+      where: { id: storeId, tenantId: sellerId },
+      select: { id: true, name: true, address: true, tenantId: true, isActive: true },
+    });
+    if (!branch) throw new NotFoundException('Store not found');
+
+    return { id: branch.id, sellerId: branch.tenantId, name: branch.name, address: branch.address, isActive: branch.isActive };
+  }
+
+  async updateStore(sellerId: string, storeId: string, data: { name?: string; address?: string }) {
+    const branch = await this.prisma.branch.findFirst({ where: { id: storeId, tenantId: sellerId } });
     if (!branch) throw new NotFoundException('Store not found');
 
     const updateData: Record<string, unknown> = {};
@@ -508,30 +530,16 @@ export class ZzoneInboundService {
     });
 
     this.logger.log(`[ZZone] Store updated: ${storeId}`);
-
-    return {
-      id: updated.id,
-      name: updated.name,
-      address: updated.address,
-      updatedAt: updated.updatedAt,
-    };
+    return { id: updated.id, name: updated.name, address: updated.address, updatedAt: updated.updatedAt };
   }
 
-  async deactivateStore(storeId: string) {
-    const branch = await this.prisma.branch.findFirst({ where: { id: storeId } });
+  async deactivateStore(sellerId: string, storeId: string) {
+    const branch = await this.prisma.branch.findFirst({ where: { id: storeId, tenantId: sellerId } });
     if (!branch) throw new NotFoundException('Store not found');
 
-    await this.prisma.branch.update({
-      where: { id: storeId },
-      data: { isActive: false },
-    });
+    await this.prisma.branch.update({ where: { id: storeId }, data: { isActive: false } });
 
     this.logger.log(`[ZZone] Store deactivated: ${storeId}`);
-
-    return {
-      id: storeId,
-      isActive: false,
-      deactivatedAt: new Date(),
-    };
+    return { id: storeId, isActive: false, deactivatedAt: new Date() };
   }
 }

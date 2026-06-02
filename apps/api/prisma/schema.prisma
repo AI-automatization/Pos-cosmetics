@@ -45,6 +45,7 @@ model Tenant {
   notifications  Notification[]
   subscription    TenantSubscription?
   billingPayments BillingPayment[]
+  billingInvoices BillingInvoice[]
   sessions             Session[]
   apiKeys             ApiKey[]
   StockMovement       StockMovement[]
@@ -835,6 +836,7 @@ enum NotificationType {
   EXPIRY_WARNING
   LARGE_REFUND
   NASIYA_OVERDUE
+  SUBSCRIPTION_EXPIRY
   SYSTEM
 }
 
@@ -1403,13 +1405,39 @@ model BillingPayment {
   createdAt      DateTime             @default(now()) @map("created_at")
   updatedAt      DateTime             @updatedAt @map("updated_at")
 
-  tenant Tenant           @relation(fields: [tenantId], references: [id])
-  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+  tenant  Tenant           @relation(fields: [tenantId], references: [id])
+  plan    SubscriptionPlan @relation(fields: [planId], references: [id])
+  invoice BillingInvoice?
 
   @@index([tenantId])
   @@index([status])
   @@index([providerTxId])
   @@map("billing_payments")
+}
+
+// ─── Billing Invoices (generated after payment settlement) ──────────────────
+
+model BillingInvoice {
+  id            String          @id @default(uuid())
+  invoiceNumber String          @unique @map("invoice_number") // INV-RAOS-202605-00001
+  tenantId      String          @map("tenant_id")
+  paymentId     String          @unique @map("payment_id")
+  planName      String          @map("plan_name") // snapshot at time of payment
+  planSlug      String          @map("plan_slug")
+  months        Int             @default(1)
+  amount        Decimal         @db.Decimal(15, 2)
+  provider      BillingProvider
+  companyName   String?         @map("company_name") // tenant snapshot
+  companyStir   String?         @map("company_stir") // tenant STIR/INN snapshot
+  issuedAt      DateTime        @default(now()) @map("issued_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id])
+  payment BillingPayment @relation(fields: [paymentId], references: [id])
+
+  @@index([tenantId])
+  @@index([issuedAt])
+  @@map("billing_invoices")
 }
 
 // ─── T-069: Session management ─────────────────────────────────
@@ -2122,6 +2150,29 @@ model IntegrationConfig {
   @@unique([tenantId, provider], name: "tenantId_provider")
   @@index([tenantId])
   @@map("integration_configs")
+}
+
+// ============================================
+// WEBHOOK LOGS (ZZone integration)
+// ============================================
+
+model WebhookLog {
+  id          String   @id @default(uuid())
+  tenantId    String?  @map("tenant_id")
+  provider    String   // ZZONE
+  event       String   // order_status_changed, stock_updated, product_synced, seller_deactivated
+  payload     Json     @default("{}")
+  statusCode  Int      @default(0) @map("status_code")
+  success     Boolean  @default(false)
+  retriesLeft Int      @default(3) @map("retries_left")
+  lastError   String?  @map("last_error")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([provider, success, retriesLeft])
+  @@index([tenantId])
+  @@index([createdAt])
+  @@map("webhook_logs")
 }
 
 // ============================================

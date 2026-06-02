@@ -7,6 +7,7 @@ import { ExchangeRateService } from '../currency/exchange-rate.service';
 import { NotifyService } from '../../notifications/notify.service';
 import { ExpiryTrackingService } from '../../inventory/expiry-tracking.service';
 import { TelegramNotifyService } from '../../notifications/telegram-notify.service';
+import { BillingService } from '../../billing/billing.service';
 
 const VOID_THRESHOLD = 3; // 1 soatda 3+ void = shubhali
 const EXPIRY_DAYS = 30;
@@ -35,6 +36,7 @@ export class CronService {
     private readonly notify: NotifyService,
     private readonly expiryService: ExpiryTrackingService,
     private readonly telegram: TelegramNotifyService,
+    private readonly billingService: BillingService,
   ) {}
 
   // ─── SOATLIK: Stock snapshot materialization (T-075) ────────────
@@ -385,6 +387,92 @@ export class CronService {
       }
     } catch (err) {
       this.logger.error('[CRON] Fraud check error', { error: (err as Error).message });
+    }
+  }
+
+  // ─── 07:00: Subscription expiry reminder (7 kun qolgan) ────────────────
+  @Cron('0 7 * * *', { name: 'subscription-expiry-reminder', timeZone: 'Asia/Tashkent' })
+  async checkSubscriptionExpiry() {
+    try {
+      const now = new Date();
+      const warningDate = new Date(now);
+      warningDate.setDate(warningDate.getDate() + 7);
+
+      const expiringSubs = await this.prisma.tenantSubscription.findMany({
+        where: {
+          status: { in: ['ACTIVE', 'TRIAL'] },
+          expiresAt: { gte: now, lte: warningDate },
+        },
+        include: {
+          plan: { select: { name: true, priceMonthly: true } },
+          tenant: { select: { id: true, name: true } },
+        },
+      });
+
+      let notifiedCount = 0;
+
+      for (const sub of expiringSubs) {
+        const daysLeft = Math.ceil(
+          (sub.expiresAt!.getTime() - now.getTime()) / 86400000,
+        );
+
+        const owners = await this.prisma.user.findMany({
+          where: {
+            tenantId: sub.tenantId,
+            role: { in: ['OWNER', 'ADMIN'] },
+            isActive: true,
+            telegramChatId: { not: null },
+          },
+          select: { id: true, telegramChatId: true },
+        });
+
+        const amount = Number(sub.plan.priceMonthly);
+        const msg =
+          `\u23F0 Obuna muddati tugayapti!\n\n` +
+          `"${sub.tenant.name}" — ${sub.plan.name} tarif rejasi.\n` +
+          `Qolgan kun: ${daysLeft}\n` +
+          `Narxi: ${amount.toLocaleString('uz-UZ')} so'm/oy\n\n` +
+          `Obunani uzaytirish uchun: raos.uz/billing`;
+
+        for (const owner of owners) {
+          if (!owner.telegramChatId) continue;
+          const sent = await this.telegram.sendMessage(owner.telegramChatId, msg);
+          if (sent) notifiedCount++;
+
+          await this.prisma.notification.create({
+            data: {
+              tenantId: sub.tenantId,
+              userId: owner.id,
+              type: 'SUBSCRIPTION_EXPIRY',
+              title: `Obuna ${daysLeft} kunda tugaydi`,
+              body: msg,
+              data: { daysLeft, planName: sub.plan.name, amount },
+            },
+          });
+        }
+      }
+
+      if (expiringSubs.length > 0) {
+        this.logger.warn(
+          `[CRON] Subscription expiry: ${expiringSubs.length} tenants, ${notifiedCount} notifications sent`,
+        );
+      }
+    } catch (err) {
+      this.logger.error('[CRON] Subscription expiry check error', { error: (err as Error).message });
+    }
+  }
+
+  // ─── 00:10: Subscription status update (TRIAL→EXPIRED, ACTIVE→PAST_DUE) ──
+  @Cron('10 0 * * *', { name: 'subscription-status-update', timeZone: 'Asia/Tashkent' })
+  async updateSubscriptionStatuses() {
+    try {
+      const result = await this.billingService.checkAndUpdateExpiredSubscriptions();
+      const total = result.expiredTrials + result.pastDue + result.expired;
+      if (total > 0) {
+        this.logger.warn(`[CRON] Subscription status: ${JSON.stringify(result)}`);
+      }
+    } catch (err) {
+      this.logger.error('[CRON] Subscription status update error', { error: (err as Error).message });
     }
   }
 }
