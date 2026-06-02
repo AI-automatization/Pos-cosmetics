@@ -132,14 +132,30 @@ export default function TutorialsPreview() {
                 style={{ animationDelay: `${0.2 + idx * 0.15}s` }}
               >
                 {/* Thumbnail */}
-                <div className="relative bg-gradient-to-br from-[#0d2240] via-[#112F4B] to-[#0a1228] h-40 flex items-center justify-center overflow-hidden">
-                  <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                      backgroundImage:
-                        'radial-gradient(circle at 20% 50%, #24D4F4 0%, transparent 50%), radial-gradient(circle at 80% 20%, #5FEEFB 0%, transparent 40%)',
-                    }}
-                  />
+                <div className="relative h-40 flex items-center justify-center overflow-hidden bg-[#0a1228]">
+                  {DEMO_SRCS[idx + 1] ? (
+                    /* iframe preview — scaled down, dimmed */
+                    <div className="absolute inset-0 overflow-hidden">
+                      <iframe
+                        src={DEMO_SRCS[idx + 1]!}
+                        className="absolute top-0 left-0 border-0 pointer-events-none"
+                        style={{ width: 900, height: 500, transform: 'scale(0.58)', transformOrigin: 'top left' }}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="absolute inset-0 opacity-20"
+                      style={{
+                        backgroundImage:
+                          'radial-gradient(circle at 20% 50%, #24D4F4 0%, transparent 50%), radial-gradient(circle at 80% 20%, #5FEEFB 0%, transparent 40%)',
+                      }}
+                    />
+                  )}
+                  {/* Dark dimming overlay */}
+                  <div className="absolute inset-0 bg-[#0a1228]/65 backdrop-blur-[1px]" />
+                  {/* Badges */}
                   <div className="absolute top-2.5 left-3 right-3 flex justify-between items-center z-10">
                     <span className="bg-[#0E1530]/80 backdrop-blur-sm text-[#24D4F4] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[rgba(36,212,244,0.3)]">
                       {item.category}
@@ -148,10 +164,12 @@ export default function TutorialsPreview() {
                       {tr.free}
                     </span>
                   </div>
+                  {/* Play button */}
                   <div className="w-12 h-12 rounded-full bg-[#24D4F4]/20 border border-[#24D4F4]/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_20px_rgba(36,212,244,0.25)] z-10">
                     <Play size={18} className="text-[#24D4F4] fill-[#24D4F4] ml-0.5" />
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a1228]/90 to-transparent px-3 pt-6 pb-2.5 z-10">
+                  {/* Title + duration */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a1228]/95 to-transparent px-3 pt-6 pb-2.5 z-10">
                     <p className="text-white text-xs font-semibold leading-snug line-clamp-2">{item.title}</p>
                     <div className="flex items-center gap-1 mt-1">
                       <Clock size={10} className="text-slate-400" />
