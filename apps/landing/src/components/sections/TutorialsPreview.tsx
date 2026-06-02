@@ -13,7 +13,7 @@ const VIDEO_IDS: Record<number, string | null> = {
 
 const DEMO_SRCS: Record<number, string | null> = {
   0: '/demos/demo-1.html',
-  1: null,
+  1: '/demos/demo-2.html',
   2: null,
 }
 
