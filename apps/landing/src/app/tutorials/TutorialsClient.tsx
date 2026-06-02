@@ -98,15 +98,20 @@ export default function TutorialsClient() {
                 .filter((item) =>
                   isAll ? true : item.category === activeCategory,
                 )
-                .map((item, idx) => (
-                  <TutorialCard
-                    key={idx}
-                    item={item}
-                    tr={tr}
-                    idx={idx}
-                    onPlay={() => setModal({ title: item.title, videoId: null, src: DEMO_SRCS[idx] ?? null })}
-                  />
-                ))}
+                .map((item) => {
+                  const globalIdx = tr.items.indexOf(item)
+                  const demoSrc = DEMO_SRCS[globalIdx] ?? null
+                  return (
+                    <TutorialCard
+                      key={globalIdx}
+                      item={item}
+                      tr={tr}
+                      idx={globalIdx}
+                      demoSrc={demoSrc}
+                      onPlay={() => setModal({ title: item.title, videoId: null, src: demoSrc })}
+                    />
+                  )
+                })}
             </div>
           </div>
         </section>
@@ -146,55 +151,69 @@ function TutorialCard({
   item,
   tr,
   idx,
+  demoSrc,
   onPlay,
 }: {
   item: TutorialItem
   tr: Translations['tutorials']
   idx: number
+  demoSrc: string | null
   onPlay: () => void
 }) {
   return (
     <div className="glass rounded-2xl overflow-hidden flex flex-col group hover:border-[#24D4F4]/40 hover:shadow-[0_0_24px_rgba(36,212,244,0.12)] transition-all duration-300">
 
-      {/* Thumbnail placeholder */}
+      {/* Thumbnail */}
       <div
-        className="relative bg-gradient-to-br from-[#112F4B] to-[#0a1228] h-44 flex items-center justify-center overflow-hidden cursor-pointer"
+        className="relative h-44 flex items-center justify-center overflow-hidden cursor-pointer bg-[#0a1228]"
         onClick={item.free ? onPlay : undefined}
       >
-        {/* Fon pattern */}
-        <div className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 20% 50%, #24D4F4 0%, transparent 50%), radial-gradient(circle at 80% 20%, #5FEEFB 0%, transparent 40%)',
-          }}
-        />
+        {demoSrc ? (
+          /* iframe preview — scaled down, dimmed */
+          <div className="absolute inset-0 overflow-hidden">
+            <iframe
+              src={demoSrc}
+              className="absolute top-0 left-0 border-0 pointer-events-none"
+              style={{ width: 900, height: 520, transform: 'scale(0.6)', transformOrigin: 'top left' }}
+              tabIndex={-1}
+              aria-hidden="true"
+            />
+          </div>
+        ) : (
+          <div className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: 'radial-gradient(circle at 20% 50%, #24D4F4 0%, transparent 50%), radial-gradient(circle at 80% 20%, #5FEEFB 0%, transparent 40%)',
+            }}
+          />
+        )}
+
+        {/* Dark dimming overlay */}
+        <div className="absolute inset-0 bg-[#0a1228]/65 backdrop-blur-[1px]" />
 
         {/* Step number */}
-        <div className="absolute top-3 left-3 w-7 h-7 rounded-full bg-[#24D4F4]/10 border border-[#24D4F4]/30 flex items-center justify-center">
+        <div className="absolute top-3 left-3 w-7 h-7 rounded-full bg-[#24D4F4]/10 border border-[#24D4F4]/30 flex items-center justify-center z-10">
           <span className="text-[#24D4F4] text-xs font-bold">{idx + 1}</span>
         </div>
 
-        {/* Free badge */}
-        {item.free && (
-          <div className="absolute top-3 right-3 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+        {/* Free / Lock badge */}
+        {item.free ? (
+          <div className="absolute top-3 right-3 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 z-10">
             {tr.free}
           </div>
-        )}
-
-        {/* Lock badge */}
-        {!item.free && (
-          <div className="absolute top-3 right-3 bg-slate-700/60 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+        ) : (
+          <div className="absolute top-3 right-3 bg-slate-700/60 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 z-10">
             <Lock size={9} />
             Pro
           </div>
         )}
 
         {/* Play button */}
-        <div className="w-14 h-14 rounded-full bg-[#24D4F4]/20 border border-[#24D4F4]/40 flex items-center justify-center group-hover:bg-[#24D4F4]/30 group-hover:scale-110 transition-all duration-300 shadow-[0_0_20px_rgba(36,212,244,0.2)]">
+        <div className="w-14 h-14 rounded-full bg-[#24D4F4]/20 border border-[#24D4F4]/40 flex items-center justify-center group-hover:bg-[#24D4F4]/30 group-hover:scale-110 transition-all duration-300 shadow-[0_0_20px_rgba(36,212,244,0.2)] z-10">
           <Play size={22} className="text-[#24D4F4] fill-[#24D4F4] ml-1" />
         </div>
 
         {/* Category pill */}
-        <div className="absolute bottom-3 left-3 bg-[#0E1530]/70 backdrop-blur-sm text-slate-300 text-[10px] font-semibold px-2.5 py-1 rounded-full border border-[rgba(36,212,244,0.15)]">
+        <div className="absolute bottom-3 left-3 bg-[#0E1530]/70 backdrop-blur-sm text-slate-300 text-[10px] font-semibold px-2.5 py-1 rounded-full border border-[rgba(36,212,244,0.15)] z-10">
           {item.category}
         </div>
       </div>
