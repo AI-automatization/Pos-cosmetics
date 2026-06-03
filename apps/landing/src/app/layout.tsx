@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     icon: '/icon',
     apple: '/apple-icon',
   },
-  // verification: { google: 'REAL_TOKEN_HERE' }, // TODO: получить реальный токен из Google Search Console
+  verification: { google: 'vhyI9C-zea0H-4Pek0dA2mpC7i6doIrSF-wqFRWdtQk' },
 }
 
 export default function RootLayout({
