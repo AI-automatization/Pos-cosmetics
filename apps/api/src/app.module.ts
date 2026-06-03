@@ -41,6 +41,7 @@ import { ExchangeRateModule } from './common/currency/exchange-rate.module';
 import { CircuitBreakerModule } from './common/circuit-breaker/circuit-breaker.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TenantThrottlerGuard } from './common/guards/tenant-throttler.guard';
+import { GLOBAL_GUARDS } from './common/guards/global-guards';
 import { EmployeesModule } from './employees/employees.module';
 import { UploadModule } from './upload/upload.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
@@ -98,6 +99,9 @@ import { ZzoneModule } from './integrations/zzone/zzone.module';
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)
     { provide: APP_GUARD, useClass: TenantThrottlerGuard },
+    // Global auth + RBAC: every route requires JWT and passes RolesGuard unless
+    // marked @Public(). Makes RBAC default-on instead of opt-in per controller.
+    ...GLOBAL_GUARDS,
   ],
 })
 export class AppModule implements NestModule {
