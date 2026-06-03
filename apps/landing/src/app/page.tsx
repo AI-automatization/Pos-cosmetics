@@ -9,8 +9,6 @@ import Pricing from '@/components/sections/Pricing'
 import Testimonials from '@/components/sections/Testimonials'
 import FAQ from '@/components/sections/FAQ'
 import RegistrationForm from '@/components/sections/RegistrationForm'
-import CTASection from '@/components/sections/CTASection'
-
 const Calculator = dynamic(() => import('@/components/sections/Calculator'))
 const TutorialsPreview = dynamic(() => import('@/components/sections/TutorialsPreview'))
 
@@ -29,7 +27,6 @@ export default function LandingPage() {
         <TutorialsPreview />
         <FAQ />
         <RegistrationForm />
-        <CTASection />
       </main>
       <Footer />
     </>
