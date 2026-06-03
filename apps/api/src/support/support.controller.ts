@@ -7,12 +7,13 @@ import { UserRole } from '@prisma/client';
 import { SupportService } from './support.service';
 import { CreateTicketDto, AddMessageDto, UpdateTicketStatusDto } from './dto/support.dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Support')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('support')
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}
