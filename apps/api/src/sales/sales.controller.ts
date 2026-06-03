@@ -20,13 +20,14 @@ import {
 import { SalesService } from './sales.service';
 import { OpenShiftDto, CloseShiftDto, CreateOrderDto, CreateReturnDto } from './dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators';
 import { UserRole } from '@prisma/client';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
 @Controller('sales')
 export class SalesController {
