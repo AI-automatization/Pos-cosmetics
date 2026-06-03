@@ -1,6 +1,5 @@
-import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Body } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TenantSettingsService, UpdateSettingsDto } from './tenant-settings.service';
 
@@ -10,7 +9,6 @@ import { TenantSettingsService, UpdateSettingsDto } from './tenant-settings.serv
  */
 @ApiTags('Settings')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('settings')
 export class TenantSettingsController {
   constructor(private readonly settingsService: TenantSettingsService) {}

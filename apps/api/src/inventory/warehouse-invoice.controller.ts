@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Param, Body, Query,
-  DefaultValuePipe, ParseIntPipe, UseGuards,
+  DefaultValuePipe, ParseIntPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { WarehouseInvoiceService } from './warehouse-invoice.service';
@@ -8,12 +8,9 @@ import { WarehouseDashboardService } from './warehouse-dashboard.service';
 import { CreateInvoiceDto } from './dto/warehouse-invoice.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 
 @ApiTags('Warehouse')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('warehouse')
 export class WarehouseInvoiceController {
   constructor(

@@ -4,7 +4,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -14,7 +13,6 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, Public } from '../common/decorators';
 import { PasswordResetService } from './password-reset.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -42,7 +40,6 @@ export class PasswordController {
   }
 
   @Post('change-password')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Change own password (logged-in user)' })

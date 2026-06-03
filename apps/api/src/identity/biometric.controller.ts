@@ -6,7 +6,6 @@ import {
   Post,
   Res,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -20,7 +19,6 @@ import { CurrentUser, Public } from '../common/decorators';
 import { RegisterBiometricDto, VerifyBiometricDto } from './dto';
 import { IdentityService } from './identity.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { REFRESH_COOKIE, REFRESH_COOKIE_OPTIONS } from './auth.controller';
 
 @ApiTags('Auth')
@@ -39,7 +37,6 @@ export class BiometricController {
    * Token 30 kunlik, botSettings JSON da saqlanadi.
    */
   @Post('biometric/register')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'T-225: Qurilma uchun biometric token ro\'yxatdan o\'tkazish' })

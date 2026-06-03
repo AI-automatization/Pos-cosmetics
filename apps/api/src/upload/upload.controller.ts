@@ -10,7 +10,6 @@ import {
   Post,
   Get,
   Delete,
-  UseGuards,
   UseInterceptors,
   UploadedFile,
   UploadedFiles,
@@ -21,13 +20,11 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UploadService } from './upload.service';
 
 @ApiTags('Upload')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}

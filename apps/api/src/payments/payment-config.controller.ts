@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   Logger,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,14 +17,11 @@ import { Throttle } from '@nestjs/throttler';
 import { PaymentProviderType } from '@prisma/client';
 import { PaymentConfigService } from './payment-config.service';
 import { UpsertPaymentProviderDto } from './dto/payment-config.dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Payment Config')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('payment-config')
 export class PaymentConfigController {
   private readonly logger = new Logger(PaymentConfigController.name);

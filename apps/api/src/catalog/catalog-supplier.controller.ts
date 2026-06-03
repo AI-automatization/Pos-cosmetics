@@ -23,15 +23,13 @@ import {
   UpdateSupplierDto,
   LinkProductSupplierDto,
 } from './dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 import { Roles } from '../common/decorators';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { WarehouseReadOnlyGuard } from '../common/guards/warehouse-read-only.guard';
 
 @ApiTags('Catalog')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard, WarehouseReadOnlyGuard)
+@UseGuards(WarehouseReadOnlyGuard)
 @Controller('catalog')
 export class CatalogSupplierController {
   constructor(private readonly catalogService: CatalogService) {}

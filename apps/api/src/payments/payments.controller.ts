@@ -22,8 +22,6 @@ import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentIntentDto, SplitPaymentDto } from './dto/create-payment.dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
@@ -35,7 +33,6 @@ import { WebhookIpGuard } from './guards/webhook-ip.guard';
 
 @ApiTags('Payments')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
 @Controller('payments')
 export class PaymentsController {
