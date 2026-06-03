@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Info } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useLang } from '@/i18n/LangContext'
 import type { Translations } from '@/i18n/translations'
@@ -112,12 +112,28 @@ function PricingCard({
       </div>
 
       <ul className="flex flex-col gap-2.5">
-        {plan.features.map((feature, featureIdx) => (
-          <li key={featureIdx} className="flex items-start gap-2.5">
-            <Check size={16} className="text-[#24D4F4] mt-0.5 shrink-0" />
-            <span className="text-slate-300 text-sm">{feature}</span>
-          </li>
-        ))}
+        {plan.features.map((feature, featureIdx) => {
+          const isObj = typeof feature === 'object' && feature !== null
+          const text = isObj ? feature.text : feature
+          const tooltip = isObj ? feature.tooltip : null
+          return (
+            <li key={featureIdx} className="flex items-start gap-2.5">
+              <Check size={16} className="text-[#24D4F4] mt-0.5 shrink-0" />
+              <span className="text-slate-300 text-sm flex items-center gap-1">
+                {text}
+                {tooltip && (
+                  <span className="relative group/tip inline-flex">
+                    <Info size={13} className="text-slate-500 cursor-help hover:text-[#24D4F4] transition-colors shrink-0" />
+                    <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-slate-200 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-200 z-20 text-center leading-relaxed shadow-xl">
+                      {tooltip}
+                      <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
+                    </span>
+                  </span>
+                )}
+              </span>
+            </li>
+          )
+        })}
       </ul>
 
       <a
