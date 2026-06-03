@@ -27,6 +27,7 @@ import {
 import { RestockRequestDto } from './dto/restock-request.dto';
 import { OpenTesterDto } from './dto/open-tester.dto';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
+import { RolesGuard } from '../identity/guards/roles.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TransferService, CreateTransferDto } from './transfer.service';
 import { TransferStatus } from '@prisma/client';
@@ -34,7 +35,7 @@ import { Roles } from '../common/decorators';
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
 @Controller('inventory')
 export class InventoryController {
