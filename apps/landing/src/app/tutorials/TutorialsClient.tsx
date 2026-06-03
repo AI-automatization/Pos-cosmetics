@@ -20,6 +20,7 @@ const DIFFICULTY_COLOR = {
 const DEMO_SRCS: Record<number, string | null> = {
   0: '/demos/demo-1.html',
   1: '/demos/demo-2.html',
+  2: '/demos/demo-3.html',
 }
 
 export default function TutorialsClient() {
