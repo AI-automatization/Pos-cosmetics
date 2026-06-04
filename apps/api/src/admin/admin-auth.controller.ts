@@ -46,7 +46,12 @@ export class AdminAuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Super Admin logout — clear httpOnly cookie' })
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('sa_access_token', { path: '/' });
+    res.clearCookie('sa_access_token', {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
     return { success: true };
   }
 

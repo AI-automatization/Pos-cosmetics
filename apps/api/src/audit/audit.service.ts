@@ -1,6 +1,31 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+const SENSITIVE_AUDIT_KEYS = [
+  'password', 'token', 'secret', 'authorization', 'refreshtoken',
+  'hash', 'pin', 'otp', 'cardnumber', 'cvv', 'apikey', 'privatekey',
+];
+
+function isSensitiveKey(key: string): boolean {
+  const lower = key.toLowerCase();
+  return SENSITIVE_AUDIT_KEYS.some((s) => lower.includes(s));
+}
+
+function redactAuditData(data: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  if (!data) return undefined;
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (isSensitiveKey(key)) {
+      result[key] = '[REDACTED]';
+    } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      result[key] = redactAuditData(value as Record<string, unknown>);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 export interface LogAuditDto {
   tenantId: string;
   userId?: string;
@@ -29,9 +54,9 @@ export class AuditService {
           entityType: dto.entityType,
           entityId: dto.entityId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          oldData: (dto.oldData ?? undefined) as any,
+          oldData: (redactAuditData(dto.oldData) ?? undefined) as any,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          newData: (dto.newData ?? undefined) as any,
+          newData: (redactAuditData(dto.newData) ?? undefined) as any,
           ip: dto.ip,
           userAgent: dto.userAgent,
         },
@@ -99,6 +124,8 @@ export class AuditService {
       const user = item.userId ? userMap.get(item.userId) : null;
       return {
         ...item,
+        oldData: redactAuditData(item.oldData as Record<string, unknown> | undefined),
+        newData: redactAuditData(item.newData as Record<string, unknown> | undefined),
         userName: user ? `${user.firstName} ${user.lastName ?? ''}`.trim() : null,
         userRole: user?.role ?? null,
       };

@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-06-04 (T-469 — RBAC default-on global APP_GUARD DONE → Done.md ga ko'chirildi)
+# Yangilangan: 2026-06-04 (T-473/480/481/482/483 Done — security + health-check)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -78,11 +78,19 @@
 
 *(T-458, T-459 — BAJARILDI, Done.md 2026-05-20)*
 
+*(T-478, T-479 — BAJARILDI, Done.md 2026-06-04 — Product Import PR#211 + DNS flip #207)*
+
+*(T-480, T-481, T-482, T-483, T-473 — BAJARILDI, Done.md 2026-06-04 — Security hardening + health-check)*
+
 ---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
+
+*(T-481, T-482, T-483 — BAJARILDI, Done.md 2026-06-04)*
+
+---
 
 ## T-399 | P1 | [IKKALASI] | Global i18n — Faza 2-3 (auto-translate ma'lumotlar)
 
@@ -821,13 +829,7 @@
 
 ---
 
-## T-473 | P1 | [SECURITY] | Import controller has no @Roles — any authenticated user can bulk-overwrite catalog
-
-- **Sana:** 2026-06-04
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/import-export/product-import.controller.ts`
-- **Muammo:** `ProductImportController` da `@Roles(...)` dekoratori yo'q. `RolesGuard` roles metadata bo'lmasa by-default ruxsat beradi — ya'ni `CASHIER` yoki `VIEWER` roli bilan ham autentifikatsiya qilingan har qanday foydalanuvchi katalogni to'liq import orqali yozib tashlashi mumkin. Engine upsert strategiyasi ishlatadi, shuning uchun bu real catalog overwrite xavfi.
-- **Kutilgan:** `@Roles('OWNER', 'ADMIN', 'MANAGER')` dekoratorini import yozish (`POST /import`) va status o'qish (`GET /import/:jobId`) handlerlariga qo'shish. Enforce qilishdan oldin: mobile va web klientlar faqat `OWNER`/`ADMIN`/`MANAGER` roli bilan import chaqirishini tekshirish.
+*(T-473 — BAJARILDI, Done.md 2026-06-04)*
 
 ---
 

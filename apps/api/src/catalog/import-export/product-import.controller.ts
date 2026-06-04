@@ -23,6 +23,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { ProductImportService } from './product-import.service';
 import { QueueService } from '../../common/queue/queue.service';
 
@@ -32,6 +33,7 @@ const IMPORT_MAX_FILE_SIZE = 15 * 1024 * 1024;
 @ApiTags('Catalog')
 @ApiBearerAuth()
 @Controller('catalog/products')
+@Roles('OWNER', 'ADMIN', 'MANAGER')
 export class ProductImportController {
   private readonly logger = new Logger(ProductImportController.name);
 
