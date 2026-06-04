@@ -3,6 +3,8 @@ import { REDIS_CONNECTION, QUEUE_NAMES } from '../config';
 import { logJobStart, logJobDone, logJobError } from '../logger';
 import prisma from '../prisma';
 
+const UZ_VAT_RATE = 0.12;
+
 interface FiscalReceiptJob {
   tenantId: string;
   orderId: string;
@@ -118,13 +120,13 @@ export function createFiscalWorker(): Worker {
           orderNumber: order.orderNumber,
           total: Number(order.total),
           taxAmount: Number(order.taxAmount),
-          taxRate: 0.12,
+          taxRate: UZ_VAT_RATE,
           items: order.items.map((item) => ({
             name: item.productName,
             qty: Number(item.quantity),
             price: Number(item.unitPrice),
             total: Number(item.total),
-            vatRate: 0.12,
+            vatRate: UZ_VAT_RATE,
           })),
           cashier: `${order.user.firstName} ${order.user.lastName}`.trim(),
           branch: order.branch?.name ?? '',

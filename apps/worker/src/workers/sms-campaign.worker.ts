@@ -9,6 +9,7 @@ interface SmsCampaignJob {
 }
 
 const DELAY_MS = 600; // ~100 SMS/min rate limit
+const DEFAULT_SMS_COST_TIYIN = 10_000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,7 +47,7 @@ async function sendViaPlatform(phone: string, text: string): Promise<{
     });
 
     if (!res.ok) return { success: false, errorMessage: `HTTP ${res.status}` };
-    return { success: true, providerMessageId: msgId, costInTiyin: 10000 };
+    return { success: true, providerMessageId: msgId, costInTiyin: DEFAULT_SMS_COST_TIYIN };
   } catch (err) {
     return { success: false, errorMessage: err instanceof Error ? err.message : String(err) };
   }
