@@ -214,13 +214,17 @@ export class QueueService implements OnModuleDestroy {
   }
 
   async getProductImportJobStatus(jobId: string): Promise<{
-    status: 'completed' | 'failed' | 'active' | 'waiting' | 'delayed' | 'not_found';
+    status: 'completed' | 'completed_evicted' | 'failed' | 'active' | 'waiting' | 'delayed' | 'not_found';
     progress: ImportProgress | null;
     result: ImportSummary | null;
     failedReason?: string;
   }> {
     const job = await this.getQueue(QUEUE_NAMES.PRODUCT_IMPORT).getJob(jobId);
-    if (!job) return { status: 'not_found', progress: null, result: null };
+    if (!job) {
+      // T-476: completed job may have been evicted (removeOnComplete: 50).
+      // Numeric jobId means it was a valid BullMQ job — treat as completed_evicted.
+      return { status: /^\d+$/.test(jobId) ? 'completed_evicted' : 'not_found', progress: null, result: null };
+    }
     const state = (await job.getState()) as
       | 'completed' | 'failed' | 'active' | 'waiting' | 'delayed';
     const progress =
