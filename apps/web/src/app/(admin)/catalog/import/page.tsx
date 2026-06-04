@@ -236,7 +236,7 @@ export default function ProductImportPage() {
           </div>
           <div>
             <p className="font-semibold text-gray-900">2-qadam: Faylni yuklang</p>
-            <p className="text-sm text-gray-500">XLSX yoki CSV formatda, maksimum 5 MB</p>
+            <p className="text-sm text-gray-500">XLSX yoki CSV formatda, maksimum 15 MB</p>
           </div>
         </div>
 
@@ -262,7 +262,7 @@ export default function ProductImportPage() {
                 Faylni bu yerga tashlang yoki{' '}
                 <span className="text-blue-600">tanlash uchun bosing</span>
               </p>
-              <p className="mt-1 text-xs text-gray-500">XLSX, CSV — maksimum 5 MB</p>
+              <p className="mt-1 text-xs text-gray-500">XLSX, CSV — maksimum 15 MB</p>
             </div>
             <input
               ref={fileInputRef}
