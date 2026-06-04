@@ -3,12 +3,7 @@
 import { X, CheckCircle, Loader2 } from 'lucide-react';
 import { useInvoice, useApproveInvoice } from '@/hooks/inventory/useInventory';
 import { formatPrice, cn } from '@/lib/utils';
-
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Kutilmoqda',
-  APPROVED: 'Tasdiqlangan',
-  REJECTED: 'Rad etilgan',
-};
+import { useTranslation } from '@/i18n/i18n-context';
 
 const STATUS_COLOR: Record<string, string> = {
   PENDING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -22,8 +17,15 @@ interface InvoiceDetailDrawerProps {
 }
 
 export function InvoiceDetailDrawer({ invoiceId, onClose }: InvoiceDetailDrawerProps) {
+  const { t } = useTranslation();
   const { data: invoice, isLoading } = useInvoice(invoiceId);
   const { mutate: approve, isPending: isApproving } = useApproveInvoice();
+
+  const STATUS_LABEL: Record<string, string> = {
+    PENDING: t('common.pending'),
+    APPROVED: t('common.approved'),
+    REJECTED: t('inventory.rejected'),
+  };
 
   if (!invoiceId) return null;
 
@@ -70,23 +72,23 @@ export function InvoiceDetailDrawer({ invoiceId, onClose }: InvoiceDetailDrawerP
               {/* Meta */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Yetkazib beruvchi</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('inventory.supplier')}</p>
                   <p className="text-sm font-medium text-gray-900">{invoice.supplier?.name ?? '—'}</p>
                 </div>
                 <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Holat</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('common.status')}</p>
                   <span className={cn('inline-flex rounded-full border px-2 py-0.5 text-xs font-medium', STATUS_COLOR[invoice.status] ?? '')}>
                     {STATUS_LABEL[invoice.status] ?? invoice.status}
                   </span>
                 </div>
                 <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Yaratgan</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('common.createdBy')}</p>
                   <p className="text-sm font-medium text-gray-900">
                     {invoice.createdBy ? `${invoice.createdBy.firstName} ${invoice.createdBy.lastName}` : '—'}
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Jami summa</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{t('inventory.totalAmount')}</p>
                   <p className="text-sm font-bold text-gray-900">{formatPrice(invoice.totalAmount)}</p>
                 </div>
               </div>
@@ -101,13 +103,13 @@ export function InvoiceDetailDrawer({ invoiceId, onClose }: InvoiceDetailDrawerP
               {/* Items */}
               <div>
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                  Mahsulotlar ({invoice.items.length} ta)
+                  {t('inventory.goodsSection')} ({invoice.items.length})
                 </h3>
                 <div className="overflow-hidden rounded-xl border border-gray-100">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        {['Mahsulot', 'Miqdor', 'Narx', 'Jami'].map((h) => (
+                        {[t('common.product'), t('common.quantity'), t('common.price'), t('common.total')].map((h) => (
                           <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500">
                             {h}
                           </th>
@@ -120,7 +122,7 @@ export function InvoiceDetailDrawer({ invoiceId, onClose }: InvoiceDetailDrawerP
                           <td className="px-3 py-2.5">
                             <p className="font-medium text-gray-900">{item.productName}</p>
                             {item.batchNumber && (
-                              <p className="text-[10px] text-gray-400">Partiya: {item.batchNumber}</p>
+                              <p className="text-[10px] text-gray-400">{t('inventory.batch')}: {item.batchNumber}</p>
                             )}
                           </td>
                           <td className="px-3 py-2.5 text-gray-600">{item.quantity}</td>

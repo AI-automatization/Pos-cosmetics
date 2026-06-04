@@ -62,11 +62,11 @@ export class SystemController {
       where: { tenantId, isActive: true },
       select: { id: true, name: true },
     });
-    const now = new Date();
+    // TODO: real sync tracking will come with the offline-first module
     const syncStatus = branches.map((b) => ({
       branchId: b.id,
       branchName: b.name,
-      lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 300000)).toISOString(),
+      lastSyncAt: new Date().toISOString(),
       pendingCount: 0,
     }));
 
@@ -98,12 +98,12 @@ export class SystemController {
       select: { id: true, name: true },
     });
 
-    const now = new Date();
+    // TODO: real sync tracking will come with the offline-first module
     return branches.map((b) => ({
       branchId: b.id,
       branchName: b.name,
       status: 'synced' as const,
-      lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 300000)).toISOString(),
+      lastSyncAt: new Date().toISOString(),
       pendingItems: 0,    // mobile expects "pendingItems" not "pendingCount"
     }));
   }

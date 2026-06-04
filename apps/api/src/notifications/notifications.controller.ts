@@ -27,19 +27,7 @@ import { PushService } from './push.service';
 import { NotifyService } from './notify.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
-
-// Notification type → mobile priority mapping (same as alerts.controller.ts)
-const PRIORITY_MAP: Record<string, 'low' | 'medium' | 'high'> = {
-  LOW_STOCK: 'medium',
-  OUT_OF_STOCK: 'high',
-  EXPIRY_WARNING: 'medium',
-  LARGE_REFUND: 'high',
-  NASIYA_OVERDUE: 'high',
-  SHIFT_CHANGED: 'low',
-  SALE_COMPLETED: 'low',
-  ERROR_ALERT: 'high',
-  SYSTEM: 'medium',
-};
+import { PRIORITY_MAP } from './priority.constants';
 
 function enrichNotification(n: {
   id: string;
