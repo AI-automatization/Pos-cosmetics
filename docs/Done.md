@@ -3,6 +3,21 @@
 
 ---
 
+## T-463 | 2026-06-04 | [BACKEND] | SMS module — gateway + campaigns + bulk send
+
+- **Yechim:**
+  - Prisma: `SmsCampaign`, `SmsMessage`, `SmsUnsubscribe` modellari
+  - `SmsGateway` interface + `PlayMobileProvider` (provider-agnostic adapter pattern)
+  - `SmsService`: sendSingle, sendBulkForCampaign, unsubscribe tekshirish, cost tracking
+  - `SmsCampaignService`: DRAFT → SCHEDULED → SENDING → COMPLETED lifecycle
+  - `SmsController`: REST API (`@Roles OWNER/ADMIN/MANAGER`) — 8 endpoint
+  - BullMQ: `SMS_CAMPAIGN` queue + delayed job (scheduled sends)
+  - Public `/sms/unsubscribe` webhook (STOP handling)
+- **Fayllar:** `apps/api/src/sms/` (7 fayl), `schema.prisma`, `queue.service.ts`, `app.module.ts`
+- **Mas'ul:** Ibrat
+
+---
+
 ## T-428 | 2026-06-04 | [BACKEND+FRONTEND] | Billing moduli — to'liq tayyor
 
 - **Holat:** Backend + Frontend + Invoice PDF allaqachon yozilgan edi, faqat audit/tasdiqlash qolgan edi.

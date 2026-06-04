@@ -571,26 +571,7 @@
 
 ---
 
-## T-463 | P1 | [BACKEND] | SMS module — backend (gateway + campaign + scheduling)
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/sms/` (yaratish kerak)
-- **Vazifa:**
-  - `sms.module.ts`, `sms.service.ts` (gateway abstraction), `sms.controller.ts`
-  - `adapters/playmobile.adapter.ts` (yoki tanlangan provider)
-  - SmsService: sendSingle, sendBulk, getBalance, getDeliveryStatus
-  - Campaign: DRAFT → SCHEDULED → SENDING → SENT → COMPLETED
-  - Prisma: `sms_campaigns`, `sms_messages` tables
-  - Scheduling: BullMQ delayed job
-  - Rate limiting: max 100 SMS/min
-  - Tenant isolation + cost tracking + unsubscribe ("STOP")
-- **Kutilgan:** API orqali SMS yuborish va kampaniya yaratish
-- **Muddat:** 1 hafta
-- **Hafta:** W23
-- **Trek:** B (SMS Campaign)
-- **Bog'liq:** T-462 (provider tanlangan bo'lishi kerak)
-- **Branch:** `ibrat/feat-sms-campaign`
+*(T-463 — BAJARILDI, Done.md 2026-06-04 — SMS module backend)*
 
 ---
 
