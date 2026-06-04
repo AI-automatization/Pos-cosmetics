@@ -19,3 +19,18 @@ export function validateRow(row: ProductImportRow): string | null {
   }
   return null;
 }
+
+// B — returns 0-based indices of rows that repeat a barcode already seen earlier in the file.
+export function findDuplicateBarcodeIndices(
+  rows: ReadonlyArray<{ barcode?: string }>,
+): Set<number> {
+  const seen = new Set<string>();
+  const dups = new Set<number>();
+  rows.forEach((row, i) => {
+    const bc = row.barcode?.trim();
+    if (!bc) return;
+    if (seen.has(bc)) dups.add(i);
+    else seen.add(bc);
+  });
+  return dups;
+}
