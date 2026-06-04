@@ -27,7 +27,7 @@ Kimligingizni aniqlay olmayman — ismingiz kim?
 
 Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
-- Ibrat → `CLAUDE_FULLSTACK.md`
+- Ibrat → `CLAUDE_FULLSTACK.md` + `CLAUDE_MARKETING.md` (marketing ishtirokchi)
 - Abdulaziz → `CLAUDE_MOBILE.md`
 - AbdulazizYormatov → `CLAUDE_FULLSTACK.md` + `CLAUDE_MOBILE.md` (read-only review uchun)
 - Bekzod → `CLAUDE_FULLSTACK.md` (read-only, project overview uchun)
@@ -40,7 +40,7 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 
 | Rol | Ism | Mas'uliyat | Zona |
 |-----|-----|-----------|------|
-| **Full-Stack Dev** | Ibrat | Backend API + Web Admin + POS + Bot + Worker + DevOps | apps/api (tax/, ledger/, fiscal/ dan tashqari), apps/web, apps/pos, apps/bot, apps/worker, docker/, prisma/ |
+| **Full-Stack Dev** | Ibrat | Backend API + Web Admin + POS + Bot + Worker + DevOps + Marketing (ishtirokchi) | apps/api (tax/, ledger/, fiscal/ dan tashqari), apps/web, apps/pos, apps/bot, apps/worker, docker/, prisma/, docs/marketing/ (Shuhratov bilan birga) |
 | **Backend Dev (Fiscal)** | Sardor Madaliev | OFD adapter, fiscal cheklar, buxgalteriya, 1C integratsiya | apps/api/src/tax/, apps/api/src/ledger/, apps/api/src/fiscal/ |
 | **Mobile Dev** | Abdulaziz | Android + iOS (staff app + owner app) | apps/mobile, apps/mobile-owner |
 | **Team Lead** | AbdulazizYormatov | Code review, arxitektura qarorlari, PR tasdiqlash | Barcha zonalar (read + review) |
@@ -56,6 +56,7 @@ Javob kelgach → tegishli `CLAUDE_[ROL].md` faylni o'qib kontekstga kirish:
 > **Eslatma:** Hobbit — analitika, kontent va post uchun mas'ul. Kod yozmaydi, faqat docs/ bilan ishlaydi.
 > **Eslatma:** Sardor — faqat OFD/fiscal/buxgalteriya backend. Boshqa API modullarga teginmaydi.
 > **Eslatma:** Shuhratov — marketing va outreach. Kod yozmaydi, faqat docs/ bilan ishlaydi.
+> **Eslatma:** Ibrat — marketing ishtirokchisi (Shuhratov bilan birga). docs/marketing/ da kontent yozishi va AI Council tizimini boshqarishi mumkin. docs/outreach/ faqat Shuhratov.
 
 ---
 
@@ -111,7 +112,7 @@ docker/            → Ibrat boshqaradi (infra)
 docs/              → Hammaga ochiq (Bekzod — PM sifatida boshqaradi)
 docs/competitive-analysis/ → Hobbit zonasi (raqobat tahlili)
 docs/content/      → Hobbit zonasi (kontent reja, postlar)
-docs/marketing/    → Shuhratov zonasi (Instagram, kampaniyalar)
+docs/marketing/    → Shuhratov + Ibrat zonasi (Instagram, kampaniyalar, AI Council)
 docs/outreach/     → Shuhratov zonasi (lead gen, DM shablonlari)
 ```
 
@@ -585,7 +586,7 @@ pnpm -r exec tsc --noEmit
 QOIDA: Har dasturchi FAQAT o'z zonasidagi fayllarni o'zgartiradi.
 
 ZONALAR:
-  Ibrat     → apps/api/ (tax/, ledger/, fiscal/ dan TASHQARI), apps/web/, apps/pos/, apps/bot/, apps/worker/, docker/, prisma/
+  Ibrat     → apps/api/ (tax/, ledger/, fiscal/ dan TASHQARI), apps/web/, apps/pos/, apps/bot/, apps/worker/, docker/, prisma/, docs/marketing/ (Shuhratov bilan birga)
   Sardor    → apps/api/src/tax/, apps/api/src/ledger/, apps/api/src/fiscal/
   Abdulaziz → apps/mobile/, apps/mobile-owner/
   Ziyoda    → apps/landing/ (VAQTINCHALIK — landing tayyor bo'lgach yakunlanadi)
@@ -600,7 +601,7 @@ PROTSEDURA (boshqa zona fayli kerak bo'lsa):
   4. HECH QACHON boshqa zona faylini "tezroq bo'ladi" deb o'zgartirma
 
 PR TEKSHIRUVI (merge oldidan):
-  git diff main --name-only | grep -v "^apps/(api|web|pos|bot|worker)/"
+  git diff main --name-only | grep -v "^(apps/(api|web|pos|bot|worker)/|docker/|prisma/|docs/marketing/)"
   ↑ Ibrat uchun: agar natija bo'sh EMAS → zona buzilgan → PR REJECT
 
   git diff main --name-only | grep -v "^apps/api/src/(tax|ledger|fiscal)/"

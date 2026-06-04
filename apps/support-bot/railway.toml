@@ -1,0 +1,16 @@
+[build]
+dockerfilePath = "apps/support-bot/Dockerfile"
+watchPatterns = [
+  "apps/support-bot/**",
+  "apps/api/prisma/**",
+  "packages/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc"
+]
+
+[deploy]
+startCommand = "node dist/main.js"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

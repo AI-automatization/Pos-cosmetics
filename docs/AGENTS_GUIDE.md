@@ -309,19 +309,41 @@ tasks-done-sync agentini ishga tushir
 
 ```
 .claude/agents/
-├── session-start.md      ← Har kuni birinchi
-├── orchestrator.md       ← Qaysi task birinchi?
-├── conflict-resolver.md  ← Merge conflict
-├── type-fixer.md         ← T-229/T-230 P0
-├── tasks-done-sync.md    ← Tasks.md tozalash
-├── component-builder.md  ← Yangi UI
-├── api-integrator.md     ← API ulash
-├── frontend-reviewer.md  ← Kod review
-└── type-checker.md       ← TypeScript xatolar
+├── session-start.md           ← Har kuni birinchi
+├── orchestrator.md            ← Qaysi task birinchi?
+├── conflict-resolver.md       ← Merge conflict
+├── type-fixer.md              ← T-229/T-230 P0
+├── tasks-done-sync.md         ← Tasks.md tozalash
+├── component-builder.md       ← Yangi UI
+├── api-integrator.md          ← API ulash
+├── frontend-reviewer.md       ← Kod review
+├── type-checker.md            ← TypeScript xatolar
+│
+│   — MARKETING AGENTLAR (Shuhratov uchun) —
+├── marketing-strategist.md    ← Instagram strategiya + kontent reja
+├── reels-creator.md           ← Reels/Carousel scenariy + render
+├── ads-manager.md             ← Meta Ads kampaniya
+├── lead-gen.md                ← DM outreach + lead pipeline
+└── competitor-analyst.md      ← Raqobat tahlili
 ```
 
 Yangi agent qo'shish: `.claude/agents/` ga `.md` fayl → Claude uni avtomatik ko'radi.
 
 ---
 
-_AGENTS_GUIDE.md | RAOS | 2026-03-18_
+## 📱 Marketing agentlari — tezkor ma'lumotnoma
+
+| Agent | Qachon | Chaqirish |
+|-------|--------|-----------|
+| `marketing-strategist` | Oylik kontent reja kerak | "marketing-strategist agentini ishga tushir" |
+| `reels-creator` | Yangi Reel/Carousel | "reels-creator agentini ishga tushir" |
+| `ads-manager` | Meta Ads boshlash/optimallashtirish | "ads-manager agentini ishga tushir" |
+| `lead-gen` | Yangi leads topish, DM | "lead-gen agentini ishga tushir" |
+| `competitor-analyst` | Raqobat monitoring (oylik) | "competitor-analyst agentini ishga tushir" |
+
+Marketing to'liq qo'llanma: `CLAUDE_MARKETING.md`
+Telegram guruh: https://t.me/+R-suQLCkofI2NzFi
+
+---
+
+_AGENTS_GUIDE.md | RAOS | 2026-05-24 (Marketing agentlar qo'shildi)_
