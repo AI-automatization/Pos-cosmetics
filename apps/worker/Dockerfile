@@ -26,6 +26,9 @@ COPY packages/types/ ./packages/types/
 COPY packages/utils/ ./packages/utils/
 COPY packages/catalog-import/ ./packages/catalog-import/
 
+# Compile workspace package to JS before the app requires it at runtime
+RUN pnpm --filter @raos/catalog-import build
+
 # Build
 RUN pnpm --filter worker build
 

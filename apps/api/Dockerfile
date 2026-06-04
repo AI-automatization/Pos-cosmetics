@@ -5,7 +5,8 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # .npmrc (shamefully-hoist=true) must be present for consistent hoisting
-COPY .npmrc package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+# tsconfig.base.json — needed to compile workspace packages (catalog-import) that extend it
+COPY .npmrc package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
@@ -22,6 +23,9 @@ COPY packages/catalog-import/ ./packages/catalog-import/
 
 # Generate Prisma client
 RUN pnpm --filter api exec prisma generate
+
+# Compile workspace package to JS before the app requires it at runtime
+RUN pnpm --filter @raos/catalog-import build
 
 # Build NestJS
 RUN pnpm --filter api build
