@@ -147,5 +147,31 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
+  docker-build:
+    name: "Docker Build"
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api, worker, support-bot, bot]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Builds the real per-service Dockerfile that Railway deploys. The pnpm
+      # lint/test/build jobs see the full checkout, so they MISS build-context
+      # bugs (a missing "COPY packages/<pkg>" in a Dockerfile, e.g. #213) — only
+      # an actual image build catches those.
+      - name: Build ${{ matrix.service }} image
+        run: docker build -f apps/${{ matrix.service }}/Dockerfile -t raos-${{ matrix.service }}:ci .
+
+      # Runtime smoke: api & worker require @raos/catalog-import at startup. A
+      # build-only check would miss a workspace package that ships unrunnable
+      # source (e.g. #214 — main pointed at raw .ts) — load it in the real
+      # runner image to catch ERR_MODULE_NOT_FOUND before it reaches prod.
+      - name: "Smoke: @raos/catalog-import loads in runner"
+        if: ${{ matrix.service == 'api' || matrix.service == 'worker' }}
+        run: docker run --rm --entrypoint node raos-${{ matrix.service }}:ci -e "require('@raos/catalog-import'); console.log('catalog-import loads OK')"
+
 # Deploy: Railway auto-deploys on push to main via GitHub integration
 # NEVER use "railway up" — see DEPLOY.md
