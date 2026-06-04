@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>8-dars: AI Night Cashier hisoboti — RAOS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0E1530;color:#e2e8f0;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{background:#0a0f24;border-bottom:1px solid rgba(245,158,11,0.2);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo{color:#f59e0b;font-weight:800;font-size:15px;letter-spacing:.5px}
+.logo span{color:#fcd34d}
+.top-step{margin-left:auto;font-size:12px;color:#64748b}
+.top-step b{color:#f59e0b}
+
+/* ── SCENES ── */
+.scene{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .5s;display:flex;flex-direction:column}
+.scene.active{opacity:1;pointer-events:auto;position:relative}
+.scene-wrap{flex:1;display:flex;overflow:hidden;position:relative}
+
+/* ── SIDEBAR ── */
+.sidebar{width:200px;background:#07091a;border-right:1px solid rgba(245,158,11,0.15);padding:12px 0;flex-shrink:0}
+.sidebar-logo{padding:0 14px 12px;font-weight:800;font-size:13px;color:#f59e0b;border-bottom:1px solid rgba(245,158,11,0.1);margin-bottom:8px}
+.sidebar-logo span{color:#fcd34d}
+.nav-item{padding:8px 14px;font-size:12px;color:#64748b;cursor:pointer;display:flex;align-items:center;gap:8px;border-radius:6px;margin:1px 6px;transition:all .2s}
+.nav-item:hover,.nav-item.active{background:rgba(245,158,11,0.1);color:#fcd34d}
+.nav-item.active{border-left:3px solid #f59e0b;padding-left:11px}
+.nav-icon{width:14px;text-align:center;font-size:11px}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:18px}
+.page-title{font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.page-sub{font-size:11px;color:#64748b;margin-bottom:16px}
+
+/* ── TELEGRAM PREVIEW ── */
+.tg-phone{background:#111827;border:1px solid rgba(245,158,11,0.2);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.tg-header{background:#1a2444;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(245,158,11,0.1)}
+.tg-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#fcd34d);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#0a0f24;flex-shrink:0}
+.tg-name{font-size:12px;font-weight:700;color:#e2e8f0}
+.tg-status{font-size:10px;color:#64748b}
+.tg-body{padding:14px;display:flex;flex-direction:column;gap:6px}
+.tg-bubble{background:#1e293b;border-radius:10px 10px 10px 2px;padding:10px 12px;font-size:11px;color:#cbd5e1;line-height:1.75;max-width:95%;border-left:3px solid #f59e0b;opacity:0;transform:translateY(6px);transition:all .4s}
+.tg-bubble.show{opacity:1;transform:translateY(0)}
+.tg-bubble b{color:#fcd34d}
+.tg-bubble .warn{color:#f87171}
+.tg-bubble .ok{color:#4ade80}
+.tg-bubble .ai-label{display:inline-block;background:rgba(245,158,11,0.15);color:#f59e0b;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid rgba(245,158,11,0.3);margin-bottom:4px}
+.tg-time{font-size:10px;color:#334155;text-align:right;margin-top:4px}
+
+/* ── INSIGHT CARDS ── */
+.insight-row{display:flex;gap:10px;margin-bottom:12px}
+.insight-card{flex:1;background:#0a1228;border-radius:10px;padding:12px 14px;border:1px solid;opacity:0;transform:translateY(8px);transition:all .5s}
+.insight-card.show{opacity:1;transform:translateY(0)}
+.ic-warn{border-color:rgba(248,113,113,0.3)}
+.ic-good{border-color:rgba(74,222,128,0.3)}
+.ic-tip{border-color:rgba(245,158,11,0.3)}
+.ic-icon{font-size:18px;margin-bottom:6px}
+.ic-label{font-size:10px;color:#64748b;margin-bottom:3px}
+.ic-value{font-size:13px;font-weight:700;color:#e2e8f0}
+.ic-desc{font-size:10px;color:#94a3b8;margin-top:3px;line-height:1.5}
+
+/* ── CHART ── */
+.chart-card{background:#0a1228;border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:14px;margin-bottom:12px}
+.chart-title{font-size:12px;font-weight:600;color:#e2e8f0;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.trend-line{height:60px;position:relative;overflow:hidden}
+.trend-svg{width:100%;height:100%}
+.chart-area{height:80px;display:flex;align-items:flex-end;gap:3px}
+.bar{border-radius:3px 3px 0 0;transition:height .6s ease;min-height:2px;position:relative}
+.bar-label{font-size:9px;color:#475569;text-align:center;margin-top:2px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center}
+
+/* ── ACTION PANEL ── */
+.action-card{background:#0a1228;border:1px solid rgba(245,158,11,0.2);border-radius:10px;overflow:hidden;margin-bottom:10px;opacity:0;transform:translateY(8px);transition:all .5s}
+.action-card.show{opacity:1;transform:translateY(0)}
+.action-header{padding:10px 14px;border-bottom:1px solid rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:space-between}
+.action-title{font-size:12px;font-weight:600;color:#e2e8f0;display:flex;align-items:center;gap:6px}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.badge-amber{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
+.badge-red{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
+.badge-green{background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
+.action-row{display:flex;align-items:center;padding:8px 14px;gap:10px;border-bottom:1px solid rgba(245,158,11,0.05)}
+.action-row:last-child{border-bottom:none}
+.action-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.action-text{font-size:11px;color:#cbd5e1;flex:1}
+.action-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid;cursor:pointer;font-weight:600;transition:all .2s;white-space:nowrap}
+.btn-amber{background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.3)}
+.btn-amber:hover{background:rgba(245,158,11,0.25)}
+.btn-slate{background:rgba(100,116,139,0.15);color:#94a3b8;border-color:rgba(100,116,139,0.2)}
+
+/* ── ORDER MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:50;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:#0f1a35;border:1px solid rgba(245,158,11,0.3);border-radius:14px;width:320px;overflow:hidden;transform:scale(.9);transition:transform .3s}
+.modal-overlay.show .modal{transform:scale(1)}
+.modal-head{padding:14px 16px;border-bottom:1px solid rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:13px;font-weight:700;color:#e2e8f0}
+.modal-close{color:#64748b;cursor:pointer;font-size:14px}
+.modal-body{padding:14px 16px}
+.order-item{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(245,158,11,0.06);font-size:11px}
+.order-item:last-child{border-bottom:none}
+.order-name{color:#cbd5e1}
+.order-qty{color:#fcd34d;font-weight:700}
+.order-price{color:#94a3b8}
+.modal-foot{padding:10px 16px;border-top:1px solid rgba(245,158,11,0.1);display:flex;gap:8px}
+.modal-btn-cancel{flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(100,116,139,0.3);color:#94a3b8;font-size:11px;cursor:pointer}
+.modal-btn-ok{flex:2;padding:8px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#fcd34d);color:#0a0f24;font-size:11px;font-weight:700;cursor:pointer;border:none}
+
+/* ── SUCCESS ── */
+.success-box{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:10px;padding:14px;text-align:center;opacity:0;transition:opacity .5s;margin-top:10px}
+.success-box.show{opacity:1}
+.success-icon{font-size:28px;margin-bottom:6px}
+.success-title{font-size:13px;font-weight:700;color:#4ade80;margin-bottom:4px}
+.success-desc{font-size:11px;color:#94a3b8}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;right:16px;background:#1a2444;border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:10px 14px;font-size:12px;color:#e2e8f0;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:all .35s;z-index:99;max-width:240px;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-icon{font-size:16px}
+
+/* ── CURSOR ── */
+.cursor{position:fixed;width:20px;height:20px;border-radius:50%;background:rgba(245,158,11,0.8);border:2px solid #fff;pointer-events:none;z-index:200;transform:translate(-50%,-50%);transition:transform .08s;box-shadow:0 0 10px rgba(245,158,11,0.6)}
+.cursor.clicking{transform:translate(-50%,-50%) scale(.7)}
+.ripple{position:fixed;width:40px;height:40px;border-radius:50%;border:2px solid rgba(245,158,11,0.6);pointer-events:none;z-index:199;transform:translate(-50%,-50%) scale(0);animation:rippleAnim .5s ease-out forwards}
+@keyframes rippleAnim{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.highlight{outline:2px solid rgba(245,158,11,0.7);outline-offset:3px;border-radius:6px;transition:outline .2s}
+
+/* ── TYPING ── */
+.typing::after{content:'|';animation:blink .7s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── CONTROLS ── */
+.controls{background:#07091a;border-top:1px solid rgba(245,158,11,0.2);padding:8px 14px;flex-shrink:0}
+.progress-wrap{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.progress-bar{flex:1;height:4px;background:#1e2d4a;border-radius:2px;cursor:pointer;position:relative}
+.progress-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#fcd34d);border-radius:2px;transition:width .3s linear}
+.progress-handle{position:absolute;top:50%;right:0;transform:translate(50%,-50%);width:10px;height:10px;border-radius:50%;background:#f59e0b;border:2px solid #fff;cursor:grab}
+.time-txt{font-size:10px;color:#64748b;white-space:nowrap}
+.ctrl-row{display:flex;align-items:center;gap:8px}
+.ctrl-btn{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:6px;color:#fcd34d;font-size:11px;padding:4px 10px;cursor:pointer;transition:all .2s}
+.ctrl-btn:hover{background:rgba(245,158,11,0.2)}
+.ctrl-btn.active{background:rgba(245,158,11,0.25);color:#fef3c7}
+.play-btn{background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:12px}
+.play-btn:hover{background:rgba(245,158,11,0.35)}
+.step-dots{display:flex;gap:4px;margin-left:auto}
+.dot{width:6px;height:6px;border-radius:50%;background:#1e2d4a;transition:all .3s;cursor:pointer}
+.dot.done{background:#f59e0b}
+.dot.active{background:#fcd34d;box-shadow:0 0 6px rgba(245,158,11,0.6);width:14px;border-radius:3px}
+.step-info{font-size:10px;color:#f59e0b;font-weight:600;margin-left:4px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">RAO<span>S</span></div>
+  <div style="font-size:11px;color:#94a3b8">8-dars: AI Night Cashier hisoboti</div>
+  <div class="top-step">Qadam: <b id="topStep">1</b> / 4</div>
+</div>
+
+<!-- ═══════════ SCENE 1: TELEGRAM XABARI ═══════════ -->
+<div class="scene active" id="scene1">
+  <div class="scene-wrap">
+    <div style="flex:1;display:flex;flex-direction:column;padding:18px;overflow-y:auto">
+      <div class="page-title">🤖 AI Night Cashier</div>
+      <div class="page-sub">Har kecha soat 23:00 da avtomatik hisobot Telegramga keladi</div>
+
+      <div class="tg-phone" id="tgPhone">
+        <div class="tg-header">
+          <div class="tg-avatar">🤖</div>
+          <div>
+            <div class="tg-name">RAOS AI Night Cashier</div>
+            <div class="tg-status">bot · Kecha 23:00 da</div>
+          </div>
+        </div>
+        <div class="tg-body" id="tgBody">
+          <div class="tg-bubble" id="b1">
+            <div class="ai-label">⚡ AI TAHLIL</div><br/>
+            📊 <b>Kunlik hisobot — 2026-yil 4-iyun</b><br/>
+            ────────────────<br/>
+            💰 Daromad: <b>14 750 000 so'm</b><br/>
+            📈 Kecha: <b class="ok">+18%</b> — yaxshi natija!<br/>
+            🛒 Sotuvlar: <b>247 ta</b> chek<br/>
+            🕐 Eng faol soat: <b>16:00–17:00</b>
+          </div>
+          <div class="tg-bubble" id="b2">
+            <div class="ai-label">⚠️ OGOHLANTIRISHLAR</div><br/>
+            <span class="warn">🔴 Kritik:</span> <b>Loreal Serum</b> — 3 dona qoldi (2 kunlik zaxira)<br/>
+            <span class="warn">🔴 Kritik:</span> <b>NYX Lipstick #12</b> — 1 dona qoldi<br/>
+            🟡 Diqqat: <b>Maybelline Cushion</b> — 8 dona (haftalik zaxira)
+          </div>
+          <div class="tg-bubble" id="b3">
+            <div class="ai-label">💡 AI TAVSIYA</div><br/>
+            📦 Buyurtma bering: <b>Loreal Serum (50 dona)</b><br/>
+            📦 Buyurtma bering: <b>NYX Lipstick #12 (30 dona)</b><br/>
+            📊 Chegirma qo'shing: <b>Nivea (sekin sotilmoqda)</b><br/>
+            ⏰ <b>Juma kuni</b> — savdo +30% oshadi, skladni tayyorlang
+          </div>
+          <div class="tg-bubble" id="b4">
+            <div class="ai-label">🏆 REYTING</div><br/>
+            1️⃣ Nilufar — <b class="ok">5 870 000 so'm</b> (94 sotuv)<br/>
+            2️⃣ Kamola — <b>5 210 000 so'm</b> (87 sotuv)<br/>
+            3️⃣ Shirin — <b>3 670 000 so'm</b> (66 sotuv)<br/>
+            <br/>
+            <i style="color:#475569;font-size:10px">RAOS AI tomonidan avtomatik tuzildi · raos.uz</i>
+          </div>
+          <div class="tg-time" id="tgTime" style="opacity:0">23:01 ✓✓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 2: AI INSIGHTS DASHBOARD ═══════════ -->
+<div class="scene" id="scene2">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item active"><span class="nav-icon">🤖</span> AI Insights</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item"><span class="nav-icon">👥</span> Xodimlar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">AI Insights — Tahlil</div>
+      <div class="page-sub">Kecha kechasining AI tahlili natijasi</div>
+
+      <div class="insight-row">
+        <div class="insight-card ic-warn" id="iw1">
+          <div class="ic-icon">⚠️</div>
+          <div class="ic-label">Kritik ogohlantirishlar</div>
+          <div class="ic-value" style="color:#f87171">2 ta</div>
+          <div class="ic-desc">Zudlik bilan buyurtma talab qiladi</div>
+        </div>
+        <div class="insight-card ic-good" id="iw2">
+          <div class="ic-icon">📈</div>
+          <div class="ic-label">O'sish tendensiyasi</div>
+          <div class="ic-value" style="color:#4ade80">+18%</div>
+          <div class="ic-desc">Kechagi savdoga nisbatan</div>
+        </div>
+        <div class="insight-card ic-tip" id="iw3">
+          <div class="ic-icon">💡</div>
+          <div class="ic-label">AI tavsiyalar</div>
+          <div class="ic-value" style="color:#f59e0b">4 ta</div>
+          <div class="ic-desc">Bugun bajarilishi kerak</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">📊 7 kunlik savdo trendi</div>
+        <div class="chart-area" id="weekChart">
+          <!-- filled by JS -->
+        </div>
+        <div style="display:flex;gap:3px;margin-top:2px" id="weekLabels"></div>
+      </div>
+
+      <div class="chart-card" id="forecastCard" style="opacity:0;transition:opacity .5s">
+        <div class="chart-title">🔮 AI bashorat — Ertangi sotuv</div>
+        <div style="font-size:11px;color:#94a3b8;line-height:1.8;padding:2px 0">
+          AI modeli oxirgi 30 kunlik ma'lumot asosida bashorat qilmoqda:<br/>
+          📅 <b style="color:#e2e8f0">5-iyun (Juma)</b> — Bashorat:
+          <b style="color:#fcd34d">17 200 000 – 19 500 000 so'm</b><br/>
+          📊 Sabab: Juma kuni tarixan <b style="color:#4ade80">+28%</b> yuqori savdo ko'rsatadi<br/>
+          ⚡ Tavsiya: Kassa band bo'lmaydi — <b style="color:#f59e0b">kassir qo'shing</b>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 3: KRITIK OGOHLANTIRISHLAR ═══════════ -->
+<div class="scene" id="scene3">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item active"><span class="nav-icon">🤖</span> AI Insights</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item"><span class="nav-icon">👥</span> Xodimlar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">⚠️ Kritik ogohlantirishlar</div>
+      <div class="page-sub">AI aniqlagan muammolar va tavsiya etilgan chora-tadbirlar</div>
+
+      <div class="action-card" id="ac1">
+        <div class="action-header">
+          <div class="action-title">🔴 Loreal Serum — Kam qoldi</div>
+          <span class="badge badge-red">Kritik</span>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#f87171"></div>
+          <div class="action-text">Joriy qoldiq: <b style="color:#f87171">3 dona</b> — 2 kunlik zaxira</div>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#f59e0b"></div>
+          <div class="action-text">O'rtacha kunlik sotuv: 19 dona · Juma uchun +30% talab kutiladi</div>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#4ade80"></div>
+          <div class="action-text">AI tavsiya: <b>50 dona buyurtma bering</b> (7 kunlik zaxira)</div>
+          <div class="action-btn btn-amber" id="btnOrder1">Buyurtma →</div>
+        </div>
+      </div>
+
+      <div class="action-card" id="ac2">
+        <div class="action-header">
+          <div class="action-title">🔴 NYX Lipstick #12 — Tugaydi</div>
+          <span class="badge badge-red">Kritik</span>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#f87171"></div>
+          <div class="action-text">Joriy qoldiq: <b style="color:#f87171">1 dona</b> — bugunoq tugaydi</div>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#4ade80"></div>
+          <div class="action-text">AI tavsiya: <b>30 dona buyurtma bering</b></div>
+          <div class="action-btn btn-amber" id="btnOrder2">Buyurtma →</div>
+        </div>
+      </div>
+
+      <div class="action-card" id="ac3">
+        <div class="action-header">
+          <div class="action-title">🟡 Maybelline Cushion — Sekin sotuv</div>
+          <span class="badge badge-amber">Diqqat</span>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#f59e0b"></div>
+          <div class="action-text">Qoldiq: 24 dona · Sotuv: 2 dona/kun (12 kunlik zaxira)</div>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#4ade80"></div>
+          <div class="action-text">AI tavsiya: <b>15% chegirma</b> qo'yib sotuvni tezlashtiring</div>
+          <div class="action-btn btn-amber">Chegirma →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 4: BUYURTMA MODAL + NATIJA ═══════════ -->
+<div class="scene" id="scene4">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item active"><span class="nav-icon">🤖</span> AI Insights</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item"><span class="nav-icon">👥</span> Xodimlar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">📦 Buyurtma yaratish</div>
+      <div class="page-sub">AI tavsiyasi asosida yetkazib beruvchiga buyurtma</div>
+
+      <div class="action-card show" id="orderSummary">
+        <div class="action-header">
+          <div class="action-title">🛒 Buyurtma tarkibi</div>
+          <span class="badge badge-amber">AI tavsiyasi</span>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#f59e0b"></div>
+          <div class="action-text">Loreal Serum</div>
+          <div style="font-size:11px;color:#fcd34d;font-weight:700">50 dona</div>
+        </div>
+        <div class="action-row">
+          <div class="action-dot" style="background:#f59e0b"></div>
+          <div class="action-text">NYX Lipstick #12</div>
+          <div style="font-size:11px;color:#fcd34d;font-weight:700">30 dona</div>
+        </div>
+        <div class="action-row" style="background:rgba(245,158,11,0.05)">
+          <div class="action-dot" style="background:#4ade80"></div>
+          <div class="action-text"><b style="color:#e2e8f0">Jami:</b> 80 dona</div>
+          <div class="action-btn btn-amber" id="btnSend">Yuborish ✓</div>
+        </div>
+      </div>
+
+      <div class="success-box" id="successBox">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Buyurtma yetkazib beruvchiga yuborildi!</div>
+        <div class="success-desc">
+          Loreal Serum (50 dona) + NYX Lipstick #12 (30 dona)<br/>
+          Telegram orqali yetkazib beruvchi xabardor qilindi.<br/>
+          <b style="color:#fcd34d">Yetkazish muddati: 1–2 ish kuni</b>
+        </div>
+      </div>
+
+      <div style="background:#0a1228;border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:14px;margin-top:10px;opacity:0;transition:opacity .5s" id="aiSummary">
+        <div style="font-size:11px;color:#94a3b8;line-height:1.9">
+          🤖 <b style="color:#fcd34d">AI Night Cashier</b> nimalar qiladi?<br/>
+          ─────────────────<br/>
+          🕐 Har kecha <b style="color:#e2e8f0">23:00</b> — kunlik hisobot tayyorlaydi<br/>
+          📊 <b style="color:#e2e8f0">30 kunlik</b> ma'lumot asosida trende tahlil qiladi<br/>
+          ⚠️ Kritik stock ogohlantirishlarini aniqlaydi<br/>
+          💡 Buyurtma va chegirma tavsiyalar beradi<br/>
+          🔮 Ertangi savdo bashoratini hisoblaydi<br/>
+          📤 Hisobotni <b style="color:#e2e8f0">Telegram</b> ga avtomatik yuboradi<br/>
+          ─────────────────<br/>
+          <b style="color:#4ade80">Siz uyda uxlayapsiz — AI ishlaydi!</b>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📦 Buyurtma tasdiqlash</div>
+      <div class="modal-close" id="modalClose">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="order-item">
+        <span class="order-name">Loreal Serum</span>
+        <span class="order-qty">50 dona</span>
+        <span class="order-price">3 500 000</span>
+      </div>
+      <div class="order-item">
+        <span class="order-name">NYX Lipstick #12</span>
+        <span class="order-qty">30 dona</span>
+        <span class="order-price">1 500 000</span>
+      </div>
+      <div class="order-item" style="border-top:1px solid rgba(245,158,11,0.2);margin-top:4px;padding-top:8px">
+        <span style="color:#e2e8f0;font-weight:700">Jami</span>
+        <span></span>
+        <span style="color:#fcd34d;font-weight:700">5 000 000</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" id="modalCancel">Bekor</button>
+      <button class="modal-btn-ok" id="modalOk">✓ Tasdiqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- CURSOR & TOAST -->
+<div class="cursor" id="cursor"></div>
+<div class="toast" id="toast"><span class="toast-icon" id="toastIcon">✅</span><span id="toastMsg"></span></div>
+
+<!-- ════════════════ CONTROLS ════════════════ -->
+<div class="controls">
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      <div class="progress-handle" id="progressHandle"></div>
+    </div>
+    <div class="time-txt"><span id="timeCur">0:00</span> / <span id="timeTotal">6:00</span></div>
+  </div>
+  <div class="ctrl-row">
+    <div class="play-btn" id="playBtn">▶</div>
+    <div class="ctrl-btn" onclick="skip(-15)">↩ 15s</div>
+    <div class="ctrl-btn" onclick="skip(15)">15s ↪</div>
+    <div class="ctrl-btn" id="sp05" onclick="setSpeed(0.5)">0.5×</div>
+    <div class="ctrl-btn active" id="sp10" onclick="setSpeed(1)">1×</div>
+    <div class="ctrl-btn" id="sp15" onclick="setSpeed(1.5)">1.5×</div>
+    <div class="ctrl-btn" id="sp20" onclick="setSpeed(2)">2×</div>
+    <div class="step-dots">
+      <div class="dot active" onclick="seekToStep(0)"></div>
+      <div class="dot" onclick="seekToStep(1)"></div>
+      <div class="dot" onclick="seekToStep(2)"></div>
+      <div class="dot" onclick="seekToStep(3)"></div>
+    </div>
+    <div class="step-info" id="stepInfo">Qadam 1/4</div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 360;
+const STEPS = [
+  { time:   0, end:  90, label: 'Telegram xabari'          },
+  { time:  90, end: 180, label: 'AI Insights dashboard'    },
+  { time: 180, end: 270, label: 'Kritik ogohlantirishlar'  },
+  { time: 270, end: 360, label: 'Buyurtma & natija'        },
+];
+
+let elapsed = 0, playing = false, speed = 1, rafId = null, lastTs = null;
+
+// Cursor
+const cursor = document.getElementById('cursor');
+let cx = window.innerWidth/2, cy = window.innerHeight/2;
+cursor.style.left = cx+'px'; cursor.style.top = cy+'px';
+
+function moveCursor(x,y,dur=600,cb){
+  const sx=cx,sy=cy,start=performance.now();
+  function frame(now){
+    const t=Math.min((now-start)/dur,1);
+    const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    cx=sx+(x-sx)*e; cy=sy+(y-sy)*e;
+    cursor.style.left=cx+'px'; cursor.style.top=cy+'px';
+    if(t<1)requestAnimationFrame(frame);
+    else if(cb)cb();
+  }
+  requestAnimationFrame(frame);
+}
+
+function clickAt(x,y,cb){
+  moveCursor(x,y,500,()=>{
+    cursor.classList.add('clicking');
+    const r=document.createElement('div');
+    r.className='ripple';r.style.left=x+'px';r.style.top=y+'px';
+    document.body.appendChild(r);
+    setTimeout(()=>{r.remove();cursor.classList.remove('clicking');if(cb)cb();},500);
+  });
+}
+
+function showToast(icon,msg,dur=2200){
+  const t=document.getElementById('toast');
+  document.getElementById('toastIcon').textContent=icon;
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function hl(id,dur=1800){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.add('highlight');
+  setTimeout(()=>el.classList.remove('highlight'),dur);
+}
+
+let currentScene=0;
+function showScene(n){
+  document.querySelectorAll('.scene').forEach((s,i)=>s.classList.toggle('active',i===n));
+  currentScene=n;
+}
+
+// ── SCENE 1: Telegram bubbles ──
+let s1={};
+function runScene1(local){
+  if(local>1 && !s1.a){ s1.a=true; document.getElementById('b1').classList.add('show'); }
+  if(local>10 && !s1.b){ s1.b=true; document.getElementById('b2').classList.add('show'); hl('tgPhone'); }
+  if(local>22 && !s1.c){ s1.c=true; document.getElementById('b3').classList.add('show'); }
+  if(local>34 && !s1.d){ s1.d=true; document.getElementById('b4').classList.add('show'); }
+  if(local>44 && !s1.e){
+    s1.e=true;
+    const tt=document.getElementById('tgTime');
+    tt.style.opacity=1;tt.style.transition='opacity .4s';
+    showToast('🤖','AI Night Cashier hisoboti keldi!',2500);
+  }
+  if(local>58 && !s1.f){
+    s1.f=true;
+    moveCursor(500,200,600,()=>showToast('📊','Batafsil tahlilni RAOS dashboarddan ko\'ring…'));
+  }
+}
+
+// ── SCENE 2: AI Insights ──
+let s2={};
+function runScene2(local){
+  if(local>1 && !s2.a){
+    s2.a=true;
+    // week chart
+    const days=['Du','Se','Ch','Pa','Ju','Sh','Ya'];
+    const vals=[65,48,72,81,94,38,55];
+    const wc=document.getElementById('weekChart');
+    const wl=document.getElementById('weekLabels');
+    wc.innerHTML=''; wl.innerHTML='';
+    vals.forEach((v,i)=>{
+      const wrap=document.createElement('div'); wrap.className='bar-wrap'; wrap.style.flex='1';
+      const bar=document.createElement('div'); bar.className='bar';
+      bar.style.cssText=`width:100%;background:linear-gradient(to top,#f59e0b,#fcd34d);height:0`;
+      wrap.appendChild(bar);
+      wc.appendChild(wrap);
+      const lbl=document.createElement('div'); lbl.className='bar-label'; lbl.textContent=days[i];
+      wl.appendChild(lbl);
+      setTimeout(()=>{ bar.style.height=(v*0.75)+'px'; },80*i);
+    });
+  }
+  if(local>5 && !s2.b){
+    s2.b=true;
+    ['iw1','iw2','iw3'].forEach((id,i)=>setTimeout(()=>document.getElementById(id).classList.add('show'),i*200));
+  }
+  if(local>18 && !s2.c){ s2.c=true; hl('iw1',2000); showToast('⚠️','2 ta kritik ogohlantirish aniqlandi!',2500); }
+  if(local>35 && !s2.d){
+    s2.d=true;
+    const fc=document.getElementById('forecastCard');
+    fc.style.opacity=1; hl('forecastCard',2500);
+  }
+  if(local>55 && !s2.e){
+    s2.e=true;
+    showToast('🔮','Ertangi sotuv bashorati tayyor!',2200);
+    moveCursor(600,300,700);
+  }
+}
+
+// ── SCENE 3: Ogohlantirishlar ──
+let s3={};
+function runScene3(local){
+  if(local>1 && !s3.a){
+    s3.a=true;
+    ['ac1','ac2','ac3'].forEach((id,i)=>setTimeout(()=>document.getElementById(id).classList.add('show'),i*300));
+  }
+  if(local>12 && !s3.b){ s3.b=true; hl('ac1',2000); }
+  if(local>25 && !s3.c){ s3.c=true; hl('ac2',2000); showToast('🔴','2 ta mahsulot kritik darajada kam!',2500); }
+  if(local>40 && !s3.d){
+    s3.d=true;
+    clickAt(document.getElementById('btnOrder1').getBoundingClientRect().x + 20,
+             document.getElementById('btnOrder1').getBoundingClientRect().y + 10,
+             ()=>{ document.getElementById('orderModal').classList.add('show'); });
+  }
+  if(local>56 && !s3.e){
+    s3.e=true;
+    clickAt(document.getElementById('modalOk').getBoundingClientRect().x + 30,
+             document.getElementById('modalOk').getBoundingClientRect().y + 10,
+             ()=>{
+               document.getElementById('orderModal').classList.remove('show');
+               showToast('✅','Buyurtma muvaffaqiyatli yaratildi!',2500);
+             });
+  }
+}
+
+// ── SCENE 4: Buyurtma & Natija ──
+let s4={};
+function runScene4(local){
+  if(local>5 && !s4.a){
+    s4.a=true;
+    clickAt(600,280,()=>{
+      const sb=document.getElementById('successBox');
+      sb.classList.add('show');
+      showToast('📦','Buyurtma yetkazib beruvchiga yuborildi!',2800);
+    });
+  }
+  if(local>22 && !s4.b){
+    s4.b=true;
+    const ai=document.getElementById('aiSummary');
+    ai.style.opacity=1; hl('aiSummary',3000);
+  }
+  if(local>50 && !s4.c){
+    s4.c=true;
+    showToast('🎉','8-dars yakunlandi! AI Night Cashier — kuchingiz!',3500);
+  }
+}
+
+// Modal buttons
+document.getElementById('modalClose').onclick=()=>document.getElementById('orderModal').classList.remove('show');
+document.getElementById('modalCancel').onclick=()=>document.getElementById('orderModal').classList.remove('show');
+document.getElementById('modalOk').onclick=()=>{
+  document.getElementById('orderModal').classList.remove('show');
+  showToast('✅','Buyurtma muvaffaqiyatli yaratildi!');
+};
+
+// ── STEP LOGIC ──
+function getCurrentStep(){
+  for(let i=STEPS.length-1;i>=0;i--) if(elapsed>=STEPS[i].time) return i;
+  return 0;
+}
+
+function updateUI(){
+  const pct=(elapsed/TOTAL)*100;
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressHandle').style.right=(100-pct)+'%';
+  const m=Math.floor(elapsed/60),s=Math.floor(elapsed%60);
+  document.getElementById('timeCur').textContent=m+':'+(s<10?'0':'')+s;
+  const idx=getCurrentStep();
+  document.getElementById('topStep').textContent=idx+1;
+  document.getElementById('stepInfo').textContent='Qadam '+(idx+1)+'/'+STEPS.length;
+  document.querySelectorAll('.dot').forEach((d,i)=>{
+    d.classList.toggle('active',i===idx);
+    d.classList.toggle('done',i<idx);
+  });
+}
+
+let prevStep=-1;
+function runStepAnim(idx,local){
+  if(idx===0) runScene1(local);
+  else if(idx===1) runScene2(local);
+  else if(idx===2) runScene3(local);
+  else if(idx===3) runScene4(local);
+}
+
+function tick(ts){
+  if(!playing) return;
+  if(lastTs===null) lastTs=ts;
+  const dt=Math.min((ts-lastTs)/1000,0.2)*speed;
+  lastTs=ts;
+  elapsed=Math.min(elapsed+dt,TOTAL);
+  const idx=getCurrentStep();
+  if(idx!==prevStep){ prevStep=idx; showScene(idx); }
+  runStepAnim(idx, elapsed-STEPS[idx].time);
+  updateUI();
+  if(elapsed>=TOTAL){ playing=false; document.getElementById('playBtn').textContent='▶'; return; }
+  rafId=requestAnimationFrame(tick);
+}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('playBtn').textContent=playing?'⏸':'▶';
+  if(playing){ lastTs=null; rafId=requestAnimationFrame(tick); }
+}
+
+function skip(sec){
+  elapsed=Math.max(0,Math.min(TOTAL,elapsed+sec));
+  prevStep=-1;
+  showScene(getCurrentStep()); updateUI();
+  if(playing) lastTs=null;
+}
+
+function seekToStep(i){
+  elapsed=STEPS[i].time+0.01; prevStep=-1;
+  if(i===0)s1={};
+  if(i===1)s2={};
+  if(i===2)s3={};
+  if(i===3)s4={};
+  showScene(i); updateUI();
+  if(playing) lastTs=null;
+}
+
+function setSpeed(s){
+  speed=s;
+  ['05','10','15','20'].forEach(v=>document.getElementById('sp'+v).classList.remove('active'));
+  document.getElementById('sp'+(s===0.5?'05':s===1?'10':s===1.5?'15':'20')).classList.add('active');
+}
+
+document.getElementById('progressBar').addEventListener('click',e=>{
+  const r=document.getElementById('progressBar').getBoundingClientRect();
+  elapsed=(e.clientX-r.left)/r.width*TOTAL;
+  prevStep=-1; s1={}; s2={}; s3={}; s4={};
+  showScene(getCurrentStep()); updateUI();
+  if(playing) lastTs=null;
+});
+
+document.getElementById('playBtn').addEventListener('click',togglePlay);
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();togglePlay();}
+  if(e.code==='ArrowRight') skip(15);
+  if(e.code==='ArrowLeft') skip(-15);
+});
+
+updateUI();
+setTimeout(togglePlay, 700);
+</script>
+</body>
+</html>

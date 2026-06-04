@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAOS — 5-darslik: Inventarizatsiya o'tkazish</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:    #24D4F4;
+    --cyan2:   #5FEEFB;
+    --navy:    #0E1530;
+    --navy2:   #112F4B;
+    --navy3:   #0a1228;
+    --glass:   rgba(36,212,244,0.07);
+    --border:  rgba(36,212,244,0.18);
+    --purple:  #a855f7;
+    --purple2: #c084fc;
+    --green:   #22c55e;
+    --red:     #ef4444;
+    --amber:   #f59e0b;
+    --orange:  #f97316;
+  }
+
+  body {
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    width: 100%; background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--cyan); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; color: var(--navy); }
+  .logo-text { font-weight: 800; font-size: 18px; }
+  .lesson-badge { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.35); color: var(--purple); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #94a3b8; }
+  .topbar-right span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── HERO ── */
+  .hero { width: 100%; max-width: 960px; padding: 36px 24px 20px; text-align: center; }
+  .lesson-number { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--purple); text-transform: uppercase; margin-bottom: 10px; }
+  .hero h1 { font-size: clamp(20px, 3.5vw, 34px); font-weight: 900; line-height: 1.2; margin-bottom: 10px; }
+  .hero h1 span { color: var(--cyan); }
+  .hero-sub { font-size: 14px; color: #94a3b8; max-width: 480px; margin: 0 auto 20px; }
+  .meta-pills { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+  .pill { display: flex; align-items: center; gap: 5px; background: var(--glass); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: #cbd5e1; }
+  .pill.purple { color: var(--purple); border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.07); }
+  .pill.amber { color: var(--amber); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.07); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { width: 100%; max-width: 960px; padding: 0 24px 6px; }
+  .progress-steps { display: flex; gap: 4px; margin-bottom: 10px; align-items: center; }
+  .step-dot {
+    display: flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(36,212,244,0.2);
+    font-size: 10px; font-weight: 700; color: #475569;
+    transition: all 0.4s; cursor: pointer; position: relative;
+  }
+  .step-dot.active { border-color: var(--cyan); background: rgba(36,212,244,0.15); color: var(--cyan); box-shadow: 0 0 12px rgba(36,212,244,0.35); }
+  .step-dot.done { border-color: rgba(34,197,94,0.5); background: rgba(34,197,94,0.1); color: #34d399; }
+  .step-dot.done::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .step-dot.done span { display: none; }
+  .step-line { flex: 1; height: 2px; background: rgba(36,212,244,0.08); border-radius: 1px; overflow: hidden; }
+  .step-line-fill { height: 100%; background: var(--cyan); border-radius: 1px; transition: width 0.6s ease; }
+  .progress-label { font-size: 11px; color: #64748b; display: flex; justify-content: space-between; }
+  .progress-label strong { color: var(--cyan); }
+
+  /* ── STEP CARDS ── */
+  .step-info { width: 100%; max-width: 960px; padding: 0 24px; }
+  .step-cards { display: flex; gap: 6px; }
+  .step-card {
+    flex: 1; padding: 10px 11px;
+    background: var(--glass); border: 1px solid rgba(36,212,244,0.08);
+    border-radius: 10px; cursor: pointer; transition: all 0.3s; opacity: 0.45;
+  }
+  .step-card.active { border-color: var(--cyan); background: rgba(36,212,244,0.06); opacity: 1; box-shadow: 0 0 12px rgba(36,212,244,0.08); }
+  .step-card.done { opacity: 0.7; }
+  .step-card-num { font-size: 9px; font-weight: 700; color: var(--cyan); margin-bottom: 2px; }
+  .step-card.done .done-icon { display: inline; color: #34d399; }
+  .step-card .done-icon { display: none; }
+  .step-card.done .num-val { display: none; }
+  .step-card h5 { font-size: 9px; font-weight: 700; color: #cbd5e1; margin-bottom: 1px; line-height: 1.3; }
+  .spacer { height: 16px; }
+
+  /* ── DEMO AREA ── */
+  .demo-area { width: 100%; max-width: 960px; padding: 0 24px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .screen-wrap { width: 100%; background: var(--navy2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 0 50px rgba(36,212,244,0.07); }
+  .screen-bar { background: var(--navy3); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .screen-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .screen-dot:nth-child(1){background:#ef4444}
+  .screen-dot:nth-child(2){background:#f59e0b}
+  .screen-dot:nth-child(3){background:#22c55e}
+  .screen-url { flex: 1; background: var(--glass); border: 1px solid var(--border); border-radius: 6px; padding: 4px 12px; font-size: 11px; color: #64748b; margin: 0 10px; display: flex; align-items: center; gap: 5px; }
+  .screen-url span { color: var(--cyan); }
+  .screen-content { min-height: 360px; position: relative; overflow: hidden; }
+
+  /* ── SCENES ── */
+  .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 0.45s ease; pointer-events: none; }
+  .scene.active { opacity: 1; pointer-events: auto; }
+
+  /* ── SHARED LAYOUT ── */
+  .app-wrap { display: flex; height: 100%; }
+  .sidebar {
+    width: 148px; background: var(--navy3); border-right: 1px solid var(--border);
+    padding: 14px 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;
+  }
+  .sidebar-logo { padding: 0 14px 12px; font-weight: 900; font-size: 14px; color: var(--cyan); }
+  .nav-item { padding: 8px 14px; font-size: 11px; color: #475569; display: flex; align-items: center; gap: 7px; border-left: 2px solid transparent; transition: all 0.2s; }
+  .nav-item.active { color: var(--cyan); background: rgba(36,212,244,0.07); border-left-color: var(--cyan); }
+  .nav-item svg { width: 13px; height: 13px; }
+  .main-area { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; }
+  .page-title { font-size: 15px; font-weight: 800; }
+  .btn-primary {
+    background: var(--cyan); color: var(--navy); border: none;
+    font-weight: 800; font-size: 11px; padding: 7px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary {
+    background: var(--glass); color: #94a3b8; border: 1px solid var(--border);
+    font-weight: 700; font-size: 11px; padding: 7px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+
+  /* ── SCENE 0: Sklad ro'yxati ── */
+  .inv-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-card { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .stat-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 900; }
+  .stat-value.cyan { color: var(--cyan); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-sub { font-size: 9px; color: #475569; margin-top: 2px; }
+  .inv-table { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .t-head { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 80px; padding: 7px 12px; background: rgba(10,18,40,0.5); border-bottom: 1px solid var(--border); }
+  .t-head span { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; }
+  .t-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 80px; padding: 9px 12px; border-bottom: 1px solid rgba(36,212,244,0.05); align-items: center; transition: background 0.2s; cursor: pointer; }
+  .t-row:last-child { border: none; }
+  .t-row:hover { background: rgba(36,212,244,0.03); }
+  .t-row.highlight { background: rgba(168,85,247,0.06); border-left: 2px solid var(--purple); }
+  .r-name { font-size: 11px; font-weight: 600; color: #cbd5e1; display: flex; align-items: center; gap: 6px; }
+  .r-name span { font-size: 14px; }
+  .r-num { font-size: 11px; font-weight: 700; color: #fff; }
+  .r-num.red { color: #f87171; }
+  .r-num.green { color: #34d399; }
+  .r-num.amber { color: var(--amber); }
+  .r-badge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .badge-ok { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #34d399; }
+  .badge-low { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: var(--amber); }
+  .badge-out { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #f87171; }
+  .last-inv { font-size: 9px; color: #475569; }
+
+  /* Cursor */
+  .cursor { position: absolute; width: 20px; height: 20px; pointer-events: none; z-index: 50; transition: left 0.55s cubic-bezier(.4,0,.2,1), top 0.55s cubic-bezier(.4,0,.2,1); }
+  .cursor svg { filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); }
+  .click-ripple { position: absolute; width: 32px; height: 32px; border-radius: 50%; background: rgba(36,212,244,0.2); pointer-events: none; z-index: 49; transform: translate(-50%,-50%) scale(0); transition: transform 0.4s ease, opacity 0.4s ease; }
+  .click-ripple.pop { transform: translate(-50%,-50%) scale(1); opacity: 0; }
+
+  /* ── SCENE 1: Yangi inventarizatsiya yaratish ── */
+  .modal-overlay { position: absolute; inset: 0; background: rgba(10,18,40,0.82); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; z-index: 20; }
+  .create-modal {
+    background: var(--navy2); border: 1px solid rgba(168,85,247,0.35);
+    border-radius: 16px; padding: 22px 24px; width: 340px;
+    box-shadow: 0 0 40px rgba(168,85,247,0.15);
+    opacity: 0; transform: scale(0.94) translateY(8px); transition: all 0.4s ease;
+  }
+  .create-modal.show { opacity: 1; transform: scale(1) translateY(0); }
+  .cm-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .cm-sub { font-size: 11px; color: #64748b; margin-bottom: 16px; }
+  .cm-field { margin-bottom: 12px; }
+  .cm-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
+  .cm-input { width: 100%; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #cbd5e1; }
+  .cm-input.active { border-color: var(--purple); box-shadow: 0 0 10px rgba(168,85,247,0.2); }
+  .cm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .cm-select { background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #cbd5e1; width: 100%; }
+  .cm-select.active { border-color: var(--purple); }
+  .cm-scope { display: flex; gap: 6px; margin-bottom: 16px; }
+  .scope-btn { flex: 1; padding: 8px; text-align: center; border-radius: 8px; border: 1px solid var(--border); background: var(--glass); font-size: 10px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.2s; }
+  .scope-btn.active { border-color: var(--purple); background: rgba(168,85,247,0.1); color: var(--purple); }
+  .btn-create { width: 100%; background: var(--purple); color: #fff; border: none; font-weight: 800; font-size: 13px; padding: 11px; border-radius: 10px; cursor: pointer; transition: all 0.2s; opacity: 0.35; }
+  .btn-create.show { opacity: 1; box-shadow: 0 0 18px rgba(168,85,247,0.3); }
+
+  /* ── SCENE 2: Skanerlash ekrani ── */
+  .scan-area { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  .scan-header { display: flex; align-items: center; justify-content: space-between; }
+  .scan-info { display: flex; gap: 10px; }
+  .scan-chip { background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 10px; color: #cbd5e1; display: flex; align-items: center; gap: 5px; }
+  .scan-chip strong { color: var(--cyan); font-size: 12px; }
+  .barcode-input { background: var(--glass); border: 1px solid rgba(168,85,247,0.4); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #cbd5e1; display: flex; align-items: center; gap: 8px; box-shadow: 0 0 12px rgba(168,85,247,0.15); }
+  .barcode-input svg { width: 14px; height: 14px; color: var(--purple); }
+  .barcode-input span { color: #64748b; }
+  .barcode-cursor { display: inline-block; width: 1px; height: 13px; background: var(--purple); animation: blink 0.9s step-end infinite; margin-left: 2px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .scan-table { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; flex: 1; }
+  .scan-thead { display: grid; grid-template-columns: 2fr 80px 80px 80px 70px; padding: 7px 12px; background: rgba(10,18,40,0.5); border-bottom: 1px solid var(--border); }
+  .scan-thead span { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; }
+  .scan-row { display: grid; grid-template-columns: 2fr 80px 80px 80px 70px; padding: 8px 12px; border-bottom: 1px solid rgba(36,212,244,0.05); align-items: center; opacity: 0; transform: translateX(-8px); transition: all 0.4s; }
+  .scan-row.show { opacity: 1; transform: none; }
+  .scan-row.diff-ok { border-left: 2px solid rgba(34,197,94,0.4); }
+  .scan-row.diff-bad { border-left: 2px solid rgba(239,68,68,0.4); }
+  .diff-chip { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 999px; }
+  .diff-zero { background: rgba(34,197,94,0.1); color: #34d399; border: 1px solid rgba(34,197,94,0.2); }
+  .diff-minus { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .diff-plus { background: rgba(168,85,247,0.1); color: var(--purple); border: 1px solid rgba(168,85,247,0.2); }
+  .scan-progress { display: flex; align-items: center; gap: 10px; }
+  .scan-bar { flex: 1; height: 6px; background: rgba(36,212,244,0.1); border-radius: 3px; overflow: hidden; }
+  .scan-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: 3px; transition: width 0.8s ease; }
+  .scan-pct { font-size: 11px; font-weight: 700; color: var(--cyan); }
+
+  /* ── SCENE 3: Farqlar ko'rinishi ── */
+  .diff-section { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .diff-header { padding: 10px 14px; background: rgba(10,18,40,0.4); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .diff-title { font-size: 12px; font-weight: 700; color: #fff; }
+  .diff-count { font-size: 10px; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); padding: 2px 8px; border-radius: 999px; }
+  .diff-row { display: grid; grid-template-columns: 2fr 70px 70px 70px 1fr; padding: 9px 14px; border-bottom: 1px solid rgba(36,212,244,0.05); align-items: center; }
+  .diff-row:last-child { border: none; }
+  .d-product { font-size: 11px; font-weight: 600; color: #cbd5e1; display: flex; align-items: center; gap: 6px; }
+  .d-num { font-size: 11px; font-weight: 700; color: #fff; text-align: center; }
+  .d-fact { font-size: 11px; font-weight: 700; text-align: center; }
+  .d-fact.ok { color: #34d399; }
+  .d-fact.bad { color: #f87171; }
+  .d-diff { font-size: 11px; font-weight: 800; text-align: center; }
+  .d-diff.minus { color: #f87171; }
+  .d-diff.plus { color: var(--purple); }
+  .d-diff.zero { color: #34d399; }
+  .d-reason { font-size: 10px; }
+  .reason-tag { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: var(--amber); padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 700; }
+
+  .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .sum-card { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .sum-icon { font-size: 18px; margin-bottom: 4px; }
+  .sum-val { font-size: 16px; font-weight: 900; }
+  .sum-val.red { color: #f87171; }
+  .sum-val.purple { color: var(--purple); }
+  .sum-val.green { color: #34d399; }
+  .sum-label { font-size: 9px; color: #64748b; margin-top: 2px; }
+
+  /* ── SCENE 4: Sabab kiriting ── */
+  .reason-modal {
+    background: var(--navy2); border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 16px; padding: 20px 22px; width: 360px;
+    box-shadow: 0 0 36px rgba(245,158,11,0.1);
+    opacity: 0; transform: scale(0.94) translateY(8px); transition: all 0.4s ease;
+  }
+  .reason-modal.show { opacity: 1; transform: scale(1) translateY(0); }
+  .rm-title { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
+  .rm-sub { font-size: 10px; color: #64748b; margin-bottom: 14px; }
+  .rm-item { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .rm-item-emoji { font-size: 14px; }
+  .rm-item-info { flex: 1; }
+  .rm-item-name { font-size: 11px; font-weight: 700; color: #cbd5e1; }
+  .rm-item-diff { font-size: 10px; color: #f87171; }
+  .rm-reasons-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
+  .rm-reasons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .rm-reason-opt { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--glass); font-size: 10px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .rm-reason-opt.active { border-color: var(--amber); background: rgba(245,158,11,0.08); color: var(--amber); }
+  .rm-note { width: 100%; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 11px; color: #64748b; font-family: inherit; resize: none; height: 48px; }
+  .rm-note.filled { border-color: rgba(245,158,11,0.4); color: #cbd5e1; }
+  .btn-rm-confirm { width: 100%; background: rgba(245,158,11,0.2); color: var(--amber); border: 1px solid rgba(245,158,11,0.4); font-weight: 800; font-size: 12px; padding: 10px; border-radius: 10px; cursor: pointer; margin-top: 12px; transition: all 0.2s; opacity: 0.3; }
+  .btn-rm-confirm.show { opacity: 1; box-shadow: 0 0 14px rgba(245,158,11,0.25); }
+
+  /* ── SCENE 5: Tasdiqlash ── */
+  .confirm-modal {
+    background: var(--navy2); border: 1px solid rgba(168,85,247,0.35);
+    border-radius: 16px; padding: 22px 24px; width: 360px;
+    box-shadow: 0 0 40px rgba(168,85,247,0.15);
+    opacity: 0; transform: scale(0.94) translateY(8px); transition: all 0.4s ease;
+  }
+  .confirm-modal.show { opacity: 1; transform: scale(1) translateY(0); }
+  .conf-title { font-size: 14px; font-weight: 800; margin-bottom: 12px; }
+  .conf-summary { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+  .conf-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-bottom: 7px; }
+  .conf-row:last-child { margin: 0; padding-top: 7px; border-top: 1px solid rgba(36,212,244,0.1); }
+  .conf-label { color: #64748b; }
+  .conf-value { font-weight: 700; color: #cbd5e1; }
+  .conf-value.red { color: #f87171; }
+  .conf-value.purple { color: var(--purple); }
+  .conf-warn { background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; padding: 9px 12px; font-size: 10px; color: #94a3b8; margin-bottom: 14px; line-height: 1.6; }
+  .conf-warn strong { color: var(--amber); }
+  .conf-btns { display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; }
+  .btn-cancel { background: var(--glass); color: #94a3b8; border: 1px solid var(--border); font-weight: 700; font-size: 12px; padding: 10px; border-radius: 10px; cursor: pointer; }
+  .btn-apply { background: var(--purple); color: #fff; border: none; font-weight: 800; font-size: 12px; padding: 10px; border-radius: 10px; cursor: pointer; opacity: 0.3; transition: all 0.2s; }
+  .btn-apply.show { opacity: 1; box-shadow: 0 0 16px rgba(168,85,247,0.35); }
+
+  /* ── SCENE 6: Hisobot ── */
+  .report-area { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  .report-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rchip { display: flex; align-items: center; gap: 5px; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 10px; font-weight: 600; }
+  .rchip.green { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.07); color: #34d399; }
+  .rchip.red { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.07); color: #f87171; }
+  .rchip.purple { border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.07); color: var(--purple); }
+  .rchip.amber { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.07); color: var(--amber); }
+  .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .report-card { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .rc-title { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .rc-chart { display: flex; align-items: flex-end; gap: 6px; height: 60px; }
+  .rc-bar { flex: 1; border-radius: 4px 4px 0 0; transition: height 1s ease; position: relative; }
+  .rc-bar-label { position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); font-size: 8px; color: #475569; white-space: nowrap; }
+  .rc-bar-val { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 700; color: var(--cyan); white-space: nowrap; }
+  .loss-list { display: flex; flex-direction: column; gap: 6px; }
+  .loss-item { display: flex; align-items: center; gap: 8px; }
+  .loss-name { font-size: 10px; font-weight: 600; color: #cbd5e1; flex: 1; }
+  .loss-bar { height: 4px; border-radius: 2px; }
+  .loss-val { font-size: 10px; font-weight: 700; color: #f87171; width: 50px; text-align: right; }
+  .report-actions { display: flex; gap: 8px; }
+  .btn-export { background: rgba(168,85,247,0.12); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); font-weight: 700; font-size: 11px; padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn-telegram { background: rgba(36,212,244,0.1); color: var(--cyan); border: 1px solid var(--border); font-weight: 700; font-size: 11px; padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+  .tg-sent { display: none; font-size: 10px; color: #34d399; align-items: center; gap: 4px; }
+  .tg-sent.show { display: flex; }
+
+  /* ── TOOLTIP ── */
+  .tooltip-wrap { width: 100%; max-width: 960px; padding: 0 24px 6px; }
+  .tooltip-box { background: var(--navy2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .tooltip-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+  .tooltip-text h4 { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .tooltip-text p { font-size: 11px; color: #94a3b8; line-height: 1.6; }
+
+  /* ── CONTROLS ── */
+  .controls { width: 100%; max-width: 960px; padding: 0 24px 28px; display: flex; flex-direction: column; gap: 8px; }
+  .timeline { width: 100%; height: 6px; background: rgba(36,212,244,0.1); border-radius: 3px; position: relative; cursor: pointer; }
+  .timeline-fill { height: 100%; background: var(--cyan); border-radius: 3px; width: 0%; transition: width 0.3s linear; }
+  .timeline-thumb { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); border: 2px solid var(--navy2); transform: translateY(-50%); left: 0; transition: left 0.3s linear; box-shadow: 0 0 8px rgba(36,212,244,0.5); }
+  .ctrl-row { display: flex; align-items: center; gap: 8px; }
+  .ctrl-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--glass); color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .ctrl-btn.main { width: 42px; height: 42px; background: var(--cyan); border-color: var(--cyan); color: var(--navy); font-size: 15px; font-weight: 900; }
+  .ctrl-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .time-display { font-size: 12px; color: #64748b; font-variant-numeric: tabular-nums; flex: 1; text-align: center; }
+  .ctrl-right { display: flex; gap: 4px; }
+  .speed-btn { padding: 3px 7px; border-radius: 6px; font-size: 10px; font-weight: 700; border: 1px solid var(--border); background: transparent; color: #64748b; cursor: pointer; transition: all 0.2s; }
+  .speed-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(36,212,244,0.07); }
+
+  /* Notification toast */
+  .toast {
+    position: absolute; top: 12px; right: 12px; z-index: 60;
+    background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3);
+    color: #34d399; font-size: 11px; font-weight: 700;
+    padding: 8px 14px; border-radius: 8px;
+    display: flex; align-items: center; gap: 6px;
+    opacity: 0; transform: translateY(-8px); transition: all 0.4s;
+  }
+  .toast.show { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <div class="logo-text">RAOS</div>
+  </div>
+  <div class="lesson-badge">5-darslik — Pro</div>
+  <div class="topbar-right">
+    <span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      7 daqiqa
+    </span>
+    <span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Sklad
+    </span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="lesson-number">SKLAD — 5-DARS</div>
+  <h1>Inventarizatsiya <span>o'tkazish</span></h1>
+  <p class="hero-sub">Sklad qoldiqlarini tekshirish, farqlarni aniqlash va hisob-kitob qilish.</p>
+  <div class="meta-pills">
+    <span class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>7 qadam</span>
+    <span class="pill purple">⭐ Pro rejasi</span>
+    <span class="pill amber">⚡ O'rta daraja</span>
+    <span class="pill">📦 Sklad bo'limi</span>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps">
+    <div class="step-dot active" onclick="seekToStep(0)"><span>1</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line1" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(1)"><span>2</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line2" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(2)"><span>3</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line3" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(3)"><span>4</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line4" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(4)"><span>5</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line5" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(5)"><span>6</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line6" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(6)"><span>7</span></div>
+  </div>
+  <div class="progress-label">
+    <span id="stepLabel">1-qadam: Sklad holatini ko'ring</span>
+    <span>Qadam: <strong id="stepCount">1 / 7</strong></span>
+  </div>
+</div>
+
+<!-- STEP CARDS -->
+<div class="step-info">
+  <div class="step-cards">
+    <div class="step-card active" onclick="seekToStep(0)">
+      <div class="step-card-num"><span class="num-val">01</span><span class="done-icon">✓</span></div>
+      <h5>Skald holati</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(1)">
+      <div class="step-card-num"><span class="num-val">02</span><span class="done-icon">✓</span></div>
+      <h5>Yangi inv.</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(2)">
+      <div class="step-card-num"><span class="num-val">03</span><span class="done-icon">✓</span></div>
+      <h5>Skanerlash</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(3)">
+      <div class="step-card-num"><span class="num-val">04</span><span class="done-icon">✓</span></div>
+      <h5>Farqlar</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(4)">
+      <div class="step-card-num"><span class="num-val">05</span><span class="done-icon">✓</span></div>
+      <h5>Sabab</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(5)">
+      <div class="step-card-num"><span class="num-val">06</span><span class="done-icon">✓</span></div>
+      <h5>Tasdiq</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(6)">
+      <div class="step-card-num"><span class="num-val">07</span><span class="done-icon">✓</span></div>
+      <h5>Hisobot</h5>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<!-- DEMO AREA -->
+<div class="demo-area">
+  <div class="screen-wrap">
+    <div class="screen-bar">
+      <div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div>
+      <div class="screen-url">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>app.raos.uz</span>/inventory
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- SCENE 0: Sklad holati -->
+      <div class="scene active" id="scene0">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Bosh sahifa</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Kassa</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Savdolar</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Hisobotlar</div>
+          </div>
+          <div class="main-area">
+            <div class="page-header">
+              <div class="page-title">Sklad holati</div>
+              <button class="btn-primary" id="btnNewInv0">+ Inventarizatsiya</button>
+            </div>
+            <div class="inv-stats">
+              <div class="stat-card"><div class="stat-label">Jami tovarlar</div><div class="stat-value cyan">247</div><div class="stat-sub">12 kategoriya</div></div>
+              <div class="stat-card"><div class="stat-label">Tugayapti</div><div class="stat-value amber">8</div><div class="stat-sub">min: 5 ta qoldi</div></div>
+              <div class="stat-card"><div class="stat-label">Oxirgi inv.</div><div class="stat-value green">14</div><div class="stat-sub">kun oldin</div></div>
+            </div>
+            <div class="inv-table">
+              <div class="t-head">
+                <span>Tovar nomi</span><span>Tizimda</span><span>Min. qoldiq</span><span>So'nggi</span><span>Holat</span>
+              </div>
+              <div class="t-row">
+                <div class="r-name"><span>💄</span>L'Oreal True Match</div>
+                <div class="r-num">12</div><div class="r-num">5</div>
+                <div class="last-inv">14 kun</div>
+                <span class="r-badge badge-ok">Yaxshi</span>
+              </div>
+              <div class="t-row">
+                <div class="r-name"><span>👁️</span>Maybelline Lash</div>
+                <div class="r-num amber">4</div><div class="r-num">5</div>
+                <div class="last-inv">14 kun</div>
+                <span class="r-badge badge-low">Kam</span>
+              </div>
+              <div class="t-row highlight">
+                <div class="r-name"><span>🌸</span>Nivea Moisturizer</div>
+                <div class="r-num red">2</div><div class="r-num">10</div>
+                <div class="last-inv">14 kun</div>
+                <span class="r-badge badge-out">Tugayapti</span>
+              </div>
+              <div class="t-row">
+                <div class="r-name"><span>💅</span>Revlon ColorStay</div>
+                <div class="r-num">18</div><div class="r-num">5</div>
+                <div class="last-inv">14 kun</div>
+                <span class="r-badge badge-ok">Yaxshi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cursor" id="cursor0" style="left:620px;top:100px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple0" style="left:660px;top:100px"></div>
+      </div>
+
+      <!-- SCENE 1: Yangi inventarizatsiya yaratish -->
+      <div class="scene" id="scene1">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area" style="opacity:0.2;pointer-events:none">
+            <div class="page-title">Sklad holati</div>
+          </div>
+        </div>
+        <div class="modal-overlay">
+          <div class="create-modal" id="createModal">
+            <div class="cm-title">Yangi inventarizatsiya</div>
+            <div class="cm-sub">Qoldiqlarni tekshirish sessiyasini boshlang</div>
+            <div class="cm-field">
+              <span class="cm-label">Nomi</span>
+              <div class="cm-input" id="cmName">Iyun 2026 inventarizatsiyasi</div>
+            </div>
+            <div class="cm-row">
+              <div>
+                <span class="cm-label">Filial</span>
+                <div class="cm-select">Asosiy filial</div>
+              </div>
+              <div>
+                <span class="cm-label">Sanasi</span>
+                <div class="cm-select active">2026-06-04</div>
+              </div>
+            </div>
+            <div class="cm-field">
+              <span class="cm-label">Qamrov</span>
+              <div class="cm-scope">
+                <div class="scope-btn active">Barcha tovarlar</div>
+                <div class="scope-btn">Kategoriya</div>
+                <div class="scope-btn">Tanlangan</div>
+              </div>
+            </div>
+            <button class="btn-create" id="btnCreate">▶ Boshlash</button>
+          </div>
+        </div>
+        <div class="cursor" id="cursor1" style="left:450px;top:300px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple1" style="left:450px;top:315px;background:rgba(168,85,247,0.25)"></div>
+      </div>
+
+      <!-- SCENE 2: Skanerlash -->
+      <div class="scene" id="scene2">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area">
+            <div class="scan-header">
+              <div class="page-title">📋 Iyun 2026 inventarizatsiyasi</div>
+              <div class="scan-info">
+                <div class="scan-chip">Ko'rildi: <strong id="scannedCount">0</strong>/4</div>
+                <div class="scan-chip">Farq: <strong id="diffCount" style="color:#f87171">0</strong></div>
+              </div>
+            </div>
+            <div class="barcode-input">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="2" height="12"/><rect x="6" y="6" width="1" height="12"/><rect x="9" y="6" width="2" height="12"/><rect x="13" y="6" width="1" height="12"/><rect x="16" y="6" width="3" height="12"/><rect x="21" y="6" width="1" height="12"/></svg>
+              <span>Shtrix-kod skaneri yoki tovar nomini kiriting...</span><div class="barcode-cursor"></div>
+            </div>
+            <div class="scan-progress">
+              <div class="scan-bar"><div class="scan-fill" id="scanFill" style="width:0%"></div></div>
+              <span class="scan-pct" id="scanPct">0%</span>
+            </div>
+            <div class="scan-table">
+              <div class="scan-thead">
+                <span>Tovar</span><span>Tizimda</span><span>Haqiqiy</span><span>Farq</span><span>Holat</span>
+              </div>
+              <div class="scan-row diff-ok" id="sr1">
+                <div class="r-name"><span>💄</span>L'Oreal True Match</div>
+                <div class="r-num">12</div><div class="r-num green">12</div>
+                <div class="r-num green">0</div>
+                <span class="diff-chip diff-zero">✓ Mos</span>
+              </div>
+              <div class="scan-row diff-bad" id="sr2">
+                <div class="r-name"><span>👁️</span>Maybelline Lash</div>
+                <div class="r-num">4</div><div class="r-num red">2</div>
+                <div class="r-num red">−2</div>
+                <span class="diff-chip diff-minus">! Farq</span>
+              </div>
+              <div class="scan-row diff-bad" id="sr3">
+                <div class="r-name"><span>🌸</span>Nivea Moisturizer</div>
+                <div class="r-num">2</div><div class="r-num red">1</div>
+                <div class="r-num red">−1</div>
+                <span class="diff-chip diff-minus">! Farq</span>
+              </div>
+              <div class="scan-row diff-ok" id="sr4">
+                <div class="r-name"><span>💅</span>Revlon ColorStay</div>
+                <div class="r-num">18</div><div class="r-num green">19</div>
+                <div class="r-num" style="color:var(--purple)">+1</div>
+                <span class="diff-chip diff-plus">+ Oshiq</span>
+              </div>
+            </div>
+            <div class="toast" id="toast2">✓ Skanerlash yakunlandi — 3 ta farq topildi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 3: Farqlar tahlili -->
+      <div class="scene" id="scene3">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area">
+            <div class="page-header">
+              <div class="page-title">Farqlar tahlili</div>
+              <button class="btn-secondary">← Orqaga</button>
+            </div>
+            <div class="summary-cards">
+              <div class="sum-card"><div class="sum-icon">📊</div><div class="sum-val" style="color:var(--cyan)">4</div><div class="sum-label">Jami tekshirildi</div></div>
+              <div class="sum-card"><div class="sum-icon">⚠️</div><div class="sum-val red">2</div><div class="sum-label">Kamayish (yo'qolgan)</div></div>
+              <div class="sum-card"><div class="sum-icon">✨</div><div class="sum-val purple">1</div><div class="sum-label">Oshish (topilgan)</div></div>
+            </div>
+            <div class="diff-section">
+              <div class="diff-header">
+                <div class="diff-title">Farq bor tovarlar</div>
+                <div class="diff-count">3 ta topildi</div>
+              </div>
+              <div class="diff-row">
+                <div class="d-product"><span style="font-size:14px">👁️</span>Maybelline Lash</div>
+                <div class="d-num">4</div>
+                <div class="d-fact bad">2</div>
+                <div class="d-diff minus">−2</div>
+                <div class="d-reason"><span class="reason-tag">Sabab yo'q</span></div>
+              </div>
+              <div class="diff-row">
+                <div class="d-product"><span style="font-size:14px">🌸</span>Nivea Moisturizer</div>
+                <div class="d-num">2</div>
+                <div class="d-fact bad">1</div>
+                <div class="d-diff minus">−1</div>
+                <div class="d-reason"><span class="reason-tag">Sabab yo'q</span></div>
+              </div>
+              <div class="diff-row">
+                <div class="d-product"><span style="font-size:14px">💅</span>Revlon ColorStay</div>
+                <div class="d-num">18</div>
+                <div class="d-fact ok">19</div>
+                <div class="d-diff plus">+1</div>
+                <div class="d-reason"><span class="reason-tag">Sabab yo'q</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cursor" id="cursor3" style="left:600px;top:220px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple3" style="left:600px;top:220px;background:rgba(245,158,11,0.25)"></div>
+      </div>
+
+      <!-- SCENE 4: Sabab kiriting -->
+      <div class="scene" id="scene4">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area" style="opacity:0.2;pointer-events:none"><div class="page-title">Farqlar tahlili</div></div>
+        </div>
+        <div class="modal-overlay">
+          <div class="reason-modal" id="reasonModal">
+            <div class="rm-title">Kamayish sababini kiriting</div>
+            <div class="rm-sub">Bu ma'lumot hisobotda ko'rinadi</div>
+            <div class="rm-item">
+              <span class="rm-item-emoji">👁️</span>
+              <div class="rm-item-info">
+                <div class="rm-item-name">Maybelline Lash</div>
+                <div class="rm-item-diff">Tizimda: 4 → Haqiqiy: 2 (−2 ta)</div>
+              </div>
+            </div>
+            <div class="rm-reasons-label">Sabab tanlang:</div>
+            <div class="rm-reasons">
+              <div class="rm-reason-opt" id="rr1">Chiqim unutilgan</div>
+              <div class="rm-reason-opt active" id="rr2">Yo'qolgan / o'g'ri</div>
+              <div class="rm-reason-opt" id="rr3">Qaytarilgan</div>
+              <div class="rm-reason-opt" id="rr4">Singan / eskirgan</div>
+            </div>
+            <div class="rm-note filled" id="rmNote">Namoyish tokchada edi, biri yo'qolgan</div>
+            <button class="btn-rm-confirm" id="btnRmConfirm">Saqlash va keyingiga →</button>
+          </div>
+        </div>
+        <div class="cursor" id="cursor4" style="left:450px;top:310px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple4" style="left:450px;top:335px;background:rgba(245,158,11,0.25)"></div>
+      </div>
+
+      <!-- SCENE 5: Tasdiqlash -->
+      <div class="scene" id="scene5">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area" style="opacity:0.2;pointer-events:none"><div class="page-title">Farqlar tahlili</div></div>
+        </div>
+        <div class="modal-overlay">
+          <div class="confirm-modal" id="confirmModal">
+            <div class="conf-title">✅ Inventarizatsiyani yakunlash</div>
+            <div class="conf-summary">
+              <div class="conf-row"><span class="conf-label">Tekshirilgan:</span><span class="conf-value">4 ta tovar</span></div>
+              <div class="conf-row"><span class="conf-label">Mos keldi:</span><span class="conf-value green">1 ta</span></div>
+              <div class="conf-row"><span class="conf-label">Kamayish:</span><span class="conf-value red">−3 ta dona</span></div>
+              <div class="conf-row"><span class="conf-label">Oshish:</span><span class="conf-value purple">+1 ta dona</span></div>
+              <div class="conf-row"><span class="conf-label">Sklad yangilanadi:</span><span class="conf-value">Haqiqiy qoldiq bilan</span></div>
+            </div>
+            <div class="conf-warn">
+              <strong>⚠️ Eslatma:</strong> Tasdiqlangach sklad tizimda haqiqiy qoldiqqa yangilanadi. Bu amalni ortga qaytarib bo'lmaydi — faqat yangi inventarizatsiya o'tkaziladi.
+            </div>
+            <div class="conf-btns">
+              <button class="btn-cancel">Bekor qilish</button>
+              <button class="btn-apply" id="btnApply">✓ Tasdiqlash va saqlash</button>
+            </div>
+          </div>
+        </div>
+        <div class="cursor" id="cursor5" style="left:520px;top:290px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple5" style="left:575px;top:335px;background:rgba(168,85,247,0.25)"></div>
+      </div>
+
+      <!-- SCENE 6: Hisobot -->
+      <div class="scene" id="scene6">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area">
+            <div class="page-header">
+              <div class="page-title">📊 Inventarizatsiya hisoboti</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn-telegram" id="btnTg">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.829.941z"/></svg>
+                  Telegramga yuborish
+                </button>
+                <div class="tg-sent" id="tgSent">✓ Yuborildi!</div>
+                <button class="btn-export">↓ Export</button>
+              </div>
+            </div>
+            <div class="report-chips">
+              <span class="rchip green">✓ 1 ta mos</span>
+              <span class="rchip red">↓ −3 ta yo'qolgan</span>
+              <span class="rchip purple">↑ +1 ta topilgan</span>
+              <span class="rchip amber">Sabab: Yo'qolgan / Chiqim unutilgan</span>
+            </div>
+            <div class="report-grid">
+              <div class="report-card">
+                <div class="rc-title">Haftalik sklad o'zgarishi</div>
+                <div class="rc-chart" id="rcChart">
+                  <div class="rc-bar" style="background:rgba(36,212,244,0.3);height:0px" data-h="35">
+                    <div class="rc-bar-label">Dush</div><div class="rc-bar-val">12</div>
+                  </div>
+                  <div class="rc-bar" style="background:rgba(36,212,244,0.3);height:0px" data-h="40">
+                    <div class="rc-bar-label">Sesh</div><div class="rc-bar-val">14</div>
+                  </div>
+                  <div class="rc-bar" style="background:rgba(36,212,244,0.3);height:0px" data-h="30">
+                    <div class="rc-bar-label">Chor</div><div class="rc-bar-val">10</div>
+                  </div>
+                  <div class="rc-bar" style="background:rgba(239,68,68,0.3);height:0px" data-h="20">
+                    <div class="rc-bar-label">Pay</div><div class="rc-bar-val" style="color:#f87171">7</div>
+                  </div>
+                  <div class="rc-bar" style="background:rgba(239,68,68,0.4);height:0px" data-h="14">
+                    <div class="rc-bar-label">Jum</div><div class="rc-bar-val" style="color:#f87171">5</div>
+                  </div>
+                </div>
+              </div>
+              <div class="report-card">
+                <div class="rc-title">Eng ko'p yo'qotish</div>
+                <div class="loss-list">
+                  <div class="loss-item">
+                    <span style="font-size:13px">👁️</span>
+                    <div class="loss-name">Maybelline Lash</div>
+                    <div class="loss-bar" style="width:60%;background:rgba(239,68,68,0.3)"></div>
+                    <div class="loss-val">−2 ta</div>
+                  </div>
+                  <div class="loss-item">
+                    <span style="font-size:13px">🌸</span>
+                    <div class="loss-name">Nivea Moisturizer</div>
+                    <div class="loss-bar" style="width:30%;background:rgba(239,68,68,0.2)"></div>
+                    <div class="loss-val">−1 ta</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="report-actions"></div>
+          </div>
+        </div>
+        <div class="toast" id="toast6">📊 Hisobot Telegramga yuborildi!</div>
+      </div>
+
+    </div><!-- /screen-content -->
+  </div>
+
+  <!-- TOOLTIP -->
+  <div class="tooltip-wrap">
+    <div class="tooltip-box">
+      <div class="tooltip-icon" id="tipIcon">📦</div>
+      <div class="tooltip-text">
+        <h4 id="tipTitle">Sklad holati</h4>
+        <p id="tipDesc">«Sklad» bo'limida barcha tovarlarning joriy qoldig'i ko'rinadi. Qizil rangli tovarlar kritik darajada kam — inventarizatsiya o'tkazib haqiqiy holatni tekshirish kerak.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="timeline" id="timeline" onclick="seekClick(event)">
+    <div class="timeline-fill" id="timelineFill" style="width:0%"></div>
+    <div class="timeline-thumb" id="timelineThumb" style="left:0%"></div>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" onclick="skipBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.46"/></svg>
+    </button>
+    <button class="ctrl-btn main" id="playBtn" onclick="togglePlay()">▶</button>
+    <button class="ctrl-btn" onclick="skipFwd()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.46"/></svg>
+    </button>
+    <span class="time-display" id="timeDisplay">0:00 / 7:00</span>
+    <div class="ctrl-right">
+      <button class="speed-btn" onclick="setSpeed(0.5)" id="sp05">0.5×</button>
+      <button class="speed-btn active" onclick="setSpeed(1)" id="sp1">1×</button>
+      <button class="speed-btn" onclick="setSpeed(1.5)" id="sp15">1.5×</button>
+      <button class="speed-btn" onclick="setSpeed(2)" id="sp2">2×</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 420; // 7 daqiqa
+let current = 0, playing = false, speed = 1, timer = null;
+let animStarted = [false,false,false,false,false,false,false];
+
+const STEPS = [
+  { time:0,   end:60,  label:"1-qadam: Sklad holatini ko'ring" },
+  { time:60,  end:120, label:"2-qadam: Yangi inventarizatsiya yarating" },
+  { time:120, end:180, label:"3-qadam: Tovarlarni skanerlang" },
+  { time:180, end:240, label:"4-qadam: Farqlarni tahlil qiling" },
+  { time:240, end:300, label:"5-qadam: Sabab kiriting" },
+  { time:300, end:360, label:"6-qadam: Inventarizatsiyani tasdiqlang" },
+  { time:360, end:420, label:"7-qadam: Hisobotni oching va yuboring" },
+];
+
+const TIPS = [
+  { icon:'📦', title:"Sklad holati", desc:"«Sklad» bo'limida barcha tovarlarning joriy qoldig'i ko'rinadi. Qizil rangli tovarlar kritik darajada kam — inventarizatsiya o'tkazib haqiqiy holatni tekshirish kerak." },
+  { icon:'📋', title:"Yangi inventarizatsiya", desc:"«+ Inventarizatsiya» tugmasini bosing. Nom, filial va qamrovni belgilang. «Barcha tovarlar» tanlanadi — kichik do'konlarda eng qulay variant." },
+  { icon:'📱', title:"Skanerlash jarayoni", desc:"Har bir tovarni jismonan sanab, haqiqiy sonini kiriting yoki shtrix-kod bilan skanerlang. Tizim avtomatik farqni hisoblaydi. Siz faqat haqiqiy sonni kiriting." },
+  { icon:'⚠️', title:"Farqlar tahlili", desc:"Barcha tovarlar skanerlanganidan so'ng RAOS farqlarni ko'rsatadi: kamayish (yo'qolgan), oshish (qo'shimcha topilgan). Har farq uchun sabab ko'rsatilishi kerak." },
+  { icon:'📝', title:"Sabab kiritish", desc:"Har bir farq uchun sabab tanlang: «Chiqim unutilgan», «Yo'qolgan», «Qaytarilgan» yoki «Eskirgan». Bu hisobot va audit uchun muhim — sababsiz farqlar tasdiqlanmaydi." },
+  { icon:'✅', title:"Tasdiqlash", desc:"Tasdiqlangach sklad tizimda haqiqiy qoldiqqa yangilanadi. Bu amal qaytarib bo'lmaydi — keyingi barcha savdo va hisobotlar yangi qoldiqdan boshlanadi." },
+  { icon:'📊', title:"Hisobot va Telegram", desc:"Inventarizatsiya tugagach avtomatik hisobot yaratiladi. «Telegramga yuborish» tugmasini bosing — do'kon egasi va menejerga darhol xabar boradi." },
+];
+
+function getCurrentStep() {
+  for (let i = STEPS.length-1; i >= 0; i--) {
+    if (current >= STEPS[i].time) return i;
+  }
+  return 0;
+}
+
+function updateUI() {
+  const step = getCurrentStep();
+  const pct = (current / TOTAL) * 100;
+
+  document.getElementById('timelineFill').style.width = pct + '%';
+  document.getElementById('timelineThumb').style.left = `calc(${pct}% - 7px)`;
+
+  const m = Math.floor(current/60), s = Math.floor(current%60);
+  document.getElementById('timeDisplay').textContent = `${m}:${s.toString().padStart(2,'0')} / 7:00`;
+
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  });
+  document.querySelectorAll('.step-card').forEach((c,i) => {
+    c.classList.remove('active','done');
+    if (i < step) c.classList.add('done');
+    else if (i === step) c.classList.add('active');
+  });
+
+  for (let i = 0; i < 6; i++) {
+    const s0 = STEPS[i].time, s1 = STEPS[i+1].time;
+    let w = 0;
+    if (current >= s1) w = 100;
+    else if (current > s0) w = ((current-s0)/(s1-s0))*100;
+    document.getElementById('line'+(i+1)).style.width = w+'%';
+  }
+
+  document.getElementById('stepLabel').textContent = STEPS[step].label;
+  document.getElementById('stepCount').textContent = (step+1)+' / 7';
+
+  const tip = TIPS[step];
+  document.getElementById('tipIcon').textContent = tip.icon;
+  document.getElementById('tipTitle').textContent = tip.title;
+  document.getElementById('tipDesc').textContent = tip.desc;
+
+  document.querySelectorAll('.scene').forEach((s,i) => {
+    s.classList.toggle('active', i === step);
+  });
+
+  runStepAnim(step);
+}
+
+function runStepAnim(step) {
+  // STEP 0: Sklad holati — cursor "Inventarizatsiya" tugmasiga boradi
+  if (step === 0 && !animStarted[0]) {
+    animStarted[0] = true;
+    const c = document.getElementById('cursor0');
+    const r = document.getElementById('ripple0');
+    setTimeout(() => { c.style.left='500px'; c.style.top='180px'; }, 800);
+    setTimeout(() => { c.style.left='620px'; c.style.top='98px'; }, 1800);
+    setTimeout(() => {
+      r.style.left='660px'; r.style.top='100px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    }, 2800);
+  }
+
+  // STEP 1: Modal ochiladi, "Boshlash" tugmasi
+  if (step === 1 && !animStarted[1]) {
+    animStarted[1] = true;
+    const modal = document.getElementById('createModal');
+    const c = document.getElementById('cursor1');
+    const r = document.getElementById('ripple1');
+    const btn = document.getElementById('btnCreate');
+    setTimeout(() => { modal.classList.add('show'); }, 300);
+    setTimeout(() => { c.style.left='440px'; c.style.top='260px'; document.getElementById('cmName').classList.add('active'); }, 900);
+    setTimeout(() => { c.style.left='440px'; c.style.top='315px'; btn.classList.add('show'); }, 2200);
+    setTimeout(() => {
+      r.style.left='450px'; r.style.top='315px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    }, 3200);
+  }
+
+  // STEP 2: Skanerlash — tovarlar birin-ketin paydo bo'ladi
+  if (step === 2 && !animStarted[2]) {
+    animStarted[2] = true;
+    const rows = ['sr1','sr2','sr3','sr4'];
+    const counts = [1,2,3,4];
+    rows.forEach((id,i) => {
+      setTimeout(() => {
+        document.getElementById(id).classList.add('show');
+        document.getElementById('scannedCount').textContent = counts[i];
+        document.getElementById('scanFill').style.width = (counts[i]/4*100)+'%';
+        document.getElementById('scanPct').textContent = (counts[i]/4*100)+'%';
+        if (i===1||i===2) document.getElementById('diffCount').textContent = parseInt(document.getElementById('diffCount').textContent||'0') + 1;
+      }, 700 + i*1200);
+    });
+    setTimeout(() => {
+      document.getElementById('diffCount').textContent = '2';
+      document.getElementById('toast2').classList.add('show');
+    }, 5500);
+  }
+
+  // STEP 3: Farqlar — cursor "Sabab kiriting" ga boradi
+  if (step === 3 && !animStarted[3]) {
+    animStarted[3] = true;
+    const c = document.getElementById('cursor3');
+    const r = document.getElementById('ripple3');
+    setTimeout(() => { c.style.left='450px'; c.style.top='200px'; }, 600);
+    setTimeout(() => { c.style.left='600px'; c.style.top='250px'; }, 1600);
+    setTimeout(() => {
+      r.style.left='620px'; r.style.top='252px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    }, 2800);
+  }
+
+  // STEP 4: Sabab modal
+  if (step === 4 && !animStarted[4]) {
+    animStarted[4] = true;
+    const modal = document.getElementById('reasonModal');
+    const c = document.getElementById('cursor4');
+    const r = document.getElementById('ripple4');
+    const btn = document.getElementById('btnRmConfirm');
+    setTimeout(() => { modal.classList.add('show'); }, 300);
+    setTimeout(() => { c.style.left='420px'; c.style.top='270px'; }, 800);
+    setTimeout(() => { c.style.left='450px'; c.style.top='335px'; btn.classList.add('show'); }, 2200);
+    setTimeout(() => {
+      r.style.left='450px'; r.style.top='337px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    }, 3200);
+  }
+
+  // STEP 5: Tasdiqlash modal
+  if (step === 5 && !animStarted[5]) {
+    animStarted[5] = true;
+    const modal = document.getElementById('confirmModal');
+    const c = document.getElementById('cursor5');
+    const r = document.getElementById('ripple5');
+    const btn = document.getElementById('btnApply');
+    setTimeout(() => { modal.classList.add('show'); }, 300);
+    setTimeout(() => { c.style.left='480px'; c.style.top='290px'; }, 900);
+    setTimeout(() => { c.style.left='575px'; c.style.top='333px'; btn.classList.add('show'); }, 2400);
+    setTimeout(() => {
+      r.style.left='575px'; r.style.top='335px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    }, 3400);
+  }
+
+  // STEP 6: Hisobot — bar chart animatsiyasi + telegram
+  if (step === 6 && !animStarted[6]) {
+    animStarted[6] = true;
+    const bars = document.querySelectorAll('#rcChart .rc-bar');
+    bars.forEach((bar,i) => {
+      setTimeout(() => {
+        bar.style.height = bar.dataset.h + 'px';
+        bar.style.transition = 'height 0.7s ease';
+      }, 300 + i * 200);
+    });
+    setTimeout(() => {
+      const btn = document.getElementById('btnTg');
+      btn.style.boxShadow = '0 0 14px rgba(36,212,244,0.3)';
+    }, 1800);
+    setTimeout(() => {
+      document.getElementById('tgSent').classList.add('show');
+      document.getElementById('btnTg').style.display = 'none';
+      document.getElementById('toast6').classList.add('show');
+    }, 3000);
+  }
+}
+
+function tick() {
+  if (!playing) return;
+  current = Math.min(current + speed, TOTAL);
+  updateUI();
+  if (current >= TOTAL) {
+    playing = false;
+    document.getElementById('playBtn').textContent = '▶';
+    return;
+  }
+  timer = setTimeout(tick, 1000);
+}
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('playBtn').textContent = playing ? '⏸' : '▶';
+  if (playing) tick(); else clearTimeout(timer);
+}
+
+function skipBack() { current = Math.max(0, current - 15); updateUI(); }
+function skipFwd()  { current = Math.min(TOTAL, current + 15); updateUI(); }
+
+function seekToStep(i) { current = STEPS[i].time; updateUI(); }
+
+function setSpeed(s) {
+  speed = s;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+  const map = {0.5:'sp05',1:'sp1',1.5:'sp15',2:'sp2'};
+  document.getElementById(map[s]).classList.add('active');
+}
+
+function seekClick(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  current = Math.round(((e.clientX - rect.left) / rect.width) * TOTAL);
+  updateUI();
+}
+
+updateUI();
+setTimeout(() => {
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸';
+  tick();
+}, 700);
+</script>
+</body>
+</html>

@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAOS — 4-darslik: Qaytarish va almashtirish</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:   #24D4F4;
+    --cyan2:  #5FEEFB;
+    --navy:   #0E1530;
+    --navy2:  #112F4B;
+    --navy3:  #0a1228;
+    --glass:  rgba(36,212,244,0.07);
+    --border: rgba(36,212,244,0.18);
+    --orange: #f97316;
+    --amber:  #f59e0b;
+    --red:    #ef4444;
+    --green:  #22c55e;
+  }
+
+  body {
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    width: 100%; background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--cyan);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; color: var(--navy);
+  }
+  .logo-text { font-weight: 800; font-size: 18px; color: #fff; }
+  .lesson-badge {
+    background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.35);
+    color: var(--orange); font-size: 12px; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #94a3b8; }
+  .topbar-right span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── HERO ── */
+  .hero { width: 100%; max-width: 900px; padding: 40px 24px 24px; text-align: center; }
+  .lesson-number { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--orange); text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: clamp(22px, 4vw, 38px); font-weight: 900; line-height: 1.2; margin-bottom: 12px; }
+  .hero h1 span { color: var(--cyan); }
+  .hero-sub { font-size: 15px; color: #94a3b8; max-width: 500px; margin: 0 auto 24px; }
+  .meta-pills { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+  .pill { display: flex; align-items: center; gap: 6px; background: var(--glass); border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: #cbd5e1; }
+  .pill svg { width: 13px; height: 13px; }
+  .pill.green { color: #34d399; border-color: rgba(52,211,153,0.25); background: rgba(52,211,153,0.07); }
+  .pill.amber { color: #f59e0b; border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.07); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { width: 100%; max-width: 900px; padding: 0 24px 8px; }
+  .progress-steps { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .step-dot {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid rgba(36,212,244,0.25);
+    font-size: 12px; font-weight: 700; color: #475569;
+    transition: all 0.4s; cursor: pointer; position: relative; flex-shrink: 0;
+  }
+  .step-dot.active { border-color: var(--cyan); background: rgba(36,212,244,0.15); color: var(--cyan); box-shadow: 0 0 16px rgba(36,212,244,0.35); }
+  .step-dot.done { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.12); color: #34d399; }
+  .step-dot.done::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step-dot.done span { display: none; }
+  .step-line { flex: 1; height: 2px; background: rgba(36,212,244,0.1); border-radius: 1px; position: relative; overflow: hidden; }
+  .step-line-fill { height: 100%; background: var(--cyan); border-radius: 1px; transition: width 0.6s ease; }
+  .progress-label { font-size: 12px; color: #64748b; display: flex; justify-content: space-between; }
+  .progress-label strong { color: var(--cyan); }
+
+  /* ── STEP CARDS ── */
+  .step-info { width: 100%; max-width: 900px; padding: 0 24px; }
+  .step-cards { display: flex; gap: 8px; }
+  .step-card {
+    flex: 1; padding: 12px 14px;
+    background: var(--glass); border: 1px solid rgba(36,212,244,0.1);
+    border-radius: 12px; cursor: pointer; transition: all 0.3s; opacity: 0.5;
+  }
+  .step-card.active { border-color: var(--cyan); background: rgba(36,212,244,0.07); opacity: 1; box-shadow: 0 0 16px rgba(36,212,244,0.1); }
+  .step-card-num { font-size: 10px; font-weight: 700; color: var(--cyan); margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+  .step-card-num .done-icon { display: none; }
+  .step-card.done .done-icon { display: inline; }
+  .step-card.done .num-val { display: none; }
+  .step-card h5 { font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 2px; }
+  .step-card p { font-size: 10px; color: #64748b; }
+  .spacer { height: 20px; }
+
+  /* ── DEMO AREA ── */
+  .demo-area { width: 100%; max-width: 900px; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .screen-wrap {
+    width: 100%; background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; box-shadow: 0 0 60px rgba(36,212,244,0.08);
+  }
+  .screen-bar {
+    background: var(--navy3); padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .screen-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .screen-dot:nth-child(1){background:#ef4444}
+  .screen-dot:nth-child(2){background:#f59e0b}
+  .screen-dot:nth-child(3){background:#22c55e}
+  .screen-url {
+    flex: 1; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 12px; font-size: 12px; color: #64748b;
+    margin: 0 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .screen-url span { color: var(--cyan); }
+  .screen-content { min-height: 380px; position: relative; overflow: hidden; }
+
+  /* ── SCENES ── */
+  .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+  .scene.active { opacity: 1; pointer-events: auto; }
+
+  /* ── SHARED LAYOUT ── */
+  .pos-wrap { display: flex; height: 100%; }
+  .sidebar {
+    width: 160px; background: var(--navy3);
+    border-right: 1px solid var(--border);
+    padding: 16px 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;
+  }
+  .sidebar-logo { padding: 0 16px 14px; font-weight: 900; font-size: 15px; color: var(--cyan); }
+  .nav-item {
+    padding: 9px 16px; font-size: 12px; color: #475569;
+    display: flex; align-items: center; gap: 8px;
+    border-left: 2px solid transparent; transition: all 0.2s;
+  }
+  .nav-item.active { color: var(--cyan); background: rgba(36,212,244,0.07); border-left-color: var(--cyan); }
+  .nav-item svg { width: 14px; height: 14px; }
+
+  /* ── SCENE 0: Savdolar ro'yxati ── */
+  .sales-main { flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; }
+  .page-title { font-size: 16px; font-weight: 800; color: #fff; }
+  .search-bar {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 12px; font-size: 12px; color: #94a3b8;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-bar svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .filter-pills { display: flex; gap: 6px; }
+  .filter-pill {
+    padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 700;
+    border: 1px solid var(--border); color: #64748b; background: transparent; transition: all 0.25s;
+  }
+  .filter-pill.active { background: rgba(36,212,244,0.1); border-color: var(--cyan); color: var(--cyan); }
+
+  .sales-table { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .table-head { display: grid; grid-template-columns: 80px 1fr 90px 90px 80px; gap: 0; background: rgba(10,18,40,0.5); padding: 8px 14px; border-bottom: 1px solid var(--border); }
+  .table-head span { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+  .table-row {
+    display: grid; grid-template-columns: 80px 1fr 90px 90px 80px; gap: 0;
+    padding: 10px 14px; border-bottom: 1px solid rgba(36,212,244,0.06);
+    transition: background 0.2s; cursor: pointer; align-items: center;
+  }
+  .table-row:last-child { border-bottom: none; }
+  .table-row:hover { background: rgba(36,212,244,0.04); }
+  .table-row.highlight { background: rgba(36,212,244,0.08); border-left: 3px solid var(--cyan); }
+  .table-row.highlight-pulse { animation: rowPulse 0.6s ease; }
+  @keyframes rowPulse { 0%{background:rgba(36,212,244,0.0)} 50%{background:rgba(36,212,244,0.15)} 100%{background:rgba(36,212,244,0.08)} }
+  .row-id { font-size: 11px; font-weight: 700; color: var(--cyan); }
+  .row-date { font-size: 10px; color: #64748b; }
+  .row-items { font-size: 11px; color: #cbd5e1; }
+  .row-items small { display: block; font-size: 9px; color: #475569; }
+  .row-amount { font-size: 12px; font-weight: 700; color: #fff; }
+  .row-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .status-paid { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #34d399; }
+  .status-return { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; }
+  .row-btn { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--glass); color: #94a3b8; cursor: pointer; transition: all 0.2s; }
+  .row-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .row-btn.return-btn { border-color: rgba(249,115,22,0.4); color: var(--orange); background: rgba(249,115,22,0.07); }
+  .row-btn.return-btn.glow { box-shadow: 0 0 14px rgba(249,115,22,0.3); animation: btnPulse 1s ease infinite; }
+  @keyframes btnPulse { 0%,100%{box-shadow: 0 0 10px rgba(249,115,22,0.2)} 50%{box-shadow: 0 0 20px rgba(249,115,22,0.5)} }
+
+  /* Cursor animation */
+  .cursor {
+    position: absolute; width: 20px; height: 20px; pointer-events: none; z-index: 50;
+    transition: left 0.5s cubic-bezier(0.4,0,0.2,1), top 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .cursor svg { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7)); }
+
+  /* Click ripple */
+  .click-ripple {
+    position: absolute; width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(249,115,22,0.25); pointer-events: none; z-index: 49;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.4s ease, opacity 0.4s ease;
+  }
+  .click-ripple.pop { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+
+  /* ── SCENE 1: Sotuv detallari modali ── */
+  .modal-overlay {
+    position: absolute; inset: 0;
+    background: rgba(10,18,40,0.8); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; z-index: 20;
+  }
+  .sale-detail-modal {
+    background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 24px; width: 340px;
+    box-shadow: 0 0 40px rgba(36,212,244,0.12);
+    opacity: 0; transform: scale(0.95) translateY(10px);
+    transition: all 0.4s ease;
+  }
+  .sale-detail-modal.show { opacity: 1; transform: scale(1) translateY(0); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .modal-title { font-size: 15px; font-weight: 800; }
+  .modal-id { font-size: 12px; color: var(--cyan); font-weight: 700; }
+  .modal-close { width: 26px; height: 26px; border-radius: 50%; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #f87171; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .modal-info-row { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(36,212,244,0.08); }
+  .modal-info-val { color: #cbd5e1; font-weight: 600; }
+  .modal-items-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .modal-item-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; background: var(--glass); border: 1px solid rgba(36,212,244,0.08);
+    border-radius: 8px; margin-bottom: 6px;
+  }
+  .modal-item-emoji { font-size: 16px; }
+  .modal-item-info { flex: 1; }
+  .modal-item-name { font-size: 11px; font-weight: 700; color: #cbd5e1; }
+  .modal-item-qty { font-size: 10px; color: #64748b; }
+  .modal-item-price { font-size: 12px; font-weight: 800; color: var(--cyan); }
+  .modal-total-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid rgba(36,212,244,0.1); margin-top: 8px; }
+  .modal-total-lbl { font-size: 12px; color: #94a3b8; }
+  .modal-total-val { font-size: 16px; font-weight: 900; color: #fff; }
+  .btn-return {
+    width: 100%; background: rgba(249,115,22,0.15); color: var(--orange);
+    border: 1px solid rgba(249,115,22,0.4); font-weight: 800; font-size: 13px;
+    padding: 11px; border-radius: 10px; cursor: pointer; transition: all 0.25s;
+    margin-top: 14px;
+  }
+  .btn-return:hover, .btn-return.glow { background: rgba(249,115,22,0.25); box-shadow: 0 0 20px rgba(249,115,22,0.3); }
+  .btn-return.glow { animation: btnGlow 1s ease infinite; }
+  @keyframes btnGlow { 0%,100%{box-shadow:0 0 12px rgba(249,115,22,0.2)} 50%{box-shadow:0 0 24px rgba(249,115,22,0.5)} }
+
+  /* ── SCENE 2: Qaytarish tanlash ── */
+  .return-modal {
+    background: var(--navy2); border: 1px solid rgba(249,115,22,0.3);
+    border-radius: 16px; padding: 22px 24px; width: 380px;
+    box-shadow: 0 0 40px rgba(249,115,22,0.15);
+    opacity: 0; transform: scale(0.95) translateY(10px);
+    transition: all 0.4s ease;
+  }
+  .return-modal.show { opacity: 1; transform: scale(1) translateY(0); }
+  .return-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .return-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .return-title { font-size: 15px; font-weight: 800; }
+  .return-sub { font-size: 10px; color: #64748b; }
+  .return-reason { margin-bottom: 14px; }
+  .return-reason label { font-size: 11px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 6px; }
+  .reason-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .reason-opt {
+    padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--glass); font-size: 10px; font-weight: 600; color: #64748b;
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .reason-opt.active { border-color: var(--orange); background: rgba(249,115,22,0.1); color: var(--orange); }
+  .return-items-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .return-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(36,212,244,0.08);
+    background: var(--glass); margin-bottom: 6px; cursor: pointer; transition: all 0.2s;
+  }
+  .return-item-row:hover { border-color: rgba(249,115,22,0.3); }
+  .return-item-row.checked { border-color: var(--orange); background: rgba(249,115,22,0.08); }
+  .ret-checkbox {
+    width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #475569;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;
+  }
+  .return-item-row.checked .ret-checkbox { border-color: var(--orange); background: var(--orange); }
+  .ret-check-icon { display: none; color: #fff; font-size: 11px; }
+  .return-item-row.checked .ret-check-icon { display: block; }
+  .ret-emoji { font-size: 16px; }
+  .ret-info { flex: 1; }
+  .ret-name { font-size: 11px; font-weight: 700; color: #cbd5e1; }
+  .ret-qty { font-size: 10px; color: #64748b; }
+  .ret-price { font-size: 12px; font-weight: 800; color: var(--orange); }
+  .return-summary {
+    background: rgba(249,115,22,0.06); border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between;
+    align-items: center; margin: 12px 0; opacity: 0; transition: opacity 0.4s;
+  }
+  .return-summary.show { opacity: 1; }
+  .ret-sum-lbl { font-size: 11px; color: #94a3b8; }
+  .ret-sum-val { font-size: 15px; font-weight: 900; color: var(--orange); }
+  .btn-confirm-return {
+    width: 100%; background: rgba(249,115,22,0.2); color: var(--orange);
+    border: 1px solid rgba(249,115,22,0.5); font-weight: 800; font-size: 13px;
+    padding: 11px; border-radius: 10px; cursor: pointer; transition: all 0.3s;
+    opacity: 0.3;
+  }
+  .btn-confirm-return.show { opacity: 1; box-shadow: 0 0 18px rgba(249,115,22,0.25); }
+
+  /* ── SCENE 3: Muvaffaqiyatli qaytarish ── */
+  .success-scene { display: flex; height: 100%; }
+  .success-main { flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; overflow: auto; }
+  .success-check {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(249,115,22,0.12); border: 2px solid rgba(249,115,22,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    opacity: 0; transform: scale(0.5);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .success-check.show { opacity: 1; transform: scale(1); }
+  .success-title { font-size: 20px; font-weight: 900; color: #fff; opacity: 0; transition: opacity 0.4s 0.3s; }
+  .success-title.show { opacity: 1; }
+  .success-sub { font-size: 13px; color: #94a3b8; opacity: 0; transition: opacity 0.4s 0.5s; }
+  .success-sub.show { opacity: 1; }
+
+  .receipt-card {
+    background: var(--navy3); border: 1px solid var(--border);
+    border-radius: 12px; width: 100%; max-width: 300px;
+    padding: 16px; opacity: 0; transform: translateY(20px);
+    transition: all 0.4s 0.4s;
+  }
+  .receipt-card.show { opacity: 1; transform: none; }
+  .receipt-top { text-align: center; margin-bottom: 12px; }
+  .receipt-store { font-size: 13px; font-weight: 900; color: var(--orange); margin-bottom: 2px; }
+  .receipt-type { font-size: 10px; color: #ef4444; font-weight: 700; letter-spacing: 1px; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 999px; display: inline-block; }
+  .receipt-divider { border: none; border-top: 1px dashed rgba(36,212,244,0.2); margin: 10px 0; }
+  .receipt-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+  .receipt-label { color: #64748b; }
+  .receipt-value { color: #cbd5e1; font-weight: 600; }
+  .receipt-total-row { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px dashed rgba(249,115,22,0.3); margin-top: 6px; }
+  .receipt-total-lbl { font-size: 12px; font-weight: 700; color: #94a3b8; }
+  .receipt-total-val { font-size: 15px; font-weight: 900; color: var(--orange); }
+  .receipt-refund { background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.2); border-radius: 8px; padding: 8px 12px; margin-top: 8px; text-align: center; }
+  .receipt-refund-lbl { font-size: 10px; color: #94a3b8; margin-bottom: 2px; }
+  .receipt-refund-val { font-size: 14px; font-weight: 900; color: var(--orange); }
+  .receipt-qr {
+    width: 48px; height: 48px; margin: 10px auto 0;
+    background: repeating-linear-gradient(0deg, rgba(249,115,22,0.3) 0px, rgba(249,115,22,0.3) 4px, transparent 4px, transparent 8px),
+                repeating-linear-gradient(90deg, rgba(249,115,22,0.3) 0px, rgba(249,115,22,0.3) 4px, transparent 4px, transparent 8px);
+    border-radius: 4px; border: 1px solid rgba(249,115,22,0.3);
+  }
+
+  .success-actions { display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 4px; opacity: 0; transition: opacity 0.4s 0.7s; }
+  .success-actions.show { opacity: 1; }
+  .btn-new-sale {
+    flex: 1; background: var(--glass); color: var(--cyan);
+    border: 1px solid var(--border); font-weight: 700; font-size: 12px;
+    padding: 9px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-print {
+    flex: 1; background: rgba(249,115,22,0.1); color: var(--orange);
+    border: 1px solid rgba(249,115,22,0.3); font-weight: 700; font-size: 12px;
+    padding: 9px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+  }
+
+  /* Stock sidebar */
+  .stock-sidebar { width: 180px; background: var(--navy3); border-left: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .stock-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stock-item { background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  .stock-item-name { font-size: 10px; font-weight: 700; color: #cbd5e1; margin-bottom: 4px; }
+  .stock-bar { height: 4px; background: rgba(36,212,244,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 3px; }
+  .stock-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+  .stock-fill.green { background: #22c55e; }
+  .stock-fill.orange { background: var(--orange); }
+  .stock-count { font-size: 9px; color: #64748b; }
+  .stock-count strong { color: #cbd5e1; }
+  .stock-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 999px; display: inline-block; margin-top: 3px; }
+  .badge-restored { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #34d399; opacity: 0; transition: opacity 0.4s; }
+  .badge-restored.show { opacity: 1; }
+
+  /* ── TOOLTIP ── */
+  .tooltip-wrap { width: 100%; max-width: 900px; padding: 0 24px 8px; }
+  .tooltip-box {
+    background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+    transition: all 0.4s;
+  }
+  .tooltip-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .tooltip-text h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .tooltip-text p { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+
+  /* ── CONTROLS ── */
+  .controls {
+    width: 100%; max-width: 900px; padding: 0 24px 32px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .timeline {
+    width: 100%; height: 6px; background: rgba(36,212,244,0.1);
+    border-radius: 3px; position: relative; cursor: pointer;
+  }
+  .timeline-fill { height: 100%; background: var(--cyan); border-radius: 3px; width: 0%; transition: width 0.3s linear; }
+  .timeline-thumb {
+    position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--cyan); border: 2px solid var(--navy2);
+    transform: translateY(-50%); left: 0; transition: left 0.3s linear;
+    box-shadow: 0 0 8px rgba(36,212,244,0.5);
+  }
+  .ctrl-row { display: flex; align-items: center; gap: 10px; }
+  .ctrl-btn {
+    width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--glass); color: #94a3b8; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .ctrl-btn.main { width: 44px; height: 44px; background: var(--cyan); border-color: var(--cyan); color: var(--navy); font-size: 16px; font-weight: 900; }
+  .ctrl-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .time-display { font-size: 13px; color: #64748b; font-variant-numeric: tabular-nums; flex: 1; text-align: center; }
+  .ctrl-right { display: flex; gap: 4px; }
+  .speed-btn {
+    padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    border: 1px solid var(--border); background: transparent; color: #64748b; cursor: pointer; transition: all 0.2s;
+  }
+  .speed-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(36,212,244,0.07); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <div class="logo-text">RAOS</div>
+  </div>
+  <div class="lesson-badge">4-darslik</div>
+  <div class="topbar-right">
+    <span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      4 daqiqa
+    </span>
+    <span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      O'rta
+    </span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="lesson-number">SOTISH — 4-DARS</div>
+  <h1>Qaytarish va <span>almashtirish</span></h1>
+  <p class="hero-sub">Xaridor tovarni qaytarmoqchi — bu jarayonni to'g'ri bajarish.</p>
+  <div class="meta-pills">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      4 qadam
+    </span>
+    <span class="pill green">✓ Bepul</span>
+    <span class="pill amber">⚡ O'rta daraja</span>
+    <span class="pill">🔄 Qaytarish jarayoni</span>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps">
+    <div class="step-dot active" onclick="seekToStep(0)"><span>1</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line1" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(1)"><span>2</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line2" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(2)"><span>3</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line3" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(3)"><span>4</span></div>
+  </div>
+  <div class="progress-label">
+    <span id="stepLabel">1-qadam: Savdolar ro'yxatini oching</span>
+    <span>Qadam: <strong id="stepCount">1 / 4</strong></span>
+  </div>
+</div>
+
+<!-- STEP CARDS -->
+<div class="step-info">
+  <div class="step-cards">
+    <div class="step-card active" onclick="seekToStep(0)">
+      <div class="step-card-num"><span class="num-val">01</span><span class="done-icon">✓</span></div>
+      <h5>Chekni toping</h5>
+      <p>Savdolar ro'yxatidan qaytariladigan chekni qidiring</p>
+    </div>
+    <div class="step-card" onclick="seekToStep(1)">
+      <div class="step-card-num"><span class="num-val">02</span><span class="done-icon">✓</span></div>
+      <h5>Qaytarish tugmasi</h5>
+      <p>Chek detallaridan "Qaytarish" tugmasini bosing</p>
+    </div>
+    <div class="step-card" onclick="seekToStep(2)">
+      <div class="step-card-num"><span class="num-val">03</span><span class="done-icon">✓</span></div>
+      <h5>Tovarlarni belgilang</h5>
+      <p>Qaytariladigan tovarlarni tanlang va sababini kiriting</p>
+    </div>
+    <div class="step-card" onclick="seekToStep(3)">
+      <div class="step-card-num"><span class="num-val">04</span><span class="done-icon">✓</span></div>
+      <h5>Tasdiqlang</h5>
+      <p>Qaytarish cheki yaratiladi, sklad avtomatik yangilanadi</p>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<!-- DEMO AREA -->
+<div class="demo-area">
+  <div class="screen-wrap">
+    <!-- Browser bar -->
+    <div class="screen-bar">
+      <div class="screen-dot"></div>
+      <div class="screen-dot"></div>
+      <div class="screen-dot"></div>
+      <div class="screen-url">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>app.raos.uz</span>/sales
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- SCENE 0: Savdolar ro'yxati -->
+      <div class="scene active" id="scene0">
+        <div class="pos-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Bosh sahifa
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Kassa
+            </div>
+            <div class="nav-item active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Savdolar
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Sklad
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Hisobotlar
+            </div>
+          </div>
+
+          <div class="sales-main">
+            <div class="page-header">
+              <div class="page-title">Savdolar ro'yxati</div>
+              <div class="search-bar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Chek ID yoki sana bo'yicha qidiring...
+              </div>
+            </div>
+            <div class="filter-pills">
+              <div class="filter-pill active">Barchasi</div>
+              <div class="filter-pill">Bugun</div>
+              <div class="filter-pill">Kecha</div>
+              <div class="filter-pill">Qaytarilgan</div>
+            </div>
+            <div class="sales-table">
+              <div class="table-head">
+                <span>Chek ID</span>
+                <span>Tovarlar</span>
+                <span>Sana</span>
+                <span>Summa</span>
+                <span>Status</span>
+              </div>
+              <div class="table-row" id="row1">
+                <span class="row-id">#1042</span>
+                <div class="row-items">Lancome, Revlon<small>2 ta tovar</small></div>
+                <span class="row-date">Bugun, 11:24</span>
+                <span class="row-amount">505 000</span>
+                <div class="row-status status-paid">● To'langan</div>
+              </div>
+              <div class="table-row highlight" id="row2">
+                <span class="row-id">#1041</span>
+                <div class="row-items">L'Oreal, Maybelline<small>2 ta tovar</small></div>
+                <span class="row-date">Bugun, 10:15</span>
+                <span class="row-amount">281 000</span>
+                <div class="row-status status-paid">● To'langan</div>
+              </div>
+              <div class="table-row" id="row3">
+                <span class="row-id">#1040</span>
+                <div class="row-items">Nivea, Garnier<small>2 ta tovar</small></div>
+                <span class="row-date">Kecha, 17:50</span>
+                <span class="row-amount">174 000</span>
+                <div class="row-status status-paid">● To'langan</div>
+              </div>
+              <div class="table-row" id="row4">
+                <span class="row-id">#1039</span>
+                <div class="row-items">Dior, Chanel<small>2 ta tovar</small></div>
+                <span class="row-date">Kecha, 15:32</span>
+                <span class="row-amount">890 000</span>
+                <div class="row-status status-return">↩ Qaytarilgan</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cursor -->
+        <div class="cursor" id="cursor0" style="left:560px;top:180px">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <!-- Ripple -->
+        <div class="click-ripple" id="ripple0" style="left:602px;top:205px"></div>
+      </div>
+
+      <!-- SCENE 1: Sotuv detali modal -->
+      <div class="scene" id="scene1">
+        <div class="pos-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Bosh sahifa
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Kassa
+            </div>
+            <div class="nav-item active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Savdolar
+            </div>
+            <div class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad
+            </div>
+          </div>
+          <div class="sales-main">
+            <div class="page-header">
+              <div class="page-title">Savdolar ro'yxati</div>
+            </div>
+            <div class="sales-table">
+              <div class="table-head">
+                <span>Chek ID</span>
+                <span>Tovarlar</span>
+                <span>Sana</span>
+                <span>Summa</span>
+                <span>Status</span>
+              </div>
+              <div class="table-row highlight-pulse" id="row2b" style="background:rgba(36,212,244,0.06);border-left:3px solid var(--cyan)">
+                <span class="row-id">#1041</span>
+                <div class="row-items">L'Oreal, Maybelline<small>2 ta tovar</small></div>
+                <span class="row-date">Bugun, 10:15</span>
+                <span class="row-amount">281 000</span>
+                <div class="row-status status-paid">● To'langan</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal-overlay">
+          <div class="sale-detail-modal" id="saleModal">
+            <div class="modal-header">
+              <div>
+                <div class="modal-title">Sotuv detallari</div>
+                <div class="modal-id">#1041</div>
+              </div>
+              <div class="modal-close">✕</div>
+            </div>
+            <div class="modal-info-row">
+              <span>Sana:</span>
+              <span class="modal-info-val">2026-06-04, 10:15</span>
+            </div>
+            <div class="modal-info-row">
+              <span>Kassir:</span>
+              <span class="modal-info-val">Aziz K.</span>
+            </div>
+            <div class="modal-info-row">
+              <span>To'lov:</span>
+              <span class="modal-info-val">Naqd pul</span>
+            </div>
+            <div class="modal-items-title">Tovarlar</div>
+            <div class="modal-item-row">
+              <span class="modal-item-emoji">💄</span>
+              <div class="modal-item-info">
+                <div class="modal-item-name">L'Oreal True Match</div>
+                <div class="modal-item-qty">1 dona</div>
+              </div>
+              <span class="modal-item-price">145 000</span>
+            </div>
+            <div class="modal-item-row">
+              <span class="modal-item-emoji">👁️</span>
+              <div class="modal-item-info">
+                <div class="modal-item-name">Maybelline Lash</div>
+                <div class="modal-item-qty">1 dona</div>
+              </div>
+              <span class="modal-item-price">136 000</span>
+            </div>
+            <div class="modal-total-row">
+              <span class="modal-total-lbl">Jami to'langan:</span>
+              <span class="modal-total-val">281 000 so'm</span>
+            </div>
+            <button class="btn-return" id="btnReturn">↩ Qaytarish jarayonini boshlash</button>
+          </div>
+        </div>
+
+        <!-- Cursor -->
+        <div class="cursor" id="cursor1" style="left:440px;top:320px">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple1" style="left:480px;top:340px;background:rgba(249,115,22,0.25)"></div>
+      </div>
+
+      <!-- SCENE 2: Qaytarish modali -->
+      <div class="scene" id="scene2">
+        <div class="pos-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Savdolar
+            </div>
+          </div>
+          <div class="sales-main" style="opacity:0.3;pointer-events:none">
+            <div class="page-title">Savdolar ro'yxati</div>
+          </div>
+        </div>
+
+        <div class="modal-overlay">
+          <div class="return-modal" id="returnModal">
+            <div class="return-header">
+              <div class="return-icon">↩</div>
+              <div>
+                <div class="return-title">Qaytarish — #1041</div>
+                <div class="return-sub">Qaysi tovarni qaytarishni tanlang</div>
+              </div>
+            </div>
+
+            <div class="return-reason">
+              <label>Qaytarish sababi:</label>
+              <div class="reason-options">
+                <div class="reason-opt" id="reason1">Nosoz tovar</div>
+                <div class="reason-opt active" id="reason2">Mos kelmadi</div>
+                <div class="reason-opt" id="reason3">Noto'g'ri tovar</div>
+                <div class="reason-opt" id="reason4">Boshqa sabab</div>
+              </div>
+            </div>
+
+            <div class="return-items-title">Qaytariladigan tovarlar:</div>
+
+            <div class="return-item-row checked" id="retItem1">
+              <div class="ret-checkbox"><span class="ret-check-icon">✓</span></div>
+              <span class="ret-emoji">💄</span>
+              <div class="ret-info">
+                <div class="ret-name">L'Oreal True Match</div>
+                <div class="ret-qty">1 dona</div>
+              </div>
+              <span class="ret-price">145 000</span>
+            </div>
+
+            <div class="return-item-row" id="retItem2">
+              <div class="ret-checkbox"><span class="ret-check-icon">✓</span></div>
+              <span class="ret-emoji">👁️</span>
+              <div class="ret-info">
+                <div class="ret-name">Maybelline Lash</div>
+                <div class="ret-qty">1 dona</div>
+              </div>
+              <span class="ret-price">136 000</span>
+            </div>
+
+            <div class="return-summary" id="retSummary">
+              <div>
+                <div class="ret-sum-lbl">Qaytariladi:</div>
+                <div style="font-size:10px;color:#64748b">1 ta tovar tanlangan</div>
+              </div>
+              <div class="ret-sum-val" id="retTotal">145 000 so'm</div>
+            </div>
+
+            <button class="btn-confirm-return" id="btnConfirmReturn">↩ Qaytarishni tasdiqlash</button>
+          </div>
+        </div>
+
+        <!-- Cursor -->
+        <div class="cursor" id="cursor2" style="left:490px;top:290px">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple2" style="left:530px;top:310px;background:rgba(249,115,22,0.25)"></div>
+      </div>
+
+      <!-- SCENE 3: Muvaffaqiyatli qaytarish -->
+      <div class="scene" id="scene3">
+        <div class="success-scene">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active" style="color:var(--cyan)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Savdolar
+            </div>
+          </div>
+
+          <div class="success-main">
+            <div class="success-check" id="successCheck">↩</div>
+            <div class="success-title" id="successTitle">Qaytarish muvaffaqiyatli!</div>
+            <div class="success-sub" id="successSub">145 000 so'm xaridorga qaytarildi. Sklad avtomatik yangilandi.</div>
+
+            <div class="receipt-card" id="receiptCard">
+              <div class="receipt-top">
+                <div class="receipt-store">RAOS</div>
+                <div class="receipt-type">QAYTARISH CHEKI</div>
+              </div>
+              <hr class="receipt-divider">
+              <div class="receipt-row">
+                <span class="receipt-label">Chek ID:</span>
+                <span class="receipt-value">#1041-R</span>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-label">Asl chek:</span>
+                <span class="receipt-value">#1041</span>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-label">Sana:</span>
+                <span class="receipt-value">2026-06-04, 10:42</span>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-label">Sabab:</span>
+                <span class="receipt-value">Mos kelmadi</span>
+              </div>
+              <hr class="receipt-divider">
+              <div class="receipt-row">
+                <span class="receipt-label">💄 L'Oreal True Match</span>
+                <span class="receipt-value">145 000</span>
+              </div>
+              <div class="receipt-total-row">
+                <span class="receipt-total-lbl">Jami qaytarildi:</span>
+                <span class="receipt-total-val">145 000 so'm</span>
+              </div>
+              <div class="receipt-refund">
+                <div class="receipt-refund-lbl">Naqd pul qaytarildi</div>
+                <div class="receipt-refund-val">145 000 so'm</div>
+              </div>
+              <div class="receipt-qr"></div>
+            </div>
+
+            <div class="success-actions" id="successActions">
+              <button class="btn-new-sale">+ Yangi sotuv</button>
+              <button class="btn-print">🖨 Chek chiqarish</button>
+            </div>
+          </div>
+
+          <div class="stock-sidebar">
+            <div class="stock-title">Sklad yangilandi</div>
+            <div class="stock-item">
+              <div class="stock-item-name">L'Oreal True Match</div>
+              <div class="stock-bar"><div class="stock-fill green" id="sf1" style="width:40%"></div></div>
+              <div class="stock-count">Qoldi: <strong id="sc1">4 → 5</strong></div>
+              <div class="stock-badge badge-restored" id="sb1">+1 qaytarildi</div>
+            </div>
+            <div class="stock-item">
+              <div class="stock-item-name">Maybelline Lash</div>
+              <div class="stock-bar"><div class="stock-fill orange" id="sf2" style="width:30%"></div></div>
+              <div class="stock-count">Qoldi: <strong>3</strong> (o'zgarmadi)</div>
+            </div>
+            <div class="stock-item">
+              <div class="stock-item-name">Revlon ColorStay</div>
+              <div class="stock-bar"><div class="stock-fill green" id="sf3" style="width:70%"></div></div>
+              <div class="stock-count">Qoldi: <strong>7</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /screen-content -->
+  </div><!-- /screen-wrap -->
+
+  <!-- TOOLTIP -->
+  <div class="tooltip-wrap">
+    <div class="tooltip-box" id="tooltipBox">
+      <div class="tooltip-icon" id="tipIcon">🔍</div>
+      <div class="tooltip-text">
+        <h4 id="tipTitle">Savdolar ro'yxati</h4>
+        <p id="tipDesc">«Savdolar» bo'limida barcha o'tkazilgan sotuvlar ko'rinadi. Chek ID yoki sanasi bo'yicha qidirish mumkin. Qaytariladigan chekni toping va ustiga bosing.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="timeline" id="timeline" onclick="seekClick(event)">
+    <div class="timeline-fill" id="timelineFill" style="width:0%"></div>
+    <div class="timeline-thumb" id="timelineThumb" style="left:0%"></div>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" onclick="skipBack()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.46"/></svg>
+    </button>
+    <button class="ctrl-btn main" id="playBtn" onclick="togglePlay()">▶</button>
+    <button class="ctrl-btn" onclick="skipFwd()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.46"/></svg>
+    </button>
+    <span class="time-display" id="timeDisplay">0:00 / 4:00</span>
+    <div class="ctrl-right">
+      <button class="speed-btn" onclick="setSpeed(0.5)" id="sp05">0.5×</button>
+      <button class="speed-btn active" onclick="setSpeed(1)" id="sp1">1×</button>
+      <button class="speed-btn" onclick="setSpeed(1.5)" id="sp15">1.5×</button>
+      <button class="speed-btn" onclick="setSpeed(2)" id="sp2">2×</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 240; // 4 daqiqa
+let current = 0, playing = false, speed = 1, timer = null;
+let animStarted = [false, false, false, false];
+
+const STEPS = [
+  { time: 0,   end: 60,  label: "1-qadam: Savdolar ro'yxatini oching" },
+  { time: 60,  end: 120, label: "2-qadam: Chek detallaridan qaytarish" },
+  { time: 120, end: 180, label: "3-qadam: Tovarlarni belgilang" },
+  { time: 180, end: 240, label: "4-qadam: Qaytarishni tasdiqlang" },
+];
+
+const TIPS = [
+  { icon:'🔍', title:"Savdolar ro'yxati", desc:"«Savdolar» bo'limida barcha o'tkazilgan sotuvlar ko'rinadi. Chek ID yoki sanasi bo'yicha qidirish mumkin. Qaytariladigan chekni toping va ustiga bosing." },
+  { icon:'📋', title:"Chek detallari", desc:"Chekni bosganingizda uning to'liq tafsilotlari ochiladi: tovarlar, summa, kassir nomi va to'lov usuli. «Qaytarish» tugmasi eng pastda joylashgan." },
+  { icon:'✅', title:"Tovarlarni tanlash", desc:"Qaytariladigan tovarlar yonidagi katakni belgilang. Bir nechta tovar tanlab olsa bo'ladi. Sabab ko'rsatish ixtiyoriy — lekin hisobot uchun foydali." },
+  { icon:'🔄', title:"Sklad avtomatik yangilanadi", desc:"Qaytarish tasdiqlangach sklad zaxirasi avtomatik ortadi — qo'shimcha amal kerak emas. OFD ga qaytarish cheki yuboriladi va tarix saqlanadi." },
+];
+
+function getCurrentStep() {
+  for (let i = STEPS.length - 1; i >= 0; i--) {
+    if (current >= STEPS[i].time) return i;
+  }
+  return 0;
+}
+
+function updateUI() {
+  const step = getCurrentStep();
+  const pct = (current / TOTAL) * 100;
+
+  document.getElementById('timelineFill').style.width = pct + '%';
+  document.getElementById('timelineThumb').style.left = `calc(${pct}% - 7px)`;
+
+  const m = Math.floor(current / 60), s = Math.floor(current % 60);
+  document.getElementById('timeDisplay').textContent = `${m}:${s.toString().padStart(2,'0')} / 4:00`;
+
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.remove('active','done');
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  });
+
+  document.querySelectorAll('.step-card').forEach((c, i) => {
+    c.classList.remove('active','done');
+    if (i < step) c.classList.add('done');
+    else if (i === step) c.classList.add('active');
+  });
+
+  for (let i = 0; i < 3; i++) {
+    const s0 = STEPS[i].time, s1 = STEPS[i+1].time;
+    let w = 0;
+    if (current >= s1) w = 100;
+    else if (current > s0) w = ((current - s0) / (s1 - s0)) * 100;
+    document.getElementById('line'+(i+1)).style.width = w+'%';
+  }
+
+  document.getElementById('stepLabel').textContent = STEPS[step].label;
+  document.getElementById('stepCount').textContent = (step+1)+' / 4';
+
+  const tip = TIPS[step];
+  document.getElementById('tipIcon').textContent = tip.icon;
+  document.getElementById('tipTitle').textContent = tip.title;
+  document.getElementById('tipDesc').textContent = tip.desc;
+
+  document.querySelectorAll('.scene').forEach((s, i) => {
+    s.classList.toggle('active', i === step);
+  });
+
+  runStepAnimations(step);
+}
+
+function runStepAnimations(step) {
+  const t = current;
+
+  // STEP 0: Savdolar ro'yxati — cursor harakati va chekni bosish
+  if (step === 0 && !animStarted[0]) {
+    animStarted[0] = true;
+    const cursor = document.getElementById('cursor0');
+    const ripple = document.getElementById('ripple0');
+
+    // Cursor dastlab listda aylanadi
+    setTimeout(() => { cursor.style.left='400px'; cursor.style.top='200px'; }, 600);
+    setTimeout(() => { cursor.style.left='360px'; cursor.style.top='230px'; }, 1200);
+    // #1041 qatoriga yo'naladi
+    setTimeout(() => { cursor.style.left='580px'; cursor.style.top='205px'; }, 2200);
+    // Click
+    setTimeout(() => {
+      ripple.style.left='600px'; ripple.style.top='205px';
+      ripple.classList.add('pop');
+      setTimeout(() => ripple.classList.remove('pop'), 500);
+    }, 3000);
+  }
+
+  // STEP 1: Modal ochiladi, cursor qaytarish tugmasiga boradi
+  if (step === 1 && !animStarted[1]) {
+    animStarted[1] = true;
+    const modal = document.getElementById('saleModal');
+    const cursor = document.getElementById('cursor1');
+    const ripple = document.getElementById('ripple1');
+    const btn = document.getElementById('btnReturn');
+
+    setTimeout(() => { modal.classList.add('show'); }, 300);
+    // Cursor modalni o'qiydi
+    setTimeout(() => { cursor.style.left='450px'; cursor.style.top='240px'; }, 800);
+    setTimeout(() => { cursor.style.left='450px'; cursor.style.top='280px'; }, 1400);
+    // Qaytarish tugmasiga boradi
+    setTimeout(() => { cursor.style.left='480px'; cursor.style.top='340px'; btn.classList.add('glow'); }, 2200);
+    // Click
+    setTimeout(() => {
+      ripple.style.left='480px'; ripple.style.top='340px';
+      ripple.classList.add('pop');
+      setTimeout(() => ripple.classList.remove('pop'), 500);
+    }, 3200);
+  }
+
+  // STEP 2: Qaytarish modal — tovar belgilash
+  if (step === 2 && !animStarted[2]) {
+    animStarted[2] = true;
+    const modal = document.getElementById('returnModal');
+    const cursor = document.getElementById('cursor2');
+    const ripple = document.getElementById('ripple2');
+    const item2 = document.getElementById('retItem2');
+    const summary = document.getElementById('retSummary');
+    const retTotal = document.getElementById('retTotal');
+    const confirmBtn = document.getElementById('btnConfirmReturn');
+
+    setTimeout(() => { modal.classList.add('show'); }, 300);
+    // Cursor sabab bo'limiga boradi
+    setTimeout(() => { cursor.style.left='430px'; cursor.style.top='230px'; }, 600);
+    // 2-tovarni tanlash
+    setTimeout(() => {
+      cursor.style.left='490px'; cursor.style.top='300px';
+      ripple.style.left='490px'; ripple.style.top='300px';
+      ripple.classList.add('pop');
+      setTimeout(() => ripple.classList.remove('pop'), 500);
+      item2.classList.add('checked');
+      summary.classList.add('show');
+      retTotal.textContent = '281 000 so\'m';
+    }, 2000);
+    // Confirm tugmasi
+    setTimeout(() => {
+      cursor.style.left='480px'; cursor.style.top='355px';
+      confirmBtn.classList.add('show');
+    }, 3000);
+    // Click confirm
+    setTimeout(() => {
+      ripple.style.left='480px'; ripple.style.top='355px';
+      ripple.classList.add('pop');
+      setTimeout(() => ripple.classList.remove('pop'), 500);
+    }, 3800);
+  }
+
+  // STEP 3: Muvaffaqiyat animatsiyalari
+  if (step === 3 && !animStarted[3]) {
+    animStarted[3] = true;
+    setTimeout(() => { document.getElementById('successCheck').classList.add('show'); }, 200);
+    setTimeout(() => { document.getElementById('successTitle').classList.add('show'); }, 400);
+    setTimeout(() => { document.getElementById('successSub').classList.add('show'); }, 600);
+    setTimeout(() => { document.getElementById('receiptCard').classList.add('show'); }, 800);
+    setTimeout(() => { document.getElementById('sf1').style.width = '50%'; }, 1200);
+    setTimeout(() => { document.getElementById('sb1').classList.add('show'); }, 1500);
+    setTimeout(() => { document.getElementById('successActions').classList.add('show'); }, 1200);
+  }
+}
+
+function tick() {
+  if (!playing) return;
+  current = Math.min(current + speed, TOTAL);
+  updateUI();
+  if (current >= TOTAL) {
+    playing = false;
+    document.getElementById('playBtn').textContent = '▶';
+    return;
+  }
+  timer = setTimeout(tick, 1000);
+}
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('playBtn').textContent = playing ? '⏸' : '▶';
+  if (playing) tick();
+  else clearTimeout(timer);
+}
+
+function skipBack() {
+  current = Math.max(0, current - 15);
+  updateUI();
+}
+
+function skipFwd() {
+  current = Math.min(TOTAL, current + 15);
+  updateUI();
+}
+
+function seekToStep(i) {
+  current = STEPS[i].time;
+  updateUI();
+}
+
+function setSpeed(s) {
+  speed = s;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+  const map = {0.5:'sp05', 1:'sp1', 1.5:'sp15', 2:'sp2'};
+  document.getElementById(map[s]).classList.add('active');
+}
+
+function seekClick(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  current = Math.round(pct * TOTAL);
+  updateUI();
+}
+
+// Init
+updateUI();
+// Auto-play after short delay
+setTimeout(() => {
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸';
+  tick();
+}, 800);
+</script>
+</body>
+</html>

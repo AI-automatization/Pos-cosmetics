@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>9-dars: Xodimlar va ruxsatlar — RAOS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0E1530;color:#e2e8f0;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{background:#0a0f24;border-bottom:1px solid rgba(236,72,153,0.2);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo{color:#ec4899;font-weight:800;font-size:15px;letter-spacing:.5px}
+.logo span{color:#f9a8d4}
+.top-step{margin-left:auto;font-size:12px;color:#64748b}
+.top-step b{color:#ec4899}
+
+/* ── SCENES ── */
+.scene{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .5s;display:flex;flex-direction:column}
+.scene.active{opacity:1;pointer-events:auto;position:relative}
+.scene-wrap{flex:1;display:flex;overflow:hidden;position:relative}
+
+/* ── SIDEBAR ── */
+.sidebar{width:200px;background:#07091a;border-right:1px solid rgba(236,72,153,0.15);padding:12px 0;flex-shrink:0}
+.sidebar-logo{padding:0 14px 12px;font-weight:800;font-size:13px;color:#ec4899;border-bottom:1px solid rgba(236,72,153,0.1);margin-bottom:8px}
+.sidebar-logo span{color:#f9a8d4}
+.nav-item{padding:8px 14px;font-size:12px;color:#64748b;cursor:pointer;display:flex;align-items:center;gap:8px;border-radius:6px;margin:1px 6px;transition:all .2s}
+.nav-item:hover,.nav-item.active{background:rgba(236,72,153,0.1);color:#f9a8d4}
+.nav-item.active{border-left:3px solid #ec4899;padding-left:11px}
+.nav-icon{width:14px;text-align:center;font-size:11px}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:18px}
+.page-title{font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.page-sub{font-size:11px;color:#64748b;margin-bottom:16px}
+
+/* ── STAFF TABLE ── */
+.card{background:#0a1228;border:1px solid rgba(236,72,153,0.2);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.card-header{padding:10px 14px;border-bottom:1px solid rgba(236,72,153,0.1);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:600;color:#e2e8f0;display:flex;align-items:center;gap:6px}
+.add-btn{font-size:11px;padding:4px 12px;border-radius:6px;background:rgba(236,72,153,0.15);color:#ec4899;border:1px solid rgba(236,72,153,0.3);cursor:pointer;font-weight:600;transition:all .2s}
+.add-btn:hover{background:rgba(236,72,153,0.25)}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;color:#475569;padding:8px 14px;text-align:left;border-bottom:1px solid rgba(236,72,153,0.08);background:#060b1b}
+td{font-size:11px;color:#cbd5e1;padding:8px 14px;border-bottom:1px solid rgba(236,72,153,0.05)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(236,72,153,0.04)}
+.staff-avatar{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0a0f24;margin-right:6px;vertical-align:middle}
+.role-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;display:inline-block}
+.role-admin{background:rgba(236,72,153,0.2);color:#ec4899;border:1px solid rgba(236,72,153,0.3)}
+.role-manager{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
+.role-cashier{background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3)}
+.role-viewer{background:rgba(100,116,139,0.15);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+.status-active{background:#4ade80}
+.status-inactive{background:#64748b}
+.row-btn{font-size:10px;padding:2px 8px;border-radius:5px;border:1px solid rgba(236,72,153,0.25);background:transparent;color:#ec4899;cursor:pointer}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:10px;color:#64748b;font-weight:600}
+.form-input{background:#060b1b;border:1px solid rgba(236,72,153,0.2);border-radius:6px;padding:7px 10px;font-size:12px;color:#e2e8f0;outline:none;transition:border .2s;width:100%}
+.form-input:focus{border-color:rgba(236,72,153,0.5)}
+.form-input.filled{border-color:rgba(236,72,153,0.4)}
+.form-select{background:#060b1b;border:1px solid rgba(236,72,153,0.2);border-radius:6px;padding:7px 10px;font-size:12px;color:#e2e8f0;outline:none;width:100%;appearance:none}
+.form-select.chosen{border-color:rgba(236,72,153,0.4);color:#f9a8d4}
+
+/* ── ROLES CARD ── */
+.roles-row{display:flex;gap:10px;margin-bottom:12px}
+.role-card{flex:1;background:#0a1228;border:1px solid rgba(236,72,153,0.15);border-radius:10px;padding:12px;opacity:0;transform:translateY(8px);transition:all .4s}
+.role-card.show{opacity:1;transform:translateY(0)}
+.role-card.selected{border-color:rgba(236,72,153,0.5);background:rgba(236,72,153,0.06)}
+.rc-icon{font-size:20px;margin-bottom:6px}
+.rc-name{font-size:11px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.rc-desc{font-size:10px;color:#64748b;line-height:1.5}
+.rc-level{font-size:9px;color:#ec4899;font-weight:700;margin-top:4px}
+
+/* ── PERMISSIONS ── */
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.perm-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#060b1b;border:1px solid rgba(236,72,153,0.1);border-radius:6px;opacity:0;transform:translateX(-4px);transition:all .35s}
+.perm-item.show{opacity:1;transform:translateX(0)}
+.perm-check{width:14px;height:14px;border-radius:3px;border:1px solid rgba(236,72,153,0.3);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .3s}
+.perm-check.on{background:#ec4899;border-color:#ec4899;color:#fff}
+.perm-check.off{background:transparent}
+.perm-text{font-size:11px;color:#94a3b8}
+.perm-text.on{color:#e2e8f0}
+
+/* ── PIN PAD ── */
+.pin-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0}
+.pin-display{display:flex;gap:10px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(236,72,153,0.4);background:transparent;transition:all .2s}
+.pin-dot.filled{background:#ec4899;border-color:#ec4899}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:180px}
+.pin-key{background:#0a1228;border:1px solid rgba(236,72,153,0.2);border-radius:8px;padding:10px;text-align:center;font-size:14px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s}
+.pin-key:hover{background:rgba(236,72,153,0.15);border-color:rgba(236,72,153,0.4)}
+.pin-key.pressed{background:rgba(236,72,153,0.3);transform:scale(.93)}
+.pin-hint{font-size:11px;color:#64748b;text-align:center}
+
+/* ── SUCCESS ── */
+.success-box{background:rgba(74,222,128,0.07);border:1px solid rgba(74,222,128,0.25);border-radius:10px;padding:16px;text-align:center;opacity:0;transition:opacity .5s;margin-bottom:12px}
+.success-box.show{opacity:1}
+.success-icon{font-size:30px;margin-bottom:6px}
+.success-title{font-size:14px;font-weight:700;color:#4ade80;margin-bottom:6px}
+.success-desc{font-size:11px;color:#94a3b8;line-height:1.7}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;right:16px;background:#1a2444;border:1px solid rgba(236,72,153,0.4);border-radius:10px;padding:10px 14px;font-size:12px;color:#e2e8f0;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:all .35s;z-index:99;max-width:250px;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── CURSOR ── */
+.cursor{position:fixed;width:20px;height:20px;border-radius:50%;background:rgba(236,72,153,0.8);border:2px solid #fff;pointer-events:none;z-index:200;transform:translate(-50%,-50%);transition:transform .08s;box-shadow:0 0 10px rgba(236,72,153,0.6)}
+.cursor.clicking{transform:translate(-50%,-50%) scale(.7)}
+.ripple{position:fixed;width:40px;height:40px;border-radius:50%;border:2px solid rgba(236,72,153,0.6);pointer-events:none;z-index:199;transform:translate(-50%,-50%) scale(0);animation:ripAnim .5s ease-out forwards}
+@keyframes ripAnim{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.highlight{outline:2px solid rgba(236,72,153,0.7);outline-offset:3px;border-radius:6px;transition:outline .2s}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:50;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:#0f1a35;border:1px solid rgba(236,72,153,0.3);border-radius:14px;width:340px;overflow:hidden;transform:scale(.9);transition:transform .3s}
+.modal-overlay.show .modal{transform:scale(1)}
+.modal-head{padding:14px 16px;border-bottom:1px solid rgba(236,72,153,0.15);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:13px;font-weight:700;color:#e2e8f0}
+.modal-close{color:#64748b;cursor:pointer;font-size:14px}
+.modal-body{padding:14px 16px}
+.modal-foot{padding:10px 16px;border-top:1px solid rgba(236,72,153,0.1);display:flex;gap:8px}
+.modal-btn-cancel{flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(100,116,139,0.3);color:#94a3b8;font-size:11px;cursor:pointer}
+.modal-btn-ok{flex:2;padding:8px;border-radius:8px;background:linear-gradient(135deg,#ec4899,#f9a8d4);color:#fff;font-size:11px;font-weight:700;cursor:pointer;border:none}
+
+/* ── CONTROLS ── */
+.controls{background:#07091a;border-top:1px solid rgba(236,72,153,0.2);padding:8px 14px;flex-shrink:0}
+.progress-wrap{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.progress-bar{flex:1;height:4px;background:#1e2d4a;border-radius:2px;cursor:pointer;position:relative}
+.progress-fill{height:100%;background:linear-gradient(90deg,#ec4899,#f9a8d4);border-radius:2px;transition:width .3s linear}
+.progress-handle{position:absolute;top:50%;right:0;transform:translate(50%,-50%);width:10px;height:10px;border-radius:50%;background:#ec4899;border:2px solid #fff;cursor:grab}
+.time-txt{font-size:10px;color:#64748b;white-space:nowrap}
+.ctrl-row{display:flex;align-items:center;gap:8px}
+.ctrl-btn{background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.2);border-radius:6px;color:#f9a8d4;font-size:11px;padding:4px 10px;cursor:pointer;transition:all .2s}
+.ctrl-btn:hover{background:rgba(236,72,153,0.2)}
+.ctrl-btn.active{background:rgba(236,72,153,0.25);color:#fce7f3}
+.play-btn{background:rgba(236,72,153,0.2);border:1px solid rgba(236,72,153,0.4);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:12px}
+.play-btn:hover{background:rgba(236,72,153,0.35)}
+.step-dots{display:flex;gap:4px;margin-left:auto}
+.dot{width:6px;height:6px;border-radius:50%;background:#1e2d4a;transition:all .3s;cursor:pointer}
+.dot.done{background:#ec4899}
+.dot.active{background:#f9a8d4;box-shadow:0 0 6px rgba(236,72,153,0.6);width:14px;border-radius:3px}
+.step-info{font-size:10px;color:#ec4899;font-weight:600;margin-left:4px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">RAO<span>S</span></div>
+  <div style="font-size:11px;color:#94a3b8">9-dars: Xodimlar va ruxsatlar</div>
+  <div class="top-step">Qadam: <b id="topStep">1</b> / 6</div>
+</div>
+
+<!-- ═══════════ SCENE 1: XODIMLAR RO'YXATI ═══════════ -->
+<div class="scene active" id="scene1">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span> Xodimlar</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Sozlamalar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">Xodimlar boshqaruvi</div>
+      <div class="page-sub">Barcha xodimlar, ularning rollari va holati</div>
+
+      <div class="card" id="staffCard">
+        <div class="card-header">
+          <div class="card-title">👥 Xodimlar ro'yxati <span style="color:#ec4899;font-size:11px">(4 ta)</span></div>
+          <div class="add-btn" id="btnAddStaff">+ Yangi xodim</div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Xodim</th><th>Rol</th><th>Filial</th><th>Holat</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr id="sr1" style="opacity:0">
+              <td><span class="staff-avatar" style="background:#f9a8d4">Z</span>Zulfiya Nazarova</td>
+              <td><span class="role-badge role-admin">Admin</span></td>
+              <td>Bosh ofis</td>
+              <td><span class="status-dot status-active"></span><span style="color:#4ade80;font-size:10px">Faol</span></td>
+              <td><button class="row-btn">Tahrir</button></td>
+            </tr>
+            <tr id="sr2" style="opacity:0">
+              <td><span class="staff-avatar" style="background:#fde68a">N</span>Nilufar Yusupova</td>
+              <td><span class="role-badge role-cashier">Kassir</span></td>
+              <td>1-filial</td>
+              <td><span class="status-dot status-active"></span><span style="color:#4ade80;font-size:10px">Faol</span></td>
+              <td><button class="row-btn">Tahrir</button></td>
+            </tr>
+            <tr id="sr3" style="opacity:0">
+              <td><span class="staff-avatar" style="background:#a5f3fc">K</span>Kamola Toshmatova</td>
+              <td><span class="role-badge role-cashier">Kassir</span></td>
+              <td>1-filial</td>
+              <td><span class="status-dot status-active"></span><span style="color:#4ade80;font-size:10px">Faol</span></td>
+              <td><button class="row-btn">Tahrir</button></td>
+            </tr>
+            <tr id="sr4" style="opacity:0">
+              <td><span class="staff-avatar" style="background:#d8b4fe">S</span>Sardor Xolmatov</td>
+              <td><span class="role-badge role-manager">Menejer</span></td>
+              <td>2-filial</td>
+              <td><span class="status-dot status-inactive"></span><span style="color:#64748b;font-size:10px">Nofaol</span></td>
+              <td><button class="row-btn">Tahrir</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 2: YANGI XODIM FORMASI ═══════════ -->
+<div class="scene" id="scene2">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span> Xodimlar</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Sozlamalar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">Yangi xodim qo'shish</div>
+      <div class="page-sub">Ma'lumotlarni to'ldiring va rol tanlang</div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">👤 Xodim ma'lumotlari</div></div>
+        <div style="padding:14px 16px">
+          <div class="form-grid">
+            <div class="form-group">
+              <div class="form-label">Ism</div>
+              <input class="form-input" id="fName" placeholder="Ism" readonly/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Familiya</div>
+              <input class="form-input" id="fSurname" placeholder="Familiya" readonly/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Telefon</div>
+              <input class="form-input" id="fPhone" placeholder="+998 __ ___ __ __" readonly/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Filial</div>
+              <select class="form-select" id="fBranch">
+                <option value="">Tanlang…</option>
+                <option>1-filial (Chilonzor)</option>
+                <option>2-filial (Yunusobod)</option>
+                <option>Bosh ofis</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <div class="form-label">Rol</div>
+              <select class="form-select" id="fRole">
+                <option value="">Tanlang…</option>
+                <option>Kassir</option>
+                <option>Menejer</option>
+                <option>Admin</option>
+                <option>Faqat ko'rish</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(100,116,139,0.3);color:#94a3b8;font-size:11px;cursor:pointer">Bekor qilish</button>
+            <button id="btnNext2" style="flex:2;padding:8px;border-radius:8px;background:linear-gradient(135deg,#ec4899,#f9a8d4);color:#fff;font-size:11px;font-weight:700;cursor:pointer;border:none">Keyingi →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 3: ROL TANLASH ═══════════ -->
+<div class="scene" id="scene3">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span> Xodimlar</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Sozlamalar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">Rol tanlash</div>
+      <div class="page-sub">Har bir rol turli darajadagi ruxsatlarga ega</div>
+
+      <div class="roles-row" id="rolesRow">
+        <div class="role-card" id="rc1">
+          <div class="rc-icon">👑</div>
+          <div class="rc-name">Admin</div>
+          <div class="rc-desc">Barcha imkoniyatlar — xodimlar, sozlamalar, hisobotlar</div>
+          <div class="rc-level">Daraja 4</div>
+        </div>
+        <div class="role-card" id="rc2">
+          <div class="rc-icon">🧑‍💼</div>
+          <div class="rc-name">Menejer</div>
+          <div class="rc-desc">Sklad, hisobotlar, xodimlar (o'qish)</div>
+          <div class="rc-level">Daraja 3</div>
+        </div>
+        <div class="role-card selected" id="rc3">
+          <div class="rc-icon">🧑‍💻</div>
+          <div class="rc-name">Kassir</div>
+          <div class="rc-desc">Faqat sotuv, qaytarish va kassa</div>
+          <div class="rc-level">Daraja 2 ✓</div>
+        </div>
+        <div class="role-card" id="rc4">
+          <div class="rc-icon">👁️</div>
+          <div class="rc-name">Ko'rish</div>
+          <div class="rc-desc">Faqat o'qish — hech narsani o'zgartira olmaydi</div>
+          <div class="rc-level">Daraja 1</div>
+        </div>
+      </div>
+
+      <div class="card" id="roleCompare" style="opacity:0;transition:opacity .5s">
+        <div class="card-header"><div class="card-title">📊 Rol imkoniyatlari taqqoslash</div></div>
+        <table>
+          <thead>
+            <tr><th>Imkoniyat</th><th>Kassir</th><th>Menejer</th><th>Admin</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sotuv qilish</td><td>✅</td><td>✅</td><td>✅</td></tr>
+            <tr><td>Hisobotlar ko'rish</td><td>❌</td><td>✅</td><td>✅</td></tr>
+            <tr><td>Sklad boshqarish</td><td>❌</td><td>✅</td><td>✅</td></tr>
+            <tr><td>Xodim qo'shish</td><td>❌</td><td>❌</td><td>✅</td></tr>
+            <tr><td>Narx o'zgartirish</td><td>❌</td><td>✅</td><td>✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 4: RUXSATLAR ═══════════ -->
+<div class="scene" id="scene4">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span> Xodimlar</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Sozlamalar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">Kirish ruxsatlarini sozlash</div>
+      <div class="page-sub">Maverick Rahimov — Kassir roli uchun qo'shimcha sozlamalar</div>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-header">
+          <div class="card-title">🔐 Ruxsatlar</div>
+          <span style="font-size:10px;color:#64748b">Kassir asosi · tahrirlash mumkin</span>
+        </div>
+        <div style="padding:12px 14px">
+          <div class="perm-grid" id="permGrid">
+            <div class="perm-item" id="p1"><div class="perm-check on">✓</div><div class="perm-text on">Sotuv qilish</div></div>
+            <div class="perm-item" id="p2"><div class="perm-check on">✓</div><div class="perm-text on">Chek chiqarish</div></div>
+            <div class="perm-item" id="p3"><div class="perm-check on">✓</div><div class="perm-text on">Qaytarish (shift ichida)</div></div>
+            <div class="perm-item" id="p4"><div class="perm-check off"></div><div class="perm-text">Chegirma berish</div></div>
+            <div class="perm-item" id="p5"><div class="perm-check off"></div><div class="perm-text">Hisobotlar ko'rish</div></div>
+            <div class="perm-item" id="p6"><div class="perm-check off"></div><div class="perm-text">Narx o'zgartirish</div></div>
+            <div class="perm-item" id="p7"><div class="perm-check off"></div><div class="perm-text">Sklad operatsiyalari</div></div>
+            <div class="perm-item" id="p8"><div class="perm-check off"></div><div class="perm-text">Xodimlar boshqaruvi</div></div>
+          </div>
+
+          <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.2);border-radius:6px;font-size:11px;color:#94a3b8" id="permNote" style="opacity:0">
+            💡 <b style="color:#f9a8d4">Chegirma berish</b> ruxsati yoqildi — kassir 20% gacha chegirma bera oladi
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 5: PIN KOD ═══════════ -->
+<div class="scene" id="scene5">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span> Xodimlar</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Sozlamalar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">PIN kod o'rnatish</div>
+      <div class="page-sub">Kassir kassaga kirishi uchun 4 xonali PIN</div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">🔑 Kassir PIN kodi — Maverick Rahimov</div></div>
+        <div style="padding:14px 16px">
+          <div class="pin-wrap">
+            <div class="pin-hint">Yangi PIN kiriting</div>
+            <div class="pin-display" id="pinDisplay">
+              <div class="pin-dot" id="pd0"></div>
+              <div class="pin-dot" id="pd1"></div>
+              <div class="pin-dot" id="pd2"></div>
+              <div class="pin-dot" id="pd3"></div>
+            </div>
+            <div class="pin-pad" id="pinPad">
+              <div class="pin-key">1</div><div class="pin-key">2</div><div class="pin-key">3</div>
+              <div class="pin-key">4</div><div class="pin-key">5</div><div class="pin-key">6</div>
+              <div class="pin-key">7</div><div class="pin-key">8</div><div class="pin-key">9</div>
+              <div class="pin-key" style="grid-column:2">0</div>
+            </div>
+            <div class="pin-hint" id="pinStatus">4 ta raqam kiriting</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#0a1228;border:1px solid rgba(236,72,153,0.15);border-radius:10px;padding:12px 14px;font-size:11px;color:#94a3b8;margin-top:8px;opacity:0;transition:opacity .5s" id="pinInfo">
+        🔐 <b style="color:#f9a8d4">PIN xavfsizligi:</b> 5 marta noto'g'ri kiritsangiz, hisob 15 daqiqa bloklanadi. PIN RAOS serverida shifrlangan holda saqlanadi.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 6: MUVAFFAQIYAT ═══════════ -->
+<div class="scene" id="scene6">
+  <div class="scene-wrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">RAO<span>S</span></div>
+      <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span> Sotuvlar</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Sklad</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span> Xodimlar</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Sozlamalar</div>
+    </div>
+    <div class="content">
+      <div class="page-title">Xodim qo'shildi!</div>
+      <div class="page-sub">Maverick Rahimov tizimga muvaffaqiyatli qo'shildi</div>
+
+      <div class="success-box" id="succBox">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Xodim faollashtirildi!</div>
+        <div class="success-desc">
+          <b style="color:#e2e8f0">Maverick Rahimov</b> — Kassir<br/>
+          1-filial (Chilonzor) · PIN kod o'rnatildi<br/>
+          Telegram orqali kirish ma'lumotlari yuborildi
+        </div>
+      </div>
+
+      <div class="card" id="staffUpdated" style="opacity:0;transition:opacity .5s">
+        <div class="card-header">
+          <div class="card-title">👥 Yangilangan ro'yxat <span style="color:#ec4899;font-size:11px">(5 ta)</span></div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Xodim</th><th>Rol</th><th>Holat</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="staff-avatar" style="background:#f9a8d4">Z</span>Zulfiya Nazarova</td><td><span class="role-badge role-admin">Admin</span></td><td><span class="status-dot status-active"></span><span style="color:#4ade80;font-size:10px">Faol</span></td></tr>
+            <tr><td><span class="staff-avatar" style="background:#fde68a">N</span>Nilufar Yusupova</td><td><span class="role-badge role-cashier">Kassir</span></td><td><span class="status-dot status-active"></span><span style="color:#4ade80;font-size:10px">Faol</span></td></tr>
+            <tr><td><span class="staff-avatar" style="background:#a5f3fc">K</span>Kamola Toshmatova</td><td><span class="role-badge role-cashier">Kassir</span></td><td><span class="status-dot status-active"></span><span style="color:#4ade80;font-size:10px">Faol</span></td></tr>
+            <tr><td><span class="staff-avatar" style="background:#d8b4fe">S</span>Sardor Xolmatov</td><td><span class="role-badge role-manager">Menejer</span></td><td><span class="status-dot status-inactive"></span><span style="color:#64748b;font-size:10px">Nofaol</span></td></tr>
+            <tr style="background:rgba(236,72,153,0.06)"><td><span class="staff-avatar" style="background:#fca5a5">M</span><b style="color:#f9a8d4">Maverick Rahimov</b> <span style="font-size:9px;color:#ec4899;background:rgba(236,72,153,0.15);padding:1px 5px;border-radius:4px;margin-left:4px">yangi</span></td><td><span class="role-badge role-cashier">Kassir</span></td><td><span class="status-dot status-active"></span><span style="color:#4ade80;font-size:10px">Faol</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CURSOR & TOAST -->
+<div class="cursor" id="cursor"></div>
+<div class="toast" id="toast"><span id="toastIcon">✅</span> <span id="toastMsg"></span></div>
+
+<!-- ════════════ CONTROLS ════════════ -->
+<div class="controls">
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      <div class="progress-handle" id="progressHandle"></div>
+    </div>
+    <div class="time-txt"><span id="timeCur">0:00</span> / <span id="timeTotal">5:00</span></div>
+  </div>
+  <div class="ctrl-row">
+    <div class="play-btn" id="playBtn">▶</div>
+    <div class="ctrl-btn" onclick="skip(-15)">↩ 15s</div>
+    <div class="ctrl-btn" onclick="skip(15)">15s ↪</div>
+    <div class="ctrl-btn" id="sp05" onclick="setSpeed(0.5)">0.5×</div>
+    <div class="ctrl-btn active" id="sp10" onclick="setSpeed(1)">1×</div>
+    <div class="ctrl-btn" id="sp15" onclick="setSpeed(1.5)">1.5×</div>
+    <div class="ctrl-btn" id="sp20" onclick="setSpeed(2)">2×</div>
+    <div class="step-dots">
+      <div class="dot active" onclick="seekToStep(0)"></div>
+      <div class="dot" onclick="seekToStep(1)"></div>
+      <div class="dot" onclick="seekToStep(2)"></div>
+      <div class="dot" onclick="seekToStep(3)"></div>
+      <div class="dot" onclick="seekToStep(4)"></div>
+      <div class="dot" onclick="seekToStep(5)"></div>
+    </div>
+    <div class="step-info" id="stepInfo">Qadam 1/6</div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 300;
+const STEPS = [
+  { time:   0, end:  50, label: "Xodimlar ro'yxati"   },
+  { time:  50, end: 100, label: 'Yangi xodim formasi'  },
+  { time: 100, end: 150, label: 'Rol tanlash'          },
+  { time: 150, end: 200, label: 'Ruxsatlar sozlash'    },
+  { time: 200, end: 250, label: 'PIN kod o\'rnatish'   },
+  { time: 250, end: 300, label: 'Muvaffaqiyat'         },
+];
+
+let elapsed=0, playing=false, speed=1, lastTs=null;
+
+// Cursor
+const cursor=document.getElementById('cursor');
+let cx=window.innerWidth/2, cy=window.innerHeight/2;
+cursor.style.left=cx+'px'; cursor.style.top=cy+'px';
+
+function moveCursor(x,y,dur=600,cb){
+  const sx=cx,sy=cy,st=performance.now();
+  function f(now){
+    const t=Math.min((now-st)/dur,1),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    cx=sx+(x-sx)*e; cy=sy+(y-sy)*e;
+    cursor.style.left=cx+'px'; cursor.style.top=cy+'px';
+    if(t<1)requestAnimationFrame(f); else if(cb)cb();
+  }
+  requestAnimationFrame(f);
+}
+
+function clickAt(x,y,cb){
+  moveCursor(x,y,500,()=>{
+    cursor.classList.add('clicking');
+    const r=document.createElement('div');
+    r.className='ripple'; r.style.left=x+'px'; r.style.top=y+'px';
+    document.body.appendChild(r);
+    setTimeout(()=>{r.remove();cursor.classList.remove('clicking');if(cb)cb();},500);
+  });
+}
+
+function showToast(icon,msg,dur=2200){
+  document.getElementById('toastIcon').textContent=icon;
+  document.getElementById('toastMsg').textContent=msg;
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function hl(id,dur=1800){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.add('highlight');
+  setTimeout(()=>el.classList.remove('highlight'),dur);
+}
+
+let currentScene=0;
+function showScene(n){
+  document.querySelectorAll('.scene').forEach((s,i)=>s.classList.toggle('active',i===n));
+  currentScene=n;
+}
+
+// ── TYPEWRITER ──
+function typeIn(id,text,delay=0,speed=55,cb){
+  setTimeout(()=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.value=''; let i=0;
+    const iv=setInterval(()=>{
+      el.value+=text[i++];
+      el.classList.add('filled');
+      if(i>=text.length){clearInterval(iv);if(cb)cb();}
+    },speed);
+  },delay);
+}
+
+// ── PIN ANIMATION ──
+let pinCount=0;
+function pressPin(digit){
+  if(pinCount>=4)return;
+  const keys=document.querySelectorAll('.pin-key');
+  keys.forEach(k=>{if(k.textContent.trim()===String(digit)){k.classList.add('pressed');setTimeout(()=>k.classList.remove('pressed'),200);}});
+  document.getElementById('pd'+pinCount).classList.add('filled');
+  pinCount++;
+}
+
+// ── SCENE 1 ──
+let s1={};
+function runScene1(local){
+  if(local>1&&!s1.a){s1.a=true;['sr1','sr2','sr3','sr4'].forEach((id,i)=>setTimeout(()=>{const el=document.getElementById(id);el.style.opacity=1;el.style.transition='opacity .4s';},i*200));}
+  if(local>12&&!s1.b){s1.b=true;hl('staffCard');}
+  if(local>25&&!s1.c){s1.c=true;showToast('👥','4 ta faol xodim mavjud',2000);}
+  if(local>38&&!s1.d){
+    s1.d=true;
+    const btn=document.getElementById('btnAddStaff');
+    const r=btn.getBoundingClientRect();
+    clickAt(r.left+r.width/2, r.top+r.height/2, ()=>showToast('➕','Yangi xodim qo\'shish ochildi…'));
+  }
+}
+
+// ── SCENE 2 ──
+let s2={};
+function runScene2(local){
+  if(local>2&&!s2.a){s2.a=true;typeIn('fName','Maverick',0,70);}
+  if(local>8&&!s2.b){s2.b=true;typeIn('fSurname','Rahimov',0,70);}
+  if(local>14&&!s2.c){s2.c=true;typeIn('fPhone','+998 90 123 45 67',0,55);}
+  if(local>22&&!s2.d){
+    s2.d=true;
+    const sel=document.getElementById('fBranch');
+    sel.value='1-filial (Chilonzor)'; sel.classList.add('chosen');
+    hl('fBranch');
+  }
+  if(local>30&&!s2.e){
+    s2.e=true;
+    const sel=document.getElementById('fRole');
+    sel.value='Kassir'; sel.classList.add('chosen');
+    hl('fRole');
+    showToast('🧑‍💻','Kassir roli tanlandi',2000);
+  }
+  if(local>42&&!s2.f){
+    s2.f=true;
+    const btn=document.getElementById('btnNext2');
+    const r=btn.getBoundingClientRect();
+    clickAt(r.left+r.width/2,r.top+r.height/2,()=>showToast('→','Rol sozlamalariga o\'tish…'));
+  }
+}
+
+// ── SCENE 3 ──
+let s3={};
+function runScene3(local){
+  if(local>1&&!s3.a){
+    s3.a=true;
+    ['rc1','rc2','rc3','rc4'].forEach((id,i)=>setTimeout(()=>document.getElementById(id).classList.add('show'),i*200));
+  }
+  if(local>12&&!s3.b){s3.b=true;hl('rc3',2000);showToast('✅','Kassir roli — eng ko\'p ishlatiladigan rol',2500);}
+  if(local>28&&!s3.c){
+    s3.c=true;
+    const rc=document.getElementById('roleCompare');
+    rc.style.opacity=1; hl('roleCompare',2500);
+  }
+  if(local>44&&!s3.d){s3.d=true;showToast('📊','Rol farqlarini taqqosladingiz',1800);}
+}
+
+// ── SCENE 4 ──
+let s4={};
+function runScene4(local){
+  if(local>1&&!s4.a){
+    s4.a=true;
+    ['p1','p2','p3','p4','p5','p6','p7','p8'].forEach((id,i)=>
+      setTimeout(()=>document.getElementById(id).classList.add('show'),i*120));
+  }
+  if(local>14&&!s4.b){s4.b=true;hl('p4',2000);}
+  if(local>22&&!s4.c){
+    s4.c=true;
+    // toggle p4 on
+    const p4=document.getElementById('p4');
+    const chk=p4.querySelector('.perm-check');
+    const txt=p4.querySelector('.perm-text');
+    chk.classList.remove('off'); chk.classList.add('on'); chk.textContent='✓';
+    txt.classList.add('on');
+    const note=document.getElementById('permNote');
+    note.style.opacity=1; note.style.transition='opacity .4s';
+    showToast('✅','Chegirma berish ruxsati yoqildi!',2500);
+  }
+  if(local>38&&!s4.d){s4.d=true;moveCursor(600,300,700);}
+}
+
+// ── SCENE 5 ──
+let s5={};
+function runScene5(local){
+  if(local>1&&!s5.a){s5.a=true;showToast('🔑','Kassir uchun PIN kod o\'rnating',2000);}
+  if(local>8&&!s5.b){s5.b=true;pressPin(4);}
+  if(local>14&&!s5.c){s5.c=true;pressPin(2);}
+  if(local>20&&!s5.d){s5.d=true;pressPin(8);}
+  if(local>26&&!s5.e){
+    s5.e=true; pressPin(1);
+    setTimeout(()=>{
+      document.getElementById('pinStatus').textContent='PIN qabul qilindi ✓';
+      document.getElementById('pinStatus').style.color='#4ade80';
+      showToast('🔐','PIN kod muvaffaqiyatli o\'rnatildi!',2500);
+    },400);
+  }
+  if(local>36&&!s5.f){
+    s5.f=true;
+    const info=document.getElementById('pinInfo');
+    info.style.opacity=1;
+  }
+  if(local>44&&!s5.g){s5.g=true;showToast('✅','Xodim qo\'shish yakunlandi. Saqlash…',2000);}
+}
+
+// ── SCENE 6 ──
+let s6={};
+function runScene6(local){
+  if(local>2&&!s6.a){
+    s6.a=true;
+    document.getElementById('succBox').classList.add('show');
+    showToast('🎉','Xodim muvaffaqiyatli qo\'shildi!',3000);
+  }
+  if(local>16&&!s6.b){
+    s6.b=true;
+    const su=document.getElementById('staffUpdated');
+    su.style.opacity=1; su.style.transition='opacity .5s';
+    hl('staffUpdated',2500);
+  }
+  if(local>35&&!s6.c){s6.c=true;showToast('📱','Telegram orqali xodimga kirish ma\'lumotlari yuborildi',3000);}
+  if(local>48&&!s6.d){s6.d=true;showToast('🎓','9-dars yakunlandi! Xodimlar boshqaruvi o\'zlashtirildi.',3500);}
+}
+
+// ── CORE ──
+function getCurrentStep(){
+  for(let i=STEPS.length-1;i>=0;i--) if(elapsed>=STEPS[i].time) return i;
+  return 0;
+}
+
+function updateUI(){
+  const pct=(elapsed/TOTAL)*100;
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressHandle').style.right=(100-pct)+'%';
+  const m=Math.floor(elapsed/60),s=Math.floor(elapsed%60);
+  document.getElementById('timeCur').textContent=m+':'+(s<10?'0':'')+s;
+  const idx=getCurrentStep();
+  document.getElementById('topStep').textContent=idx+1;
+  document.getElementById('stepInfo').textContent='Qadam '+(idx+1)+'/'+STEPS.length;
+  document.querySelectorAll('.dot').forEach((d,i)=>{
+    d.classList.toggle('active',i===idx);
+    d.classList.toggle('done',i<idx);
+  });
+}
+
+let prevStep=-1;
+function runStepAnim(idx,local){
+  if(idx===0) runScene1(local);
+  else if(idx===1) runScene2(local);
+  else if(idx===2) runScene3(local);
+  else if(idx===3) runScene4(local);
+  else if(idx===4) runScene5(local);
+  else if(idx===5) runScene6(local);
+}
+
+function tick(ts){
+  if(!playing)return;
+  if(lastTs===null)lastTs=ts;
+  const dt=Math.min((ts-lastTs)/1000,0.2)*speed;
+  lastTs=ts;
+  elapsed=Math.min(elapsed+dt,TOTAL);
+  const idx=getCurrentStep();
+  if(idx!==prevStep){prevStep=idx;showScene(idx);}
+  runStepAnim(idx,elapsed-STEPS[idx].time);
+  updateUI();
+  if(elapsed>=TOTAL){playing=false;document.getElementById('playBtn').textContent='▶';return;}
+  requestAnimationFrame(tick);
+}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('playBtn').textContent=playing?'⏸':'▶';
+  if(playing){lastTs=null;requestAnimationFrame(tick);}
+}
+
+function skip(sec){
+  elapsed=Math.max(0,Math.min(TOTAL,elapsed+sec));
+  prevStep=-1; showScene(getCurrentStep()); updateUI();
+  if(playing)lastTs=null;
+}
+
+function seekToStep(i){
+  elapsed=STEPS[i].time+0.01; prevStep=-1;
+  if(i===0)s1={};
+  if(i===1){s2={};pinCount=0;document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('filled'));}
+  if(i===2)s3={};
+  if(i===3)s4={};
+  if(i===4){s5={};pinCount=0;document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('filled'));}
+  if(i===5)s6={};
+  showScene(i); updateUI();
+  if(playing)lastTs=null;
+}
+
+function setSpeed(s){
+  speed=s;
+  ['05','10','15','20'].forEach(v=>document.getElementById('sp'+v).classList.remove('active'));
+  document.getElementById('sp'+(s===0.5?'05':s===1?'10':s===1.5?'15':'20')).classList.add('active');
+}
+
+document.getElementById('progressBar').addEventListener('click',e=>{
+  const r=document.getElementById('progressBar').getBoundingClientRect();
+  elapsed=(e.clientX-r.left)/r.width*TOTAL;
+  prevStep=-1;s1={};s2={};s3={};s4={};s5={};s6={};pinCount=0;
+  document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('filled'));
+  showScene(getCurrentStep()); updateUI();
+  if(playing)lastTs=null;
+});
+
+document.getElementById('playBtn').addEventListener('click',togglePlay);
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();togglePlay();}
+  if(e.code==='ArrowRight')skip(15);
+  if(e.code==='ArrowLeft')skip(-15);
+});
+
+updateUI();
+setTimeout(togglePlay,700);
+</script>
+</body>
+</html>

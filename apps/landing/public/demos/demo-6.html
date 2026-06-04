@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAOS — 6-darslik: Tovar o'tkazish (filiallar o'rtasida)</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:    #24D4F4;
+    --navy:    #0E1530;
+    --navy2:   #112F4B;
+    --navy3:   #0a1228;
+    --glass:   rgba(36,212,244,0.07);
+    --border:  rgba(36,212,244,0.18);
+    --teal:    #14b8a6;
+    --teal2:   #2dd4bf;
+    --teal-g:  rgba(20,184,166,0.12);
+    --teal-b:  rgba(20,184,166,0.3);
+    --green:   #22c55e;
+    --amber:   #f59e0b;
+    --red:     #ef4444;
+  }
+
+  body {
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar { width:100%; background:var(--navy2); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:12px 32px; position:sticky; top:0; z-index:100; }
+  .logo { display:flex; align-items:center; gap:10px; }
+  .logo-icon { width:32px; height:32px; border-radius:8px; background:var(--cyan); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; color:var(--navy); }
+  .logo-text { font-weight:800; font-size:18px; }
+  .lesson-badge { background:rgba(20,184,166,0.12); border:1px solid var(--teal-b); color:var(--teal); font-size:12px; font-weight:700; padding:4px 12px; border-radius:999px; }
+  .topbar-right { display:flex; align-items:center; gap:16px; font-size:13px; color:#94a3b8; }
+  .topbar-right span { display:flex; align-items:center; gap:6px; }
+
+  /* ── HERO ── */
+  .hero { width:100%; max-width:960px; padding:36px 24px 18px; text-align:center; }
+  .lesson-number { font-size:11px; font-weight:800; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:10px; }
+  .hero h1 { font-size:clamp(20px,3.5vw,34px); font-weight:900; line-height:1.2; margin-bottom:10px; }
+  .hero h1 span { color:var(--cyan); }
+  .hero-sub { font-size:14px; color:#94a3b8; max-width:500px; margin:0 auto 20px; }
+  .meta-pills { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:26px; }
+  .pill { display:flex; align-items:center; gap:5px; background:var(--glass); border:1px solid var(--border); border-radius:999px; padding:4px 12px; font-size:11px; font-weight:600; color:#cbd5e1; }
+  .pill.teal { color:var(--teal); border-color:var(--teal-b); background:var(--teal-g); }
+  .pill.amber { color:var(--amber); border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.07); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { width:100%; max-width:960px; padding:0 24px 6px; }
+  .progress-steps { display:flex; gap:6px; margin-bottom:10px; align-items:center; }
+  .step-dot { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; flex-shrink:0; border:2px solid rgba(36,212,244,0.2); font-size:11px; font-weight:700; color:#475569; transition:all 0.4s; cursor:pointer; position:relative; }
+  .step-dot.active { border-color:var(--teal); background:var(--teal-g); color:var(--teal); box-shadow:0 0 14px rgba(20,184,166,0.35); }
+  .step-dot.done { border-color:rgba(34,197,94,0.5); background:rgba(34,197,94,0.1); color:#34d399; }
+  .step-dot.done::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; }
+  .step-dot.done span { display:none; }
+  .step-line { flex:1; height:2px; background:rgba(36,212,244,0.08); border-radius:1px; overflow:hidden; }
+  .step-line-fill { height:100%; background:var(--teal); border-radius:1px; transition:width 0.6s ease; }
+  .progress-label { font-size:11px; color:#64748b; display:flex; justify-content:space-between; }
+  .progress-label strong { color:var(--teal); }
+
+  /* ── STEP CARDS ── */
+  .step-info { width:100%; max-width:960px; padding:0 24px; }
+  .step-cards { display:flex; gap:7px; }
+  .step-card { flex:1; padding:10px 12px; background:var(--glass); border:1px solid rgba(36,212,244,0.08); border-radius:10px; cursor:pointer; transition:all 0.3s; opacity:0.45; }
+  .step-card.active { border-color:var(--teal); background:var(--teal-g); opacity:1; box-shadow:0 0 14px rgba(20,184,166,0.08); }
+  .step-card.done { opacity:0.7; }
+  .step-card-num { font-size:9px; font-weight:700; color:var(--teal); margin-bottom:2px; }
+  .step-card.done .done-icon { display:inline; color:#34d399; }
+  .step-card .done-icon { display:none; }
+  .step-card.done .num-val { display:none; }
+  .step-card h5 { font-size:10px; font-weight:700; color:#cbd5e1; line-height:1.3; }
+  .spacer { height:16px; }
+
+  /* ── DEMO AREA ── */
+  .demo-area { width:100%; max-width:960px; padding:0 24px 20px; display:flex; flex-direction:column; gap:16px; }
+  .screen-wrap { width:100%; background:var(--navy2); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 0 50px rgba(36,212,244,0.07); }
+  .screen-bar { background:var(--navy3); padding:10px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+  .screen-dot { width:9px; height:9px; border-radius:50%; }
+  .screen-dot:nth-child(1){background:#ef4444} .screen-dot:nth-child(2){background:#f59e0b} .screen-dot:nth-child(3){background:#22c55e}
+  .screen-url { flex:1; background:var(--glass); border:1px solid var(--border); border-radius:6px; padding:4px 12px; font-size:11px; color:#64748b; margin:0 10px; display:flex; align-items:center; gap:5px; }
+  .screen-url span { color:var(--cyan); }
+  .screen-content { min-height:370px; position:relative; overflow:hidden; }
+
+  /* SCENES */
+  .scene { position:absolute; inset:0; opacity:0; transition:opacity 0.45s ease; pointer-events:none; }
+  .scene.active { opacity:1; pointer-events:auto; }
+
+  /* ── SHARED ── */
+  .app-wrap { display:flex; height:100%; }
+  .sidebar { width:148px; background:var(--navy3); border-right:1px solid var(--border); padding:14px 0; display:flex; flex-direction:column; gap:2px; flex-shrink:0; }
+  .sidebar-logo { padding:0 14px 12px; font-weight:900; font-size:14px; color:var(--cyan); }
+  .nav-item { padding:8px 14px; font-size:11px; color:#475569; display:flex; align-items:center; gap:7px; border-left:2px solid transparent; transition:all 0.2s; }
+  .nav-item.active { color:var(--teal); background:var(--teal-g); border-left-color:var(--teal); }
+  .nav-item svg { width:13px; height:13px; }
+  .main-area { flex:1; padding:16px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
+  .page-header { display:flex; align-items:center; justify-content:space-between; }
+  .page-title { font-size:15px; font-weight:800; }
+  .btn-teal { background:var(--teal); color:#fff; border:none; font-weight:800; font-size:11px; padding:7px 14px; border-radius:8px; cursor:pointer; }
+  .btn-sec { background:var(--glass); color:#94a3b8; border:1px solid var(--border); font-weight:700; font-size:11px; padding:7px 14px; border-radius:8px; cursor:pointer; }
+
+  /* Cursor & Ripple */
+  .cursor { position:absolute; width:20px; height:20px; pointer-events:none; z-index:50; transition:left 0.55s cubic-bezier(.4,0,.2,1), top 0.55s cubic-bezier(.4,0,.2,1); }
+  .cursor svg { filter:drop-shadow(0 2px 5px rgba(0,0,0,0.8)); }
+  .click-ripple { position:absolute; width:32px; height:32px; border-radius:50%; background:rgba(20,184,166,0.25); pointer-events:none; z-index:49; transform:translate(-50%,-50%) scale(0); transition:transform 0.4s ease,opacity 0.4s ease; }
+  .click-ripple.pop { transform:translate(-50%,-50%) scale(1); opacity:0; }
+
+  /* ── SCENE 0: Sklad → O'tkazmalar bo'limi ── */
+  .inv-list { background:var(--glass); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .list-head { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 80px; padding:7px 12px; background:rgba(10,18,40,0.5); border-bottom:1px solid var(--border); }
+  .list-head span { font-size:9px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px; }
+  .list-row { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 80px; padding:9px 12px; border-bottom:1px solid rgba(36,212,244,0.05); align-items:center; cursor:pointer; transition:background 0.2s; }
+  .list-row:last-child { border:none; }
+  .list-row:hover { background:rgba(36,212,244,0.03); }
+  .list-row.sel { background:var(--teal-g); border-left:2px solid var(--teal); }
+  .r-prod { font-size:11px; font-weight:600; color:#cbd5e1; display:flex; align-items:center; gap:6px; }
+  .r-prod span { font-size:14px; }
+  .r-qty { font-size:11px; font-weight:700; color:#fff; }
+  .r-qty.low { color:var(--amber); }
+  .r-branch { font-size:10px; color:#64748b; }
+  .r-status { display:inline-flex; font-size:9px; font-weight:700; padding:2px 7px; border-radius:999px; }
+  .s-ok { background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); color:#34d399; }
+  .s-low { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); color:var(--amber); }
+  .branch-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .branch-card { background:var(--glass); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+  .bc-name { font-size:10px; font-weight:700; color:var(--teal); margin-bottom:6px; display:flex; align-items:center; gap:5px; }
+  .bc-row { display:flex; justify-content:space-between; font-size:10px; color:#64748b; margin-bottom:3px; }
+  .bc-row strong { color:#cbd5e1; }
+
+  /* ── SCENE 1: Tovar tanlash + O'tkazma formasi ── */
+  .modal-overlay { position:absolute; inset:0; background:rgba(10,18,40,0.82); backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; z-index:20; }
+  .transfer-modal {
+    background:var(--navy2); border:1px solid var(--teal-b);
+    border-radius:16px; padding:22px 24px; width:380px;
+    box-shadow:0 0 40px rgba(20,184,166,0.15);
+    opacity:0; transform:scale(0.94) translateY(8px); transition:all 0.4s ease;
+  }
+  .transfer-modal.show { opacity:1; transform:scale(1) translateY(0); }
+  .tm-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .tm-icon { width:32px; height:32px; border-radius:8px; background:var(--teal-g); border:1px solid var(--teal-b); display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .tm-title { font-size:15px; font-weight:800; }
+  .tm-sub { font-size:10px; color:#64748b; }
+  .tm-field { margin-bottom:12px; }
+  .tm-label { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
+  .tm-select { width:100%; background:var(--glass); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12px; color:#cbd5e1; }
+  .tm-select.act { border-color:var(--teal); box-shadow:0 0 10px rgba(20,184,166,0.2); }
+  .tm-arrow-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .tm-branch-box { flex:1; background:var(--glass); border:1px solid var(--border); border-radius:8px; padding:8px 10px; }
+  .tm-branch-label { font-size:9px; color:#64748b; margin-bottom:2px; }
+  .tm-branch-name { font-size:11px; font-weight:700; color:#cbd5e1; }
+  .tm-arrow { font-size:18px; color:var(--teal); flex-shrink:0; }
+  .tm-branch-box.dest { border-color:var(--teal-b); background:var(--teal-g); }
+  .tm-branch-box.dest .tm-branch-name { color:var(--teal); }
+  .qty-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .qty-btn { width:32px; height:32px; border-radius:8px; background:var(--glass); border:1px solid var(--border); color:#94a3b8; font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .qty-btn:hover { border-color:var(--teal); color:var(--teal); }
+  .qty-display { flex:1; text-align:center; font-size:28px; font-weight:900; color:var(--teal); }
+  .qty-max { font-size:10px; color:#64748b; text-align:center; }
+  .tm-note { width:100%; background:var(--glass); border:1px solid var(--border); border-radius:8px; padding:7px 10px; font-size:11px; color:#64748b; font-family:inherit; resize:none; height:44px; margin-bottom:14px; }
+  .tm-note.filled { border-color:rgba(20,184,166,0.4); color:#cbd5e1; }
+  .btn-transfer { width:100%; background:var(--teal); color:#fff; border:none; font-weight:800; font-size:13px; padding:11px; border-radius:10px; cursor:pointer; opacity:0.3; transition:all 0.2s; }
+  .btn-transfer.show { opacity:1; box-shadow:0 0 18px rgba(20,184,166,0.35); }
+
+  /* ── SCENE 2: In-transit animatsiya ── */
+  .transit-scene { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:24px; }
+  .transit-title { font-size:18px; font-weight:800; color:#fff; text-align:center; }
+  .transit-sub { font-size:12px; color:#94a3b8; text-align:center; }
+  .transit-map { width:100%; max-width:420px; position:relative; height:120px; }
+  .t-branch {
+    position:absolute; display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .t-branch-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+  .t-branch-icon.from { background:rgba(36,212,244,0.1); border:2px solid var(--border); }
+  .t-branch-icon.to { background:var(--teal-g); border:2px solid var(--teal-b); }
+  .t-branch-name { font-size:10px; font-weight:700; color:#94a3b8; }
+  .t-branch.left { left:0; top:20px; }
+  .t-branch.right { right:0; top:20px; }
+  .transit-line { position:absolute; top:44px; left:64px; right:64px; height:2px; background:rgba(20,184,166,0.2); border-radius:1px; }
+  .transit-fill { height:100%; background:linear-gradient(90deg,var(--teal),var(--teal2)); border-radius:1px; width:0%; transition:width 2.5s ease; }
+  .transit-truck { position:absolute; top:30px; left:64px; font-size:20px; transition:left 2.5s ease; }
+  .transit-items { display:flex; gap:8px; }
+  .t-item { background:var(--glass); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:6px; }
+  .t-item span { font-size:16px; }
+  .transit-status { display:flex; flex-direction:column; gap:6px; width:100%; max-width:320px; }
+  .t-status-row { display:flex; align-items:center; gap:8px; font-size:11px; }
+  .t-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .t-dot.done-dot { background:var(--green); }
+  .t-dot.active-dot { background:var(--teal); animation:tdot 1s ease infinite; }
+  .t-dot.wait-dot { background:rgba(36,212,244,0.2); }
+  @keyframes tdot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .t-status-text { color:#94a3b8; }
+  .t-status-text.done { color:#34d399; }
+  .t-status-text.act { color:var(--teal); }
+
+  /* ── SCENE 3: Qabul qilish ── */
+  .receive-modal {
+    background:var(--navy2); border:1px solid var(--teal-b);
+    border-radius:16px; padding:22px 24px; width:360px;
+    box-shadow:0 0 40px rgba(20,184,166,0.15);
+    opacity:0; transform:scale(0.94) translateY(8px); transition:all 0.4s ease;
+  }
+  .receive-modal.show { opacity:1; transform:scale(1) translateY(0); }
+  .rm-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .rm-icon { width:32px; height:32px; border-radius:8px; background:var(--teal-g); border:1px solid var(--teal-b); display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .rm-title { font-size:14px; font-weight:800; }
+  .rm-sub { font-size:10px; color:#64748b; }
+  .incoming-box { background:var(--teal-g); border:1px solid var(--teal-b); border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+  .ib-from { font-size:10px; color:#64748b; margin-bottom:8px; display:flex; align-items:center; gap:5px; }
+  .ib-from strong { color:var(--teal); }
+  .ib-item { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(20,184,166,0.15); }
+  .ib-item:last-child { border:none; padding-bottom:0; }
+  .ib-emoji { font-size:16px; }
+  .ib-info { flex:1; }
+  .ib-name { font-size:11px; font-weight:700; color:#cbd5e1; }
+  .ib-qty { font-size:10px; color:#64748b; }
+  .ib-price { font-size:11px; font-weight:700; color:var(--teal); }
+  .receive-check { margin-bottom:12px; }
+  .rc-label { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:7px; }
+  .check-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:8px; background:var(--glass); border:1px solid rgba(36,212,244,0.08); margin-bottom:5px; cursor:pointer; transition:all 0.2s; }
+  .check-item.checked { border-color:var(--teal-b); background:var(--teal-g); }
+  .check-box { width:17px; height:17px; border-radius:4px; border:1.5px solid #475569; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
+  .check-item.checked .check-box { border-color:var(--teal); background:var(--teal); }
+  .check-icon { display:none; color:#fff; font-size:10px; }
+  .check-item.checked .check-icon { display:block; }
+  .check-text { font-size:11px; color:#94a3b8; }
+  .check-item.checked .check-text { color:#cbd5e1; }
+  .btn-receive { width:100%; background:var(--teal); color:#fff; border:none; font-weight:800; font-size:13px; padding:11px; border-radius:10px; cursor:pointer; opacity:0.3; transition:all 0.2s; }
+  .btn-receive.show { opacity:1; box-shadow:0 0 18px rgba(20,184,166,0.35); }
+
+  /* ── SCENE 4: Muvaffaqiyat ── */
+  .success-layout { display:flex; height:100%; }
+  .success-main { flex:1; padding:24px; display:flex; flex-direction:column; align-items:center; gap:12px; overflow:auto; }
+  .success-icon { width:60px; height:60px; border-radius:50%; background:var(--teal-g); border:2px solid var(--teal-b); display:flex; align-items:center; justify-content:center; font-size:26px; opacity:0; transform:scale(0.5); transition:all 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+  .success-icon.show { opacity:1; transform:scale(1); }
+  .success-title { font-size:19px; font-weight:900; opacity:0; transition:opacity 0.4s 0.3s; }
+  .success-title.show { opacity:1; }
+  .success-sub { font-size:12px; color:#94a3b8; opacity:0; transition:opacity 0.4s 0.5s; text-align:center; }
+  .success-sub.show { opacity:1; }
+  .transfer-doc { background:var(--navy3); border:1px solid var(--border); border-radius:12px; width:100%; max-width:300px; padding:16px; opacity:0; transform:translateY(16px); transition:all 0.4s 0.4s; }
+  .transfer-doc.show { opacity:1; transform:none; }
+  .doc-top { text-align:center; margin-bottom:10px; }
+  .doc-store { font-size:13px; font-weight:900; color:var(--teal); }
+  .doc-type { font-size:10px; color:var(--teal); font-weight:700; letter-spacing:1px; background:var(--teal-g); padding:2px 8px; border-radius:999px; display:inline-block; border:1px solid var(--teal-b); }
+  .doc-divider { border:none; border-top:1px dashed rgba(20,184,166,0.2); margin:8px 0; }
+  .doc-row { display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; }
+  .doc-label { color:#64748b; }
+  .doc-value { color:#cbd5e1; font-weight:600; }
+  .doc-item-row { display:flex; align-items:center; gap:6px; padding:6px 0; border-bottom:1px dashed rgba(20,184,166,0.1); }
+  .doc-item-row:last-child { border:none; }
+  .doc-item-name { flex:1; font-size:10px; font-weight:700; color:#cbd5e1; }
+  .doc-item-qty { font-size:11px; font-weight:800; color:var(--teal); }
+  .success-actions { display:flex; gap:8px; width:100%; max-width:300px; opacity:0; transition:opacity 0.4s 0.7s; }
+  .success-actions.show { opacity:1; }
+  .btn-new-tr { flex:1; background:var(--glass); color:var(--teal); border:1px solid var(--teal-b); font-weight:700; font-size:11px; padding:9px; border-radius:10px; cursor:pointer; }
+  .btn-hist { flex:1; background:var(--teal-g); color:var(--teal); border:1px solid var(--teal-b); font-weight:700; font-size:11px; padding:9px; border-radius:10px; cursor:pointer; }
+
+  .stock-side { width:180px; background:var(--navy3); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column; gap:8px; }
+  .stock-title { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; }
+  .s-branch { margin-bottom:10px; }
+  .s-branch-name { font-size:10px; font-weight:700; color:var(--teal); margin-bottom:6px; display:flex; align-items:center; gap:4px; }
+  .s-item { background:var(--glass); border:1px solid var(--border); border-radius:7px; padding:7px 9px; margin-bottom:5px; }
+  .s-item-name { font-size:9px; font-weight:700; color:#cbd5e1; margin-bottom:3px; }
+  .s-bar { height:3px; background:rgba(36,212,244,0.1); border-radius:2px; margin-bottom:3px; overflow:hidden; }
+  .s-fill { height:100%; border-radius:2px; transition:width 1s ease; }
+  .s-count { font-size:9px; color:#64748b; }
+  .s-count strong { color:#cbd5e1; }
+  .badge-changed { font-size:8px; font-weight:700; padding:1px 5px; border-radius:999px; display:inline-block; opacity:0; transition:opacity 0.4s; }
+  .badge-changed.show { opacity:1; }
+  .badge-minus { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; }
+  .badge-plus { background:var(--teal-g); border:1px solid var(--teal-b); color:var(--teal); }
+
+  /* ── TOOLTIP ── */
+  .tooltip-wrap { width:100%; max-width:960px; padding:0 24px 6px; }
+  .tooltip-box { background:var(--navy2); border:1px solid var(--border); border-radius:12px; padding:12px 16px; display:flex; gap:12px; align-items:flex-start; }
+  .tooltip-icon { font-size:18px; flex-shrink:0; margin-top:2px; }
+  .tooltip-text h4 { font-size:12px; font-weight:700; color:#fff; margin-bottom:3px; }
+  .tooltip-text p { font-size:11px; color:#94a3b8; line-height:1.6; }
+
+  /* ── CONTROLS ── */
+  .controls { width:100%; max-width:960px; padding:0 24px 28px; display:flex; flex-direction:column; gap:8px; }
+  .timeline { width:100%; height:6px; background:rgba(36,212,244,0.1); border-radius:3px; position:relative; cursor:pointer; }
+  .timeline-fill { height:100%; background:var(--teal); border-radius:3px; width:0%; transition:width 0.3s linear; }
+  .timeline-thumb { position:absolute; top:50%; width:14px; height:14px; border-radius:50%; background:var(--teal); border:2px solid var(--navy2); transform:translateY(-50%); left:0; transition:left 0.3s linear; box-shadow:0 0 8px rgba(20,184,166,0.5); }
+  .ctrl-row { display:flex; align-items:center; gap:8px; }
+  .ctrl-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--glass); color:#94a3b8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .ctrl-btn.main { width:42px; height:42px; background:var(--teal); border-color:var(--teal); color:#fff; font-size:15px; font-weight:900; }
+  .ctrl-btn:hover { border-color:var(--teal); color:var(--teal); }
+  .time-display { font-size:12px; color:#64748b; font-variant-numeric:tabular-nums; flex:1; text-align:center; }
+  .ctrl-right { display:flex; gap:4px; }
+  .speed-btn { padding:3px 7px; border-radius:6px; font-size:10px; font-weight:700; border:1px solid var(--border); background:transparent; color:#64748b; cursor:pointer; transition:all 0.2s; }
+  .speed-btn.active { border-color:var(--teal); color:var(--teal); background:var(--teal-g); }
+
+  /* Toast */
+  .toast { position:absolute; top:12px; right:12px; z-index:60; background:var(--teal-g); border:1px solid var(--teal-b); color:var(--teal); font-size:11px; font-weight:700; padding:8px 14px; border-radius:8px; display:flex; align-items:center; gap:6px; opacity:0; transform:translateY(-8px); transition:all 0.4s; }
+  .toast.show { opacity:1; transform:none; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <div class="logo-text">RAOS</div>
+  </div>
+  <div class="lesson-badge">6-darslik — Pro</div>
+  <div class="topbar-right">
+    <span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      5 daqiqa
+    </span>
+    <span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Sklad
+    </span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="lesson-number">SKLAD — 6-DARS</div>
+  <h1>Tovar o'tkazish <span>filiallar o'rtasida</span></h1>
+  <p class="hero-sub">Bir filialdan ikkinchisiga tovarni rasmiy ravishda o'tkazish — hujjat bilan.</p>
+  <div class="meta-pills">
+    <span class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>5 qadam</span>
+    <span class="pill teal">⭐ Pro rejasi</span>
+    <span class="pill amber">⚡ O'rta daraja</span>
+    <span class="pill">🏪 Ko'p filial</span>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps">
+    <div class="step-dot active" onclick="seekToStep(0)"><span>1</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line1" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(1)"><span>2</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line2" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(2)"><span>3</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line3" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(3)"><span>4</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line4" style="width:0%"></div></div>
+    <div class="step-dot" onclick="seekToStep(4)"><span>5</span></div>
+  </div>
+  <div class="progress-label">
+    <span id="stepLabel">1-qadam: Sklad holatini va filiallarni ko'ring</span>
+    <span>Qadam: <strong id="stepCount">1 / 5</strong></span>
+  </div>
+</div>
+
+<!-- STEP CARDS -->
+<div class="step-info">
+  <div class="step-cards">
+    <div class="step-card active" onclick="seekToStep(0)">
+      <div class="step-card-num"><span class="num-val">01</span><span class="done-icon">✓</span></div>
+      <h5>Sklad & filiallar</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(1)">
+      <div class="step-card-num"><span class="num-val">02</span><span class="done-icon">✓</span></div>
+      <h5>O'tkazma yaratish</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(2)">
+      <div class="step-card-num"><span class="num-val">03</span><span class="done-icon">✓</span></div>
+      <h5>Yo'lda (tranzit)</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(3)">
+      <div class="step-card-num"><span class="num-val">04</span><span class="done-icon">✓</span></div>
+      <h5>Qabul qilish</h5>
+    </div>
+    <div class="step-card" onclick="seekToStep(4)">
+      <div class="step-card-num"><span class="num-val">05</span><span class="done-icon">✓</span></div>
+      <h5>Hujjat tayyor</h5>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<!-- DEMO AREA -->
+<div class="demo-area">
+  <div class="screen-wrap">
+    <div class="screen-bar">
+      <div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div>
+      <div class="screen-url">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>app.raos.uz</span>/inventory/transfers
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- SCENE 0: Sklad & filiallar -->
+      <div class="scene active" id="scene0">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Bosh sahifa</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Kassa</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Savdolar</div>
+          </div>
+          <div class="main-area">
+            <div class="page-header">
+              <div class="page-title">Sklad — O'tkazmalar</div>
+              <button class="btn-teal" id="btnNew0">+ Yangi o'tkazma</button>
+            </div>
+            <div class="branch-stats">
+              <div class="branch-card">
+                <div class="bc-name">🏪 Asosiy filial (Chilonzor)</div>
+                <div class="bc-row"><span>L'Oreal True Match</span><strong>12 ta</strong></div>
+                <div class="bc-row"><span>Maybelline Lash</span><strong>8 ta</strong></div>
+                <div class="bc-row"><span>Nivea Moisturizer</span><strong style="color:var(--amber)">2 ta ⚠</strong></div>
+                <div class="bc-row"><span>Revlon ColorStay</span><strong>18 ta</strong></div>
+              </div>
+              <div class="branch-card">
+                <div class="bc-name">🏬 Yunusobod filiali</div>
+                <div class="bc-row"><span>L'Oreal True Match</span><strong style="color:var(--amber)">3 ta ⚠</strong></div>
+                <div class="bc-row"><span>Maybelline Lash</span><strong style="color:var(--red)">1 ta !</strong></div>
+                <div class="bc-row"><span>Nivea Moisturizer</span><strong>9 ta</strong></div>
+                <div class="bc-row"><span>Revlon ColorStay</span><strong style="color:var(--amber)">4 ta ⚠</strong></div>
+              </div>
+            </div>
+            <div class="inv-list">
+              <div class="list-head"><span>Tovar</span><span>Asosiy</span><span>Yunusobod</span><span>Holat</span><span></span></div>
+              <div class="list-row sel" id="lr1">
+                <div class="r-prod"><span>💄</span>L'Oreal True Match</div>
+                <div class="r-qty">12</div><div class="r-qty low">3</div>
+                <span class="r-status s-low">Kam (Yunusobod)</span>
+              </div>
+              <div class="list-row">
+                <div class="r-prod"><span>👁️</span>Maybelline Lash</div>
+                <div class="r-qty">8</div><div class="r-qty" style="color:var(--red)">1</div>
+                <span class="r-status" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171">Tugayapti!</span>
+              </div>
+              <div class="list-row">
+                <div class="r-prod"><span>💅</span>Revlon ColorStay</div>
+                <div class="r-qty">18</div><div class="r-qty low">4</div>
+                <span class="r-status s-low">Kam (Yunusobod)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cursor" id="cursor0" style="left:620px;top:98px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple0" style="left:650px;top:100px"></div>
+      </div>
+
+      <!-- SCENE 1: O'tkazma formasi -->
+      <div class="scene" id="scene1">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area" style="opacity:0.15;pointer-events:none"><div class="page-title">O'tkazmalar</div></div>
+        </div>
+        <div class="modal-overlay">
+          <div class="transfer-modal" id="transferModal">
+            <div class="tm-header">
+              <div class="tm-icon">📦</div>
+              <div>
+                <div class="tm-title">Yangi o'tkazma</div>
+                <div class="tm-sub">Filiallar o'rtasida tovar yuborish</div>
+              </div>
+            </div>
+
+            <div class="tm-field">
+              <span class="tm-label">Tovar</span>
+              <div class="tm-select act">💄 L'Oreal True Match (qoldi: 12)</div>
+            </div>
+
+            <div class="tm-field">
+              <span class="tm-label">Yo'nalish</span>
+              <div class="tm-arrow-row">
+                <div class="tm-branch-box">
+                  <div class="tm-branch-label">Manba</div>
+                  <div class="tm-branch-name">🏪 Asosiy filial</div>
+                </div>
+                <div class="tm-arrow">→</div>
+                <div class="tm-branch-box dest">
+                  <div class="tm-branch-label">Manzil</div>
+                  <div class="tm-branch-name">🏬 Yunusobod</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tm-field">
+              <span class="tm-label">Miqdor</span>
+              <div class="qty-row">
+                <div class="qty-btn">−</div>
+                <div class="qty-display" id="qtyVal">5</div>
+                <div class="qty-btn">+</div>
+              </div>
+              <div class="qty-max">Mavjud: 12 ta • Yuboriladi: <span id="qtySpan" style="color:var(--teal);font-weight:700">5</span> ta</div>
+            </div>
+
+            <div class="tm-field">
+              <span class="tm-label">Izoh</span>
+              <div class="tm-note filled">Yunusobodda L'Oreal kam qolgan, tez yuboring</div>
+            </div>
+
+            <button class="btn-transfer" id="btnTransfer">📦 O'tkazmani boshlash</button>
+          </div>
+        </div>
+        <div class="cursor" id="cursor1" style="left:450px;top:310px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple1" style="left:450px;top:325px"></div>
+      </div>
+
+      <!-- SCENE 2: Tranzit -->
+      <div class="scene" id="scene2">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area" style="align-items:center;justify-content:center;">
+            <div class="transit-scene">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:10px;height:10px;border-radius:50%;background:var(--teal);animation:tdot 1s ease infinite"></div>
+                <div class="transit-title">O'tkazma yo'lda...</div>
+              </div>
+              <div class="transit-sub">TR-20260604-001 • L'Oreal True Match × 5 ta</div>
+
+              <div class="transit-map">
+                <div class="t-branch left">
+                  <div class="t-branch-icon from">🏪</div>
+                  <div class="t-branch-name">Asosiy filial</div>
+                </div>
+                <div class="transit-line">
+                  <div class="transit-fill" id="transitFill"></div>
+                </div>
+                <div class="transit-truck" id="transitTruck">🚚</div>
+                <div class="t-branch right">
+                  <div class="t-branch-icon to">🏬</div>
+                  <div class="t-branch-name">Yunusobod</div>
+                </div>
+              </div>
+
+              <div class="transit-items">
+                <div class="t-item"><span>💄</span>L'Oreal True Match × 5</div>
+              </div>
+
+              <div class="transit-status">
+                <div class="t-status-row">
+                  <div class="t-dot done-dot"></div>
+                  <span class="t-status-text done">✓ O'tkazma yaratildi</span>
+                </div>
+                <div class="t-status-row">
+                  <div class="t-dot done-dot"></div>
+                  <span class="t-status-text done">✓ Asosiy filialdan chiqdi (−5 ta)</span>
+                </div>
+                <div class="t-status-row" id="trow3">
+                  <div class="t-dot active-dot"></div>
+                  <span class="t-status-text act">🚚 Yunusobodga yetkazilmoqda...</span>
+                </div>
+                <div class="t-status-row" id="trow4" style="opacity:0.3">
+                  <div class="t-dot wait-dot"></div>
+                  <span class="t-status-text">Yunusobod qabul qilishni kutmoqda</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="toast" id="toast2">📲 Yunusobod kassiri ga bildirishnoma yuborildi</div>
+      </div>
+
+      <!-- SCENE 3: Qabul qilish -->
+      <div class="scene" id="scene3">
+        <div class="app-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="main-area" style="opacity:0.15;pointer-events:none"><div class="page-title">O'tkazmalar</div></div>
+        </div>
+        <div class="modal-overlay">
+          <div class="receive-modal" id="receiveModal">
+            <div class="rm-header">
+              <div class="rm-icon">📥</div>
+              <div>
+                <div class="rm-title">Tovar qabul qilish</div>
+                <div class="rm-sub">TR-20260604-001 • Yunusobod filiali</div>
+              </div>
+            </div>
+            <div class="incoming-box">
+              <div class="ib-from">Kelayotgan tovar: <strong>🏪 Asosiy filialdan</strong></div>
+              <div class="ib-item">
+                <span class="ib-emoji">💄</span>
+                <div class="ib-info">
+                  <div class="ib-name">L'Oreal True Match</div>
+                  <div class="ib-qty">Yuborilgan: 5 ta</div>
+                </div>
+                <span class="ib-price">5 × 145 000</span>
+              </div>
+            </div>
+            <div class="receive-check">
+              <div class="rc-label">Tekshiruv ro'yxati:</div>
+              <div class="check-item checked" id="chk1">
+                <div class="check-box"><span class="check-icon">✓</span></div>
+                <span class="check-text">Tovar soni mos (5 ta keldi)</span>
+              </div>
+              <div class="check-item" id="chk2">
+                <div class="check-box"><span class="check-icon">✓</span></div>
+                <span class="check-text">Tovar holati yaxshi (shikastlanmagan)</span>
+              </div>
+              <div class="check-item" id="chk3">
+                <div class="check-box"><span class="check-icon">✓</span></div>
+                <span class="check-text">Hujjat raqami mos (TR-20260604-001)</span>
+              </div>
+            </div>
+            <button class="btn-receive" id="btnReceive">✓ Qabul qilishni tasdiqlash</button>
+          </div>
+        </div>
+        <div class="cursor" id="cursor3" style="left:440px;top:290px">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="white"><path d="M4 2l12 7-6 2-3 6z" stroke="#0E1530" stroke-width="1"/></svg>
+        </div>
+        <div class="click-ripple" id="ripple3" style="left:440px;top:305px"></div>
+      </div>
+
+      <!-- SCENE 4: Muvaffaqiyat + Hujjat -->
+      <div class="scene" id="scene4">
+        <div class="success-layout">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Sklad</div>
+          </div>
+          <div class="success-main">
+            <div class="success-icon" id="sucIcon">✅</div>
+            <div class="success-title" id="sucTitle">O'tkazma yakunlandi!</div>
+            <div class="success-sub" id="sucSub">L'Oreal True Match (5 ta) muvaffaqiyatli yetkazildi.<br>Ikkala filial skladi avtomatik yangilandi.</div>
+
+            <div class="transfer-doc" id="transferDoc">
+              <div class="doc-top">
+                <div class="doc-store">RAOS</div>
+                <div class="doc-type">O'TKAZMA HUJJATI</div>
+              </div>
+              <hr class="doc-divider">
+              <div class="doc-row"><span class="doc-label">Hujjat:</span><span class="doc-value">TR-20260604-001</span></div>
+              <div class="doc-row"><span class="doc-label">Sana:</span><span class="doc-value">2026-06-04</span></div>
+              <div class="doc-row"><span class="doc-label">Manba:</span><span class="doc-value">🏪 Asosiy filial</span></div>
+              <div class="doc-row"><span class="doc-label">Manzil:</span><span class="doc-value">🏬 Yunusobod</span></div>
+              <hr class="doc-divider">
+              <div class="doc-item-row">
+                <span style="font-size:14px">💄</span>
+                <span class="doc-item-name">L'Oreal True Match</span>
+                <span class="doc-item-qty">5 ta</span>
+              </div>
+              <hr class="doc-divider">
+              <div class="doc-row"><span class="doc-label">Status:</span><span class="doc-value" style="color:var(--teal)">✓ Yakunlandi</span></div>
+            </div>
+
+            <div class="success-actions" id="sucActions">
+              <button class="btn-new-tr">+ Yangi o'tkazma</button>
+              <button class="btn-hist">📋 Tarix</button>
+            </div>
+          </div>
+
+          <div class="stock-side">
+            <div class="stock-title">Sklad yangilandi</div>
+            <div class="s-branch">
+              <div class="s-branch-name">🏪 Asosiy filial</div>
+              <div class="s-item">
+                <div class="s-item-name">L'Oreal True Match</div>
+                <div class="s-bar"><div class="s-fill" style="background:var(--cyan);width:0%" id="sf1" data-w="58"></div></div>
+                <div class="s-count">Qoldi: <strong>7 ta</strong> (12→7)</div>
+                <span class="badge-changed badge-minus" id="sb1">−5 ta yuborildi</span>
+              </div>
+            </div>
+            <div class="s-branch">
+              <div class="s-branch-name">🏬 Yunusobod</div>
+              <div class="s-item">
+                <div class="s-item-name">L'Oreal True Match</div>
+                <div class="s-bar"><div class="s-fill" style="background:var(--teal);width:0%" id="sf2" data-w="40"></div></div>
+                <div class="s-count">Qoldi: <strong>8 ta</strong> (3→8)</div>
+                <span class="badge-changed badge-plus" id="sb2">+5 ta keldi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /screen-content -->
+  </div>
+
+  <!-- TOOLTIP -->
+  <div class="tooltip-wrap">
+    <div class="tooltip-box">
+      <div class="tooltip-icon" id="tipIcon">🏪</div>
+      <div class="tooltip-text">
+        <h4 id="tipTitle">Sklad holati va filiallar</h4>
+        <p id="tipDesc">«Sklad → O'tkazmalar» bo'limida ikki filial o'rtasidagi farqni ko'rish mumkin. Yunusobodda L'Oreal kam — Asosiy filialdan o'tkazish kerak. «+ Yangi o'tkazma» tugmasini bosing.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="timeline" id="timeline" onclick="seekClick(event)">
+    <div class="timeline-fill" id="timelineFill" style="width:0%"></div>
+    <div class="timeline-thumb" id="timelineThumb" style="left:0%"></div>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" onclick="skipBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.46"/></svg>
+    </button>
+    <button class="ctrl-btn main" id="playBtn" onclick="togglePlay()">▶</button>
+    <button class="ctrl-btn" onclick="skipFwd()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.46"/></svg>
+    </button>
+    <span class="time-display" id="timeDisplay">0:00 / 5:00</span>
+    <div class="ctrl-right">
+      <button class="speed-btn" onclick="setSpeed(0.5)" id="sp05">0.5×</button>
+      <button class="speed-btn active" onclick="setSpeed(1)" id="sp1">1×</button>
+      <button class="speed-btn" onclick="setSpeed(1.5)" id="sp15">1.5×</button>
+      <button class="speed-btn" onclick="setSpeed(2)" id="sp2">2×</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 300; // 5 daqiqa
+let current = 0, playing = false, speed = 1, timer = null;
+let animStarted = [false,false,false,false,false];
+
+const STEPS = [
+  { time:0,   end:60,  label:"1-qadam: Sklad holatini va filiallarni ko'ring" },
+  { time:60,  end:120, label:"2-qadam: Yangi o'tkazma yarating" },
+  { time:120, end:180, label:"3-qadam: Tovar yo'lda (tranzit)" },
+  { time:180, end:240, label:"4-qadam: Yunusobod filiali qabul qiladi" },
+  { time:240, end:300, label:"5-qadam: Hujjat tayyor, sklad yangilandi" },
+];
+
+const TIPS = [
+  { icon:'🏪', title:"Sklad holati va filiallar", desc:"«Sklad → O'tkazmalar» bo'limida ikki filial o'rtasidagi farqni ko'rish mumkin. Yunusobodda L'Oreal kam — Asosiy filialdan o'tkazish kerak. «+ Yangi o'tkazma» tugmasini bosing." },
+  { icon:'📦', title:"O'tkazma shakli", desc:"Tovarni, miqdorni va yo'nalishni tanlang: Asosiy filial → Yunusobod. Izoh qo'shish ixtiyoriy. «O'tkazmani boshlash» tugmasini bosganingizda Asosiy filialdagi sklad darhol kamayadi." },
+  { icon:'🚚', title:"Tranzit holati", desc:"O'tkazma yaratilganidan so'ng tovar «yo'lda» holatiga o'tadi. Asosiy filialning skladi allaqachon kamaygan — tovar «tranzit»da hisoblanadi. Yunusobod kassiri Telegramda xabar oladi." },
+  { icon:'📥', title:"Qabul qilish", desc:"Yunusobod kassiri kelgan tovarni tekshiradi: soni mos, holati yaxshi, hujjat raqami to'g'ri. Barcha qatorlarni belgilab «Qabul qilishni tasdiqlash» tugmasini bosadi." },
+  { icon:'✅', title:"Hujjat va sklad", desc:"Qabul tasdiqlangach ikkala filialning skladi yangilanadi: Asosiy filial −5 ta, Yunusobod +5 ta. Hujjat raqami bilan to'liq tarix saqlanadi — audit uchun foydalanish mumkin." },
+];
+
+function getCurrentStep() {
+  for (let i = STEPS.length-1; i>=0; i--) {
+    if (current >= STEPS[i].time) return i;
+  }
+  return 0;
+}
+
+function updateUI() {
+  const step = getCurrentStep();
+  const pct = (current / TOTAL) * 100;
+
+  document.getElementById('timelineFill').style.width = pct + '%';
+  document.getElementById('timelineThumb').style.left = `calc(${pct}% - 7px)`;
+
+  const m = Math.floor(current/60), s = Math.floor(current%60);
+  document.getElementById('timeDisplay').textContent = `${m}:${s.toString().padStart(2,'0')} / 5:00`;
+
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  });
+  document.querySelectorAll('.step-card').forEach((c,i) => {
+    c.classList.remove('active','done');
+    if (i < step) c.classList.add('done');
+    else if (i === step) c.classList.add('active');
+  });
+  for (let i=0; i<4; i++) {
+    const s0=STEPS[i].time, s1=STEPS[i+1].time;
+    let w = current >= s1 ? 100 : current > s0 ? ((current-s0)/(s1-s0))*100 : 0;
+    document.getElementById('line'+(i+1)).style.width = w+'%';
+  }
+  document.getElementById('stepLabel').textContent = STEPS[step].label;
+  document.getElementById('stepCount').textContent = (step+1)+' / 5';
+
+  const tip = TIPS[step];
+  document.getElementById('tipIcon').textContent = tip.icon;
+  document.getElementById('tipTitle').textContent = tip.title;
+  document.getElementById('tipDesc').textContent = tip.desc;
+
+  document.querySelectorAll('.scene').forEach((s,i) => s.classList.toggle('active', i===step));
+  runStepAnim(step);
+}
+
+function runStepAnim(step) {
+  // STEP 0: cursor → "Yangi o'tkazma" tugmasi
+  if (step===0 && !animStarted[0]) {
+    animStarted[0] = true;
+    const c=document.getElementById('cursor0'), r=document.getElementById('ripple0');
+    setTimeout(()=>{ c.style.left='380px'; c.style.top='200px'; },800);
+    setTimeout(()=>{ c.style.left='620px'; c.style.top='98px'; },1800);
+    setTimeout(()=>{
+      r.style.left='658px'; r.style.top='100px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    },2800);
+  }
+
+  // STEP 1: Modal + "O'tkazmani boshlash"
+  if (step===1 && !animStarted[1]) {
+    animStarted[1] = true;
+    const modal=document.getElementById('transferModal');
+    const c=document.getElementById('cursor1'), r=document.getElementById('ripple1');
+    const btn=document.getElementById('btnTransfer');
+    setTimeout(()=>{ modal.classList.add('show'); },300);
+    setTimeout(()=>{ c.style.left='440px'; c.style.top='255px'; },900);
+    setTimeout(()=>{ c.style.left='440px'; c.style.top='310px'; btn.classList.add('show'); },2200);
+    setTimeout(()=>{
+      r.style.left='450px'; r.style.top='325px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    },3200);
+  }
+
+  // STEP 2: Tranzit animatsiya
+  if (step===2 && !animStarted[2]) {
+    animStarted[2] = true;
+    setTimeout(()=>{ document.getElementById('toast2').classList.add('show'); },600);
+    setTimeout(()=>{
+      document.getElementById('transitFill').style.width = '100%';
+      document.getElementById('transitTruck').style.left = 'calc(100% - 84px)';
+    },800);
+    setTimeout(()=>{
+      document.getElementById('trow3').querySelector('.t-dot').className='t-dot done-dot';
+      document.getElementById('trow3').querySelector('.t-status-text').textContent='✓ Yunusobodga yetib keldi';
+      document.getElementById('trow3').querySelector('.t-status-text').className='t-status-text done';
+      document.getElementById('trow4').style.opacity='1';
+      document.getElementById('trow4').querySelector('.t-dot').className='t-dot active-dot';
+      document.getElementById('trow4').querySelector('.t-status-text').className='t-status-text act';
+      document.getElementById('trow4').querySelector('.t-status-text').textContent='⏳ Yunusobod qabul qilishni kutmoqda...';
+    },3500);
+  }
+
+  // STEP 3: Qabul modal + checkboxlar
+  if (step===3 && !animStarted[3]) {
+    animStarted[3] = true;
+    const modal=document.getElementById('receiveModal');
+    const c=document.getElementById('cursor3'), r=document.getElementById('ripple3');
+    const btn=document.getElementById('btnReceive');
+    setTimeout(()=>{ modal.classList.add('show'); },300);
+    setTimeout(()=>{ document.getElementById('chk2').classList.add('checked'); },1000);
+    setTimeout(()=>{ document.getElementById('chk3').classList.add('checked'); },1700);
+    setTimeout(()=>{ c.style.left='440px'; c.style.top='332px'; btn.classList.add('show'); },2400);
+    setTimeout(()=>{
+      r.style.left='450px'; r.style.top='335px';
+      r.classList.add('pop'); setTimeout(()=>r.classList.remove('pop'),500);
+    },3300);
+  }
+
+  // STEP 4: Muvaffaqiyat + sklad
+  if (step===4 && !animStarted[4]) {
+    animStarted[4] = true;
+    setTimeout(()=>{ document.getElementById('sucIcon').classList.add('show'); },200);
+    setTimeout(()=>{ document.getElementById('sucTitle').classList.add('show'); },400);
+    setTimeout(()=>{ document.getElementById('sucSub').classList.add('show'); },600);
+    setTimeout(()=>{ document.getElementById('transferDoc').classList.add('show'); },800);
+    setTimeout(()=>{
+      document.getElementById('sf1').style.width = document.getElementById('sf1').dataset.w + '%';
+      document.getElementById('sf2').style.width = document.getElementById('sf2').dataset.w + '%';
+    },1000);
+    setTimeout(()=>{
+      document.getElementById('sb1').classList.add('show');
+      document.getElementById('sb2').classList.add('show');
+    },1400);
+    setTimeout(()=>{ document.getElementById('sucActions').classList.add('show'); },1100);
+  }
+}
+
+function tick() {
+  if (!playing) return;
+  current = Math.min(current + speed, TOTAL);
+  updateUI();
+  if (current >= TOTAL) { playing=false; document.getElementById('playBtn').textContent='▶'; return; }
+  timer = setTimeout(tick, 1000);
+}
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('playBtn').textContent = playing ? '⏸' : '▶';
+  if (playing) tick(); else clearTimeout(timer);
+}
+function skipBack() { current=Math.max(0,current-15); updateUI(); }
+function skipFwd()  { current=Math.min(TOTAL,current+15); updateUI(); }
+function seekToStep(i) { current=STEPS[i].time; updateUI(); }
+function setSpeed(s) {
+  speed=s;
+  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));
+  ({0.5:'sp05',1:'sp1',1.5:'sp15',2:'sp2'})[s] && document.getElementById(({0.5:'sp05',1:'sp1',1.5:'sp15',2:'sp2'})[s]).classList.add('active');
+}
+function seekClick(e) {
+  const rect=e.currentTarget.getBoundingClientRect();
+  current=Math.round(((e.clientX-rect.left)/rect.width)*TOTAL);
+  updateUI();
+}
+
+updateUI();
+setTimeout(()=>{ playing=true; document.getElementById('playBtn').textContent='⏸'; tick(); },700);
+</script>
+</body>
+</html>

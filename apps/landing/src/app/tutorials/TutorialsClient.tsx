@@ -21,6 +21,12 @@ const DEMO_SRCS: Record<number, string | null> = {
   0: '/demos/demo-1.html',
   1: '/demos/demo-2.html',
   2: '/demos/demo-3.html',
+  3: '/demos/demo-4.html',
+  4: '/demos/demo-5.html',
+  5: '/demos/demo-6.html',
+  6: '/demos/demo-7.html',
+  7: '/demos/demo-8.html',
+  8: '/demos/demo-9.html',
 }
 
 export default function TutorialsClient() {
