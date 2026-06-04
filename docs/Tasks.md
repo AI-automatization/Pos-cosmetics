@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-05-20 (T-458..T-468 — 8/11 DONE → Done.md ga ko'chirildi)
+# Yangilangan: 2026-06-04 (T-469 — RBAC default-on global APP_GUARD DONE → Done.md ga ko'chirildi)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
