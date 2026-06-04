@@ -153,6 +153,34 @@ const uz = {
       },
     ],
   },
+  testimonials: {
+    title: 'Ular allaqachon RAOS bilan ishlaydi',
+    stats: [
+      { value: 30, suffix: '+', label: "do'kon" },
+      { value: 10000, suffix: '+', label: 'tranzaksiya/kun' },
+      { value: 24, suffix: '/7', label: "qo'llab-quvvatlash" },
+    ],
+    items: [
+      {
+        name: 'Aziz Karimov',
+        business: "Kosmetika do'koni, Toshkent",
+        text: "Internet o'chganda kassa to'xtardi. RAOS bilan bu muammo yo'q. Offline ishlaydi — savdo hech qachon to'xtamaydi.",
+        rating: 5,
+      },
+      {
+        name: 'Nilufar Yusupova',
+        business: 'Kiyim butigi, Samarqand',
+        text: "3 ta do'konni bitta telefondan ko'raman. Ertalab bir qarashda barcha savdo hisobotini bilaman. Boshida sozlash biroz qiyin edi, lekin jamoa yordam berdi.",
+        rating: 4,
+      },
+      {
+        name: 'Bobur Rahimov',
+        business: 'Parfumeriya, Namangan',
+        text: 'AI Night Cashier juda qulay — ertalab Telegram ga keladi: qaysi atir tugayapti, qaysi yaxshi sotilmoqda.',
+        rating: 5,
+      },
+    ],
+  },
   comparison: {
     title: 'Boshqa tizimlar bilan solishtiring',
     subtitle: 'Nega RAOS boshqalardan ustun?',
@@ -524,6 +552,34 @@ const ru: typeof uz = {
       },
     ],
   },
+  testimonials: {
+    title: 'Они уже работают с RAOS',
+    stats: [
+      { value: 30, suffix: '+', label: 'магазинов' },
+      { value: 10000, suffix: '+', label: 'транзакций/день' },
+      { value: 24, suffix: '/7', label: 'поддержка' },
+    ],
+    items: [
+      {
+        name: 'Азиз Каримов',
+        business: 'Магазин косметики, Ташкент',
+        text: 'Когда отключался интернет, касса останавливалась. С RAOS этой проблемы нет. Работает офлайн — продажи никогда не останавливаются.',
+        rating: 5,
+      },
+      {
+        name: 'Нилуфар Юсупова',
+        business: 'Бутик одежды, Самарканд',
+        text: 'Смотрю 3 магазина с одного телефона. Утром одним взглядом вижу все отчёты по продажам. Сначала настройка была непростой, но команда помогла.',
+        rating: 4,
+      },
+      {
+        name: 'Бобур Рахимов',
+        business: 'Парфюмерия, Наманган',
+        text: 'AI Night Cashier очень удобен — утром приходит в Telegram: какие духи заканчиваются, что продаётся лучше.',
+        rating: 5,
+      },
+    ],
+  },
   comparison: {
     title: 'Сравните с другими системами',
     subtitle: 'Почему RAOS лучше остальных?',
@@ -892,6 +948,34 @@ const en: typeof uz = {
         highlighted: false,
         price: 799000,
         yearlyPrice: 599250,
+      },
+    ],
+  },
+  testimonials: {
+    title: 'They already work with RAOS',
+    stats: [
+      { value: 30, suffix: '+', label: 'stores' },
+      { value: 10000, suffix: '+', label: 'transactions/day' },
+      { value: 24, suffix: '/7', label: 'support' },
+    ],
+    items: [
+      {
+        name: 'Aziz Karimov',
+        business: 'Cosmetics store, Tashkent',
+        text: 'When the internet went down, the register stopped. With RAOS that problem is gone. Works offline — sales never stop.',
+        rating: 5,
+      },
+      {
+        name: 'Nilufar Yusupova',
+        business: 'Clothing boutique, Samarkand',
+        text: 'I manage 3 stores from one phone. Every morning I see all sales reports at a glance. Setup was a bit tricky at first, but the team helped.',
+        rating: 4,
+      },
+      {
+        name: 'Bobur Rahimov',
+        business: 'Perfumery, Namangan',
+        text: 'AI Night Cashier is incredibly handy — every morning it arrives in Telegram: which perfumes are running low, which sell best.',
+        rating: 5,
       },
     ],
   },

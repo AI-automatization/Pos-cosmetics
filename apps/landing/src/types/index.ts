@@ -33,3 +33,10 @@ export interface ComparisonRow {
   billz: string | boolean
   yespos: string | boolean
 }
+
+export interface Testimonial {
+  name: string
+  business: string
+  text: string
+  rating: number
+}

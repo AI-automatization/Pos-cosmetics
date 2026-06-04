@@ -1,4 +1,4 @@
-import type { Segment, Feature, PricingPlan, FAQItem, ComparisonRow } from '@/types'
+import type { Segment, Feature, PricingPlan, FAQItem, Testimonial, ComparisonRow } from '@/types'
 
 export const segments: Segment[] = [
   {
@@ -191,4 +191,25 @@ export const comparisonRows: ComparisonRow[] = [
   },
   { feature: "Haqiqiy AI", raos: true, billz: false, yespos: false },
   { feature: 'Ingliz tili', raos: true, billz: false, yespos: false },
+]
+
+export const testimonials: Testimonial[] = [
+  {
+    name: 'Aziz Karimov',
+    business: "Kosmetika do'koni, Toshkent",
+    text: "Internet o'chganda kassa to'xtardi. RAOS bilan bu muammo yo'q. Offline ishlaydi — savdo hech qachon to'xtamaydi.",
+    rating: 5,
+  },
+  {
+    name: 'Nilufar Yusupova',
+    business: 'Kiyim butigi, Samarqand',
+    text: "3 ta do'konni bitta telefondan ko'raman. Ertalab bir qarashda barcha savdo hisobotini bilaman.",
+    rating: 5,
+  },
+  {
+    name: 'Bobur Rahimov',
+    business: 'Parfumeriya, Namangan',
+    text: "AI Night Cashier juda qulay — ertalab Telegram ga keladi: qaysi atir tugayapti, qaysi yaxshi sotilmoqda.",
+    rating: 5,
+  },
 ]
