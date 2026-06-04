@@ -490,10 +490,11 @@ describe('useDashboard', () => {
 cd apps/mobile
 npx pod-install          # CocoaPods dependency install (Pods/ papka yaratiladi)
 
-# Simulator ishlatish:
-pnpm --filter mobile run ios
-# Yoki aniq device:
-pnpm --filter mobile run ios --device "iPhone 15"
+# Simulator ishlatish (TAVSIYA — ishonchli, codesign + keychain muammolarini chetlab o'tadi):
+pnpm --filter mobile ios:sim    # scripts/run-ios.sh → build + install + launch (1 buyruq)
+
+# Eslatma: `pnpm ... run ios` (expo run:ios) hozir xmldom 0.9.x bug bilan crash bo'ladi
+# (T-478 — Ibrat root `package.json` dep fix qilguncha). Shu sabab `ios:sim` ishlating.
 
 # Qurilish muammo bo'lsa:
 cd ios && pod deintegrate && pod install   # Pods ni tozalab qayta install
@@ -516,6 +517,10 @@ cd ios && pod deintegrate && pod install   # Pods ni tozalab qayta install
 ⚠️ SecureStore iOS da Keychain orqali ishlaydi — Android Keystore dan farqli
 ⚠️ Face ID → LocalAuthentication.authenticateAsync (biometric prompt iOS da farqli)
 ⚠️ FCM iOS da APNs bridge kerak — GoogleService-Info.plist kerak
+⚠️ Loyiha iCloud-sync papkada (Desktop/Documents) bo'lsa → codesign "resource fork,
+   Finder information, or similar detritus not allowed" xatosi (FileProvider FinderInfo
+   bosadi). `ios:sim` build'ni iCloud TASHQARISIDAGI DerivedData ga chiqarib chetlab
+   o'tadi. Doimiy yechim: loyihani ~/Developer/ ga ko'chirish (T-479).
 ```
 
 ---
