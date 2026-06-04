@@ -847,3 +847,166 @@
 ---
 
 *(T-477 — BAJARILDI, Done.md 2026-05-31)*
+
+---
+
+# ══════════════════════════════════════════════════════════════
+# MOBILE AUDIT NATIJALARI (2026-06-04) — kichik buglar
+# Mas'ul: Abdulaziz | Audit: Claude Code (8 parallel mobile-reviewer)
+# 31 tasdiqlangan bug (kod o'qib): P0×4, P1×9, P2×13, P3×4, +1 umbrella
+# ══════════════════════════════════════════════════════════════
+
+## T-480 | P0 | [MOBILE] | Offline savdo crash — `crypto.randomUUID` bare reference
+- **Fayl:** apps/mobile/src/services/OfflineQueueService.ts:22 (+ index.js — polyfill yo'q)
+- **Muammo:** `crypto.randomUUID?.()` — bare `crypto` Hermes'da global emas → `ReferenceError`. `?.` faqat `.randomUUID`ni guard qiladi, `crypto` lookupni emas. Offline holatda (useSavdoOrder catch) `enqueue()` shu yerda crash → buyurtma na serverga, na lokal saqlanadi → savdo YO'QOLADI.
+- **Kutilgan:** `globalThis.crypto?.randomUUID?.()` yoki `expo-crypto` + `react-native-get-random-values` polyfill (index.js).
+
+## T-481 | P0 | [MOBILE] | Idempotency key yo'q — dublikat order xavfi
+- **Fayl:** apps/mobile/src/screens/Savdo/useSavdoOrder.ts:85-116, services/OfflineQueueService.ts, api/sales.api.ts
+- **Muammo:** createOrder payloadда idempotency key yo'q. Offline catch AYNAN shu payloadni qayta navbatga qo'yadi; processQueue retry qiladi. Server order yaratib javob timeout bo'lsa → retry'da 2-order → 2× inventar yechimi + 2× ledger.
+- **Kutilgan:** Har order uchun barqaror idempotencyKey (mobile generatsiya), retry'da o'sha key. ⚠️ Backend qabul qilishi — Ibrat (packages/types `CreateOrderPayload`).
+
+## T-482 | P0 | [MOBILE] | Offline queue — MAX_RETRIES'dan keyin jim drop
+- **Fayl:** apps/mobile/src/services/OfflineQueueService.ts:80-88
+- **Muammo:** `nextRetries >= MAX_RETRIES` (5) bo'lsa item `remaining`ga qo'shilmaydi — jimgina o'chiriladi (kommentда tan olingan). Bu tugallanmagan savdo (pul/inventar) — moliyaviy yozuv YO'QOLADI.
+- **Kutilgan:** Moliyaviy yozuv hech qachon jim yo'qolmasin — dead-letter (`@offline_queue_failed`) + UI "yuborilmadi" badge.
+
+## T-483 | P0 | [MOBILE] | Owner app READ-ONLY buzilgan — mutationlar ulangan
+- **Fayl:** apps/mobile-owner/src/api/debts.api.ts:86 (recordPayment), employees.api.ts:114-144 (create/updateStatus/grant/revoke/delete) + tegishli screens
+- **Muammo:** Owner App = read-only monitoring bo'lishi kerak (CLAUDE_MOBILE.md), lekin nasiya to'lovi (POST /nasiya/:id/pay) va xodim CRUD/fire/POS-access to'liq UI bilan ulangan — ledger/destruktiv mutationlar.
+- **Kutilgan:** Owner faqat o'qishi. Team Lead qarori: ta'rifni yangilash + backend RBAC, YOKI mutationlarni olib tashlash.
+
+## T-484 | P1 | [MOBILE] | Loyalty chegirma order summasiga ulanmagan
+- **Fayl:** apps/mobile/src/screens/Savdo/useSavdoOrder.ts:67-71, 85-100
+- **Muammo:** `redeem` order yaratilgandan KEYIN alohida chaqiriladi (96), lekin createOrder items full price (`sellPrice`) va intent `amount: totalPrice` chegirmasiz. Ball yechiladi, ammo order/chek to'liq narxda → mijoz chegirmasiz to'laydi / ledger nomuvofiqligi.
+- **Kutilgan:** Order summasi = total − loyalty discount; `discountAmount` createOrder/intent'ga uzatilsin, redeem order ichida atomik.
+
+## T-485 | P1 | [MOBILE] | Logout server-side token revoke qilmaydi
+- **Fayl:** apps/mobile/src/screens/Settings/index.tsx:62, MoreMenu/index.tsx:128, Auth/CompromisedDeviceScreen.tsx:23
+- **Muammo:** Barcha logout faqat `clearAuth()` (lokal SecureStore) — `authApi.logout()` (POST /auth/logout) hech qayerda chaqirilmaydi. Refresh token serverda TIRIK qoladi; айниқса CompromisedDevice (jailbreak) da xavfli.
+- **Kutilgan:** Avval `await authApi.logout()` (server revoke), keyin lokal tozalash.
+
+## T-486 | P1 | [MOBILE] | UsersScreen edit ishlamaydi — doim create
+- **Fayl:** apps/mobile/src/screens/Settings/UsersScreen.tsx:113-117, useUserForm.ts:82-121
+- **Muammo:** `handleSave` doim `createMutation` (POST /users) — `usersApi.update` (PATCH) hech qachon chaqirilmaydi. Edit rejimda parol maydoni ham yo'q → o'zgarishlar saqlanmaydi / create buziladi.
+- **Kutilgan:** `isNew` → create; aks holda `usersApi.update(id, ...)`.
+
+## T-487 | P1 | [MOBILE] | Owner app — mock-data production'da
+- **Fayl:** apps/mobile-owner/src/screens/HR/useHRData.ts:6, Employees/EmployeeDetailScreen.tsx:76, Alerts/index.tsx:51, Reports/BranchReportScreen.tsx:41, components/charts/{LineChartWidget,BarChartWidget,HorizontalBarChart,AgingBucketChart}.tsx
+- **Muammo:** API bo'sh/error qaytarganda soxta moliyaviy raqamlar ko'rsatiladi (MOCK_EMPLOYEES/PROFILE/ALERTS/BRANCHES + 4 chart). CLAUDE.md "mock data production'da TAQIQLANGAN". EmployeeDetail'da soxta ism ko'rinib, mutation real ID'ga ketishi mumkin.
+- **Kutilgan:** Barcha MOCK_* fallback olib tashlansin; mavjud EmptyState/ErrorView ishlatilsin.
+
+## T-488 | P1 | [MOBILE] | DebtPaymentForm — to'lov usuli label sifatida yuboriladi
+- **Fayl:** apps/mobile/src/screens/Nasiya/DebtPaymentForm.tsx:52, 66
+- **Muammo:** `PAYMENT_METHODS` labellari ('Naqd'/'Karta'/'Bank transfer') to'g'ridan `method` sifatida yuboriladi — backend enum (CASH/TERMINAL/TRANSFER) kutadi → 400. (Hozir DebtDetailScreen ulanmagan = dead-code, lekin ulansa barcha to'lov buziladi.)
+- **Kutilgan:** label→enum map (PayModal/QuickPaySheet'dagi `METHOD_MAP`ni umumiy util'ga chiqarib qayta ishlatish — DRY).
+
+## T-489 | P1 | [MOBILE] | useOfflineQueue auto-sync ishlamaydi
+- **Fayl:** apps/mobile/src/hooks/useOfflineQueue.ts:26-30
+- **Muammo:** Auto-process effekti faqat `[isOnline]` ga bog'langan, `status.pending` stale. Internet qaytganda pending order avtomatik yuborilmaydi (faqat qo'lda processQueue ishlaydi).
+- **Kutilgan:** `isOnline` true bo'lganda avval `refresh()`, keyin pending tekshirish (idempotency bo'lgach xavfsiz).
+
+## T-490 | P1 | [MOBILE] | useBtPrinter — unmount'da `connect('')` (disconnect emas)
+- **Fayl:** apps/mobile/src/hooks/useBtPrinter.ts:75-79
+- **Muammo:** Cleanup BT printerni uzish uchun `BtManager.connect('')` (bo'sh MAC) chaqiradi — bu uzish emas. Socket ochiq qoladi → keyingi scan/connect xato ("device busy").
+- **Kutilgan:** Interfeysga `disconnect()` qo'shib, cleanup'da haqiqiy `BtManager.disconnect()`.
+
+## T-491 | P1 | [MOBILE] | Owner useAlerts — queryKey'da filter yo'q
+- **Fayl:** apps/mobile-owner/src/hooks/useAlerts.ts:20-28, screens/Alerts/index.tsx:42,54
+- **Muammo:** queryKey faqat `branchId`, lekin queryFn `statusFilter`/`priorityFilter` yuboradi → filter o'zgarsa refetch bo'lmaydi. Real datada priority/status chiplar UMUMAN ishlamaydi.
+- **Kutilgan:** queryKey'ga filterlar qo'shilsin (`[...,statusFilter,priorityFilter]`).
+
+## T-492 | P1 | [MOBILE] | SalesOrderDetail — to'lov usuli labellari to'liqsiz
+- **Fayl:** apps/mobile/src/screens/SalesOrders/SalesOrderDetailScreen.tsx:34-38, 91-94
+- **Muammo:** `METHOD_LABELS` faqat CASH/CARD/CREDIT'ni biladi; real metodlar NAQD/KARTA/NASIYA/PAYME/CLICK/UZUM → label topilmay xom qiymat ko'rsatiladi (enum case/til mismatch).
+- **Kutilgan:** Barcha real metodlar uchun label; kalitni `.toUpperCase()` bilan solishtirish.
+
+## T-493 | P2 | [MOBILE] | PaymentSheet — yolg'on "To'lov tasdiqlandi"
+- **Fayl:** apps/mobile/src/screens/Savdo/PaymentSheet.tsx:78-82
+- **Muammo:** `handleConfirm` darhol success view'ga o'tadi; `onConfirm` (createOrder) 4xx/5xx fail bo'lsa Alert chiqadi, lekin sheet allaqachon "To'lov tasdiqlandi" ko'rsatadi → yolg'on muvaffaqiyat.
+- **Kutilgan:** Success faqat order haqiqatan yaratilgach; xatoda confirm holatiga qaytish (onConfirm Promise + loader).
+
+## T-494 | P2 | [MOBILE] | OnlinePaymentSheet — setTimeout cleanup yo'q
+- **Fayl:** apps/mobile/src/screens/Savdo/OnlinePaymentSheet.tsx:68
+- **Muammo:** `setTimeout(onSuccess, 1500)` ref'ga saqlanmaydi/tozalanmaydi. 1.5s ichida unmount bo'lsa unmount qilingan komponentda `onSuccess` (cart double-clear).
+- **Kutilgan:** `successTimerRef` + cleanup/cancel'da `clearTimeout`.
+
+## T-495 | P2 | [MOBILE] | PaymentSheet — ochiqligida item o'chsa input reset
+- **Fayl:** apps/mobile/src/screens/Savdo/PaymentSheet.tsx:63-71
+- **Muammo:** reset useEffect deps `[visible, total]`. Sheet ochiq turganda item o'chirilsa `total` o'zgaradi → `received`/`method`/`split` majburan reset (kiritilgan summa yo'qoladi).
+- **Kutilgan:** Reset faqat ochilishda (`visible` false→true); `total` deps'dan olib tashlansin.
+
+## T-496 | P2 | [MOBILE] | NewTesterSheet — 1 ombor stsenariysida tugma disabled
+- **Fayl:** apps/mobile/src/screens/Ombor/NewTesterSheet.tsx:81-84
+- **Muammo:** Ombor 1 ta bo'lsa auto-select effekti `[warehouses.data]` ga bog'langan, `visible`ga emas. Qayta ochilganda data o'zgarmasa auto-select ishlamaydi → `selectedWarehouse` bo'sh, "Tester ochish" doim disabled (picker ham 1 ombor uchun yashirin).
+- **Kutilgan:** Auto-select `visible`ga ham bog'lansin.
+
+## T-497 | P2 | [MOBILE] | Deep-link / push navigatsiya buzilgan (umbrella)
+- **Fayl:** apps/mobile/src/navigation/linking.ts:49-51, navigation/types.ts:110, notifications/handlers.ts:29-45
+- **Muammo:** linking config `SaleDetail`/`AlertDetail`ni root deb belgilaydi, lekin ular nested (yoki ro'yxatda yo'q) → deep link no-op. `SaleDetail` param `saleId` vs ekran `orderId` mismatch. `notifications/handlers.ts` mavjud bo'lmagan tab nomlariga (`InventoryTab`...) yo'naltiradi va listener'ga ulanmagan.
+- **Kutilgan:** linking config real nested strukturaga moslansin; bitta param nomi; handlers real tab nomlari + listener ulanishi.
+
+## T-498 | P2 | [MOBILE] | BiometricScreen — unmount guard yo'q + nav stack
+- **Fayl:** apps/mobile/src/screens/Auth/BiometricScreen.tsx:34-78, 58
+- **Muammo:** `attemptBiometric` async tugagach unmount guardsiz `setState` (prompt ochiqligida fallback bosilsa). `navigate('Login')` Biometric'ni stackда qoldiradi (Android back → qayta Biometric).
+- **Kutilgan:** `isMounted`/`active` flag; `navigate('Login')` o'rniga `popToTop()`.
+
+## T-499 | P2 | [MOBILE] | Analytics FlatList — `extraData` yo'q
+- **Fayl:** apps/mobile/src/screens/Analytics/MarginAnalysisScreen.tsx:152-154, CashierPerformanceScreen.tsx
+- **Muammo:** `renderItem` `maxProfit`/`maxRevenue`ga bog'langan, lekin FlatList'da `extraData` yo'q → sort/filter o'zgarganda bar foizlari stale render bo'lishi mumkin.
+- **Kutilgan:** `extraData={maxProfit}` / `extraData={maxRevenue}`.
+
+## T-500 | P2 | [MOBILE] | client.ts — refresh-mutex race + user JSON guard
+- **Fayl:** apps/mobile/src/api/client.ts:33-81, 48-51
+- **Muammo:** `refreshPromise` `finally`da darhol null — yuqori parallel 401'da nozik oraliqda 2-refresh yuborilishi (token rotation → keraksiz logout). Buzilgan `user` JSON → jim logout (diagnostikasiz).
+- **Kutilgan:** Mutex faqat to'liq settle bo'lгач null; user parse alohida guard + diagnostika.
+
+## T-501 | P2 | [MOBILE] | Bottom-sheet — yopilish animatsiyasida kontent flash
+- **Fayl:** apps/mobile/src/screens/Ombor/index.tsx:204-211, ProductStockDetailSheet.tsx:104,121
+- **Muammo:** Modal (`animationType="slide"`) `onClose`da `item` darhol `null` — yopilish animatsiyasida sarlavha "Mahsulot"/"0 dona"/"MAVJUD" (yashil) ga sakraydi (xato holat flash).
+- **Kutilgan:** Yopilishni `onDismiss`/`onModalHide`ga ko'chirish yoki oxirgi `item`ni saqlash. (Bir nechta sheet'da takrorlanadi — pattern.)
+
+## T-502 | P2 | [MOBILE] | Expiry empty-state — til o'zgarganda yangilanmaydi
+- **Fayl:** apps/mobile/src/screens/Expiry/index.tsx:106-118
+- **Muammo:** `renderEmpty` useCallback deps `[tab]`, ichida `t(...)` — til o'zgarsa empty matn eski tilda qotadi.
+- **Kutilgan:** deps `[tab, t]`.
+
+## T-503 | P2 | [MOBILE] | DebtCard — yaroqsiz sana guard yo'q
+- **Fayl:** apps/mobile/src/screens/Nasiya/DebtCard.helpers.ts:41
+- **Muammo:** `new Date(dueDate)` yaroqsiz backend sanasida `Invalid Date` → UI'da "Invalid Date" matni; `overdueDays`/bucket `NaN`.
+- **Kutilgan:** `if (isNaN(d.getTime())) return 'Muddat belgilanmagan'`. (Markaziy `safeDate()` helper tavsiya — bir nechta joyda.)
+
+## T-504 | P2 | [MOBILE] | PayModal — modal/fokus race
+- **Fayl:** apps/mobile/src/screens/Nasiya/PayModal.tsx:148-151, DebtDetailSheet.tsx:104
+- **Muammo:** "To'lov qilish"da `onClose(); onPay(debt);` ketma-ket — sheet yopilishi va PayModal (`autoFocus`) ochilishi race (ba'zan klaviatura ochilmaydi/modal kech).
+- **Kutilgan:** `onPay`ni sheet `onDismiss` ichida yoki `requestAnimationFrame` bilan.
+
+## T-505 | P2 | [MOBILE] | InvoicesScreen — noma'lum status badge'ga sanalmaydi
+- **Fayl:** apps/mobile/src/screens/Ombor/InvoicesScreen.tsx:62-68
+- **Muammo:** counts faqat ALL/PENDING/RECEIVED/CANCELLED. Backend yangi status (DRAFT/PARTIAL...) qaytarsa hech qaysi badge'ga sanalmaydi, filterdan ham tushadi (ALL ≠ yig'indi).
+- **Kutilgan:** Noma'lum status `OTHER` bucket yoki kamida ALL'da; backend enum bilan moslik.
+
+## T-506 | P3 | [MOBILE] | MonthlyProfitCard — `grossProfit` ko'rsatilmaydi
+- **Fayl:** apps/mobile/src/screens/Dashboard/MonthlyProfitCard.tsx:13-20, 64-70
+- **Muammo:** `grossProfit` prop uzatiladi, lekin destructure qilinmay ko'rsatilmaydi — breakdownда COGS bor, "Yalpi foyda" qatori yo'q.
+- **Kutilgan:** COGS'dan keyin "Yalpi foyda" qatori (yoki prop'ni olib tashlash).
+
+## T-507 | P3 | [MOBILE] | formatCompact — manfiy qiymat formatlanmaydi
+- **Fayl:** apps/mobile/src/utils/currency.ts (formatCompact)
+- **Muammo:** Faqat musbat uchun `>=` tekshiradi; manfiy (`-2500000`) barcha shartdan o'tib `String(Math.round())` — xom chiqadi. RevenueCard/SalesStatsGrid ishlatadi.
+- **Kutilgan:** `const sign = amount<0?'-':''; amount=Math.abs(amount)` + natijaga `sign`.
+
+## T-508 | P3 | [MOBILE] | RealEstate MonthlyChart — amount undefined → NaN bar
+- **Fayl:** apps/mobile/src/screens/RealEstate/MonthlyChart.tsx:72
+- **Muammo:** `payment.amount` null/undefined bo'lsa `barHeight` NaN → bar ko'rinmaydi.
+- **Kutilgan:** `Number(p.amount) || 0`.
+
+## T-509 | P3 | [MOBILE] | Owner BiometricScreen — post-login biometrika dekorativ
+- **Fayl:** apps/mobile-owner/src/screens/Auth/BiometricScreen.tsx:17-30, LoginScreen.tsx:51-52
+- **Muammo:** `login()` darhol `isAuthenticated=true` → RootNavigator Auth tree'ni almashtiradi, `replace('Biometric')` amalda ko'rinmaydi. Biometrik gating ishlamaydi.
+- **Kutilgan:** Biometrikni login OLDIDAN (saqlangan token bilan) yoki alohida `isUnlocked` state bilan.
+
+## T-510 | P3 | [MOBILE] | Systemic — 250 qatordan oshgan ~46 komponent fayl
+- **Fayl:** apps/mobile/src/screens/Analytics/DeadStockScreen.tsx (341), CashierPerformanceScreen (333), Savdo/PaymentSheet (332), Nasiya/index (328), Nasiya/PayModal (328), SalesOrders/index (327)... (~46 ta)
+- **Muammo:** CLAUDE_MOBILE.md max 250 qator/fayl limitini buzadi (refactor, bug emas). i18n/type fayllar bundan mustasno.
+- **Kutilgan:** Hooks/sub-component'larga bo'lish (SRP). Bosqichma-bosqich.
