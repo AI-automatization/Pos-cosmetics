@@ -19,12 +19,17 @@ COPY packages/utils/ ./packages/utils/
 
 RUN pnpm --filter support-bot build
 
-RUN pnpm deploy --filter support-bot --prod --legacy /deploy
-RUN cp -r /app/apps/support-bot/dist /deploy/dist
+RUN mkdir -p /deploy && \
+    cp -r /app/apps/support-bot/dist /deploy/dist && \
+    cp /app/apps/support-bot/package.json /deploy/package.json
 
-RUN PRISMA_DIR=$(find /app/node_modules -maxdepth 6 -name ".prisma" -type d 2>/dev/null | head -1) && \
-    if [ -n "$PRISMA_DIR" ]; then cp -r "$PRISMA_DIR" /deploy/node_modules/.prisma; \
-    else echo "WARNING: .prisma not found, skipping copy"; fi
+RUN cd /app && pnpm install --prod --filter support-bot --ignore-scripts 2>/dev/null; \
+    cp -r /app/node_modules /deploy/node_modules 2>/dev/null; \
+    PRISMA_DIR=$(find /app/node_modules -maxdepth 6 -name ".prisma" -type d 2>/dev/null | head -1) && \
+    if [ -n "$PRISMA_DIR" ]; then \
+      mkdir -p /deploy/node_modules/.prisma && \
+      cp -r "$PRISMA_DIR"/* /deploy/node_modules/.prisma/ 2>/dev/null; \
+    fi; true
 
 FROM node:20-alpine AS runner
 RUN apk add --no-cache dumb-init
