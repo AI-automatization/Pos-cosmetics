@@ -46,6 +46,7 @@ import { EmployeesModule } from './employees/employees.module';
 import { UploadModule } from './upload/upload.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
 import { ZzoneModule } from './integrations/zzone/zzone.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -95,6 +96,7 @@ import { ZzoneModule } from './integrations/zzone/zzone.module';
     SupportModule,
     TasksModule,
     ZzoneModule,
+    SmsModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)

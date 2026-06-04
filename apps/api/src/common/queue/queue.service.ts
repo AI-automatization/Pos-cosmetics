@@ -12,6 +12,7 @@ export const QUEUE_NAMES = {
   DATA_EXPORT: 'data-export',
   SYNC_PROCESS: 'sync-process',
   PRODUCT_IMPORT: 'product-import',
+  SMS_CAMPAIGN: 'sms-campaign',
   // AI Orchestration queues
   AI_WORKFLOW: 'ai-workflow',
   AI_AGENT: 'ai-agent',
@@ -63,6 +64,11 @@ export interface ProductImportJob {
 }
 
 // ─── AI Orchestration job payloads ────────────────────────────────────────
+export interface SmsCampaignJob {
+  tenantId: string;
+  campaignId: string;
+}
+
 export interface AiWorkflowJob {
   tenantId: string;
   workflowId: string;
@@ -227,6 +233,15 @@ export class QueueService implements OnModuleDestroy {
       result: state === 'completed' ? (job.returnvalue as ImportSummary) : null,
       ...(state === 'failed' ? { failedReason: job.failedReason } : {}),
     };
+  }
+
+  async addSmsCampaignJob(data: SmsCampaignJob, opts?: { delay?: number }) {
+    return this.getQueue(QUEUE_NAMES.SMS_CAMPAIGN).add('send-campaign', data, {
+      ...(opts?.delay && { delay: opts.delay }),
+      attempts: 1,
+      removeOnComplete: 50,
+      removeOnFail: 50,
+    });
   }
 
   // ─── AI Orchestration job methods ─────────────────────────────────────
