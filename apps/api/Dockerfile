@@ -9,6 +9,7 @@ COPY .npmrc package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/catalog-import/package.json ./packages/catalog-import/
 
 # Install all deps (dev + prod) — needed for prisma generate + nest build
 RUN pnpm install --frozen-lockfile --filter api...
@@ -17,6 +18,7 @@ RUN pnpm install --frozen-lockfile --filter api...
 COPY apps/api/ ./apps/api/
 COPY packages/types/ ./packages/types/
 COPY packages/utils/ ./packages/utils/
+COPY packages/catalog-import/ ./packages/catalog-import/
 
 # Generate Prisma client
 RUN pnpm --filter api exec prisma generate

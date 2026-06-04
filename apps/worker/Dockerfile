@@ -9,6 +9,7 @@ COPY apps/worker/package.json ./apps/worker/
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/catalog-import/package.json ./packages/catalog-import/
 
 # Install deps (worker + api for prisma CLI)
 RUN pnpm install --frozen-lockfile --filter worker... --filter api
@@ -23,6 +24,7 @@ RUN pnpm --filter api exec prisma generate
 COPY apps/worker/ ./apps/worker/
 COPY packages/types/ ./packages/types/
 COPY packages/utils/ ./packages/utils/
+COPY packages/catalog-import/ ./packages/catalog-import/
 
 # Build
 RUN pnpm --filter worker build
