@@ -737,16 +737,17 @@
 - **Sana:** 2026-05-19
 - **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/`
-- **Vazifa:**
-  - Dashboard: RAOS branding (cyan #24D4F4), logo sidebar, "Powered by RAOS" footer
-  - Onboarding wizard: 5 qadam (do'kon, filial, import, kassir, birinchi sotuv)
-  - i18n: barcha sahifalarda uz/ru/en to'liq
-  - Loading/error states: skeleton, error boundary
-- **Kutilgan:** Professional, demo-ready admin panel
+- **Bajarilgan (2026-06-04):**
+  - ✅ Sidebar: "Powered by RAOS" footer, cyan branding, logo (icon.png qo'shildi)
+  - ✅ Onboarding wizard: 5 qadam (filial, xodim, import, birinchi sotuv, dashboard)
+  - ✅ i18n: onboarding step4/step5 kalitlari uz/ru/en
+  - ✅ Loading/error: LoadingSkeleton, ErrorBoundary allaqachon mavjud
+- **Qolgan:**
+  - i18n: barcha sahifalarda to'liq audit (kamchilik bormi?)
+  - Dashboard: qo'shimcha polish (davomiy)
 - **Muddat:** davomiy
 - **Hafta:** W25+
 - **Trek:** D (Demo + Security)
-- **Branch:** `ibrat/chore-admin-polish`
 
 ---
 
