@@ -16,11 +16,11 @@ export function createBot(): Bot {
   });
 
   bot.api.setMyCommands([
-    { command: 'start', description: 'Botni ishga tushirish' },
-    { command: 'faq', description: "Tez-tez so'raladigan savollar" },
-    { command: 'status', description: 'Tizim holati' },
-    { command: 'ticket', description: 'Texnik yordam so\'rash' },
-    { command: 'help', description: 'Yordam' },
+    { command: 'start', description: 'Запустить бота' },
+    { command: 'faq', description: 'Частые вопросы' },
+    { command: 'status', description: 'Статус системы' },
+    { command: 'ticket', description: 'Создать заявку в поддержку' },
+    { command: 'help', description: 'Справка' },
   ]).catch((e) => logger.error('[Bot] setMyCommands failed', { error: (e as Error).message }));
 
   registerStartHandler(bot);

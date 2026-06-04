@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard } from 'grammy';
-import { getCategories, getFaqByCategory, getFaqById, formatFaqAnswer } from '../services/faq.service';
+import { getCategories, getFaqByCategory, getFaqById } from '../services/faq.service';
 
 function buildCategoryKeyboard(): InlineKeyboard {
   const kb = new InlineKeyboard();
@@ -23,8 +23,7 @@ function buildCategoryKeyboard(): InlineKeyboard {
 
 export function registerFaqHandler(bot: Bot) {
   bot.command('faq', async (ctx) => {
-    await ctx.reply('📋 *Выберите категорию:*', {
-      parse_mode: 'MarkdownV2',
+    await ctx.reply('📋 Выберите категорию:', {
       reply_markup: buildCategoryKeyboard(),
     });
   });
@@ -44,10 +43,7 @@ export function registerFaqHandler(bot: Bot) {
     }
     kb.row(InlineKeyboard.text('◀️ Назад', 'faq_back'));
 
-    await ctx.editMessageText('📋 *Выберите вопрос:*', {
-      parse_mode: 'MarkdownV2',
-      reply_markup: kb,
-    });
+    await ctx.editMessageText('📋 Выберите вопрос:', { reply_markup: kb });
     await ctx.answerCallbackQuery();
   });
 
@@ -58,21 +54,17 @@ export function registerFaqHandler(bot: Bot) {
       return;
     }
 
-    const text = formatFaqAnswer(entry, 'ru');
+    const text = `❓ ${entry.question_ru}\n\n${entry.answer_ru}`;
     const kb = new InlineKeyboard()
       .row(InlineKeyboard.text('◀️ Назад к категории', `faq_cat:${entry.category}`))
-      .row(InlineKeyboard.text('🎫 Это не помогло — создать тикет', 'create_ticket'));
+      .row(InlineKeyboard.text('🎫 Не помогло — создать тикет', 'create_ticket'));
 
-    await ctx.editMessageText(text, {
-      parse_mode: 'MarkdownV2',
-      reply_markup: kb,
-    });
+    await ctx.editMessageText(text, { reply_markup: kb });
     await ctx.answerCallbackQuery();
   });
 
   bot.callbackQuery('faq_back', async (ctx) => {
-    await ctx.editMessageText('📋 *Выберите категорию:*', {
-      parse_mode: 'MarkdownV2',
+    await ctx.editMessageText('📋 Выберите категорию:', {
       reply_markup: buildCategoryKeyboard(),
     });
     await ctx.answerCallbackQuery();

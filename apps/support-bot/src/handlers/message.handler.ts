@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard } from 'grammy';
-import { matchFaq, formatFaqAnswer } from '../services/faq.service';
+import { matchFaq, getFaqById } from '../services/faq.service';
 import { logger } from '../logger';
 
 export function registerMessageHandler(bot: Bot) {
@@ -11,13 +11,14 @@ export function registerMessageHandler(bot: Bot) {
     const match = matchFaq(text);
 
     if (match && match.score >= 0.4) {
-      const answer = formatFaqAnswer(match.entry, 'ru');
+      const entry = match.entry;
+      const answer = `❓ ${entry.question_ru}\n\n${entry.answer_ru}`;
       const kb = new InlineKeyboard()
         .row(InlineKeyboard.text('✅ Спасибо, помогло!', 'faq_helpful'))
         .row(InlineKeyboard.text('🎫 Не помогло — создать тикет', 'create_ticket'));
 
-      await ctx.reply(answer, { parse_mode: 'MarkdownV2', reply_markup: kb });
-      logger.log('[FAQ] Matched', { query: text, faqId: match.entry.id, score: match.score });
+      await ctx.reply(answer, { reply_markup: kb });
+      logger.log('[FAQ] Matched', { query: text, faqId: entry.id, score: match.score });
       return;
     }
 
@@ -38,7 +39,7 @@ export function registerMessageHandler(bot: Bot) {
   bot.callbackQuery('create_ticket', async (ctx) => {
     await ctx.answerCallbackQuery();
     await ctx.reply(
-      '🎫 Для создания тикета отправьте команду:\n\n' +
+      '🎫 Для создания заявки отправьте команду:\n\n' +
       '/ticket <описание проблемы>\n\n' +
       'Например: /ticket Не могу войти в систему после смены пароля',
     );
