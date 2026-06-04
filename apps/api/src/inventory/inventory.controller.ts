@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   Query,
-  UseGuards,
   DefaultValuePipe,
   ParseIntPipe,
 } from '@nestjs/common';
@@ -26,7 +25,6 @@ import {
 } from './dto/stock-movement.dto';
 import { RestockRequestDto } from './dto/restock-request.dto';
 import { OpenTesterDto } from './dto/open-tester.dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TransferService, CreateTransferDto } from './transfer.service';
 import { TransferStatus } from '@prisma/client';
@@ -34,7 +32,6 @@ import { Roles } from '../common/decorators';
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER')
 @Controller('inventory')
 export class InventoryController {

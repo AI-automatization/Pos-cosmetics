@@ -8,7 +8,6 @@ import {
   Headers,
   Req,
   Res,
-  UseGuards,
   Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -17,7 +16,6 @@ import { Type } from 'class-transformer';
 import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { BillingProvider } from '@prisma/client';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
 import { BillingService } from './billing.service';
@@ -57,7 +55,6 @@ export class CheckoutDto {
 
 @ApiTags('billing')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('billing')
 export class BillingController {
   private readonly logger = new Logger(BillingController.name);

@@ -1,8 +1,7 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { NotificationType } from '@prisma/client';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../common/cache/cache.service';
@@ -13,7 +12,6 @@ import { CacheService } from '../common/cache/cache.service';
  */
 @ApiTags('System')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @SkipThrottle()
 @Controller('system')
 export class SystemController {

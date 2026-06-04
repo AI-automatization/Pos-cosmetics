@@ -3,7 +3,6 @@ import {
   Get,
   Param,
   Query,
-  UseGuards,
   DefaultValuePipe,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -16,7 +15,6 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { NasiyaService } from './nasiya.service';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 /**
@@ -27,7 +25,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
  */
 @ApiTags('Debts (deprecated alias — use /nasiya)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('debts')
 export class DebtsController {
   constructor(private readonly nasiyaService: NasiyaService) {}

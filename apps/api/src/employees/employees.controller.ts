@@ -1,19 +1,16 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, UseGuards, HttpCode, HttpStatus,
+  Body, Param, Query, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { EmployeesService } from './employees.service';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CreateEmployeeDto, UpdateStatusDto, UpdatePosAccessDto } from './dto/employee.dto';
 
 @ApiTags('Employees')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN)
 @Controller('employees')
 export class EmployeesController {

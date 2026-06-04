@@ -1,17 +1,14 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { WarehouseInvoiceService } from './warehouse-invoice.service';
 import { WriteOffDto } from './dto/warehouse-invoice.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 
 // ─── T-328: Write-off ────────────────────────────────────────────────────────
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('inventory')
 export class WriteOffController {
   constructor(private readonly svc: WarehouseInvoiceService) {}

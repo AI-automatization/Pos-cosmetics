@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Query,
-  UseGuards,
   ParseUUIDPipe,
   ParseIntPipe,
   Patch,
@@ -19,14 +18,12 @@ import {
 } from '@nestjs/swagger';
 import { SalesService } from './sales.service';
 import { OpenShiftDto, CloseShiftDto, CreateOrderDto, CreateReturnDto } from './dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators';
 import { UserRole } from '@prisma/client';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
 @Controller('sales')
 export class SalesController {

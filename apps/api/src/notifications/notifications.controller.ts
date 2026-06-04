@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   ParseUUIDPipe,
-  UseGuards,
   Delete,
   HttpCode,
   HttpStatus,
@@ -26,7 +25,6 @@ import { IsString, IsOptional } from 'class-validator';
 import { NotificationsService } from './notifications.service';
 import { PushService } from './push.service';
 import { NotifyService } from './notify.service';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 
@@ -86,7 +84,6 @@ class VerifyTelegramDto {
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('notifications')
 export class NotificationsController {
   constructor(

@@ -12,12 +12,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { AdminAuthService } from './admin-auth.service';
 
 @ApiTags('Super Admin — Tenants')
-@UseGuards(JwtAuthGuard, SuperAdminGuard)
+@UseGuards(SuperAdminGuard)
 @ApiBearerAuth()
 @Controller('admin')
 export class AdminTenantController {

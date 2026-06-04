@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   Patch,
-  UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -16,15 +15,12 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { JwtAuthGuard } from '../../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../../identity/guards/roles.guard';
 import { Roles } from '../decorators';
 import { FeatureFlagsService } from './feature-flags.service';
 import { CurrentUser } from '../decorators/current-user.decorator';
 
 @ApiTags('Feature Flags')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN)
 @Controller('admin/feature-flags')
 export class FeatureFlagsController {

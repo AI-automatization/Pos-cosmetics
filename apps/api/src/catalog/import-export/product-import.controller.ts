@@ -8,7 +8,6 @@ import {
   Post,
   Get,
   Query,
-  UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -17,13 +16,11 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { JwtAuthGuard } from '../../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ProductImportService } from './product-import.service';
 
 @ApiTags('Catalog')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('catalog/products')
 export class ProductImportController {
   constructor(private readonly importService: ProductImportService) {}

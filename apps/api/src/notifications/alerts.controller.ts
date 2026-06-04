@@ -4,7 +4,6 @@ import {
   Patch,
   Param,
   Query,
-  UseGuards,
   ParseUUIDPipe,
   DefaultValuePipe,
   ParseIntPipe,
@@ -17,7 +16,6 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 // Notification type → mobile priority mapping
@@ -65,7 +63,6 @@ function toAlert(n: {
  */
 @ApiTags('Alerts (deprecated — use /notifications)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('alerts')
 export class AlertsController {
   constructor(private readonly notificationsService: NotificationsService) {}

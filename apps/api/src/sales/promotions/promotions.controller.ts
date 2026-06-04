@@ -8,17 +8,14 @@ import {
   Post,
   Query,
   ParseUUIDPipe,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PromotionsService } from './promotions.service';
 import { CreatePromotionDto, UpdatePromotionDto, ApplyPromotionDto } from './dto/promotion.dto';
 
 @ApiTags('Promotions')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('promotions')
 export class PromotionsController {
   constructor(private readonly promotionsService: PromotionsService) {}

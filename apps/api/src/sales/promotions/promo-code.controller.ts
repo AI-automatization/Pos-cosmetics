@@ -9,17 +9,14 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PromoCodeService } from './promo-code.service';
 import { CreatePromoCodeDto, UpdatePromoCodeDto, ValidateCodeDto } from './dto/promo-code.dto';
 
 @ApiTags('Promo Codes')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('promotions/codes')
 export class PromoCodeController {
   constructor(private readonly promoCodeService: PromoCodeService) {}
