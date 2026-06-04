@@ -7,8 +7,8 @@ import {
   getNewlyRecoveredEndpoints,
   markAlertSent,
   markAlertCleared,
-  getDiagnostic,
 } from '../services/monitor.service';
+import { DIAGNOSTIC_RULES } from '../data/diagnostic-rules';
 import { logger } from '../logger';
 
 export function startUptimeCron(bot: Bot) {
@@ -21,38 +21,43 @@ export function startUptimeCron(bot: Bot) {
 
       const newlyDown = getNewlyDownEndpoints();
       for (const ep of newlyDown) {
-        const diag = getDiagnostic(ep.lastError);
-        let msg =
-          `🚨 *СЕРВИС УПАЛ*\n\n` +
-          `🔴 *${ep.name}*\n` +
-          `URL: ${ep.url}\n` +
-          `Ошибка: ${ep.lastError}\n` +
-          `Подряд сбоев: ${ep.consecutiveFailures}`;
+        const lines = [
+          '🚨 СЕРВИС УПАЛ\n',
+          `🔴 ${ep.name}`,
+          `URL: ${ep.url}`,
+          `Ошибка: ${ep.lastError}`,
+          `Сбоев подряд: ${ep.consecutiveFailures}`,
+          `Время: ${new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Tashkent' })}`,
+        ];
 
-        if (diag) {
-          msg += `\n\n${diag}`;
+        const rule = DIAGNOSTIC_RULES.find((r) => ep.lastError.toUpperCase().includes(r.pattern));
+        if (rule) {
+          lines.push(`\n🔍 Диагноз: ${rule.title_ru}`);
+          lines.push(`Причина: ${rule.cause_ru}`);
+          lines.push(`\nКак исправить:`);
+          for (const step of rule.fix_ru.split('\n')) {
+            lines.push(step);
+          }
         }
 
-        const escaped = msg.replace(/([_\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
-
-        await sendAlert(bot, escaped);
+        await sendAlert(bot, lines.join('\n'));
         markAlertSent(ep);
-        logger.error(`[Uptime] Alert sent: ${ep.name} is DOWN`, { url: ep.url, error: ep.lastError });
+        logger.error(`[Uptime] Alert: ${ep.name} DOWN`, { url: ep.url, error: ep.lastError });
       }
 
       const recovered = getNewlyRecoveredEndpoints();
       for (const ep of recovered) {
-        const msg =
-          `✅ *СЕРВИС ВОССТАНОВЛЕН*\n\n` +
-          `🟢 *${ep.name}*\n` +
-          `URL: ${ep.url}\n` +
-          `Время ответа: ${ep.lastResponseMs}ms`;
+        const msg = [
+          '✅ СЕРВИС ВОССТАНОВЛЕН\n',
+          `🟢 ${ep.name}`,
+          `URL: ${ep.url}`,
+          `Время ответа: ${ep.lastResponseMs}ms`,
+          `Время: ${new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Tashkent' })}`,
+        ].join('\n');
 
-        const escaped = msg.replace(/([_\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
-
-        await sendAlert(bot, escaped);
+        await sendAlert(bot, msg);
         markAlertCleared(ep);
-        logger.log(`[Uptime] Recovery: ${ep.name} is UP`, { url: ep.url, ms: ep.lastResponseMs });
+        logger.log(`[Uptime] Recovery: ${ep.name} UP`, { url: ep.url, ms: ep.lastResponseMs });
       }
     } catch (err) {
       logger.error('[Uptime] Cron error', { error: (err as Error).message });
@@ -72,7 +77,7 @@ async function sendAlert(bot: Bot, message: string) {
 
   for (const chatId of targets) {
     try {
-      await bot.api.sendMessage(chatId, message, { parse_mode: 'MarkdownV2' });
+      await bot.api.sendMessage(chatId, message);
     } catch (err) {
       logger.error(`[Uptime] Failed to send alert to ${chatId}`, { error: (err as Error).message });
     }

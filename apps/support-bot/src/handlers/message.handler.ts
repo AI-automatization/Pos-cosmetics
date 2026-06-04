@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard } from 'grammy';
-import { matchFaq, getFaqById } from '../services/faq.service';
+import { matchFaq } from '../services/faq.service';
 import { logger } from '../logger';
 
 export function registerMessageHandler(bot: Bot) {
