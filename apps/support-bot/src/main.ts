@@ -27,11 +27,27 @@ async function bootstrap() {
   });
 
   logger.log('[SupportBot] Starting polling...');
-  bot.start({
-    onStart: (info) => {
-      logger.log(`[SupportBot] Running as @${info.username}`);
-    },
-  });
+
+  const startWithRetry = async (attempt = 1): Promise<void> => {
+    try {
+      await bot.start({
+        onStart: (info) => {
+          logger.log(`[SupportBot] Running as @${info.username}`);
+        },
+      });
+    } catch (err) {
+      const msg = (err as Error).message ?? '';
+      if (msg.includes('409') || msg.includes('Conflict')) {
+        const delay = Math.min(attempt * 5, 30);
+        logger.warn(`[SupportBot] Polling conflict, retrying in ${delay}s (attempt ${attempt})`);
+        await new Promise((r) => setTimeout(r, delay * 1000));
+        return startWithRetry(attempt + 1);
+      }
+      throw err;
+    }
+  };
+
+  await startWithRetry();
 }
 
 bootstrap().catch((err) => {
