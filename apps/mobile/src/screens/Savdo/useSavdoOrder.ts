@@ -7,6 +7,7 @@ import { paymentsApi, type PaymentIntentResponse } from '../../api/payments.api'
 import { loyaltyApi } from '../../api/loyalty.api';
 import { isOnlineMethod } from './PaymentSheetTypes';
 import { isNetworkOnline } from '../../hooks/useNetworkStatus';
+import { newIdempotencyKey } from '../../services/OfflineQueueService';
 import type { PaymentMethod } from './PaymentSheet';
 import type { CartItem } from './components/utils';
 import type { Customer } from '../../api/customers.api';
@@ -15,6 +16,8 @@ import type { SavdoStackParamList } from '../../navigation/types';
 interface UseSavdoOrderParams {
   cart: CartItem[];
   totalPrice: number;
+  /** Loyalty redeem discount in UZS, already clamped to <= totalPrice (computed in index.tsx). */
+  discountAmount: number;
   shiftId: string | null;
   selectedCustomer: Customer | null;
   redeemPoints: number;
@@ -27,6 +30,7 @@ interface UseSavdoOrderParams {
 export default function useSavdoOrder({
   cart,
   totalPrice,
+  discountAmount,
   shiftId,
   selectedCustomer,
   redeemPoints,
@@ -41,8 +45,10 @@ export default function useSavdoOrder({
   const [paymentIntent, setPaymentIntent] = useState<PaymentIntentResponse | null>(null);
 
   const handleConfirm = useCallback(async (method: PaymentMethod, _received: number) => {
+    // Amount actually charged after loyalty redeem discount. Guard against negatives.
+    const payable = Math.max(0, totalPrice - discountAmount);
     if (method === 'NASIYA') {
-      navigation.navigate('NasiyaScreen', { openNewDebt: true, amount: totalPrice, products: cart });
+      navigation.navigate('NasiyaScreen', { openNewDebt: true, amount: payable, products: cart });
       closePayment();
       clearCart();
       return;
@@ -51,6 +57,8 @@ export default function useSavdoOrder({
       Alert.alert('Xatolik', 'Smena ochilmagan. Avval smena oching.');
       return;
     }
+    // T-481: one stable idempotency key per submission — reused on offline retry
+    const idempotencyKey = newIdempotencyKey();
     // Online payment flow (PAYME / CLICK / UZUM)
     if (isOnlineMethod(method)) {
       setOrderLoading(true);
@@ -62,12 +70,13 @@ export default function useSavdoOrder({
             quantity: i.qty,
             unitPrice: i.product.sellPrice,
           })),
+          discountAmount,
           notes: `To'lov: ${method}`,
-        });
+        }, idempotencyKey);
         const intent = await paymentsApi.createIntent({
           orderId: order.id,
           method,
-          amount: totalPrice,
+          amount: payable,
         });
         setPaymentIntent(intent);
         closePayment();
@@ -89,8 +98,9 @@ export default function useSavdoOrder({
           quantity: i.qty,
           unitPrice: i.product.sellPrice,
         })),
+        discountAmount,
         notes: `To'lov: ${method}`,
-      });
+      }, idempotencyKey);
       if (redeemPoints > 0 && selectedCustomer) {
         try {
           await loyaltyApi.redeem(selectedCustomer.id, redeemPoints, order.id);
@@ -112,8 +122,9 @@ export default function useSavdoOrder({
             quantity: i.qty,
             unitPrice: i.product.sellPrice,
           })),
+          discountAmount,
           notes: `To'lov: ${method}`,
-        });
+        }, idempotencyKey);
         await refreshQueue();
         Alert.alert('Offline rejim', "Buyurtma saqlandi. Internet ulanganda avtomatik yuboriladi.");
         closePayment();
@@ -125,7 +136,7 @@ export default function useSavdoOrder({
     } finally {
       setOrderLoading(false);
     }
-  }, [cart, totalPrice, shiftId, selectedCustomer, redeemPoints, clearCart, closePayment, resetCustomer, refreshQueue, navigation]);
+  }, [cart, totalPrice, discountAmount, shiftId, selectedCustomer, redeemPoints, clearCart, closePayment, resetCustomer, refreshQueue, navigation]);
 
   const handleOnlinePaymentSuccess = useCallback(() => {
     setOnlinePaymentVisible(false);

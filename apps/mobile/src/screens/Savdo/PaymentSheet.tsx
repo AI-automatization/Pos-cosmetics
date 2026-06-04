@@ -27,7 +27,12 @@ export type { PaymentMethod, CartItem } from './PaymentSheetTypes';
 interface Props {
   readonly visible: boolean;
   readonly cart: CartItem[];
+  /** Full cart total (pre-discount). Loyalty earn/redeem math runs on this. */
   readonly total: number;
+  /** Loyalty redeem discount in UZS. Payable = total - discountAmount. */
+  readonly discountAmount?: number;
+  /** UZS value of 1 loyalty point — forwarded to LoyaltySection for display. */
+  readonly redeemRate?: number;
   readonly onClose: () => void;
   readonly onConfirm: (method: PaymentMethod, received: number) => void;
   readonly onRemoveItem?: (productId: string) => void;
@@ -43,6 +48,8 @@ export default function PaymentSheet({
   visible,
   cart,
   total,
+  discountAmount,
+  redeemRate,
   onClose,
   onConfirm,
   onRemoveItem,
@@ -60,20 +67,24 @@ export default function PaymentSheet({
   const [splitCard, setSplitCard] = useState('');
   const [confirmed, setConfirmed] = useState(false);
 
+  // Amount the cashier actually collects after loyalty redeem discount.
+  // Loyalty earn/redeem math stays on the full `total`; only cash/card/change use payable.
+  const payable = Math.max(0, total - (discountAmount ?? 0));
+
   useEffect(() => {
     if (visible) {
       setMethod('NAQD');
       setSplit(false);
-      setReceived(String(total));
+      setReceived(String(payable));
       setSplitCard('');
       setConfirmed(false);
     }
-  }, [visible, total]);
+  }, [visible, payable]);
 
   const online      = isOnlineMethod(method);
   const receivedNum = parseFloat(received.replace(/\s/g, '')) || 0;
-  const change      = method === 'NAQD' && !split ? receivedNum - total : 0;
-  const canConfirm  = online || method !== 'NAQD' || receivedNum >= total;
+  const change      = method === 'NAQD' && !split ? receivedNum - payable : 0;
+  const canConfirm  = online || method !== 'NAQD' || receivedNum >= payable;
 
   const handleConfirm = () => {
     if (!canConfirm) return;
@@ -109,7 +120,7 @@ export default function PaymentSheet({
           {confirmed ? (
             <PaymentSuccessView
               method={method}
-              total={total}
+              total={payable}
               onDismiss={handleDismiss}
               customerPhone={customerPhone}
             />
@@ -142,21 +153,23 @@ export default function PaymentSheet({
                   </TouchableOpacity>
                 ) : null}
 
-                {/* Order summary */}
+                {/* Order summary — shows the payable (post-discount) total */}
                 <PaymentSummaryCard
                   cart={cart}
-                  total={total}
+                  total={payable}
                   onRemoveItem={onRemoveItem}
                 />
 
                 {/* Payment method picker */}
                 <PaymentMethodPicker method={method} onSelect={setMethod} />
 
-                {/* Loyalty section */}
+                {/* Loyalty section — orderTotal stays FULL (earn/redeem math is pre-discount) */}
                 {customerId && (
                   <LoyaltySection
                     customerId={customerId}
                     orderTotal={total}
+                    redeemRate={redeemRate}
+                    discountAmount={discountAmount}
                     redeemPoints={redeemPoints ?? 0}
                     onRedeemPointsChange={onRedeemPointsChange ?? (() => {})}
                   />
@@ -176,7 +189,7 @@ export default function PaymentSheet({
                     method={method}
                     received={received}
                     splitCard={splitCard}
-                    total={total}
+                    total={payable}
                     change={change}
                     receivedNum={receivedNum}
                     onReceivedChange={setReceived}

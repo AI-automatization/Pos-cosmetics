@@ -16,22 +16,31 @@ interface Props {
   readonly orderTotal: number;
   readonly redeemPoints: number;
   readonly onRedeemPointsChange: (points: number) => void;
+  /** Lifted from the parent (single source of truth). Falls back to config when undefined. */
+  readonly redeemRate?: number;
+  /** Lifted from the parent (single source of truth). Falls back to local calc when undefined. */
+  readonly discountAmount?: number;
 }
 
 const QUICK_PERCENTS = [25, 50, 75, 100] as const;
+const DEFAULT_EARN_RATE = 1000;
+const DEFAULT_REDEEM_RATE = 100;
+const DEFAULT_MIN_REDEEM = 50;
 
 // ─── Component ─────────────────────────────────────────
 export default function LoyaltySection({
   customerId, orderTotal, redeemPoints, onRedeemPointsChange,
+  redeemRate: redeemRateProp, discountAmount: discountAmountProp,
 }: Props) {
   const { t } = useTranslation();
   const { data: account, isLoading: loadAcc } = useLoyaltyAccount(customerId);
   const { data: config, isLoading: loadCfg } = useLoyaltyConfig();
 
   const balance = account?.points ?? 0;
-  const earnRate = config?.earnRate ?? 1000;
-  const redeemRate = config?.redeemRate ?? 100;
-  const minRedeem = config?.minRedeem ?? 50;
+  const earnRate = config?.earnRate ?? DEFAULT_EARN_RATE;
+  // Prefer the lifted rate so display === charged; fall back to config while it loads.
+  const redeemRate = redeemRateProp ?? config?.redeemRate ?? DEFAULT_REDEEM_RATE;
+  const minRedeem = config?.minRedeem ?? DEFAULT_MIN_REDEEM;
   const isActive = config?.isActive ?? false;
   const canRedeem = isActive && balance >= minRedeem;
   const isRedeeming = redeemPoints > 0;
@@ -41,7 +50,9 @@ export default function LoyaltySection({
     return Math.min(balance, Math.floor(orderTotal / redeemRate));
   }, [canRedeem, balance, orderTotal, redeemRate]);
 
-  const discountAmount = redeemPoints * redeemRate;
+  // Single source of truth: use the lifted discount when provided so the
+  // "-{discountAmount}" label is byte-identical to what is charged.
+  const discountAmount = discountAmountProp ?? redeemPoints * redeemRate;
   const earnablePoints = moneyToPoints(orderTotal - discountAmount, earnRate);
 
   const handleToggle = useCallback((on: boolean) => {

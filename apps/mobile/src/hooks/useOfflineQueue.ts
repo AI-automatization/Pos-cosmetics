@@ -5,11 +5,14 @@ import { useNetworkStatus } from './useNetworkStatus';
 export function useOfflineQueue() {
   const { isOnline } = useNetworkStatus();
   const [status, setStatus] = useState<QueueStatus>({ pending: 0, items: [] });
+  const [failedCount, setFailedCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const refresh = useCallback(async () => {
     const s = await offlineQueueService.getStatus();
     setStatus(s);
+    const failed = await offlineQueueService.getFailed();
+    setFailedCount(failed.length);
   }, []);
 
   const processQueue = useCallback(async () => {
@@ -36,6 +39,7 @@ export function useOfflineQueue() {
 
   return {
     ...status,
+    failedCount,
     isSyncing,
     refresh,
     processQueue,

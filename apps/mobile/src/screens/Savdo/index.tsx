@@ -19,6 +19,7 @@ import { useShiftStore } from '../../store/shiftStore';
 import { catalogApi, type CatalogProduct } from '../../api/catalog.api';
 import type { Customer } from '../../api/customers.api';
 import { useOfflineQueue } from '../../hooks/useOfflineQueue';
+import { useLoyaltyConfig } from '../../hooks/useLoyalty';
 import { C, toProduct } from './components/utils';
 import SavdoHeader from './components/SavdoHeader';
 import SavdoSearchBar from './components/SavdoSearchBar';
@@ -27,6 +28,10 @@ import CartBar from './components/CartBar';
 import { styles } from './styles';
 import useSavdoCart from './useSavdoCart';
 import useSavdoOrder from './useSavdoOrder';
+
+// Fallback UZS value of 1 loyalty point while the loyalty config loads.
+// Mirrors LoyaltySection's `config?.redeemRate ?? 100` default.
+const DEFAULT_REDEEM_RATE = 100;
 
 // ─── Screen ────────────────────────────────────────────
 export default function SavdoScreen() {
@@ -48,6 +53,13 @@ export default function SavdoScreen() {
     clearCart, cartQty, totalItems, totalPrice,
   } = useSavdoCart();
 
+  // ─── Loyalty discount (single source of truth) ───────
+  // Lifted here (lowest common ancestor of LoyaltySection + useSavdoOrder)
+  // so the redeem discount shown to the customer === the discount charged.
+  const { data: loyaltyConfig } = useLoyaltyConfig();
+  const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_REDEEM_RATE;
+  const discountAmount = Math.min(redeemPoints * redeemRate, totalPrice);
+
   const closePayment = () => setPaymentVisible(false);
   const resetCustomer = () => { setSelectedCustomer(null); setRedeemPoints(0); };
 
@@ -55,7 +67,7 @@ export default function SavdoScreen() {
     orderLoading, onlinePaymentVisible, paymentIntent,
     handleConfirm, handleOnlinePaymentSuccess, handleOnlinePaymentCancel,
   } = useSavdoOrder({
-    cart, totalPrice, shiftId, selectedCustomer, redeemPoints,
+    cart, totalPrice, discountAmount, shiftId, selectedCustomer, redeemPoints,
     clearCart, closePayment, resetCustomer, refreshQueue,
   });
 
@@ -193,6 +205,8 @@ export default function SavdoScreen() {
           visible={paymentVisible}
           cart={cart}
           total={totalPrice}
+          discountAmount={discountAmount}
+          redeemRate={redeemRate}
           onClose={closePayment}
           onRemoveItem={(id) => removeFromCart(id, closePayment)}
           onConfirm={handleConfirm}

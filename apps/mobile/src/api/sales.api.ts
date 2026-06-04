@@ -199,8 +199,12 @@ export const salesApi = {
     };
   },
 
-  createOrder: async (payload: CreateOrderPayload): Promise<OrderWithMethod> => {
-    const { data } = await api.post<OrderWithMethod>('/sales/orders', payload);
+  createOrder: async (payload: CreateOrderPayload, idempotencyKey?: string): Promise<OrderWithMethod> => {
+    const { data } = await api.post<OrderWithMethod>(
+      '/sales/orders',
+      payload,
+      idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined,
+    );
     return data;
   },
 

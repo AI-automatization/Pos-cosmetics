@@ -856,30 +856,17 @@
 # 31 tasdiqlangan bug (kod o'qib): P0×4, P1×9, P2×13, P3×4, +1 umbrella
 # ══════════════════════════════════════════════════════════════
 
-## T-480 | P0 | [MOBILE] | Offline savdo crash — `crypto.randomUUID` bare reference
-- **Fayl:** apps/mobile/src/services/OfflineQueueService.ts:22 (+ index.js — polyfill yo'q)
-- **Muammo:** `crypto.randomUUID?.()` — bare `crypto` Hermes'da global emas → `ReferenceError`. `?.` faqat `.randomUUID`ni guard qiladi, `crypto` lookupni emas. Offline holatda (useSavdoOrder catch) `enqueue()` shu yerda crash → buyurtma na serverga, na lokal saqlanadi → savdo YO'QOLADI.
-- **Kutilgan:** `globalThis.crypto?.randomUUID?.()` yoki `expo-crypto` + `react-native-get-random-values` polyfill (index.js).
-
-## T-481 | P0 | [MOBILE] | Idempotency key yo'q — dublikat order xavfi
-- **Fayl:** apps/mobile/src/screens/Savdo/useSavdoOrder.ts:85-116, services/OfflineQueueService.ts, api/sales.api.ts
-- **Muammo:** createOrder payloadда idempotency key yo'q. Offline catch AYNAN shu payloadni qayta navbatga qo'yadi; processQueue retry qiladi. Server order yaratib javob timeout bo'lsa → retry'da 2-order → 2× inventar yechimi + 2× ledger.
-- **Kutilgan:** Har order uchun barqaror idempotencyKey (mobile generatsiya), retry'da o'sha key. ⚠️ Backend qabul qilishi — Ibrat (packages/types `CreateOrderPayload`).
-
-## T-482 | P0 | [MOBILE] | Offline queue — MAX_RETRIES'dan keyin jim drop
-- **Fayl:** apps/mobile/src/services/OfflineQueueService.ts:80-88
-- **Muammo:** `nextRetries >= MAX_RETRIES` (5) bo'lsa item `remaining`ga qo'shilmaydi — jimgina o'chiriladi (kommentда tan olingan). Bu tugallanmagan savdo (pul/inventar) — moliyaviy yozuv YO'QOLADI.
-- **Kutilgan:** Moliyaviy yozuv hech qachon jim yo'qolmasin — dead-letter (`@offline_queue_failed`) + UI "yuborilmadi" badge.
+## T-481 | P0 | [BACKEND] | Order idempotency — backend dedup (mobile yarmi BAJARILDI)
+- **Sana:** 2026-06-04
+- **Mas'ul:** Ibrat (backend)
+- **Fayl:** apps/api/ (sales orders create), `Idempotency-Key` header'ni o'qish
+- **Mobile yarmi — BAJARILDI (Abdulaziz, 2026-06-04):** har order submission uchun barqaror `Idempotency-Key` HTTP header yuboriladi (`apps/mobile/src/api/sales.api.ts` createOrder), offline retry'da o'sha key qayta ishlatiladi (`OfflineQueueService` + `useSavdoOrder`). `packages/types`ga tegilmagan (header orqali). tsc 0 xato, adversarial review PASS.
+- **QOLDI (Ibrat):** backend `Idempotency-Key` header'ni o'qib, takroriy `POST /sales/orders` ni **dedup** qilishi — server allaqachon yaratgan bo'lsa o'sha orderni qaytarish, 2-marta inventar yechimi/ledger YO'Q. Aks holda retry hali ham dublikat beradi (mobile kalit yuborsa ham).
 
 ## T-483 | P0 | [MOBILE] | Owner app READ-ONLY buzilgan — mutationlar ulangan
 - **Fayl:** apps/mobile-owner/src/api/debts.api.ts:86 (recordPayment), employees.api.ts:114-144 (create/updateStatus/grant/revoke/delete) + tegishli screens
 - **Muammo:** Owner App = read-only monitoring bo'lishi kerak (CLAUDE_MOBILE.md), lekin nasiya to'lovi (POST /nasiya/:id/pay) va xodim CRUD/fire/POS-access to'liq UI bilan ulangan — ledger/destruktiv mutationlar.
 - **Kutilgan:** Owner faqat o'qishi. Team Lead qarori: ta'rifni yangilash + backend RBAC, YOKI mutationlarni olib tashlash.
-
-## T-484 | P1 | [MOBILE] | Loyalty chegirma order summasiga ulanmagan
-- **Fayl:** apps/mobile/src/screens/Savdo/useSavdoOrder.ts:67-71, 85-100
-- **Muammo:** `redeem` order yaratilgandan KEYIN alohida chaqiriladi (96), lekin createOrder items full price (`sellPrice`) va intent `amount: totalPrice` chegirmasiz. Ball yechiladi, ammo order/chek to'liq narxda → mijoz chegirmasiz to'laydi / ledger nomuvofiqligi.
-- **Kutilgan:** Order summasi = total − loyalty discount; `discountAmount` createOrder/intent'ga uzatilsin, redeem order ichida atomik.
 
 ## T-485 | P1 | [MOBILE] | Logout server-side token revoke qilmaydi
 - **Fayl:** apps/mobile/src/screens/Settings/index.tsx:62, MoreMenu/index.tsx:128, Auth/CompromisedDeviceScreen.tsx:23

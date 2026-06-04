@@ -1,5 +1,31 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-06-03
+# Yangilangan: 2026-06-04
+
+---
+
+## T-484 | 2026-06-04 | [MOBILE] | Loyalty chegirma order summasiga ulanmagan
+
+- **Yechim:** Loyalty redeem chegirmasi endi ham order'ga (`discountAmount`) ham to'lov summasiga oqadi. Single source of truth: `Savdo/index.tsx:61` da `discountAmount = Math.min(redeemPoints × redeemRate, totalPrice)` (useLoyaltyConfig), `useSavdoOrder` + `PaymentSheet` ga uzatiladi. `payable = max(0, totalPrice − discountAmount)` → online intent amount, NAQD/KARTA cashier total, NASIYA nav, va createOrder payload `discountAmount` (online/standard/offline). LoyaltySection endi lifted qiymatni ko'rsatadi (display = charged). `packages/types`/`apps/api` tegilmagan (`CreateOrderPayload.discountAmount` allaqachon bor).
+- **Fayl:** apps/mobile/src/screens/Savdo/{index.tsx, useSavdoOrder.ts, PaymentSheet.tsx, LoyaltySection.tsx}
+- **Tekshiruv:** multi-agent workflow (design→implement→verify) — typecheck 0 xato + adversarial financial review: discountApplied/payableClamped/pointsConsistent/zoneRespected = true.
+
+---
+
+## T-482 | 2026-06-04 | [MOBILE] | Offline queue — MAX_RETRIES'dan keyin jim drop
+
+- **Yechim:** `OfflineQueueService.processQueue` endi MAX_RETRIES (5) dan oshgan orderni **jim o'chirmaydi** — dead-letter store'ga (`@offline_queue_failed`, AsyncStorage) ko'chiradi (mavjudlariga qo'shib). `getFailed()`/`clearFailed()` qo'shildi; `processQueue` `{success, failed, deadLettered}` qaytaradi; `useOfflineQueue` hook `failedCount` ochadi (UI ko'rsata oladi). Retry hali ishlaydi (`remaining` saqlanadi). Faqat 2 mobile fayl, dependency yo'q.
+- **Fayl:** apps/mobile/src/services/OfflineQueueService.ts, apps/mobile/src/hooks/useOfflineQueue.ts
+- **Tekshiruv:** multi-agent workflow — implement + typecheck (0 xato) + adversarial review (mobile-reviewer): 3 ham PASS.
+- **Eslatma:** ko'rinadigan "yuborilmadi" badge (Savdo ekranida) — kichik UI follow-up (failedCount tayyor).
+
+---
+
+## T-480 | 2026-06-04 | [MOBILE] | Offline savdo crash — `crypto.randomUUID` bare reference
+
+- **Yechim:** `apps/mobile/src/services/OfflineQueueService.ts:22` da bare `crypto` → `globalThis.crypto?.randomUUID?.()`. Hermes'da global `crypto` mavjud emas (index.js'da polyfill yo'q) → ilgari bare identifier `ReferenceError` berib, offline `enqueue()` crash bo'lardi (savdo yo'qolardi). Endi optional chaining xavfsiz `undefined`ga, so'ng mavjud fallback'ga o'tadi. Faqat `generateId()` o'zgardi, yangi dependency yo'q.
+- **Fayl:** apps/mobile/src/services/OfflineQueueService.ts
+- **Tekshiruv:** multi-agent workflow — implement + typecheck (0 xato) + adversarial review (mobile-reviewer): 3 ham CONFIRMED.
+- **Eslatma:** idempotency (T-481) va MAX_RETRIES silent-drop (T-482) alohida ochiq tasklar.
 
 ---
 
