@@ -26,7 +26,11 @@
       "ts",
       "js",
       "json"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^bullmq$": "<rootDir>/node_modules/bullmq/dist/cjs/index.js",
+      "^uuid$": "<rootDir>/__mocks__/uuid.js"
+    }
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
