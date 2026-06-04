@@ -4,6 +4,7 @@ import { registerStartHandler } from './handlers/start.handler';
 import { registerHelpHandler } from './handlers/help.handler';
 import { registerFaqHandler } from './handlers/faq.handler';
 import { registerStatusHandler } from './handlers/status.handler';
+import { registerTicketHandler } from './handlers/ticket.handler';
 import { registerMessageHandler } from './handlers/message.handler';
 import { logger } from './logger';
 
@@ -20,6 +21,7 @@ export function createBot(): Bot {
     { command: 'faq', description: 'Частые вопросы' },
     { command: 'status', description: 'Статус системы' },
     { command: 'ticket', description: 'Создать заявку в поддержку' },
+    { command: 'mytickets', description: 'Мои заявки' },
     { command: 'help', description: 'Справка' },
   ]).catch((e) => logger.error('[Bot] setMyCommands failed', { error: (e as Error).message }));
 
@@ -27,6 +29,7 @@ export function createBot(): Bot {
   registerHelpHandler(bot);
   registerFaqHandler(bot);
   registerStatusHandler(bot);
+  registerTicketHandler(bot);
   registerMessageHandler(bot);
 
   return bot;
