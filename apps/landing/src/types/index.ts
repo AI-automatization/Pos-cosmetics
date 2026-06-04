@@ -27,13 +27,6 @@ export interface FAQItem {
   answer: string
 }
 
-export interface Testimonial {
-  name: string
-  business: string
-  text: string
-  rating: number
-}
-
 export interface ComparisonRow {
   feature: string
   raos: string | boolean
