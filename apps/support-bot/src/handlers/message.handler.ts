@@ -21,14 +21,12 @@ export function registerMessageHandler(bot: Bot) {
       return;
     }
 
-    // Фаза 3: здесь будет AI fallback
     await ctx.reply(
-      '🤔 Я пока не нашёл ответ на ваш вопрос\\.\n\n' +
+      '🤔 Я пока не нашёл ответ на ваш вопрос.\n\n' +
       'Вы можете:\n' +
       '📋 /faq — посмотреть частые вопросы\n' +
       '🎫 /ticket — создать заявку в поддержку\n' +
       '📊 /status — проверить статус системы',
-      { parse_mode: 'MarkdownV2' },
     );
   });
 
@@ -41,9 +39,8 @@ export function registerMessageHandler(bot: Bot) {
     await ctx.answerCallbackQuery();
     await ctx.reply(
       '🎫 Для создания тикета отправьте команду:\n\n' +
-      '/ticket \\<описание проблемы\\>\n\n' +
-      'Например: `/ticket Не могу войти в систему после смены пароля`',
-      { parse_mode: 'MarkdownV2' },
+      '/ticket <описание проблемы>\n\n' +
+      'Например: /ticket Не могу войти в систему после смены пароля',
     );
   });
 }
