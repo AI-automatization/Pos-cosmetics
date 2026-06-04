@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'node:crypto';
 import type {
   SmsGateway,
   SmsSendResult,
@@ -40,7 +41,7 @@ export class PlayMobileProvider implements SmsGateway {
         messages: [
           {
             recipient: this.normalizePhone(phone),
-            'message-id': `raos-${Date.now()}`,
+            'message-id': `raos-${randomUUID()}`,
             sms: {
               originator: this.originator,
               content: { text },

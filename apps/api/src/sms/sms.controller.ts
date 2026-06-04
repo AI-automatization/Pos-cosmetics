@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Headers, Logger, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators';
@@ -17,6 +19,7 @@ export class SmsController {
   constructor(
     private readonly smsService: SmsService,
     private readonly campaignService: SmsCampaignService,
+    private readonly config: ConfigService,
   ) {}
 
   @Post('send')
@@ -102,8 +105,16 @@ export class SmsController {
 
   @Public()
   @Post('unsubscribe')
-  @ApiOperation({ summary: 'STOP — SMS obunasini bekor qilish' })
-  unsubscribe(@Body() dto: UnsubscribeDto) {
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'STOP — SMS obunasini bekor qilish (webhook secret kerak)' })
+  unsubscribe(
+    @Body() dto: UnsubscribeDto,
+    @Headers('x-webhook-secret') webhookSecret: string,
+  ) {
+    const expected = this.config.get<string>('SMS_WEBHOOK_SECRET', '');
+    if (!expected || webhookSecret !== expected) {
+      throw new ForbiddenException('Invalid webhook secret');
+    }
     if (!dto.tenantId) {
       this.logger.warn(`SMS unsubscribe without tenantId: phone=${dto.phone}`);
       return { success: false, error: 'tenantId required' };

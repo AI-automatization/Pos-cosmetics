@@ -1,9 +1,10 @@
-import { IsString, IsOptional, IsArray, MaxLength, IsDateString, ArrayMinSize } from 'class-validator';
+import { IsString, IsOptional, IsArray, MaxLength, IsDateString, ArrayMinSize, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendSmsDto {
-  @ApiProperty({ description: 'Telefon raqam (998XXXXXXXXX)' })
+  @ApiProperty({ description: 'Telefon raqam (998XXXXXXXXX)', example: '998901234567' })
   @IsString()
+  @Matches(/^998\d{9}$/, { message: 'Telefon raqam 998XXXXXXXXX formatda bo\'lishi kerak' })
   phone!: string;
 
   @ApiProperty({ description: 'SMS matn (max 160 belgi)' })

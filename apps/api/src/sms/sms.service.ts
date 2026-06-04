@@ -49,15 +49,14 @@ export class SmsService {
 
   async sendBulkForCampaign(tenantId: string, campaignId: string): Promise<{ sent: number; failed: number }> {
     const PAGE_SIZE = 100;
+    const DELAY_MS = 600; // ~100 SMS/min rate limit
     let sent = 0;
     let failed = 0;
-    let skip = 0;
 
     while (true) {
       const messages = await this.prisma.smsMessage.findMany({
         where: { campaignId, status: 'PENDING' },
         take: PAGE_SIZE,
-        skip,
         orderBy: { createdAt: 'asc' },
       });
 
@@ -89,13 +88,17 @@ export class SmsService {
 
         if (result.success) sent++;
         else failed++;
-      }
 
-      // Don't increment skip — we're consuming PENDING rows
-      if (messages.length < PAGE_SIZE) break;
+        // Rate limit: ~100 SMS/min
+        if (DELAY_MS > 0) await this.sleep(DELAY_MS);
+      }
     }
 
     return { sent, failed };
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async getBalance(): Promise<SmsBalanceResult> {
