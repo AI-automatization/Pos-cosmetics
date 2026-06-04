@@ -3,6 +3,25 @@
 
 ---
 
+## Codebase Polish | 2026-06-04 | 22 micro-task sprint
+
+**@Roles security (8 controllers):**
+- catalog, customers, branches, promotions, loyalty, tax, shifts, tenant-settings
+
+**Structured logging (5 workers):**
+- notification, data-export, report, stock-snapshot, sync-process — console.log → JSON
+
+**Magic numbers → constants (5 files):**
+- FREE_PLAN_FALLBACK, UZ_VAT_RATE (3 files), DEFAULT_SMS_COST_TIYIN
+
+**Code quality (4 fixes):**
+- export.service: `as any` → proper types
+- system.controller: fake Math.random timestamps → honest data
+- notifications: duplicate PRIORITY_MAP → shared constant
+- InvoiceDetailDrawer: hardcoded Uzbek → i18n t() calls
+
+---
+
 ## T-470..T-477 | 2026-06-04 | [BACKEND] | Import engine — 7 bug fix
 
 - T-470: unit/category topilmasa per-row warning

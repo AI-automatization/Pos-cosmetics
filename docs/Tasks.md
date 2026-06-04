@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-06-04 (T-473/480/481/482/483 Done — security + health-check)
+# Yangilangan: 2026-06-04 (40 ta task bajarildi — security, SMS, import, RBAC, logging, polish)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
