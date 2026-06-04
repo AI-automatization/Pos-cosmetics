@@ -29,7 +29,8 @@
     ],
     "moduleNameMapper": {
       "^bullmq$": "<rootDir>/node_modules/bullmq/dist/cjs/index.js",
-      "^uuid$": "<rootDir>/__mocks__/uuid.js"
+      "^uuid$": "<rootDir>/__mocks__/uuid.js",
+      "^@raos/catalog-import$": "<rootDir>/../../packages/catalog-import/src/index.ts"
     }
   },
   "dependencies": {
