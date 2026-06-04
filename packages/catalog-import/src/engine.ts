@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ProductImportRow, ImportSummary, ImportProgress } from './types';
-import { validateRow, findDuplicateBarcodeIndices } from './validation';
+import { validateRow, findDuplicateBarcodeIndices, findDuplicateSkuIndices } from './validation';
 
 export const PROGRESS_INTERVAL = 25;
 
@@ -19,6 +19,7 @@ export async function processImportRows(
   onProgress?: (p: ImportProgress) => void | Promise<void>,
 ): Promise<ImportSummary> {
   const duplicateBarcodes = findDuplicateBarcodeIndices(rows);
+  const duplicateSkus = findDuplicateSkuIndices(rows);
 
   // Batch preload — turns ~3*N lookups into 3 queries (fixes T-130 N+1).
   const [units, categories] = await Promise.all([
@@ -69,6 +70,9 @@ export async function processImportRows(
     if (duplicateBarcodes.has(i)) {
       skipped++;
       errors.push(`Qator ${lineNum}: barkod fayl ichida takrorlangan: ${row.barcode}`);
+    } else if (duplicateSkus.has(i)) {
+      skipped++;
+      errors.push(`Qator ${lineNum}: SKU fayl ichida takrorlangan: ${row.sku}`);
     } else {
       const err = validateRow(row);
       if (err) {

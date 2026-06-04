@@ -1,4 +1,4 @@
-import { validateRow, BARCODE_PATTERN, findDuplicateBarcodeIndices } from '@raos/catalog-import';
+import { validateRow, BARCODE_PATTERN, findDuplicateBarcodeIndices, findDuplicateSkuIndices } from '@raos/catalog-import';
 import type { ProductImportRow } from '@raos/catalog-import';
 
 const base: ProductImportRow = { name: 'Cream', sku: 'A-1', price: 100 };
@@ -60,5 +60,26 @@ describe('findDuplicateBarcodeIndices', () => {
       { name: 'C', price: 1, sku: 'C-1' },
     ];
     expect(findDuplicateBarcodeIndices(rows).size).toBe(0);
+  });
+});
+
+describe('findDuplicateSkuIndices', () => {
+  it('flags the 2nd+ occurrence of a sku, not the first', () => {
+    const rows = [
+      { sku: 'A-1' },
+      { sku: 'A-1' },
+      { sku: 'B' },
+    ];
+    const dups = findDuplicateSkuIndices(rows);
+    expect([...dups]).toEqual([1]);
+  });
+
+  it('ignores empty/missing skus', () => {
+    const rows = [
+      { sku: '' },
+      { barcode: '12345678' },
+      { sku: '  ' },
+    ];
+    expect(findDuplicateSkuIndices(rows).size).toBe(0);
   });
 });

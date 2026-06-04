@@ -86,6 +86,19 @@ describe('processImportRows', () => {
     expect(summary.errors[0]).toMatch(/takror/);
   });
 
+  it('skips the 2nd duplicate-SKU row (validation B for sku)', async () => {
+    const prisma = makePrisma();
+    const rows: ProductImportRow[] = [
+      { name: 'A', sku: 'DUP-1', price: 1 },
+      { name: 'B', sku: 'DUP-1', price: 1 },
+    ];
+    const summary = await processImportRows(prisma as unknown as PrismaClient, TENANT, rows);
+    expect(summary.created).toBe(1);
+    expect(summary.skipped).toBe(1);
+    expect(summary.errors[0]).toMatch(/takror/);
+    expect(prisma.product.create).toHaveBeenCalledTimes(1);
+  });
+
   it('reports progress every PROGRESS_INTERVAL rows and once at the end', async () => {
     const prisma = makePrisma();
     const total = PROGRESS_INTERVAL + 5;

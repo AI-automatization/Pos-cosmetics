@@ -34,3 +34,18 @@ export function findDuplicateBarcodeIndices(
   });
   return dups;
 }
+
+// B (sku) — returns 0-based indices of rows that repeat a sku already seen earlier in the file.
+export function findDuplicateSkuIndices(
+  rows: ReadonlyArray<{ sku?: string }>,
+): Set<number> {
+  const seen = new Set<string>();
+  const dups = new Set<number>();
+  rows.forEach((row, i) => {
+    const sku = row.sku?.trim();
+    if (!sku) return;
+    if (seen.has(sku)) dups.add(i);
+    else seen.add(sku);
+  });
+  return dups;
+}
