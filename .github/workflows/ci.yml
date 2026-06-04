@@ -173,5 +173,20 @@ jobs:
         if: ${{ matrix.service == 'api' || matrix.service == 'worker' }}
         run: docker run --rm --entrypoint node raos-${{ matrix.service }}:ci -e "require('@raos/catalog-import'); console.log('catalog-import loads OK')"
 
+  docker-build-gate:
+    # Single aggregate check so branch protection can require one "Docker Build"
+    # instead of all four matrix legs. if: always() + explicit result check makes
+    # a failed/skipped matrix leg fail this gate (a plain `needs` would skip it,
+    # and a skipped required check does not reliably block a merge).
+    name: "Docker Build"
+    needs: docker-build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Docker build matrix succeeded
+        run: |
+          echo "docker-build matrix result: ${{ needs.docker-build.result }}"
+          [ "${{ needs.docker-build.result }}" = "success" ] || { echo "::error::Docker build matrix did not succeed"; exit 1; }
+
 # Deploy: Railway auto-deploys on push to main via GitHub integration
 # NEVER use "railway up" — see DEPLOY.md
