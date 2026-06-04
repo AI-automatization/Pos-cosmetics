@@ -13,6 +13,9 @@ module.exports = {
   // E2E tests use the real package (jest-e2e.config.js has its own setup).
   moduleNameMapper: {
     '^bullmq$': '<rootDir>/__mocks__/bullmq.js',
+    // catalog-import ships compiled (main -> dist) for prod runtime; in tests
+    // resolve to TS source so jest works without a prior package build.
+    '^@raos/catalog-import$': '<rootDir>/../../../packages/catalog-import/src/index.ts',
   },
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
