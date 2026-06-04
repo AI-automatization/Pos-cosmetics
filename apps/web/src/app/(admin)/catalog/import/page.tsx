@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Upload,
   Download,
@@ -10,16 +10,13 @@ import {
   X,
 } from 'lucide-react';
 import { importApi } from '@/api/import.api';
+import type { ImportSummary, ImportProgress } from '@/api/import.api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-interface ImportResult {
-  created: number;
-  updated: number;
-  errors: string[];
-}
+type PageState = 'idle' | 'uploading' | 'processing' | 'done';
 
-type PageState = 'idle' | 'uploading' | 'done';
+const POLL_INTERVAL_MS = 1500;
 
 const ACCEPTED_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -39,7 +36,10 @@ export default function ProductImportPage() {
   const [state, setState] = useState<PageState>('idle');
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [result, setResult] = useState<ImportResult | null>(null);
+  const [result, setResult] = useState<ImportSummary | null>(null);
+  const [progress, setProgress] = useState<ImportProgress | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [asyncError, setAsyncError] = useState<string | null>(null);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [exportingXlsx, setExportingXlsx] = useState(false);
   const [exportingCsv, setExportingCsv] = useState(false);
@@ -89,24 +89,18 @@ export default function ProductImportPage() {
   const handleImport = async () => {
     if (!selectedFile) return;
     setState('uploading');
+    setAsyncError(null);
     try {
       const data = await importApi.uploadFile(selectedFile);
-      // TODO(Task 9): replace with full async/polling UI — this bridge handles sync mode only
-      if (data.mode !== 'sync') {
-        setState('idle');
-        toast.success('Import navbatga qo\'shildi, yuklanmoqda…');
-        return;
-      }
-      setResult(data);
-      setState('done');
-      if (data.errors.length === 0) {
-        toast.success(
-          `Import muvaffaqiyatli: ${data.created} ta yaratildi, ${data.updated} ta yangilandi`,
-        );
+      if (data.mode === 'sync') {
+        const { mode: _m, ...summary } = data;
+        setResult(summary);
+        setState('done');
+        notifySummary(summary);
       } else {
-        toast.warning(
-          `Import tugadi: ${data.created} ta yaratildi, ${data.updated} ta yangilandi, ${data.errors.length} ta xato`,
-        );
+        setJobId(data.jobId);
+        setProgress({ processed: 0, total: data.total, created: 0, updated: 0, skipped: 0, errors: [] });
+        setState('processing');
       }
     } catch {
       toast.error("Import amalga oshmadi. Fayl formatini tekshiring va qaytadan urinib ko'ring.");
@@ -114,9 +108,50 @@ export default function ProductImportPage() {
     }
   };
 
+  const notifySummary = (s: ImportSummary) => {
+    if (s.errors.length === 0) {
+      toast.success(`Import muvaffaqiyatli: ${s.created} ta yaratildi, ${s.updated} ta yangilandi`);
+    } else {
+      toast.warning(
+        `Import tugadi: ${s.created} yaratildi, ${s.updated} yangilandi, ${s.skipped} o'tkazib yuborildi, ${s.errors.length} xato`,
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (state !== 'processing' || !jobId) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const st = await importApi.getImportStatus(jobId);
+        if (cancelled) return;
+        if (st.progress) setProgress(st.progress);
+        if (st.status === 'completed' && st.result) {
+          setResult(st.result);
+          setState('done');
+          notifySummary(st.result);
+        } else if (st.status === 'failed' || st.status === 'not_found') {
+          setAsyncError(st.failedReason ?? 'Import jarayoni muvaffaqiyatsiz tugadi');
+          setState('idle');
+        }
+      } catch {
+        // transient poll error — keep polling
+      }
+    };
+    const id = setInterval(tick, POLL_INTERVAL_MS);
+    void tick();
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [state, jobId]);
+
   const handleReset = () => {
     setSelectedFile(null);
     setResult(null);
+    setProgress(null);
+    setJobId(null);
+    setAsyncError(null);
     setState('idle');
   };
 
@@ -206,7 +241,7 @@ export default function ProductImportPage() {
         </div>
 
         {/* Drop zone */}
-        {state !== 'done' && (
+        {state !== 'done' && state !== 'processing' && (
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -240,7 +275,7 @@ export default function ProductImportPage() {
         )}
 
         {/* Selected file info */}
-        {selectedFile && state !== 'done' && (
+        {selectedFile && state !== 'done' && state !== 'processing' && (
           <div className="mt-4 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <FileSpreadsheet className="h-5 w-5 shrink-0 text-green-600" />
             <div className="flex-1 min-w-0">
@@ -259,7 +294,7 @@ export default function ProductImportPage() {
         )}
 
         {/* Import button */}
-        {selectedFile && state !== 'done' && (
+        {selectedFile && state !== 'done' && state !== 'processing' && (
           <button
             type="button"
             onClick={handleImport}
@@ -284,6 +319,40 @@ export default function ProductImportPage() {
         )}
       </div>
 
+      {/* Async progress */}
+      {state === 'processing' && progress && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <p className="mb-3 font-semibold text-gray-900">Import qilinmoqda...</p>
+          <div className="mb-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full bg-gray-900 transition-all"
+              style={{
+                width: `${progress.total ? Math.round((progress.processed / progress.total) * 100) : 0}%`,
+              }}
+            />
+          </div>
+          <p className="text-sm text-gray-600">
+            {progress.processed} / {progress.total} — {progress.created} yaratildi,{' '}
+            {progress.updated} yangilandi, {progress.skipped} o'tkazib yuborildi
+          </p>
+        </div>
+      )}
+
+      {/* Async failure */}
+      {asyncError && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <span className="flex-1 text-sm text-red-700">{asyncError}</span>
+          <button
+            type="button"
+            onClick={handleImport}
+            className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
+          >
+            Qayta urinish
+          </button>
+        </div>
+      )}
+
       {/* Results */}
       {state === 'done' && result && (
         <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -303,6 +372,14 @@ export default function ProductImportPage() {
                 {result.updated} ta yangilandi
               </span>
             </div>
+            {result.skipped > 0 && (
+              <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2.5">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-700">
+                  {result.skipped} ta o'tkazib yuborildi
+                </span>
+              </div>
+            )}
             {result.errors.length > 0 && (
               <div className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2.5">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
