@@ -91,6 +91,12 @@ export default function ProductImportPage() {
     setState('uploading');
     try {
       const data = await importApi.uploadFile(selectedFile);
+      // TODO(Task 9): replace with full async/polling UI — this bridge handles sync mode only
+      if (data.mode !== 'sync') {
+        setState('idle');
+        toast.success('Import navbatga qo\'shildi, yuklanmoqda…');
+        return;
+      }
       setResult(data);
       setState('done');
       if (data.errors.length === 0) {
