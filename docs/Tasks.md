@@ -818,3 +818,13 @@
 - **Fayl:** `packages/catalog-import/src/engine.ts`
 - **Muammo:** `onProgress` callback exception tashlasa (masalan, worker ichida Redis write muvaffaqiyatsiz bo'lsa) — exception tarqaladi va butun import jarayoni to'xtaydi.
 - **Kutilgan:** Progress-reporting xatoliklari qator ishlovidan izolyatsiya qilinishi kerak (try/catch onProgress ichida)
+
+---
+
+## T-473 | P1 | [SECURITY] | Import controller has no @Roles — any authenticated user can bulk-overwrite catalog
+
+- **Sana:** 2026-06-04
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/catalog/import-export/product-import.controller.ts`
+- **Muammo:** `ProductImportController` da `@Roles(...)` dekoratori yo'q. `RolesGuard` roles metadata bo'lmasa by-default ruxsat beradi — ya'ni `CASHIER` yoki `VIEWER` roli bilan ham autentifikatsiya qilingan har qanday foydalanuvchi katalogni to'liq import orqali yozib tashlashi mumkin. Engine upsert strategiyasi ishlatadi, shuning uchun bu real catalog overwrite xavfi.
+- **Kutilgan:** `@Roles('OWNER', 'ADMIN', 'MANAGER')` dekoratorini import yozish (`POST /import`) va status o'qish (`GET /import/:jobId`) handlerlariga qo'shish. Enforce qilishdan oldin: mobile va web klientlar faqat `OWNER`/`ADMIN`/`MANAGER` roli bilan import chaqirishini tekshirish.
