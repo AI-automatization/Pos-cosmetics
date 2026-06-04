@@ -790,3 +790,77 @@
 - **Kutilgan:** Mijoz 5 daqiqada 1000+ tovar qo'sha oladi
 - **Muddat:** 2 hafta
 - **Raqib:** YesPOS 700K+ tayyor baza — RAOS javob: smart import tool
+
+---
+
+## T-470 | P2 | [BACKEND] | Engine: unit/category resolved by `name`, silently null on miss
+
+- **Sana:** 2026-06-04
+- **Fayl:** `packages/catalog-import/src/engine.ts`
+- **Muammo:** Import engine Unit va Category ni `name` bo'yicha (case-insensitive) qidiradi. Lekin schema unique kalitlari: `Unit @@unique([tenantId, shortName])` va `Category @@unique([tenantId, name, parentId])`. Noto'g'ri yoki noma'lum unit/category nom kiritilsa — `null` qaytariladi, foydalanuvchi ogohlantirish olmaydi.
+- **Izoh:** Bu T-130 xizmatiga nisbatan regressiya emas (xuddi shunday ishlagan) — lekin har qator uchun ogohlantirish berish kerak.
+- **Kutilgan:** Topilmagan unit/category → per-row warning xabari (skipped emas, shunchaki ogohlantirish)
+
+---
+
+## T-471 | P3 | [BACKEND] | Import: minStock parsed loosely
+
+- **Sana:** 2026-06-04
+- **Fayl:** Task 7 / product-import.service parse helpers
+- **Muammo:** `minStock` qiymati `minStockLevel` (Decimal(15,3)) maydoniga o'tkaziladi, lekin parser/engine uni raqam sifatida tekshirmaydi va chegara (bounds) validation qilmaydi.
+- **Kutilgan:** Parse qatlamida `minStock` ni raqamga majburlash (coerce) va to'g'ri chegaralarni tekshirish
+
+---
+
+## T-472 | P3 | [BACKEND] | Engine: onProgress throw aborts the whole import
+
+- **Sana:** 2026-06-04
+- **Fayl:** `packages/catalog-import/src/engine.ts`
+- **Muammo:** `onProgress` callback exception tashlasa (masalan, worker ichida Redis write muvaffaqiyatsiz bo'lsa) — exception tarqaladi va butun import jarayoni to'xtaydi.
+- **Kutilgan:** Progress-reporting xatoliklari qator ishlovidan izolyatsiya qilinishi kerak (try/catch onProgress ichida)
+
+---
+
+## T-473 | P1 | [SECURITY] | Import controller has no @Roles — any authenticated user can bulk-overwrite catalog
+
+- **Sana:** 2026-06-04
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/catalog/import-export/product-import.controller.ts`
+- **Muammo:** `ProductImportController` da `@Roles(...)` dekoratori yo'q. `RolesGuard` roles metadata bo'lmasa by-default ruxsat beradi — ya'ni `CASHIER` yoki `VIEWER` roli bilan ham autentifikatsiya qilingan har qanday foydalanuvchi katalogni to'liq import orqali yozib tashlashi mumkin. Engine upsert strategiyasi ishlatadi, shuning uchun bu real catalog overwrite xavfi.
+- **Kutilgan:** `@Roles('OWNER', 'ADMIN', 'MANAGER')` dekoratorini import yozish (`POST /import`) va status o'qish (`GET /import/:jobId`) handlerlariga qo'shish. Enforce qilishdan oldin: mobile va web klientlar faqat `OWNER`/`ADMIN`/`MANAGER` roli bilan import chaqirishini tekshirish.
+
+---
+
+## T-474 | P2 | [BACKEND] | Engine: bir qatorda sku va barcode turli mavjud mahsulotlarga mos kelsa
+
+- **Sana:** 2026-06-04
+- **Fayl:** `packages/catalog-import/src/engine.ts` (find: `(sku && bySku.get(sku)) || (barcode && byBarcode.get(barcode))`)
+- **Muammo:** `bySku` va `byBarcode` mustaqil maplar. Agar bitta import qatorining `sku` si P1 mahsulotga, `barcode` si esa BOSHQA P2 mahsulotga mos kelsa — `||` jimgina P1 ni tanlaydi va P2 e'tiborsiz qoladi (yoki create yo'lida `@@unique([tenantId, barcode])` P2002 sirtga chiqadi). Tenant leak emas (ikkalasi ham `tenantId` bilan scoped), lekin identifikator yechimi noaniq.
+- **Kutilgan:** `sku` va `barcode` ikkalasi ham hal bo'lsa, ammo TURLI id larga — per-row error ("SKU va barkod turli mahsulotlarga tegishli") + skip. Final review I2.
+
+---
+
+## T-475 | P2 | [BACKEND] | Import/export ko'rinish filtri nomuvofiq (deletedAt:null vs isActive:true)
+
+- **Sana:** 2026-06-04
+- **Fayl:** `packages/catalog-import/src/engine.ts:38` (`deletedAt: null`) vs `apps/api/src/catalog/import-export/product-import.service.ts` (export: `isActive: true`)
+- **Muammo:** Import preload mavjud mahsulotni `deletedAt: null` bo'yicha topadi — ya'ni soft-inaktiv (`isActive:false`) mahsulotni ham update qiladi. Export esa faqat `isActive:true` chiqaradi. Eksport→import round-trip simmetrik emas: inaktiv mahsulot faylda yo'q, lekin re-import unga narx yozishi mumkin.
+- **Kutilgan:** Bitta predikat tanlash (ehtimol import ham `isActive` ni hisobga olishi kerak) — jamoa qarori. Tanlangan xatti-harakatni hujjatlashtirish. Final review I4.
+
+---
+
+## T-476 | P3 | [BACKEND] | getProductImportJobStatus: evict bo'lgan completed job `not_found` qaytaradi
+
+- **Sana:** 2026-06-04
+- **Fayl:** `apps/api/src/common/queue/queue.service.ts` (`getProductImportJobStatus`), `apps/web/src/app/(admin)/catalog/import/page.tsx:133`
+- **Muammo:** `removeOnComplete: 50` bilan muvaffaqiyatli tugagan job kech polling qilinsa (evict bo'lsa) `not_found` qaytadi, web esa `not_found` ni qattiq xatolik deb ko'rsatadi ("Import jarayoni muvaffaqiyatsiz") — aslida muvaffaqiyatli bo'lgan. 50-chuqurlikda ehtimollik past.
+- **Kutilgan:** "completed-but-evicted" ni ajratish yoki bu queue uchun retentionni kengaytirish. Final review M6.
+
+---
+
+## T-477 | P3 | [BACKEND] | CSV parser qo'shtirnoq ichidagi vergulda sinadi
+
+- **Sana:** 2026-06-04
+- **Fayl:** `apps/api/src/catalog/import-export/product-import.service.ts` (`line.split(',')`)
+- **Muammo:** Sodda `split(',')` parser — `exportToCsv` qo'shtirnoq bilan o'rab chiqargan `"Cream, 50ml"` kabi nom re-import da noto'g'ri parse bo'ladi (qo'shtirnoq ichidagi vergul maydonni bo'lib yuboradi). T-130 dan meros, bu PR scope dan tashqari, lekin export→import round-trip ni vergulli nomlar uchun buzadi.
+- **Kutilgan:** RFC-4180 ga mos CSV parser (qo'shtirnoq + escape qo'llab-quvvatlash). Final review M7.

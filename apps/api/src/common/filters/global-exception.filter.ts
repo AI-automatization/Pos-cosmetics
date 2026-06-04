@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { MulterError } from 'multer';
 import { AppLoggerService } from '../logger/logger.service';
 import { RequestContextService } from '../logger/request-context.service';
 import { Prisma } from '@prisma/client';
@@ -78,6 +79,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       status = HttpStatus.SERVICE_UNAVAILABLE;
       message = 'Bazaga ulanishda xatolik';
       code = 'PRISMA_INIT';
+    }
+    // ─── Multer File Upload Errors ─────────────────────────────
+    else if (exception instanceof MulterError) {
+      if (exception.code === 'LIMIT_FILE_SIZE') {
+        status = HttpStatus.PAYLOAD_TOO_LARGE;
+        message = 'Fayl hajmi juda katta';
+        code = 'MULTER_LIMIT_FILE_SIZE';
+      } else {
+        status = HttpStatus.BAD_REQUEST;
+        message = 'Fayl yuklashda xatolik';
+        code = `MULTER_${exception.code}`;
+      }
     }
 
     // ─── Logging ───────────────────────────────────────────────

@@ -159,6 +159,9 @@ importers:
       '@prisma/client':
         specifier: ^6.4.1
         version: 6.19.2(prisma@6.19.2(typescript@5.9.3))(typescript@5.9.3)
+      '@raos/catalog-import':
+        specifier: workspace:*
+        version: link:../../packages/catalog-import
       '@types/multer':
         specifier: ^2.1.0
         version: 2.1.0
@@ -792,6 +795,9 @@ importers:
       '@prisma/client':
         specifier: ^6.4.1
         version: 6.19.2(prisma@6.19.2(typescript@5.9.3))(typescript@5.9.3)
+      '@raos/catalog-import':
+        specifier: workspace:*
+        version: link:../../packages/catalog-import
       bullmq:
         specifier: ^5.34.8
         version: 5.70.1
@@ -829,6 +835,15 @@ importers:
 
   packages/brand-kit:
     devDependencies:
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
+  packages/catalog-import:
+    devDependencies:
+      '@prisma/client':
+        specifier: ^6.4.1
+        version: 6.19.2(prisma@6.19.2(typescript@5.9.3))(typescript@5.9.3)
       typescript:
         specifier: ^5.7.3
         version: 5.9.3

@@ -11,6 +11,17 @@ export default tseslint.config(
     },
   },
   {
+    // Jest manual mocks must be CommonJS (they stub CJS-only packages like bullmq/uuid).
+    files: ['**/__mocks__/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', module: 'writable', __dirname: 'readonly' },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
     ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/.turbo/**'],
   },
 );

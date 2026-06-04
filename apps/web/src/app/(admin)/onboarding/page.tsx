@@ -11,7 +11,7 @@ import { useTranslation } from '@/i18n/i18n-context';
 const STEP_META = [
   { id: 1, icon: Building2, action: '/branches', titleKey: 'step1Title', descKey: 'step1Desc', actionKey: 'step1Action' },
   { id: 2, icon: Users,     action: '/settings/users', titleKey: 'step2Title', descKey: 'step2Desc', actionKey: 'step2Action' },
-  { id: 3, icon: Package,   action: '/catalog/products', titleKey: 'step3Title', descKey: 'step3Desc', actionKey: 'step3Action' },
+  { id: 3, icon: Package,   action: '/catalog/import', titleKey: 'step3Title', descKey: 'step3Desc', actionKey: 'step3Action' },
   { id: 4, icon: Rocket,    action: '/dashboard', titleKey: 'step4Title', descKey: 'step4Desc', actionKey: 'step4Action' },
 ] as const;
 
