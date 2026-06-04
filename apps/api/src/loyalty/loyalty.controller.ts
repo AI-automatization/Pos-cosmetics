@@ -25,9 +25,11 @@ import {
   AdjustPointsDto,
 } from './dto/loyalty.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @ApiTags('Loyalty')
 @ApiBearerAuth()
+@Roles('OWNER', 'ADMIN', 'MANAGER')
 @Controller('loyalty')
 export class LoyaltyController {
   constructor(private readonly loyaltyService: LoyaltyService) {}

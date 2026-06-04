@@ -2,6 +2,7 @@ import { Controller, Get, Patch, Body } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TenantSettingsService, UpdateSettingsDto } from './tenant-settings.service';
+import { Roles } from '../common/decorators/roles.decorator';
 
 /**
  * T-132: Tenant Settings — GET /settings, PATCH /settings
@@ -9,6 +10,7 @@ import { TenantSettingsService, UpdateSettingsDto } from './tenant-settings.serv
  */
 @ApiTags('Settings')
 @ApiBearerAuth()
+@Roles('OWNER', 'ADMIN')
 @Controller('settings')
 export class TenantSettingsController {
   constructor(private readonly settingsService: TenantSettingsService) {}

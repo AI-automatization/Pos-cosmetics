@@ -18,9 +18,11 @@ import {
 } from '@nestjs/swagger';
 import { BranchService, CreateBranchDto, UpdateBranchDto } from './branch.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @ApiTags('Branches')
 @ApiBearerAuth()
+@Roles('OWNER', 'ADMIN')
 @Controller('branches')
 export class BranchController {
   constructor(private readonly branchService: BranchService) {}

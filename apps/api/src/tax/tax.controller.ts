@@ -2,9 +2,11 @@ import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TaxService } from './tax.service';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @ApiTags('Tax / Fiscal')
 @ApiBearerAuth()
+@Roles('OWNER', 'ADMIN', 'MANAGER')
 @Controller('tax')
 export class TaxController {
   constructor(private readonly taxService: TaxService) {}
