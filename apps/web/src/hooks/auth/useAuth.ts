@@ -9,16 +9,15 @@ import { extractErrorMessage } from '@/lib/utils';
 import { getAccessToken, setAccessToken, clearAccessToken, setUserIdFallback, clearUserIdFallback } from '@/api/token';
 
 const SESSION_COOKIE = 'session_active';
-const ROLE_COOKIE = 'user_role';
+const LEGACY_ROLE_COOKIE = 'user_role';
 const USERID_COOKIE = 'user_id';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 const SECURE_FLAG = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
 
-function setSessionCookie(role?: string, userId?: string) {
+// #141: presence + userId are non-sensitive routing hints. The role is NO LONGER
+// written here — it is set as a server-signed httpOnly cookie via POST /api/session.
+function setSessionCookie(userId?: string) {
   document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${SECURE_FLAG}`;
-  if (role) {
-    document.cookie = `${ROLE_COOKIE}=${role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${SECURE_FLAG}`;
-  }
   if (userId) {
     document.cookie = `${USERID_COOKIE}=${userId}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${SECURE_FLAG}`;
   }
@@ -26,8 +25,32 @@ function setSessionCookie(role?: string, userId?: string) {
 
 function clearSessionCookie() {
   document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
-  document.cookie = `${ROLE_COOKIE}=; path=/; max-age=0`;
+  document.cookie = `${LEGACY_ROLE_COOKIE}=; path=/; max-age=0`; // clear pre-#141 cookie
   document.cookie = `${USERID_COOKIE}=; path=/; max-age=0`;
+}
+
+// #141: ask the server to validate the accessToken (against /auth/me) and set a
+// signed, tamper-evident role_sig cookie. Non-fatal on failure — the middleware
+// default-denies privileged routes when role_sig is missing/invalid.
+async function syncSignedRole() {
+  const token = getAccessToken();
+  if (!token) return;
+  try {
+    await fetch('/api/session', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    // ignore — middleware fails closed without a valid signed role
+  }
+}
+
+async function clearSignedRole() {
+  try {
+    await fetch('/api/session', { method: 'DELETE' });
+  } catch {
+    // ignore
+  }
 }
 
 export function useCurrentUser() {
@@ -54,10 +77,11 @@ export function useCurrentUser() {
     enabled: hasSession,
   });
 
-  // Ensure role cookie always matches the actual user role (fixes stale CASHIER cookie bug)
+  // #141: refresh the signed role cookie whenever the authoritative role is known.
+  // Self-heals legacy sessions (pre-#141 user_role cookie) on next mount.
   useEffect(() => {
     if (query.data?.role) {
-      document.cookie = `${ROLE_COOKIE}=${query.data.role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+      void syncSignedRole();
     }
   }, [query.data?.role]);
 
@@ -80,7 +104,8 @@ export function useLogin() {
       try {
         const user = await authApi.me();
         queryClient.setQueryData(['auth', 'me'], user);
-        setSessionCookie(user.role, user.id); // set role + userId cookies for middleware & refresh
+        setSessionCookie(user.id); // session_active + userId for middleware & refresh
+        await syncSignedRole(); // #141: set signed role_sig cookie before navigating
         setUserIdFallback(user.id); // localStorage fallback
 
         if (user.role === 'WAREHOUSE') {
@@ -120,6 +145,7 @@ export function useLogout() {
       } finally {
         clearAccessToken();
         clearSessionCookie();
+        await clearSignedRole(); // #141: clear server-signed role cookie
         clearUserIdFallback();
         queryClient.clear();
       }

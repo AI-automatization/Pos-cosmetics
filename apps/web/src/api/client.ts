@@ -25,8 +25,10 @@ function clearAuthAndRedirect() {
   clearAccessToken();
   clearUserIdFallback();
   document.cookie = 'session_active=; path=/; max-age=0';
-  document.cookie = 'user_role=; path=/; max-age=0';
+  document.cookie = 'user_role=; path=/; max-age=0'; // legacy pre-#141 cookie
   document.cookie = 'user_id=; path=/; max-age=0';
+  // #141: role_sig is httpOnly — ask the server to clear it (keepalive survives unload).
+  void fetch('/api/session', { method: 'DELETE', keepalive: true }).catch(() => {});
   window.location.href = '/login';
 }
 
