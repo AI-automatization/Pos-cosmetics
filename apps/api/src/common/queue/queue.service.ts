@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
+import type { ProductImportRow, ImportSummary, ImportProgress } from '@raos/catalog-import';
 
 // ─── Queue ismlari (worker bilan mos bo'lishi SHART) ──────────────────────
 export const QUEUE_NAMES = {
@@ -10,6 +11,7 @@ export const QUEUE_NAMES = {
   STOCK_SNAPSHOT: 'stock-snapshot',
   DATA_EXPORT: 'data-export',
   SYNC_PROCESS: 'sync-process',
+  PRODUCT_IMPORT: 'product-import',
   // AI Orchestration queues
   AI_WORKFLOW: 'ai-workflow',
   AI_AGENT: 'ai-agent',
@@ -52,6 +54,12 @@ export interface SyncProcessJob {
   tenantId: string;
   deviceId: string;
   idempotencyKey: string;
+}
+
+export interface ProductImportJob {
+  tenantId: string;
+  userId: string;
+  rows: ProductImportRow[];
 }
 
 // ─── AI Orchestration job payloads ────────────────────────────────────────
@@ -188,6 +196,37 @@ export class QueueService implements OnModuleDestroy {
       removeOnComplete: 500,
       removeOnFail: 200,
     });
+  }
+
+  async addProductImportJob(data: ProductImportJob) {
+    // attempts: 1 — re-running a partial import is the user's explicit choice; upsert makes a manual re-run safe.
+    return this.getQueue(QUEUE_NAMES.PRODUCT_IMPORT).add('import-products', data, {
+      attempts: 1,
+      removeOnComplete: 50,
+      removeOnFail: 50,
+    });
+  }
+
+  async getProductImportJobStatus(jobId: string): Promise<{
+    status: 'completed' | 'failed' | 'active' | 'waiting' | 'delayed' | 'not_found';
+    progress: ImportProgress | null;
+    result: ImportSummary | null;
+    failedReason?: string;
+  }> {
+    const job = await this.getQueue(QUEUE_NAMES.PRODUCT_IMPORT).getJob(jobId);
+    if (!job) return { status: 'not_found', progress: null, result: null };
+    const state = (await job.getState()) as
+      | 'completed' | 'failed' | 'active' | 'waiting' | 'delayed';
+    const progress =
+      job.progress && typeof job.progress === 'object'
+        ? (job.progress as ImportProgress)
+        : null;
+    return {
+      status: state,
+      progress,
+      result: state === 'completed' ? (job.returnvalue as ImportSummary) : null,
+      ...(state === 'failed' ? { failedReason: job.failedReason } : {}),
+    };
   }
 
   // ─── AI Orchestration job methods ─────────────────────────────────────
