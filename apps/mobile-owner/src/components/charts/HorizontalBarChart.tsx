@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Radii, Shadows } from '../../config/theme';
 import { formatCurrency } from '../../utils/formatCurrency';
+import ChartNoData from './ChartNoData';
 
 export interface HorizontalBarItem {
   label: string;
@@ -13,14 +14,6 @@ interface HorizontalBarChartProps {
   title?: string;
   valueFormatter?: (v: number) => string;
 }
-
-const MOCK_DATA: HorizontalBarItem[] = [
-  { label: 'CHANEL No.5', value: 8_450_000 },
-  { label: 'Dior Sauvage', value: 6_200_000 },
-  { label: 'Creed Aventus', value: 5_100_000 },
-  { label: 'Viktor&Rolf', value: 3_900_000 },
-  { label: 'YSL Libre', value: 3_200_000 },
-];
 
 const BAR_COLORS = [
   Colors.primary,
@@ -35,34 +28,38 @@ export default function HorizontalBarChart({
   title,
   valueFormatter = formatCurrency,
 }: HorizontalBarChartProps) {
-  const displayData = data && data.length > 0 ? data : MOCK_DATA;
+  const displayData = data ?? [];
   const maxVal = Math.max(...displayData.map((d) => d.value), 1);
 
   return (
     <View style={styles.container}>
       {title && <Text style={styles.title}>{title}</Text>}
-      <View style={styles.bars}>
-        {displayData.map((item, i) => {
-          const pct = (item.value / maxVal) * 100;
-          const color = BAR_COLORS[i % BAR_COLORS.length];
-          return (
-            <View key={item.label} style={styles.row}>
-              <View style={styles.rankBadge}>
-                <Text style={[styles.rank, { color }]}>{i + 1}</Text>
-              </View>
-              <View style={styles.middle}>
-                <Text style={styles.label} numberOfLines={1}>
-                  {item.label}
-                </Text>
-                <View style={styles.barTrack}>
-                  <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: color }]} />
+      {displayData.length === 0 ? (
+        <ChartNoData />
+      ) : (
+        <View style={styles.bars}>
+          {displayData.map((item, i) => {
+            const pct = (item.value / maxVal) * 100;
+            const color = BAR_COLORS[i % BAR_COLORS.length];
+            return (
+              <View key={item.label} style={styles.row}>
+                <View style={styles.rankBadge}>
+                  <Text style={[styles.rank, { color }]}>{i + 1}</Text>
                 </View>
+                <View style={styles.middle}>
+                  <Text style={styles.label} numberOfLines={1}>
+                    {item.label}
+                  </Text>
+                  <View style={styles.barTrack}>
+                    <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: color }]} />
+                  </View>
+                </View>
+                <Text style={styles.value}>{valueFormatter(item.value)}</Text>
               </View>
-              <Text style={styles.value}>{valueFormatter(item.value)}</Text>
-            </View>
-          );
-        })}
-      </View>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 }

@@ -4,17 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { PaymentBreakdown } from '../../api/shifts.api';
 import { Colors, Radii } from '../../config/theme';
 import { formatCurrency } from '../../utils/formatCurrency';
+import ChartNoData from '../../components/charts/ChartNoData';
 
 interface PaymentBreakdownChartProps {
   data?: PaymentBreakdown[];
 }
-
-const MOCK_DATA: PaymentBreakdown[] = [
-  { method: 'cash', amount: 8_200_000, percentage: 45.3 },
-  { method: 'terminal', amount: 5_400_000, percentage: 29.8 },
-  { method: 'click', amount: 2_700_000, percentage: 14.9 },
-  { method: 'payme', amount: 1_810_000, percentage: 10.0 },
-];
 
 const METHOD_COLORS: Record<string, string> = {
   cash: Colors.success,
@@ -34,37 +28,41 @@ const METHOD_LABELS: Record<string, string> = {
 
 export default function PaymentBreakdownChart({ data }: PaymentBreakdownChartProps) {
   const { t } = useTranslation();
-  const displayData = data && data.length > 0 ? data : MOCK_DATA;
+  const displayData = data ?? [];
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('shifts.paymentBreakdown')}</Text>
-      <View style={styles.rows}>
-        {displayData.map((item) => {
-          const color = METHOD_COLORS[item.method] ?? Colors.textMuted;
-          const label = METHOD_LABELS[item.method] ?? item.method;
-          return (
-            <View key={item.method} style={styles.row}>
-              <View style={styles.labelBox}>
-                <View style={[styles.dot, { backgroundColor: color }]} />
-                <Text style={styles.methodLabel}>{label}</Text>
+      {displayData.length === 0 ? (
+        <ChartNoData />
+      ) : (
+        <View style={styles.rows}>
+          {displayData.map((item) => {
+            const color = METHOD_COLORS[item.method] ?? Colors.textMuted;
+            const label = METHOD_LABELS[item.method] ?? item.method;
+            return (
+              <View key={item.method} style={styles.row}>
+                <View style={styles.labelBox}>
+                  <View style={[styles.dot, { backgroundColor: color }]} />
+                  <Text style={styles.methodLabel}>{label}</Text>
+                </View>
+                <View style={styles.barTrack}>
+                  <View
+                    style={[
+                      styles.barFill,
+                      { width: `${item.percentage}%`, backgroundColor: color },
+                    ]}
+                  />
+                </View>
+                <View style={styles.rightBox}>
+                  <Text style={[styles.pct, { color }]}>{item.percentage.toFixed(1)}%</Text>
+                  <Text style={styles.amt}>{formatCurrency(item.amount)}</Text>
+                </View>
               </View>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    { width: `${item.percentage}%`, backgroundColor: color },
-                  ]}
-                />
-              </View>
-              <View style={styles.rightBox}>
-                <Text style={[styles.pct, { color }]}>{item.percentage.toFixed(1)}%</Text>
-                <Text style={styles.amt}>{formatCurrency(item.amount)}</Text>
-              </View>
-            </View>
-          );
-        })}
-      </View>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Colors, Radii, Shadows } from '../../config/theme';
+import ChartNoData from './ChartNoData';
 
 export interface LineDataPoint {
   x: string;
@@ -17,12 +18,6 @@ interface LineChartWidgetProps {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_H = 110;
 const PAD = { top: 8, bottom: 4, left: 4, right: 4 };
-
-// 30-day mock trend (realistic UZS values)
-const MOCK_DATA: LineDataPoint[] = Array.from({ length: 30 }, (_, i) => ({
-  x: `D${i + 1}`,
-  y: 14_000_000 + Math.sin(i * 0.4 + 1) * 4_000_000 + (i % 7 === 6 ? 3_000_000 : 0),
-}));
 
 function buildPaths(
   pts: LineDataPoint[],
@@ -64,7 +59,7 @@ function buildPaths(
 }
 
 export default function LineChartWidget({ data, title }: LineChartWidgetProps) {
-  const displayData = data && data.length >= 2 ? data : MOCK_DATA;
+  const displayData = data ?? [];
   const chartWidth = SCREEN_WIDTH - 64;
   const { line, area } = buildPaths(displayData, chartWidth, CHART_H);
 
@@ -75,6 +70,9 @@ export default function LineChartWidget({ data, title }: LineChartWidgetProps) {
           <Text style={styles.title}>{title}</Text>
         </View>
       )}
+      {displayData.length < 2 ? (
+        <ChartNoData height={CHART_H} />
+      ) : (
       <Svg width={chartWidth} height={CHART_H}>
         <Defs>
           <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
@@ -87,6 +85,7 @@ export default function LineChartWidget({ data, title }: LineChartWidgetProps) {
           <Path d={line} fill="none" stroke={Colors.primary} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
         ) : null}
       </Svg>
+      )}
     </View>
   );
 }

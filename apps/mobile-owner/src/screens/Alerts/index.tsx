@@ -13,16 +13,6 @@ import { useAlertsStore } from '../../store/alerts.store';
 
 const Stack = createNativeStackNavigator<AlertsStackParamList>();
 
-const MOCK_ALERTS: Alert[] = [
-  { id: 'al1', type: 'OUT_OF_STOCK', title: 'Tovar tugadi', description: "L'Oreal Elvive Shampoo — Chilonzor filialida qolmadi", branchId: 'b1', branchName: 'Chilonzor', entityId: 'p3', isRead: false, priority: 'high', createdAt: new Date(Date.now() - 15 * 60_000).toISOString() },
-  { id: 'al2', type: 'SUSPICIOUS_ACTIVITY', title: 'Shubhali faoliyat', description: 'Jahongir Nazarov — 6 ta qaytarish 30 daqiqada (normaldan 4× yuqori)', branchId: 'b4', branchName: "Mirzo Ulug'bek", entityId: 'e3', isRead: false, priority: 'high', createdAt: new Date(Date.now() - 2 * 3600_000).toISOString() },
-  { id: 'al3', type: 'NASIYA_OVERDUE', title: 'Nasiya muddati o\'tdi', description: 'Sherzod Azimov — 3 200 000 UZS, 98 kun kechikdi', branchId: 'b4', branchName: "Mirzo Ulug'bek", entityId: 'c4', isRead: false, priority: 'high', createdAt: new Date(Date.now() - 5 * 3600_000).toISOString() },
-  { id: 'al4', type: 'LOW_STOCK', title: 'Tovar kam qoldi', description: 'Dior Sauvage EDT 60ml — Yunusabad: 3 dona qoldi (min: 5)', branchId: 'b2', branchName: 'Yunusabad', entityId: 'p2', isRead: true, priority: 'medium', createdAt: new Date(Date.now() - 8 * 3600_000).toISOString() },
-  { id: 'al5', type: 'EXPIRY_WARNING', title: 'Muddat tugayapti', description: 'Nivea Moisturizing Cream — Sergeli: muddati 29 kun ichida tugaydi', branchId: 'b3', branchName: 'Sergeli', entityId: 'p4', isRead: true, priority: 'medium', createdAt: new Date(Date.now() - 24 * 3600_000).toISOString() },
-  { id: 'al6', type: 'LARGE_REFUND', title: 'Katta qaytarish', description: 'Sarvar Qodirov — 580 000 UZS qaytarish (umumiy: 12%)', branchId: 'b1', branchName: 'Chilonzor', entityId: 'e1', isRead: true, priority: 'medium', createdAt: new Date(Date.now() - 2 * 24 * 3600_000).toISOString() },
-  { id: 'al7', type: 'SHIFT_CLOSED', title: 'Smena yopildi', description: 'Muhabbat Tosheva — Yunusabad, 9 soat 23 daqiqa, 12 100 000 UZS', branchId: 'b2', branchName: 'Yunusabad', entityId: 's1', isRead: true, priority: 'low', createdAt: new Date(Date.now() - 3 * 24 * 3600_000).toISOString() },
-];
-
 const STATUS_CHIPS: Array<{ label: string; key: AlertStatusFilter }> = [
   { label: 'Hammasi', key: 'all' },
   { label: "O'qilmagan", key: 'unread' },
@@ -47,20 +37,8 @@ function AlertListScreen() {
     }
   }
 
-  // Use real data if available, fall back to mock
-  const displayAlerts = alerts.data?.items ?? MOCK_ALERTS;
-
-  // Client-side filter mock data by priority/status when no backend
-  const filteredAlerts = alerts.data
-    ? displayAlerts
-    : displayAlerts.filter((a) => {
-        const matchStatus =
-          statusFilter === 'all' ||
-          (statusFilter === 'unread' && !a.isRead) ||
-          (statusFilter === 'read' && a.isRead);
-        const matchPriority = priorityFilter === 'all' || a.priority === priorityFilter;
-        return matchStatus && matchPriority;
-      });
+  // Backend already filters via useAlerts(statusFilter, priorityFilter).
+  const filteredAlerts = alerts.data?.items ?? [];
 
   return (
     <ScreenLayout title={t('alerts.title')}>

@@ -17,7 +17,7 @@ import { useBranchStore } from '../../store/branch.store';
 import { QUERY_KEYS } from '../../config/queryKeys';
 import { formatCurrency } from '../../utils/formatCurrency';
 import ShiftCard from './ShiftCard';
-import { PeriodKey, PERIODS, periodDates, MOCK_SHIFTS } from './shift-report.utils';
+import { PeriodKey, PERIODS, periodDates } from './shift-report.utils';
 import { Colors, Radii } from '../../config/theme';
 
 // ─── ShiftReportScreen ────────────────────────────────
@@ -45,7 +45,7 @@ export default function ShiftReportScreen() {
     retry: false,
   });
 
-  const shifts = data && data.length > 0 ? data : MOCK_SHIFTS;
+  const shifts = data ?? [];
 
   // Summary
   const totalRevenue = shifts.reduce((s, x) => s + x.totalRevenue, 0);

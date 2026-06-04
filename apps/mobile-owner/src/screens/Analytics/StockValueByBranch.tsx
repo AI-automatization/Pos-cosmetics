@@ -9,13 +9,6 @@ interface StockValueByBranchProps {
   data: StockValueData | undefined;
 }
 
-const MOCK_STOCK = [
-  { x: 'Chilonzor', y: 68_400_000 },
-  { x: 'Yunusabad', y: 52_700_000 },
-  { x: "Mirzo Ulug'bek", y: 41_200_000 },
-  { x: 'Sergeli', y: 28_600_000 },
-];
-
 export default function StockValueByBranch({ data }: StockValueByBranchProps) {
   const { t } = useTranslation();
 
@@ -25,7 +18,6 @@ export default function StockValueByBranch({ data }: StockValueByBranchProps) {
     <View style={styles.container}>
       <BarChartWidget
         data={chartData}
-        mockData={MOCK_STOCK}
         title={t('analytics.stockValueByBranch')}
         valueFormatter={formatCurrency}
       />

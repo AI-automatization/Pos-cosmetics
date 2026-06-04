@@ -3,17 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { AgingBucket } from '../../api/debts.api';
 import { Colors, Radii, Shadows } from '../../config/theme';
 import { formatCurrency } from '../../utils/formatCurrency';
+import ChartNoData from './ChartNoData';
 
 interface AgingBucketChartProps {
   buckets?: AgingBucket[];
 }
-
-const MOCK_BUCKETS: AgingBucket[] = [
-  { bucket: '0_30', label: '0–30 kun', amount: 8_500_000, customerCount: 12 },
-  { bucket: '31_60', label: '31–60 kun', amount: 4_200_000, customerCount: 7 },
-  { bucket: '61_90', label: '61–90 kun', amount: 2_100_000, customerCount: 4 },
-  { bucket: '90_plus', label: '90+ kun', amount: 1_300_000, customerCount: 2 },
-];
 
 const BUCKET_COLORS: Record<string, string> = {
   '0_30': Colors.success,
@@ -23,32 +17,36 @@ const BUCKET_COLORS: Record<string, string> = {
 };
 
 export default function AgingBucketChart({ buckets }: AgingBucketChartProps) {
-  const displayBuckets = buckets && buckets.length > 0 ? buckets : MOCK_BUCKETS;
+  const displayBuckets = buckets ?? [];
   const maxAmount = Math.max(...displayBuckets.map((b) => b.amount), 1);
 
   return (
     <View style={styles.container}>
-      <View style={styles.bars}>
-        {displayBuckets.map((b) => {
-          const pct = (b.amount / maxAmount) * 100;
-          const color = BUCKET_COLORS[b.bucket] ?? Colors.textSecondary;
-          return (
-            <View key={b.bucket} style={styles.row}>
-              <View style={styles.labelBox}>
-                <View style={[styles.dot, { backgroundColor: color }]} />
-                <Text style={styles.label}>{b.label}</Text>
+      {displayBuckets.length === 0 ? (
+        <ChartNoData />
+      ) : (
+        <View style={styles.bars}>
+          {displayBuckets.map((b) => {
+            const pct = (b.amount / maxAmount) * 100;
+            const color = BUCKET_COLORS[b.bucket] ?? Colors.textSecondary;
+            return (
+              <View key={b.bucket} style={styles.row}>
+                <View style={styles.labelBox}>
+                  <View style={[styles.dot, { backgroundColor: color }]} />
+                  <Text style={styles.label}>{b.label}</Text>
+                </View>
+                <View style={styles.barTrack}>
+                  <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: color }]} />
+                </View>
+                <View style={styles.rightBox}>
+                  <Text style={[styles.amount, { color }]}>{formatCurrency(b.amount)}</Text>
+                  <Text style={styles.count}>{b.customerCount} kishi</Text>
+                </View>
               </View>
-              <View style={styles.barTrack}>
-                <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: color }]} />
-              </View>
-              <View style={styles.rightBox}>
-                <Text style={[styles.amount, { color }]}>{formatCurrency(b.amount)}</Text>
-                <Text style={styles.count}>{b.customerCount} kishi</Text>
-              </View>
-            </View>
-          );
-        })}
-      </View>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 }

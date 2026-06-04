@@ -16,7 +16,7 @@ import { QUERY_KEYS } from '../../config/queryKeys';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { Colors } from '../../config/theme';
 import { styles } from './BranchReportScreen.styles';
-import { PERIODS, MOCK_BRANCHES } from './branch-report.utils';
+import { PERIODS } from './branch-report.utils';
 import type { PeriodKey } from './branch-report.utils';
 import BranchCard from './BranchCard';
 
@@ -38,7 +38,7 @@ export default function BranchReportScreen() {
     retry: false,
   });
 
-  const branches = data && data.length > 0 ? data : MOCK_BRANCHES;
+  const branches = data ?? [];
 
   // Sort by revenue descending
   const sorted = useMemo(

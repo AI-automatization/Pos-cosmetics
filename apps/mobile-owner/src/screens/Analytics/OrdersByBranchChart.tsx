@@ -8,13 +8,6 @@ interface OrdersByBranchChartProps {
   data: BranchRevenueItem[] | undefined;
 }
 
-const MOCK_ORDERS = [
-  { x: 'Chilonzor', y: 247 },
-  { x: 'Yunusabad', y: 198 },
-  { x: "Mirzo Ulug'bek", y: 156 },
-  { x: 'Sergeli', y: 104 },
-];
-
 export default function OrdersByBranchChart({ data }: OrdersByBranchChartProps) {
   const { t } = useTranslation();
 
@@ -24,7 +17,6 @@ export default function OrdersByBranchChart({ data }: OrdersByBranchChartProps) 
     <View style={styles.container}>
       <BarChartWidget
         data={chartData}
-        mockData={MOCK_ORDERS}
         title={t('analytics.ordersByBranch')}
         valueFormatter={(v) => `${v} ta`}
       />

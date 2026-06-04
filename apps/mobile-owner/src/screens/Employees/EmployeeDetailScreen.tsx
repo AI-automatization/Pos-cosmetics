@@ -18,8 +18,8 @@ import {
   useGrantPosAccess,
   useDeleteEmployee,
 } from '../../hooks/useEmployees';
-import { Employee } from '../../api/employees.api';
 import { Colors } from '../../config/theme';
+import ErrorView from '../../components/common/ErrorView';
 import {
   EmployeeDetailHeader,
   EmployeeAvatarSection,
@@ -32,32 +32,6 @@ import {
 
 type Route = RouteProp<EmployeesStackParamList, 'EmployeeDetail'>;
 type Nav = NativeStackNavigationProp<EmployeesStackParamList, 'EmployeeDetail'>;
-
-// ─── Mock data fallback ───────────────────────────────────────────────────────
-
-const MOCK_PROFILE: Employee = {
-  id: 'e1',
-  firstName: 'Sarvar',
-  lastName: 'Qodirov',
-  fullName: 'Sarvar Qodirov',
-  phone: '+998 90 123 45 67',
-  email: 'sarvar.qodirov@gmail.com',
-  dateOfBirth: '1995-07-15',
-  passportId: 'AA 1234567',
-  address: 'Toshkent, Chilonzor, 12-kvartal',
-  hireDate: '2023-06-01',
-  role: 'CASHIER',
-  branchId: 'b1',
-  branchName: 'Chilonzor',
-  status: 'active',
-  login: 'sarvar.kassir',
-  photoUrl: null,
-  hasPosAccess: true,
-  hasAdminAccess: false,
-  hasReportsAccess: false,
-  emergencyContactName: 'Kamola Qodirova (singlisi)',
-  emergencyContactPhone: '+998 91 234 56 78',
-};
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
@@ -73,13 +47,25 @@ export default function EmployeeDetailScreen() {
   const grantPosAccess = useGrantPosAccess();
   const deleteEmployee = useDeleteEmployee();
 
-  const emp = profile.data ?? MOCK_PROFILE;
-  const perf = performance.data;
-  const suspAlerts = suspicious.data ?? [];
-
   const handleRefresh = async () => {
     await Promise.all([profile.refetch(), performance.refetch(), suspicious.refetch()]);
   };
+
+  if (profile.isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (profile.isError || !profile.data) {
+    return <ErrorView error={profile.error} onRetry={() => { void handleRefresh(); }} />;
+  }
+
+  const emp = profile.data;
+  const perf = performance.data;
+  const suspAlerts = suspicious.data ?? [];
 
   const confirmAction = (title: string, message: string, onConfirm: () => void) => {
     Alert.alert(title, message, [
@@ -139,14 +125,6 @@ export default function EmployeeDetailScreen() {
       },
     );
   };
-
-  if (profile.isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.root}>
