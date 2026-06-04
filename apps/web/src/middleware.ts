@@ -1,18 +1,30 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyRole, getSessionSecret } from '@/lib/session-signature';
 
 // Public paths — auth shart emas
 const PUBLIC_PATHS = ['/login', '/forgot-password'];
+const PRIVILEGED_ROLES = ['OWNER', 'ADMIN'];
 
-export function middleware(request: NextRequest) {
+// Fail closed: if the signing secret is unavailable, every role reads as unverified.
+function readSecret(): string {
+  try {
+    return getSessionSecret();
+  } catch {
+    return '';
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const secret = readSecret();
 
   // Public paths — o'tkazib yuborish
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     // Agar foydalanuvchi allaqachon login qilgan bo'lsa, rol bo'yicha redirect
     const sessionActive = request.cookies.get('session_active')?.value;
     if (sessionActive && pathname === '/login') {
-      const role = request.cookies.get('user_role')?.value;
+      const role = await verifyRole(request.cookies.get('role_sig')?.value, secret);
       if (role === 'WAREHOUSE') {
         return NextResponse.redirect(new URL('/warehouse', request.url));
       }
@@ -43,10 +55,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-based routing (UX convenience only — NOT a security boundary).
-  // user_role cookie is client-writable. Real auth enforced by API JWT guards.
-  // TODO #141: harden with signed cookie or server-side JWT verification.
-  const userRole = request.cookies.get('user_role')?.value;
+  // #141: role is read from a server-signed, tamper-evident cookie (role_sig).
+  // A forged or hand-edited cookie fails HMAC verification → null → no role.
+  const userRole = await verifyRole(request.cookies.get('role_sig')?.value, secret);
+  const isPrivileged = userRole !== null && PRIVILEGED_ROLES.includes(userRole);
   const isWarehousePath = pathname.startsWith('/warehouse');
   const isPosPath = pathname.startsWith('/pos');
   if (userRole === 'WAREHOUSE' && !isWarehousePath) {
@@ -59,20 +71,16 @@ export function middleware(request: NextRequest) {
 
   // MANAGER admin panelni role-filtered Sidebar bilan ishlatadi — alohida redirect kerak emas
 
-  if (userRole && userRole !== 'WAREHOUSE' && isWarehousePath) {
+  if (userRole !== 'WAREHOUSE' && isWarehousePath) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Finance va Settings faqat OWNER/ADMIN uchun
+  // Finance, Settings va Real Estate faqat OWNER/ADMIN uchun.
+  // Default-deny: tasdiqlanmagan/yo'q/soxta rol → privileged emas → redirect.
   const isFinancePath = pathname.startsWith('/finance') || pathname.startsWith('/realestate');
   const isSettingsPath = pathname.startsWith('/settings');
-  const privilegedRoles = ['OWNER', 'ADMIN'];
 
-  if (isFinancePath && userRole && !privilegedRoles.includes(userRole)) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  if (isSettingsPath && userRole && !privilegedRoles.includes(userRole)) {
+  if ((isFinancePath || isSettingsPath) && !isPrivileged) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
