@@ -15,8 +15,7 @@ import { formatCurrency, formatRelativeTime } from '@/utils/format';
 import { extractErrorMessage } from '@/utils/error';
 import type { DebtPayment } from '@/api/nasiya.api';
 import { styles } from './DebtDetail.styles';
-
-const PAYMENT_METHODS = ['Naqd', 'Karta', 'Bank transfer'] as const;
+import { NASIYA_PAYMENT_METHODS, NASIYA_METHOD_TO_ENUM } from './payment-method.constants';
 
 // ─── PaymentRow ───────────────────────────────────────────
 export function PaymentRow({ item }: { readonly item: DebtPayment }): React.JSX.Element {
@@ -49,7 +48,7 @@ export default function PaymentForm({
   const { t } = useTranslation();
   const recordPayment = useRecordPayment();
   const [amount, setAmount] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState<string>(PAYMENT_METHODS[0]);
+  const [selectedMethod, setSelectedMethod] = useState<string>(NASIYA_PAYMENT_METHODS[0]);
   const [note, setNote] = useState('');
 
   const handleSubmit = (): void => {
@@ -63,7 +62,12 @@ export default function PaymentForm({
       return;
     }
     recordPayment.mutate(
-      { debtorId, amount: parsedAmount, paymentMethod: selectedMethod, note: note || undefined },
+      {
+        debtorId,
+        amount: parsedAmount,
+        paymentMethod: NASIYA_METHOD_TO_ENUM[selectedMethod as keyof typeof NASIYA_METHOD_TO_ENUM],
+        note: note || undefined,
+      },
       {
         onSuccess: () => {
           setAmount('');
@@ -89,7 +93,7 @@ export default function PaymentForm({
       />
       <Text style={styles.fieldLabel}>{t('nasiya.paymentMethod')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.methodRow}>
-        {PAYMENT_METHODS.map((m) => (
+        {NASIYA_PAYMENT_METHODS.map((m) => (
           <TouchableOpacity
             key={m}
             style={[styles.methodChip, selectedMethod === m && styles.methodChipActive]}
