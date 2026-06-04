@@ -3,6 +3,19 @@
 
 ---
 
+## T-470..T-477 | 2026-06-04 | [BACKEND] | Import engine — 7 bug fix
+
+- T-470: unit/category topilmasa per-row warning
+- T-471: minStock finite non-negative validation
+- T-472: onProgress try/catch — callback fail import to'xtatmaydi
+- T-474: SKU+barcode turli mahsulotga → skip + error
+- T-475: import preload `isActive:true` (export bilan mos)
+- T-476: `completed_evicted` status (was `not_found`)
+- T-477: RFC-4180 CSV parser (qo'shtirnoq ichidagi vergul)
+- **Fayllar:** `packages/catalog-import/src/engine.ts`, `validation.ts`, `product-import.service.ts`, `queue.service.ts`
+
+---
+
 ## T-463 | 2026-06-04 | [BACKEND] | SMS module — gateway + campaigns + bulk send
 
 - **Yechim:**
