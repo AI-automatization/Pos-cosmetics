@@ -790,3 +790,31 @@
 - **Kutilgan:** Mijoz 5 daqiqada 1000+ tovar qo'sha oladi
 - **Muddat:** 2 hafta
 - **Raqib:** YesPOS 700K+ tayyor baza — RAOS javob: smart import tool
+
+---
+
+## T-470 | P2 | [BACKEND] | Engine: unit/category resolved by `name`, silently null on miss
+
+- **Sana:** 2026-06-04
+- **Fayl:** `packages/catalog-import/src/engine.ts`
+- **Muammo:** Import engine Unit va Category ni `name` bo'yicha (case-insensitive) qidiradi. Lekin schema unique kalitlari: `Unit @@unique([tenantId, shortName])` va `Category @@unique([tenantId, name, parentId])`. Noto'g'ri yoki noma'lum unit/category nom kiritilsa — `null` qaytariladi, foydalanuvchi ogohlantirish olmaydi.
+- **Izoh:** Bu T-130 xizmatiga nisbatan regressiya emas (xuddi shunday ishlagan) — lekin har qator uchun ogohlantirish berish kerak.
+- **Kutilgan:** Topilmagan unit/category → per-row warning xabari (skipped emas, shunchaki ogohlantirish)
+
+---
+
+## T-471 | P3 | [BACKEND] | Import: minStock parsed loosely
+
+- **Sana:** 2026-06-04
+- **Fayl:** Task 7 / product-import.service parse helpers
+- **Muammo:** `minStock` qiymati `minStockLevel` (Decimal(15,3)) maydoniga o'tkaziladi, lekin parser/engine uni raqam sifatida tekshirmaydi va chegara (bounds) validation qilmaydi.
+- **Kutilgan:** Parse qatlamida `minStock` ni raqamga majburlash (coerce) va to'g'ri chegaralarni tekshirish
+
+---
+
+## T-472 | P3 | [BACKEND] | Engine: onProgress throw aborts the whole import
+
+- **Sana:** 2026-06-04
+- **Fayl:** `packages/catalog-import/src/engine.ts`
+- **Muammo:** `onProgress` callback exception tashlasa (masalan, worker ichida Redis write muvaffaqiyatsiz bo'lsa) — exception tarqaladi va butun import jarayoni to'xtaydi.
+- **Kutilgan:** Progress-reporting xatoliklari qator ishlovidan izolyatsiya qilinishi kerak (try/catch onProgress ichida)
