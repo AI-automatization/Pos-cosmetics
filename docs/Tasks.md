@@ -152,21 +152,7 @@
 
 ---
 
-## T-428 | P1 | [BACKEND] | Billing moduli — obuna, trial 30 kun, tariflar
-
-- **Sana:** 2026-05-17
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/billing/` (yaratish kerak)
-- **Vazifa:**
-  - `Subscription` model: tenant → plan → status → trial_expires_at
-  - Plan CRUD: Starter/Growth/Pro (yoki Free/Pro/Scale)
-  - Trial logic: sign-up → 30 kun full access → keyin limit
-  - Payment integration: Click/Payme recurring (T-415 infra dan foydalanish)
-  - Admin panel: MRR/ARR dashboard
-  - Webhook: to'lov muvaffaqiyatli → subscription.activate()
-- **Kutilgan:** Mijoz sign-up → 30 kun bepul → to'lov → davom
-- **Muddat:** 2 hafta
-- **Bog'liq:** T-380 (Super Admin Billing)
+*(T-428 — BAJARILDI, Done.md 2026-06-04 — Billing to'liq tayyor)*
 
 ---
 

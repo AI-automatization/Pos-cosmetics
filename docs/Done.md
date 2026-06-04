@@ -3,6 +3,19 @@
 
 ---
 
+## T-428 | 2026-06-04 | [BACKEND+FRONTEND] | Billing moduli — to'liq tayyor
+
+- **Holat:** Backend + Frontend + Invoice PDF allaqachon yozilgan edi, faqat audit/tasdiqlash qolgan edi.
+- **Backend:** `BillingService` (plans, trial, upgrade, cancel, limits, usage), `BillingPaymentService` (Payme/Click checkout + webhooks), `BillingInvoiceService` (PDF), cron (expired check)
+- **Prisma:** `SubscriptionPlan`, `TenantSubscription`, `BillingPayment`, `BillingInvoice` — to'liq
+- **Frontend:** `/settings/billing` — subscription card, usage bars, plan cards + upgrade
+- **i18n:** uz/ru/en billing kalitlari (15+ kalit)
+- **Fix:** Prisma client regenerated (BillingInvoice TS xatosi tuzatildi)
+- **Mas'ul:** Ibrat
+- **Fayllar:** `apps/api/src/billing/`, `apps/web/src/app/(admin)/settings/billing/page.tsx`
+
+---
+
 ## T-480 | 2026-06-04 | [DEVOPS] | Prod health-check — BullMQ queue monitoring
 
 - **Muammo:** `/health` va `/health/ready` endpoint larda worker (BullMQ) holati tekshirilmagan edi.
