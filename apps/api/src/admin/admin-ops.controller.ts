@@ -11,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { AdminAuthService } from './admin-auth.service';
@@ -20,7 +19,7 @@ import { QueueService, QUEUE_NAMES, QueueName } from '../common/queue/queue.serv
 import { IpBlockService } from '../common/cache/ip-block.service';
 
 @ApiTags('Super Admin — Operations')
-@UseGuards(JwtAuthGuard, SuperAdminGuard)
+@UseGuards(SuperAdminGuard)
 @ApiBearerAuth()
 @Controller('admin')
 export class AdminOpsController {

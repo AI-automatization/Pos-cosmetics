@@ -4,7 +4,6 @@ import {
   Get,
   Body,
   Query,
-  UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -16,14 +15,12 @@ import {
 } from '@nestjs/swagger';
 import { SyncService } from './sync.service';
 import { InboundSyncDto, OutboundSyncQueryDto } from './dto/sync.dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 
 @ApiTags('Sync')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('sync')
 export class SyncController {
   constructor(private readonly syncService: SyncService) {}

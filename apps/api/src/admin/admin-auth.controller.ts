@@ -11,7 +11,6 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { Public } from '../common/decorators';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDto, AdminCreateDto } from './dto/admin-login.dto';
@@ -72,7 +71,7 @@ export class AdminAuthController {
     return this.adminAuthService.resetUserPassword(body.email, body.newPassword, secret);
   }
 
-  @UseGuards(JwtAuthGuard, SuperAdminGuard)
+  @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
   @Post('auth/create')
   @ApiOperation({ summary: 'Yangi Super Admin yaratish' })

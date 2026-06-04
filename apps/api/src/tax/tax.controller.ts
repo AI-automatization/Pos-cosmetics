@@ -1,12 +1,10 @@
-import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TaxService } from './tax.service';
 
 @ApiTags('Tax / Fiscal')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('tax')
 export class TaxController {
   constructor(private readonly taxService: TaxService) {}

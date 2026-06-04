@@ -18,7 +18,6 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { AdminDatabaseService } from './admin-database.service';
 import { AdminSqlConsoleService } from './admin-sql-console.service';
@@ -27,7 +26,7 @@ interface AdminRequest { user?: { role?: string; userId?: string } }
 
 @ApiTags('Super Admin — Database')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, SuperAdminGuard)
+@UseGuards(SuperAdminGuard)
 @Controller('admin/db')
 export class AdminDatabaseController {
   constructor(

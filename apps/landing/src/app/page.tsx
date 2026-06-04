@@ -6,7 +6,6 @@ import SegmentCarousel from '@/components/sections/SegmentCarousel'
 import HowItWorks from '@/components/sections/HowItWorks'
 import Features from '@/components/sections/Features'
 import Pricing from '@/components/sections/Pricing'
-import Testimonials from '@/components/sections/Testimonials'
 import FAQ from '@/components/sections/FAQ'
 import RegistrationForm from '@/components/sections/RegistrationForm'
 const Calculator = dynamic(() => import('@/components/sections/Calculator'))
@@ -23,7 +22,6 @@ export default function LandingPage() {
         <Features />
         <Pricing />
         <Calculator />
-        <Testimonials />
         <TutorialsPreview />
         <FAQ />
         <RegistrationForm />

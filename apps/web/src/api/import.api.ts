@@ -1,20 +1,47 @@
 import { apiClient } from './client';
 
+export interface ImportSummary {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+}
+
+export interface ImportProgress {
+  processed: number;
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+}
+
+export type UploadResult =
+  | ({ mode: 'sync' } & ImportSummary)
+  | { mode: 'async'; jobId: string; total: number };
+
+export interface ImportJobStatus {
+  status: 'completed' | 'failed' | 'active' | 'waiting' | 'delayed' | 'not_found';
+  progress: ImportProgress | null;
+  result: ImportSummary | null;
+  failedReason?: string;
+}
+
 export const importApi = {
-  uploadFile(
-    file: File,
-  ): Promise<{ created: number; updated: number; errors: string[] }> {
+  uploadFile(file: File): Promise<UploadResult> {
     const form = new FormData();
     form.append('file', file);
     return apiClient
-      .post<{ created: number; updated: number; errors: string[] }>(
-        '/catalog/products/import',
-        form,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 120000,
-        },
-      )
+      .post<UploadResult>('/catalog/products/import', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,
+      })
+      .then((r) => r.data);
+  },
+
+  getImportStatus(jobId: string): Promise<ImportJobStatus> {
+    return apiClient
+      .get<ImportJobStatus>(`/catalog/products/import/${jobId}`)
       .then((r) => r.data);
   },
 

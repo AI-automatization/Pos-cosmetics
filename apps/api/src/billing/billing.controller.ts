@@ -7,20 +7,20 @@ import {
   Body,
   Headers,
   Req,
-  UseGuards,
+  Res,
   Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { IsString, IsOptional, IsInt, IsEnum, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Throttle } from '@nestjs/throttler';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { BillingProvider } from '@prisma/client';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators';
 import { BillingService } from './billing.service';
 import { BillingPaymentService } from './billing-payment.service';
+import { BillingInvoiceService } from './billing-invoice.service';
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
 
@@ -55,7 +55,6 @@ export class CheckoutDto {
 
 @ApiTags('billing')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('billing')
 export class BillingController {
   private readonly logger = new Logger(BillingController.name);
@@ -63,6 +62,7 @@ export class BillingController {
   constructor(
     private readonly billing: BillingService,
     private readonly billingPayment: BillingPaymentService,
+    private readonly billingInvoice: BillingInvoiceService,
   ) {}
 
   // ─── Plans ────────────────────────────────────────────────────────────────
@@ -189,5 +189,33 @@ export class BillingController {
       return { error: -1, error_note: 'SIGN CHECK FAILED!' };
     }
     return this.billingPayment.handleClickComplete(body);
+  }
+
+  // ─── Invoices ──────────────────────────────────────────────────────────
+
+  @Get('invoices')
+  @ApiOperation({ summary: 'List billing invoices for current tenant' })
+  getInvoices(@CurrentUser('tenantId') tenantId: string) {
+    return this.billingInvoice.getInvoicesByTenant(tenantId);
+  }
+
+  @Get('invoices/:id')
+  @ApiOperation({ summary: 'Get billing invoice details' })
+  getInvoice(@Param('id') id: string) {
+    return this.billingInvoice.getInvoice(id);
+  }
+
+  @Get('invoices/:id/pdf')
+  @ApiOperation({ summary: 'Download billing invoice as PDF' })
+  async getInvoicePdf(@Param('id') id: string, @Res() res: Response) {
+    const invoice = await this.billingInvoice.getInvoice(id);
+    const pdf = this.billingInvoice.generatePdf(invoice);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${invoice.invoiceNumber}.pdf"`,
+    });
+
+    pdf.pipe(res);
   }
 }

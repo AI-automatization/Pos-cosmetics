@@ -1,4 +1,4 @@
-import type { Segment, Feature, PricingPlan, FAQItem, Testimonial, ComparisonRow } from '@/types'
+import type { Segment, Feature, PricingPlan, FAQItem, ComparisonRow } from '@/types'
 
 export const segments: Segment[] = [
   {
@@ -166,27 +166,6 @@ export const faqItems: FAQItem[] = [
     question: 'Yordam kerak bo\'lsa?',
     answer:
       "Telegram: @raos_support (24/7). Telefon: +998 XX XXX XX XX (ish kunlari 9-18). Video darsliklar ham bor.",
-  },
-]
-
-export const testimonials: Testimonial[] = [
-  {
-    name: 'Aziz Karimov',
-    business: "Kosmetika do'koni, Toshkent",
-    text: "Internet o'chganda kassa to'xtardi. RAOS bilan bu muammo yo'q. Offline ishlaydi — savdo hech qachon to'xtamaydi.",
-    rating: 5,
-  },
-  {
-    name: 'Nilufar Yusupova',
-    business: 'Kiyim butigi, Samarqand',
-    text: "3 ta do'konni bitta telefondan ko'raman. Ertalab bir qarashda barcha savdo hisobotini bilaman.",
-    rating: 5,
-  },
-  {
-    name: 'Bobur Rahimov',
-    business: 'Parfumeriya, Namangan',
-    text: "AI Night Cashier juda qulay — ertalab Telegram ga keladi: qaysi atir tugayapti, qaysi yaxshi sotilmoqda.",
-    rating: 5,
   },
 ]
 

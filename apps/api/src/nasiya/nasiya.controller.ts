@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Query,
-  UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import {
@@ -17,15 +16,12 @@ import {
 } from '@nestjs/swagger';
 import { NasiyaService } from './nasiya.service';
 import { CreateDebtDto, RecordDebtPaymentDto } from './dto/nasiya.dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { DebtStatus } from '@prisma/client';
 
 @ApiTags('Nasiya (Debt)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
 @Controller('nasiya')
 export class NasiyaController {

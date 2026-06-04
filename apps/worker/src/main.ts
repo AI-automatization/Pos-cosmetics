@@ -8,6 +8,7 @@ import { createReportWorker } from './workers/report.worker';
 import { createStockSnapshotWorker } from './workers/stock-snapshot.worker';
 import { createDataExportWorker } from './workers/data-export.worker';
 import { createSyncProcessWorker } from './workers/sync-process.worker';
+import { createProductImportWorker } from './workers/product-import.worker';
 
 async function bootstrap() {
   console.log(JSON.stringify({
@@ -24,6 +25,7 @@ async function bootstrap() {
     createStockSnapshotWorker(),
     createDataExportWorker(),
     createSyncProcessWorker(),
+    createProductImportWorker(),
   ];
 
   // Throttle Redis error logs to avoid log flooding
@@ -49,6 +51,7 @@ async function bootstrap() {
       'stock-snapshot',
       'data-export',
       'sync-process',
+      'product-import',
     ],
     ts: new Date().toISOString(),
   }));

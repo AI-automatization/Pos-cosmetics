@@ -3,7 +3,6 @@ import {
   Get,
   Param,
   Query,
-  UseGuards,
   ParseUUIDPipe,
   DefaultValuePipe,
   ParseIntPipe,
@@ -16,7 +15,6 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { SalesService } from './sales.service';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 /**
@@ -25,7 +23,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
  */
 @ApiTags('Shifts')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('shifts')
 export class ShiftsController {
   constructor(private readonly salesService: SalesService) {}

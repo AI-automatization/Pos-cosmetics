@@ -12,9 +12,10 @@ import { PriceHistoryService } from './price-history.service';
 import { ProductImportService } from './import-export/product-import.service';
 import { ProductImportController } from './import-export/product-import.controller';
 import { AuditModule } from '../audit/audit.module';
+import { QueueModule } from '../common/queue/queue.module';
 
 @Module({
-  imports: [AuditModule],
+  imports: [AuditModule, QueueModule],
   controllers: [
     CatalogController,
     CatalogProductController,

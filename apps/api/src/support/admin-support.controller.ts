@@ -5,14 +5,13 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { TicketStatus } from '@prisma/client';
 import { SupportService } from './support.service';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../admin/guards/super-admin.guard';
 
 // ─── ADMIN: All tenants ───────────────────────────────────────────────────────
 
 @ApiTags('Admin')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, SuperAdminGuard)
+@UseGuards(SuperAdminGuard)
 @Controller('admin/support')
 export class AdminSupportController {
   constructor(private readonly supportService: SupportService) {}

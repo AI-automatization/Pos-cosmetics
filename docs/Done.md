@@ -1,5 +1,21 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-26
+# Yangilangan: 2026-06-04
+
+---
+
+## T-469 | 2026-06-04 | [SECURITY] | RBAC default-on — global APP_GUARD + per-controller guard prune
+
+- **Muammo:** Auth/RBAC har controller da `@UseGuards(JwtAuthGuard, RolesGuard)` bilan QO'LDA ulanardi (opt-in). Bitta controller da unutilsa → himoyasiz endpoint (data leak). Bir nechta controller da `@Roles` bor edi, lekin `RolesGuard` ulanmagan → RBAC inert (ishlamaydigan).
+- **Yechim:**
+  - `JwtAuthGuard` + `RolesGuard` global `APP_GUARD` sifatida ro'yxatdan o'tkazildi (`global-guards.ts`) → RBAC endi default-on, har route himoyalangan
+  - Guard tartibi: `TenantThrottlerGuard` → `JwtAuthGuard` → `RolesGuard`
+  - `RolesGuard` endi `IS_PUBLIC_KEY` ni tekshiradi → `@Public()` route lar (webhooks, login) auth dan o'tib ketadi
+  - 45 ta controller dan ortiqcha `@UseGuards` va ishlatilmaydigan importlar tozalandi
+  - REDUCE: `admin/*` → `SuperAdminGuard`, `catalog/*` → `WarehouseReadOnlyGuard`, `payments` → method-level `WebhookIpGuard` saqlandi
+  - TDD: `roles.guard.spec.ts` (@Public bypass + role enforcement), `global-guards.spec.ts` (registratsiya + tartib)
+- **Verifikatsiya:** lint ✅ · tsc ✅ (2 ta oldindan mavjud `webhookLog` xatosidan tashqari) · jest 121/121 ✅
+- **Fayllar:** `apps/api/src/common/guards/global-guards.ts` (+spec), `apps/api/src/identity/guards/roles.guard.ts` (+spec), `apps/api/src/app.module.ts`, 45 ta `*.controller.ts`
+- **PR:** #201 (squash → `main`). #199, #200 superseded sifatida yopildi.
 
 ---
 

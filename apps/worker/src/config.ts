@@ -37,4 +37,5 @@ export const QUEUE_NAMES = {
   STOCK_SNAPSHOT: 'stock-snapshot',
   DATA_EXPORT: 'data-export',
   SYNC_PROCESS: 'sync-process',
+  PRODUCT_IMPORT: 'product-import',
 } as const;

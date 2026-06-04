@@ -8,7 +8,6 @@ import {
   DefaultValuePipe,
   NotFoundException,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -18,8 +17,6 @@ import { ExportService, ExportFormat } from './export.service';
 import { PdfExportService, PdfReportType } from './pdf-export.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
-import { RolesGuard } from '../identity/guards/roles.guard';
 
 function parseExportFormat(raw?: string): ExportFormat {
   return raw === 'xlsx' ? 'xlsx' : 'csv';
@@ -29,7 +26,6 @@ function parseExportFormat(raw?: string): ExportFormat {
 @Throttle({ default: { limit: 20, ttl: 60000 } })
 @ApiTags('Reports')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reports')
 export class ReportsController {
   constructor(

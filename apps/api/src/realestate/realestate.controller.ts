@@ -1,12 +1,10 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RealestateService } from './realestate.service';
 
 @ApiTags('RealEstate')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('real-estate')
 export class RealestateController {
   constructor(private readonly service: RealestateService) {}

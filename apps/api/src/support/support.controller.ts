@@ -1,18 +1,15 @@
 import {
   Controller, Get, Post, Patch, Param, Body,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { SupportService } from './support.service';
 import { CreateTicketDto, AddMessageDto, UpdateTicketStatusDto } from './dto/support.dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Support')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('support')
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}

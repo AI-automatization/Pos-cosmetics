@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   Query,
-  UseGuards,
   ParseUUIDPipe,
   ParseIntPipe,
   DefaultValuePipe,
@@ -25,12 +24,10 @@ import {
   RedeemPointsDto,
   AdjustPointsDto,
 } from './dto/loyalty.dto';
-import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Loyalty')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('loyalty')
 export class LoyaltyController {
   constructor(private readonly loyaltyService: LoyaltyService) {}

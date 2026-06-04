@@ -1,23 +1,13 @@
 /**
- * T-130: Product bulk import/export (CSV / XLSX)
- * Import: parse file → validate → upsert products
+ * T-130 + #104: Product bulk import/export (CSV / XLSX)
+ * Import: parse file → delegate to @raos/catalog-import engine
  * Export: fetch products → generate XLSX/CSV
  */
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as ExcelJS from 'exceljs';
-
-interface ProductRow {
-  name: string;
-  sku?: string;
-  barcode?: string;
-  price: number;
-  costPrice?: number;
-  unit?: string;
-  categoryName?: string;
-  description?: string;
-  minStock?: number;
-}
+import { processImportRows } from '@raos/catalog-import';
+import type { ProductImportRow, ImportSummary } from '@raos/catalog-import';
 
 @Injectable()
 export class ProductImportService {
@@ -27,87 +17,18 @@ export class ProductImportService {
 
   // ─── IMPORT ────────────────────────────────────────────────────
 
-  async importFromBuffer(
-    tenantId: string,
-    userId: string,
-    buffer: Buffer,
-    mimeType: string,
-  ): Promise<{ created: number; updated: number; errors: string[] }> {
-    const rows = await this.parseBuffer(buffer, mimeType);
-    let created = 0;
-    let updated = 0;
-    const errors: string[] = [];
+  // Public: parse a raw upload into rows (format handling stays in the API layer).
+  async parse(buffer: Buffer, mimeType: string): Promise<ProductImportRow[]> {
+    return this.parseBuffer(buffer, mimeType);
+  }
 
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      try {
-        this.validateRow(row, i + 2); // +2 because row 1 = header
-
-        // Find or create unit
-        let unitId: string | undefined;
-        if (row.unit) {
-          const unit = await this.prisma.unit.findFirst({
-            where: { tenantId, name: { equals: row.unit, mode: 'insensitive' } },
-          });
-          unitId = unit?.id;
-        }
-
-        // Find or create category
-        let categoryId: string | undefined;
-        if (row.categoryName) {
-          const cat = await this.prisma.category.findFirst({
-            where: { tenantId, name: { equals: row.categoryName, mode: 'insensitive' } },
-          });
-          if (cat) categoryId = cat.id;
-        }
-
-        // Upsert by SKU or barcode
-        const existing = row.sku
-          ? await this.prisma.product.findFirst({ where: { tenantId, sku: row.sku } })
-          : row.barcode
-          ? await this.prisma.product.findFirst({ where: { tenantId, barcode: row.barcode } })
-          : null;
-
-        if (existing) {
-          await this.prisma.product.update({
-            where: { id: existing.id },
-            data: {
-              name: row.name,
-              sellPrice: row.price,
-              costPrice: row.costPrice ?? existing.costPrice,
-              minStockLevel: row.minStock ?? existing.minStockLevel,
-              ...(unitId && { unitId }),
-              ...(categoryId && { categoryId }),
-              ...(row.description !== undefined && { description: row.description }),
-            },
-          });
-          updated++;
-        } else {
-          await this.prisma.product.create({
-            data: {
-              tenantId,
-              name: row.name,
-              sku: row.sku ?? null,
-              barcode: row.barcode ?? null,
-              sellPrice: row.price,
-              costPrice: row.costPrice ?? 0,
-              minStockLevel: row.minStock ?? 0,
-              description: row.description ?? null,
-              unitId: unitId ?? null,
-              categoryId: categoryId ?? null,
-            },
-          });
-          created++;
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`Qator ${i + 2}: ${msg}`);
-        this.logger.warn(`Import error row ${i + 2}: ${msg}`);
-      }
-    }
-
-    this.logger.log(`Import done tenantId=${tenantId}: created=${created}, updated=${updated}, errors=${errors.length}`);
-    return { created, updated, errors };
+  // Public: run the engine inline (sync path, small files).
+  async processSync(tenantId: string, rows: ProductImportRow[]): Promise<ImportSummary> {
+    const summary = await processImportRows(this.prisma, tenantId, rows);
+    this.logger.log(
+      `Import (sync) tenantId=${tenantId}: created=${summary.created}, updated=${summary.updated}, skipped=${summary.skipped}, errors=${summary.errors.length}`,
+    );
+    return summary;
   }
 
   // ─── TEMPLATE ──────────────────────────────────────────────────
@@ -206,7 +127,7 @@ export class ProductImportService {
 
   // ─── INTERNAL ──────────────────────────────────────────────────
 
-  private async parseBuffer(buffer: Buffer, mimeType: string): Promise<ProductRow[]> {
+  private async parseBuffer(buffer: Buffer, mimeType: string): Promise<ProductImportRow[]> {
     if (mimeType === 'text/csv' || mimeType === 'text/plain') {
       return this.parseCsv(buffer.toString('utf-8'));
     }
@@ -218,7 +139,7 @@ export class ProductImportService {
     if (!ws) throw new BadRequestException('XLSX fayl bo\'sh');
 
     const headers: string[] = [];
-    const rows: ProductRow[] = [];
+    const rows: ProductImportRow[] = [];
 
     ws.eachRow((row, rowIndex) => {
       if (rowIndex === 1) {
@@ -235,7 +156,7 @@ export class ProductImportService {
     return rows;
   }
 
-  private parseCsv(content: string): ProductRow[] {
+  private parseCsv(content: string): ProductImportRow[] {
     const lines = content.split('\n').filter((l) => l.trim());
     if (lines.length < 2) return [];
     const headers = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ''));
@@ -247,7 +168,7 @@ export class ProductImportService {
     });
   }
 
-  private mapRow(v: Record<string, string>): ProductRow {
+  private mapRow(v: Record<string, string>): ProductImportRow {
     const get = (keys: string[]) => keys.map((k) => v[k]).find((val) => val !== undefined && val !== '') ?? '';
     return {
       name: get(['name', 'nomi']),
@@ -260,10 +181,5 @@ export class ProductImportService {
       description: v['description'] || undefined,
       minStock: parseInt(get(['minstock', 'min zaxira']) || '0', 10) || undefined,
     };
-  }
-
-  private validateRow(row: ProductRow, _lineNum: number) {
-    if (!row.name) throw new Error(`name (nomi) majburiy`);
-    if (isNaN(row.price) || row.price < 0) throw new Error(`narx noto'g'ri: ${row.price}`);
   }
 }
