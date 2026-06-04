@@ -1,5 +1,13 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-05-31
+# Yangilangan: 2026-06-03
+
+---
+
+## T-479 | 2026-06-03 | [MOBILE] | iOS codesign fail — iCloud Desktop FinderInfo detritus
+
+- **Yechim:** `apps/mobile/scripts/run-ios.sh` helper skript (`pnpm ios:sim`) — build'ni iCloud TASHQARISIDAGI DerivedData ga (`~/Library/Developer/Xcode/DerivedData/RAOS-ios`) chiqaradi. FileProvider faqat iCloud-sync papkalarga `com.apple.FinderInfo` bosadi; build output `~/Library` da bo'lgani uchun `codesign` toza o'tadi → Xcode native imzo + simulated entitlements (`application-identifier=FAKETEAMID.uz.raos.mobile`) → `expo-secure-store`/keychain ishlaydi. Skript: simulyator boot + Metro autostart + Pods xattr insurance + build + install + launch (1 buyruq). End-to-end tasdiqlandi — login ekrani keychain xatosisiz ochildi.
+- **Fayllar:** `apps/mobile/scripts/run-ios.sh` (yangi), `apps/mobile/package.json` (`ios:sim` script), `CLAUDE_MOBILE.md` (iOS SETUP bo'limi)
+- **Eslatma:** uzoq-muddat tavsiya — loyihani iCloud-sync bo'lmagan papkaga (`~/Developer/`) ko'chirish (asl sabab). `expo run:ios` ning xmldom crash'i alohida — T-478 (Ibrat zonasi, root `package.json`).
 
 ---
 

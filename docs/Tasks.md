@@ -630,7 +630,21 @@
 # OCHIQ VAZIFALAR — P2 (O'RTA, MVP dan keyin)
 # ══════════════════════════════════════════════════════════════
 
+## T-478 | P2 | [MOBILE] | `expo run:ios` crash — xmldom 0.9.10 + @expo/plist mos kelmasligi
+
+- **Sana:** 2026-06-03
+- **Mas'ul:** Abdulaziz
+- **Fayl:** `apps/mobile/` (dependency: `@xmldom/xmldom@0.9.10`, `@expo/plist@0.5.3`)
+- **Muammo:** `pnpm --filter mobile run ios` (ya'ni `expo run:ios`) ishga tushganda usbmux qatlamida crash:
+  `TypeError: DOMParser.parseFromString: the provided mimeType "undefined" is not valid` —
+  `@expo/plist/parse.ts` → `UsbmuxProtocolReader.parseBody`. xmldom 0.9.x `parseFromString` da mimeType MAJBURIY qildi, @expo/plist esa mimetype'siz chaqiradi. xcodebuild bosqichigacha yetmaydi.
+- **Vaqtinchalik yechim:** to'g'ridan-to'g'ri `xcodebuild` + `simctl install/launch` (Metro alohida `expo start`).
+- **Kutilgan:** `@xmldom/xmldom` ni 0.8.x ga pin qilish YOKI `@expo/plist` ni `parseFromString(xml, 'text/xml')` chaqiradigan versiyaga yangilash → `expo run:ios` qayta ishlasin.
+
+---
+
 *(T-417 — BAJARILDI, Done.md 2026-05-20)*
+*(T-479 — BAJARILDI, Done.md 2026-06-03 — `ios:sim` helper skript)*
 
 ---
 
