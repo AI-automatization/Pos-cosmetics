@@ -36,6 +36,7 @@ POLAT_PROGRESS.txt
 # Claude Code (local only)
 .claude/settings.local.json
 .claude/session-context.md
+.claude/*.lock
 .playwright-mcp/
 
 # GStack security reports (local only)
