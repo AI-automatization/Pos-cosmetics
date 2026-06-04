@@ -8,13 +8,25 @@ export const styles = StyleSheet.create({
   },
 
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     paddingHorizontal: 20,
     paddingVertical: 14,
     backgroundColor: C.white,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: C.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: {
+    flex: 1,
     fontSize: 22,
     fontWeight: '800',
     color: C.text,

@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { C } from './OmborColors';
+import NotificationBell from '../../components/layout/NotificationBell';
 
 interface Props {
   onScanPress?: () => void;
@@ -27,8 +28,15 @@ export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPres
             <Text style={styles.requestBtnText}>So'rov</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.iconBtn} onPress={onRestockRequestsPress} activeOpacity={0.75}>
-          <Ionicons name="notifications-outline" size={20} color={C.primary} />
+        <NotificationBell color={C.primary} />
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={onRestockRequestsPress}
+          activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="To'ldirish so'rovlari"
+        >
+          <Ionicons name="file-tray-stacked-outline" size={20} color={C.primary} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn} onPress={onScanPress} activeOpacity={0.75}>
           <Ionicons name="scan-outline" size={20} color={C.primary} />

@@ -12,51 +12,61 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { alertsApi } from '@/api';
+import type { Alert, AlertType } from '@/api/alerts.api';
+import { safeQueryFn } from '@/utils/error';
+import { formatRelativeTime } from '@/utils/format';
 import { colors, spacing, typography } from '@/theme';
 
-interface Notification {
-  id:        string;
-  type:      'LOW_STOCK' | 'LARGE_SALE' | 'RENTAL_PAYMENT_DUE' | 'SUSPICIOUS_ACTIVITY' | 'AI_INSIGHT' | 'SYSTEM_ALERT';
-  title:     string;
-  body:      string;
-  time:      string;
-  isRead:    boolean;
-}
+type IconName = keyof typeof Ionicons.glyphMap;
 
-const MOCK_NOTIFICATIONS: Notification[] = [
-  { id: '1', type: 'LOW_STOCK',    title: 'Kam qolgan tovar',        body: 'Shampun 500ml — 3 dona qoldi',          time: '5 daq oldin',  isRead: false },
-  { id: '2', type: 'LARGE_SALE',   title: 'Katta sotuv',             body: '1,250,000 UZS — Chilonzor filiali',     time: '1 soat oldin', isRead: false },
-  { id: '3', type: 'AI_INSIGHT',   title: "AI tavsiya",              body: 'Dushanba kunlari sotuv 23% yuqori',     time: '2 soat oldin', isRead: true  },
-];
+const ALERTS_QUERY_KEY = ['alerts', 'all'] as const;
 
-const TYPE_ICON: Record<Notification['type'], keyof typeof Ionicons.glyphMap> = {
-  LOW_STOCK:          'alert-circle',
-  LARGE_SALE:         'cash',
-  RENTAL_PAYMENT_DUE: 'home',
-  SUSPICIOUS_ACTIVITY:'warning',
-  AI_INSIGHT:         'bulb',
-  SYSTEM_ALERT:       'information-circle',
+const DEFAULT_ICON: IconName = 'notifications-outline';
+const DEFAULT_COLOR = colors.textSecond;
+
+const TYPE_ICON: Record<AlertType, IconName> = {
+  LOW_STOCK:           'alert-circle',
+  LARGE_SALE:          'cash',
+  RENTAL_PAYMENT_DUE:  'home',
+  SUSPICIOUS_ACTIVITY: 'warning',
+  AI_INSIGHT:          'bulb',
+  SHIFT_OPENED:        'log-in',
+  SHIFT_CLOSED:        'log-out',
+  SYSTEM_ALERT:        'information-circle',
 };
 
-const TYPE_COLOR: Record<Notification['type'], string> = {
-  LOW_STOCK:          colors.warning,
-  LARGE_SALE:         colors.success,
-  RENTAL_PAYMENT_DUE: colors.primary,
-  SUSPICIOUS_ACTIVITY:colors.danger,
-  AI_INSIGHT:         colors.purple,
-  SYSTEM_ALERT:       colors.textSecond,
+const TYPE_COLOR: Record<AlertType, string> = {
+  LOW_STOCK:           colors.warning,
+  LARGE_SALE:          colors.success,
+  RENTAL_PAYMENT_DUE:  colors.primary,
+  SUSPICIOUS_ACTIVITY: colors.danger,
+  AI_INSIGHT:          colors.purple,
+  SHIFT_OPENED:        colors.success,
+  SHIFT_CLOSED:        colors.textSecond,
+  SYSTEM_ALERT:        colors.textSecond,
 };
+
+const iconFor  = (type: AlertType): IconName => TYPE_ICON[type] ?? DEFAULT_ICON;
+const colorFor = (type: AlertType): string   => TYPE_COLOR[type] ?? DEFAULT_COLOR;
 
 export interface NotificationDrawerRef {
   open: () => void;
 }
 
 const NotificationDrawer = forwardRef<NotificationDrawerRef>((_, ref) => {
-  const { t }    = useTranslation();
+  const { t }      = useTranslation();
   const { height } = useWindowDimensions();
+  const queryClient = useQueryClient();
   const [visible, setVisible] = useState(false);
-  const [items,   setItems]   = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const translateY = useRef(new Animated.Value(height)).current;
+
+  // Same query key as NotificationBell → React Query dedupes (no double fetch).
+  const { data: items = [] } = useQuery({
+    queryKey: ALERTS_QUERY_KEY,
+    queryFn: safeQueryFn<Alert[]>(() => alertsApi.getAll(), []),
+  });
 
   const open = (): void => {
     setVisible(true);
@@ -78,24 +88,46 @@ const NotificationDrawer = forwardRef<NotificationDrawerRef>((_, ref) => {
 
   useImperativeHandle(ref, () => ({ open }));
 
-  const markAllRead = (): void => {
-    setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const invalidateAlerts = (): void => {
+    void queryClient.invalidateQueries({ queryKey: ALERTS_QUERY_KEY });
   };
 
-  const unreadCount = items.filter((n) => !n.isRead).length;
+  const markOneRead = async (alert: Alert): Promise<void> => {
+    if (alert.isRead) return;
+    try {
+      await alertsApi.markAsRead(alert.id);
+    } finally {
+      invalidateAlerts();
+    }
+  };
 
-  const renderItem = ({ item }: { item: Notification }): React.JSX.Element => (
-    <View style={[styles.item, item.isRead && styles.itemRead]}>
-      <View style={[styles.iconWrap, { backgroundColor: TYPE_COLOR[item.type] + '22' }]}>
-        <Ionicons name={TYPE_ICON[item.type]} size={20} color={TYPE_COLOR[item.type]} />
+  const markAllRead = async (): Promise<void> => {
+    const unread = items.filter((a) => !a.isRead);
+    if (unread.length === 0) return;
+    await Promise.allSettled(unread.map((a) => alertsApi.markAsRead(a.id)));
+    invalidateAlerts();
+  };
+
+  const unreadCount = items.filter((a) => !a.isRead).length;
+
+  const renderItem = ({ item }: { item: Alert }): React.JSX.Element => (
+    <TouchableOpacity
+      style={[styles.item, item.isRead && styles.itemRead]}
+      activeOpacity={item.isRead ? 1 : 0.7}
+      disabled={item.isRead}
+      onPress={() => { void markOneRead(item); }}
+      accessibilityRole="button"
+    >
+      <View style={[styles.iconWrap, { backgroundColor: colorFor(item.type) + '22' }]}>
+        <Ionicons name={iconFor(item.type)} size={20} color={colorFor(item.type)} />
       </View>
       <View style={styles.itemBody}>
         <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.itemDesc}  numberOfLines={2}>{item.body}</Text>
-        <Text style={styles.itemTime}>{item.time}</Text>
+        <Text style={styles.itemDesc}  numberOfLines={2}>{item.message}</Text>
+        <Text style={styles.itemTime}>{formatRelativeTime(item.createdAt)}</Text>
       </View>
       {!item.isRead && <View style={styles.unreadDot} />}
-    </View>
+    </TouchableOpacity>
   );
 
   if (!visible) return null;
@@ -120,9 +152,11 @@ const NotificationDrawer = forwardRef<NotificationDrawerRef>((_, ref) => {
               <Text style={styles.unreadCount}>  {unreadCount}</Text>
             )}
           </Text>
-          <TouchableOpacity onPress={markAllRead} accessibilityRole="button">
-            <Text style={styles.markAllText}>{t('notifications.markAllRead', "Barchasini o'qildi")}</Text>
-          </TouchableOpacity>
+          {unreadCount > 0 && (
+            <TouchableOpacity onPress={() => { void markAllRead(); }} accessibilityRole="button">
+              <Text style={styles.markAllText}>{t('notifications.markAllRead', "Barchasini o'qildi")}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* List */}

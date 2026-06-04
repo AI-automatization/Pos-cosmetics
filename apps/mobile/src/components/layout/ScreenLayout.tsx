@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,15 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { alertsApi } from '@/api';
-import { safeQueryFn } from '@/utils/error';
 import { colors, spacing } from '@/theme';
 import type { RootStackParamList } from '@/navigation/types';
-import type { Alert } from '@/api/alerts.api';
-import NotificationDrawer from '@/components/layout/NotificationDrawer';
-import type { NotificationDrawerRef } from '@/components/layout/NotificationDrawer';
+import NotificationBell from '@/components/layout/NotificationBell';
 
 // title saqlanadi — mavjud screen lar TypeScript xatosiz ishlashi uchun (render qilinmaydi)
 interface ScreenLayoutProps {
@@ -30,6 +25,9 @@ interface ScreenLayoutProps {
   isRefreshing?: boolean;
   scrollable?: boolean;
   rightAction?: React.ReactNode;
+  showBack?: boolean;
+  onBack?: () => void;
+  showNotifications?: boolean;
 }
 
 function getInitials(name: string): string {
@@ -45,18 +43,13 @@ export default function ScreenLayout({
   onRefresh,
   isRefreshing = false,
   scrollable = true,
+  showBack = false,
+  onBack,
+  showNotifications = true,
 }: ScreenLayoutProps): React.JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { user } = useAuthStore();
-  const drawerRef = useRef<NotificationDrawerRef>(null);
 
-  const { data: alerts } = useQuery({
-    queryKey: ['alerts', 'all'],
-    queryFn: safeQueryFn<Alert[]>(() => alertsApi.getAll(), []),
-    refetchInterval: 30_000,
-  });
-
-  const unreadCount = alerts?.filter((a) => !a.isRead).length ?? 0;
   const initials = user ? getInitials(`${user.firstName} ${user.lastName}`) : '?';
   const roleLine = user?.role ?? '';
 
@@ -83,6 +76,18 @@ export default function ScreenLayout({
 
       {/* Header */}
       <View style={styles.header}>
+        {/* Orqaga tugma (ixtiyoriy) */}
+        {showBack && (
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={onBack}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+          >
+            <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
+          </TouchableOpacity>
+        )}
+
         {/* Chap: Avatar blok */}
         <TouchableOpacity
           style={styles.avatarBlock}
@@ -113,21 +118,8 @@ export default function ScreenLayout({
             <Ionicons name="bulb-outline" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
 
-          {/* Bell + badge */}
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => drawerRef.current?.open()}
-            accessibilityRole="button"
-          >
-            <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
-            {unreadCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {unreadCount > 9 ? '9+' : String(unreadCount)}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          {/* Bell + badge + drawer (hidden via showNotifications) */}
+          {showNotifications && <NotificationBell />}
 
           {/* Settings */}
           <TouchableOpacity
@@ -141,7 +133,6 @@ export default function ScreenLayout({
       </View>
 
       {content}
-      <NotificationDrawer ref={drawerRef} />
     </SafeAreaView>
   );
 }
@@ -160,6 +151,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  backBtn: {
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.xs,
   },
   avatarBlock: {
     flexDirection: 'row',
@@ -203,23 +201,6 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    top: 7,
-    right: 7,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.danger,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 3,
-  },
-  badgeText: {
-    color: '#ffffff',
-    fontSize: 10,
-    fontWeight: '700',
   },
   scroll: {
     flex: 1,

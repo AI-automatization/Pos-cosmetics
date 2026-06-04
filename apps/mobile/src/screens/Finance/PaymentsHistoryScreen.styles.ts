@@ -14,6 +14,15 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: C.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerSub: { fontSize: 12, color: C.muted, marginTop: 2 },
   headerIcon: {

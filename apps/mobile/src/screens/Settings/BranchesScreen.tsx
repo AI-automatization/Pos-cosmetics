@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { branchesApi } from '../../api/branches.api';
 import type { Branch, CreateBranchBody } from '../../api/branches.api';
@@ -21,6 +22,7 @@ import { styles } from './BranchesScreen.styles';
 
 export default function BranchesScreen() {
   const qc = useQueryClient();
+  const navigation = useNavigation();
 
   const { data: branches = [], isLoading } = useQuery<Branch[]>({
     queryKey: ['branches'],
@@ -162,7 +164,12 @@ export default function BranchesScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Filiallar</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+            <Ionicons name="arrow-back" size={20} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Filiallar</Text>
+        </View>
         <TouchableOpacity style={styles.addBtn} onPress={handleAdd} activeOpacity={0.75}>
           <Ionicons name="add" size={20} color="#FFFFFF" />
         </TouchableOpacity>

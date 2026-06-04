@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../../api/reports.api';
 import ErrorView from '@/components/common/ErrorView';
@@ -61,6 +62,7 @@ interface Props {
 
 export default function PnLScreen({ onClose }: Props) {
   useScreenProtection();
+  const navigation = useNavigation();
   const [period, setPeriod] = useState<PeriodKey>('30d');
 
   const { from, to } = useMemo(() => getPeriodDates(period), [period]);
@@ -92,11 +94,13 @@ export default function PnLScreen({ onClose }: Props) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        {onClose ? (
-          <TouchableOpacity style={styles.headerBtn} onPress={onClose} activeOpacity={0.75}>
-            <Ionicons name="arrow-back" size={20} color={C.text} />
-          </TouchableOpacity>
-        ) : <View style={styles.headerBtn} />}
+        <TouchableOpacity
+          style={styles.headerBtn}
+          onPress={() => (onClose ? onClose() : navigation.goBack())}
+          activeOpacity={0.75}
+        >
+          <Ionicons name="arrow-back" size={20} color={C.text} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Foyda va Zarar</Text>
         <View style={styles.spacer} />
       </View>

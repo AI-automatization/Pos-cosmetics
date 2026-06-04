@@ -3,6 +3,38 @@
 
 ---
 
+## T-514 | 2026-06-04 | [MOBILE] | Moliya screen — o'ng-tepada ishlamaydigan tugma
+
+- **Yechim:** `FinanceScreen.tsx` header'idagi dekorativ `<View>` (bar-chart ikonka, `TouchableOpacity` emas, `onPress` yo'q — bosilmaydigan o'lik tugma) olib tashlandi; ishlatilmay qolgan `Ionicons` importi ham tozalandi.
+- **Fayl:** apps/mobile/src/screens/Finance/FinanceScreen.tsx
+- **Manba:** foydalanuvchi qo'lda topgan bug (2026-06-04). tsc 0 xato.
+
+---
+
+## T-513 | 2026-06-04 | [MOBILE] | Notification bell — Xodimlardan olib, Ombor'ga ishlaydiganini qo'yish
+
+- **Yechim:** (1) Reusable `NotificationBell` komponenti ajratildi (bell + unread badge + real `alertsApi.getAll()` + `NotificationDrawer`). (2) `ScreenLayout`ga non-breaking `showNotifications?` prop (default true → ~40 boshqa screen o'zgarmaydi); HR (Xodimlar) `false` beradi → bell olib tashlandi. (3) Ombor (`OmborHeader`) ishlaydigan `NotificationBell` ko'rsatadi; restock so'rovlariga kirish `file-tray-stacked-outline` ikonka bilan saqlandi. (4) `NotificationDrawer` mock'dan REAL alertlarga ulandi (`['alerts','all']` — badge bilan bir xil key/dedup; `markAsRead` + invalidate; "Bildirishnoma yo'q" empty state; barcha AlertType uchun ikonka + xavfsiz fallback).
+- **Fayl:** apps/mobile/src/components/layout/{NotificationBell.tsx (yangi), ScreenLayout.tsx, NotificationDrawer.tsx}, screens/HR/index.tsx, screens/Ombor/OmborHeader.tsx
+- **Manba:** foydalanuvchi qo'lda topgan bug. **Tekshiruv:** multi-agent (design → implement → verify) — adversarial review birinchi urinishda drawer mock'ini ushladi → 2-bosqich (drawer real data) fix. Barcha kriteriya PASS.
+
+---
+
+## T-512 | 2026-06-04 | [MOBILE] | 12 screen'da orqaga qaytish tugmasi yo'q (foydalanuvchi qamalib qoladi)
+
+- **Yechim:** 12 ta push qilingan screen'ga standart back tugmasi qo'shildi (`TouchableOpacity` → `Ionicons arrow-back` → `navigation.goBack()`, header'ning birinchi bolasi sifatida, CustomersScreen patterni). Moliya: P&L, Xarajatlar, To'lovlar tarixi, Kunlik daromad, Top maxsulotlar, Nasiya eskirishi (4 tasidagi `onClose`-faqat shartli — endi doim `goBack()`). Ko'proq/Sozlamalar: Sozlamalar, Foydalanuvchilar, Filiallar, Audit jurnali, Qaytarish, Smenalar. ShiftsOwner `ScreenLayout`'ga **non-breaking** `showBack`/`onBack` prop qo'shildi (default false → boshqa screenlarga ta'sir yo'q).
+- **Fayl:** apps/mobile/src/screens/{Finance/{PnL,Expenses,PaymentsHistory,DailyRevenue,TopProducts,NasiyaAging}, Settings/{index,UsersScreen,BranchesScreen,AuditLogScreen}, SalesReturns/index, ShiftsOwner/index} + ScreenLayout.tsx (+ ba'zi .styles.ts) — 17 fayl
+- **Manba:** foydalanuvchi qo'lda topgan bug (2026-06-04). **Tekshiruv:** multi-agent (design → 2 parallel implement → typecheck 0 xato + adversarial review): allTwelveHaveBack / onCloseFixed / screenLayoutNonBreaking / noLayoutBreakage — PASS.
+
+---
+
+## T-488 | 2026-06-04 | [MOBILE] | DebtPaymentForm — to'lov usuli label sifatida yuboriladi
+
+- **Yechim:** `DebtPaymentForm.tsx` endi tanlangan UI label'ni ('Naqd'/'Karta'/'Bank transfer') backend `PaymentMethod` enum'iga (CASH/TERMINAL/TRANSFER) yangi umumiy map orqali aylantirib yuboradi → 400 yo'qoldi. Local `PAYMENT_METHODS` o'chirildi; chiplar hamon label ko'rsatadi (UI matni o'zgarmadi), faqat `recordPayment`ga yuborilgan qiymat map'lanadi. Yangi mobile-zona fayli: `Nasiya/payment-method.constants.ts` (`NASIYA_PAYMENT_METHODS` tuple + `NasiyaPaymentLabel` type + `NASIYA_METHOD_TO_ENUM` map, strict-typed, `any` yo'q). PayModal (Nasiya) va QuickPaySheet (Finance) — ishlaydigan to'lov oqimlari, map'lari farq qiladi → TEGILMADI.
+- **Fayl:** apps/mobile/src/screens/Nasiya/DebtPaymentForm.tsx + yangi apps/mobile/src/screens/Nasiya/payment-method.constants.ts
+- **Tekshiruv:** `cd apps/mobile && npx tsc --noEmit` → 0 xato. Zona: faqat apps/mobile. PayModal/QuickPaySheet xatti-harakati o'zgarmadi.
+
+---
+
 ## T-487 | 2026-06-04 | [MOBILE] | Owner app — mock-data production'da
 
 - **Yechim:** Owner ilovadagi BARCHA 12 mock-data fallback (15 ishlatilish) olib tashlandi → API bo'sh/error qaytarganda endi soxta moliyaviy raqam EMAS, real empty/error UI ko'rsatiladi. Listlar: `data ?? []` + mavjud `EmptyState`/`ListEmptyComponent`. EmployeeDetailScreen: yangi `ErrorView` guard (soxta "Sarvar Qodirov" → mutation real ID'ga ketish xavfi yo'qoldi). Charts: yangi `ChartNoData` komponenti ("Ma'lumot yo'q"), bo'sh massivда crash yo'q. Reports: MOCK_BRANCHES/MOCK_SHIFTS utils'dan o'chirildi.

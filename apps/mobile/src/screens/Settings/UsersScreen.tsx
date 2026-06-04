@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import UserCard, { AppUser } from './UserCard';
 import UserFormSheet from './UserFormSheet';
@@ -41,6 +42,7 @@ function StatChip({ label, value, color, bg }: StatChipProps) {
 
 export default function UsersScreen() {
   const qc = useQueryClient();
+  const navigation = useNavigation();
   const currentUser = useAuthStore((s) => s.user);
   const canResetPassword = getRoleLevel(currentUser?.role) >= 4; // OWNER / ADMIN
 
@@ -195,7 +197,12 @@ export default function UsersScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Foydalanuvchilar</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+            <Ionicons name="arrow-back" size={20} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Foydalanuvchilar</Text>
+        </View>
         <TouchableOpacity
           style={styles.addBtn}
           onPress={handleAdd}
@@ -264,6 +271,19 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#111827',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addBtn: {
     width: 36,

@@ -880,11 +880,6 @@
   - **Ibrat/Team Lead QAROR:** `phone` saqlanadimi? HA → backend User model + Create/UpdateUserDto ga `phone`. YO'Q → mobile'dan phone input+body olib tashlash.
   - **Mobile (Abdulaziz, qarordan keyin):** formга email input (create uchun); parol min 8; phone qarorini bajarish.
 
-## T-488 | P1 | [MOBILE] | DebtPaymentForm — to'lov usuli label sifatida yuboriladi
-- **Fayl:** apps/mobile/src/screens/Nasiya/DebtPaymentForm.tsx:52, 66
-- **Muammo:** `PAYMENT_METHODS` labellari ('Naqd'/'Karta'/'Bank transfer') to'g'ridan `method` sifatida yuboriladi — backend enum (CASH/TERMINAL/TRANSFER) kutadi → 400. (Hozir DebtDetailScreen ulanmagan = dead-code, lekin ulansa barcha to'lov buziladi.)
-- **Kutilgan:** label→enum map (PayModal/QuickPaySheet'dagi `METHOD_MAP`ni umumiy util'ga chiqarib qayta ishlatish — DRY).
-
 ## T-489 | P1 | [MOBILE] | useOfflineQueue auto-sync ishlamaydi
 - **Fayl:** apps/mobile/src/hooks/useOfflineQueue.ts:26-30
 - **Muammo:** Auto-process effekti faqat `[isOnline]` ga bog'langan, `status.pending` stale. Internet qaytganda pending order avtomatik yuborilmaydi (faqat qo'lda processQueue ishlaydi).

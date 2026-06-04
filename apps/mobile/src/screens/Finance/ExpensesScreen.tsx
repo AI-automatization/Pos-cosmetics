@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   expensesApi,
@@ -57,6 +58,7 @@ function fmt(n: number): string {
 
 // ─── ExpensesScreen ────────────────────────────────────
 export default function ExpensesScreen() {
+  const navigation                      = useNavigation();
   const [filter, setFilter]             = useState<FilterKey>('Barchasi');
   const [sheetVisible, setSheetVisible] = useState(false);
 
@@ -128,9 +130,14 @@ export default function ExpensesScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Xarajatlar</Text>
-          <Text style={styles.headerSub}>{data?.total ?? 0} ta yozuv</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+            <Ionicons name="arrow-back" size={20} color={C.text} />
+          </TouchableOpacity>
+          <View>
+            <Text style={styles.headerTitle}>Xarajatlar</Text>
+            <Text style={styles.headerSub}>{data?.total ?? 0} ta yozuv</Text>
+          </View>
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={handleAdd} activeOpacity={0.85}>
           <Ionicons name="add" size={22} color="#FFFFFF" />
@@ -240,6 +247,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
     backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
+  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
   },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerSub: { fontSize: 12, color: C.muted, marginTop: 2 },

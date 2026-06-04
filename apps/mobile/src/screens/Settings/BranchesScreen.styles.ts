@@ -22,6 +22,19 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#111827',
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   addBtn: {
     width: 36,
     height: 36,

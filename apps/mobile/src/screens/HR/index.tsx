@@ -93,7 +93,7 @@ export default function HRScreen() {
 
   if (employees.isLoading) {
     return (
-      <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false}>
+      <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false} showNotifications={false}>
         <SkeletonList count={6} itemHeight={72} />
       </ScreenLayout>
     );
@@ -101,14 +101,14 @@ export default function HRScreen() {
 
   if (employees.isError) {
     return (
-      <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false}>
+      <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false} showNotifications={false}>
         <ErrorView error={employees.error} onRetry={() => { void employees.refetch(); }} />
       </ScreenLayout>
     );
   }
 
   return (
-    <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false}>
+    <ScreenLayout title="Xodimlar (HR)" rightAction={addButton} scrollable={false} showNotifications={false}>
       <FlatList<Employee>
         data={filtered}
         keyExtractor={(e) => e.id}

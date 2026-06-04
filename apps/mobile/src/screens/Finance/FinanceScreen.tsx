@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -85,9 +84,6 @@ export default function FinanceScreen() {
         <View>
           <Text style={styles.headerTitle}>Moliya</Text>
           <Text style={styles.headerSub}>Moliyaviy ko'rsatkichlar</Text>
-        </View>
-        <View style={[styles.headerIcon, styles.headerIconBlue]}>
-          <Ionicons name="bar-chart-outline" size={20} color={C.primary} />
         </View>
       </View>
 

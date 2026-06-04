@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { auditApi } from '../../api/audit.api';
 import type { AuditLog } from '../../api/audit.api';
@@ -33,6 +34,7 @@ const ACTION_FILTER_LABELS: Record<ActionFilter, string> = {
 // ─── AuditLogScreen ───────────────────────────────────
 
 export default function AuditLogScreen() {
+  const navigation = useNavigation();
   const [search, setSearch]               = useState('');
   const [selectedAction, setSelectedAction] = useState<ActionFilter>('ALL');
 
@@ -113,7 +115,11 @@ export default function AuditLogScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+            <Ionicons name="arrow-back" size={20} color="#111827" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Audit jurnali</Text>
+          <View style={styles.headerBtn} />
         </View>
         <View style={styles.center}>
           <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
@@ -140,7 +146,11 @@ export default function AuditLogScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
+        <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+          <Ionicons name="arrow-back" size={20} color="#111827" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Audit jurnali</Text>
+        <View style={styles.headerBtn} />
       </View>
 
       <FlatList

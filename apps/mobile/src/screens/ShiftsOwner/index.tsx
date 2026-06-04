@@ -56,7 +56,12 @@ function ShiftListScreen() {
   };
 
   return (
-    <ScreenLayout title={t('shifts.title')} scrollable={false}>
+    <ScreenLayout
+      title={t('shifts.title')}
+      scrollable={false}
+      showBack
+      onBack={() => navigation.goBack()}
+    >
       <View style={styles.filters}>
         {([undefined, 'open', 'closed'] as const).map((s) => (
           <TouchableOpacity

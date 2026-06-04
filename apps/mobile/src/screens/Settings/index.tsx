@@ -85,7 +85,11 @@ export default function SettingsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+          <Ionicons name="arrow-back" size={20} color={C.text} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('settings.title')}</Text>
+        <View style={styles.headerBtn} />
       </View>
 
       <ScrollView

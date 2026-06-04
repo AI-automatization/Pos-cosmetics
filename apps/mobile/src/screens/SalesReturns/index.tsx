@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import type { Order } from '@raos/types';
 import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api/sales.api';
@@ -76,6 +78,7 @@ const OrderRow = React.memo(function OrderRow({ item, onPress }: OrderRowProps) 
 
 // ─── Main screen ────────────────────────────────────────────
 export default function SalesReturnsScreen() {
+  const navigation = useNavigation();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [saleDetail, setSaleDetail]       = useState<OrderWithMethod | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -171,7 +174,12 @@ export default function SalesReturnsScreen() {
     <SafeAreaView style={styles.safe}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Qaytarishlar</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+            <Ionicons name="arrow-back" size={20} color={C.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Qaytarishlar</Text>
+        </View>
         {ordersQuery.isFetching && !ordersQuery.isLoading && (
           <ActivityIndicator size="small" color={C.primary} />
         )}
@@ -229,6 +237,19 @@ const styles = StyleSheet.create({
     backgroundColor: C.white,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: C.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 20,

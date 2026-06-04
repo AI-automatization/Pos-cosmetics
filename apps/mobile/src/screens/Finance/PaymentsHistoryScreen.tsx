@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { salesApi } from '../../api/sales.api';
 import SearchBar from '../../components/common/SearchBar';
@@ -32,6 +33,7 @@ import { styles } from './PaymentsHistoryScreen.styles';
 // ─── PaymentsHistoryScreen ─────────────────────────────
 export default function PaymentsHistoryScreen() {
   useScreenProtection();
+  const navigation                  = useNavigation();
   const [period, setPeriod]         = useState<PeriodKey>('30d');
   const [method, setMethod]         = useState<MethodKey>('Barchasi');
   const [search, setSearch]         = useState('');
@@ -133,9 +135,14 @@ export default function PaymentsHistoryScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>To'lovlar tarixi</Text>
-          <Text style={styles.headerSub}>{filtered.length} ta yozuv</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+            <Ionicons name="arrow-back" size={20} color={C.text} />
+          </TouchableOpacity>
+          <View>
+            <Text style={styles.headerTitle}>To'lovlar tarixi</Text>
+            <Text style={styles.headerSub}>{filtered.length} ta yozuv</Text>
+          </View>
         </View>
         <View style={[styles.headerIcon, styles.headerIconBlue]}>
           <Ionicons name="card-outline" size={20} color={C.primary} />
