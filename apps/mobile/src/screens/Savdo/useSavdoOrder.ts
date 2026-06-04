@@ -124,7 +124,7 @@ export default function useSavdoOrder({
           })),
           discountAmount,
           notes: `To'lov: ${method}`,
-        }, idempotencyKey);
+        }, idempotencyKey, selectedCustomer?.id, redeemPoints);
         await refreshQueue();
         Alert.alert('Offline rejim', "Buyurtma saqlandi. Internet ulanganda avtomatik yuboriladi.");
         closePayment();
