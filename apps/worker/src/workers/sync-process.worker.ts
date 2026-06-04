@@ -16,7 +16,7 @@ export function createSyncProcessWorker(): Worker {
       logJobStart(QUEUE_NAMES.SYNC_PROCESS, job.id!, job.name, job.data);
 
       const { tenantId, deviceId, idempotencyKey } = job.data;
-      console.log(`[sync-process] tenant=${tenantId} device=${deviceId} key=${idempotencyKey}`);
+      console.log(JSON.stringify({ level: 'info', event: 'sync-process:processing', tenantId, deviceId, idempotencyKey }));
 
       // POS sync event processing — API /sync/inbound bilan integratsiya
       // Job ID = idempotencyKey (duplicate safe)

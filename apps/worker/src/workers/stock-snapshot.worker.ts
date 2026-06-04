@@ -16,7 +16,7 @@ export function createStockSnapshotWorker(): Worker {
       // Bu logika API dagi CronService.materializeStockSnapshots() bilan parallel ishlaydi
       // Worker orqali on-demand snapshot generatsiya mumkin
       const { tenantId } = job.data;
-      console.log(`[stock-snapshot] Processing ${tenantId ? `tenant=${tenantId}` : 'all tenants'}`);
+      console.log(JSON.stringify({ level: 'info', event: 'stock-snapshot:processing', tenantId: tenantId ?? 'all' }));
 
       logJobDone(QUEUE_NAMES.STOCK_SNAPSHOT, job.id!, job.name, Date.now() - start);
     },

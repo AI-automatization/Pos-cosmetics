@@ -1,6 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { REDIS_CONNECTION, QUEUE_NAMES } from '../config';
-import { logJobStart, logJobDone, logJobError } from '../logger';
+import { logJobStart, logJobError } from '../logger';
 
 interface ReportGenerateJob {
   tenantId: string;
@@ -14,15 +14,10 @@ export function createReportWorker(): Worker {
   const worker = new Worker<ReportGenerateJob>(
     QUEUE_NAMES.REPORT_GENERATE,
     async (job: Job<ReportGenerateJob>) => {
-      const start = Date.now();
       logJobStart(QUEUE_NAMES.REPORT_GENERATE, job.id!, job.name, job.data);
 
-      const { tenantId, reportType, from, to, requestedBy } = job.data;
-      console.log(`[report] ${reportType} for tenant=${tenantId} from=${from} to=${to} by=${requestedBy}`);
-
       // TODO: generate report → store result → notify via notification queue
-
-      logJobDone(QUEUE_NAMES.REPORT_GENERATE, job.id!, job.name, Date.now() - start);
+      throw new Error('report-generate: not yet implemented');
     },
     {
       connection: REDIS_CONNECTION,
