@@ -20,7 +20,9 @@ interface CompromisedDeviceScreenProps {
 
 export default function CompromisedDeviceScreen({ reason }: CompromisedDeviceScreenProps) {
   const handleExit = async () => {
-    await useAuthStore.getState().clearAuth();
+    // Compromised device: server tokenni ham bekor qilish kerak (best-effort),
+    // keyin local clear. logout() ikkalasini ham kafolatlaydi.
+    await useAuthStore.getState().logout();
     BackHandler.exitApp();
   };
 

@@ -15,7 +15,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import UserCard, { AppUser } from './UserCard';
 import UserFormSheet from './UserFormSheet';
 import PasswordResetSheet from './PasswordResetSheet';
-import { usersApi, CreateUserBody } from '../../api/users.api';
+import { usersApi, CreateUserBody, UpdateUserBody } from '../../api/users.api';
 import { useAuthStore } from '../../store/auth.store';
 import { getRoleLevel } from '../../utils/roles';
 
@@ -52,6 +52,14 @@ export default function UsersScreen() {
 
   const createMutation = useMutation({
     mutationFn: usersApi.create,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: UpdateUserBody }) =>
+      usersApi.update(id, body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['users'] });
     },
@@ -111,9 +119,22 @@ export default function UsersScreen() {
   };
 
   const handleSave = (body: CreateUserBody) => {
-    createMutation.mutate(body, {
-      onSuccess: () => setFormVisible(false),
-    });
+    if (editUser) {
+      const updateBody: UpdateUserBody = {
+        firstName: body.firstName,
+        lastName: body.lastName,
+        phone: body.phone,
+        role: body.role,
+      };
+      updateMutation.mutate(
+        { id: editUser.id, body: updateBody },
+        { onSuccess: () => setFormVisible(false) },
+      );
+    } else {
+      createMutation.mutate(body, {
+        onSuccess: () => setFormVisible(false),
+      });
+    }
   };
 
   const handleResetPassword = (u: AppUser) => {
@@ -208,7 +229,7 @@ export default function UsersScreen() {
         user={editUser}
         onClose={() => setFormVisible(false)}
         onSave={handleSave}
-        isSaving={createMutation.isPending}
+        isSaving={createMutation.isPending || updateMutation.isPending}
       />
 
       <PasswordResetSheet

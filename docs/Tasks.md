@@ -868,20 +868,17 @@
 - **Muammo:** Owner App = read-only monitoring bo'lishi kerak (CLAUDE_MOBILE.md), lekin nasiya to'lovi (POST /nasiya/:id/pay) va xodim CRUD/fire/POS-access to'liq UI bilan ulangan — ledger/destruktiv mutationlar.
 - **Kutilgan:** Owner faqat o'qishi. Team Lead qarori: ta'rifni yangilash + backend RBAC, YOKI mutationlarni olib tashlash.
 
-## T-485 | P1 | [MOBILE] | Logout server-side token revoke qilmaydi
-- **Fayl:** apps/mobile/src/screens/Settings/index.tsx:62, MoreMenu/index.tsx:128, Auth/CompromisedDeviceScreen.tsx:23
-- **Muammo:** Barcha logout faqat `clearAuth()` (lokal SecureStore) — `authApi.logout()` (POST /auth/logout) hech qayerda chaqirilmaydi. Refresh token serverda TIRIK qoladi; айниқса CompromisedDevice (jailbreak) da xavfli.
-- **Kutilgan:** Avval `await authApi.logout()` (server revoke), keyin lokal tozalash.
-
-## T-486 | P1 | [MOBILE] | UsersScreen edit ishlamaydi — doim create
-- **Fayl:** apps/mobile/src/screens/Settings/UsersScreen.tsx:113-117, useUserForm.ts:82-121
-- **Muammo:** `handleSave` doim `createMutation` (POST /users) — `usersApi.update` (PATCH) hech qachon chaqirilmaydi. Edit rejimda parol maydoni ham yo'q → o'zgarishlar saqlanmaydi / create buziladi.
-- **Kutilgan:** `isNew` → create; aks holda `usersApi.update(id, ...)`.
-
-## T-487 | P1 | [MOBILE] | Owner app — mock-data production'da
-- **Fayl:** apps/mobile-owner/src/screens/HR/useHRData.ts:6, Employees/EmployeeDetailScreen.tsx:76, Alerts/index.tsx:51, Reports/BranchReportScreen.tsx:41, components/charts/{LineChartWidget,BarChartWidget,HorizontalBarChart,AgingBucketChart}.tsx
-- **Muammo:** API bo'sh/error qaytarganda soxta moliyaviy raqamlar ko'rsatiladi (MOCK_EMPLOYEES/PROFILE/ALERTS/BRANCHES + 4 chart). CLAUDE.md "mock data production'da TAQIQLANGAN". EmployeeDetail'da soxta ism ko'rinib, mutation real ID'ga ketishi mumkin.
-- **Kutilgan:** Barcha MOCK_* fallback olib tashlansin; mavjud EmptyState/ErrorView ishlatilsin.
+## T-511 | P1 | [IKKALASI] | User create/edit e2e buzilgan — backend kontrakt mismatch
+- **Sana:** 2026-06-04
+- **Mas'ul:** Abdulaziz (mobile) + Ibrat (backend qaror)
+- **Fayl:** apps/mobile/src/api/users.api.ts, screens/Settings/{UserFormSheet.tsx, useUserForm.ts}; apps/api Create/UpdateUserDto
+- **Muammo:** T-486 routing fix (edit→PATCH) to'g'ri, lekin user create/edit hali backend'да **400** beradi (`forbidNonWhitelisted: true`, main.ts:62):
+  1. **phone** — mobile yuboradi (form input + CreateUserBody/UpdateUserBody.phone), lekin backend User model (schema.prisma:74-110) va Create/UpdateUserDto'da `phone` YO'Q → 400 "property phone should not exist" (create VA edit).
+  2. **email** — create'da `@IsEmail()` majburiy (create-user.dto.ts:15), lekin mobile formда email input YO'Q, `useUserForm:86` `email: ''` → 400 (create).
+  3. **parol** — backend `@MinLength(8)` (create-user.dto.ts:20) vs mobile (qisqaroq).
+- **Bo'linish:**
+  - **Ibrat/Team Lead QAROR:** `phone` saqlanadimi? HA → backend User model + Create/UpdateUserDto ga `phone`. YO'Q → mobile'dan phone input+body olib tashlash.
+  - **Mobile (Abdulaziz, qarordan keyin):** formга email input (create uchun); parol min 8; phone qarorini bajarish.
 
 ## T-488 | P1 | [MOBILE] | DebtPaymentForm — to'lov usuli label sifatida yuboriladi
 - **Fayl:** apps/mobile/src/screens/Nasiya/DebtPaymentForm.tsx:52, 66

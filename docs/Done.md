@@ -3,6 +3,30 @@
 
 ---
 
+## T-487 | 2026-06-04 | [MOBILE] | Owner app — mock-data production'da
+
+- **Yechim:** Owner ilovadagi BARCHA 12 mock-data fallback (15 ishlatilish) olib tashlandi → API bo'sh/error qaytarganda endi soxta moliyaviy raqam EMAS, real empty/error UI ko'rsatiladi. Listlar: `data ?? []` + mavjud `EmptyState`/`ListEmptyComponent`. EmployeeDetailScreen: yangi `ErrorView` guard (soxta "Sarvar Qodirov" → mutation real ID'ga ketish xavfi yo'qoldi). Charts: yangi `ChartNoData` komponenti ("Ma'lumot yo'q"), bo'sh massivда crash yo'q. Reports: MOCK_BRANCHES/MOCK_SHIFTS utils'dan o'chirildi.
+- **Fayl:** apps/mobile-owner/src — HR/useHRData, Employees/EmployeeDetailScreen, Alerts/index, Reports/{Branch,Shift}ReportScreen + utils, charts/{Line,Bar,HorizontalBar,AgingBucket,PaymentBreakdown}, Analytics/{OrdersByBranch,StockValueByBranch}; + yangi charts/ChartNoData.tsx
+- **Tekshiruv:** multi-agent (design + implement + typecheck 0 xato + adversarial review): noMockInProd / emptyErrorStatesRender / noCrashOnEmpty / zoneRespected — barchasi PASS.
+
+---
+
+## T-486 | 2026-06-04 | [MOBILE] | UsersScreen edit — routing tuzatildi (doim create edi)
+
+- **Yechim (routing):** `UsersScreen.tsx` ga `updateMutation` qo'shildi (BranchesScreen pattern); `handleSave` endi `editUser` bo'yicha shoxlanadi — edit → `usersApi.update(id, UpdateUserBody)` (PATCH), create → o'zgarmagan POST; `isSaving` ikkala mutation'ni qoplaydi. 1 fayl, mobile-zona, tsc 0 xato.
+- **Fayl:** apps/mobile/src/screens/Settings/UsersScreen.tsx
+- **Tekshiruv:** multi-agent (design + implement + typecheck PASS). ⚠️ Adversarial review: routing TO'G'RI, lekin feature e2e hali **ishlamaydi** — backend kontrakt mismatch (phone/email/parol). → **T-511** ochildi (Ibrat qarori kerak). Bu fix to'g'ri poydevor; to'liq ishlashi T-511 ga bog'liq.
+
+---
+
+## T-485 | 2026-06-04 | [MOBILE] | Logout server-side token revoke qilmaydi
+
+- **Yechim:** `auth.store.ts` ga yangi async `logout()` action — best-effort server revoke (`authApi.logout()` POST /auth/logout, **dynamic import** bilan circular-dep'dan qochib) try/catch, so'ng har holatda `get().clearAuth()`. 3 user-logout joyi (`Settings/index.tsx`, `MoreMenu/index.tsx`, `Auth/CompromisedDeviceScreen.tsx`) endi `logout()` chaqiradi. `clearAuth()` o'zgarmagan local-only — `client.ts:70` refresh-fail yo'li hali `clearAuth()` ishlatadi (logout EMAS) → **logout loop xavfi yo'q**.
+- **Fayl:** apps/mobile/src/store/auth.store.ts, screens/Settings/index.tsx, screens/MoreMenu/index.tsx, screens/Auth/CompromisedDeviceScreen.tsx
+- **Tekshiruv:** multi-agent (implement + typecheck 0 xato); adversarial review agenti structured output bermadi → qo'lda adversarial tekshirildi (3 site, no-loop, signature, local-only clear — barchasi PASS).
+
+---
+
 ## T-484 | 2026-06-04 | [MOBILE] | Loyalty chegirma order summasiga ulanmagan
 
 - **Yechim:** Loyalty redeem chegirmasi endi ham order'ga (`discountAmount`) ham to'lov summasiga oqadi. Single source of truth: `Savdo/index.tsx:61` da `discountAmount = Math.min(redeemPoints × redeemRate, totalPrice)` (useLoyaltyConfig), `useSavdoOrder` + `PaymentSheet` ga uzatiladi. `payable = max(0, totalPrice − discountAmount)` → online intent amount, NAQD/KARTA cashier total, NASIYA nav, va createOrder payload `discountAmount` (online/standard/offline). LoyaltySection endi lifted qiymatni ko'rsatadi (display = charged). `packages/types`/`apps/api` tegilmagan (`CreateOrderPayload.discountAmount` allaqachon bor).

@@ -33,7 +33,7 @@ type MoreMenuNavProp = NativeStackNavigationProp<MoreStackParamList, 'MoreMenu'>
 
 export default function MoreMenuScreen(): React.JSX.Element {
   const navigation = useNavigation<MoreMenuNavProp>();
-  const { user, clearAuth } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
   const roleLevel = getRoleLevel(user?.role);
   const isCashier = user?.role === 'CASHIER';
@@ -125,7 +125,7 @@ export default function MoreMenuScreen(): React.JSX.Element {
       'Tizimdan chiqmoqchimisiz?',
       [
         { text: 'Bekor', style: 'cancel' },
-        { text: 'Chiqish', style: 'destructive', onPress: () => { void clearAuth(); } },
+        { text: 'Chiqish', style: 'destructive', onPress: () => { void logout(); } },
       ],
     );
   };

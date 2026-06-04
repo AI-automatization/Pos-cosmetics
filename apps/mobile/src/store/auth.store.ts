@@ -25,11 +25,14 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   setUser: (user: User, accessToken: string, refreshToken: string) => Promise<void>;
+  /** Local-only wipe of SecureStore + state. Used by refresh-failure path. */
   clearAuth: () => Promise<void>;
+  /** User-initiated logout: best-effort server revoke, then local clearAuth(). */
+  logout: () => Promise<void>;
   loadFromStorage: () => Promise<boolean>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
 
@@ -47,6 +50,19 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync('refresh_token');
     await SecureStore.deleteItemAsync('user');
     set({ user: null, isAuthenticated: false });
+  },
+
+  logout: async () => {
+    // Best-effort server-side revoke (POST /auth/logout). Dynamic import
+    // breaks the circular dependency: auth.store <- auth.api <- client <- auth.store.
+    try {
+      const { authApi } = await import('../api/auth.api');
+      await authApi.logout();
+    } catch {
+      // Network/server xatosi — local clear baribir bajariladi (quyida).
+    }
+    // Har holatda local SecureStore + state ni tozalash.
+    await get().clearAuth();
   },
 
   loadFromStorage: async () => {

@@ -25,9 +25,9 @@ type NavigationProp = NativeStackNavigationProp<MoreStackParamList>;
 
 // ─── Main Screen ───────────────────────────────────────
 export default function SettingsScreen() {
-  const { t, i18n }         = useTranslation();
-  const { user, clearAuth } = useAuthStore();
-  const navigation          = useNavigation<NavigationProp>();
+  const { t, i18n }      = useTranslation();
+  const { user, logout } = useAuthStore();
+  const navigation       = useNavigation<NavigationProp>();
 
   const {
     theme,
@@ -59,7 +59,7 @@ export default function SettingsScreen() {
         {
           text: t('settings.logout'),
           style: 'destructive',
-          onPress: () => { void clearAuth(); },
+          onPress: () => { void logout(); },
         },
       ],
     );
