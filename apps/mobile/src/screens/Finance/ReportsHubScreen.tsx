@@ -137,9 +137,6 @@ export default function ReportsHubScreen() {
           <Text style={styles.headerTitle}>Hisobotlar</Text>
           <Text style={styles.headerSub}>Moliyaviy tahlil va hisobotlar</Text>
         </View>
-        <View style={styles.headerIcon}>
-          <Ionicons name="document-text-outline" size={20} color={C.primary} />
-        </View>
       </View>
 
       <ScrollView
@@ -177,11 +174,6 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, marginLeft: 4 },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerSub: { fontSize: 12, color: C.muted, marginTop: 2 },
-  headerIcon: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center', justifyContent: 'center',
-  },
 
   content: { padding: 16, paddingBottom: 40, gap: 12 },
 

@@ -14,6 +14,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { MoreStackParamList } from '../../navigation/types';
 import type { Receipt } from '../../api/inventory.api';
 import { useKirimData } from './useKirimData';
 import { useAuthStore } from '../../store/auth.store';
@@ -26,6 +29,7 @@ import type { FilterTab } from './KirimTypes';
 import TransferSheet from './TransferSheet';
 
 export default function KirimScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const [search, setSearch]            = useState('');
   const [selected, setSelected]        = useState<Receipt | null>(null);
   const [detailVisible, setDetail]     = useState(false);
@@ -55,6 +59,17 @@ export default function KirimScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Orqaga"
+            >
+              <Ionicons name="arrow-back" size={20} color={C.primary} />
+            </TouchableOpacity>
+          )}
           <Text style={styles.headerTitle}>Kirimlar</Text>
         </View>
         <View style={styles.centerFill}>
@@ -70,6 +85,17 @@ export default function KirimScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Orqaga"
+            >
+              <Ionicons name="arrow-back" size={20} color={C.primary} />
+            </TouchableOpacity>
+          )}
           <Text style={styles.headerTitle}>Kirimlar</Text>
         </View>
         <View style={styles.centerFill}>
@@ -84,6 +110,17 @@ export default function KirimScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Orqaga"
+            >
+              <Ionicons name="arrow-back" size={20} color={C.primary} />
+            </TouchableOpacity>
+          )}
           <Text style={styles.headerTitle}>Kirimlar</Text>
         </View>
         <View style={styles.centerFill}>
@@ -171,6 +208,17 @@ export default function KirimScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Orqaga"
+            >
+              <Ionicons name="arrow-back" size={20} color={C.primary} />
+            </TouchableOpacity>
+          )}
           <Text style={styles.headerTitle}>Kirimlar</Text>
           <TouchableOpacity
             style={styles.headerIcon}
@@ -251,6 +299,15 @@ const styles = StyleSheet.create({
     borderBottomColor: C.border,
   },
   headerTitle: { fontSize: 22, fontWeight: '800', color: C.text },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -4,
+    marginRight: 4,
+  },
   headerIcon: {
     width: 36,
     height: 36,

@@ -18,6 +18,15 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -8,
+    marginRight: 4,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',

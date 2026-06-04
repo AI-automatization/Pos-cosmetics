@@ -1,6 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import type { SavdoStackParamList } from '../../navigation/types';
 import { C, HistoryCard } from './SmenaComponents';
 import { useSmenaData, formatDate } from './useSmenaData';
 import ActiveShiftView from './ActiveShiftView';
@@ -12,6 +16,7 @@ import { styles } from './styles';
 
 // ─── Main Screen ───────────────────────────────────────
 export default function SmenaScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<SavdoStackParamList>>();
   const {
     isShiftOpen,
     loading,
@@ -34,6 +39,17 @@ export default function SmenaScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        {navigation.canGoBack() && (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Orqaga"
+          >
+            <Ionicons name="arrow-back" size={20} color={C.text} />
+          </TouchableOpacity>
+        )}
         <View>
           <Text style={styles.headerTitle}>Smena</Text>
           <Text style={styles.headerDate}>{todayStr}</Text>

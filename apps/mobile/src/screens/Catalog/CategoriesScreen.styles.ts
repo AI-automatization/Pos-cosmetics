@@ -66,6 +66,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 14,
     backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
   },
+  backBtn: {
+    width: 40, height: 40,
+    justifyContent: 'center', alignItems: 'center',
+    marginLeft: -8, marginRight: 4,
+  },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerCount: { fontSize: 12, color: C.muted, marginTop: 2 },
   addBtn: {

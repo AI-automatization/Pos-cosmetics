@@ -10,7 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { catalogApi, type CatalogCategory } from '../../api/catalog.api';
+import type { CatalogStackParamList } from '../../navigation/types';
 import CategoryFormSheet from './CategoryFormSheet';
 import CategoryRow, { buildTree, type TreeNode, type FlatItem } from './CategoryRow';
 import { C, styles } from './CategoriesScreen.styles';
@@ -19,6 +22,7 @@ import { C, styles } from './CategoriesScreen.styles';
 const QUERY_KEY = ['catalog-categories'];
 
 export default function CategoriesScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<CatalogStackParamList>>();
   const [sheetVisible, setSheetVisible] = useState(false);
   const [editCategory, setEditCategory] = useState<CatalogCategory | null>(null);
 
@@ -119,6 +123,17 @@ export default function CategoriesScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        {navigation.canGoBack() && (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Orqaga"
+          >
+            <Ionicons name="arrow-back" size={20} color={C.text} />
+          </TouchableOpacity>
+        )}
         <View>
           <Text style={styles.headerTitle}>Kategoriyalar</Text>
           <Text style={styles.headerCount}>{categories.length} ta</Text>

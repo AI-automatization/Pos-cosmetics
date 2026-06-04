@@ -128,9 +128,6 @@ export default function ProductsScreen() {
           <Text style={styles.headerTitle}>Mahsulotlar</Text>
           <Text style={styles.headerCount}>{totalCount} ta mahsulot</Text>
         </View>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Ionicons name="filter-outline" size={20} color={C.text} />
-        </TouchableOpacity>
       </View>
 
       {/* SearchBar */}

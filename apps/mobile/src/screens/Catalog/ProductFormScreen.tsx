@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import {
   BarcodeSection,
   StatusToggleSection,
 } from './ProductFormSections';
+import ScannerModal from '../Savdo/ScannerModal';
 import { styles, C } from './ProductFormScreen.styles';
 
 // ─── Props ─────────────────────────────────────────────
@@ -32,6 +33,7 @@ interface Props {
 // ─── Main Component ────────────────────────────────────
 export default function ProductFormScreen({ product, onClose, onSaved }: Props) {
   const form = useProductForm({ product, onClose, onSaved });
+  const [scanVisible, setScanVisible] = useState(false);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -101,6 +103,7 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
           <BarcodeSection
             barcode={form.barcode}
             onBarcodeChange={form.setBarcode}
+            onScanPress={() => setScanVisible(true)}
             errors={form.errors}
           />
 
@@ -130,6 +133,15 @@ export default function ProductFormScreen({ product, onClose, onSaved }: Props) 
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ScannerModal
+        visible={scanVisible}
+        onClose={() => setScanVisible(false)}
+        onScanned={(code) => {
+          form.setBarcode(code);
+          setScanVisible(false);
+        }}
+      />
     </SafeAreaView>
   );
 }

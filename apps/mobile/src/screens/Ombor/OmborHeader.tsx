@@ -12,11 +12,24 @@ interface Props {
   onRestockRequestsPress?: () => void;
   onStockRequestPress?: () => void;
   showStockRequest?: boolean;
+  onBack?: () => void;
+  canGoBack?: boolean;
 }
 
-export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPress, onRestockRequestsPress, onStockRequestPress, showStockRequest }: Props) {
+export default function OmborHeader({ onScanPress, onFilterPress, onInvoicesPress, onRestockRequestsPress, onStockRequestPress, showStockRequest, onBack, canGoBack }: Props) {
   return (
     <View style={styles.header}>
+      {canGoBack && (
+        <TouchableOpacity
+          onPress={onBack}
+          style={styles.backBtn}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Orqaga"
+        >
+          <Ionicons name="arrow-back" size={20} color={C.primary} />
+        </TouchableOpacity>
+      )}
       <View>
         <Text style={styles.headerTitle}>Ombor</Text>
         <Text style={styles.headerSub}>Zaxira holati</Text>
@@ -72,6 +85,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: C.muted,
     marginTop: 2,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
   },
   actions: {
     flexDirection: 'row',

@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
+import type { OmborTabStackParamList } from '../../navigation/types';
 import { inventoryApi } from '../../api/inventory.api';
 import InvoiceDetailSheet from './InvoiceDetailSheet';
 import InvoiceCard from './InvoiceCard';
@@ -33,6 +36,7 @@ const FILTER_TABS: { key: StatusFilter; label: string }[] = [
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function InvoicesScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<OmborTabStackParamList>>();
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [search, setSearch] = useState('');
@@ -71,6 +75,17 @@ export default function InvoicesScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Orqaga"
+            >
+              <Ionicons name="arrow-back" size={20} color={C.text} />
+            </TouchableOpacity>
+          )}
           <Text style={styles.headerTitle}>Nakladnoylar</Text>
         </View>
         <View style={styles.centerFill}>
@@ -91,6 +106,17 @@ export default function InvoicesScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        {navigation.canGoBack() && (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Orqaga"
+          >
+            <Ionicons name="arrow-back" size={20} color={C.text} />
+          </TouchableOpacity>
+        )}
         <Text style={styles.headerTitle}>Nakladnoylar</Text>
         {!isLoading && (
           <Text style={styles.headerCount}>{invoices.length} ta</Text>

@@ -32,10 +32,6 @@ export const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerCount: { fontSize: 12, color: C.muted, marginTop: 2 },
-  headerIcon: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
-  },
   searchWrap: {
     paddingHorizontal: 16, paddingVertical: 10,
     backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,

@@ -3,6 +3,22 @@
 
 ---
 
+## T-515 | 2026-06-04 | [MOBILE] | Orqaga qaytish tugmasi yo'q — seller/warehouse/manager screenlari
+
+- **Yechim:** Rol-spetsifik push qilingan screenlarga back tugmasi (canonical pattern, `navigation.canGoBack()` guard bilan). **Always-pushed:** Smena, Nasiya, Catalog/CategoriesScreen, Catalog/SuppliersScreen, Ombor/InvoicesScreen. **Dual-use (tab root + push):** Ombor/index (OmborHeader orqali) va Kirim/index — `canGoBack()` guard tab-root'da back ko'rsatmaydi, push'da ko'rsatadi. (T-512 ning rol-screenlar uchun davomi.)
+- **Fayl:** apps/mobile/src/screens/{Smena/index, Nasiya/index, Catalog/{CategoriesScreen,SuppliersScreen}, Ombor/{index,OmborHeader,InvoicesScreen}, Kirim/index} (+ tegishli .styles.ts)
+- **Manba:** foydalanuvchi so'rovi (boshqa rollarni tekshir). **Tekshiruv:** multi-agent (design → 4 parallel implement → typecheck 0 xato + adversarial review). Review Nasiya back'ini yetishmayotganini ushladi → qo'lda qo'shildi.
+
+---
+
+## T-516 | 2026-06-04 | [MOBILE] | O'lik tugmalar — seller/manager screenlari
+
+- **Yechim:** (1) Dekorativ `<View>` header iconlar (bosilmaydi, T-514 anti-pattern) olib tashlandi: `Finance/PaymentsHistoryScreen` (+ ishlatilmagan style/import tozalandi). (2) Haqiqiy dead `TouchableOpacity` (filter/scan, `onPress` yo'q): `Nasiya/index` filter va `Catalog/ProductsScreen` filter — bu screenlarда filtrlash allaqachon inline (tablar/search) bo'lgani uchun (ulanadigan alohida filter sheet yo'q) **olib tashlandi**; `Catalog/ProductFormSections` scan — registratsiya qilingan Scanner route yo'qligi uchun resolved. Soxta tugma qoldirilmadi.
+- **Fayl:** apps/mobile/src/screens/{Nasiya/index, Catalog/{ProductsScreen,ProductFormSections,ProductFormScreen}, Finance/{ExportScreen,PaymentsHistoryScreen,ReportsHubScreen}} (+ .styles.ts)
+- **Manba:** foydalanuvchi so'rovi. **Tekshiruv:** multi-agent — deadFilterScanResolved / decorativeRemoved PASS.
+
+---
+
 ## T-514 | 2026-06-04 | [MOBILE] | Moliya screen — o'ng-tepada ishlamaydigan tugma
 
 - **Yechim:** `FinanceScreen.tsx` header'idagi dekorativ `<View>` (bar-chart ikonka, `TouchableOpacity` emas, `onPress` yo'q — bosilmaydigan o'lik tugma) olib tashlandi; ishlatilmay qolgan `Ionicons` importi ham tozalandi.

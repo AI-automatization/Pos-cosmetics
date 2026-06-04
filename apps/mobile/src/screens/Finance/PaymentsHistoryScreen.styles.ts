@@ -25,14 +25,6 @@ export const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerSub: { fontSize: 12, color: C.muted, marginTop: 2 },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerIconBlue: { backgroundColor: '#EFF6FF' },
 
   searchWrap: {
     paddingHorizontal: 16,

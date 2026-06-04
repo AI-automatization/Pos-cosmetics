@@ -92,9 +92,6 @@ export default function ExportScreen() {
           <Text style={styles.headerTitle}>Hisobot eksport</Text>
           <Text style={styles.headerSub}>CSV formatda yuklab olish</Text>
         </View>
-        <View style={styles.headerIcon}>
-          <Ionicons name="download-outline" size={20} color={C.primary} />
-        </View>
       </View>
 
       {/* Period pills */}
@@ -159,11 +156,6 @@ const styles = StyleSheet.create({
   headerText:  { flex: 1, marginLeft: 4 },
   headerTitle: { fontSize: 20, fontWeight: '800', color: C.text },
   headerSub:   { fontSize: 12, color: C.muted, marginTop: 2 },
-  headerIcon:  {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center', justifyContent: 'center',
-  },
 
   pillRow: {
     flexDirection:     'row',

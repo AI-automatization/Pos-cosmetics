@@ -139,10 +139,14 @@ export default function NasiyaScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Nasiya</Text>
-        <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
-          <Ionicons name="filter-outline" size={20} color={C.primary} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Orqaga">
+              <Ionicons name="arrow-back" size={20} color={C.text} />
+            </TouchableOpacity>
+          )}
+          <Text style={styles.headerTitle}>Nasiya</Text>
+        </View>
       </View>
 
       {isLoading ? (
@@ -264,12 +268,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  backBtn: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', marginLeft: -8 },
   headerTitle: { fontSize: 22, fontWeight: '800', color: C.text },
-  headerIcon: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center', justifyContent: 'center',
-  },
 
   // List
   content: { paddingBottom: 100 },

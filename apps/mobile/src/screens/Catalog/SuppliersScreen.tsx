@@ -10,7 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { catalogApi, type Supplier, type CreateSupplierDto, type UpdateSupplierDto } from '../../api/catalog.api';
+import type { CatalogStackParamList } from '../../navigation/types';
 import { extractErrorMessage } from '../../utils/error';
 import SearchBar from '../../components/common/SearchBar';
 import SupplierFormSheet from './SupplierFormSheet';
@@ -20,6 +23,7 @@ import { C, styles } from './SuppliersScreen.styles';
 // ─── SuppliersScreen ───────────────────────────────────
 export default function SuppliersScreen() {
   const qc = useQueryClient();
+  const navigation = useNavigation<NativeStackNavigationProp<CatalogStackParamList>>();
   const [search, setSearch]             = useState('');
   const [sheetVisible, setSheetVisible] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
@@ -107,6 +111,17 @@ export default function SuppliersScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        {navigation.canGoBack() && (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Orqaga"
+          >
+            <Ionicons name="arrow-back" size={20} color={C.text} />
+          </TouchableOpacity>
+        )}
         <View>
           <Text style={styles.headerTitle}>Yetkazib beruvchilar</Text>
           <Text style={styles.headerCount}>{suppliers.length} ta</Text>

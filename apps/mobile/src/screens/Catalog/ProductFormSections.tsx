@@ -157,10 +157,11 @@ export function StockSection({ minStock, onMinStockChange, isEdit, product, erro
 interface BarcodeSectionProps {
   readonly barcode: string;
   readonly onBarcodeChange: (v: string) => void;
+  readonly onScanPress: () => void;
   readonly errors?: ProductFormErrors;
 }
 
-export function BarcodeSection({ barcode, onBarcodeChange, errors }: BarcodeSectionProps) {
+export function BarcodeSection({ barcode, onBarcodeChange, onScanPress, errors }: BarcodeSectionProps) {
   return (
     <>
       <SectionTitle>BARCODE</SectionTitle>
@@ -168,7 +169,13 @@ export function BarcodeSection({ barcode, onBarcodeChange, errors }: BarcodeSect
         <FormField label="Asosiy barcode" error={errors?.barcode}>
           <View style={styles.barcodeRow}>
             <Input value={barcode} onChangeText={onBarcodeChange} placeholder="8600000000000" keyboardType="numeric" />
-            <TouchableOpacity style={styles.scanBtn}>
+            <TouchableOpacity
+              style={styles.scanBtn}
+              onPress={onScanPress}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Skanerlash"
+            >
               <Ionicons name="scan-outline" size={20} color={C.primary} />
             </TouchableOpacity>
           </View>

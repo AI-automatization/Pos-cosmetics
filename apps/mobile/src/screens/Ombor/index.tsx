@@ -86,6 +86,8 @@ export default function OmborScreen() {
       onRestockRequestsPress={() => navigation.navigate('RestockRequestsScreen')}
       onStockRequestPress={() => setShowRequestSheet(true)}
       showStockRequest={!isWarehouse}
+      canGoBack={navigation.canGoBack()}
+      onBack={() => navigation.goBack()}
     />
   );
 

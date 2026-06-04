@@ -144,9 +144,6 @@ export default function PaymentsHistoryScreen() {
             <Text style={styles.headerSub}>{filtered.length} ta yozuv</Text>
           </View>
         </View>
-        <View style={[styles.headerIcon, styles.headerIconBlue]}>
-          <Ionicons name="card-outline" size={20} color={C.primary} />
-        </View>
       </View>
 
       {/* Search */}
