@@ -9,12 +9,12 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: "RAOS — Har qanday do'kon uchun smart POS tizimi",
   description:
-    "Kassa, sklad, Soliq.uz, AI hisobot. 30 kun bepul sinov. O'zbekiston uchun yaratilgan.",
+    "Kassa, sklad, Soliq.uz, AI hisobot. Pilot uchun ariza qoldiring. O'zbekiston uchun yaratilgan.",
   keywords:
     "POS tizimi, kassa dasturi, do'kon boshqaruv, RAOS, Soliq.uz, offline kassa",
   openGraph: {
     title: 'RAOS — Smart POS tizimi',
-    description: '30 kun bepul sinov. Karta kerak emas.',
+    description: 'Demo va pilot uchun ariza qoldiring.',
     type: 'website',
   },
 }
