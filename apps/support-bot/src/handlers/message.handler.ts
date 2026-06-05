@@ -1,16 +1,17 @@
 import { Bot, InlineKeyboard } from 'grammy';
 import { matchFaq } from '../services/faq.service';
+import { askAI, isAIAvailable } from '../services/ai.service';
 import { logger } from '../logger';
 
 export function registerMessageHandler(bot: Bot) {
   bot.on('message:text', async (ctx) => {
     const text = ctx.message.text;
-
     if (text.startsWith('/')) return;
 
-    const match = matchFaq(text);
+    const chatId = String(ctx.chat.id);
 
-    if (match && match.score >= 0.4) {
+    const match = matchFaq(text);
+    if (match && match.score >= 0.5) {
       const entry = match.entry;
       const answer = `❓ ${entry.question_ru}\n\n${entry.answer_ru}`;
       const kb = new InlineKeyboard()
@@ -20,6 +21,20 @@ export function registerMessageHandler(bot: Bot) {
       await ctx.reply(answer, { reply_markup: kb });
       logger.log('[FAQ] Matched', { query: text, faqId: entry.id, score: match.score });
       return;
+    }
+
+    if (isAIAvailable()) {
+      await ctx.reply('🤖 Думаю...');
+
+      const aiAnswer = await askAI(chatId, text);
+      if (aiAnswer) {
+        const kb = new InlineKeyboard()
+          .row(InlineKeyboard.text('✅ Спасибо, помогло!', 'faq_helpful'))
+          .row(InlineKeyboard.text('🎫 Не помогло — связаться с человеком', 'create_ticket'));
+
+        await ctx.reply(`🤖 ${aiAnswer}`, { reply_markup: kb });
+        return;
+      }
     }
 
     await ctx.reply(

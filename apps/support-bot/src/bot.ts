@@ -22,6 +22,7 @@ export function createBot(): Bot {
     { command: 'status', description: 'Статус системы' },
     { command: 'ticket', description: 'Создать заявку в поддержку' },
     { command: 'mytickets', description: 'Мои заявки' },
+    { command: 'reply', description: 'Ответить на тикет (админ)' },
     { command: 'help', description: 'Справка' },
   ]).catch((e) => logger.error('[Bot] setMyCommands failed', { error: (e as Error).message }));
 
