@@ -2,7 +2,7 @@
 
 ## Date: 2026-06-05
 ## Severity: CRITICAL
-## Status: PASSWORD REMOVED FROM CODE, ROTATION PENDING
+## Status: RESOLVED — password rotated 2026-06-05
 
 ---
 
@@ -24,13 +24,15 @@ Commit: `d74f2cc` (2026-06-05)
 
 ## What MUST be done (manual steps)
 
-### 1. Rotate Railway DB password (URGENT)
+### 1. Rotate Railway DB password — DONE (2026-06-05)
 
-1. Go to Railway Dashboard > Project > PostgreSQL service
-2. Settings > Connection > Reset Password
-3. Copy new `DATABASE_URL`
-4. Update in Railway API service Variables
-5. Redeploy API + Worker services
+Password rotated via Railway CLI:
+```
+railway service Postgres
+railway variables --set "PGPASSWORD=<new-password>"
+```
+Railway auto-propagated new DATABASE_URL to all linked services (api, worker).
+API + Worker redeployed. Health check: api.raos.uz → HTTP 200.
 
 ### 2. Verify no unauthorized access
 
