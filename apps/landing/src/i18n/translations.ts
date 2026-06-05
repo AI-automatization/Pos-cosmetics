@@ -6,16 +6,16 @@ const uz = {
     pricing: 'Narxlar',
     comparison: 'Taqqoslash',
     faq: 'FAQ',
-    cta: 'Bepul boshlash',
+    cta: 'Ariza qoldirish',
     menu: 'Menyu',
   },
   hero: {
-    badge: '30 kun BEPUL — karta kerak emas',
+    badge: 'Pilot rejimi — demo uchun ariza',
     title: "Sizning do'koningiz uchun",
     titleHighlight: 'smart POS tizimi',
     subtitle: 'Kassa. Sklad. Soliq. Hisobot. Bitta joyda.',
-    desc: "Internet uzilsa ham ishlaydi. AI tunda tahlil qiladi. 30 kun bepul sinab ko'ring.",
-    cta1: '30 kun bepul sinov →',
+    desc: "Internet uzilsa ham ishlaydi. AI tunda tahlil qiladi. Demo uchun ariza qoldiring.",
+    cta1: 'Ariza qoldirish →',
     cta2: "Demo ko'rish",
     proof1: "30+ do'kon",
     proof2: 'Offline ishlaydi',
@@ -52,8 +52,8 @@ const uz = {
         badge: 'Haqiqiy AI',
       },
       {
-        title: '30 kun bepul sinov',
-        description: "Hech narsa to'lamaysiz. Karta talab qilinmaydi. O'zingiz sinab ko'ring.",
+        title: 'Pilot: birinchi oy bepul',
+        description: "Pilot davomida to'lov yo'q. Jamoamiz onboarding qiladi.",
         badge: 'Bepul',
       },
       {
@@ -74,8 +74,8 @@ const uz = {
     steps: [
       {
         number: '01',
-        title: "Ro'yxatdan o'ting",
-        description: "Telegram yoki telefon orqali, atigi 2 daqiqa. Karta kerak emas.",
+        title: "Ariza qoldiring",
+        description: "Formani to'ldiring — jamoamiz 30 daqiqada bog'lanadi.",
       },
       {
         number: '02',
@@ -88,16 +88,16 @@ const uz = {
         description: "Kassada, telefonda, planshetda — va offline ham ishlaydi.",
       },
     ],
-    cta: 'Hoziroq boshlash →',
+    cta: 'Ariza qoldirish →',
   },
   pricing: {
     title: "Shaffof narxlar — yashirin to'lovlar yo'q",
-    subtitle: 'Barcha rejalarda 30 kun bepul sinov',
+    subtitle: 'Pilot dasturida birinchi oy bepul',
     monthly: 'Oylik',
     yearly: 'Yillik',
     save: '25% tejash',
     perMonth: "so'm/oy",
-    note: 'Barcha rejalarda: 30 kun bepul sinov. Karta kerak emas. Istalgan vaqt bekor qiling.',
+    note: 'Pilot: birinchi oy bepul. Onboardingda jamoamiz yordam beradi.',
     plans: [
       {
         name: 'Starter',
@@ -110,7 +110,7 @@ const uz = {
           'Telegram bildirishnomalar',
           "Email qo'llab-quvvatlash",
         ],
-        cta: 'Bepul boshlash',
+        cta: 'Ariza qoldirish',
         badge: null,
         highlighted: false,
         price: 249000,
@@ -127,7 +127,7 @@ const uz = {
           'Sodiqlik dasturi',
           "Prioritet qo'llab-quvvatlash",
         ],
-        cta: 'Bepul boshlash',
+        cta: 'Ariza qoldirish',
         badge: 'TAVSIYA ETILADI',
         highlighted: true,
         price: 449000,
@@ -183,7 +183,7 @@ const uz = {
       },
       {
         question: "Necha so'm turadi?",
-        answer: "Starter: 249,000 so'm/oy. Growth: 449,000. Pro: 799,000. Barcha rejalar uchun 30 kun bepul sinov — karta kerak emas.",
+        answer: "Starter: 249,000 so'm/oy. Growth: 449,000. Pro: 799,000. Pilot dasturida birinchi oy bepul — keyin tarif bo'yicha.",
       },
       {
         question: 'Telefonda ishlaydimi?',
@@ -204,8 +204,8 @@ const uz = {
     ],
   },
   register: {
-    title: '30 kun bepul sinov boshlang',
-    subtitle: "Karta kerak emas. 30 daqiqada bog'lanamiz.",
+    title: 'Demo va pilot uchun ariza',
+    subtitle: "Formani to'ldiring — 30 daqiqada bog'lanamiz.",
     shopTypeLabel: "Do'kon turi",
     shopTypePlaceholder: 'Tanlang...',
     shopNameLabel: "Do'kon nomi",
@@ -216,7 +216,7 @@ const uz = {
     phoneLabel: 'Telefon',
     telegramLabel: 'Telegram username',
     optional: '(ixtiyoriy)',
-    submit: 'Bepul sinov boshlash',
+    submit: 'Ariza qoldirish',
     shopTypes: ['Kosmetika', 'Kiyim', 'Avtozapchast', 'Oziq-ovqat', 'Parfumeriya', 'Telefon', 'Optika', 'Boshqa'],
     errors: {
       shopName: "Do'kon nomini kiriting",
@@ -230,8 +230,8 @@ const uz = {
   cta: {
     title: "Hali o'ylayapsizmi?",
     desc: "Har kuni kechikish = savdo yo'qolishi. 30 kun bepul — yo'qotadigan narsangiz yo'q.",
-    button: 'Hoziroq bepul boshlash →',
-    note: "Karta kerak emas • Bekor qilish bepul • 30 daqiqada bog'lanamiz",
+    button: 'Ariza qoldirish →',
+    note: "Demo va pilot uchun ariza • 30 daqiqada bog'lanamiz",
   },
   footer: {
     tagline: "O'zbekiston uchun yaratilgan smart POS tizimi. Kassa, sklad, Soliq.uz, AI hisobot — bitta joyda.",
@@ -254,16 +254,16 @@ const ru: typeof uz = {
     pricing: 'Цены',
     comparison: 'Сравнение',
     faq: 'FAQ',
-    cta: 'Начать бесплатно',
+    cta: 'Оставить заявку',
     menu: 'Меню',
   },
   hero: {
-    badge: '30 дней БЕСПЛАТНО — карта не нужна',
+    badge: 'Пилот-режим — заявка на демо',
     title: 'Умная POS-система для вашего',
     titleHighlight: 'магазина',
     subtitle: 'Касса. Склад. Налоги. Отчёты. Всё в одном.',
-    desc: 'Работает без интернета. AI анализирует ночью. Попробуйте 30 дней бесплатно.',
-    cta1: '30 дней бесплатно →',
+    desc: 'Работает без интернета. AI анализирует ночью. Оставьте заявку на демо.',
+    cta1: 'Оставить заявку →',
     cta2: 'Смотреть демо',
     proof1: '30+ магазинов',
     proof2: 'Работает офлайн',
@@ -300,8 +300,8 @@ const ru: typeof uz = {
         badge: 'Настоящий AI',
       },
       {
-        title: '30 дней бесплатно',
-        description: 'Ничего не платите. Карта не требуется. Попробуйте сами.',
+        title: 'Пилот: первый месяц бесплатно',
+        description: 'Во время пилота вы ничего не платите. Онбординг проводит команда.',
         badge: 'Бесплатно',
       },
       {
@@ -322,8 +322,8 @@ const ru: typeof uz = {
     steps: [
       {
         number: '01',
-        title: 'Зарегистрируйтесь',
-        description: 'Через Telegram или телефон, всего 2 минуты. Карта не нужна.',
+        title: 'Оставьте заявку',
+        description: 'Заполните форму — команда свяжется за 30 минут.',
       },
       {
         number: '02',
@@ -336,16 +336,16 @@ const ru: typeof uz = {
         description: 'На кассе, телефоне, планшете — и офлайн тоже работает.',
       },
     ],
-    cta: 'Начать сейчас →',
+    cta: 'Оставить заявку →',
   },
   pricing: {
     title: 'Прозрачные цены — никаких скрытых платежей',
-    subtitle: 'Бесплатный пробный период 30 дней во всех тарифах',
+    subtitle: 'Первый месяц пилота — бесплатно',
     monthly: 'Ежемесячно',
     yearly: 'Ежегодно',
     save: 'Скидка 25%',
     perMonth: 'сум/мес',
-    note: 'Во всех тарифах: 30 дней бесплатно. Карта не нужна. Отмените в любое время.',
+    note: 'Пилот: первый месяц бесплатно. Онбординг проводит наша команда.',
     plans: [
       {
         name: 'Starter',
@@ -358,7 +358,7 @@ const ru: typeof uz = {
           'Уведомления в Telegram',
           'Поддержка по Email',
         ],
-        cta: 'Начать бесплатно',
+        cta: 'Оставить заявку',
         badge: null,
         highlighted: false,
         price: 249000,
@@ -375,7 +375,7 @@ const ru: typeof uz = {
           'Программа лояльности',
           'Приоритетная поддержка',
         ],
-        cta: 'Начать бесплатно',
+        cta: 'Оставить заявку',
         badge: 'РЕКОМЕНДУЕМ',
         highlighted: true,
         price: 449000,
@@ -431,7 +431,7 @@ const ru: typeof uz = {
       },
       {
         question: 'Сколько стоит?',
-        answer: 'Starter: 249 000 сум/мес. Growth: 449 000. Pro: 799 000. Для всех тарифов 30 дней бесплатно — карта не нужна.',
+        answer: 'Starter: 249 000 сум/мес. Growth: 449 000. Pro: 799 000. В пилоте первый месяц бесплатно — далее по тарифу.',
       },
       {
         question: 'Работает на телефоне?',
@@ -452,8 +452,8 @@ const ru: typeof uz = {
     ],
   },
   register: {
-    title: 'Начните 30 дней бесплатно',
-    subtitle: 'Карта не нужна. Свяжемся за 30 минут.',
+    title: 'Заявка на демо и пилот',
+    subtitle: 'Заполните форму — свяжемся за 30 минут.',
     shopTypeLabel: 'Тип магазина',
     shopTypePlaceholder: 'Выберите...',
     shopNameLabel: 'Название магазина',
@@ -464,7 +464,7 @@ const ru: typeof uz = {
     phoneLabel: 'Телефон',
     telegramLabel: 'Telegram username',
     optional: '(необязательно)',
-    submit: 'Начать бесплатный пробный период',
+    submit: 'Оставить заявку',
     shopTypes: ['Косметика', 'Одежда', 'Автозапчасти', 'Продукты', 'Парфюмерия', 'Телефоны', 'Оптика', 'Другое'],
     errors: {
       shopName: 'Введите название магазина',
@@ -478,8 +478,8 @@ const ru: typeof uz = {
   cta: {
     title: 'Всё ещё думаете?',
     desc: 'Каждый день промедления = потерянные продажи. 30 дней бесплатно — вам нечего терять.',
-    button: 'Начать бесплатно прямо сейчас →',
-    note: 'Карта не нужна • Отмена бесплатна • Свяжемся за 30 минут',
+    button: 'Оставить заявку →',
+    note: 'Заявка на демо и пилот • Свяжемся за 30 минут',
   },
   footer: {
     tagline: 'Умная POS-система, созданная для Узбекистана. Касса, склад, Soliq.uz, AI-отчёты — всё в одном.',
@@ -502,16 +502,16 @@ const en: typeof uz = {
     pricing: 'Pricing',
     comparison: 'Compare',
     faq: 'FAQ',
-    cta: 'Start Free',
+    cta: 'Request a demo',
     menu: 'Menu',
   },
   hero: {
-    badge: '30 Days FREE — no card required',
+    badge: 'Pilot mode — request a demo',
     title: 'The smart POS system for',
     titleHighlight: 'your store',
     subtitle: 'Cash register. Inventory. Tax. Reports. All in one.',
-    desc: 'Works even without internet. AI analyses at night. Try free for 30 days.',
-    cta1: 'Start 30-day free trial →',
+    desc: 'Works even without internet. AI analyses at night. Request a demo.',
+    cta1: 'Request a demo →',
     cta2: 'View demo',
     proof1: '30+ stores',
     proof2: 'Works offline',
@@ -548,8 +548,8 @@ const en: typeof uz = {
         badge: 'Real AI',
       },
       {
-        title: '30-day free trial',
-        description: 'Pay nothing. No card required. Try it yourself.',
+        title: 'Pilot: first month free',
+        description: 'Pay nothing during the pilot. Our team handles onboarding.',
         badge: 'Free',
       },
       {
@@ -570,8 +570,8 @@ const en: typeof uz = {
     steps: [
       {
         number: '01',
-        title: 'Sign up',
-        description: 'Via Telegram or phone — just 2 minutes. No card needed.',
+        title: 'Leave a request',
+        description: 'Fill in the form — our team contacts you within 30 minutes.',
       },
       {
         number: '02',
@@ -584,16 +584,16 @@ const en: typeof uz = {
         description: 'At the counter, on your phone, on a tablet — offline too.',
       },
     ],
-    cta: 'Start now →',
+    cta: 'Request a demo →',
   },
   pricing: {
     title: 'Transparent pricing — no hidden fees',
-    subtitle: 'All plans include a 30-day free trial',
+    subtitle: 'First pilot month is free',
     monthly: 'Monthly',
     yearly: 'Yearly',
     save: 'Save 25%',
     perMonth: 'sum/mo',
-    note: 'All plans: 30-day free trial. No card required. Cancel anytime.',
+    note: 'Pilot: first month free. Our team handles onboarding.',
     plans: [
       {
         name: 'Starter',
@@ -606,7 +606,7 @@ const en: typeof uz = {
           'Telegram notifications',
           'Email support',
         ],
-        cta: 'Start free',
+        cta: 'Request a demo',
         badge: null,
         highlighted: false,
         price: 249000,
@@ -623,7 +623,7 @@ const en: typeof uz = {
           'Loyalty programme',
           'Priority support',
         ],
-        cta: 'Start free',
+        cta: 'Request a demo',
         badge: 'RECOMMENDED',
         highlighted: true,
         price: 449000,
@@ -679,7 +679,7 @@ const en: typeof uz = {
       },
       {
         question: 'How much does it cost?',
-        answer: 'Starter: 249,000 sum/mo. Growth: 449,000. Pro: 799,000. All plans include a 30-day free trial — no card required.',
+        answer: 'Starter: 249,000 sum/mo. Growth: 449,000. Pro: 799,000. The pilot first month is free — then on a plan.',
       },
       {
         question: 'Does it work on a phone?',
@@ -700,8 +700,8 @@ const en: typeof uz = {
     ],
   },
   register: {
-    title: 'Start your 30-day free trial',
-    subtitle: 'No card required. We will contact you within 30 minutes.',
+    title: 'Request a demo & pilot',
+    subtitle: 'Fill in the form — we contact you within 30 minutes.',
     shopTypeLabel: 'Store type',
     shopTypePlaceholder: 'Select...',
     shopNameLabel: 'Store name',
@@ -712,7 +712,7 @@ const en: typeof uz = {
     phoneLabel: 'Phone',
     telegramLabel: 'Telegram username',
     optional: '(optional)',
-    submit: 'Start free trial',
+    submit: 'Leave a request',
     shopTypes: ['Cosmetics', 'Clothing', 'Auto parts', 'Grocery', 'Perfumery', 'Phones', 'Optics', 'Other'],
     errors: {
       shopName: 'Please enter your store name',
@@ -726,8 +726,8 @@ const en: typeof uz = {
   cta: {
     title: 'Still thinking about it?',
     desc: 'Every day you wait = lost sales. 30 days free — you have nothing to lose.',
-    button: 'Start free right now →',
-    note: 'No card required • Cancel for free • We contact you in 30 minutes',
+    button: 'Request a demo →',
+    note: 'Request a demo & pilot • We contact you in 30 minutes',
   },
   footer: {
     tagline: 'Smart POS system built for Uzbekistan. Cash register, inventory, Soliq.uz, AI reports — all in one.',
