@@ -26,7 +26,7 @@ function ResetPasswordModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) return;
+    if (newPassword.length < 8) return;
     resetPassword({ id: user.id, newPassword }, { onSuccess: onClose });
   };
 
@@ -54,7 +54,7 @@ function ResetPasswordModal({
                 type={showPwd ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                minLength={6}
+                minLength={8}
                 required
                 placeholder={t('settings.minChars')}
                 className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
@@ -78,7 +78,7 @@ function ResetPasswordModal({
             </button>
             <button
               type="submit"
-              disabled={newPassword.length < 6 || isPending}
+              disabled={newPassword.length < 8 || isPending}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {isPending ? t('common.saving') : t('common.save')}

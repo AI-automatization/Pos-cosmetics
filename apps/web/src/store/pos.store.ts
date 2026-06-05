@@ -328,7 +328,10 @@ export const usePOSStore = create<POSState>()(
         return persistedState;
       },
       partialize: (state) => ({
-        carts: state.carts,
+        // Strip selectedCustomer from carts — sensitive data (phone, debt) must not persist in localStorage
+        carts: Object.fromEntries(
+          Object.entries(state.carts).map(([k, c]) => [k, { ...c, selectedCustomer: null }]),
+        ),
         activeCartId: state.activeCartId,
         shiftId: state.shiftId,
         cashierName: state.cashierName,
