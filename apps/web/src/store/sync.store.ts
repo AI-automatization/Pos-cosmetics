@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { CreateOrderDto } from '@/types/sales';
 
 export type SyncState = 'online-synced' | 'online-syncing' | 'offline' | 'slow';
 
@@ -13,7 +14,7 @@ export interface PendingOrder {
   id: string;
   label: string;
   createdAt: string;
-  payload: Record<string, unknown>;
+  payload: CreateOrderDto;
 }
 
 const PENDING_ORDERS_KEY = 'raos_pending_orders';
