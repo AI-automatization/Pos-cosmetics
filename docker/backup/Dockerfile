@@ -22,7 +22,11 @@ RUN curl -fsSL "https://dl.min.io/client/mc/release/linux-amd64/mc" -o /usr/loca
 # Backup/restore scripts (paths relative to repo root build context)
 COPY scripts/backup.sh /usr/local/bin/backup.sh
 COPY scripts/restore.sh /usr/local/bin/restore.sh
-RUN chmod +x /usr/local/bin/backup.sh /usr/local/bin/restore.sh
+# Strip CRLF (Windows line endings) — a `#!/bin/sh\r` shebang makes the kernel
+# look for interpreter "/bin/sh\r" → "backup.sh: not found" at runtime. Same
+# defensive fix as apps/api start.sh.
+RUN sed -i 's/\r$//' /usr/local/bin/backup.sh /usr/local/bin/restore.sh \
+    && chmod +x /usr/local/bin/backup.sh /usr/local/bin/restore.sh
 
 # Cron: daily 02:00 UTC (07:00 Asia/Tashkent)
 RUN echo "0 2 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" | crontab -
