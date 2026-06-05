@@ -5,17 +5,19 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { shiftApi } from '@/api/shift.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import { usePOSStore } from '@/store/pos.store';
 import type { OpenShiftDto, CloseShiftDto } from '@/types/shift';
 
 export function useOpenShift(onSuccess?: () => void) {
   const { openShift } = usePOSStore();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: (dto: OpenShiftDto) => shiftApi.openShift(dto),
     onSuccess: (shift, _variables) => {
       openShift(shift.id, 'Kassir', Number(shift.openingCash));
-      toast.success('Smena muvaffaqiyatli ochildi!');
+      toast.success(t('toast.shiftOpened'));
       onSuccess?.();
     },
     onError: async (err: unknown, _variables) => {
@@ -26,7 +28,7 @@ export function useOpenShift(onSuccess?: () => void) {
           const existing = await shiftApi.getActiveShift();
           if (existing) {
             openShift(existing.id, 'Kassir', Number(existing.openingCash));
-            toast.success('Mavjud smena tiklandi');
+            toast.success(t('toast.shiftRestored'));
             onSuccess?.();
             return;
           }
@@ -41,6 +43,7 @@ export function useOpenShift(onSuccess?: () => void) {
 
 export function useCloseShift(onSuccess?: () => void) {
   const { shiftId, closeShift } = usePOSStore();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: (dto: CloseShiftDto) => {
@@ -49,14 +52,14 @@ export function useCloseShift(onSuccess?: () => void) {
     },
     onSuccess: () => {
       closeShift();
-      toast.success('Smena yopildi!');
+      toast.success(t('toast.shiftClosed'));
       onSuccess?.();
     },
     onError: (err: unknown) => {
       // Shift allaqachon yopilgan yoki topilmadi — store ni tozala
       if (err instanceof AxiosError && (err.response?.status === 404 || err.response?.status === 400)) {
         closeShift();
-        toast.warning('Smena allaqachon yopilgan. Yangi smena oching.');
+        toast.warning(t('toast.shiftAlreadyClosed'));
         onSuccess?.();
         return;
       }

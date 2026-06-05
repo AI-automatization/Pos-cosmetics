@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { exchangeRateApi } from '@/api/exchangeRate.api';
+import { useTranslation } from '@/i18n/i18n-context';
 
 const RATE_KEY = 'exchange-rate';
 
@@ -31,12 +32,13 @@ export function useExchangeRateHistory(days: number) {
 // CBU dan qo'lda yangilash (OWNER/ADMIN)
 export function useSyncExchangeRate() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: () => exchangeRateApi.syncFromCbu(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [RATE_KEY] });
-      toast.success("Kurs CBU dan yangilandi");
+      toast.success(t('toast.exchangeRateSynced'));
     },
-    onError: () => toast.error("CBU dan kurs olishda xatolik"),
+    onError: () => toast.error(t('toast.exchangeRateSyncError')),
   });
 }

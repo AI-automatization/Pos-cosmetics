@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { financeApi } from '@/api/finance.api';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { CreateExpenseDto } from '@/types/finance';
 
 const EXPENSES_KEY = 'expenses';
@@ -32,24 +33,26 @@ export function useProfitReport(from: string, to: string) {
 
 export function useCreateExpense() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: CreateExpenseDto) => financeApi.createExpense(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [EXPENSES_KEY] });
-      toast.success("Xarajat qo'shildi!");
+      toast.success(t('toast.expenseCreated'));
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 
 export function useDeleteExpense() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => financeApi.deleteExpense(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [EXPENSES_KEY] });
-      toast.success("Xarajat o'chirildi");
+      toast.success(t('toast.expenseDeleted'));
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }

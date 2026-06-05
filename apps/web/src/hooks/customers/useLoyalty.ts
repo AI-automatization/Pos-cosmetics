@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { loyaltyApi } from '@/api/loyalty.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 
 export const LOYALTY_KEY = 'loyalty';
@@ -38,6 +39,7 @@ export function useLoyaltyTransactions(customerId: string | null | undefined) {
 
 export function useRedeemPoints() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({
       customerId,
@@ -51,7 +53,7 @@ export function useRedeemPoints() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'account', vars.customerId] });
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'transactions', vars.customerId] });
-      toast.success('Bonuslar muvaffaqiyatli sarflandi!');
+      toast.success(t('toast.bonusRedeemed'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });

@@ -13,6 +13,7 @@ import { importApi } from '@/api/import.api';
 import type { ImportSummary, ImportProgress } from '@/api/import.api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 type PageState = 'idle' | 'uploading' | 'processing' | 'done';
 
@@ -33,6 +34,7 @@ function formatBytes(bytes: number): string {
 }
 
 export default function ProductImportPage() {
+  const { t } = useTranslation();
   const [state, setState] = useState<PageState>('idle');
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -51,7 +53,7 @@ export default function ProductImportPage() {
       file.name.endsWith('.xlsx') ||
       file.name.endsWith('.csv');
     if (!isValid) {
-      toast.error("Faqat XLSX yoki CSV fayllar qabul qilinadi");
+      toast.error(t('toast.importOnlyXlsxCsv'));
       return;
     }
     setSelectedFile(file);
@@ -103,17 +105,17 @@ export default function ProductImportPage() {
         setState('processing');
       }
     } catch {
-      toast.error("Import amalga oshmadi. Fayl formatini tekshiring va qaytadan urinib ko'ring.");
+      toast.error(t('toast.importFailed'));
       setState('idle');
     }
   };
 
   const notifySummary = (s: ImportSummary) => {
     if (s.errors.length === 0) {
-      toast.success(`Import muvaffaqiyatli: ${s.created} ta yaratildi, ${s.updated} ta yangilandi`);
+      toast.success(t('toast.importSuccess', { created: String(s.created), updated: String(s.updated) }));
     } else {
       toast.warning(
-        `Import tugadi: ${s.created} yaratildi, ${s.updated} yangilandi, ${s.skipped} o'tkazib yuborildi, ${s.errors.length} xato`,
+        t('toast.importPartialErrors', { errors: String(s.errors.length) }),
       );
     }
   };
@@ -159,9 +161,9 @@ export default function ProductImportPage() {
     setDownloadingTemplate(true);
     try {
       await importApi.downloadTemplate();
-      toast.success("Shablon yuklab olindi");
+      toast.success(t('toast.templateDownloaded'));
     } catch {
-      toast.error("Shablonni yuklab olishda xato yuz berdi");
+      toast.error(t('toast.templateDownloadError'));
     } finally {
       setDownloadingTemplate(false);
     }
@@ -171,9 +173,9 @@ export default function ProductImportPage() {
     setExportingXlsx(true);
     try {
       await importApi.exportXlsx();
-      toast.success("XLSX eksport boshlandi");
+      toast.success(t('toast.exportStarted', { format: 'XLSX' }));
     } catch {
-      toast.error("Eksport amalga oshmadi");
+      toast.error(t('toast.exportFailed'));
     } finally {
       setExportingXlsx(false);
     }
@@ -183,9 +185,9 @@ export default function ProductImportPage() {
     setExportingCsv(true);
     try {
       await importApi.exportCsv();
-      toast.success("CSV eksport boshlandi");
+      toast.success(t('toast.exportStarted', { format: 'CSV' }));
     } catch {
-      toast.error("Eksport amalga oshmadi");
+      toast.error(t('toast.exportFailed'));
     } finally {
       setExportingCsv(false);
     }

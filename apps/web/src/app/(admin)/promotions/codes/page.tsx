@@ -15,6 +15,7 @@ import {
 import { CreatePromoCodeModal } from './CreatePromoCodeModal';
 import type { PromoCode } from '@/types/promo-code';
 import { toast } from 'sonner';
+import { useTranslation } from '@/i18n/i18n-context';
 
 /* ─── Status helpers ─── */
 
@@ -47,6 +48,7 @@ function fmtDate(s: string | null) {
 /* ─── Page ─── */
 
 export default function PromoCodesPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
@@ -62,7 +64,7 @@ export default function PromoCodesPage() {
     : items;
 
   const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code).then(() => toast.success(`"${code}" nusxalandi!`));
+    navigator.clipboard.writeText(code).then(() => toast.success(t('toast.codeCopied', { code })));
   };
 
   return (

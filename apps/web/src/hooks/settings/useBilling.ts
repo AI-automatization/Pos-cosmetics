@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { billingApi } from '@/api/billing.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export const BILLING_KEY = 'billing';
 
@@ -33,12 +34,13 @@ export function useUsageStats() {
 
 export function useUpgradePlan() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ planSlug, months }: { planSlug: string; months?: number }) =>
       billingApi.upgrade(planSlug, months),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [BILLING_KEY] });
-      toast.success('Tarif muvaffaqiyatli yangilandi!');
+      toast.success(t('toast.planUpgraded'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });

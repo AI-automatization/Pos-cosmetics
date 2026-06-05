@@ -32,7 +32,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, getV
   const handleHardwareScan = useCallback((code: string) => {
     const current = getValues?.()?.extraBarcodes ?? [];
     if (current.some((b) => b.value === code)) {
-      toast.warning(`Barcode ${code} allaqachon qo'shilgan`);
+      toast.warning(t('toast.barcodeAlreadyAdded', { code }));
       return;
     }
     const emptyIdx = current.findIndex((b) => !b.value);
@@ -41,7 +41,7 @@ export function BarcodeFields({ register, fields, append, remove, setValue, getV
     } else {
       append({ value: code });
     }
-    toast.success(`Barcode qo'shildi: ${code}`);
+    toast.success(t('toast.barcodeAdded', { code }));
   }, [append, setValue, getValues]);
 
   useEffect(() => {

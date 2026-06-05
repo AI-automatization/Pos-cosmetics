@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { catalogApi } from '@/api/catalog.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { CreateCategoryDto, UpdateCategoryDto } from '@/types/catalog';
 
 export const CATEGORIES_KEY = 'categories';
@@ -18,12 +19,13 @@ export function useCategories() {
 
 export function useCreateCategory() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: (dto: CreateCategoryDto) => catalogApi.createCategory(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_KEY] });
-      toast.success('Kategoriya qo\'shildi!');
+      toast.success(t('toast.categoryCreated'));
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
@@ -33,13 +35,14 @@ export function useCreateCategory() {
 
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: ({ id, dto }: { id: string; dto: UpdateCategoryDto }) =>
       catalogApi.updateCategory(id, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_KEY] });
-      toast.success('Kategoriya yangilandi!');
+      toast.success(t('toast.categoryUpdated'));
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
@@ -49,12 +52,13 @@ export function useUpdateCategory() {
 
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: (id: string) => catalogApi.deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_KEY] });
-      toast.success('Kategoriya o\'chirildi!');
+      toast.success(t('toast.categoryDeleted'));
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));

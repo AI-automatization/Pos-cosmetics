@@ -40,9 +40,9 @@ export default function ExchangeRatesPage() {
     mutationFn: () => exchangeRateApi.syncFromCbu(),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['exchange-rate'] });
-      toast.success(`Yangilandi: 1 USD = ${formatRate(data.usdUzs)} so'm`);
+      toast.success(t('toast.exchangeRateUpdated', { rate: formatRate(data.usdUzs) }));
     },
-    onError: () => toast.error("CBU dan yuklab bo'lmadi"),
+    onError: () => toast.error(t('toast.exchangeRateLoadError')),
   });
 
   const isLoading = latestLoading || historyLoading;
