@@ -5,7 +5,8 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
-const DB_URL = "postgresql://postgres:IexyvkdDvSVlXcVFCzlsuuQReOpKFrEM@interchange.proxy.rlwy.net:29292/railway";
+const DB_URL = process.env.DATABASE_URL;
+if (!DB_URL) { console.error('DATABASE_URL env required'); process.exit(1); }
 const prisma = new PrismaClient({ datasourceUrl: DB_URL });
 
 const KEEP_SLUG = 'kosmetika-demo';
