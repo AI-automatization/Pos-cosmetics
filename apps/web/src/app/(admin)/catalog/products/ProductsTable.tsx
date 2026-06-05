@@ -149,8 +149,8 @@ export function ProductsTable({ products, onEdit, onDelete, onPrint }: ProductsT
                     type="button"
                     onClick={() => onPrint(product)}
                     className="rounded-lg p-1.5 text-gray-400 transition hover:bg-purple-50 hover:text-purple-600"
-                    aria-label="Yorliq chop etish"
-                    title="Yorliq chop etish"
+                    aria-label={t('products.printLabel')}
+                    title={t('products.printLabel')}
                   >
                     <Printer className="h-4 w-4" />
                   </button>

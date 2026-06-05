@@ -4,13 +4,8 @@ import { X, PackageOpen, User } from 'lucide-react';
 import { useMovementsWithUsers } from '@/hooks/inventory/useInventory';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { StockLevel, StockStatus } from '@/types/inventory';
-
-const STATUS_CONFIG: Record<StockStatus, { label: string; className: string }> = {
-  OK: { label: 'OK', className: 'bg-green-100 text-green-700' },
-  LOW: { label: 'Kam', className: 'bg-yellow-100 text-yellow-700' },
-  OUT: { label: 'Tugagan', className: 'bg-red-100 text-red-700' },
-};
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('uz-UZ', {
@@ -28,6 +23,12 @@ interface ProductStockDrawerProps {
 }
 
 export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps) {
+  const { t } = useTranslation();
+  const STATUS_CONFIG: Record<StockStatus, { label: string; className: string }> = {
+    OK: { label: t('inventory.statusOk'), className: 'bg-green-100 text-green-700' },
+    LOW: { label: t('inventory.statusLow'), className: 'bg-yellow-100 text-yellow-700' },
+    OUT: { label: t('inventory.statusOut'), className: 'bg-red-100 text-red-700' },
+  };
   const { data: movements, isLoading: movLoading } = useMovementsWithUsers(
     product?.productId ?? undefined,
   );
@@ -63,11 +64,11 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
           {/* Section 1 — Umumiy ma'lumot */}
           <div className="border-b border-gray-100 px-6 py-5">
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Umumiy ma&apos;lumot
+              {t('analytics.overview')}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-xl bg-gray-50 px-4 py-3">
-                <p className="text-xs text-gray-500">Joriy zaxira</p>
+                <p className="text-xs text-gray-500">{t('inventory.currentStock')}</p>
                 <p
                   className={cn(
                     'mt-0.5 text-2xl font-bold tabular-nums',
@@ -83,14 +84,14 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
                 </p>
               </div>
               <div className="rounded-xl bg-gray-50 px-4 py-3">
-                <p className="text-xs text-gray-500">Minimum zaxira</p>
+                <p className="text-xs text-gray-500">{t('products.minStock')}</p>
                 <p className="mt-0.5 text-2xl font-bold tabular-nums text-gray-700">
                   {product.minStock}
                   <span className="ml-1 text-sm font-normal text-gray-400">{product.unit}</span>
                 </p>
               </div>
               <div className="rounded-xl bg-gray-50 px-4 py-3">
-                <p className="text-xs text-gray-500">Holat</p>
+                <p className="text-xs text-gray-500">{t('common.status')}</p>
                 <div className="mt-1.5">
                   <span
                     className={cn(
@@ -103,10 +104,10 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
                 </div>
               </div>
               <div className="rounded-xl bg-gray-50 px-4 py-3">
-                <p className="text-xs text-gray-500">Narx (tannarx)</p>
+                <p className="text-xs text-gray-500">{t('products.costPrice')}</p>
                 <p className="mt-0.5 text-sm font-semibold text-gray-700">
                   {product.costPrice > 0
-                    ? new Intl.NumberFormat('uz-UZ').format(product.costPrice) + " so'm"
+                    ? new Intl.NumberFormat('uz-UZ').format(product.costPrice) + ` ${t('common.currency')}`
                     : '—'}
                 </p>
               </div>
@@ -116,7 +117,7 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
           {/* Section 2 — Harakatlar tarixi */}
           <div className="px-6 py-5">
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Harakatlar tarixi
+              {t('inventory.movementHistory')}
             </h3>
 
             {movLoading ? (
@@ -124,7 +125,7 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
             ) : !movements || movements.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center text-gray-400">
                 <PackageOpen className="h-10 w-10 opacity-40" />
-                <p className="text-sm">Harakatlar tarixi yo&apos;q</p>
+                <p className="text-sm">{t('inventory.noMovements')}</p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
@@ -154,7 +155,7 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
                               isIn ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
                             )}
                           >
-                            {isIn ? 'Kirim' : 'Chiqim'}
+                            {isIn ? t('inventory.typeIn') : t('inventory.typeOut')}
                           </span>
                           <span
                             className={cn(
@@ -179,7 +180,7 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
                         {/* Supplier */}
                         {supplierText && (
                           <div className="text-xs text-gray-500">
-                            <span className="text-gray-400">Yetkazib beruvchi: </span>
+                            <span className="text-gray-400">{t('inventory.supplier')}: </span>
                             {supplierText}
                           </div>
                         )}
@@ -187,7 +188,7 @@ export function ProductStockDrawer({ product, onClose }: ProductStockDrawerProps
                         {/* Extra note */}
                         {extraNote && (
                           <div className="text-xs text-gray-500">
-                            <span className="text-gray-400">Izoh: </span>
+                            <span className="text-gray-400">{t('common.note')}: </span>
                             {extraNote}
                           </div>
                         )}

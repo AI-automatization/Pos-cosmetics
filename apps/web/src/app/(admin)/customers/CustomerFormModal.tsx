@@ -49,11 +49,11 @@ export function CustomerFormModal({ onClose }: Props) {
 
   const validate = () => {
     const e: Partial<Record<keyof CustomerForm, string>> = {};
-    if (!form.name.trim()) e.name = 'Ism kiritilishi shart';
+    if (!form.name.trim()) e.name = t('customers.nameRequired');
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = 'Email noto\'g\'ri formatda';
+      e.email = t('customers.emailInvalid');
     if (form.debtLimit && isNaN(Number(form.debtLimit)))
-      e.debtLimit = 'Son kiritilishi shart';
+      e.debtLimit = t('customers.debtLimitInvalid');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -87,7 +87,7 @@ export function CustomerFormModal({ onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
-          <h2 className="text-base font-semibold text-gray-900">Yangi mijoz</h2>
+          <h2 className="text-base font-semibold text-gray-900">{t('customers.addCustomer')}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -98,12 +98,12 @@ export function CustomerFormModal({ onClose }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Asosiy</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('customers.sectionBasic')}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs font-medium text-gray-700">
-                To&apos;liq ism <span className="text-red-500">*</span>
+                {t('customers.fullName')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -119,7 +119,7 @@ export function CustomerFormModal({ onClose }: Props) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">Telefon</label>
+              <label className="mb-1 block text-xs font-medium text-gray-700">{t('customers.phone')}</label>
               <input
                 type="tel"
                 value={form.phone}
@@ -130,7 +130,7 @@ export function CustomerFormModal({ onClose }: Props) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">Email</label>
+              <label className="mb-1 block text-xs font-medium text-gray-700">{t('common.email')}</label>
               <input
                 type="email"
                 value={form.email}
@@ -145,7 +145,7 @@ export function CustomerFormModal({ onClose }: Props) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">Tug&apos;ilgan sana</label>
+              <label className="mb-1 block text-xs font-medium text-gray-700">{t('customers.birthDate')}</label>
               <input
                 type="date"
                 value={form.birthDate}
@@ -155,26 +155,26 @@ export function CustomerFormModal({ onClose }: Props) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">Jins</label>
+              <label className="mb-1 block text-xs font-medium text-gray-700">{t('customers.gender')}</label>
               <SearchableDropdown
                 options={[
-                  { value: 'MALE', label: 'Erkak' },
-                  { value: 'FEMALE', label: 'Ayol' },
+                  { value: 'MALE', label: t('customers.genderMale') },
+                  { value: 'FEMALE', label: t('customers.genderFemale') },
                 ]}
                 value={form.gender}
                 onChange={(val) => setForm((prev) => ({ ...prev, gender: val as CustomerGender | '' }))}
-                placeholder="— Tanlang —"
+                placeholder={t('customers.selectGender')}
                 searchable={false}
                 clearable
               />
             </div>
           </div>
 
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Qo&apos;shimcha</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('customers.sectionAdditional')}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-gray-700">Manzil</label>
+              <label className="mb-1 block text-xs font-medium text-gray-700">{t('customers.address')}</label>
               <input
                 type="text"
                 value={form.address}
@@ -186,7 +186,7 @@ export function CustomerFormModal({ onClose }: Props) {
 
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-700">
-                Nasiya limiti (so&apos;m)
+                {t('customers.debtLimitLabel')}
               </label>
               <input
                 type="number"
@@ -206,12 +206,12 @@ export function CustomerFormModal({ onClose }: Props) {
 
             {branches.length > 0 && (
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-700">Filial</label>
+                <label className="mb-1 block text-xs font-medium text-gray-700">{t('common.branch')}</label>
                 <SearchableDropdown
                   options={branches.map((b) => ({ value: b.id, label: b.name }))}
                   value={form.branchId}
                   onChange={(val) => setForm((prev) => ({ ...prev, branchId: val }))}
-                  placeholder="— Filial tanlang —"
+                  placeholder={t('customers.selectBranch')}
                   searchable={branches.length > 4}
                   clearable
                 />
@@ -219,11 +219,11 @@ export function CustomerFormModal({ onClose }: Props) {
             )}
 
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-gray-700">Izoh</label>
+              <label className="mb-1 block text-xs font-medium text-gray-700">{t('customers.notes')}</label>
               <textarea
                 value={form.notes}
                 onChange={set('notes')}
-                placeholder="Qo'shimcha ma'lumot (ixtiyoriy)"
+                placeholder={t('customers.notesPlaceholder')}
                 rows={2}
                 className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
               />

@@ -9,6 +9,7 @@ import { BarcodeScanner } from '@/components/ui/BarcodeScanner';
 import { SupplierSearchSelect } from './SupplierSearchSelect';
 import { ProductSearchSelect } from './ProductSearchSelect';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 interface ItemRow {
   _key: number;
@@ -37,6 +38,7 @@ interface StockInModalProps {
 }
 
 export function StockInModal({ isOpen, onClose }: StockInModalProps) {
+  const { t } = useTranslation();
   const { mutate: submitStockIn, isPending } = useStockIn();
 
   const [supplier, setSupplier] = useState('');
@@ -133,8 +135,8 @@ export function StockInModal({ isOpen, onClose }: StockInModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Kirim (Nakladnoy)</h2>
-            <p className="text-sm text-gray-500">Omborga yangi tovar qabul qilish</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('inventory.stockIn')}</h2>
+            <p className="text-sm text-gray-500">{t('inventory.stockInDesc')}</p>
           </div>
           <button
             type="button"

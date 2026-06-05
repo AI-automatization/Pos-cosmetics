@@ -2,8 +2,10 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export default function AdminError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  const { t } = useTranslation();
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -19,13 +21,13 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <h2 className="text-lg font-semibold text-gray-900">Xatolik yuz berdi</h2>
-      <p className="max-w-sm text-sm text-gray-500">{error.message || 'Kutilmagan xatolik yuz berdi.'}</p>
+      <h2 className="text-lg font-semibold text-gray-900">{t('common.error')}</h2>
+      <p className="max-w-sm text-sm text-gray-500">{error.message || t('errors.unexpected')}</p>
       <button
         onClick={reset}
         className="rounded-lg bg-raos-cyan px-4 py-2 text-sm font-semibold text-raos-bg-deep shadow-md shadow-raos-cyan/30 hover:bg-raos-cyan-light transition"
       >
-        Qayta urinish
+        {t('common.retry')}
       </button>
     </div>
   );

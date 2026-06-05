@@ -6,24 +6,27 @@ import { useLowStock } from '@/hooks/inventory/useInventory';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { ErrorState } from '@/components/common/ErrorState';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { StockStatus } from '@/types/inventory';
 
 function StatusBadge({ status }: { status: StockStatus }) {
+  const { t } = useTranslation();
   if (status === 'OUT') {
     return (
       <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-        Tugagan
+        {t('inventory.statusOut')}
       </span>
     );
   }
   return (
     <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
-      Kam
+      {t('inventory.statusLow')}
     </span>
   );
 }
 
 export default function LowStockPage() {
+  const { t } = useTranslation();
   const { data: items, isLoading, isError, refetch } = useLowStock();
 
   const outCount = items?.filter((i) => i.status === 'OUT').length ?? 0;
@@ -36,17 +39,17 @@ export default function LowStockPage() {
         <div className="flex items-center gap-3">
           <AlertTriangle className="h-6 w-6 text-yellow-500" />
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Kam zaxira</h1>
+            <h1 className="text-xl font-semibold text-gray-900">{t('inventory.lowStock')}</h1>
             {items && (
               <p className="text-sm text-gray-500">
                 {outCount > 0 && (
-                  <span className="text-red-600 font-medium">{outCount} ta tugagan</span>
+                  <span className="text-red-600 font-medium">{t('inventory.outCount', { count: outCount })}</span>
                 )}
                 {outCount > 0 && lowCount > 0 && ', '}
                 {lowCount > 0 && (
-                  <span className="text-yellow-600 font-medium">{lowCount} ta kam</span>
+                  <span className="text-yellow-600 font-medium">{t('inventory.lowCount', { count: lowCount })}</span>
                 )}
-                {outCount === 0 && lowCount === 0 && 'Hamma narsa yetarli'}
+                {outCount === 0 && lowCount === 0 && t('inventory.allSufficient')}
               </p>
             )}
           </div>
@@ -56,7 +59,7 @@ export default function LowStockPage() {
           className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
         >
           <ArrowDownToLine className="h-4 w-4" />
-          Kirim qilish
+          {t('inventory.doStockIn')}
         </Link>
       </div>
 
@@ -65,8 +68,7 @@ export default function LowStockPage() {
         <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
           <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
           <p className="text-sm text-red-700">
-            <span className="font-semibold">{outCount} ta mahsulot</span> to&apos;liq tugagan.
-            Darhol kirim qilish tavsiya etiladi.
+            {t('inventory.outAlert', { count: outCount })}
           </p>
         </div>
       )}
@@ -79,12 +81,12 @@ export default function LowStockPage() {
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Mahsulot</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Kategoriya</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Mavjud</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Minimum</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Tanqislik</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-600">Holat</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600">{t('common.product')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600">{t('common.category')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-600">{t('inventory.colAvailable')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-600">{t('inventory.colMinimum')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-600">{t('inventory.colShortage')}</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-600">{t('common.status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -93,7 +95,7 @@ export default function LowStockPage() {
                   <td colSpan={6} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <AlertTriangle className="h-8 w-8 text-green-400" />
-                      <p className="text-gray-500">Barcha mahsulotlar yetarli zaxirada</p>
+                      <p className="text-gray-500">{t('inventory.allStockSufficient')}</p>
                     </div>
                   </td>
                 </tr>
@@ -120,7 +122,7 @@ export default function LowStockPage() {
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-900">{item.productName}</div>
                           <div className="text-xs text-gray-400">
-                            {item.sku} · {item.barcode ?? 'barcodesiz'}
+                            {item.sku} · {item.barcode ?? t('inventory.noBarcode')}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-gray-600">{item.categoryName}</td>

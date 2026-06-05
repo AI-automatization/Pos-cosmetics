@@ -7,6 +7,7 @@ import { exchangeRateApi } from '@/api/exchangeRate.api';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { toast } from 'sonner';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('uz-UZ', {
@@ -19,6 +20,7 @@ function formatRate(v: number) {
 }
 
 export default function ExchangeRatesPage() {
+  const { t } = useTranslation();
   const [days, setDays] = useState(30);
   const qc = useQueryClient();
 
@@ -91,7 +93,7 @@ export default function ExchangeRatesPage() {
             const color = diff > 0 ? 'text-red-600' : diff < 0 ? 'text-green-600' : 'text-gray-500';
             return (
               <div className="rounded-xl border border-gray-200 bg-white p-5">
-                <p className="text-xs font-medium text-gray-500">Kechadan farq</p>
+                <p className="text-xs font-medium text-gray-500">{t('exchangeRates.diffFromYesterday')}</p>
                 <p className={`mt-2 flex items-center gap-1 text-2xl font-bold ${color}`}>
                   <Icon className="h-5 w-5" />
                   {diff > 0 ? '+' : ''}{formatRate(diff)}
@@ -102,7 +104,7 @@ export default function ExchangeRatesPage() {
           })()}
 
           <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <p className="text-xs font-medium text-gray-500">Oxirgi yangilanish</p>
+            <p className="text-xs font-medium text-gray-500">{t('exchangeRates.lastUpdate')}</p>
             <p className="mt-2 text-lg font-semibold text-gray-900">{formatDate(latest.date)}</p>
             <p className="mt-1 text-xs text-gray-400">Manba: {latest.source}</p>
           </div>
@@ -112,7 +114,7 @@ export default function ExchangeRatesPage() {
       {/* History */}
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700">Kurs tarixi</h2>
+          <h2 className="text-sm font-semibold text-gray-700">{t('exchangeRates.history')}</h2>
           <div className="flex gap-1">
             {[7, 30, 90].map((d) => (
               <button
@@ -125,7 +127,7 @@ export default function ExchangeRatesPage() {
                     : 'text-gray-500 hover:bg-gray-100'
                 }`}
               >
-                {d} kun
+                {t('exchangeRates.days', { count: d })}
               </button>
             ))}
           </div>
@@ -138,16 +140,16 @@ export default function ExchangeRatesPage() {
           <table className="w-full text-sm">
             <thead className="border-b border-gray-100 bg-gray-50">
               <tr>
-                <th className="px-5 py-3 text-left font-medium text-gray-600">Sana</th>
-                <th className="px-5 py-3 text-right font-medium text-gray-600">Kurs (UZS)</th>
-                <th className="px-5 py-3 text-right font-medium text-gray-600">Farq</th>
-                <th className="px-5 py-3 text-left font-medium text-gray-600">Manba</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">{t('exchangeRates.colDate')}</th>
+                <th className="px-5 py-3 text-right font-medium text-gray-600">{t('exchangeRates.colRate')}</th>
+                <th className="px-5 py-3 text-right font-medium text-gray-600">{t('exchangeRates.colDiff')}</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">{t('exchangeRates.source')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {!history || history.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-10 text-center text-sm text-gray-400">Kurs tarixi topilmadi</td>
+                  <td colSpan={4} className="py-10 text-center text-sm text-gray-400">{t('exchangeRates.noHistory')}</td>
                 </tr>
               ) : (
                 [...history].reverse().map((row, idx, arr) => {
