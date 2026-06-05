@@ -27,5 +27,6 @@ RUN chmod +x /usr/local/bin/backup.sh /usr/local/bin/restore.sh
 # Cron: daily 02:00 UTC (07:00 Asia/Tashkent)
 RUN echo "0 2 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" | crontab -
 
-# Run cron in the foreground
-CMD ["crond", "-f", "-d", "8"]
+# Run one backup on startup (verifies config on every deploy), then cron.
+# `|| true` so a transient first-run failure doesn't crash-loop the service.
+CMD ["sh", "-c", "/usr/local/bin/backup.sh || true; exec crond -f -d 8"]
