@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useDebts, useNasiyaSummary } from '@/hooks/customers/useDebts';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
-import { formatPrice, cn } from '@/lib/utils';
+import { formatPrice, cn, getField, compareSortValues } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import type { Debt } from '@/types/debt';
 import { QuickPayModal } from './QuickPayModal';
@@ -75,19 +75,9 @@ export default function NasiyaPage() {
   const sortedData = useMemo(() => {
     if (!sortField) return filtered;
     return [...filtered].sort((a, b) => {
-      const aVal = (a as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
-      const bVal = (b as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
-      if (aVal == null) return 1;
-      if (bVal == null) return -1;
-      const cmp =
-        typeof aVal === 'string'
-          ? aVal.localeCompare(bVal as string)
-          : (aVal as number) > (bVal as number)
-          ? 1
-          : (aVal as number) < (bVal as number)
-          ? -1
-          : 0;
-      return sortDir === 'asc' ? cmp : -cmp;
+      const aVal = getField(a, sortField as keyof Debt);
+      const bVal = getField(b, sortField as keyof Debt);
+      return compareSortValues(aVal, bVal, sortDir);
     });
   }, [filtered, sortField, sortDir]);
 

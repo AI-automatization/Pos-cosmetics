@@ -78,7 +78,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
           id: crypto.randomUUID(),
           label,
           createdAt: new Date().toISOString(),
-          payload: orderPayload as unknown as Record<string, unknown>,
+          payload: orderPayload,
         });
         const { total: totalAmt } = totals();
         const cash = paymentMethod === 'cash' ? totalAmt : paymentMethod === 'split' ? cashAmount : 0;

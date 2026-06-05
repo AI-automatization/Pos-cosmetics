@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useCustomersList, useNasiyaSummary } from '@/hooks/customers/useDebts';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
-import { formatPrice, cn } from '@/lib/utils';
+import { formatPrice, cn, getField, compareSortValues } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import type { CustomerWithDebt } from '@/types/debt';
 import { CustomerFormModal } from './CustomerFormModal';
@@ -71,19 +71,9 @@ export default function CustomersPage() {
   const sortedCustomers = useMemo(() => {
     if (!sortField || !customers) return customers ?? [];
     return [...customers].sort((a, b) => {
-      const aVal = (a as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
-      const bVal = (b as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
-      if (aVal == null) return 1;
-      if (bVal == null) return -1;
-      const cmp =
-        typeof aVal === 'string'
-          ? aVal.localeCompare(bVal as string)
-          : (aVal as number) > (bVal as number)
-          ? 1
-          : (aVal as number) < (bVal as number)
-          ? -1
-          : 0;
-      return sortDir === 'asc' ? cmp : -cmp;
+      const aVal = getField(a, sortField as keyof CustomerWithDebt);
+      const bVal = getField(b, sortField as keyof CustomerWithDebt);
+      return compareSortValues(aVal, bVal, sortDir);
     });
   }, [customers, sortField, sortDir]);
 
@@ -241,7 +231,7 @@ export default function CustomersPage() {
                       <div>
                         <p className="font-medium text-gray-900">{customer.name}</p>
                         <p className="text-xs text-gray-400">
-                          {customer.totalPurchases} ta xarid · {customer.activeDebtsCount} ta qarz
+                          {t('customers.purchaseCount', { count: customer.totalPurchases })} · {t('customers.debtCount', { count: customer.activeDebtsCount })}
                         </p>
                       </div>
                     </div>

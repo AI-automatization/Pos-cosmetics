@@ -287,6 +287,7 @@ export const usePOSStore = create<POSState>()(
       skipHydration: true,
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
+          // Zustand persist migration: old state shape is unknown, cast needed for field access
           const old = persistedState as Record<string, unknown>;
           return {
             ...old,

@@ -1,8 +1,15 @@
 import { apiClient } from './client';
 import type { Shift, ShiftsQuery } from '@/types/shift';
 
+interface RawShift extends Shift {
+  user?: { firstName?: string; lastName?: string } | null;
+  totalRevenue?: number;
+  totalOrders?: number;
+  paymentBreakdown?: { cash?: number; card?: number };
+}
+
 interface PaginatedShifts {
-  items: Shift[];
+  items: RawShift[];
   total: number;
   page: number;
   limit: number;
@@ -11,13 +18,13 @@ interface PaginatedShifts {
 export const shiftsApi = {
   list(params: ShiftsQuery = {}) {
     return apiClient
-      .get<PaginatedShifts>('/sales/shifts', { params })
+      .get<PaginatedShifts | RawShift[]>('/sales/shifts', { params })
       .then((r) => {
-        const d = r.data as unknown as Record<string, unknown>;
-        type RawShift = Shift & { user?: { firstName?: string; lastName?: string } | null };
-        const raw = Array.isArray(d) ? d : (d.items as RawShift[]) ?? [];
+        const d = r.data;
+        const raw: RawShift[] = Array.isArray(d) ? d : d.items ?? [];
+        const paginated = Array.isArray(d) ? null : d;
         return {
-          items: raw.map((s: RawShift & { totalRevenue?: number; totalOrders?: number; paymentBreakdown?: { cash?: number; card?: number } }) => ({
+          items: raw.map((s) => ({
             ...s,
             cashierName: s.user
               ? `${s.user.firstName ?? ''} ${s.user.lastName ?? ''}`.trim() || '—'
@@ -27,9 +34,9 @@ export const shiftsApi = {
             cashRevenue: s.paymentBreakdown?.cash ?? s.cashRevenue ?? 0,
             cardRevenue: s.paymentBreakdown?.card ?? s.cardRevenue ?? 0,
           })),
-          total: (d.total as number) ?? raw.length,
-          page: (d.page as number) ?? 1,
-          limit: (d.limit as number) ?? 20,
+          total: paginated?.total ?? raw.length,
+          page: paginated?.page ?? 1,
+          limit: paginated?.limit ?? 20,
         };
       });
   },

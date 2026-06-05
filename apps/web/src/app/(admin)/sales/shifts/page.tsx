@@ -6,7 +6,7 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useShifts } from '@/hooks/sales/useShifts';
-import { formatPrice, formatDateTime, cn } from '@/lib/utils';
+import { formatPrice, formatDateTime, cn, getField, compareSortValues } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 
 function formatDuration(openedAt: string, closedAt?: string | null): string {
@@ -17,7 +17,7 @@ function formatDuration(openedAt: string, closedAt?: string | null): string {
   if (hours === 0) return `${mins}d`;
   return `${hours}s ${mins}d`;
 }
-import type { ShiftStatus } from '@/types/shift';
+import type { Shift, ShiftStatus } from '@/types/shift';
 
 // Config uses i18n keys — resolved inside component with t()
 const STATUS_CONFIG: Record<ShiftStatus, { key: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
@@ -92,8 +92,8 @@ export default function ShiftsPage() {
         aVal = new Date(a.openedAt).getTime();
         bVal = new Date(b.openedAt).getTime();
       } else {
-        aVal = (a as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
-        bVal = (b as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
+        aVal = getField(a, sortField as keyof Shift);
+        bVal = getField(b, sortField as keyof Shift);
       }
       if (aVal == null) return 1;
       if (bVal == null) return -1;

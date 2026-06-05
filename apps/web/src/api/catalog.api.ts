@@ -22,22 +22,30 @@ export const catalogApi = {
   // --- Products ---
 
   getProducts(params: ProductsQuery = {}) {
+    interface FlatPaginatedProducts {
+      items: Product[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }
     return apiClient
-      .get<PaginatedResponse<Product> | { items: Product[]; total: number; page: number; limit: number; totalPages: number }>(
+      .get<PaginatedResponse<Product> | FlatPaginatedProducts>(
         '/catalog/products',
         { params },
       )
       .then((r) => {
-        const d = r.data as Record<string, unknown>;
+        const d = r.data;
         // Normalize flat backend shape → PaginatedResponse shape
-        if ('meta' in d) return d as unknown as PaginatedResponse<Product>;
+        if ('meta' in d) return d as PaginatedResponse<Product>;
+        const flat = d as FlatPaginatedProducts;
         return {
-          items: (d.items as Product[]) ?? [],
+          items: flat.items ?? [],
           meta: {
-            total: (d.total as number) ?? 0,
-            page: (d.page as number) ?? 1,
-            limit: (d.limit as number) ?? 20,
-            totalPages: (d.totalPages as number) ?? 1,
+            total: flat.total ?? 0,
+            page: flat.page ?? 1,
+            limit: flat.limit ?? 20,
+            totalPages: flat.totalPages ?? 1,
           },
         } satisfies PaginatedResponse<Product>;
       });

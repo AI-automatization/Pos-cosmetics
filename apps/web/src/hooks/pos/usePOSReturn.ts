@@ -90,8 +90,7 @@ function calcTotal(selected: Record<string, SelectedReturnItem>): number {
 
 /** Detect dominant payment method from paymentIntents for smart suggestion */
 function detectRefundMethod(order: Order): RefundMethod {
-  const intents = (order as unknown as { paymentIntents?: Array<{ method: string; amount: number | string }> })
-    .paymentIntents ?? [];
+  const intents = order.paymentIntents ?? [];
   if (!intents.length) return 'CASH';
   let cashTotal = 0;
   let cardTotal = 0;

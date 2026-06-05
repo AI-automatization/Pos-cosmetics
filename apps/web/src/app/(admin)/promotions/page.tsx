@@ -25,12 +25,12 @@ function formatDate(iso: string | null) {
 function useRulesLabel() {
   const { t } = useTranslation();
   return (p: Promotion): string => {
-    const r = p.rules as Record<string, unknown>;
+    const r = p.rules;
     switch (p.type) {
-      case 'PERCENT':     return t('promotions.rulesPercent', { percent: String(r.percent ?? '') });
-      case 'FIXED':       return t('promotions.rulesFixed', { amount: Number(r.amount ?? 0).toLocaleString() });
-      case 'BUY_X_GET_Y': return t('promotions.rulesBuyXGetY', { buyQty: String(r.buyQty ?? ''), getQty: String(r.getQty ?? '') });
-      case 'BUNDLE':      return t('promotions.rulesBundle', { discount: String(r.discount ?? '') });
+      case 'PERCENT':     return t('promotions.rulesPercent', { percent: String('percent' in r ? r.percent : '') });
+      case 'FIXED':       return t('promotions.rulesFixed', { amount: Number('amount' in r ? r.amount : 0).toLocaleString() });
+      case 'BUY_X_GET_Y': return t('promotions.rulesBuyXGetY', { buyQty: String('buyQty' in r ? r.buyQty : ''), getQty: String('getQty' in r ? r.getQty : '') });
+      case 'BUNDLE':      return t('promotions.rulesBundle', { discount: String('discount' in r ? r.discount : '') });
       default:            return '—';
     }
   };

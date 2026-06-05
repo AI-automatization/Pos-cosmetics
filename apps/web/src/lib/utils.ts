@@ -39,3 +39,36 @@ export function formatDateTime(date: string | Date): string {
     minute: '2-digit',
   }).format(new Date(date));
 }
+
+/**
+ * Type-safe field access for dynamic sorting.
+ * Returns field value as string | number | null | undefined for comparison.
+ */
+export function getField<T>(obj: T, field: keyof T): string | number | null | undefined {
+  const val = obj[field];
+  if (val === null || val === undefined) return val as null | undefined;
+  if (typeof val === 'string' || typeof val === 'number') return val;
+  return String(val);
+}
+
+/**
+ * Generic comparator for sorting by a dynamic field.
+ * Handles nulls (pushed to end) and string/number comparison.
+ */
+export function compareSortValues(
+  aVal: string | number | null | undefined,
+  bVal: string | number | null | undefined,
+  dir: 'asc' | 'desc',
+): number {
+  if (aVal == null) return 1;
+  if (bVal == null) return -1;
+  const cmp =
+    typeof aVal === 'string'
+      ? aVal.localeCompare(bVal as string)
+      : (aVal as number) > (bVal as number)
+      ? 1
+      : (aVal as number) < (bVal as number)
+      ? -1
+      : 0;
+  return dir === 'asc' ? cmp : -cmp;
+}
