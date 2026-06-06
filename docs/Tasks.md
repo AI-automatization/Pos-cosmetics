@@ -880,21 +880,6 @@
   - **Ibrat/Team Lead QAROR:** `phone` saqlanadimi? HA → backend User model + Create/UpdateUserDto ga `phone`. YO'Q → mobile'dan phone input+body olib tashlash.
   - **Mobile (Abdulaziz, qarordan keyin):** formга email input (create uchun); parol min 8; phone qarorini bajarish.
 
-## T-489 | P1 | [MOBILE] | useOfflineQueue auto-sync ishlamaydi
-- **Fayl:** apps/mobile/src/hooks/useOfflineQueue.ts:26-30
-- **Muammo:** Auto-process effekti faqat `[isOnline]` ga bog'langan, `status.pending` stale. Internet qaytganda pending order avtomatik yuborilmaydi (faqat qo'lda processQueue ishlaydi).
-- **Kutilgan:** `isOnline` true bo'lganda avval `refresh()`, keyin pending tekshirish (idempotency bo'lgach xavfsiz).
-
-## T-490 | P1 | [MOBILE] | useBtPrinter — unmount'da `connect('')` (disconnect emas)
-- **Fayl:** apps/mobile/src/hooks/useBtPrinter.ts:75-79
-- **Muammo:** Cleanup BT printerni uzish uchun `BtManager.connect('')` (bo'sh MAC) chaqiradi — bu uzish emas. Socket ochiq qoladi → keyingi scan/connect xato ("device busy").
-- **Kutilgan:** Interfeysga `disconnect()` qo'shib, cleanup'da haqiqiy `BtManager.disconnect()`.
-
-## T-491 | P1 | [MOBILE] | Owner useAlerts — queryKey'da filter yo'q
-- **Fayl:** apps/mobile-owner/src/hooks/useAlerts.ts:20-28, screens/Alerts/index.tsx:42,54
-- **Muammo:** queryKey faqat `branchId`, lekin queryFn `statusFilter`/`priorityFilter` yuboradi → filter o'zgarsa refetch bo'lmaydi. Real datada priority/status chiplar UMUMAN ishlamaydi.
-- **Kutilgan:** queryKey'ga filterlar qo'shilsin (`[...,statusFilter,priorityFilter]`).
-
 ## T-492 | P1 | [MOBILE] | SalesOrderDetail — to'lov usuli labellari to'liqsiz
 - **Fayl:** apps/mobile/src/screens/SalesOrders/SalesOrderDetailScreen.tsx:34-38, 91-94
 - **Muammo:** `METHOD_LABELS` faqat CASH/CARD/CREDIT'ni biladi; real metodlar NAQD/KARTA/NASIYA/PAYME/CLICK/UZUM → label topilmay xom qiymat ko'rsatiladi (enum case/til mismatch).

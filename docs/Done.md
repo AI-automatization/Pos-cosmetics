@@ -1,5 +1,29 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-06-04
+# Yangilangan: 2026-06-06
+
+---
+
+## T-491 | 2026-06-06 | [MOBILE] | Owner useAlerts — queryKey'da filter yo'q
+
+- **Yechim:** `queryKey` endi `statusFilter`/`priorityFilter` ni o'z ichiga oladi (`alerts.list(branchId, statusFilter, priorityFilter)`) → chip o'zgarganda React Query refetch qiladi (avval bir xil key sababli stale cache qaytarardi — chiplar o'lik edi). **Invalidation tuzog'i hal qilindi:** filterlar key'ga qo'shilgach, eski `invalidateQueries(alerts.list(branchId))` (`['alerts','list',branchId,1]`) yangi filterli keylarga prefix-match qilmay qolardi → yangi `alerts.listKey(branchId)` prefix helper (`['alerts','list',branchId]`) qo'shildi; markAsRead/markAllAsRead endi shu bilan invalidatsiya qiladi → barcha filter kombinatsiyalarini tozalaydi. Ishlatilmagan `page` param olib tashlandi (faqat useAlerts.ts ishlatardi).
+- **Fayl:** apps/mobile-owner/src/{config/queryKeys.ts, hooks/useAlerts.ts}
+- **Manba:** T-491 audit. **Tekshiruv:** multi-agent (3 fix taklifi → judge Proposal 2; invalidation prefix-correctness adversarial tekshirildi). `tsc --noEmit` 0 xato + eslint toza.
+
+---
+
+## T-490 | 2026-06-06 | [MOBILE] | useBtPrinter — `connect('')` cleanup socketni ochiq qoldiradi
+
+- **Yechim:** Unmount cleanup'dagi zararli `BtManager.connect('')` olib tashlandi — bo'sh manzil `getRemoteDevice('')` da IllegalArgumentException tashlardi (`.catch` yutardi) va native RFCOMM socket ochiq qolardi → "device busy". **Native tekshiruv:** `react-native-bluetooth-escpos-printer@0.0.5` `BluetoothManager` da `disconnect()` UMUMAN YO'Q (faqat connect/scan/enable/disable/unpaire). Socket faqat `BluetoothService.stop()` orqali yopiladi — u JS'dan faqat `disableBluetooth()` orqali (butun adapterni o'chiradi — yaroqsiz UX). Shuning uchun: throw qiladigan chaqiruv olib tashlandi, library cheklovi izohlandi; native socket boshqa qurilmaga `connect()` (ichida `stop()`) yoki process tugaganda implicit yopiladi. O'lik qolgan `connectedRef` + sinxron effekti + ishlatilmagan `useRef`/`useEffect` importlari ham tozalandi.
+- **Fayl:** apps/mobile/src/hooks/useBtPrinter.ts
+- **Manba:** T-490 audit. **Tekshiruv:** multi-agent (native API node_modules'dan o'qildi → 3 fix taklifi → judge Proposal 2; human review o'lik `connectedRef`ni ushladi). `tsc --noEmit` 0 xato. Eslatma: `require()` eslint xatosi pre-existing (optional-modul Expo Go fallback, T-490'dan oldin bor edi).
+
+---
+
+## T-489 | 2026-06-06 | [MOBILE] | useOfflineQueue auto-sync ishlamaydi — stale closure tuzatildi
+
+- **Yechim:** "Coming back online" auto-process effekti endi `status.pending` ni stale React closure'dan emas, `offlineQueueService.getStatus()` orqali TO'G'RIDAN (AsyncStorage'dan yangi) o'qiydi. Shu bilan internet qaytganda — va mount'da `isOnline` boshlang'ich `true` bo'lib oldingi sessiyada pending order qolgan holatda ham — yangi pending soni o'qilib, `pending > 0` bo'lsa `processQueue()` chaqiriladi. Effekt deps `[isOnline, isSyncing, processQueue]` to'liq qilindi → `eslint-disable react-hooks/exhaustive-deps` OLIB TASHLANDI. `cancelled` flag bilan unmount-safe. Double-send xavfi yo'q: service `isProcessing` guard + idempotency key (T-481) + `!isSyncing` sharti.
+- **Fayl:** apps/mobile/src/hooks/useOfflineQueue.ts
+- **Manba:** T-489 audit (26 task kod o'qib tasdiqlangan). **Tekshiruv:** multi-agent (3 mustaqil fix taklifi → judge Proposal 3 ni tanladi) → `tsc --noEmit` 0 xato + `eslint` 0 ogohlantirish.
 
 ---
 
