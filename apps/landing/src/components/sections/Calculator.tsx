@@ -27,11 +27,11 @@ function getRaosYearly(branches: number): number {
   return monthly * 12
 }
 
-function fmt(n: number): string {
+function fmt(n: number, units: { mln: string; thou: string }): string {
   if (n === 0) return '0'
-  const mln = n / 1_000_000
-  if (mln >= 1) return mln.toFixed(1) + ' mln'
-  return Math.round(n / 1_000) + ' ming'
+  const m = n / 1_000_000
+  if (m >= 1) return m.toFixed(1) + ' ' + units.mln
+  return Math.round(n / 1_000) + ' ' + units.thou
 }
 
 function BarRow({
@@ -41,6 +41,7 @@ function BarRow({
   gradientFrom,
   gradientTo,
   textColor,
+  units,
 }: {
   label: string
   value: number
@@ -48,13 +49,14 @@ function BarRow({
   gradientFrom: string
   gradientTo: string
   textColor: string
+  units: { mln: string; thou: string; currency: string }
 }) {
   const pct = maxVal > 0 ? Math.max(4, (value / maxVal) * 100) : 4
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-slate-400 text-xs sm:text-sm">{label}</span>
-        <span className={`text-xs sm:text-sm font-bold ${textColor}`}>{fmt(value)} UZS</span>
+        <span className={`text-xs sm:text-sm font-bold ${textColor}`}>{fmt(value, units)} {units.currency}</span>
       </div>
       <div className="h-2 rounded-full bg-slate-700/40 overflow-hidden">
         <div
@@ -72,6 +74,7 @@ function BarRow({
 export default function Calculator() {
   const { t } = useLang()
   const tr = t.calculator
+  const units = tr.units
   const [branches, setBranches] = useState(2)
   const [posType, setPosType] = useState<PosKey>('a')
 
@@ -161,6 +164,7 @@ export default function Calculator() {
               gradientFrom="rgba(249,115,22,0.7)"
               gradientTo="rgba(251,146,60,0.4)"
               textColor="text-orange-300"
+              units={units}
             />
             <BarRow
               label={tr.results.fineRisk}
@@ -169,13 +173,14 @@ export default function Calculator() {
               gradientFrom="rgba(239,68,68,0.7)"
               gradientTo="rgba(252,165,165,0.4)"
               textColor="text-red-300"
+              units={units}
             />
 
             <div className="border-t border-slate-700/40 pt-3">
               <div className="flex items-center justify-between">
                 <span className="text-slate-400 text-sm">{tr.results.total}</span>
                 <span className="text-white font-bold">
-                  {fmt(totalCurrent)} UZS{tr.results.perYear}
+                  {fmt(totalCurrent, units)} {units.currency}{tr.results.perYear}
                 </span>
               </div>
             </div>
@@ -187,6 +192,7 @@ export default function Calculator() {
               gradientFrom="rgba(36,212,244,0.7)"
               gradientTo="rgba(95,238,251,0.4)"
               textColor="text-[#24D4F4]"
+              units={units}
             />
 
             {/* Savings highlight */}
@@ -203,7 +209,7 @@ export default function Calculator() {
                   savings > 0 ? 'text-emerald-400' : 'text-slate-500'
                 }`}
               >
-                {savings > 0 ? `${fmt(savings)} UZS` : '—'}
+                {savings > 0 ? `${fmt(savings, units)} ${units.currency}` : '—'}
               </p>
               {savings > 0 && (
                 <p className="text-emerald-400/60 text-sm mt-1">{tr.results.perYear}</p>

@@ -396,6 +396,11 @@ const uz = {
     },
     cta: 'Bepul boshlash →',
     disclaimer: '* Hisob-kitob taxminiy. Haqiqiy narx tizim va rejaga qarab farq qilishi mumkin.',
+    units: {
+      mln: 'mln',
+      thou: 'ming',
+      currency: 'UZS',
+    },
   },
 }
 
@@ -795,6 +800,11 @@ const ru: typeof uz = {
     },
     cta: 'Начать бесплатно →',
     disclaimer: '* Расчёт приблизительный. Реальная цена зависит от системы и тарифного плана.',
+    units: {
+      mln: 'млн',
+      thou: 'тыс',
+      currency: 'сум',
+    },
   },
 }
 
@@ -1194,6 +1204,11 @@ const en: typeof uz = {
     },
     cta: 'Start for free →',
     disclaimer: '* Estimate only. Actual cost depends on system and plan.',
+    units: {
+      mln: 'M',
+      thou: 'K',
+      currency: 'sum',
+    },
   },
 }
 
