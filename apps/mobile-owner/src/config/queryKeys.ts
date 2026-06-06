@@ -37,7 +37,10 @@ export const QUERY_KEYS = {
     profile: (id: string) => ['employees', 'profile', id] as const,
   },
   alerts: {
-    list: (branchId?: string | null, page?: number) => ['alerts', 'list', branchId ?? 'all', page ?? 1] as const,
+    // Branch-level prefix for invalidation — matches every status/priority combination.
+    listKey: (branchId?: string | null) => ['alerts', 'list', branchId ?? 'all'] as const,
+    list: (branchId?: string | null, statusFilter?: string, priorityFilter?: string) =>
+      ['alerts', 'list', branchId ?? 'all', statusFilter ?? 'all', priorityFilter ?? 'all'] as const,
     unreadCount: (branchId?: string | null) => ['alerts', 'unreadCount', branchId ?? 'all'] as const,
     detail: (id: string) => ['alerts', 'detail', id] as const,
   },

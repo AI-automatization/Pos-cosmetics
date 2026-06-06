@@ -18,7 +18,7 @@ export function useAlerts(
   const queryClient = useQueryClient();
 
   const alerts = useQuery({
-    queryKey: QUERY_KEYS.alerts.list(selectedBranchId),
+    queryKey: QUERY_KEYS.alerts.list(selectedBranchId, statusFilter, priorityFilter),
     queryFn: () =>
       alertsApi.getAlerts({
         branchId: selectedBranchId,
@@ -42,7 +42,7 @@ export function useAlerts(
   const markAsRead = useMutation({
     mutationFn: (id: string) => alertsApi.markAsRead(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alerts.list(selectedBranchId) });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alerts.listKey(selectedBranchId) });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alerts.unreadCount(selectedBranchId) });
     },
   });
@@ -50,7 +50,7 @@ export function useAlerts(
   const markAllAsRead = useMutation({
     mutationFn: () => alertsApi.markAllAsRead({ branchId: selectedBranchId }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alerts.list(selectedBranchId) });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alerts.listKey(selectedBranchId) });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alerts.unreadCount(selectedBranchId) });
     },
   });
