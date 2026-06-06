@@ -27,10 +27,31 @@ export function useOfflineQueue() {
 
   // Auto-process when coming back online
   useEffect(() => {
-    if (isOnline && status.pending > 0 && !isSyncing) {
-      void processQueue();
-    }
-  }, [isOnline]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!isOnline) return;
+
+    let cancelled = false;
+
+    const syncOnReconnect = async () => {
+      try {
+        // Fetch fresh status directly (avoid stale closure on status.pending)
+        const freshStatus = await offlineQueueService.getStatus();
+        if (cancelled) return;
+
+        // Only process if there are pending items and not already syncing
+        if (freshStatus.pending > 0 && !isSyncing) {
+          await processQueue();
+        }
+      } catch {
+        // Silently ignore errors during auto-sync — manual refresh available
+      }
+    };
+
+    void syncOnReconnect();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOnline, isSyncing, processQueue]);
 
   // Load on mount
   useEffect(() => {
