@@ -182,10 +182,8 @@ export class IdentityService {
       hasAdminAccess,
     });
 
-    await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken);
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLogin: new Date() },
+    await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken, {
+      lastLogin: new Date(),
     });
 
     this.eventEmitter.emit(USER_LOGGED_IN, {
@@ -215,10 +213,8 @@ export class IdentityService {
       role: user.role,
       branchId: null,
     } as JwtPayload);
-    await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken);
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLogin: new Date() },
+    await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken, {
+      lastLogin: new Date(),
     });
     return tokens;
   }
