@@ -4,6 +4,7 @@ import './globals.css'
 import ScrollProgress from '@/components/ScrollProgress'
 import { LangProvider } from '@/i18n/LangContext'
 import JsonLd from '@/components/JsonLd'
+import Analytics from '@/components/Analytics'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], display: 'swap' })
 
@@ -72,6 +73,7 @@ export default function RootLayout({
     <html lang="uz">
       <body className={`${inter.className} antialiased`}>
         <JsonLd />
+        <Analytics />
         <LangProvider>
           <ScrollProgress />
           {children}
