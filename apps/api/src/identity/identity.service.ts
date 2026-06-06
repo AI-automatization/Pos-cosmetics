@@ -183,6 +183,10 @@ export class IdentityService {
     });
 
     await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() },
+    });
 
     this.eventEmitter.emit(USER_LOGGED_IN, {
       eventId: randomUUID(),
@@ -212,6 +216,10 @@ export class IdentityService {
       branchId: null,
     } as JwtPayload);
     await this.tokenHelper.saveRefreshToken(user.id, tokens.refreshToken);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() },
+    });
     return tokens;
   }
 

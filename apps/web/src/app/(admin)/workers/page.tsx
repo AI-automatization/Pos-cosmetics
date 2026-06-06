@@ -252,8 +252,8 @@ export default function WorkersPage() {
                   ) : <span className="text-xs text-gray-400">—</span>}
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">
-                  {(u as User & { lastLogin?: string }).lastLogin
-                    ? new Date((u as User & { lastLogin: string }).lastLogin).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })
+                  {u.lastLogin
+                    ? new Date(u.lastLogin).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })
                     : '—'}
                 </td>
                 <td className="px-4 py-3">
