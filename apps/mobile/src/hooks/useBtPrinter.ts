@@ -1,9 +1,12 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 // ─── Safe dynamic import ────────────────────────────────────────────────────
 // react-native-bluetooth-escpos-printer mavjud bo'lmasligi mumkin (Expo Go)
+// NOTE: bu TS interfeys FAQAT native'da mavjud metodlarni e'lon qiladi.
+// Native BluetoothManager `disconnect()` BERMAYDI — socket faqat stop() orqali yopiladi
+// (connect() boshqa qurilmaga o'tganda ichki chaqiriladi) yoki ilova process tugaganda.
 let BtManager: {
   isBluetoothEnabled: () => Promise<boolean>;
   enableBluetooth: () => Promise<void>;
@@ -67,16 +70,16 @@ export function useBtPrinter() {
   const [error, setError] = useState<string | null>(null);
 
   const isAvailable = BtManager !== null && BtPrinter !== null;
-  const connectedRef = useRef<BtDevice | null>(null);
 
-  useEffect(() => { connectedRef.current = connectedDevice; }, [connectedDevice]);
-
-  // Disconnect on unmount
-  useEffect(() => () => {
-    if (connectedRef.current && BtManager) {
-      BtManager.connect('').catch(() => {});
-    }
-  }, []);
+  // Unmount'da native disconnect QILMAYMIZ — ataylab.
+  // react-native-bluetooth-escpos-printer@0.0.5 `disconnect()` metodini BERMAYDI.
+  // Avvalgi kod unmount'da `BtManager.connect('')` chaqirardi, lekin bo'sh manzilda
+  // getRemoteDevice('') IllegalArgumentException tashlaydi (`.catch` yutadi) va native
+  // RFCOMM socket ochiq qoladi → keyingi scan/connect'da "device busy".
+  // Native BluetoothService socketni o'zi yopadi: boshqa qurilmaga connect() qilinganda
+  // ichida stop() chaqiradi, process tugaganda esa OS tozalaydi. Xavfsiz per-connection
+  // close yo'q (disableBluetooth() butun adapterni o'chiradi), shuning uchun bu yerda
+  // native uzishga urinmaymiz.
 
   const scan = useCallback(async () => {
     if (!BtManager) { setError(t('printer.btNotAvailable')); return; }
@@ -115,6 +118,8 @@ export function useBtPrinter() {
     }
   }, [devices, t]);
 
+  // NOTE: native disconnect() API yo'q — bu faqat React state'ni tozalaydi. Native socket
+  // boshqa qurilmaga ulanganda (stop()) yoki ilova tugaganda yopiladi.
   const disconnect = useCallback(async () => {
     setError(null);
     setConnectedDevice(null);
