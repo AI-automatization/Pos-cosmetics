@@ -1,7 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient({
-  datasourceUrl: "postgresql://postgres:IexyvkdDvSVlXcVFCzlsuuQReOpKFrEM@interchange.proxy.rlwy.net:29292/railway"
-});
+if (!process.env.DATABASE_URL) { console.error('DATABASE_URL env required'); process.exit(1); }
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 
 async function main() {
   // 1. Tenants

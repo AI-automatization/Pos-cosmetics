@@ -25,25 +25,27 @@ function useCertificates(productId: string) {
 
 function useCreateCertificate(productId: string) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: CreateCertificateDto) => catalogApi.createCertificate(productId, dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CERTS_KEY(productId) });
-      toast.success("Sertifikat qo'shildi");
+      toast.success(t('toast.certificateAdded'));
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 
 function useDeleteCertificate(productId: string) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (certId: string) => catalogApi.deleteCertificate(productId, certId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CERTS_KEY(productId) });
-      toast.success("Sertifikat o'chirildi");
+      toast.success(t('toast.certificateDeleted'));
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 

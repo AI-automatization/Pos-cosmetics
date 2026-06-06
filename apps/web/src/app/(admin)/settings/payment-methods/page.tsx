@@ -55,7 +55,7 @@ export default function PaymentMethodsPage() {
 
   const handleTerminalSave = (settings: TerminalSettings) => {
     upsertMutation.mutate(
-      { provider: 'TERMINAL', payload: { settings: settings as unknown as Record<string, unknown>, isActive: true } },
+      { provider: 'TERMINAL', payload: { settings: { ...settings } as Record<string, unknown>, isActive: true } },
       { onSuccess: () => setTerminalModal(false) },
     );
   };
@@ -112,6 +112,7 @@ export default function PaymentMethodsPage() {
 
                     {/* Terminal settings summary */}
                     {p.provider === 'TERMINAL' && config?.isActive && (() => {
+                      // Narrowing from API-stored settings to known TerminalSettings shape
                       const ts = config.settings as unknown as TerminalSettings;
                       return (
                         <div className="mt-2 flex flex-wrap gap-2">
@@ -213,9 +214,14 @@ export default function PaymentMethodsPage() {
         onClose={() => setTerminalModal(false)}
         onSave={handleTerminalSave}
         initial={(() => {
-          const s = getConfig(configs, 'TERMINAL')?.settings as Record<string, unknown> | undefined;
-          if (!s || !s.bankName) return undefined;
-          return { bankName: s.bankName as string, commissionRate: Number(s.commissionRate ?? 1.0), cardTypes: Array.isArray(s.cardTypes) ? s.cardTypes as string[] : ['UZCARD', 'HUMO'], terminalId: (s.terminalId as string) ?? undefined };
+          const s = getConfig(configs, 'TERMINAL')?.settings;
+          if (!s || !('bankName' in s) || !s.bankName) return undefined;
+          return {
+            bankName: s.bankName as string,
+            commissionRate: Number(s.commissionRate ?? 1.0),
+            cardTypes: Array.isArray(s.cardTypes) ? s.cardTypes as string[] : ['UZCARD', 'HUMO'],
+            terminalId: (s.terminalId as string) ?? undefined,
+          };
         })()}
         isPending={upsertMutation.isPending}
       />

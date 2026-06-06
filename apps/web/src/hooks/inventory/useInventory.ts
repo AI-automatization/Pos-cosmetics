@@ -6,6 +6,7 @@ import { inventoryApi } from '@/api/inventory.api';
 import { catalogApi } from '@/api/catalog.api';
 import { usersApi } from '@/api/users.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { StockQuery, StockInDto, StockOutDto, StockLevel, StockStatus, StockMovement, TransferStatus, CreateTransferDto } from '@/types/inventory';
 import type { Product } from '@/types/catalog';
 import type { User } from '@/types/user';
@@ -72,11 +73,12 @@ export function useLowStock() {
 
 export function useStockIn() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: StockInDto) => inventoryApi.stockIn(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success('Kirim muvaffaqiyatli saqlandi');
+      toast.success(t('toast.stockInSaved'));
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
@@ -86,11 +88,12 @@ export function useStockIn() {
 
 export function useStockOut() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: StockOutDto) => inventoryApi.stockOut(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success('Chiqim muvaffaqiyatli saqlandi');
+      toast.success(t('toast.stockOutSaved'));
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
@@ -100,13 +103,14 @@ export function useStockOut() {
 
 export function useOpenTester() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: { productId: string; warehouseId: string; quantity: number; costPrice: number; note?: string }) =>
       inventoryApi.openTester(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['inventory'] });
       qc.invalidateQueries({ queryKey: ['testers'] });
-      toast.success('Tester muvaffaqiyatli ochildi');
+      toast.success(t('toast.testerOpened'));
     },
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err));
@@ -172,11 +176,12 @@ export function useTransfers(params?: { status?: TransferStatus; branchId?: stri
 
 export function useCreateTransfer() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: CreateTransferDto) => inventoryApi.createTransfer(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [TRANSFERS_KEY] });
-      toast.success("Ko'chirish so'rovi yaratildi");
+      toast.success(t('toast.transferCreated'));
     },
     onError: (err) => toast.error(extractErrorMessage(err)),
   });
@@ -184,6 +189,7 @@ export function useCreateTransfer() {
 
 export function useTransferAction() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, action }: { id: string; action: 'approve' | 'ship' | 'receive' | 'cancel' }) => {
       const map = {
@@ -196,7 +202,7 @@ export function useTransferAction() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [TRANSFERS_KEY] });
-      toast.success("Transfer holati yangilandi");
+      toast.success(t('toast.transferStatusUpdated'));
     },
     onError: (err) => toast.error(extractErrorMessage(err)),
   });
@@ -223,12 +229,13 @@ export function useInvoice(id: string | null) {
 
 export function useApproveInvoice() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => inventoryApi.approveInvoice(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invoices'] });
       qc.invalidateQueries({ queryKey: ['invoice'] });
-      toast.success('Nakладная tasdiqlandi');
+      toast.success(t('toast.invoiceApproved'));
     },
     onError: (err) => toast.error(extractErrorMessage(err)),
   });

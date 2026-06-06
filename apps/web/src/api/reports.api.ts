@@ -67,7 +67,18 @@ export const reportsApi = {
       .then((r) => {
         const data = r.data;
         if (!Array.isArray(data)) return [];
-        return (data as unknown as Record<string, unknown>[]).map((d) => ({
+        interface RawDailyRevenue {
+          date?: string;
+          revenue?: number;
+          totalRevenue?: number;
+          ordersCount?: number;
+          orderCount?: number;
+          orders_count?: number;
+          count?: number;
+          discountAmount?: number;
+          totalDiscount?: number;
+        }
+        return (data as RawDailyRevenue[]).map((d) => ({
           date: String(d.date ?? ''),
           revenue: Number(d.revenue ?? d.totalRevenue ?? 0),
           ordersCount: Number(d.ordersCount ?? d.orderCount ?? d.orders_count ?? d.count ?? 0),
@@ -82,7 +93,25 @@ export const reportsApi = {
       .then((r) => {
         const data = r.data;
         if (!Array.isArray(data)) return [];
-        return (data as unknown as Record<string, unknown>[]).map((d) => ({
+        interface RawTopProduct {
+          productId?: string;
+          id?: string;
+          productName?: string;
+          name?: string;
+          product_name?: string;
+          quantity?: number;
+          totalQuantity?: number;
+          totalQty?: number;
+          total_quantity?: number;
+          qty?: number;
+          revenue?: number;
+          totalRevenue?: number;
+          total_revenue?: number;
+          ordersCount?: number;
+          orders_count?: number;
+          orderCount?: number;
+        }
+        return (data as RawTopProduct[]).map((d) => ({
           productId: String(d.productId ?? d.id ?? ''),
           productName: String(d.productName ?? d.name ?? d.product_name ?? ''),
           quantity: Number(d.quantity ?? d.totalQuantity ?? d.totalQty ?? d.total_quantity ?? d.qty ?? 0),

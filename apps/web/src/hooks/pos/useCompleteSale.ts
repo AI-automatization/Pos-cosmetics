@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { salesApi } from '@/api/sales.api';
 import { inventoryApi } from '@/api/inventory.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import { usePOSStore } from '@/store/pos.store';
 import { useSyncStore } from '@/store/sync.store';
 import { useLoyaltyConfig } from '@/hooks/customers/useLoyalty';
@@ -12,6 +13,7 @@ import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import type { Order, ApiPaymentMethod } from '@/types/sales';
 
 export function useCompleteSale(onSuccess: (order: Order) => void) {
+  const { t } = useTranslation();
   const store = usePOSStore();
   const cart = store.carts[store.activeCartId];
   const { items, orderDiscount, orderDiscountType, paymentMethod, cardType, cashAmount, cardAmount, bonusPoints, splitNasiyaAmount, selectedCustomer } = cart;
@@ -78,14 +80,14 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
           id: crypto.randomUUID(),
           label,
           createdAt: new Date().toISOString(),
-          payload: orderPayload as unknown as Record<string, unknown>,
+          payload: orderPayload,
         });
         const { total: totalAmt } = totals();
         const cash = paymentMethod === 'cash' ? totalAmt : paymentMethod === 'split' ? cashAmount : 0;
         const card = paymentMethod === 'card' ? totalAmt : paymentMethod === 'split' ? cardAmount : 0;
         recordSale(totalAmt, cash, card);
         clearCart();
-        toast.warning("Internet yo'q — order Buyurmalaga saqlandi. Ulanish tiklanganda avtomatik yuboriladi.", { duration: 6000 });
+        toast.warning(t('toast.offlineOrderSaved'), { duration: 6000 });
         return Promise.resolve({} as Order);
       }
 
@@ -119,10 +121,10 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
 
       if (paymentMethod === 'nasiya') {
         toast.success(
-          `Nasiya savdo yakunlandi! Xaridor: ${selectedCustomer?.name ?? '—'}`,
+          t('toast.nasiyaSaleComplete', { customer: selectedCustomer?.name ?? '—' }),
         );
       } else {
-        toast.success(`Sotuv #${order.orderNumber ?? order.id?.slice(0, 8) ?? '—'} yakunlandi!`);
+        toast.success(t('toast.saleComplete', { orderNumber: order.orderNumber ?? order.id?.slice(0, 8) ?? '—' }));
       }
 
       // Loyalty: show earned points toast if customer selected
@@ -130,7 +132,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         const earnRate = loyaltyConfig.earnRate ?? DEFAULT_LOYALTY_CONFIG.earnRate;
         const earned = Math.floor(total / earnRate);
         if (earned > 0) {
-          toast.info(`⭐ ${selectedCustomer.name}: +${earned} ball yig'ildi`, { duration: 5000 });
+          toast.info(t('toast.loyaltyEarned', { name: selectedCustomer.name, earned: String(earned) }), { duration: 5000 });
           // Attach to order for receipt display
           order.loyaltyEarned = earned;
         }
@@ -142,13 +144,13 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
           if (remainingStock <= 0) {
             // Avtomatik zapros
             inventoryApi.sendRestockRequest({ productId, productName: name, currentStock: 0 });
-            toast.error(`${name}: Tugadi! Omborchiga xabar yuborildi.`, { duration: 8000 });
+            toast.error(t('toast.productOutOfStock', { name }), { duration: 8000 });
           } else if (remainingStock <= 5) {
             // Manual zapros (button)
-            toast.warning(`${name}: ${remainingStock} ta qoldi`, {
+            toast.warning(t('toast.productLowStock', { name, remaining: String(remainingStock) }), {
               duration: 15000,
               action: {
-                label: 'Omborchiga yuborish',
+                label: t('toast.sendToWarehouse'),
                 onClick: () =>
                   inventoryApi.sendRestockRequest({
                     productId,
@@ -159,7 +161,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
             });
           } else if (remainingStock <= 10) {
             // Faqat warning
-            toast.warning(`${name}: ${remainingStock} ta qoldi`, { duration: 5000 });
+            toast.warning(t('toast.productLowStock', { name, remaining: String(remainingStock) }), { duration: 5000 });
           }
         });
       }, 150);

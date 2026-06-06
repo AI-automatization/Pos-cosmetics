@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { warehouseApi, CreateInvoiceDto, WriteOffDto } from '@/api/warehouse.api';
 import { toast } from 'sonner';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 
 export function useWarehouseInvoices(params?: { from?: string; to?: string; page?: number }) {
   return useQuery({
@@ -20,13 +21,14 @@ export function useWarehouseInvoice(id: string) {
 
 export function useUpdateInvoice() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, ...dto }: { id: string; invoiceNumber?: string; note?: string; supplierId?: string }) =>
       warehouseApi.updateInvoice(id, dto),
     onSuccess: (_data, variables) => {
       void qc.invalidateQueries({ queryKey: ['warehouse-invoice', variables.id] });
       void qc.invalidateQueries({ queryKey: ['warehouse-invoices'] });
-      toast.success('Saqlandi');
+      toast.success(t('toast.invoiceSaved'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });
@@ -34,12 +36,13 @@ export function useUpdateInvoice() {
 
 export function useCreateInvoice() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: CreateInvoiceDto) => warehouseApi.createInvoice(dto),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['warehouse-invoices'] });
       void qc.invalidateQueries({ queryKey: ['stock'] });
-      toast.success('Nakladnoy saqlandi');
+      toast.success(t('toast.invoiceCreated'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });
@@ -47,13 +50,14 @@ export function useCreateInvoice() {
 
 export function useWriteOff() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: WriteOffDto) => warehouseApi.writeOff(dto),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['stock'] });
-      toast.success('Spisanie amalga oshirildi');
+      toast.success(t('toast.writeOffComplete'));
     },
-    onError: () => toast.error('Xato yuz berdi'),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 

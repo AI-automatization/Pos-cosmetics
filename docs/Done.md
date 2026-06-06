@@ -22,6 +22,20 @@
 
 ---
 
+## T-464 | 2026-06-06 | [FRONTEND] | SMS Campaign Web UI
+
+- **Yechim:**
+  - `/campaigns` — list with status badges (DRAFT/SCHEDULED/SENDING/COMPLETED), send/cancel actions
+  - `/campaigns/new` — create form: name, 160-char SMS counter, phone list textarea, preview
+  - `/campaigns/[id]` — detail: stats grid (recipients/sent/failed/cost) + messages table (auto-refresh 5s)
+  - API client: `sms.api.ts` (8 endpoints), hooks: `useCampaigns.ts` (7 React Query hooks)
+  - Sidebar: "SMS Kampaniyalar" link added (MessageSquare icon)
+  - i18n: 38 campaigns.* keys in uz/ru/en
+- **Fayllar:** 10 fayl (types, api, hooks, 3 pages, sidebar, 3 locales)
+- **Mas'ul:** Ibrat
+
+---
+
 ## T-470..T-477 | 2026-06-04 | [BACKEND] | Import engine — 7 bug fix
 
 - T-470: unit/category topilmasa per-row warning

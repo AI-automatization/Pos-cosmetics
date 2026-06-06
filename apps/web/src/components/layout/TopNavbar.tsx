@@ -21,7 +21,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) return;
+    if (newPassword.length < 8) return;
     resetPassword({ id: userId, newPassword }, { onSuccess: onClose });
   };
 
@@ -44,7 +44,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
                 type={showPwd ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                minLength={6}
+                minLength={8}
                 required
                 autoFocus
                 placeholder={t('auth.minChars')}
@@ -65,7 +65,7 @@ function ChangePasswordModal({ userId, onClose }: { userId: string; onClose: () 
             </button>
             <button
               type="submit"
-              disabled={newPassword.length < 6 || isPending}
+              disabled={newPassword.length < 8 || isPending}
               className="rounded-lg bg-raos-cyan px-4 py-2 text-sm font-semibold text-raos-bg-deep shadow-md shadow-raos-cyan/30 hover:bg-raos-cyan-light disabled:opacity-50"
             >
               {isPending ? t('common.saving') : t('common.save')}

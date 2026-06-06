@@ -11,9 +11,9 @@ import { useTranslation } from '@/i18n/i18n-context';
 const SENSITIVE_KEYS = /password|secret|token|key|hash|credential/i;
 function redactSensitive(data: unknown): unknown {
   if (!data || typeof data !== 'object') return data;
-  const obj = data as Record<string, unknown>;
   const safe: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
+  // Safe narrowing after typeof === 'object' guard
+  for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
     safe[k] = SENSITIVE_KEYS.test(k) ? '[REDACTED]' : v;
   }
   return safe;

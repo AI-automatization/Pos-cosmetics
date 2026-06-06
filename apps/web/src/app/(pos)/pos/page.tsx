@@ -170,7 +170,7 @@ export default function POSPage() {
           const cashierName = [s.user?.firstName, s.user?.lastName].filter(Boolean).join(' ') || 'Kassir';
           usePOSStore.getState().openShift(shift.id, cashierName, Number(shift.openingCash));
         }
-      });
+      }).catch(() => { /* shift fetch failed — user will open manually */ });
     }
   }, []); // intentional: run once on mount
 

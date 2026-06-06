@@ -97,6 +97,7 @@ export function useWeightScale() {
 
       // Read loop
       const textDecoder = new TextDecoderStream();
+      // Web Serial API type mismatch: TextDecoderStream.writable is WritableStream<string> but port.readable expects WritableStream<Uint8Array>
       const readableStreamClosed = port.readable!.pipeTo(textDecoder.writable as unknown as WritableStream<Uint8Array>, { signal: abort.signal }).catch(() => {});
       const reader = textDecoder.readable.getReader();
       readerRef.current = reader;

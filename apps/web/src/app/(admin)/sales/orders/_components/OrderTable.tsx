@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Receipt, ShoppingCart, Eye, Banknote, CreditCard, Clock } from 'lucide-react';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
-import { formatPrice, formatDateTime, cn } from '@/lib/utils';
+import { formatPrice, formatDateTime, cn, getField, compareSortValues } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import { StatusBadge } from './StatusBadge';
 import type { OrderStatus } from '@/types/order';
@@ -78,19 +78,9 @@ export function OrderTable({
   const sortedOrders = useMemo(() => {
     if (!sortField) return orders;
     return [...orders].sort((a, b) => {
-      const aVal = (a as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
-      const bVal = (b as unknown as Record<string, unknown>)[sortField] as string | number | null | undefined;
-      if (aVal == null) return 1;
-      if (bVal == null) return -1;
-      const cmp =
-        typeof aVal === 'string'
-          ? aVal.localeCompare(bVal as string)
-          : (aVal as number) > (bVal as number)
-          ? 1
-          : (aVal as number) < (bVal as number)
-          ? -1
-          : 0;
-      return sortDir === 'asc' ? cmp : -cmp;
+      const aVal = getField(a, sortField as keyof OrderItem);
+      const bVal = getField(b, sortField as keyof OrderItem);
+      return compareSortValues(aVal, bVal, sortDir);
     });
   }, [orders, sortField, sortDir]);
 

@@ -7,6 +7,7 @@ import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useExpiringProducts, useExpiredProducts } from '@/hooks/inventory/useExpiry';
+import { useTranslation } from '@/i18n/i18n-context';
 
 function ExpiryBadge({ daysLeft }: { daysLeft: number }) {
   if (daysLeft < 0) {
@@ -79,6 +80,7 @@ function downloadCsv(data: Record<string, unknown>[], filename: string) {
 }
 
 export default function ExpiryPage() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<TabKey>('expiring');
   const [daysFilter, setDaysFilter] = useState(30);
 
@@ -129,8 +131,8 @@ export default function ExpiryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Yaroqlilik muddati</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Kosmetika mahsulotlari muddati nazorati</p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('inventory.expiryPageTitle')}</h1>
+          <p className="mt-0.5 text-sm text-gray-500">{t('inventory.expiryPageSubtitle')}</p>
         </div>
         <button
           type="button"

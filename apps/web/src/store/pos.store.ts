@@ -287,6 +287,7 @@ export const usePOSStore = create<POSState>()(
       skipHydration: true,
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
+          // Zustand persist migration: old state shape is unknown, cast needed for field access
           const old = persistedState as Record<string, unknown>;
           return {
             ...old,
@@ -328,7 +329,10 @@ export const usePOSStore = create<POSState>()(
         return persistedState;
       },
       partialize: (state) => ({
-        carts: state.carts,
+        // Strip selectedCustomer from carts — sensitive data (phone, debt) must not persist in localStorage
+        carts: Object.fromEntries(
+          Object.entries(state.carts).map(([k, c]) => [k, { ...c, selectedCustomer: null }]),
+        ),
         activeCartId: state.activeCartId,
         shiftId: state.shiftId,
         cashierName: state.cashierName,

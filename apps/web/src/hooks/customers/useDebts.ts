@@ -6,16 +6,18 @@ import { apiClient } from '@/api/client';
 import { debtApi } from '@/api/debt.api';
 import { customerApi } from '@/api/customer.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { PayDebtDto } from '@/types/debt';
 import type { CreateCustomerDto } from '@/types/customer';
 
 /** Yangi xaridor yaratish */
 export function useCreateCustomer() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: CreateCustomerDto) => customerApi.create(dto),
     onSuccess: () => {
-      toast.success('Xaridor muvaffaqiyatli qo\'shildi!');
+      toast.success(t('toast.customerCreated'));
       void queryClient.invalidateQueries({ queryKey: ['customers'] });
     },
     onError: (err: unknown) => {
@@ -86,12 +88,13 @@ export function useAgingReport() {
 /** Qarz to'lash */
 export function usePayDebt() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: ({ debtId, dto }: { debtId: string; dto: PayDebtDto }) =>
       debtApi.payDebt(debtId, dto),
     onSuccess: () => {
-      toast.success("To'lov muvaffaqiyatli qabul qilindi!");
+      toast.success(t('toast.paymentAccepted'));
       void queryClient.invalidateQueries({ queryKey: ['debts'] });
       void queryClient.invalidateQueries({ queryKey: ['customers'] });
     },

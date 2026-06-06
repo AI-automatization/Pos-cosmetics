@@ -176,23 +176,7 @@
 
 ---
 
-## T-464 | P1 | [FRONTEND] | SMS Campaign Web UI — kampaniya yaratish, yuborish, kuzatish
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/web/src/app/(admin)/campaigns/` (yaratish kerak)
-- **Vazifa:**
-  - `/campaigns` — Ro'yxat: nomi, status, audience, yuborildi/yetkazildi, sana
-  - `/campaigns/new` — Yaratish: nomi, matn (160 belgi counter), audience segment, vaqt, preview
-  - `/campaigns/[id]` — Detail: status bar, statistika, xabar ro'yxati
-  - `/campaigns/templates` — Tayyor shablonlar (yangi mahsulot, chegirma, re-engagement)
-  - Audience segments: barcha, oxirgi 30 kun xaridorlar, loyalty 100+, 60+ kun churning
-  - Variables: [ism], [ballar], [dokon]
-- **Kutilgan:** Admin panelda SMS kampaniya yaratish, yuborish, kuzatish
-- **Muddat:** 3-4 kun
-- **Hafta:** W24 (4-hafta)
-- **Trek:** B (SMS Campaign)
-- **Bog'liq:** T-463
+*(T-464 — BAJARILDI, Done.md 2026-06-06 — SMS Campaign Web UI)*
 
 ---
 

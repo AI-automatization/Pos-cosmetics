@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/api/client';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { User } from '@/types/user';
 
 // GET /employees — barcha xodimlar yoki filial bo'yicha filter
@@ -22,16 +23,17 @@ export function useAllEmployees(branchId?: string) {
 // PATCH /employees/:id/transfer — xodimni boshqa filialga ko'chirish
 export function useTransferEmployee() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ employeeId, branchId }: { employeeId: string; branchId: string }) =>
       apiClient
         .patch<User>(`/employees/${employeeId}/transfer`, { branchId })
         .then((r) => r.data),
     onSuccess: () => {
-      toast.success("Xodim muvaffaqiyatli ko'chirildi");
+      toast.success(t('toast.employeeTransferred'));
       qc.invalidateQueries({ queryKey: ['users'] });
       qc.invalidateQueries({ queryKey: ['employees'] });
     },
-    onError: () => toast.error("Xodimni ko'chirishda xatolik"),
+    onError: () => toast.error(t('toast.employeeTransferError')),
   });
 }

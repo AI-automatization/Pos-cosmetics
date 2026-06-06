@@ -73,15 +73,15 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   useEffect(() => {
     const promo = globalPromoRef.current;
     if (promo && orderDiscount === 0) {
-      const rules = promo.rules as Record<string, number>;
-      if (promo.type === 'PERCENT' && (rules.percent ?? 0) > 0) {
+      const rules = promo.rules;
+      if (promo.type === 'PERCENT' && 'percent' in rules && (rules.percent ?? 0) > 0) {
         const pct = rules.percent;
         setDiscountInput(String(pct));
         setDiscountType('percent');
         setOrderDiscount(pct, 'percent');
         return;
       }
-      if (promo.type === 'FIXED' && (rules.amount ?? 0) > 0) {
+      if (promo.type === 'FIXED' && 'amount' in rules && (rules.amount ?? 0) > 0) {
         const amt = rules.amount;
         setDiscountInput(String(amt));
         setDiscountType('fixed');

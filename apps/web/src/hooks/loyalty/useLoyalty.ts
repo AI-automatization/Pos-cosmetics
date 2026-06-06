@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { loyaltyApi } from '@/api/loyalty.api';
 import type { AdjustPointsDto, EarnPointsDto } from '@/api/loyalty.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 
 export const LOYALTY_KEY = 'loyalty';
@@ -21,12 +22,13 @@ export function useLoyaltyConfig() {
 
 export function useUpdateLoyaltyConfig() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: Partial<typeof DEFAULT_LOYALTY_CONFIG>) =>
       loyaltyApi.updateConfig(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'config'] });
-      toast.success('Settings saved');
+      toast.success(t('toast.settingsSaved'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });
@@ -81,6 +83,7 @@ export function useLoyaltyAccount(customerId: string | null | undefined) {
 
 export function useAdjustPoints() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: AdjustPointsDto) => loyaltyApi.adjustPoints(dto),
     onSuccess: (_, vars) => {
@@ -88,7 +91,7 @@ export function useAdjustPoints() {
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'account', vars.customerId] });
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'transactions'] });
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'stats'] });
-      toast.success('Points adjusted');
+      toast.success(t('toast.pointsAdjusted'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });
@@ -96,6 +99,7 @@ export function useAdjustPoints() {
 
 export function useEarnPoints() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: EarnPointsDto) => loyaltyApi.earnPoints(dto),
     onSuccess: (_, vars) => {
@@ -103,7 +107,7 @@ export function useEarnPoints() {
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'account', vars.customerId] });
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'transactions'] });
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'stats'] });
-      toast.success('Points earned');
+      toast.success(t('toast.pointsEarned'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });
@@ -111,6 +115,7 @@ export function useEarnPoints() {
 
 export function useRedeemPoints() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({
       customerId,
@@ -124,7 +129,7 @@ export function useRedeemPoints() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'account', vars.customerId] });
       qc.invalidateQueries({ queryKey: [LOYALTY_KEY, 'transactions'] });
-      toast.success('Points redeemed');
+      toast.success(t('toast.pointsRedeemed'));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });

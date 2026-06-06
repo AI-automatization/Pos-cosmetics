@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-const DB_URL = "postgresql://postgres:IexyvkdDvSVlXcVFCzlsuuQReOpKFrEM@interchange.proxy.rlwy.net:29292/railway";
+const DB_URL = process.env.DATABASE_URL;
+if (!DB_URL) { console.error('DATABASE_URL env required. Usage: DATABASE_URL=postgresql://... node backup-db.js'); process.exit(1); }
 const BACKUP_DIR = path.join(require('os').homedir(), 'Desktop', 'RAOS_Backups');
 const MAX_BACKUPS = 10;
 

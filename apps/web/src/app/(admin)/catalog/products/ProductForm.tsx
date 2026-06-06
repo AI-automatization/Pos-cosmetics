@@ -55,7 +55,6 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
       supplierId: initialSupplierId ?? '', unitId: '',
     };
   }
-  const p = product as unknown as Record<string, unknown>;
   const barcodes: { value: string }[] = [];
   if (product.barcode) barcodes.push({ value: product.barcode });
   (product.extraBarcodes ?? []).forEach((v) => barcodes.push({ value: v }));
@@ -66,7 +65,7 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
     categoryId: product.categoryId ?? '',
     supplierId: initialSupplierId ?? product.productSuppliers?.[0]?.supplierId ?? '',
     unitId: product.unitId ?? '',
-    description: (p.description as string) ?? '',
+    description: (product as Product & { description?: string }).description ?? '',
     costPrice: Number(product.costPrice),
     sellPrice: Number(product.sellPrice),
     minStockLevel: Number(product.minStockLevel ?? 0),
@@ -87,7 +86,7 @@ export function ProductForm({ product, categories, isPending, onSubmit, onClose,
 
   const [showSku, setShowSku] = useState(!!product?.sku);
   const [imageUrl, setImageUrl] = useState<string>(
-    ((product as unknown as Record<string, unknown>)?.imageUrl as string) ?? '',
+    product?.imageUrl ?? '',
   );
 
   const [unitMode, setUnitMode] = useState<'existing' | 'custom'>('existing');

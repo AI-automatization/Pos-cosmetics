@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { promotionsApi } from '@/api/promotions.api';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { CreatePromotionDto, UpdatePromotionDto } from '@/types/promotion';
 
 const KEY = ['promotions'] as const;
@@ -63,49 +64,53 @@ export function useGlobalPromo() {
 
 export function useCreatePromotion() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: CreatePromotionDto) => promotionsApi.create(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
-      toast.success("Aksiya qo'shildi!");
+      toast.success(t('toast.promotionCreated'));
     },
-    onError: () => toast.error('Xato yuz berdi'),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 
 export function useUpdatePromotion() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, dto }: { id: string; dto: UpdatePromotionDto }) =>
       promotionsApi.update(id, dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
-      toast.success('Aksiya yangilandi!');
+      toast.success(t('toast.promotionUpdated'));
     },
-    onError: () => toast.error('Xato yuz berdi'),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 
 export function useDeletePromotion() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => promotionsApi.remove(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
-      toast.success("Aksiya o'chirildi!");
+      toast.success(t('toast.promotionDeleted'));
     },
-    onError: () => toast.error('Xato yuz berdi'),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 
 export function useTogglePromotion() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       promotionsApi.update(id, { isActive }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
     },
-    onError: () => toast.error('Xato yuz berdi'),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { customerApi } from '@/api/customer.api';
 import { extractErrorMessage } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { CreateCustomerDto, Customer } from '@/types/customer';
 
 /** Phone bo'yicha xaridorni qidiradi. phone >= 9 belgidan keyin ishlaydi */
@@ -22,10 +23,11 @@ export function useSearchCustomer(phone: string) {
 
 /** Yangi xaridor yaratish */
 export function useCreateCustomer(onSuccess: (customer: Customer) => void) {
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: CreateCustomerDto) => customerApi.create(dto),
     onSuccess: (customer) => {
-      toast.success(`${customer.name} xaridor sifatida qo'shildi`);
+      toast.success(t('toast.customerAdded', { name: customer.name }));
       onSuccess(customer);
     },
     onError: (err: unknown) => {

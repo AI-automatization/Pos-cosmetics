@@ -7,6 +7,7 @@ import { Package, Plus, Trash2, Search } from 'lucide-react';
 import { catalogApi } from '@/api/catalog.api';
 import { useProducts } from '@/hooks/catalog/useProducts';
 import { cn, formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/i18n/i18n-context';
 import type { BundleItem } from '@/types/catalog';
 
 interface BundleSectionProps {
@@ -25,27 +26,29 @@ function useBundleComponents(productId: string) {
 
 function useAddComponent(productId: string) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (dto: { componentId: string; quantity: number }) =>
       catalogApi.addBundleComponent(productId, dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BUNDLE_KEY(productId) });
-      toast.success("Komponent qo'shildi");
+      toast.success(t('toast.componentAdded'));
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 
 function useRemoveComponent(productId: string) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (componentId: string) =>
       catalogApi.removeBundleComponent(productId, componentId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BUNDLE_KEY(productId) });
-      toast.success("Komponent olib tashlandi");
+      toast.success(t('toast.componentRemoved'));
     },
-    onError: () => toast.error("Xato yuz berdi"),
+    onError: () => toast.error(t('toast.genericError')),
   });
 }
 

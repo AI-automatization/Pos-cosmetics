@@ -146,6 +146,7 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
       ? {
           name: initial.name,
           type: initial.type,
+          // Widening PromotionRules → Record<string, unknown> for CreatePromotionDto form state
           rules: initial.rules as Record<string, unknown>,
           validFrom: initial.validFrom.slice(0, 10),
           validTo: initial.validTo?.slice(0, 10) ?? '',
@@ -236,7 +237,7 @@ export function PromotionModal({ initial, onClose }: PromotionModalProps) {
             {/* Dynamic rules */}
             <RulesForm
               type={form.type}
-              rules={form.rules as Record<string, unknown>}
+              rules={form.rules}
               onChange={(r) => setField('rules', r)}
               products={productOptions}
             />

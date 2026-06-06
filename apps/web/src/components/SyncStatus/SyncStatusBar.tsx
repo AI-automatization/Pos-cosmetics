@@ -5,7 +5,6 @@ import { Wifi, WifiOff, RefreshCw, Clock, AlertTriangle, X } from 'lucide-react'
 import { useSyncStore } from '@/store/sync.store';
 import { salesApi } from '@/api/sales.api';
 import { cn } from '@/lib/utils';
-import type { CreateOrderDto } from '@/types/sales';
 import { useTranslation } from '@/i18n/i18n-context';
 
 /** Sync pending offline orders to server when connection is restored */
@@ -17,7 +16,7 @@ async function syncPendingOrders() {
   store.setState('online-syncing');
   for (const item of pending) {
     try {
-      await salesApi.createOrder(item.payload as unknown as CreateOrderDto);
+      await salesApi.createOrder(item.payload);
       store.removePendingOrder(item.id);
     } catch {
       // Bu order yuborilmadi — keyingi urinishda qayta sinab ko'riladi

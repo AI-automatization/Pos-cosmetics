@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { NotFoundException } from '@zxing/library';
 import { X, Camera, Loader2 } from 'lucide-react';
@@ -19,7 +19,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
 
-  const stableOnScan = useCallback(onScan, []);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -29,7 +30,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     reader
       .decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
         if (result) {
-          stableOnScan(result.getText());
+          onScanRef.current(result.getText());
         }
         if (err && !(err instanceof NotFoundException)) {
           setError(err.message ?? t('errors.scanError'));
@@ -47,7 +48,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     return () => {
       controlsRef.current?.stop();
     };
-  }, [stableOnScan]);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70">

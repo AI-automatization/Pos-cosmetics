@@ -14,6 +14,7 @@ import {
   Star,
   Building2,
   ClipboardList,
+  MessageSquare,
 } from 'lucide-react';
 import type React from 'react';
 
@@ -93,6 +94,7 @@ export const NAV_SECTIONS: NavSection[] = [
         ],
       },
       { label: "To'lovlar", tKey: 'nav.paymentHistory', href: '/payments/history', icon: CreditCard, roles: NO_CASHIER },
+      { label: 'SMS Kampaniyalar', tKey: 'campaigns.title', href: '/campaigns', icon: MessageSquare, roles: NO_CASHIER },
       {
         label: 'Loyalty', tKey: 'loyalty.title',
         icon: Star,

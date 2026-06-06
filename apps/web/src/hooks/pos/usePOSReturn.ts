@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ordersApi } from '@/api/orders.api';
 import { returnsApi } from '@/api/returns.api';
+import { useTranslation } from '@/i18n/i18n-context';
 import { usePOSStore } from '@/store/pos.store';
 import type { Order, OrderItem } from '@/types/order';
 import type { Return, RefundMethod } from '@/types/returns';
@@ -90,8 +91,7 @@ function calcTotal(selected: Record<string, SelectedReturnItem>): number {
 
 /** Detect dominant payment method from paymentIntents for smart suggestion */
 function detectRefundMethod(order: Order): RefundMethod {
-  const intents = (order as unknown as { paymentIntents?: Array<{ method: string; amount: number | string }> })
-    .paymentIntents ?? [];
+  const intents = order.paymentIntents ?? [];
   if (!intents.length) return 'CASH';
   let cashTotal = 0;
   let cardTotal = 0;
@@ -195,6 +195,7 @@ function reducer(state: POSReturnState, action: Action): POSReturnState {
 export function usePOSReturn(shiftId: string | null) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const recordReturn = usePOSStore((s) => s.recordReturn);
 
   // Lookup order by number
@@ -244,8 +245,8 @@ export function usePOSReturn(shiftId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['returns'] });
       toast.success(
         state.refundMethod === 'CASH'
-          ? `Qaytarish amalga oshirildi. Mijozga ${Math.round(state.refundTotal).toLocaleString()} so'm bering.`
-          : 'Qaytarish so\'rovi yaratildi. Bank orqali 1-3 ish kuni.',
+          ? t('toast.returnCashComplete', { amount: Math.round(state.refundTotal).toLocaleString() })
+          : t('toast.returnBankComplete'),
       );
     },
     onError: (err: unknown) => {

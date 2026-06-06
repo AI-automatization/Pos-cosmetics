@@ -64,7 +64,7 @@ export default function AgingReportPage() {
           <div className="rounded-xl border border-red-200 bg-red-50 p-4">
             <div className="flex items-center gap-1">
               <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
-              <p className="text-xs text-red-600">Muddati o'tgan</p>
+              <p className="text-xs text-red-600">{t('nasiya.overdue')}</p>
             </div>
             <p className="mt-1 text-xl font-bold text-red-700">{formatPrice(summary.overdueDebt)}</p>
             <p className="mt-0.5 text-xs text-red-500">
