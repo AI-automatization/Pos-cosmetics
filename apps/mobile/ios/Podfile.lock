@@ -191,7 +191,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (55.0.20):
     - ExpoModulesCore
-  - ExpoFont (55.0.7):
+  - ExpoFont (55.0.8):
     - ExpoModulesCore
   - ExpoKeepAwake (55.0.8):
     - ExpoModulesCore
@@ -2263,7 +2263,7 @@ DEPENDENCIES:
   - "EXConstants (from `../../../node_modules/.pnpm/expo-constants@55.0.16_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0_/node_modules/expo-constants/ios`)"
   - "EXJSONUtils (from `../../../node_modules/.pnpm/expo-json-utils@55.0.2/node_modules/expo-json-utils/ios`)"
   - "EXManifests (from `../../../node_modules/.pnpm/expo-manifests@55.0.17_expo@55.0.24/node_modules/expo-manifests/ios`)"
-  - "Expo (from `../../../node_modules/.pnpm/expo@55.0.24_@babel+core@7.29.0_@expo+dom-webview@55.0.3_@expo+metro-runtime@55.0.11_re_37641432ee387871b02249575018bf8a/node_modules/expo`)"
+  - "Expo (from `../../../node_modules/.pnpm/expo@55.0.24_@babel+core@7.29.0_@expo+dom-webview@55.0.3_@expo+metro-runtime@55.0.11_re_f46ed1865648ef945c0a0c99b7f86332/node_modules/expo`)"
   - "expo-dev-client (from `../../../node_modules/.pnpm/expo-dev-client@55.0.34_expo@55.0.24/node_modules/expo-dev-client/ios`)"
   - "expo-dev-launcher (from `../../../node_modules/.pnpm/expo-dev-launcher@55.0.35_expo@55.0.24/node_modules/expo-dev-launcher`)"
   - "expo-dev-menu (from `../../../node_modules/.pnpm/expo-dev-menu@55.0.29_expo@55.0.24/node_modules/expo-dev-menu`)"
@@ -2273,7 +2273,7 @@ DEPENDENCIES:
   - "ExpoCameraBarcodeScanning (from `../../../node_modules/.pnpm/expo-camera@55.0.18_@types+emscripten@1.41.5_expo@55.0.24_react-native@0.83.6_@babel+co_2c47fee68610bcde13c11e3535ceee9d/node_modules/expo-camera/ios`)"
   - "ExpoDomWebView (from `../../../node_modules/.pnpm/@expo+dom-webview@55.0.3_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+rea_7fe096c5ec3503ca68173b815f153b8c/node_modules/@expo/dom-webview/ios`)"
   - "ExpoFileSystem (from `../../../node_modules/.pnpm/expo-file-system@55.0.20_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0_/node_modules/expo-file-system/ios`)"
-  - "ExpoFont (from `../../../node_modules/.pnpm/expo-font@55.0.7_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0__react@19.2.0/node_modules/expo-font/ios`)"
+  - "ExpoFont (from `../../../node_modules/.pnpm/expo-font@55.0.8_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0__react@19.2.0/node_modules/expo-font/ios`)"
   - "ExpoKeepAwake (from `../../../node_modules/.pnpm/expo-keep-awake@55.0.8_expo@55.0.24_react@19.2.0/node_modules/expo-keep-awake/ios`)"
   - "ExpoLocalAuthentication (from `../../../node_modules/.pnpm/expo-local-authentication@55.0.14_expo@55.0.24/node_modules/expo-local-authentication/ios`)"
   - "ExpoLogBox (from `../../../node_modules/.pnpm/@expo+log-box@55.0.12_@expo+dom-webview@55.0.3_expo@55.0.24_react-native@0.83.6_@babel+_8af52f42dc279a10cbabe457e583844b/node_modules/@expo/log-box`)"
@@ -2382,7 +2382,7 @@ EXTERNAL SOURCES:
   EXManifests:
     :path: "../../../node_modules/.pnpm/expo-manifests@55.0.17_expo@55.0.24/node_modules/expo-manifests/ios"
   Expo:
-    :path: "../../../node_modules/.pnpm/expo@55.0.24_@babel+core@7.29.0_@expo+dom-webview@55.0.3_@expo+metro-runtime@55.0.11_re_37641432ee387871b02249575018bf8a/node_modules/expo"
+    :path: "../../../node_modules/.pnpm/expo@55.0.24_@babel+core@7.29.0_@expo+dom-webview@55.0.3_@expo+metro-runtime@55.0.11_re_f46ed1865648ef945c0a0c99b7f86332/node_modules/expo"
   expo-dev-client:
     :path: "../../../node_modules/.pnpm/expo-dev-client@55.0.34_expo@55.0.24/node_modules/expo-dev-client/ios"
   expo-dev-launcher:
@@ -2402,7 +2402,7 @@ EXTERNAL SOURCES:
   ExpoFileSystem:
     :path: "../../../node_modules/.pnpm/expo-file-system@55.0.20_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0_/node_modules/expo-file-system/ios"
   ExpoFont:
-    :path: "../../../node_modules/.pnpm/expo-font@55.0.7_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0__react@19.2.0/node_modules/expo-font/ios"
+    :path: "../../../node_modules/.pnpm/expo-font@55.0.8_expo@55.0.24_react-native@0.83.6_@babel+core@7.29.0_@types+react@19.2.14_react@19.2.0__react@19.2.0/node_modules/expo-font/ios"
   ExpoKeepAwake:
     :path: "../../../node_modules/.pnpm/expo-keep-awake@55.0.8_expo@55.0.24_react@19.2.0/node_modules/expo-keep-awake/ios"
   ExpoLocalAuthentication:
@@ -2600,7 +2600,7 @@ SPEC CHECKSUMS:
   ExpoCameraBarcodeScanning: 66aa18c44eb8d034bdb49ea1b893fe549372ef7b
   ExpoDomWebView: f101fb3db4b6eec4163fca51f7507189b7e48661
   ExpoFileSystem: 5d01aa6678ccde01172351aad5720ee16845ae82
-  ExpoFont: a95606f106a6394df8edf6d0d87aab9020af5ad4
+  ExpoFont: a7e34a75bdfb703fa07a0e87807f836236608c76
   ExpoKeepAwake: d0eb7a0719500d2a43fbf29b6f79e84d70c75ebf
   ExpoLocalAuthentication: 2d4533756d4d0673739ed2045435b6c62ad3d443
   ExpoLogBox: a678d36477ab9544fe63e0b5328a0716539b6774
