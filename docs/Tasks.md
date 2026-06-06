@@ -632,13 +632,7 @@
 
 ---
 
-## T-097 | P2 | [BACKEND] | Product sertifikat — Kosmetika sifat hujjati
-
-- **Sana:** 2026-02-26
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/`
-- **Vazifa:** `product_certificates` CRUD (cert_number, issuing_authority, issued_at, expires_at, file_url).
-- **Kutilgan:** Sertifikat ma'lumotlari saqlanadi va kuzatiladi
+*(T-097 — BAJARILDI, Done.md 2026-06-06 — Product certificates CRUD backend + frontend)*
 
 ---
 

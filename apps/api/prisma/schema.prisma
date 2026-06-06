@@ -326,6 +326,7 @@ model ProductVariant {
   name         String // e.g. "Qizil 50ml"
   sku          String?
   barcode      String?
+  attributes   Json     @default("{}") // e.g. { "color": "Red", "size": "M", "volume": "50ml" }
   costPrice    Decimal  @default(0) @map("cost_price") @db.Decimal(15, 2)
   costCurrency String   @default("UZS") @map("cost_currency")
   sellPrice    Decimal  @default(0) @map("sell_price") @db.Decimal(15, 2)
@@ -334,7 +335,9 @@ model ProductVariant {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stockMovements StockMovement[]
+  orderItems     OrderItem[]
 
   @@index([productId])
   @@index([tenantId])
@@ -427,6 +430,7 @@ model StockMovement {
   tenantId    String            @map("tenant_id")
   warehouseId String            @map("warehouse_id")
   productId   String            @map("product_id")
+  variantId   String?           @map("variant_id")
   userId      String?           @map("user_id")
   type        StockMovementType
   quantity    Decimal           @db.Decimal(15, 3)
@@ -438,16 +442,18 @@ model StockMovement {
   expiryDate  DateTime?         @map("expiry_date")
   createdAt   DateTime          @default(now()) @map("created_at")
 
-  tenant    Tenant    @relation(fields: [tenantId], references: [id])
-  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
-  product   Product   @relation(fields: [productId], references: [id])
-  user      User?     @relation(fields: [userId], references: [id])
+  tenant    Tenant           @relation(fields: [tenantId], references: [id])
+  warehouse Warehouse        @relation(fields: [warehouseId], references: [id])
+  product   Product          @relation(fields: [productId], references: [id])
+  variant   ProductVariant?  @relation(fields: [variantId], references: [id])
+  user      User?            @relation(fields: [userId], references: [id])
 
   @@index([tenantId])
   @@index([tenantId, productId])
   @@index([tenantId, warehouseId])
   @@index([tenantId, createdAt])
   @@index([tenantId, productId, warehouseId]) // T-074: stock level aggregate
+  @@index([tenantId, productId, variantId]) // T-432: variant-level stock
   @@index([tenantId, type, createdAt]) // T-074: movement type filter
   @@map("stock_movements")
 }
@@ -577,15 +583,18 @@ model OrderItem {
   id             String  @id @default(uuid())
   orderId        String  @map("order_id")
   productId      String  @map("product_id")
+  variantId      String? @map("variant_id")
   productName    String  @map("product_name")
+  variantName    String? @map("variant_name")
   quantity       Decimal @db.Decimal(15, 3)
   unitPrice      Decimal @map("unit_price") @db.Decimal(15, 2)
   costPrice      Decimal @default(0) @map("cost_price") @db.Decimal(15, 2)
   discountAmount Decimal @default(0) @map("discount_amount") @db.Decimal(15, 2)
   total          Decimal @db.Decimal(15, 2)
 
-  order       Order        @relation(fields: [orderId], references: [id])
-  product     Product      @relation(fields: [productId], references: [id])
+  order       Order           @relation(fields: [orderId], references: [id])
+  product     Product         @relation(fields: [productId], references: [id])
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
   returnItems ReturnItem[]
 
   @@index([orderId])

@@ -6,6 +6,7 @@ import { useProducts } from '@/hooks/catalog/useProducts';
 import { usePOSStore } from '@/store/pos.store';
 import { useShallow } from 'zustand/react/shallow';
 import { useBarcodeScanner } from '@/hooks/pos/useBarcodeScanner';
+import { catalogApi } from '@/api/catalog.api';
 
 /** Короткий beep через Web Audio API — работает без внешних файлов */
 function playBeep() {
@@ -24,8 +25,9 @@ function playBeep() {
 import { usePromoMap } from '@/hooks/promotions/usePromotions';
 import { formatPrice, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
-import type { Product } from '@/types/catalog';
+import type { Product, ProductVariant } from '@/types/catalog';
 import { BundleDetailModal } from './BundleDetailModal';
+import { VariantPickerModal } from './VariantPickerModal';
 
 interface ProductSearchProps {
   search: string;
@@ -116,10 +118,8 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
     useShallow((s) => ({ addItem: s.addItem, setLineDiscount: s.setLineDiscount })),
   );
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
+  const [variantProduct, setVariantProduct] = useState<Product | null>(null);
   const promoMap = usePromoMap();
-  // Track whether the last search was triggered by barcode scan (for auto-add)
-  const barcodeTriggeredRef = useRef(false);
-
   // Debounce: avoid API call on every keystroke — fire 200ms after user stops typing
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   useEffect(() => {
@@ -134,13 +134,15 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
   });
 
   const doAddItem = useCallback(
-    (product: Product) => {
+    (product: Product, variant?: ProductVariant) => {
       addItem({
         productId: product.id,
+        variantId: variant?.id ?? null,
         name: product.name,
-        barcode: product.barcode,
-        sku: product.sku ?? '',
-        sellPrice: Number(product.sellPrice),
+        variantName: variant?.name ?? null,
+        barcode: variant?.barcode ?? product.barcode,
+        sku: variant?.sku ?? product.sku ?? '',
+        sellPrice: variant ? Number(variant.sellPrice) : Number(product.sellPrice),
         unit: (product.unit?.shortName ?? product.unit?.name ?? 'dona') as import('@/types/catalog').ProductUnit,
         isBundle: product.isBundle,
         currentStock: Math.max(0, product.currentStock ?? 0),
@@ -154,10 +156,22 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
     [addItem, setLineDiscount, promoMap],
   );
 
+  const handleVariantSelect = useCallback(
+    (variant: ProductVariant) => {
+      if (variantProduct) {
+        doAddItem(variantProduct, variant);
+        setVariantProduct(null);
+      }
+    },
+    [doAddItem, variantProduct],
+  );
+
   const handleAdd = useCallback(
     (product: Product) => {
       if (product.isBundle) {
         setBundleProduct(product);
+      } else if ((product._count?.variants ?? 0) > 0) {
+        setVariantProduct(product);
       } else {
         doAddItem(product);
       }
@@ -165,31 +179,43 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
     [doAddItem],
   );
 
+  // Prevent rapid duplicate scans of the same barcode
+  const lastScannedRef = useRef<{ barcode: string; time: number }>({ barcode: '', time: 0 });
+  const scanInFlightRef = useRef(false);
+
   const handleBarcodeScan = useCallback(
-    (barcode: string) => {
-      onSearchChange(barcode);
-      // Bypass debounce for barcode scan — triggers API call immediately (-200ms delay)
-      barcodeTriggeredRef.current = true;
-      setDebouncedSearch(barcode);
+    async (barcode: string) => {
+      // Dedup: ignore same barcode within 500ms
+      const now = Date.now();
+      if (
+        barcode === lastScannedRef.current.barcode &&
+        now - lastScannedRef.current.time < 500
+      ) {
+        return;
+      }
+      lastScannedRef.current = { barcode, time: now };
+
+      if (scanInFlightRef.current) return;
+      scanInFlightRef.current = true;
+
+      try {
+        const product = await catalogApi.getByBarcode(barcode);
+        handleAdd(product as Product);
+        playBeep();
+        onSearchChange('');
+        setDebouncedSearch('');
+      } catch {
+        // Barcode not found — fallback to text search so cashier sees results
+        onSearchChange(barcode);
+        setDebouncedSearch(barcode);
+      } finally {
+        scanInFlightRef.current = false;
+      }
     },
-    [onSearchChange],
+    [handleAdd, onSearchChange],
   );
 
   useBarcodeScanner(handleBarcodeScan);
-
-  // Auto-add when barcode scan returns exactly 1 result
-  useEffect(() => {
-    if (!barcodeTriggeredRef.current || isFetching || !data) return;
-    if (data.items.length === 1) {
-      barcodeTriggeredRef.current = false;
-      handleAdd(data.items[0]);
-      playBeep();
-      onSearchChange('');
-      setDebouncedSearch('');
-    } else if (!isFetching) {
-      barcodeTriggeredRef.current = false;
-    }
-  }, [data, isFetching, handleAdd, onSearchChange]);
 
   return (
     <div className="flex h-full flex-col">
@@ -243,6 +269,15 @@ export function ProductSearch({ search, onSearchChange, searchRef }: ProductSear
           product={bundleProduct}
           onConfirm={() => doAddItem(bundleProduct)}
           onClose={() => setBundleProduct(null)}
+        />
+      )}
+
+      {/* Variant picker modal */}
+      {variantProduct && (
+        <VariantPickerModal
+          product={variantProduct}
+          onSelect={handleVariantSelect}
+          onClose={() => setVariantProduct(null)}
         />
       )}
     </div>

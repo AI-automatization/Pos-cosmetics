@@ -71,6 +71,8 @@ export interface Product {
   isActive: boolean;
   isBundle: boolean;
   bundleItems?: BundleItem[];
+  variants?: ProductVariant[];
+  _count?: { variants: number };
   /** Nearest batch expiry date (populated by backend for expiryTracking products) */
   expiryDate?: string | null;
   productSuppliers?: { supplierId: string }[];
@@ -144,6 +146,7 @@ export interface ProductVariant {
   name: string;
   sku: string | null;
   barcode: string | null;
+  attributes: Record<string, string>;
   costPrice: number;
   costCurrency: string;
   sellPrice: number;
@@ -157,6 +160,7 @@ export interface CreateVariantDto {
   name: string;
   sku?: string;
   barcode?: string;
+  attributes?: Record<string, string>;
   costPrice?: number;
   sellPrice?: number;
   isActive?: boolean;
@@ -164,6 +168,12 @@ export interface CreateVariantDto {
 }
 
 export type UpdateVariantDto = Partial<CreateVariantDto>;
+
+export interface GenerateVariantMatrixDto {
+  attributes: Record<string, string[]>;
+  costPrice?: number;
+  sellPrice?: number;
+}
 
 export interface CreateCategoryDto {
   name: string;

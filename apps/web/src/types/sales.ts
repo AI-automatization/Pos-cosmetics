@@ -5,7 +5,9 @@ import type { ProductUnit } from './catalog';
 
 export interface CartItem {
   productId: string;
+  variantId?: string | null;
   name: string;
+  variantName?: string | null;
   barcode: string | null;
   sku: string;
   sellPrice: number;

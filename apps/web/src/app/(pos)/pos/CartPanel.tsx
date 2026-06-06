@@ -23,7 +23,9 @@ function CartItemRow({ item }: { item: CartItem }) {
       {/* Product name + remove */}
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-gray-900">{item.name}</p>
+          <p className="truncate text-sm font-medium text-gray-900">
+            {item.variantName ? `${item.name} (${item.variantName})` : item.name}
+          </p>
           <div className="flex items-center gap-1.5">
             <p className="text-xs text-gray-400">{item.sku}</p>
             {hasPromo && (

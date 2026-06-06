@@ -138,11 +138,13 @@ export const usePOSStore = create<POSState>()(
         set((s) => {
           const cart = s.carts[s.activeCartId];
           if (!cart) return {};
-          const existing = cart.items.find((i) => i.productId === newItem.productId);
+          const matchKey = (i: CartItem) =>
+            i.productId === newItem.productId && (i.variantId ?? null) === (newItem.variantId ?? null);
+          const existing = cart.items.find(matchKey);
           const maxQty = newItem.currentStock ?? Infinity;
           const items = existing
             ? cart.items.map((i) =>
-                i.productId === newItem.productId
+                matchKey(i)
                   ? { ...i, quantity: Math.min(i.quantity + 1, maxQty) }
                   : i,
               )

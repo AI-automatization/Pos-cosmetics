@@ -61,6 +61,7 @@ export class CatalogProductHelper {
           category: { select: { id: true, name: true } },
           unit: { select: { id: true, name: true, shortName: true } },
           barcodes: true,
+          _count: { select: { variants: true } },
         },
       }),
     ]);
@@ -113,6 +114,7 @@ export class CatalogProductHelper {
         unit: { select: { id: true, name: true, shortName: true } },
         barcodes: true,
         productSuppliers: { where: { isDefault: true }, select: { supplierId: true }, take: 1 },
+        _count: { select: { variants: true } },
       },
     });
     if (!product) throw new NotFoundException(`Product ${id} not found`);
@@ -124,37 +126,48 @@ export class CatalogProductHelper {
     const cached = await this.cache.get<unknown>(cacheKey);
     if (cached) return cached;
 
-    const byMain = await this.prisma.product.findFirst({
+    const productInclude = {
+      category: { select: { id: true, name: true } },
+      unit: { select: { id: true, name: true, shortName: true } },
+      barcodes: true,
+      _count: { select: { variants: true } },
+    } as const;
+
+    let product = await this.prisma.product.findFirst({
       where: { tenantId, barcode, deletedAt: null },
-      include: {
-        category: { select: { id: true, name: true } },
-        unit: { select: { id: true, name: true, shortName: true } },
-        barcodes: true,
-      },
+      include: productInclude,
     });
-    if (byMain) {
-      await this.cache.set(cacheKey, byMain, CACHE_TTL.PRODUCT_CATALOG);
-      return byMain;
+
+    if (!product) {
+      const barEntry = await this.prisma.productBarcode.findFirst({
+        where: { barcode, product: { tenantId, deletedAt: null } },
+        include: { product: { include: productInclude } },
+      });
+      if (!barEntry) {
+        throw new NotFoundException(`Product with barcode ${barcode} not found`);
+      }
+      product = barEntry.product;
     }
 
-    const barEntry = await this.prisma.productBarcode.findFirst({
-      where: { barcode, product: { tenantId, deletedAt: null } },
-      include: {
-        product: {
-          include: {
-            category: { select: { id: true, name: true } },
-            unit: { select: { id: true, name: true, shortName: true } },
-            barcodes: true,
-          },
-        },
-      },
-    });
-    if (!barEntry) {
-      throw new NotFoundException(`Product with barcode ${barcode} not found`);
-    }
+    const stockRaw = await this.prisma.$queryRaw<{ stock: string }[]>(
+      Prisma.sql`
+        SELECT COALESCE(SUM(
+          CASE
+            WHEN type IN ('IN','RETURN_IN','TRANSFER_IN') THEN quantity
+            WHEN type = 'ADJUSTMENT' THEN quantity
+            ELSE -quantity
+          END
+        ), 0) AS stock
+        FROM stock_movements
+        WHERE tenant_id = ${tenantId}
+          AND product_id = ${product.id}
+      `,
+    );
+    const currentStock = Number(stockRaw[0]?.stock ?? 0);
 
-    await this.cache.set(cacheKey, barEntry.product, CACHE_TTL.PRODUCT_CATALOG);
-    return barEntry.product;
+    const result = { ...product, currentStock };
+    await this.cache.set(cacheKey, result, CACHE_TTL.PRODUCT_CATALOG);
+    return result;
   }
 
   async createProduct(tenantId: string, dto: CreateProductDto) {

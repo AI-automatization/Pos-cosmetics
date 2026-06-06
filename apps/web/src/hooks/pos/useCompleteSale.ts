@@ -59,6 +59,7 @@ export function useCompleteSale(onSuccess: (order: Order) => void) {
         shiftId: shiftId ?? '',
         items: items.map((item) => ({
           productId: item.productId,
+          ...(item.variantId ? { variantId: item.variantId } : {}),
           quantity: item.quantity,
           sellPrice: item.sellPrice,
           lineDiscount: item.lineDiscount,

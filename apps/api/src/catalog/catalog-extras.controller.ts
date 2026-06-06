@@ -22,6 +22,8 @@ import {
   AddBundleComponentDto,
   CreateVariantDto,
   UpdateVariantDto,
+  BulkCreateVariantsDto,
+  GenerateVariantMatrixDto,
   CreateProductPriceDto,
   UpdateProductPriceDto,
   CreateCertificateDto,
@@ -117,6 +119,31 @@ export class CatalogExtrasController {
     @Param('variantId', ParseUUIDPipe) variantId: string,
   ) {
     return this.catalogService.deleteVariant(tenantId, id, variantId);
+  }
+
+  @Post('products/:id/variants/bulk')
+  @ApiOperation({ summary: 'Bir nechta variant yaratish (batch)' })
+  @ApiParam({ name: 'id', type: String })
+  bulkCreateVariants(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: BulkCreateVariantsDto,
+  ) {
+    return this.catalogService.bulkCreateVariants(tenantId, id, dto);
+  }
+
+  @Post('products/:id/variants/generate-matrix')
+  @ApiOperation({
+    summary: 'Variant matritsa generatsiya (color x size = N variant)',
+    description: 'Atributlar kombinatsiyasidan avtomatik variantlar yaratadi',
+  })
+  @ApiParam({ name: 'id', type: String })
+  generateVariantMatrix(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: GenerateVariantMatrixDto,
+  ) {
+    return this.catalogService.generateMatrix(tenantId, id, dto);
   }
 
   // ─── PRICE MANAGEMENT (T-098) ─────────────────────────────────
