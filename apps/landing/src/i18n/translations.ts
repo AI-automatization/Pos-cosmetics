@@ -260,7 +260,7 @@ const uz = {
   },
   cta: {
     title: "Hali o'ylayapsizmi?",
-    desc: "Har kuni kechikish = savdo yo'qolishi. 30 kun bepul — yo'qotadigan narsangiz yo'q.",
+    desc: "Har kuni kechikish = savdo yo'qolishi. Demo uchun ariza qoldiring — jamoamiz bog'lanadi.",
     button: 'Ariza qoldirish →',
     note: "Demo va pilot uchun ariza • 30 daqiqada bog'lanamiz",
   },
@@ -394,7 +394,7 @@ const uz = {
       savings: 'Yillik tejaysiz',
       perYear: '/ yil',
     },
-    cta: 'Bepul boshlash →',
+    cta: 'Demo so\'rash →',
     disclaimer: '* Hisob-kitob taxminiy. Haqiqiy narx tizim va rejaga qarab farq qilishi mumkin.',
     units: {
       mln: 'mln',
@@ -664,7 +664,7 @@ const ru: typeof uz = {
   },
   cta: {
     title: 'Всё ещё думаете?',
-    desc: 'Каждый день промедления = потерянные продажи. 30 дней бесплатно — вам нечего терять.',
+    desc: 'Каждый день промедления = потерянные продажи. Оставьте заявку на демо — мы свяжемся.',
     button: 'Оставить заявку →',
     note: 'Заявка на демо и пилот • Свяжемся за 30 минут',
   },
@@ -798,7 +798,7 @@ const ru: typeof uz = {
       savings: 'Экономия в год',
       perYear: '/ год',
     },
-    cta: 'Начать бесплатно →',
+    cta: 'Запросить демо →',
     disclaimer: '* Расчёт приблизительный. Реальная цена зависит от системы и тарифного плана.',
     units: {
       mln: 'млн',
@@ -1068,7 +1068,7 @@ const en: typeof uz = {
   },
   cta: {
     title: 'Still thinking about it?',
-    desc: 'Every day you wait = lost sales. 30 days free — you have nothing to lose.',
+    desc: 'Every day you wait = lost sales. Request a demo — our team will reach out.',
     button: 'Request a demo →',
     note: 'Request a demo & pilot • We contact you in 30 minutes',
   },
@@ -1202,7 +1202,7 @@ const en: typeof uz = {
       savings: 'Annual savings',
       perYear: '/ year',
     },
-    cta: 'Start for free →',
+    cta: 'Request a demo →',
     disclaimer: '* Estimate only. Actual cost depends on system and plan.',
     units: {
       mln: 'M',
