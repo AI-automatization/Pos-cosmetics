@@ -54,14 +54,14 @@ export default function RegistrationForm() {
     }
     setLoading(true)
     try {
-      await fetch('/api/leads', {
+      const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
+      if (res.ok) setSubmitted(true)
     } finally {
       setLoading(false)
-      setSubmitted(true)
     }
   }
 
