@@ -38,4 +38,5 @@ export const QUEUE_NAMES = {
   DATA_EXPORT: 'data-export',
   SYNC_PROCESS: 'sync-process',
   PRODUCT_IMPORT: 'product-import',
+  SMS_CAMPAIGN: 'sms-campaign',
 } as const;

@@ -56,16 +56,26 @@ async function checkEndpoint(ep: EndpointState): Promise<void> {
     ep.status = 'down';
 
     const msg = (err as Error).message ?? 'Unknown error';
-    if (msg.includes('abort')) {
-      ep.lastError = 'TIMEOUT';
-    } else if (msg.includes('ENOTFOUND') || msg.includes('getaddrinfo')) {
-      ep.lastError = 'NXDOMAIN';
-    } else if (msg.includes('ECONNREFUSED')) {
-      ep.lastError = 'ECONNREFUSED';
-    } else if (msg.includes('certificate') || msg.includes('SSL') || msg.includes('TLS')) {
-      ep.lastError = 'SSL';
+    const cause = (err as Error).cause;
+    const causeMsg = cause instanceof Error ? cause.message : '';
+    const fullMsg = causeMsg ? `${msg} (${causeMsg})` : msg;
+
+    if (fullMsg.includes('abort') || fullMsg.includes('timeout') || fullMsg.includes('TIMEOUT')) {
+      ep.lastError = 'TIMEOUT — сервер не ответил за 10 секунд';
+    } else if (fullMsg.includes('ENOTFOUND') || fullMsg.includes('getaddrinfo')) {
+      ep.lastError = 'NXDOMAIN — домен не найден в DNS';
+    } else if (fullMsg.includes('ECONNREFUSED')) {
+      ep.lastError = 'ECONNREFUSED — соединение отклонено';
+    } else if (fullMsg.includes('ECONNRESET')) {
+      ep.lastError = 'ECONNRESET — соединение сброшено';
+    } else if (fullMsg.includes('certificate') || fullMsg.includes('SSL') || fullMsg.includes('TLS') || fullMsg.includes('CERT') || fullMsg.includes('SEC_E')) {
+      ep.lastError = 'SSL — ошибка сертификата (возможно ещё не выпущен)';
+    } else if (fullMsg.includes('fetch failed')) {
+      ep.lastError = causeMsg
+        ? `Сетевая ошибка: ${causeMsg.slice(0, 120)}`
+        : 'TIMEOUT — сервер не отвечает';
     } else {
-      ep.lastError = msg.slice(0, 100);
+      ep.lastError = fullMsg.slice(0, 150);
     }
 
     logger.warn(`[Monitor] ${ep.name} check failed`, { url: ep.url, error: ep.lastError });

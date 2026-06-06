@@ -55,7 +55,7 @@ export const features: Feature[] = [
   },
   {
     icon: 'Gift',
-    title: '30 kun bepul sinov',
+    title: 'Pilot: birinchi oy bepul',
     description:
       "Hech narsa to'lamaysiz. Karta talab qilinmaydi. O'zingiz sinab ko'ring.",
     badge: 'Bepul',
@@ -90,7 +90,7 @@ export const pricingPlans: PricingPlan[] = [
       'Telegram bildirishnomalar',
       "Email qo'llab-quvvatlash",
     ],
-    cta: 'Bepul boshlash',
+    cta: 'Ariza qoldirish',
   },
   {
     name: 'Growth',
@@ -105,7 +105,7 @@ export const pricingPlans: PricingPlan[] = [
       'Sodiqlik dasturi',
       "Prioritet qo'llab-quvvatlash",
     ],
-    cta: 'Bepul boshlash',
+    cta: 'Ariza qoldirish',
     highlighted: true,
     badge: 'TAVSIYA ETILADI',
   },
@@ -145,7 +145,7 @@ export const faqItems: FAQItem[] = [
   {
     question: "Necha so'm turadi?",
     answer:
-      "Starter: 249,000 so'm/oy. Growth: 449,000. Pro: 799,000. Barcha rejalar uchun 30 kun bepul sinov — karta kerak emas.",
+      "Starter: 249,000 so'm/oy. Growth: 449,000. Pro: 799,000. Barcha rejalar uchun Pilot dasturida birinchi oy bepul.",
   },
   {
     question: 'Telefonda ishlaydimi?',
@@ -177,7 +177,7 @@ export const comparisonRows: ComparisonRow[] = [
     yespos: "100,000 so'm",
   },
   {
-    feature: 'Bepul sinov',
+    feature: 'Pilot (bepul)',
     raos: '30 kun',
     billz: '7 kun',
     yespos: 'Oy oxirigacha',

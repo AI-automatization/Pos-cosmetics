@@ -4,6 +4,7 @@ import { registerStartHandler } from './handlers/start.handler';
 import { registerHelpHandler } from './handlers/help.handler';
 import { registerFaqHandler } from './handlers/faq.handler';
 import { registerStatusHandler } from './handlers/status.handler';
+import { registerTicketHandler } from './handlers/ticket.handler';
 import { registerMessageHandler } from './handlers/message.handler';
 import { logger } from './logger';
 
@@ -16,17 +17,20 @@ export function createBot(): Bot {
   });
 
   bot.api.setMyCommands([
-    { command: 'start', description: 'Botni ishga tushirish' },
-    { command: 'faq', description: "Tez-tez so'raladigan savollar" },
-    { command: 'status', description: 'Tizim holati' },
-    { command: 'ticket', description: 'Texnik yordam so\'rash' },
-    { command: 'help', description: 'Yordam' },
+    { command: 'start', description: 'Запустить бота' },
+    { command: 'faq', description: 'Частые вопросы' },
+    { command: 'status', description: 'Статус системы' },
+    { command: 'ticket', description: 'Создать заявку в поддержку' },
+    { command: 'mytickets', description: 'Мои заявки' },
+    { command: 'reply', description: 'Ответить на тикет (админ)' },
+    { command: 'help', description: 'Справка' },
   ]).catch((e) => logger.error('[Bot] setMyCommands failed', { error: (e as Error).message }));
 
   registerStartHandler(bot);
   registerHelpHandler(bot);
   registerFaqHandler(bot);
   registerStatusHandler(bot);
+  registerTicketHandler(bot);
   registerMessageHandler(bot);
 
   return bot;

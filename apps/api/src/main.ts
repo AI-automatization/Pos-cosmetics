@@ -21,8 +21,30 @@ async function bootstrap() {
   // Use Winston as NestJS logger
   app.useLogger(logger);
 
-  // Security
-  app.use(helmet());
+  // Security — Helmet with CSP (T-481: XSS protection)
+  // Strict CSP only in production; dev needs permissive CSP for Swagger UI inline scripts
+  const strictCsp = config.get<string>('NODE_ENV') === 'production';
+  app.use(
+    helmet({
+      contentSecurityPolicy: strictCsp
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", 'data:', 'blob:'],
+              fontSrc: ["'self'"],
+              connectSrc: ["'self'"],
+              objectSrc: ["'none'"],
+              frameAncestors: ["'none'"],
+              baseUri: ["'self'"],
+              formAction: ["'self'"],
+            },
+          }
+        : false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
   app.use(cookieParser());
   // T-077: Response compression (gzip/brotli)
   app.use(compression());

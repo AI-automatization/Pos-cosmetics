@@ -1,27 +1,40 @@
 # ─── RAOS Backup Container (T-084) ───────────────────────────────────────────
-# pg_dump + gpg + MinIO client (mc) + crond
-FROM alpine:3.19
+# pg_dump (PG18) + gpg + MinIO/S3 client (mc). Railway cron-triggered.
+#
+# Base = postgres:18-alpine so pg_dump matches prod Postgres 18. The previous
+# alpine:3.19 + postgresql16-client failed against prod with
+# "pg_dump: error: aborting because of server version mismatch (server 18 / client 16)".
+#
+# Build context MUST be the repo root (Railway: rootDirectory = "."),
+# so script COPY paths are repo-relative (the old `COPY ../../scripts/…` was
+# invalid — Docker cannot COPY from outside the build context).
+FROM postgres:18-alpine
 
-# PostgreSQL client (pg_dump), GPG, curl for Telegram
-RUN apk add --no-cache \
-    postgresql16-client \
-    gnupg \
-    curl \
-    dcron \
-    && rm -rf /var/cache/apk/*
+# Bypass the postgres entrypoint (we run cron, not a DB server)
+ENTRYPOINT []
 
-# MinIO client
-RUN wget -q "https://dl.min.io/client/mc/release/linux-amd64/mc" -O /usr/local/bin/mc \
+RUN apk add --no-cache gnupg curl && rm -rf /var/cache/apk/*
+
+# MinIO/S3 client (Railway builds on amd64)
+RUN curl -fsSL "https://dl.min.io/client/mc/release/linux-amd64/mc" -o /usr/local/bin/mc \
     && chmod +x /usr/local/bin/mc
 
-# Copy scripts
-COPY ../../scripts/backup.sh /usr/local/bin/backup.sh
-COPY ../../scripts/restore.sh /usr/local/bin/restore.sh
-RUN chmod +x /usr/local/bin/backup.sh /usr/local/bin/restore.sh
+# Backup/restore scripts (paths relative to repo root build context)
+COPY scripts/backup.sh /usr/local/bin/backup.sh
+COPY scripts/restore.sh /usr/local/bin/restore.sh
+# Strip CRLF (Windows line endings) — a `#!/bin/sh\r` shebang makes the kernel
+# look for interpreter "/bin/sh\r" → "backup.sh: not found" at runtime. Same
+# defensive fix as apps/api start.sh.
+RUN sed -i 's/\r$//' /usr/local/bin/backup.sh /usr/local/bin/restore.sh \
+    && chmod +x /usr/local/bin/backup.sh /usr/local/bin/restore.sh
 
-# Cron: har kuni 02:00 UTC (Asia/Tashkent uchun 07:00)
-RUN echo "0 2 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" \
-    | crontab -
-
-# Startup: run cron in foreground
-CMD ["crond", "-f", "-d", "8"]
+# Scheduling is Railway-native cron (service Settings → Cron Schedule = "0 2 * * *",
+# 02:00 UTC / 07:00 Asia/Tashkent), NOT an in-container daemon. Railway starts this
+# container on schedule; it runs ONE backup and exits 0.
+#
+# Why not crond: `exec crond` made crond PID 1, and busybox/dcron crond calls
+# setpgid() on the session leader → "setpgid: Operation not permitted" → it exits
+# → the container restarts → on ON_FAILURE it crash-looped (one pg_dump per restart)
+# until restartPolicyMaxRetries, then died with no scheduler running at all.
+# A run-once container + Railway cron removes that failure mode and the 24/7 idle replica.
+CMD ["/usr/local/bin/backup.sh"]

@@ -8,6 +8,8 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const GRACE_PERIOD_DAYS = 3;
 
+const FREE_PLAN_FALLBACK: UsageLimits = { maxBranches: 1, maxProducts: 100, maxUsers: 2, features: [] };
+
 export interface UsageLimits {
   maxBranches: number;
   maxProducts: number;
@@ -131,7 +133,7 @@ export class BillingService {
     const sub = await this.getTenantSubscription(tenantId);
     if (!sub || !sub.plan) {
       // Fallback: minimal limitlar
-      return { maxBranches: 1, maxProducts: 100, maxUsers: 2, features: [] };
+      return FREE_PLAN_FALLBACK;
     }
 
     return {

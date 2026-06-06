@@ -669,6 +669,9 @@ importers:
 
   apps/support-bot:
     dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.94.0
+        version: 0.94.0(zod@3.25.76)
       '@prisma/client':
         specifier: ^6.4.1
         version: 6.19.2(prisma@6.19.2(typescript@5.9.3))(typescript@5.9.3)

@@ -3,13 +3,13 @@ import { Bot } from 'grammy';
 export function registerHelpHandler(bot: Bot) {
   bot.command('help', async (ctx) => {
     await ctx.reply(
-      `📖 RAOS Support Bot — Buyruqlar\n\n` +
-      `/faq — Savollar va javoblar (FAQ)\n` +
-      `/status — Barcha xizmatlar holati\n` +
-      `/ticket — Texnik yordamga murojaat\n` +
-      `/help — Shu yordam\n\n` +
-      `💬 Istalgan savolingizni yozing — bot javob berishga harakat qiladi.\n` +
-      `Agar bot javob bera olmasa — murojaat jamoaga uzatiladi.`,
+      `📖 RAOS Support Bot — Команды\n\n` +
+      `/faq — Частые вопросы и ответы (FAQ)\n` +
+      `/status — Статус всех сервисов\n` +
+      `/ticket — Создать заявку в поддержку\n` +
+      `/help — Эта справка\n\n` +
+      `💬 Напишите любой вопрос — бот постарается ответить.\n` +
+      `Если бот не сможет помочь — заявка будет передана команде.`,
     );
   });
 }

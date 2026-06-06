@@ -238,12 +238,10 @@ export class ExportService {
       p.unit?.name ?? '',
       Number(p.sellPrice),
       Number(p.costPrice),
-      p.minStockLevel,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (p as any).costCurrency ?? 'UZS',
+      Number(p.minStockLevel),
+      p.costCurrency ?? 'UZS',
       p.isActive ? 'Ha' : "Yo'q",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (p as any).expiryTracking ? 'Ha' : "Yo'q",
+      p.expiryTracking ? 'Ha' : "Yo'q",
     ]);
 
     this.logger.log(`[Export] Products: ${products.length} rows, ${format}`, { tenantId });
@@ -312,18 +310,22 @@ export class ExportService {
       "Tashriflar soni", "So'nggi tashrif", "Qarz limiti (UZS)", 'Bloklangan',
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rows = (customers as any[]).map((c) => [
-      c.id,
-      c.name,
-      c.phone ?? '',
-      Number(c.debtBalance ?? 0),
-      Number(c.totalPurchases ?? 0),
-      c.visitCount ?? 0,
-      c.lastVisitAt ? new Date(c.lastVisitAt).toISOString().slice(0, 10) : '',
-      Number(c.debtLimit ?? 0),
-      c.isBlocked ? 'Ha' : "Yo'q",
-    ]);
+    const rows = customers.map((c) => {
+      // Some fields (debtBalance, totalPurchases, visitCount, lastVisitAt, isBlocked)
+      // may come from aggregated views or future schema additions
+      const ext = c as unknown as Record<string, unknown>;
+      return [
+        c.id,
+        c.name,
+        c.phone ?? '',
+        Number(ext['debtBalance'] ?? 0),
+        Number(ext['totalPurchases'] ?? 0),
+        (ext['visitCount'] as number) ?? 0,
+        ext['lastVisitAt'] ? new Date(ext['lastVisitAt'] as string).toISOString().slice(0, 10) : '',
+        Number(c.debtLimit ?? 0),
+        ext['isBlocked'] ? 'Ha' : "Yo'q",
+      ];
+    });
 
     this.logger.log(`[Export] Customers: ${customers.length} rows, ${format}`, { tenantId });
     return this.buildFile(headers, rows, format);

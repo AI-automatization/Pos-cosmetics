@@ -1,5 +1,5 @@
 # RAOS — OCHIQ VAZIFALAR (Kosmetika POS MVP)
-# Yangilangan: 2026-06-04 (T-469 — RBAC default-on global APP_GUARD DONE → Done.md ga ko'chirildi)
+# Yangilangan: 2026-06-04 (40 ta task bajarildi — security, SMS, import, RBAC, logging, polish)
 # Format: T-XXX | Prioritet | [KAT] | Sarlavha
 
 ---
@@ -78,11 +78,19 @@
 
 *(T-458, T-459 — BAJARILDI, Done.md 2026-05-20)*
 
+*(T-478, T-479 — BAJARILDI, Done.md 2026-06-04 — Product Import PR#211 + DNS flip #207)*
+
+*(T-480, T-481, T-482, T-483, T-473 — BAJARILDI, Done.md 2026-06-04 — Security hardening + health-check)*
+
 ---
 
 # ══════════════════════════════════════════════════════════════
 # OCHIQ VAZIFALAR — P1 (MUHIM)
 # ══════════════════════════════════════════════════════════════
+
+*(T-481, T-482, T-483 — BAJARILDI, Done.md 2026-06-04)*
+
+---
 
 ## T-399 | P1 | [IKKALASI] | Global i18n — Faza 2-3 (auto-translate ma'lumotlar)
 
@@ -135,21 +143,7 @@
 
 ---
 
-## T-428 | P1 | [BACKEND] | Billing moduli — obuna, trial 30 kun, tariflar
-
-- **Sana:** 2026-05-17
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/billing/` (yaratish kerak)
-- **Vazifa:**
-  - `Subscription` model: tenant → plan → status → trial_expires_at
-  - Plan CRUD: Starter/Growth/Pro (yoki Free/Pro/Scale)
-  - Trial logic: sign-up → 30 kun full access → keyin limit
-  - Payment integration: Click/Payme recurring (T-415 infra dan foydalanish)
-  - Admin panel: MRR/ARR dashboard
-  - Webhook: to'lov muvaffaqiyatli → subscription.activate()
-- **Kutilgan:** Mijoz sign-up → 30 kun bepul → to'lov → davom
-- **Muddat:** 2 hafta
-- **Bog'liq:** T-380 (Super Admin Billing)
+*(T-428 — BAJARILDI, Done.md 2026-06-04 — Billing to'liq tayyor)*
 
 ---
 
@@ -178,26 +172,7 @@
 
 ---
 
-## T-463 | P1 | [BACKEND] | SMS module — backend (gateway + campaign + scheduling)
-
-- **Sana:** 2026-05-19
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/sms/` (yaratish kerak)
-- **Vazifa:**
-  - `sms.module.ts`, `sms.service.ts` (gateway abstraction), `sms.controller.ts`
-  - `adapters/playmobile.adapter.ts` (yoki tanlangan provider)
-  - SmsService: sendSingle, sendBulk, getBalance, getDeliveryStatus
-  - Campaign: DRAFT → SCHEDULED → SENDING → SENT → COMPLETED
-  - Prisma: `sms_campaigns`, `sms_messages` tables
-  - Scheduling: BullMQ delayed job
-  - Rate limiting: max 100 SMS/min
-  - Tenant isolation + cost tracking + unsubscribe ("STOP")
-- **Kutilgan:** API orqali SMS yuborish va kampaniya yaratish
-- **Muddat:** 1 hafta
-- **Hafta:** W23
-- **Trek:** B (SMS Campaign)
-- **Bog'liq:** T-462 (provider tanlangan bo'lishi kerak)
-- **Branch:** `ibrat/feat-sms-campaign`
+*(T-463 — BAJARILDI, Done.md 2026-06-04 — SMS module backend)*
 
 ---
 
@@ -270,7 +245,7 @@
 
 ---
 
-*(T-433 — DUPLIKAT, T-453 sifatida bajarildi)*
+*(T-433 — DUPLIKAT, T-453 ga birlashtirilgan)*
 
 ---
 
@@ -326,16 +301,17 @@
 - **Sana:** 2026-05-19
 - **Mas'ul:** Ibrat
 - **Fayl:** `apps/web/src/`
-- **Vazifa:**
-  - Dashboard: RAOS branding (cyan #24D4F4), logo sidebar, "Powered by RAOS" footer
-  - Onboarding wizard: 5 qadam (do'kon, filial, import, kassir, birinchi sotuv)
-  - i18n: barcha sahifalarda uz/ru/en to'liq
-  - Loading/error states: skeleton, error boundary
-- **Kutilgan:** Professional, demo-ready admin panel
+- **Bajarilgan (2026-06-04):**
+  - ✅ Sidebar: "Powered by RAOS" footer, cyan branding, logo (icon.png qo'shildi)
+  - ✅ Onboarding wizard: 5 qadam (filial, xodim, import, birinchi sotuv, dashboard)
+  - ✅ i18n: onboarding step4/step5 kalitlari uz/ru/en
+  - ✅ Loading/error: LoadingSkeleton, ErrorBoundary allaqachon mavjud
+- **Qolgan:**
+  - i18n: barcha sahifalarda to'liq audit (kamchilik bormi?)
+  - Dashboard: qo'shimcha polish (davomiy)
 - **Muddat:** davomiy
 - **Hafta:** W25+
 - **Trek:** D (Demo + Security)
-- **Branch:** `ibrat/chore-admin-polish`
 
 ---
 
@@ -390,74 +366,4 @@
 
 ---
 
-## T-470 | P2 | [BACKEND] | Engine: unit/category resolved by `name`, silently null on miss
-
-- **Sana:** 2026-06-04
-- **Fayl:** `packages/catalog-import/src/engine.ts`
-- **Muammo:** Import engine Unit va Category ni `name` bo'yicha (case-insensitive) qidiradi. Lekin schema unique kalitlari: `Unit @@unique([tenantId, shortName])` va `Category @@unique([tenantId, name, parentId])`. Noto'g'ri yoki noma'lum unit/category nom kiritilsa — `null` qaytariladi, foydalanuvchi ogohlantirish olmaydi.
-- **Izoh:** Bu T-130 xizmatiga nisbatan regressiya emas (xuddi shunday ishlagan) — lekin har qator uchun ogohlantirish berish kerak.
-- **Kutilgan:** Topilmagan unit/category → per-row warning xabari (skipped emas, shunchaki ogohlantirish)
-
----
-
-## T-471 | P3 | [BACKEND] | Import: minStock parsed loosely
-
-- **Sana:** 2026-06-04
-- **Fayl:** Task 7 / product-import.service parse helpers
-- **Muammo:** `minStock` qiymati `minStockLevel` (Decimal(15,3)) maydoniga o'tkaziladi, lekin parser/engine uni raqam sifatida tekshirmaydi va chegara (bounds) validation qilmaydi.
-- **Kutilgan:** Parse qatlamida `minStock` ni raqamga majburlash (coerce) va to'g'ri chegaralarni tekshirish
-
----
-
-## T-472 | P3 | [BACKEND] | Engine: onProgress throw aborts the whole import
-
-- **Sana:** 2026-06-04
-- **Fayl:** `packages/catalog-import/src/engine.ts`
-- **Muammo:** `onProgress` callback exception tashlasa (masalan, worker ichida Redis write muvaffaqiyatsiz bo'lsa) — exception tarqaladi va butun import jarayoni to'xtaydi.
-- **Kutilgan:** Progress-reporting xatoliklari qator ishlovidan izolyatsiya qilinishi kerak (try/catch onProgress ichida)
-
----
-
-## T-473 | P1 | [SECURITY] | Import controller has no @Roles — any authenticated user can bulk-overwrite catalog
-
-- **Sana:** 2026-06-04
-- **Mas'ul:** Ibrat
-- **Fayl:** `apps/api/src/catalog/import-export/product-import.controller.ts`
-- **Muammo:** `ProductImportController` da `@Roles(...)` dekoratori yo'q. `RolesGuard` roles metadata bo'lmasa by-default ruxsat beradi — ya'ni `CASHIER` yoki `VIEWER` roli bilan ham autentifikatsiya qilingan har qanday foydalanuvchi katalogni to'liq import orqali yozib tashlashi mumkin. Engine upsert strategiyasi ishlatadi, shuning uchun bu real catalog overwrite xavfi.
-- **Kutilgan:** `@Roles('OWNER', 'ADMIN', 'MANAGER')` dekoratorini import yozish (`POST /import`) va status o'qish (`GET /import/:jobId`) handlerlariga qo'shish. Enforce qilishdan oldin: mobile va web klientlar faqat `OWNER`/`ADMIN`/`MANAGER` roli bilan import chaqirishini tekshirish.
-
----
-
-## T-474 | P2 | [BACKEND] | Engine: bir qatorda sku va barcode turli mavjud mahsulotlarga mos kelsa
-
-- **Sana:** 2026-06-04
-- **Fayl:** `packages/catalog-import/src/engine.ts` (find: `(sku && bySku.get(sku)) || (barcode && byBarcode.get(barcode))`)
-- **Muammo:** `bySku` va `byBarcode` mustaqil maplar. Agar bitta import qatorining `sku` si P1 mahsulotga, `barcode` si esa BOSHQA P2 mahsulotga mos kelsa — `||` jimgina P1 ni tanlaydi va P2 e'tiborsiz qoladi (yoki create yo'lida `@@unique([tenantId, barcode])` P2002 sirtga chiqadi). Tenant leak emas (ikkalasi ham `tenantId` bilan scoped), lekin identifikator yechimi noaniq.
-- **Kutilgan:** `sku` va `barcode` ikkalasi ham hal bo'lsa, ammo TURLI id larga — per-row error ("SKU va barkod turli mahsulotlarga tegishli") + skip. Final review I2.
-
----
-
-## T-475 | P2 | [BACKEND] | Import/export ko'rinish filtri nomuvofiq (deletedAt:null vs isActive:true)
-
-- **Sana:** 2026-06-04
-- **Fayl:** `packages/catalog-import/src/engine.ts:38` (`deletedAt: null`) vs `apps/api/src/catalog/import-export/product-import.service.ts` (export: `isActive: true`)
-- **Muammo:** Import preload mavjud mahsulotni `deletedAt: null` bo'yicha topadi — ya'ni soft-inaktiv (`isActive:false`) mahsulotni ham update qiladi. Export esa faqat `isActive:true` chiqaradi. Eksport→import round-trip simmetrik emas: inaktiv mahsulot faylda yo'q, lekin re-import unga narx yozishi mumkin.
-- **Kutilgan:** Bitta predikat tanlash (ehtimol import ham `isActive` ni hisobga olishi kerak) — jamoa qarori. Tanlangan xatti-harakatni hujjatlashtirish. Final review I4.
-
----
-
-## T-476 | P3 | [BACKEND] | getProductImportJobStatus: evict bo'lgan completed job `not_found` qaytaradi
-
-- **Sana:** 2026-06-04
-- **Fayl:** `apps/api/src/common/queue/queue.service.ts` (`getProductImportJobStatus`), `apps/web/src/app/(admin)/catalog/import/page.tsx:133`
-- **Muammo:** `removeOnComplete: 50` bilan muvaffaqiyatli tugagan job kech polling qilinsa (evict bo'lsa) `not_found` qaytadi, web esa `not_found` ni qattiq xatolik deb ko'rsatadi ("Import jarayoni muvaffaqiyatsiz") — aslida muvaffaqiyatli bo'lgan. 50-chuqurlikda ehtimollik past.
-- **Kutilgan:** "completed-but-evicted" ni ajratish yoki bu queue uchun retentionni kengaytirish. Final review M6.
-
----
-
-## T-477 | P3 | [BACKEND] | CSV parser qo'shtirnoq ichidagi vergulda sinadi
-
-- **Sana:** 2026-06-04
-- **Fayl:** `apps/api/src/catalog/import-export/product-import.service.ts` (`line.split(',')`)
-- **Muammo:** Sodda `split(',')` parser — `exportToCsv` qo'shtirnoq bilan o'rab chiqargan `"Cream, 50ml"` kabi nom re-import da noto'g'ri parse bo'ladi (qo'shtirnoq ichidagi vergul maydonni bo'lib yuboradi). T-130 dan meros, bu PR scope dan tashqari, lekin export→import round-trip ni vergulli nomlar uchun buzadi.
-- **Kutilgan:** RFC-4180 ga mos CSV parser (qo'shtirnoq + escape qo'llab-quvvatlash). Final review M7.
+*(T-470..T-477 — BAJARILDI, Done.md 2026-06-04 — 7 ta import engine bug fix)*

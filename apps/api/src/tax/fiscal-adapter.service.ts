@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { UZ_VAT_RATE } from '../common/utils/currency.util';
 
 // ─── REGOS/OFD Fiscal Adapter (Provider-agnostic) ─────────────────────────────
 // Phase 1: Stub fallback (REGOS_API_URL not set → simulatsiya)
@@ -99,13 +100,13 @@ export class FiscalAdapterService {
       orderNumber: payload.orderNumber,
       total: payload.total,
       taxAmount: payload.taxAmount,
-      taxRate: 0.12,
+      taxRate: UZ_VAT_RATE,
       items: payload.items.map((item) => ({
         name: item.name,
         qty: item.quantity,
         price: item.price,
         total: item.total,
-        vatRate: 0.12,
+        vatRate: UZ_VAT_RATE,
       })),
       cashier: payload.cashierName,
       branch: payload.branchName ?? '',

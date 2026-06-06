@@ -7,6 +7,7 @@ COPY apps/support-bot/package.json ./apps/support-bot/
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/catalog-import/package.json ./packages/catalog-import/
 
 RUN pnpm install --frozen-lockfile --filter support-bot... --filter api
 

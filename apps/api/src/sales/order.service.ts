@@ -9,6 +9,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditService } from '../audit/audit.service';
 import { CreateOrderDto, DiscountTypeEnum } from './dto';
 import { OrderStatus, UserRole } from '@prisma/client';
+import { UZ_VAT_RATE } from '../common/utils/currency.util';
 
 // Discount limits by role
 const DISCOUNT_LIMIT: Record<string, number> = {
@@ -117,7 +118,7 @@ export class OrderService {
         (s, i) => s + (i.isTaxable ? Math.max(0, i.total) : 0),
         0,
       );
-      const taxAmount = Math.round((taxableTotal * 0.12) / 1.12);
+      const taxAmount = Math.round((taxableTotal * UZ_VAT_RATE) / (1 + UZ_VAT_RATE));
 
       const last = await tx.order.findFirst({
         where: { tenantId },

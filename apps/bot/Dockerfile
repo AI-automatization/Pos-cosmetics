@@ -9,6 +9,7 @@ COPY apps/bot/package.json ./apps/bot/
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/catalog-import/package.json ./packages/catalog-import/
 
 # Install deps (bot + api for prisma CLI)
 RUN pnpm install --frozen-lockfile --filter bot... --filter api

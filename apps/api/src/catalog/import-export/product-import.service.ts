@@ -159,13 +159,40 @@ export class ProductImportService {
   private parseCsv(content: string): ProductImportRow[] {
     const lines = content.split('\n').filter((l) => l.trim());
     if (lines.length < 2) return [];
-    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+    const headers = this.parseCsvLine(lines[0]).map((h) => h.toLowerCase().trim());
     return lines.slice(1).map((line) => {
       const values: Record<string, string> = {};
-      const cells = line.split(',');
-      headers.forEach((h, i) => { values[h] = (cells[i] ?? '').trim().replace(/^"|"$/g, ''); });
+      const cells = this.parseCsvLine(line);
+      headers.forEach((h, i) => { values[h] = (cells[i] ?? '').trim(); });
       return this.mapRow(values);
     });
+  }
+
+  /** RFC-4180 compliant CSV line parser — handles quoted fields with commas and escaped quotes */
+  private parseCsvLine(line: string): string[] {
+    const cells: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (line[i + 1] === '"') { current += '"'; i++; } // escaped ""
+          else inQuotes = false;
+        } else {
+          current += ch;
+        }
+      } else if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        cells.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    cells.push(current);
+    return cells;
   }
 
   private mapRow(v: Record<string, string>): ProductImportRow {

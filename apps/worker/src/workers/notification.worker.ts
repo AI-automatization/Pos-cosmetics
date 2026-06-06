@@ -29,7 +29,7 @@ interface NotificationJob {
 async function sendTelegram(chatId: string, message: string): Promise<void> {
   const token = process.env.BOT_TOKEN;
   if (!token) {
-    console.warn('[notification:telegram] BOT_TOKEN env yo\'q — xabar yuborilmadi');
+    console.log(JSON.stringify({ level: 'warn', event: 'notification:telegram:skip', reason: 'BOT_TOKEN env not set' }));
     return;
   }
 
@@ -73,7 +73,7 @@ function getMailer(): nodemailer.Transporter | null {
 async function sendEmail(to: string, subject: string, html?: string, text?: string): Promise<void> {
   const transport = getMailer();
   if (!transport) {
-    console.warn('[notification:email] SMTP sozlanmagan — email yuborilmadi');
+    console.log(JSON.stringify({ level: 'warn', event: 'notification:email:skip', reason: 'SMTP not configured' }));
     return;
   }
 
@@ -113,11 +113,11 @@ export function createNotificationWorker(): Worker {
 
         case 'PUSH':
           // TODO: Firebase FCM push (keyingi sprint)
-          console.log(`[notification] Push → tenant=${tenantId}`, payload);
+          console.log(JSON.stringify({ level: 'warn', event: 'notification:push:not-implemented', tenantId, payload }));
           break;
 
         default:
-          console.warn(`[notification] Noma'lum type: ${type} → tenant=${tenantId}`);
+          console.log(JSON.stringify({ level: 'warn', event: 'notification:unknown-type', type, tenantId }));
       }
 
       logJobDone(QUEUE_NAMES.NOTIFICATION, job.id!, job.name, Date.now() - start);

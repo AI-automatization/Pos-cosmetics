@@ -3,16 +3,17 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Check, Building2, Users, Package, Rocket, ChevronRight, X } from 'lucide-react';
+import { Check, Building2, Users, Package, ShoppingCart, Rocket, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 
 // Static step metadata — labels resolved via t() inside the component
 const STEP_META = [
-  { id: 1, icon: Building2, action: '/branches', titleKey: 'step1Title', descKey: 'step1Desc', actionKey: 'step1Action' },
-  { id: 2, icon: Users,     action: '/settings/users', titleKey: 'step2Title', descKey: 'step2Desc', actionKey: 'step2Action' },
-  { id: 3, icon: Package,   action: '/catalog/import', titleKey: 'step3Title', descKey: 'step3Desc', actionKey: 'step3Action' },
-  { id: 4, icon: Rocket,    action: '/dashboard', titleKey: 'step4Title', descKey: 'step4Desc', actionKey: 'step4Action' },
+  { id: 1, icon: Building2,    action: '/branches',       titleKey: 'step1Title', descKey: 'step1Desc', actionKey: 'step1Action' },
+  { id: 2, icon: Users,        action: '/settings/users', titleKey: 'step2Title', descKey: 'step2Desc', actionKey: 'step2Action' },
+  { id: 3, icon: Package,      action: '/catalog/import', titleKey: 'step3Title', descKey: 'step3Desc', actionKey: 'step3Action' },
+  { id: 4, icon: ShoppingCart,  action: '/pos',            titleKey: 'step4Title', descKey: 'step4Desc', actionKey: 'step4Action' },
+  { id: 5, icon: Rocket,       action: '/dashboard',      titleKey: 'step5Title', descKey: 'step5Desc', actionKey: 'step5Action' },
 ] as const;
 
 const LS_KEY = 'raos_onboarding_completed';

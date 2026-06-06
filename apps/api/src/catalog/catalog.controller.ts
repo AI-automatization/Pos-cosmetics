@@ -9,6 +9,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { Roles } from '../common/decorators/roles.decorator';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -27,6 +28,7 @@ import { WarehouseReadOnlyGuard } from '../common/guards/warehouse-read-only.gua
 @ApiTags('Catalog')
 @ApiBearerAuth()
 @UseGuards(WarehouseReadOnlyGuard)
+@Roles('OWNER', 'ADMIN', 'MANAGER', 'WAREHOUSE')
 @Controller('catalog')
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}

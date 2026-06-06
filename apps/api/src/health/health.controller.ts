@@ -4,6 +4,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../common/decorators';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../common/cache/cache.service';
+import { QueueService } from '../common/queue/queue.service';
 
 // T-077: Health endpoints are exempt from rate limiting (monitoring/LB probes)
 @SkipThrottle()
@@ -14,6 +15,7 @@ export class HealthController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly queueService: QueueService,
   ) {}
 
   /**
@@ -46,7 +48,7 @@ export class HealthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Readiness probe — DB + Redis ready' })
   async ready() {
-    const checks: Record<string, { status: 'ok' | 'error'; latencyMs?: number; error?: string }> = {};
+    const checks: Record<string, { status: 'ok' | 'warn' | 'error'; latencyMs?: number; error?: string; failedJobs?: number }> = {};
 
     // ─── Database ──────────────────────────────────────────────
     try {
@@ -68,7 +70,23 @@ export class HealthController {
       checks.redis = { status: 'error', error: (err as Error).message };
     }
 
-    const allOk = Object.values(checks).every((c) => c.status === 'ok');
+    // ─── BullMQ Queues ──────────────────────────────────────────
+    let queueStats: Record<string, unknown> | null = null;
+    let totalFailed = 0;
+    try {
+      queueStats = await this.queueService.getQueueStats();
+      const dlqCounts = await this.queueService.getDlqCount();
+      totalFailed = Object.values(dlqCounts).reduce((sum, c) => sum + c, 0);
+      checks.queues = {
+        status: totalFailed > 50 ? 'error' : totalFailed > 10 ? 'warn' : 'ok',
+        ...(totalFailed > 0 && { failedJobs: totalFailed }),
+      };
+    } catch (err) {
+      checks.queues = { status: 'error', error: (err as Error).message };
+    }
+
+    const hasError = Object.values(checks).some((c) => c.status === 'error');
+    const allOk = !hasError;
 
     const result = {
       status: allOk ? 'ready' : 'not_ready',
@@ -76,6 +94,7 @@ export class HealthController {
       version: process.env.APP_VERSION ?? '0.1.0',
       environment: process.env.NODE_ENV ?? 'development',
       services: checks,
+      ...(queueStats && { queues: queueStats }),
     };
 
     if (!allOk) {
@@ -103,6 +122,13 @@ export class HealthController {
       dbStatus = 'error';
     }
 
+    const redisStatus = this.cache.isConnected() ? 'ok' : 'disconnected';
+    let failedJobs = 0;
+    try {
+      const dlq = await this.queueService.getDlqCount();
+      failedJobs = Object.values(dlq).reduce((sum, c) => sum + c, 0);
+    } catch { /* Redis may be down */ }
+
     return {
       status: dbStatus === 'ok' ? 'ok' : 'degraded',
       timestamp: new Date().toISOString(),
@@ -111,7 +137,8 @@ export class HealthController {
       uptime: Math.floor(process.uptime()),
       services: {
         database: { status: dbStatus, latencyMs: dbLatencyMs },
-        redis: { status: this.cache.isConnected() ? 'ok' : 'disconnected' },
+        redis: { status: redisStatus },
+        queues: { failedJobs },
       },
     };
   }

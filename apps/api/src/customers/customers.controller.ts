@@ -9,6 +9,7 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { Roles } from '../common/decorators/roles.decorator';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -22,6 +23,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Customers')
 @ApiBearerAuth()
+@Roles('OWNER', 'ADMIN', 'MANAGER')
 @Controller('customers')
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}

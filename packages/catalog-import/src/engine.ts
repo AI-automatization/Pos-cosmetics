@@ -37,6 +37,7 @@ export async function processImportRows(
           where: {
             tenantId,
             deletedAt: null,
+            isActive: true,
             OR: [
               ...(skus.length ? [{ sku: { in: skus } }] : []),
               ...(barcodes.length ? [{ barcode: { in: barcodes } }] : []),
@@ -59,7 +60,11 @@ export async function processImportRows(
 
   const report = async (processed: number) => {
     if (!onProgress) return;
-    await onProgress({ processed, total: rows.length, created, updated, skipped, errors: [...errors] });
+    try {
+      await onProgress({ processed, total: rows.length, created, updated, skipped, errors: [...errors] });
+    } catch {
+      // T-472: onProgress failure must not abort the import
+    }
   };
 
   for (let i = 0; i < rows.length; i++) {
@@ -81,13 +86,26 @@ export async function processImportRows(
       } else {
         try {
           const unitId = row.unit ? unitByName.get(row.unit.toLowerCase()) : undefined;
+          if (row.unit && !unitId) {
+            errors.push(`Qator ${lineNum}: o'lchov birligi topilmadi: "${row.unit}"`);
+          }
           const categoryId = row.categoryName
             ? categoryByName.get(row.categoryName.toLowerCase())
             : undefined;
+          if (row.categoryName && !categoryId) {
+            errors.push(`Qator ${lineNum}: kategoriya topilmadi: "${row.categoryName}"`);
+          }
           const sku = row.sku?.trim() || undefined;
           const barcode = row.barcode?.trim() || undefined;
-          const found =
-            (sku && bySku.get(sku)) || (barcode && byBarcode.get(barcode)) || null;
+          const bySk = sku ? bySku.get(sku) : undefined;
+          const byBc = barcode ? byBarcode.get(barcode) : undefined;
+          if (bySk && byBc && bySk.id !== byBc.id) {
+            skipped++;
+            errors.push(`Qator ${lineNum}: SKU ("${sku}") va barkod ("${barcode}") turli mahsulotlarga tegishli`);
+            if ((i + 1) % PROGRESS_INTERVAL === 0) await report(i + 1);
+            continue;
+          }
+          const found = bySk ?? byBc ?? null;
 
           if (found) {
             await prisma.product.update({

@@ -16,6 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { SalesService } from './sales.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 
 /**
  * /shifts/* — top-level alias for mobile-owner app.
@@ -23,6 +24,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
  */
 @ApiTags('Shifts')
 @ApiBearerAuth()
+@Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
 @Controller('shifts')
 export class ShiftsController {
   constructor(private readonly salesService: SalesService) {}

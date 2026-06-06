@@ -17,6 +17,11 @@ export function validateRow(row: ProductImportRow): string | null {
   if (barcode && !BARCODE_PATTERN.test(barcode)) {
     return `barkod formati noto'g'ri: ${row.barcode}`;
   }
+  if (row.minStock !== undefined) {
+    if (typeof row.minStock !== 'number' || !Number.isFinite(row.minStock) || row.minStock < 0) {
+      return `minStock noto'g'ri: ${row.minStock}`;
+    }
+  }
   return null;
 }
 

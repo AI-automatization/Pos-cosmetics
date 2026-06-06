@@ -259,6 +259,11 @@ function SidebarContent({
             </>
           )}
         </button>
+        {!collapsed && (
+          <p className="mt-1 text-center text-[10px] text-gray-300">
+            Powered by RAOS
+          </p>
+        )}
       </div>
     </>
   );

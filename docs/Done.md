@@ -3,6 +3,158 @@
 
 ---
 
+## Codebase Polish | 2026-06-04 | 22 micro-task sprint
+
+**@Roles security (8 controllers):**
+- catalog, customers, branches, promotions, loyalty, tax, shifts, tenant-settings
+
+**Structured logging (5 workers):**
+- notification, data-export, report, stock-snapshot, sync-process — console.log → JSON
+
+**Magic numbers → constants (5 files):**
+- FREE_PLAN_FALLBACK, UZ_VAT_RATE (3 files), DEFAULT_SMS_COST_TIYIN
+
+**Code quality (4 fixes):**
+- export.service: `as any` → proper types
+- system.controller: fake Math.random timestamps → honest data
+- notifications: duplicate PRIORITY_MAP → shared constant
+- InvoiceDetailDrawer: hardcoded Uzbek → i18n t() calls
+
+---
+
+## T-470..T-477 | 2026-06-04 | [BACKEND] | Import engine — 7 bug fix
+
+- T-470: unit/category topilmasa per-row warning
+- T-471: minStock finite non-negative validation
+- T-472: onProgress try/catch — callback fail import to'xtatmaydi
+- T-474: SKU+barcode turli mahsulotga → skip + error
+- T-475: import preload `isActive:true` (export bilan mos)
+- T-476: `completed_evicted` status (was `not_found`)
+- T-477: RFC-4180 CSV parser (qo'shtirnoq ichidagi vergul)
+- **Fayllar:** `packages/catalog-import/src/engine.ts`, `validation.ts`, `product-import.service.ts`, `queue.service.ts`
+
+---
+
+## T-463 | 2026-06-04 | [BACKEND] | SMS module — gateway + campaigns + bulk send
+
+- **Yechim:**
+  - Prisma: `SmsCampaign`, `SmsMessage`, `SmsUnsubscribe` modellari
+  - `SmsGateway` interface + `PlayMobileProvider` (provider-agnostic adapter pattern)
+  - `SmsService`: sendSingle, sendBulkForCampaign, unsubscribe tekshirish, cost tracking
+  - `SmsCampaignService`: DRAFT → SCHEDULED → SENDING → COMPLETED lifecycle
+  - `SmsController`: REST API (`@Roles OWNER/ADMIN/MANAGER`) — 8 endpoint
+  - BullMQ: `SMS_CAMPAIGN` queue + delayed job (scheduled sends)
+  - Public `/sms/unsubscribe` webhook (STOP handling)
+- **Fayllar:** `apps/api/src/sms/` (7 fayl), `schema.prisma`, `queue.service.ts`, `app.module.ts`
+- **Mas'ul:** Ibrat
+
+---
+
+## T-428 | 2026-06-04 | [BACKEND+FRONTEND] | Billing moduli — to'liq tayyor
+
+- **Holat:** Backend + Frontend + Invoice PDF allaqachon yozilgan edi, faqat audit/tasdiqlash qolgan edi.
+- **Backend:** `BillingService` (plans, trial, upgrade, cancel, limits, usage), `BillingPaymentService` (Payme/Click checkout + webhooks), `BillingInvoiceService` (PDF), cron (expired check)
+- **Prisma:** `SubscriptionPlan`, `TenantSubscription`, `BillingPayment`, `BillingInvoice` — to'liq
+- **Frontend:** `/settings/billing` — subscription card, usage bars, plan cards + upgrade
+- **i18n:** uz/ru/en billing kalitlari (15+ kalit)
+- **Fix:** Prisma client regenerated (BillingInvoice TS xatosi tuzatildi)
+- **Mas'ul:** Ibrat
+- **Fayllar:** `apps/api/src/billing/`, `apps/web/src/app/(admin)/settings/billing/page.tsx`
+
+---
+
+## T-480 | 2026-06-04 | [DEVOPS] | Prod health-check — BullMQ queue monitoring
+
+- **Muammo:** `/health` va `/health/ready` endpoint larda worker (BullMQ) holati tekshirilmagan edi.
+- **Yechim:**
+  - `/health/ready` — BullMQ queue stats (waiting/active/completed/failed/delayed) + DLQ threshold (>10 warn, >50 error)
+  - `/health` — failed jobs soni ko'rsatiladi
+  - `QueueService.getQueueStats()` va `getDlqCount()` ishlatildi
+- **Fayllar:** `apps/api/src/health/health.controller.ts`
+- **Mas'ul:** Ibrat
+- **GitHub:** #198
+
+---
+
+## T-481 | 2026-06-04 | [SECURITY] | XSS himoya — CSP headers + audit
+
+- **Muammo:** Helmet default CSP juda lax edi. XSS hujum xavfi.
+- **Yechim:**
+  - Helmet CSP: `default-src 'self'`, `script-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`
+  - `SanitizeStringPipe` allaqachon global edi (HTML tag strip)
+  - `dangerouslySetInnerHTML` — loyihada ishlatilmagan (tekshirildi)
+- **Fayllar:** `apps/api/src/main.ts`
+- **Mas'ul:** Ibrat
+- **GitHub:** #143
+
+---
+
+## T-482 | 2026-06-04 | [SECURITY] | Cookie Secure flag — tekshirish + clearCookie fix
+
+- **Muammo:** Cookie `Secure` flag production da o'rnatilganligini tasdiqlash kerak edi.
+- **Yechim:**
+  - Refresh token cookie: `httpOnly: true`, `secure: production`, `sameSite: none` (cross-origin) — allaqachon to'g'ri edi
+  - Super Admin cookie: `httpOnly: true`, `secure: production`, `sameSite: strict` — allaqachon to'g'ri edi
+  - `clearCookie` ga to'liq atributlar qo'shildi (brauzer aniq mos kelishi uchun)
+- **Fayllar:** `apps/api/src/admin/admin-auth.controller.ts`
+- **Mas'ul:** Ibrat
+- **GitHub:** #144
+
+---
+
+## T-483 | 2026-06-04 | [SECURITY] | Audit log redaksiya — sensitive data masking
+
+- **Muammo:** Audit log da `oldData`/`newData` ichida parol, token, karta raqami saqlanishi mumkin edi.
+- **Yechim:**
+  - `redactAuditData()` — yozishda VA o'qishda: password, token, secret, pin, cardNumber, cvv, apiKey, privateKey → `[REDACTED]`
+  - Recursive — nested objectlarda ham ishlaydi
+  - Eski yozuvlar ham o'qishda redaktlanadi (backward safety)
+- **Fayllar:** `apps/api/src/audit/audit.service.ts`
+- **Mas'ul:** Ibrat
+- **GitHub:** #145
+
+---
+
+## T-473 | 2026-06-04 | [SECURITY] | Import controller @Roles — RBAC enforce
+
+- **Muammo:** `ProductImportController` da `@Roles` dekoratori yo'q edi. CASHIER/VIEWER katalogni import orqali yozib tashlashi mumkin edi.
+- **Yechim:**
+  - `@Roles('OWNER', 'ADMIN', 'MANAGER')` controller darajasida qo'shildi
+  - Import (POST), status (GET), template (GET), export (GET) — barchasi himoyalangan
+- **Fayllar:** `apps/api/src/catalog/import-export/product-import.controller.ts`
+- **Mas'ul:** Ibrat
+
+---
+
+## T-479 | 2026-06-04 | [DEVOPS] | app.raos.uz DNS flip — NS rassinxron + CNAME fix
+
+- **Muammo:** app.raos.uz ishlamay qoldi. Registrarda (Ahost.uz) NS rassinxron edi — zona dublikati emas, NS yozuvlari noto'g'ri edi.
+- **Yechim:**
+  - NS to'g'rilandi (paige/zahir.ns.cloudflare.com)
+  - DNS-only Railway CNAME ga o'tkazildi
+  - TLS sertifikat pending (auto-issue kutilmoqda)
+- **Holat:** api.raos.uz ✅ 200, raos.uz ✅ 200, app.raos.uz ⏳ cert pending
+- **Mas'ul:** AbdulazizYormatov (Team Lead)
+- **GitHub:** #207
+
+---
+
+## T-478 | 2026-06-04 | [BACKEND] | Mahsulot import (Excel/CSV) + onboarding — to'liq
+
+- **Muammo:** RAOS da mahsulotlarni ommaviy import qilish imkoniyati yo'q edi. Onboarding uchun kritik bloker.
+- **Yechim:**
+  - Batch preload (N+1 fix)
+  - Barkod/SKU validatsiya
+  - Idempotent re-import (upsert strategiya)
+  - Async queue (≥200 qator BullMQ orqali)
+  - Progress reporting (real-time status)
+- **Mas'ul:** AbdulazizYormatov (Team Lead)
+- **PR:** #211 (squash → `main`)
+- **Fayllar:** `packages/catalog-import/`, `apps/api/src/catalog/import-export/`
+- **GitHub:** #104
+
+---
+
 ## T-469 | 2026-06-04 | [SECURITY] | RBAC default-on — global APP_GUARD + per-controller guard prune
 
 - **Muammo:** Auth/RBAC har controller da `@UseGuards(JwtAuthGuard, RolesGuard)` bilan QO'LDA ulanardi (opt-in). Bitta controller da unutilsa → himoyasiz endpoint (data leak). Bir nechta controller da `@Roles` bor edi, lekin `RolesGuard` ulanmagan → RBAC inert (ishlamaydigan).
