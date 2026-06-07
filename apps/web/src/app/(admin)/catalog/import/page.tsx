@@ -12,7 +12,7 @@ import {
 import { importApi } from '@/api/import.api';
 import type { ImportSummary, ImportProgress } from '@/api/import.api';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, extractErrorMessage } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 
 type PageState = 'idle' | 'uploading' | 'processing' | 'done';
@@ -104,8 +104,9 @@ export default function ProductImportPage() {
         setProgress({ processed: 0, total: data.total, created: 0, updated: 0, skipped: 0, errors: [] });
         setState('processing');
       }
-    } catch {
-      toast.error(t('toast.importFailed'));
+    } catch (err) {
+      const serverMsg = extractErrorMessage(err);
+      toast.error(serverMsg && serverMsg !== 'Server xatosi' ? serverMsg : t('toast.importFailed'));
       setState('idle');
     }
   };

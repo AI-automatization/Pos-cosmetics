@@ -61,13 +61,14 @@ export class RevenueReportsService {
 
   async getTopProducts(tenantId: string, from: Date, to: Date, limit = 10) {
     return this.prisma.$queryRaw<
-      { productId: string; productName: string; totalQty: number; totalRevenue: number }[]
+      { productId: string; productName: string; totalQty: number; totalRevenue: number; ordersCount: number }[]
     >`
       SELECT
         oi.product_id          AS "productId",
         oi.product_name        AS "productName",
         SUM(oi.quantity)::float       AS "totalQty",
-        SUM(oi.total)::float          AS "totalRevenue"
+        SUM(oi.total)::float          AS "totalRevenue",
+        COUNT(DISTINCT o.id)::int     AS "ordersCount"
       FROM order_items oi
       JOIN orders o ON o.id = oi.order_id
       WHERE o.tenant_id = ${tenantId}

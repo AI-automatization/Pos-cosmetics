@@ -64,7 +64,10 @@
     "notFound": "Не найдено",
     "print": "Печать",
     "processing": "Выполняется...",
-    "understood": "Понятно"
+    "understood": "Понятно",
+    "noChanges": "Нет изменений",
+    "exportCsv": "Экспорт CSV",
+    "viewAll": "Все →"
   },
   "nav": {
     "dashboard": "Главная",
@@ -1499,7 +1502,26 @@
     "earn": "Начисление",
     "redeem": "Списание",
     "adjust": "Корректировка",
-    "expire": "Истёк"
+    "expire": "Истёк",
+    "points": "Баллы",
+    "subtitle": "Управление программой лояльности для клиентов",
+    "settingsDesc": "Настройте ставки начисления и списания баллов",
+    "customersDesc": "Просматривайте и корректируйте баллы клиентов",
+    "historyDesc": "Все транзакции начисления / списания",
+    "programActive": "Программа лояльности активна",
+    "programActiveDesc": "Клиенты накапливают баллы за покупки",
+    "statusActive": "Активна",
+    "statusInactive": "Неактивна",
+    "rateSettings": "Настройки ставок",
+    "earnRateDesc": "Пример: покупка на 10 000 сум = 10 баллов",
+    "redeemRatePrefix": "1 балл =",
+    "redeemRateSuffix": "сум скидки",
+    "minRedeemDesc": "Минимальное число баллов для списания",
+    "noAccounts": "Аккаунты лояльности не найдены",
+    "minPoints": "Мин. баллов",
+    "customerId": "ID клиента",
+    "customerIdPlaceholder": "Фильтр по клиенту...",
+    "orderNo": "Заказ №"
   },
   "promo": {
     "title": "Промокоды",

@@ -64,7 +64,10 @@
     "notFound": "Topilmadi",
     "print": "Chop etish",
     "processing": "Bajarilmoqda...",
-    "understood": "Tushunarli"
+    "understood": "Tushunarli",
+    "noChanges": "O'zgarish yo'q",
+    "exportCsv": "CSV eksport",
+    "viewAll": "Barchasi →"
   },
   "nav": {
     "dashboard": "Bosh sahifa",
@@ -1499,7 +1502,26 @@
     "earn": "Berildi",
     "redeem": "Yechildi",
     "adjust": "Tuzatildi",
-    "expire": "Muddati tugadi"
+    "expire": "Muddati tugadi",
+    "points": "Ballar",
+    "subtitle": "Mijozlar uchun sodiqlik dasturini boshqaring",
+    "settingsDesc": "Ball berish va yechish stavkalarini sozlang",
+    "customersDesc": "Mijozlar ballarini ko'ring va tuzating",
+    "historyDesc": "Barcha berish / yechish tranzaksiyalari",
+    "programActive": "Sodiqlik dasturi faol",
+    "programActiveDesc": "Mijozlar xaridlar uchun ball to'playdi",
+    "statusActive": "Faol",
+    "statusInactive": "Faol emas",
+    "rateSettings": "Stavka sozlamalari",
+    "earnRateDesc": "Misol: 10 000 so'm xarid = 10 ball",
+    "redeemRatePrefix": "1 ball =",
+    "redeemRateSuffix": "so'm chegirma",
+    "minRedeemDesc": "Yechish uchun minimal ball miqdori",
+    "noAccounts": "Sodiqlik hisoblari topilmadi",
+    "minPoints": "Min ball",
+    "customerId": "Mijoz ID",
+    "customerIdPlaceholder": "Mijoz bo'yicha filtrlash...",
+    "orderNo": "Buyurtma №"
   },
   "promo": {
     "title": "Promo kodlar",

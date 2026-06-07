@@ -91,6 +91,7 @@ model User {
   telegramChatId  String?   @map("telegram_chat_id")
   botSettings     Json?     @map("bot_settings")
   branchId        String?   @map("branch_id")
+  lastLogin       DateTime? @map("last_login")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
