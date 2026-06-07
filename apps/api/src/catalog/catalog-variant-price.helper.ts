@@ -94,6 +94,12 @@ export class CatalogVariantPriceHelper {
     productId: string,
     dto: BulkCreateVariantsDto,
   ) {
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, tenantId },
+      select: { id: true },
+    });
+    if (!product) throw new NotFoundException(`Product ${productId} not found`);
+
     const variants = await this.prisma.$transaction(
       dto.variants.map((v, i) =>
         this.prisma.productVariant.create({
