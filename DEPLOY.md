@@ -50,6 +50,14 @@ GitHub репо → Settings → Branches → Add rule
 - `raos-api` — Backend API
 - `raos-web` — Frontend Web
 
+### 4. Обязательные переменные WEB-сервиса
+- `NEXT_PUBLIC_API_URL` — URL backend API.
+- `SESSION_SIGNING_SECRET` — **ОБЯЗАТЕЛЬНО в production.** Middleware подписывает/проверяет
+  `role_sig` cookie этим секретом (#141). Если НЕ задан → `/api/session` падает (500),
+  cookie не ставится, и OWNER/ADMIN редиректит на `/dashboard` с `/finance`, `/settings`,
+  `/realestate`. Сгенерировать: `openssl rand -hex 32`. После добавления → Redeploy.
+  ⚠️ Значение должно быть одинаковым на всех инстансах web-сервиса.
+
 ---
 
 ## Ручной деплой (если нужно)
