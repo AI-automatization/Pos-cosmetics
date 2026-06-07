@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Send, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { useCampaign, useCampaignMessages, useSendCampaign, useCancelCampaign } from '@/hooks/sms/useCampaigns';

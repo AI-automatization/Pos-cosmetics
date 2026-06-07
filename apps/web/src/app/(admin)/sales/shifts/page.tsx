@@ -6,7 +6,7 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { ScrollableTable } from '@/components/ui/ScrollableTable';
 import { ErrorState } from '@/components/common/ErrorState';
 import { useShifts } from '@/hooks/sales/useShifts';
-import { formatPrice, formatDateTime, cn, getField, compareSortValues } from '@/lib/utils';
+import { formatPrice, formatDateTime, cn, getField } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 
 function formatDuration(openedAt: string, closedAt?: string | null): string {
