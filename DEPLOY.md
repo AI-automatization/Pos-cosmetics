@@ -50,13 +50,18 @@ GitHub репо → Settings → Branches → Add rule
 - `raos-api` — Backend API
 - `raos-web` — Frontend Web
 
-### 4. Обязательные переменные WEB-сервиса
+### 4. Переменные WEB-сервиса
 - `NEXT_PUBLIC_API_URL` — URL backend API.
-- `SESSION_SIGNING_SECRET` — **ОБЯЗАТЕЛЬНО в production.** Middleware подписывает/проверяет
-  `role_sig` cookie этим секретом (#141). Если НЕ задан → `/api/session` падает (500),
-  cookie не ставится, и OWNER/ADMIN редиректит на `/dashboard` с `/finance`, `/settings`,
-  `/realestate`. Сгенерировать: `openssl rand -hex 32`. После добавления → Redeploy.
-  ⚠️ Значение должно быть одинаковым на всех инстансах web-сервиса.
+- `SESSION_SIGNING_SECRET` — секрет подписи/проверки `role_sig` cookie (#141), который
+  гейтит `/finance`, `/settings`, `/realestate`. **Вручную задавать не нужно:**
+  `apps/web/Dockerfile` генерирует его на этапе build и пекёт одновременно в middleware-бандл
+  и в рантайм (одно значение). Edge-middleware инлайнит env на build, поэтому runtime-only
+  переменная из дашборда middleware НЕ видна — секрет обязан существовать на build.
+  - Ротируется при каждом деплое; старые cookie само-восстанавливаются на следующей загрузке
+    (`useCurrentUser → syncSignedRole`).
+  - Чтобы зафиксировать секрет между деплоями — задай **build-переменную**
+    `SESSION_SIGNING_SECRET` в Railway (прокинется как Docker ARG), Dockerfile возьмёт её
+    вместо генерации.
 
 ---
 
