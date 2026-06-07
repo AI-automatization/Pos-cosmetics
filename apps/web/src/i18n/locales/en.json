@@ -64,7 +64,8 @@
     "notFound": "Not found",
     "print": "Print",
     "processing": "Processing...",
-    "understood": "Understood"
+    "understood": "Understood",
+    "noChanges": "No changes"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -1511,7 +1512,26 @@
     "earn": "Earned",
     "redeem": "Redeemed",
     "adjust": "Adjusted",
-    "expire": "Expired"
+    "expire": "Expired",
+    "subtitle": "Points system for customers — earn points on purchases and redeem for discounts",
+    "settingsDesc": "Configure point earning and redemption rules",
+    "customersDesc": "Customer point balances and history",
+    "historyDesc": "All point transaction history",
+    "points": "Points",
+    "noAccounts": "No loyalty accounts found",
+    "customerId": "Customer ID",
+    "customerIdPlaceholder": "Filter by customer...",
+    "orderNo": "Order #",
+    "programActive": "Loyalty program active",
+    "programActiveDesc": "Enable or disable the program",
+    "statusActive": "Program is active",
+    "statusInactive": "Program is inactive",
+    "rateSettings": "Rate Settings",
+    "earnRateDesc": "sum = 1 point",
+    "redeemRatePrefix": "1 point =",
+    "redeemRateSuffix": "sum discount",
+    "minRedeemDesc": "points minimum per redemption",
+    "minPoints": "Min points"
   },
   "promo": {
     "title": "Promo Codes",

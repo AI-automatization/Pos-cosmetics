@@ -64,7 +64,8 @@
     "notFound": "Topilmadi",
     "print": "Chop etish",
     "processing": "Bajarilmoqda...",
-    "understood": "Tushunarli"
+    "understood": "Tushunarli",
+    "noChanges": "O'zgarish yo'q"
   },
   "nav": {
     "dashboard": "Bosh sahifa",
@@ -1511,7 +1512,27 @@
     "earn": "Berildi",
     "redeem": "Yechildi",
     "adjust": "Tuzatildi",
-    "expire": "Muddati tugadi"
+    "expire": "Muddati tugadi",
+    "subtitle": "Mijozlar uchun ball tizimi — xaridlar uchun ball yig'ish va chegirmaga ayirboshlash",
+    "settingsDesc": "Ball berish va yechish qoidalarini sozlang",
+    "customersDesc": "Mijozlar ball qoldiqlari va tarixi",
+    "historyDesc": "Barcha ball tranzaksiyalari tarixi",
+    "points": "Ballar",
+    "noAccounts": "Sodiqlik akkauntlari topilmadi",
+    "customerId": "Mijoz ID",
+    "customerIdPlaceholder": "Mijoz ID bo'yicha filtrlash...",
+    "orderNo": "Buyurtma №",
+    "programActive": "Sodiqlik dasturi faol",
+    "programActiveDesc": "Dasturni yoqish yoki o'chirish",
+    "statusActive": "Dastur faol",
+    "statusInactive": "Dastur nofaol",
+    "rateSettings": "Ball sozlamalari",
+    "earnRateDesc": "so'm = 1 ball",
+    "redeemRate": "Ball qiymati (1 ball = X so'm)",
+    "redeemRatePrefix": "1 ball =",
+    "redeemRateSuffix": "so'm chegirma",
+    "minRedeemDesc": "ball yechish uchun minimal",
+    "minPoints": "Minimal ball"
   },
   "promo": {
     "title": "Promo kodlar",
