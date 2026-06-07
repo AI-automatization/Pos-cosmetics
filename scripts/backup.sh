@@ -38,20 +38,39 @@ notify() {
 echo "[$(date -u)] Starting RAOS backup: ${BACKUP_NAME}"
 notify "🟡 *RAOS Backup* started: \`${TIMESTAMP}\`"
 
-# ─── 1. pg_dump ────────────────────────────────────────────────────────────────
+# ─── 1. pg_dump → encrypt ──────────────────────────────────────────────────────
+# Dump to a FILE (not a `pg_dump | gpg` pipe). A pipe masks pg_dump's exit code —
+# under `set -e` the pipeline status is gpg's (success), so a failed dump (e.g. a
+# stale DB password) silently produced a tiny "successful" empty backup that got
+# uploaded. POSIX sh has no `pipefail` guarantee, so we dump to a file: then `set -e`
+# aborts on a pg_dump failure, and we sanity-check the size before encrypting.
 echo "[$(date -u)] Dumping database..."
+RAW_DUMP="${TMP_DIR}/raos-dump-${TIMESTAMP}.sql.gz"
 pg_dump "${DATABASE_URL}" \
   --no-owner \
   --no-acl \
   --format=plain \
   --compress=6 \
-  | gpg \
-      --batch \
-      --yes \
-      --symmetric \
-      --cipher-algo AES256 \
-      --passphrase "${GPG_PASSPHRASE}" \
-      --output "${BACKUP_FILE}"
+  > "${RAW_DUMP}"
+
+# A real dump is never near-empty — guard against a partial/auth-failed dump.
+RAW_BYTES=$(wc -c < "${RAW_DUMP}")
+if [ "${RAW_BYTES}" -lt 1024 ]; then
+  rm -f "${RAW_DUMP}"
+  echo "[$(date -u)] ERROR: dump only ${RAW_BYTES} bytes — aborting, NOT uploading a junk backup"
+  notify "🔴 *RAOS Backup* FAILED: dump only ${RAW_BYTES} bytes (\`${TIMESTAMP}\`)"
+  exit 1
+fi
+
+gpg \
+  --batch \
+  --yes \
+  --symmetric \
+  --cipher-algo AES256 \
+  --passphrase "${GPG_PASSPHRASE}" \
+  --output "${BACKUP_FILE}" \
+  "${RAW_DUMP}"
+rm -f "${RAW_DUMP}"
 
 BACKUP_SIZE=$(du -sh "${BACKUP_FILE}" | cut -f1)
 echo "[$(date -u)] Backup created: ${BACKUP_FILE} (${BACKUP_SIZE})"
