@@ -10,6 +10,7 @@ import { createDataExportWorker } from './workers/data-export.worker';
 import { createSyncProcessWorker } from './workers/sync-process.worker';
 import { createProductImportWorker } from './workers/product-import.worker';
 import { createSmsCampaignWorker } from './workers/sms-campaign.worker';
+import { createMigrationWorker } from './workers/migration.worker';
 
 async function bootstrap() {
   console.log(JSON.stringify({
@@ -28,6 +29,7 @@ async function bootstrap() {
     createSyncProcessWorker(),
     createProductImportWorker(),
     createSmsCampaignWorker(),
+    createMigrationWorker(),
   ];
 
   // Throttle Redis error logs to avoid log flooding
@@ -55,6 +57,7 @@ async function bootstrap() {
       'sync-process',
       'product-import',
       'sms-campaign',
+      'migration',
     ],
     ts: new Date().toISOString(),
   }));

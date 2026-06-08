@@ -47,6 +47,7 @@ import { UploadModule } from './upload/upload.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
 import { ZzoneModule } from './integrations/zzone/zzone.module';
 import { SmsModule } from './sms/sms.module';
+import { MigrationModule } from './migration/migration.module';
 
 @Module({
   imports: [
@@ -97,6 +98,7 @@ import { SmsModule } from './sms/sms.module';
     TasksModule,
     ZzoneModule,
     SmsModule,
+    MigrationModule,
   ],
   providers: [
     // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)
