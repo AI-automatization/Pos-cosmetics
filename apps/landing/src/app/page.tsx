@@ -5,6 +5,7 @@ import HeroSection from '@/components/sections/HeroSection'
 import SegmentCarousel from '@/components/sections/SegmentCarousel'
 import HowItWorks from '@/components/sections/HowItWorks'
 import Features from '@/components/sections/Features'
+import Comparison from '@/components/sections/Comparison'
 import Pricing from '@/components/sections/Pricing'
 import FAQ from '@/components/sections/FAQ'
 import RegistrationForm from '@/components/sections/RegistrationForm'
@@ -21,6 +22,7 @@ export default function LandingPage() {
         <SegmentCarousel />
         <HowItWorks />
         <Features />
+        <Comparison />
         <Pricing />
         <Calculator />
         <Testimonials />

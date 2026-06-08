@@ -185,8 +185,8 @@ const uz = {
     title: 'Boshqa tizimlar bilan solishtiring',
     subtitle: 'Nega RAOS boshqalardan ustun?',
     featureLabel: 'Xususiyat',
-    competitorA: 'Tizim A',
-    competitorB: 'Tizim B',
+    competitorA: 'BILLZ',
+    competitorB: 'YesPOS',
     note: "Ma'lumotlar 2026-may holatiga ko'ra. Raqobatchilar narxlari ularning rasmiy saytidan olingan.",
     rows: [
       { feature: "Boshlang'ich narx", raos: "249,000 so'm", billz: "299,000 so'm", yespos: "100,000 so'm" },
@@ -205,8 +205,8 @@ const uz = {
         answer: "RAOS — O'zbekiston do'konlari uchun POS tizimi va kassa dasturi. Kompyuter, planshet yoki telefonda ishlaydi. Tovar sotish, sklad, hisobot, Soliq.uz integratsiya — hammasi bitta joyda. Toshkent, Samarqand, Namangan va barcha shaharlarda ishlaydi.",
       },
       {
-        question: 'Tizim A dan nimasi yaxshi?',
-        answer: "3 asosiy farq: 1) RAOS OFFLINE ishlaydi — Tizim A internet kerak; 2) Soliq.uz integratsiya bepul — Tizim A da yo'q; 3) Oyiga 50,000 so'm arzon — 249K vs 299K.",
+        question: 'BILLZ dan nimasi yaxshi?',
+        answer: "3 asosiy farq: 1) RAOS OFFLINE ishlaydi — BILLZ internet kerak; 2) Soliq.uz integratsiya bepul — BILLZ da yo'q; 3) Oyiga 50,000 so'm arzon — 249K vs 299K.",
       },
       {
         question: "Internet bo'lmasa qanday ishlaydi?",
@@ -589,8 +589,8 @@ const ru: typeof uz = {
     title: 'Сравните с другими системами',
     subtitle: 'Почему RAOS лучше остальных?',
     featureLabel: 'Функция',
-    competitorA: 'Система A',
-    competitorB: 'Система B',
+    competitorA: 'BILLZ',
+    competitorB: 'YesPOS',
     note: 'Данные актуальны на май 2026 г. Цены конкурентов взяты с их официальных сайтов.',
     rows: [
       { feature: 'Начальная цена', raos: '249 000 сум', billz: '299 000 сум', yespos: '100 000 сум' },
@@ -609,8 +609,8 @@ const ru: typeof uz = {
         answer: 'RAOS — POS система и онлайн касса для магазинов Узбекистана. Работает на компьютере, планшете или телефоне. Продажи, склад, отчёты, интеграция Soliq.uz — всё в одном. Ташкент, Самарканд, Наманган и другие города.',
       },
       {
-        question: 'Чем лучше Система A?',
-        answer: '3 ключевых отличия: 1) RAOS работает OFFLINE — Система A требует интернет; 2) Интеграция Soliq.uz бесплатна — в Системе A её нет; 3) На 50 000 сум дешевле в месяц — 249K против 299K.',
+        question: 'Чем лучше BILLZ?',
+        answer: '3 ключевых отличия: 1) RAOS работает OFFLINE — BILLZ требует интернет; 2) Интеграция Soliq.uz бесплатна — в BILLZ её нет; 3) На 50 000 сум дешевле в месяц — 249K против 299K.',
       },
       {
         question: 'Как работает без интернета?',
@@ -993,8 +993,8 @@ const en: typeof uz = {
     title: 'Compare with other systems',
     subtitle: 'Why is RAOS better than the rest?',
     featureLabel: 'Feature',
-    competitorA: 'System A',
-    competitorB: 'System B',
+    competitorA: 'BILLZ',
+    competitorB: 'YesPOS',
     note: 'Data as of May 2026. Competitor prices sourced from their official websites.',
     rows: [
       { feature: 'Starting price', raos: '249,000 sum', billz: '299,000 sum', yespos: '100,000 sum' },
@@ -1013,8 +1013,8 @@ const en: typeof uz = {
         answer: 'RAOS is a POS system and cash register software for stores in Uzbekistan. It runs on a computer, tablet or phone. Sales, inventory, reports, Soliq.uz integration — all in one. Tashkent, Samarkand, Namangan and all cities.',
       },
       {
-        question: 'How is it better than System A?',
-        answer: '3 key differences: 1) RAOS works OFFLINE — System A needs internet; 2) Soliq.uz integration is free — not available in System A; 3) Save 50,000 sum/month — 249K vs 299K.',
+        question: 'How is it better than BILLZ?',
+        answer: '3 key differences: 1) RAOS works OFFLINE — BILLZ needs internet; 2) Soliq.uz integration is free — not available in BILLZ; 3) Save 50,000 sum/month — 249K vs 299K.',
       },
       {
         question: 'How does it work without internet?',
