@@ -3,7 +3,7 @@
 import Script from 'next/script'
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
-const YM_ID = process.env.NEXT_PUBLIC_YM_ID
+const YM_ID = process.env.NEXT_PUBLIC_YM_ID ?? '9e0fb9bddc5ecb6c'
 
 export default function Analytics() {
   if (process.env.NODE_ENV !== 'production') return null
