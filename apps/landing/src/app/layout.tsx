@@ -41,11 +41,20 @@ export const metadata: Metadata = {
     siteName: 'RAOS',
     locale: 'uz_UZ',
     alternateLocale: ['ru_RU', 'en_US'],
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: "RAOS — Smart POS tizimi O'zbekiston uchun",
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: "RAOS — POS tizimi O'zbekiston do'konlari uchun",
     description: "Kassa dasturi: 30 kun bepul sinov. Offline ishlaydi. Soliq.uz integratsiya. Karta kerak emas.",
+    images: ['/opengraph-image'],
   },
   robots: {
     index: true,

@@ -27,7 +27,7 @@ export default function JsonLd() {
     '@type': 'Organization',
     name: 'Tezcode',
     url: 'https://raos.uz',
-    logo: 'https://raos.uz/og-image.png',
+    logo: 'https://raos.uz/opengraph-image',
     sameAs: [
       'https://t.me/raos_support',
       'https://instagram.com/raos.uz',
