@@ -171,7 +171,7 @@ export default function BillingPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">{t('billing.currentPlan')}</p>
-                  <p className="text-lg font-semibold text-gray-900">{subscription.plan.name}</p>
+                  <p className="text-lg font-semibold text-gray-900">{subscription.plan?.name ?? '—'}</p>
                 </div>
               </div>
 

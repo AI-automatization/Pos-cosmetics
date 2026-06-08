@@ -27,7 +27,11 @@ export class TokenHelper {
     return { accessToken, refreshToken };
   }
 
-  async saveRefreshToken(userId: string, rawRefreshToken: string): Promise<void> {
+  async saveRefreshToken(
+    userId: string,
+    rawRefreshToken: string,
+    extra?: { lastLogin?: Date },
+  ): Promise<void> {
     const refreshExpiresIn =
       this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
 
@@ -42,6 +46,7 @@ export class TokenHelper {
       data: {
         refreshToken: hashedToken,
         refreshTokenExp: expiresAt,
+        ...(extra?.lastLogin ? { lastLogin: extra.lastLogin } : {}),
       },
     });
   }

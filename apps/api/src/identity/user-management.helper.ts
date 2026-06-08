@@ -250,6 +250,7 @@ export class UserManagementHelper {
           role: true,
           isActive: true,
           createdAt: true,
+          lastLogin: true,
           branchId: true,
           branch: { select: { id: true, name: true } },
         },

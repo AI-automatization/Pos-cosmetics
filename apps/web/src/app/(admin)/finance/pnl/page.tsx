@@ -236,7 +236,7 @@ export default function PnlPage() {
             {/* Expense breakdown */}
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <h3 className="mb-4 text-sm font-semibold text-gray-900">{t('pnl.expenseBreakdown')}</h3>
-              <ExpenseBreakdown items={data.expensesByCategory} />
+              <ExpenseBreakdown items={data.expensesByCategory ?? []} />
             </div>
           </div>
         </>
