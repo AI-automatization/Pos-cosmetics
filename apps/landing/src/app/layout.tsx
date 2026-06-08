@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { headers } from 'next/headers'
 import './globals.css'
 import ScrollProgress from '@/components/ScrollProgress'
 import { LangProvider } from '@/i18n/LangContext'
@@ -73,13 +74,16 @@ export const metadata: Metadata = {
   verification: { google: 'vhyI9C-zea0H-4Pek0dA2mpC7i6doIrSF-wqFRWdtQk', yandex: '9e0fb9bddc5ecb6c' },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const headersList = await headers()
+  const lang = headersList.get('x-lang') ?? 'uz'
+
   return (
-    <html lang="uz">
+    <html lang={lang}>
       <body className={`${inter.className} antialiased`}>
         <JsonLd />
         <Analytics />
