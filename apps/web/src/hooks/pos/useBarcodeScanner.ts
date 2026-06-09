@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 
 const BARCODE_MIN_LENGTH = 4;
-const BARCODE_MAX_DELAY_MS = 80; // barcode scanner types < 80ms per char
+const BARCODE_MAX_DELAY_MS = 100; // barcode scanner types rapidly; 100ms accommodates budget BT scanners
 
 /**
  * Detects keyboard-wedge barcode scanner input.
@@ -55,7 +55,7 @@ export function useBarcodeScanner(onScan: (barcode: string) => void) {
             onScanRef.current(barcode);
           }
           bufferRef.current = '';
-        }, 150);
+        }, 300);
       }
     }
 

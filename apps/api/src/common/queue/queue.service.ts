@@ -13,6 +13,7 @@ export const QUEUE_NAMES = {
   SYNC_PROCESS: 'sync-process',
   PRODUCT_IMPORT: 'product-import',
   SMS_CAMPAIGN: 'sms-campaign',
+  MIGRATION: 'migration',
   // AI Orchestration queues
   AI_WORKFLOW: 'ai-workflow',
   AI_AGENT: 'ai-agent',
@@ -67,6 +68,12 @@ export interface ProductImportJob {
 export interface SmsCampaignJob {
   tenantId: string;
   campaignId: string;
+}
+
+export interface MigrationJob {
+  tenantId: string;
+  provider: string;
+  credentials: Record<string, string>;
 }
 
 export interface AiWorkflowJob {
@@ -245,6 +252,14 @@ export class QueueService implements OnModuleDestroy {
       attempts: 1,
       removeOnComplete: 50,
       removeOnFail: 50,
+    });
+  }
+
+  async addMigrationJob(data: MigrationJob) {
+    return this.getQueue(QUEUE_NAMES.MIGRATION).add('run-migration', data, {
+      attempts: 1,
+      removeOnComplete: 20,
+      removeOnFail: 20,
     });
   }
 
