@@ -294,6 +294,36 @@ export class StockLevelService {
       expiryDate: Date | null;
     };
 
+    // Build status filter in SQL using HAVING clause
+    const now = new Date();
+    const soon = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    let statusHaving = Prisma.empty;
+    if (opts.status === 'out_of_stock') {
+      statusHaving = Prisma.sql`HAVING COALESCE(SUM(CASE WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity ELSE -sm.quantity END), 0) <= 0`;
+    } else if (opts.status === 'low') {
+      statusHaving = Prisma.sql`HAVING COALESCE(SUM(CASE WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity ELSE -sm.quantity END), 0) > 0 AND COALESCE(SUM(CASE WHEN sm.type IN ('IN','RETURN_IN','TRANSFER_IN') THEN sm.quantity WHEN sm.type = 'ADJUSTMENT' THEN sm.quantity ELSE -sm.quantity END), 0) <= COALESCE(p.min_stock_level, 5)`;
+    } else if (opts.status === 'expired') {
+      statusHaving = Prisma.sql`HAVING MAX(sm.expiry_date) < ${now}`;
+    } else if (opts.status === 'expiring') {
+      statusHaving = Prisma.sql`HAVING MAX(sm.expiry_date) >= ${now} AND MAX(sm.expiry_date) <= ${soon}`;
+    }
+
+    // Count query
+    const countRows = await this.prisma.$queryRaw<{ cnt: number }[]>`
+      SELECT COUNT(*)::int AS cnt FROM (
+        SELECT p.id
+        FROM products p
+        LEFT JOIN stock_movements sm ON sm.product_id = p.id AND sm.tenant_id = p.tenant_id
+        LEFT JOIN warehouses w ON w.id = sm.warehouse_id
+        WHERE p.tenant_id = ${tenantId} AND p.deleted_at IS NULL AND p.is_active = true
+          ${branchFilter} ${searchFilter}
+        GROUP BY p.id, p.min_stock_level
+        ${statusHaving}
+      ) sub
+    `;
+    const total = countRows[0]?.cnt ?? 0;
+
     const rows = await this.prisma.$queryRaw<RawRow[]>`
       SELECT
         p.id                                    AS "productId",
@@ -322,12 +352,12 @@ export class StockLevelService {
         ${branchFilter}
         ${searchFilter}
       GROUP BY p.id, p.name, p.barcode, b.name, w.branch_id, u.short_name, p.cost_price, p.min_stock_level
+      ${statusHaving}
+      ORDER BY quantity ASC
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const now = new Date();
-    const soon = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-    const withStatus = rows.map((r) => {
+    const items = rows.map((r) => {
       const qty = Number(r.quantity);
       const threshold = Number(r.threshold);
       const expiry = r.expiryDate ? new Date(r.expiryDate) : null;
@@ -352,13 +382,6 @@ export class StockLevelService {
         status,
       };
     });
-
-    const filtered = opts.status
-      ? withStatus.filter((i) => i.status === opts.status)
-      : withStatus;
-
-    const total = filtered.length;
-    const items = filtered.slice(offset, offset + limit);
 
     return { items, total, page, limit };
   }

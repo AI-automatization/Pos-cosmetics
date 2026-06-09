@@ -303,8 +303,12 @@ export class OrderService {
       ...(branchId && { branchId }),
     };
 
-    const [orders, topProducts] = await this.prisma.$transaction([
-      this.prisma.order.findMany({ where, select: { total: true } }),
+    const [orderAgg, topProducts] = await this.prisma.$transaction([
+      this.prisma.order.aggregate({
+        where,
+        _sum: { total: true },
+        _count: { id: true },
+      }),
       this.prisma.orderItem.groupBy({
         by: ['productId'],
         where: { order: { ...where } },
@@ -314,30 +318,30 @@ export class OrderService {
       }),
     ]);
 
-    const ordersCount = orders.length;
-    const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
+    const ordersCount = orderAgg._count.id;
+    const totalRevenue = Number(orderAgg._sum.total ?? 0);
     const avgBasket = ordersCount > 0 ? totalRevenue / ordersCount : 0;
 
     const productIds = topProducts.map((p) => p.productId);
-    const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, name: true },
-    });
+    const products = productIds.length > 0
+      ? await this.prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+
+    const productMap = new Map(products.map((p) => [p.id, p.name]));
 
     return {
       ordersCount,
       avgBasket: Math.round(avgBasket),
       currency: 'UZS',
-      topProducts: topProducts.map((p) => {
-        const product = products.find((pr) => pr.id === p.productId);
-        const sum = p._sum ?? {};
-        return {
-          productId: p.productId,
-          productName: product?.name ?? 'Unknown',
-          quantity: Number((sum as { quantity?: unknown }).quantity ?? 0),
-          revenue: Number((sum as { total?: unknown }).total ?? 0),
-        };
-      }),
+      topProducts: topProducts.map((p) => ({
+        productId: p.productId,
+        productName: productMap.get(p.productId) ?? 'Unknown',
+        quantity: Number(p._sum?.quantity ?? 0),
+        revenue: Number(p._sum?.total ?? 0),
+      })),
     };
   }
 }

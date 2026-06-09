@@ -9,11 +9,30 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Monorepo: trace files from repo root so shared packages are included
   outputFileTracingRoot: path.join(__dirname, '../../'),
+  // Compress responses (gzip/brotli) for smaller payloads
+  compress: true,
   async rewrites() {
     return [
       {
         source: '/api/v1/:path*',
         destination: `${API_BASE}/api/v1/:path*`,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          // Cache static assets aggressively
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+        ],
+      },
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
       },
     ];
   },

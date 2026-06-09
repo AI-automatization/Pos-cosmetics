@@ -591,6 +591,7 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+  @@index([orderId, productId]) // perf: report joins
   @@map("order_items")
 }
 
@@ -761,6 +762,7 @@ model Customer {
 
   @@index([tenantId])
   @@index([tenantId, phone])
+  @@index([tenantId, isActive, name]) // perf: customer search with pagination
   @@map("customers")
 }
 
