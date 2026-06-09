@@ -84,6 +84,7 @@ export default function Header() {
 
   const navLinks = [
     { label: t.nav.features, href: '#features' },
+    { label: t.nav.comparison, href: '#comparison' },
     { label: t.nav.pricing, href: '#pricing' },
     { label: t.nav.faq, href: '#faq' },
   ]
