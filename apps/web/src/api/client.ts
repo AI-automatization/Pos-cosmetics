@@ -36,10 +36,13 @@ function clearAuthAndRedirect() {
 apiClient.interceptors.response.use(
   (res) => res,
   async (err) => {
-    const isRefreshCall = err.config?.url?.includes('/auth/refresh');
+    const requestUrl = err.config?.url ?? '';
+    const isAuthCall = requestUrl.includes('/auth/login')
+      || requestUrl.includes('/auth/refresh')
+      || requestUrl.includes('/auth/register');
 
-    // 401 на refresh endpoint — сессия истекла, не зацикливаем
-    if (err.response?.status === 401 && isRefreshCall) {
+    // 401 на auth endpoints (login/refresh/register) — не пытаемся refresh
+    if (err.response?.status === 401 && isAuthCall) {
       return Promise.reject(err);
     }
 
