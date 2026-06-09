@@ -11,10 +11,6 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, '../../'),
   // Compress responses (gzip/brotli) for smaller payloads
   compress: true,
-  // Reduce JS bundle size by enabling tree-shaking for barrel exports
-  modularizeImports: {
-    'lucide-react': { transform: 'lucide-react/dist/esm/icons/{{ kebabCase member }}' },
-  },
   async rewrites() {
     return [
       {
