@@ -55,7 +55,7 @@ export function createMigrationWorker(): Worker {
         throw new Error(`Migration API returned ${res.status}: ${text}`);
       }
 
-      const result = await res.json();
+      const result = (await res.json()) as { data: unknown };
       const durationMs = Date.now() - start;
       logJobDone(QUEUE_NAMES.MIGRATION, job.id!, job.name, durationMs);
 
