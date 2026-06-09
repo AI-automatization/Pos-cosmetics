@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import type {
   MigrationProvider,
   MigrationData,

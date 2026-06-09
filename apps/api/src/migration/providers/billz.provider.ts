@@ -141,7 +141,8 @@ export class BillzProvider implements MigrationProvider {
     let page = 1;
     let total = 0;
 
-    do {
+    let hasMore = true;
+    while (hasMore) {
       const url = `${BILLZ_API_BASE}${endpoint}?page=${page}&limit=${PAGE_SIZE}`;
       const res = await fetch(url, { headers });
 
@@ -157,9 +158,9 @@ export class BillzProvider implements MigrationProvider {
       const entityName = endpoint.replace('/', '');
       onProgress?.({ phase: 'fetching', entity: entityName, processed: all.length, total });
 
-      if (all.length >= total) break;
+      hasMore = all.length < total;
       page++;
-    } while (true);
+    }
 
     return all;
   }
