@@ -105,6 +105,7 @@
     "billing": "Billing",
     "paymentMethods": "Payment Methods",
     "auditLog": "Audit Log",
+    "migration": "Data Migration",
     "analytics": "Analytics",
     "pos": "POS",
     "realEstate": "Real Estate",

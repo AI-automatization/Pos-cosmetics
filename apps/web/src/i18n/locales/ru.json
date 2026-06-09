@@ -105,6 +105,7 @@
     "billing": "Биллинг",
     "paymentMethods": "Способы оплаты",
     "auditLog": "Журнал аудита",
+    "migration": "Миграция данных",
     "analytics": "Аналитика",
     "pos": "Касса",
     "realEstate": "Недвижимость",
