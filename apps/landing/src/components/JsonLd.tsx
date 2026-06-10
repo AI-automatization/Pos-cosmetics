@@ -46,10 +46,18 @@ export default function JsonLd() {
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'RAOS nima?',
+        name: 'RAOS nima? Bu kassa dasturimi?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "RAOS — do'konlar uchun smart kassa tizimi. Kompyuter, planshet yoki telefonda ishlaydi. Tovar sotish, sklad, hisobot, Soliq.uz — hammasi bitta joyda.",
+          text: "RAOS — O'zbekiston do'konlari uchun POS tizimi va kassa dasturi. Kompyuter, planshet yoki telefonda ishlaydi. Tovar sotish, sklad, hisobot, Soliq.uz integratsiya — hammasi bitta joyda. Toshkent, Samarqand, Namangan va barcha shaharlarda ishlaydi.",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Tizim A dan nimasi yaxshi?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: "3 asosiy farq: 1) RAOS OFFLINE ishlaydi — Tizim A internet kerak; 2) Soliq.uz integratsiya bepul — Tizim A da yo'q; 3) Oyiga 50,000 so'm arzon — 249K vs 299K.",
         },
       },
       {
@@ -65,7 +73,23 @@ export default function JsonLd() {
         name: "Necha so'm turadi?",
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "Starter: 249,000 so'm/oy. Growth: 449,000. Pro: 799,000. Barcha rejalar uchun 30 kun bepul sinov — karta kerak emas.",
+          text: "Starter: 249,000 so'm/oy. Growth: 449,000. Pro: 799,000. Pilot dasturida birinchi oy bepul — keyin tarif bo'yicha.",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Telefonda ishlaydimi?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: "Ha! 2 ta ilova: Kassir ilovasi (Android, sotish uchun) va Egasi ilovasi (iOS + Android, nazorat uchun).",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Qanday boshlash mumkin?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: "1) Quyidagi formani to'ldiring; 2) Bizning jamoamiz 30 daqiqa ichida bog'lanadi; 3) Do'koningizni 2 daqiqada sozlaymiz.",
         },
       },
       {
@@ -74,6 +98,14 @@ export default function JsonLd() {
         acceptedAnswer: {
           '@type': 'Answer',
           text: "Bank darajasidagi shifrlash (AES-256). Har kunlik backup. Faqat siz va ruxsat berganlar ko'ra oladi.",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: "Yordam kerak bo'lsa?",
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: "Telegram: @raos_support (24/7). Telefon: +998 91 777 66 09 / +998 99 315 15 16 (ish kunlari 9-18). Video darsliklar ham bor.",
         },
       },
     ],
