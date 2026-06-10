@@ -24,6 +24,7 @@ const uz = {
     mockupAI: 'AI tahlil aktiv',
     mockupOffline: 'OFFLINE',
     mockupTotal: 'JAMI',
+    mockupTotalAmount: "601 000 so'm",
     mockupPay: "To'lash →",
   },
   segments: {
@@ -187,7 +188,7 @@ const uz = {
     featureLabel: 'Xususiyat',
     competitorA: 'Tizim A',
     competitorB: 'Tizim B',
-    note: "Ma'lumotlar 2026-may holatiga ko'ra. Raqobatchilar narxlari ularning rasmiy saytidan olingan.",
+    note: "Ma'lumotlar {date} holatiga ko'ra. Raqobatchilar narxlari ularning rasmiy saytidan olingan.",
     rows: [
       { feature: "Boshlang'ich narx", raos: "249,000 so'm", billz: "299,000 so'm", yespos: "100,000 so'm" },
       { feature: 'Bepul sinov', raos: '30 kun', billz: '7 kun', yespos: 'Oy oxirigacha' },
@@ -248,6 +249,7 @@ const uz = {
     telegramLabel: 'Telegram username',
     optional: '(ixtiyoriy)',
     submit: 'Ariza qoldirish',
+    submitting: 'Yuborilmoqda...',
     shopTypes: ['Kosmetika', 'Kiyim', 'Avtozapchast', 'Oziq-ovqat', 'Parfumeriya', 'Telefon', 'Optika', 'Boshqa'],
     errors: {
       shopName: "Do'kon nomini kiriting",
@@ -429,6 +431,7 @@ const ru: typeof uz = {
     mockupAI: 'AI-анализ активен',
     mockupOffline: 'OFFLINE',
     mockupTotal: 'ИТОГО',
+    mockupTotalAmount: '601 000 сум',
     mockupPay: 'Оплатить →',
   },
   segments: {
@@ -592,7 +595,7 @@ const ru: typeof uz = {
     featureLabel: 'Функция',
     competitorA: 'Tizim A',
     competitorB: 'Tizim B',
-    note: 'Данные актуальны на май 2026 г. Цены конкурентов взяты с их официальных сайтов.',
+    note: 'Данные актуальны на {date}. Цены конкурентов взяты с их официальных сайтов.',
     rows: [
       { feature: 'Начальная цена', raos: '249 000 сум', billz: '299 000 сум', yespos: '100 000 сум' },
       { feature: 'Пробный период', raos: '30 дней', billz: '7 дней', yespos: 'До конца месяца' },
@@ -653,6 +656,7 @@ const ru: typeof uz = {
     telegramLabel: 'Telegram username',
     optional: '(необязательно)',
     submit: 'Оставить заявку',
+    submitting: 'Отправка...',
     shopTypes: ['Косметика', 'Одежда', 'Автозапчасти', 'Продукты', 'Парфюмерия', 'Телефоны', 'Оптика', 'Другое'],
     errors: {
       shopName: 'Введите название магазина',
@@ -834,6 +838,7 @@ const en: typeof uz = {
     mockupAI: 'AI analysis active',
     mockupOffline: 'OFFLINE',
     mockupTotal: 'TOTAL',
+    mockupTotalAmount: '601 000 UZS',
     mockupPay: 'Pay →',
   },
   segments: {
@@ -997,7 +1002,7 @@ const en: typeof uz = {
     featureLabel: 'Feature',
     competitorA: 'Tizim A',
     competitorB: 'Tizim B',
-    note: 'Data as of May 2026. Competitor prices sourced from their official websites.',
+    note: 'Data as of {date}. Competitor prices sourced from their official websites.',
     rows: [
       { feature: 'Starting price', raos: '249,000 sum', billz: '299,000 sum', yespos: '100,000 sum' },
       { feature: 'Free trial', raos: '30 days', billz: '7 days', yespos: 'Until month end' },
@@ -1058,6 +1063,7 @@ const en: typeof uz = {
     telegramLabel: 'Telegram username',
     optional: '(optional)',
     submit: 'Leave a request',
+    submitting: 'Sending...',
     shopTypes: ['Cosmetics', 'Clothing', 'Auto parts', 'Grocery', 'Perfumery', 'Phones', 'Optics', 'Other'],
     errors: {
       shopName: 'Please enter your store name',
