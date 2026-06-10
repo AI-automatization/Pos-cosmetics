@@ -307,3 +307,10 @@ isActive: boolean
 | Admin (JWT) | 3 | ZZone config management |
 | Auto-sync | 5 events | Product lifecycle + stock |
 | Webhooks | 4 events | order_status, stock, product, seller |
+
+---
+
+## See Also
+
+- [RAOS x Adetal Collaboration](./RAOS_ADETAL_COLLABORATION.md) — Adetal marketplace integration
+- Both integrations use the shared `IntegrationConfig` model (different `provider` values: `ZZONE` / `ADETAL`)
