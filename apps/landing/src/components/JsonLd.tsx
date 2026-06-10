@@ -111,6 +111,79 @@ export default function JsonLd() {
     ],
   }
 
+  const localBusiness = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: "RAOS — POS tizimi va kassa dasturi",
+    description: "O'zbekiston do'konlari uchun POS tizimi. Soliq.uz integratsiya, offline ishlaydi, AI hisobot. Toshkent, Samarqand, Namangan va barcha shaharlarda.",
+    url: 'https://raos.uz',
+    telephone: '+998917776609',
+    email: 'info@raos.uz',
+    logo: 'https://raos.uz/opengraph-image',
+    image: 'https://raos.uz/opengraph-image',
+    priceRange: '249 000 – 799 000 UZS/oy',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Toshkent',
+      addressRegion: 'Toshkent',
+      addressCountry: 'UZ',
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 41.2995,
+      longitude: 69.2401,
+    },
+    areaServed: [
+      { '@type': 'City', name: 'Toshkent' },
+      { '@type': 'City', name: 'Samarqand' },
+      { '@type': 'City', name: 'Namangan' },
+      { '@type': 'City', name: 'Andijon' },
+      { '@type': 'City', name: "Farg'ona" },
+      { '@type': 'City', name: 'Buxoro' },
+      { '@type': 'City', name: 'Nukus' },
+      { '@type': 'Country', name: "O'zbekiston" },
+    ],
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '09:00',
+        closes: '18:00',
+      },
+    ],
+    sameAs: [
+      'https://t.me/raos_support',
+      'https://instagram.com/raos.uz',
+    ],
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'RAOS tarif rejalari',
+      itemListElement: [
+        {
+          '@type': 'Offer',
+          name: 'Starter',
+          price: '249000',
+          priceCurrency: 'UZS',
+          description: "1 ta filial, asosiy funksiyalar, Soliq.uz integratsiya",
+        },
+        {
+          '@type': 'Offer',
+          name: 'Growth',
+          price: '449000',
+          priceCurrency: 'UZS',
+          description: "3 ta filial, AI hisobot, kengaytirilgan sklad",
+        },
+        {
+          '@type': 'Offer',
+          name: 'Pro',
+          price: '799000',
+          priceCurrency: 'UZS',
+          description: "Cheksiz filiallar, to'liq AI analitika, API kirish",
+        },
+      ],
+    },
+  }
+
   return (
     <>
       <script
@@ -124,6 +197,10 @@ export default function JsonLd() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPage) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
       />
     </>
   )
