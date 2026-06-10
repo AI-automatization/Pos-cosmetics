@@ -17,11 +17,24 @@ export const metadata: Metadata = {
   description:
     "POS tizimi va kassa dasturi O'zbekiston do'konlari uchun. Soliq.uz integratsiya, AI hisobot, offline ishlaydi. 30 kun bepul sinov — karta kerak emas.",
   keywords: [
-    'POS tizimi', 'POS tizimi Uzbekiston', 'kassa dasturi', 'kassa dasturi Toshkent',
-    "do'kon boshqaruv dasturi", 'RAOS', 'Soliq.uz integratsiya', 'offline kassa',
-    'smart kassa', 'savdo dasturi', 'fiskal kassa',
-    'онлайн касса', 'POS система Узбекистан', 'кассовый аппарат', 'касса Ташкент',
-    'POS system Uzbekistan', 'cash register software', 'point of sale Tashkent',
+    // UZ — asosiy
+    'POS tizimi', "POS tizimi O'zbekiston", 'pos dasturi', 'kassa dasturi', 'kassa tizimi',
+    'kassa dasturi Toshkent', 'kassa dasturi Samarqand', 'kassa dasturi Namangan',
+    'pos tizimi Toshkent', 'pos tizimi Samarqand', 'pos tizimi Andijon',
+    "do'kon boshqaruv dasturi", 'savdo dasturi', 'sklad dasturi', 'tovar hisobi',
+    'Soliq.uz integratsiya', 'OFD kassa', 'fiskal kassa', 'elektron kassa',
+    'offline kassa', 'internet siz kassa', 'smart kassa', 'mobil kassa',
+    'kassa ilovasi Android', 'telefon kassa', 'RAOS', 'raos.uz',
+    // RU
+    'POS система', 'POS система Узбекистан', 'POS система Ташкент', 'POS система Самарканд',
+    'кассовый аппарат', 'кассовая программа', 'программа для кассы',
+    'программа для магазина', 'управление магазином', 'складской учёт',
+    'онлайн касса', 'электронная касса', 'касса без интернета', 'оффлайн касса',
+    'интеграция Soliq.uz', 'фискальная касса Узбекистан',
+    // EN
+    'POS system', 'POS system Uzbekistan', 'point of sale Uzbekistan',
+    'cash register software', 'retail POS software', 'store management software',
+    'offline POS', 'mobile POS app', 'POS terminal Uzbekistan',
   ],
   authors: [{ name: 'Tezcode', url: 'https://raos.uz' }],
   creator: 'Tezcode',
