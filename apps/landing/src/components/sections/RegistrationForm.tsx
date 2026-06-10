@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { Send, Loader2 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useLang } from '@/i18n/LangContext'
 
@@ -225,8 +225,8 @@ export default function RegistrationForm() {
               disabled={loading}
               className="mt-2 w-full flex items-center justify-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold py-4 rounded-xl hover:bg-[#0FA8C8] transition-colors text-base disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <Send size={18} />
-              {loading ? '...' : r.submit}
+              {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+              {loading ? r.submitting : r.submit}
             </button>
           </form>
         </div>
