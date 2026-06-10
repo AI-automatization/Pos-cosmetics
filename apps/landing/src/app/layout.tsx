@@ -40,11 +40,11 @@ export const metadata: Metadata = {
   creator: 'Tezcode',
   metadataBase: new URL('https://raos.uz'),
   alternates: {
-    canonical: '/',
+    canonical: 'https://raos.uz',
     languages: {
-      'uz': '/',
-      'ru': '/?lang=ru',
-      'en': '/?lang=en',
+      'uz': 'https://raos.uz',
+      'ru': 'https://raos.uz/ru',
+      'en': 'https://raos.uz/en',
     },
   },
   openGraph: {
