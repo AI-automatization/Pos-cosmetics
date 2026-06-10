@@ -35,7 +35,8 @@ export default function Testimonials() {
   const statsRef = useRef<HTMLDivElement>(null)
   const cardsRef = useRef<HTMLDivElement>(null)
   const [statsActive, setStatsActive] = useState(false)
-  const { t } = useLang()
+  const { t, lang } = useLang()
+  const locale = lang === 'ru' ? 'ru-RU' : lang === 'en' ? 'en-US' : 'uz-UZ'
 
   useEffect(() => {
     const statsEl = statsRef.current
@@ -77,7 +78,7 @@ export default function Testimonials() {
         {/* Stats */}
         <div ref={statsRef} className="flex flex-wrap justify-center gap-10 mb-16">
           {t.testimonials.stats.map((stat) => (
-            <StatItem key={stat.label} stat={stat} active={statsActive} />
+            <StatItem key={stat.label} stat={stat} active={statsActive} locale={locale} />
           ))}
         </div>
 
@@ -95,12 +96,12 @@ export default function Testimonials() {
   )
 }
 
-function StatItem({ stat, active }: { stat: StatItem; active: boolean }) {
+function StatItem({ stat, active, locale }: { stat: StatItem; active: boolean; locale: string }) {
   const count = useCountUp(stat.value, 1500, active)
   return (
     <div className="text-center">
       <p className="text-[#24D4F4] font-bold text-4xl">
-        {count.toLocaleString('uz-UZ')}
+        {count.toLocaleString(locale)}
         {stat.suffix}
       </p>
       <p className="text-slate-400 text-sm mt-1">{stat.label}</p>
