@@ -46,6 +46,7 @@ import { EmployeesModule } from './employees/employees.module';
 import { UploadModule } from './upload/upload.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
 import { ZzoneModule } from './integrations/zzone/zzone.module';
+import { AdetalModule } from './integrations/adetal/adetal.module';
 import { SmsModule } from './sms/sms.module';
 import { MigrationModule } from './migration/migration.module';
 
@@ -97,6 +98,7 @@ import { MigrationModule } from './migration/migration.module';
     SupportModule,
     TasksModule,
     ZzoneModule,
+    AdetalModule,
     SmsModule,
     MigrationModule,
   ],

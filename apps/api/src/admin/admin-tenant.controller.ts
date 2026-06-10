@@ -203,4 +203,27 @@ export class AdminTenantController {
   async triggerZzoneSync(@Param('id') tenantId: string) {
     return this.adminAuthService.triggerZzoneSync(tenantId);
   }
+
+  // ─── ADETAL CONFIG ──────────────────────────────────────────────────
+
+  @Get('tenants/:id/adetal-config')
+  @ApiOperation({ summary: 'Adetal интеграция конфиги' })
+  async getAdetalConfig(@Param('id') tenantId: string) {
+    return this.adminAuthService.getAdetalConfig(tenantId);
+  }
+
+  @Patch('tenants/:id/adetal-config')
+  @ApiOperation({ summary: 'Adetal конфигни янгилаш (phone, password, isActive)' })
+  async updateAdetalConfig(
+    @Param('id') tenantId: string,
+    @Body() body: { phone?: string; password?: string; isActive?: boolean },
+  ) {
+    return this.adminAuthService.updateAdetalConfig(tenantId, body);
+  }
+
+  @Post('tenants/:id/adetal-sync')
+  @ApiOperation({ summary: 'Барча товарларни Adetal га синхронлаш' })
+  async triggerAdetalSync(@Param('id') tenantId: string) {
+    return this.adminAuthService.triggerAdetalSync(tenantId);
+  }
 }
