@@ -19,7 +19,8 @@ export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('uz')
 
   useEffect(() => {
-    const urlLang = new URLSearchParams(window.location.search).get('lang') as Lang | null
+    const pathLang = window.location.pathname.match(/^\/(ru|en)(\/|$)/)?.[1] as Lang | null
+    const urlLang = pathLang ?? (new URLSearchParams(window.location.search).get('lang') as Lang | null)
     const saved = localStorage.getItem('raos_lang') as Lang | null
     const detected = urlLang && urlLang in translations ? urlLang : saved
     if (detected) setLangState(detected as Lang)
