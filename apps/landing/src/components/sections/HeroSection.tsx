@@ -109,7 +109,7 @@ export default function HeroSection() {
               {/* Total */}
               <div className="flex items-center justify-between py-3 border-t border-[rgba(36,212,244,0.2)] mb-4">
                 <span className="text-slate-300 font-semibold">{h.mockupTotal}</span>
-                <span className="text-white font-bold text-xl">601 000 so&apos;m</span>
+                <span className="text-white font-bold text-xl">{h.mockupTotalAmount}</span>
               </div>
 
               {/* To'lash tugmasi */}
