@@ -5,8 +5,16 @@ import Footer from '@/components/layout/Footer'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Foydalanish shartlari',
+  title: 'RAOS — Foydalanish shartlari',
   description: "RAOS platformasidan foydalanish shartlari va qoidalari.",
+  alternates: {
+    canonical: 'https://raos.uz/terms',
+    languages: {
+      'uz': 'https://raos.uz/terms',
+      'ru': 'https://raos.uz/ru/terms',
+      'en': 'https://raos.uz/en/terms',
+    },
+  },
 }
 
 export default function TermsPage() {

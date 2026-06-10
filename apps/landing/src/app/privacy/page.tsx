@@ -5,8 +5,16 @@ import Footer from '@/components/layout/Footer'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Maxfiylik siyosati',
+  title: 'RAOS — Maxfiylik siyosati',
   description: "RAOS platformasida shaxsiy ma'lumotlarni himoya qilish siyosati. O'RQ-547 asosida.",
+  alternates: {
+    canonical: 'https://raos.uz/privacy',
+    languages: {
+      'uz': 'https://raos.uz/privacy',
+      'ru': 'https://raos.uz/ru/privacy',
+      'en': 'https://raos.uz/en/privacy',
+    },
+  },
 }
 
 export default function PrivacyPage() {
