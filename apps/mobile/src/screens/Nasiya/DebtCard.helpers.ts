@@ -30,15 +30,25 @@ export function statusLabel(status: DebtStatus): string {
   return STATUS_LABEL[status];
 }
 
+// Parse a backend due-date string; returns null for null/empty OR an
+// unparseable (invalid) date, so all callers share one DRY validity guard.
+function parseDate(dueDate: string | null): Date | null {
+  if (!dueDate) return null;
+  const parsed = new Date(dueDate);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export function overdueDays(dueDate: string | null): number {
-  if (!dueDate) return 0;
-  const diff = Date.now() - new Date(dueDate).getTime();
+  const due = parseDate(dueDate);
+  if (!due) return 0;
+  const diff = Date.now() - due.getTime();
   return diff > 0 ? Math.floor(diff / 86_400_000) : 0;
 }
 
 export function formatDueDate(dueDate: string | null): string {
-  if (!dueDate) return 'Muddat belgilanmagan';
-  return new Date(dueDate).toLocaleDateString('uz-UZ', {
+  const due = parseDate(dueDate);
+  if (!due) return 'Muddat belgilanmagan';
+  return due.toLocaleDateString('uz-UZ', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
 }
@@ -51,7 +61,9 @@ export interface AgeBucket {
 
 export function ageBucket(dueDate: string | null): AgeBucket {
   if (!dueDate) return { label: 'Joriy', bg: '#F0FDF4', text: '#16A34A' };
-  const days = Math.floor((Date.now() - new Date(dueDate).getTime()) / 86_400_000);
+  const due = parseDate(dueDate);
+  if (!due) return { label: 'Muddat belgilanmagan', bg: '#F3F4F6', text: '#6B7280' };
+  const days = Math.floor((Date.now() - due.getTime()) / 86_400_000);
   if (days <= 0) return { label: 'Joriy', bg: '#F0FDF4', text: '#16A34A' };
   if (days <= 30) return { label: `${days} kun`, bg: '#FFFBEB', text: '#D97706' };
   if (days <= 60) return { label: `${days} kun`, bg: '#FEF3C7', text: '#B45309' };
