@@ -64,6 +64,7 @@ function BreakdownRow({ label, value, color }: BreakdownRowProps): React.ReactEl
 function MonthlyProfitCard({
   revenue,
   cogs,
+  grossProfit,
   totalExpenses,
   netProfit,
   loading = false,
@@ -101,6 +102,11 @@ function MonthlyProfitCard({
             label="Tannarx (COGS)"
             value={`-${fmt(cogs)}`}
             color={C.red}
+          />
+          <BreakdownRow
+            label="Yalpi foyda"
+            value={fmt(grossProfit)}
+            color={grossProfit >= 0 ? C.green : C.red}
           />
           <BreakdownRow
             label="Xarajatlar"
