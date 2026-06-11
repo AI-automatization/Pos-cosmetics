@@ -1,5 +1,13 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-06-06
+# Yangilangan: 2026-06-09
+
+---
+
+## T-493 | 2026-06-09 | [MOBILE] | PaymentSheet — yolg'on "To'lov tasdiqlandi" success view
+
+- **Yechim:** Yolg'on success'ning ildizi — `confirmed` local state order yaratilishidan OLDIN sinxron `true` bo'lib `<PaymentSuccessView>` ("To'lov tasdiqlandi") render qilardi. Render yo'lining O'ZI olib tashlandi: `confirmed` state, success-view tarmog'i, `handleDismiss` va ishlatilmagan `PaymentSuccessView` importi o'chirildi. `onConfirm` endi `Promise<void>` qaytaradi va PaymentSheet uni `await` qiladi; in-flight loader useSavdoOrder'ning mavjud `orderLoading` signalidan yangi `submitting` prop orqali boshqariladi (tugma ActivityIndicator ko'rsatadi + `disabled`); same-frame double-tap'ni bloklash uchun sinxron `inFlightRef` latch qo'shildi (`submitting` faqat parent re-render'dan keyin flip bo'ladi → latch zarur). Muvaffaqiyat/xavfsiz handoff — har bir genuine-success tarmog'i allaqachon `closePayment()` chaqirgani uchun sheet o'zi yopiladi; xatoda (no-shift / online-error / online-saqlanmadi) sheet confirm ekranida QOLADI va kassir qayta uriniб ko'radi. NASIYA navigatsiya, offline-enqueue-as-success, online handoff, loyalty redeem, idempotency key (T-481) — barchasi o'zgarmadi.
+- **Fayl:** apps/mobile/src/screens/Savdo/{PaymentSheet.tsx, useSavdoOrder.ts, index.tsx}
+- **Manba:** T-493 audit. **Tekshiruv:** parent-driven-status + frame-tight in-flight latch (Design 3 sintez). `tsc --noEmit` 0 xato. PaymentSuccessView komponenti faqat shu sheet'da ishlatilardi (grep tasdiqladi) → branch+import o'chirish xavfsiz.
 
 ---
 

@@ -880,15 +880,25 @@
   - **Ibrat/Team Lead QAROR:** `phone` saqlanadimi? HA → backend User model + Create/UpdateUserDto ga `phone`. YO'Q → mobile'dan phone input+body olib tashlash.
   - **Mobile (Abdulaziz, qarordan keyin):** formга email input (create uchun); parol min 8; phone qarorini bajarish.
 
+## T-489 | P1 | [MOBILE] | useOfflineQueue auto-sync ishlamaydi
+- **Fayl:** apps/mobile/src/hooks/useOfflineQueue.ts:26-30
+- **Muammo:** Auto-process effekti faqat `[isOnline]` ga bog'langan, `status.pending` stale. Internet qaytganda pending order avtomatik yuborilmaydi (faqat qo'lda processQueue ishlaydi).
+- **Kutilgan:** `isOnline` true bo'lganda avval `refresh()`, keyin pending tekshirish (idempotency bo'lgach xavfsiz).
+
+## T-490 | P1 | [MOBILE] | useBtPrinter — unmount'da `connect('')` (disconnect emas)
+- **Fayl:** apps/mobile/src/hooks/useBtPrinter.ts:75-79
+- **Muammo:** Cleanup BT printerni uzish uchun `BtManager.connect('')` (bo'sh MAC) chaqiradi — bu uzish emas. Socket ochiq qoladi → keyingi scan/connect xato ("device busy").
+- **Kutilgan:** Interfeysga `disconnect()` qo'shib, cleanup'da haqiqiy `BtManager.disconnect()`.
+
+## T-491 | P1 | [MOBILE] | Owner useAlerts — queryKey'da filter yo'q
+- **Fayl:** apps/mobile-owner/src/hooks/useAlerts.ts:20-28, screens/Alerts/index.tsx:42,54
+- **Muammo:** queryKey faqat `branchId`, lekin queryFn `statusFilter`/`priorityFilter` yuboradi → filter o'zgarsa refetch bo'lmaydi. Real datada priority/status chiplar UMUMAN ishlamaydi.
+- **Kutilgan:** queryKey'ga filterlar qo'shilsin (`[...,statusFilter,priorityFilter]`).
+
 ## T-492 | P1 | [MOBILE] | SalesOrderDetail — to'lov usuli labellari to'liqsiz
 - **Fayl:** apps/mobile/src/screens/SalesOrders/SalesOrderDetailScreen.tsx:34-38, 91-94
 - **Muammo:** `METHOD_LABELS` faqat CASH/CARD/CREDIT'ni biladi; real metodlar NAQD/KARTA/NASIYA/PAYME/CLICK/UZUM → label topilmay xom qiymat ko'rsatiladi (enum case/til mismatch).
 - **Kutilgan:** Barcha real metodlar uchun label; kalitni `.toUpperCase()` bilan solishtirish.
-
-## T-493 | P2 | [MOBILE] | PaymentSheet — yolg'on "To'lov tasdiqlandi"
-- **Fayl:** apps/mobile/src/screens/Savdo/PaymentSheet.tsx:78-82
-- **Muammo:** `handleConfirm` darhol success view'ga o'tadi; `onConfirm` (createOrder) 4xx/5xx fail bo'lsa Alert chiqadi, lekin sheet allaqachon "To'lov tasdiqlandi" ko'rsatadi → yolg'on muvaffaqiyat.
-- **Kutilgan:** Success faqat order haqiqatan yaratilgach; xatoda confirm holatiga qaytish (onConfirm Promise + loader).
 
 ## T-494 | P2 | [MOBILE] | OnlinePaymentSheet — setTimeout cleanup yo'q
 - **Fayl:** apps/mobile/src/screens/Savdo/OnlinePaymentSheet.tsx:68
@@ -974,3 +984,15 @@
 - **Fayl:** apps/mobile/src/screens/Analytics/DeadStockScreen.tsx (341), CashierPerformanceScreen (333), Savdo/PaymentSheet (332), Nasiya/index (328), Nasiya/PayModal (328), SalesOrders/index (327)... (~46 ta)
 - **Muammo:** CLAUDE_MOBILE.md max 250 qator/fayl limitini buzadi (refactor, bug emas). i18n/type fayllar bundan mustasno.
 - **Kutilgan:** Hooks/sub-component'larga bo'lish (SRP). Bosqichma-bosqich.
+
+## T-517 | P3 | [MOBILE] | Sotuvdan keyingi receipt/success oqimini jonli savdoga ulash
+
+- **Sana:** 2026-06-11
+- **Mas'ul:** Abdulaziz
+- **Fayl:** apps/mobile/src/screens/Savdo/{PaymentSuccessView.tsx, PaymentSuccessScreen.tsx, ReceiptActionButtons.tsx, LoyaltyInfoCard.tsx, SuccessAnimation.tsx}, useSavdoOrder.ts, navigation/types.ts:28
+- **Kontekst:** T-493 fix yolg'on "To'lov tasdiqlandi"ni o'ldirish uchun PaymentSheet'dagi inline `PaymentSuccessView`ni render yo'lidan olib tashladi. Tahlilda receipt funksiyasi (Sunmi printer + ReceiptPdfService + SmsReceiptService) allaqachon DORMANT ekani aniqlandi:
+  - `PaymentSuccessView.tsx` — endi hech kim importlamaydi (orphan); eski kodda ham `cart`/`orderNumber` uzatilmagani uchun receipt tugmalari (`cart && orderNumber ? ... : null`) HECH QACHON ko'rinmasdi.
+  - `PaymentSuccessScreen.tsx` — to'liq screen; `PaymentSuccess` route TIPI bor (navigation/types.ts:28) lekin hech bir navigatorga ro'yxatdan o'tmagan va `navigate('PaymentSuccess')` hech qayerda chaqirilmaydi → unreachable.
+- **Muammo:** Chek bosish / PDF ulashish / SMS yuborish + loyalty xulosasi qurilgan, lekin jonli NAQD/KARTA success oqimiga ulanmagan — kassir sotuvdan keyin chek chiqara olmaydi.
+- **Kutilgan:** Bittasini tanlab (sheet-ichi view YOKI alohida PaymentSuccess screen) genuine success'da ko'rsatish: `createOrder` javobidan `orderNumber`, `cart`, `receivedAmount`, loyalty (earned/redeemed/balance) ni uzatish; route'ni ro'yxatga olish yoki view'ni faqat success'da render qilish; ikkinchi (o'lik) implementatsiyani o'chirish.
+- ⚠️ **Regressiya ogohi:** yolg'on-success'ni qaytarmaslik — success UI FAQAT order tasdiqlangach (T-493 ni buzmaslik).
