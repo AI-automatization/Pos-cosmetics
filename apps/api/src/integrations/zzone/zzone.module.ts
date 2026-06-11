@@ -5,11 +5,12 @@ import { ZzoneInboundService } from './zzone-inbound.service';
 import { ZzoneSyncListener } from './zzone-sync.listener';
 import { ZzoneWebhookService } from './zzone-webhook.service';
 import { ZzoneWebhookListener } from './zzone-webhook.listener';
+import { ZzoneSettingsController } from './zzone-settings.controller';
 import { VehicleController } from './vehicle.controller';
 import { VehicleService } from './vehicle.service';
 
 @Module({
-  controllers: [ZzoneInboundController, VehicleController],
+  controllers: [ZzoneInboundController, ZzoneSettingsController, VehicleController],
   providers: [
     ZzoneOutboundService,
     ZzoneInboundService,

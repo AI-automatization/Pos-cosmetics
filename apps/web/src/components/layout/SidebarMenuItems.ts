@@ -171,6 +171,7 @@ export const NAV_SECTIONS: NavSection[] = [
           { label: 'Hisob va tarif', tKey: 'nav.billing', href: '/settings/billing' },
           { label: "To'lov usullari", tKey: 'nav.paymentMethods', href: '/settings/payment-methods' },
           { label: 'Migratsiya', tKey: 'nav.migration', href: '/settings/migration' },
+          { label: 'Adetal Integratsiya', tKey: 'nav.adetalIntegration', href: '/settings/adetal' },
         ],
       },
     ],
