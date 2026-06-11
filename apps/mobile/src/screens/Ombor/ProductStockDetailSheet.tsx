@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View, Text, Modal, StyleSheet, TouchableOpacity,
   TouchableWithoutFeedback, ScrollView, ActivityIndicator,
@@ -104,21 +104,36 @@ function MovementRow({ mv, isLast }: { readonly mv: MovementItem; readonly isLas
 export default function ProductStockDetailSheet({ productId, item, onClose }: Props) {
   const visible = productId !== null;
 
+  // T-501: retain last non-null prop values so the slide-out close
+  // animation keeps showing the last opened product instead of flashing
+  // the 'Mahsulot' / '0 dona' / 'MAVJUD' / empty-state fallbacks.
+  const lastItemRef = useRef<LowStockItem | null>(item);
+  const lastProductIdRef = useRef<string | null>(productId);
+  if (item !== null) {
+    lastItemRef.current = item;
+  }
+  if (productId !== null) {
+    lastProductIdRef.current = productId;
+  }
+  // Prop wins while OPEN (no stale lag on reopen); ref fills in only during close.
+  const dispItem = item ?? lastItemRef.current;
+  const effProductId = productId ?? lastProductIdRef.current;
+
   const stockQ = useQuery({
-    queryKey: ['product-stock', productId],
-    queryFn: () => inventoryApi.getProductStock(productId!),
+    queryKey: ['product-stock', effProductId],
+    queryFn: () => inventoryApi.getProductStock(effProductId!),
     enabled: visible,
     staleTime: 30_000,
   });
 
   const movQ = useQuery({
-    queryKey: ['product-movements', productId],
-    queryFn: () => inventoryApi.getStockMovements({ productId: productId!, limit: 20 }),
+    queryKey: ['product-movements', effProductId],
+    queryFn: () => inventoryApi.getStockMovements({ productId: effProductId!, limit: 20 }),
     enabled: visible,
     staleTime: 30_000,
   });
 
-  const status = item ? getStatus(item) : 'MAVJUD';
+  const status = dispItem ? getStatus(dispItem) : 'MAVJUD';
   const sCfg = STATUS_CFG[status];
   const mvItems = movQ.data?.items ?? [];
 
@@ -134,9 +149,9 @@ export default function ProductStockDetailSheet({ productId, item, onClose }: Pr
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title} numberOfLines={2}>{item?.productName ?? 'Mahsulot'}</Text>
-            {item?.sku !== undefined && item.sku !== '' && (
-              <Text style={styles.subtitle}>SKU: {item.sku}</Text>
+            <Text style={styles.title} numberOfLines={2}>{dispItem?.productName ?? 'Mahsulot'}</Text>
+            {dispItem?.sku !== undefined && dispItem.sku !== '' && (
+              <Text style={styles.subtitle}>SKU: {dispItem.sku}</Text>
             )}
           </View>
           <TouchableOpacity
@@ -153,12 +168,12 @@ export default function ProductStockDetailSheet({ productId, item, onClose }: Pr
             <View style={styles.infoRow}>
               <Text style={styles.label}>Joriy zaxira:</Text>
               <Text style={[styles.valueBold, { color: sCfg.stockColor }]}>
-                {item?.stock ?? 0} dona
+                {dispItem?.stock ?? 0} dona
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.label}>Minimum zaxira:</Text>
-              <Text style={styles.value}>{item?.minStockLevel ?? 0} dona</Text>
+              <Text style={styles.value}>{dispItem?.minStockLevel ?? 0} dona</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.label}>Holat:</Text>
