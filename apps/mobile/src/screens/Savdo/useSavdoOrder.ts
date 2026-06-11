@@ -44,7 +44,7 @@ export default function useSavdoOrder({
   const [onlinePaymentVisible, setOnlinePaymentVisible] = useState(false);
   const [paymentIntent, setPaymentIntent] = useState<PaymentIntentResponse | null>(null);
 
-  const handleConfirm = useCallback(async (method: PaymentMethod, _received: number) => {
+  const handleConfirm = useCallback(async (method: PaymentMethod, _received: number): Promise<void> => {
     // Amount actually charged after loyalty redeem discount. Guard against negatives.
     const payable = Math.max(0, totalPrice - discountAmount);
     if (method === 'NASIYA') {

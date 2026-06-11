@@ -208,10 +208,10 @@ export default function SavdoScreen() {
           discountAmount={discountAmount}
           redeemRate={redeemRate}
           onClose={closePayment}
+          submitting={orderLoading}
           onRemoveItem={(id) => removeFromCart(id, closePayment)}
           onConfirm={handleConfirm}
           customerId={selectedCustomer?.id ?? null}
-          customerPhone={selectedCustomer?.phone ?? null}
           redeemPoints={redeemPoints}
           onRedeemPointsChange={setRedeemPoints}
           onSelectCustomer={() => setCustomerSheetVisible(true)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +17,6 @@ import { type PaymentMethod, type CartItem, isOnlineMethod } from './PaymentShee
 import PaymentSummaryCard from './PaymentSummaryCard';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import PaymentInputBlock from './PaymentInputBlock';
-import PaymentSuccessView from './PaymentSuccessView';
 import LoyaltySection from './LoyaltySection';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
 
@@ -34,10 +34,10 @@ interface Props {
   /** UZS value of 1 loyalty point — forwarded to LoyaltySection for display. */
   readonly redeemRate?: number;
   readonly onClose: () => void;
-  readonly onConfirm: (method: PaymentMethod, received: number) => void;
+  readonly onConfirm: (method: PaymentMethod, received: number) => Promise<void>;
+  readonly submitting: boolean;
   readonly onRemoveItem?: (productId: string) => void;
   readonly customerId?: string | null;
-  readonly customerPhone?: string | null;
   readonly redeemPoints?: number;
   readonly onRedeemPointsChange?: (points: number) => void;
   readonly onSelectCustomer?: () => void;
@@ -52,9 +52,9 @@ export default function PaymentSheet({
   redeemRate,
   onClose,
   onConfirm,
+  submitting,
   onRemoveItem,
   customerId,
-  customerPhone,
   redeemPoints,
   onRedeemPointsChange,
   onSelectCustomer,
@@ -65,7 +65,10 @@ export default function PaymentSheet({
   const [split, setSplit]         = useState(false);
   const [received, setReceived]   = useState('');
   const [splitCard, setSplitCard] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
+  // Synchronous double-submit latch: closes the same-frame double-tap window
+  // that the prop `submitting` (=orderLoading) cannot, since it only flips
+  // after the parent re-renders. Resets in handleConfirm's finally.
+  const inFlightRef = useRef(false);
 
   // Amount the cashier actually collects after loyalty redeem discount.
   // Loyalty earn/redeem math stays on the full `total`; only cash/card/change use payable.
@@ -77,7 +80,6 @@ export default function PaymentSheet({
       setSplit(false);
       setReceived(String(payable));
       setSplitCard('');
-      setConfirmed(false);
     }
   }, [visible, payable]);
 
@@ -86,15 +88,16 @@ export default function PaymentSheet({
   const change      = method === 'NAQD' && !split ? receivedNum - payable : 0;
   const canConfirm  = online || method !== 'NAQD' || receivedNum >= payable;
 
-  const handleConfirm = () => {
-    if (!canConfirm) return;
-    setConfirmed(true);
-    onConfirm(method, receivedNum);
-  };
-
-  const handleDismiss = () => {
-    setConfirmed(false);
-    onClose();
+  const handleConfirm = async () => {
+    if (!canConfirm || submitting || inFlightRef.current) return;
+    inFlightRef.current = true;
+    try {
+      // Success/close is decided solely by the parent (closePayment()).
+      // No local "confirmed" UI — the sheet only hides on a genuine success/safe handoff.
+      await onConfirm(method, receivedNum);
+    } finally {
+      inFlightRef.current = false;
+    }
   };
 
   return (
@@ -117,101 +120,99 @@ export default function PaymentSheet({
         <View style={styles.sheet}>
           <View style={styles.handle} />
 
-          {confirmed ? (
-            <PaymentSuccessView
-              method={method}
-              total={payable}
-              onDismiss={handleDismiss}
-              customerPhone={customerPhone}
-            />
-          ) : (
-            <>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Header */}
-                <View style={styles.header}>
-                  <Text style={styles.headerTitle}>{t('savdo.payment')}</Text>
-                  <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                    <Ionicons name="close" size={18} color="#6B7280" />
-                  </TouchableOpacity>
+          <>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Header */}
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>{t('savdo.payment')}</Text>
+                <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+                  <Ionicons name="close" size={18} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Customer badge or select button */}
+              {customerId ? (
+                <View style={styles.customerBadge}>
+                  <Ionicons name="person-circle-outline" size={20} color="#6366F1" />
+                  <Text style={styles.customerName}>{t('savdo.customerSelected')}</Text>
+                  {onSelectCustomer && (
+                    <TouchableOpacity onPress={onSelectCustomer}>
+                      <Text style={styles.changeBtn}>{t('savdo.changeCustomer')}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
+              ) : onSelectCustomer ? (
+                <TouchableOpacity style={styles.selectCustomerBtn} onPress={onSelectCustomer}>
+                  <Ionicons name="person-add-outline" size={18} color="#6366F1" />
+                  <Text style={styles.selectCustomerText}>{t('savdo.selectCustomer')}</Text>
+                </TouchableOpacity>
+              ) : null}
 
-                {/* Customer badge or select button */}
-                {customerId ? (
-                  <View style={styles.customerBadge}>
-                    <Ionicons name="person-circle-outline" size={20} color="#6366F1" />
-                    <Text style={styles.customerName}>{t('savdo.customerSelected')}</Text>
-                    {onSelectCustomer && (
-                      <TouchableOpacity onPress={onSelectCustomer}>
-                        <Text style={styles.changeBtn}>{t('savdo.changeCustomer')}</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                ) : onSelectCustomer ? (
-                  <TouchableOpacity style={styles.selectCustomerBtn} onPress={onSelectCustomer}>
-                    <Ionicons name="person-add-outline" size={18} color="#6366F1" />
-                    <Text style={styles.selectCustomerText}>{t('savdo.selectCustomer')}</Text>
-                  </TouchableOpacity>
-                ) : null}
+              {/* Order summary — shows the payable (post-discount) total */}
+              <PaymentSummaryCard
+                cart={cart}
+                total={payable}
+                onRemoveItem={onRemoveItem}
+              />
 
-                {/* Order summary — shows the payable (post-discount) total */}
-                <PaymentSummaryCard
-                  cart={cart}
-                  total={payable}
-                  onRemoveItem={onRemoveItem}
+              {/* Payment method picker */}
+              <PaymentMethodPicker method={method} onSelect={setMethod} />
+
+              {/* Loyalty section — orderTotal stays FULL (earn/redeem math is pre-discount) */}
+              {customerId && (
+                <LoyaltySection
+                  customerId={customerId}
+                  orderTotal={total}
+                  redeemRate={redeemRate}
+                  discountAmount={discountAmount}
+                  redeemPoints={redeemPoints ?? 0}
+                  onRedeemPointsChange={onRedeemPointsChange ?? (() => {})}
                 />
+              )}
 
-                {/* Payment method picker */}
-                <PaymentMethodPicker method={method} onSelect={setMethod} />
+              {/* Split toggle + cash/card inputs (hidden for online methods) */}
+              {online ? (
+                <View style={styles.onlineInfo}>
+                  <Ionicons name="globe-outline" size={20} color="#6B7280" />
+                  <Text style={styles.onlineInfoText}>
+                    {t('savdo.onlinePaymentHint')}
+                  </Text>
+                </View>
+              ) : (
+                <PaymentInputBlock
+                  split={split}
+                  method={method}
+                  received={received}
+                  splitCard={splitCard}
+                  total={payable}
+                  change={change}
+                  receivedNum={receivedNum}
+                  onReceivedChange={setReceived}
+                  onSplitCardChange={setSplitCard}
+                  onSplitToggle={setSplit}
+                />
+              )}
+            </ScrollView>
 
-                {/* Loyalty section — orderTotal stays FULL (earn/redeem math is pre-discount) */}
-                {customerId && (
-                  <LoyaltySection
-                    customerId={customerId}
-                    orderTotal={total}
-                    redeemRate={redeemRate}
-                    discountAmount={discountAmount}
-                    redeemPoints={redeemPoints ?? 0}
-                    onRedeemPointsChange={onRedeemPointsChange ?? (() => {})}
-                  />
-                )}
-
-                {/* Split toggle + cash/card inputs (hidden for online methods) */}
-                {online ? (
-                  <View style={styles.onlineInfo}>
-                    <Ionicons name="globe-outline" size={20} color="#6B7280" />
-                    <Text style={styles.onlineInfoText}>
-                      {t('savdo.onlinePaymentHint')}
-                    </Text>
-                  </View>
-                ) : (
-                  <PaymentInputBlock
-                    split={split}
-                    method={method}
-                    received={received}
-                    splitCard={splitCard}
-                    total={payable}
-                    change={change}
-                    receivedNum={receivedNum}
-                    onReceivedChange={setReceived}
-                    onSplitCardChange={setSplitCard}
-                    onSplitToggle={setSplit}
-                  />
-                )}
-              </ScrollView>
-
-              {/* Confirm */}
-              <TouchableOpacity
-                style={[styles.confirmBtn, !canConfirm && styles.confirmBtnDisabled]}
-                onPress={handleConfirm}
-                activeOpacity={0.85}
-              >
-                <Ionicons name={online ? 'open-outline' : 'checkmark-circle-outline'} size={20} color="#FFF" />
-                <Text style={styles.confirmText}>
-                  {online ? t('savdo.goToPayment') : t('savdo.confirmSale')}
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
+            {/* Confirm */}
+            <TouchableOpacity
+              style={[styles.confirmBtn, (!canConfirm || submitting) && styles.confirmBtnDisabled]}
+              onPress={handleConfirm}
+              disabled={!canConfirm || submitting}
+              activeOpacity={0.85}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <>
+                  <Ionicons name={online ? 'open-outline' : 'checkmark-circle-outline'} size={20} color="#FFF" />
+                  <Text style={styles.confirmText}>
+                    {online ? t('savdo.goToPayment') : t('savdo.confirmSale')}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </>
         </View>
       </KeyboardAvoidingView>
     </Modal>
