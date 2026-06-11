@@ -43,11 +43,18 @@ const linking: LinkingOptions<RootStackParamList> = {
 
   config: {
     screens: {
-      // Auth ekranlariga deep link TAQIQLANGAN
-      // Finance, Payment, Nasiya ekranlari ham ochilmaydi
-      // Faqat xavfsiz yo'naltirishlar:
-      SaleDetail: 'sale/:saleId',
-      AlertDetail: 'alert/:alertId',
+      // Auth / Finance / Payment / Nasiya ekranlariga deep link TAQIQLANGAN.
+      // Faqat xavfsiz, ro'yxatdan o'tgan navigatsiya:
+      // raos://notifications -> Main > BoshSahifa > NotificationsScreen
+      Main: {
+        screens: {
+          BoshSahifa: {
+            screens: {
+              NotificationsScreen: 'notifications',
+            },
+          },
+        },
+      },
     },
   },
 };

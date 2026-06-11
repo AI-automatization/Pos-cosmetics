@@ -11,6 +11,7 @@ import { useAuthStore } from './store/auth.store';
 import { useShiftStore } from './store/shiftStore';
 import RootNavigator from './navigation/RootNavigator';
 import linking from './navigation/linking';
+import { navigationRef } from './navigation/navigationRef';
 import { useNotifications } from './hooks/useNotifications';
 import { useSecurityCheck } from './hooks/useSecurityCheck';
 import { useVersionCheck } from './hooks/useVersionCheck';
@@ -69,7 +70,7 @@ function AppContent() {
   }
 
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <StatusBar style="dark" />
       <OfflineBanner />
       <RootNavigator />

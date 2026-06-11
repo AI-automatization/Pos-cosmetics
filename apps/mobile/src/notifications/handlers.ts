@@ -19,29 +19,29 @@ export interface NotificationPayload {
 
 export function handleNotificationResponse(
   response: Notifications.NotificationResponse,
-  navigate: (screen: string, params?: object) => void,
+  goToNotifications: () => void,
 ): void {
-  const data = response.notification.request.content.data as unknown as NotificationPayload | undefined;
-  if (!data) return;
+  const data = response.notification.request.content.data as unknown as
+    | NotificationPayload
+    | undefined;
+
+  // A bare tap with no/unknown payload still opens the notifications list.
+  if (!data) {
+    goToNotifications();
+    return;
+  }
 
   switch (data.type) {
     case 'LOW_STOCK':
-      navigate('InventoryTab');
-      break;
-    case 'SUSPICIOUS_ACTIVITY':
-    case 'AI_INSIGHT':
     case 'LARGE_SALE':
     case 'RENTAL_PAYMENT_DUE':
+    case 'SUSPICIOUS_ACTIVITY':
+    case 'AI_INSIGHT':
     case 'SHIFT_OPENED':
     case 'SHIFT_CLOSED':
     case 'SYSTEM_ALERT':
-      if (data.alertId) {
-        navigate('AlertsTab', { screen: 'AlertDetail', params: { alertId: data.alertId } });
-      } else {
-        navigate('AlertsTab');
-      }
-      break;
     default:
-      navigate('DashboardTab');
+      goToNotifications();
+      break;
   }
 }

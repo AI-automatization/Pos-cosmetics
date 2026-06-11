@@ -1,4 +1,5 @@
 import type { CartItem, PaymentMethod } from '../screens/Savdo/PaymentSheetTypes';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -11,7 +12,7 @@ export type SalesStackParamList = {
 };
 
 export type TabParamList = {
-  BoshSahifa: undefined;
+  BoshSahifa: NavigatorScreenParams<DashboardStackParamList> | undefined;
   Analytics: undefined;
   Xodimlar: undefined;
   Savdo: undefined;
@@ -105,7 +106,7 @@ export type MoreStackParamList = {
 
 export type RootStackParamList = {
   Auth: undefined;
-  Main: undefined;
+  Main: NavigatorScreenParams<TabParamList> | undefined;
   Onboarding: undefined;
   SaleDetail: { saleId: string };
   AlertDetail: { alertId: string };
