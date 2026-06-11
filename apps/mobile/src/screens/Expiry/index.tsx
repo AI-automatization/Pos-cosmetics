@@ -114,7 +114,7 @@ export default function ExpiryScreen() {
         </Text>
       </View>
     ),
-    [tab],
+    [tab, t],
   );
 
   const renderListHeader = useCallback(
