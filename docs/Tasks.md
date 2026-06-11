@@ -905,35 +905,15 @@
 - **Muammo:** `refreshPromise` `finally`da darhol null — yuqori parallel 401'da nozik oraliqda 2-refresh yuborilishi (token rotation → keraksiz logout). Buzilgan `user` JSON → jim logout (diagnostikasiz).
 - **Kutilgan:** Mutex faqat to'liq settle bo'lгач null; user parse alohida guard + diagnostika.
 
-## T-501 | P2 | [MOBILE] | Bottom-sheet — yopilish animatsiyasida kontent flash
-- **Fayl:** apps/mobile/src/screens/Ombor/index.tsx:204-211, ProductStockDetailSheet.tsx:104,121
-- **Muammo:** Modal (`animationType="slide"`) `onClose`da `item` darhol `null` — yopilish animatsiyasida sarlavha "Mahsulot"/"0 dona"/"MAVJUD" (yashil) ga sakraydi (xato holat flash).
-- **Kutilgan:** Yopilishni `onDismiss`/`onModalHide`ga ko'chirish yoki oxirgi `item`ni saqlash. (Bir nechta sheet'da takrorlanadi — pattern.)
 
-## T-502 | P2 | [MOBILE] | Expiry empty-state — til o'zgarganda yangilanmaydi
-- **Fayl:** apps/mobile/src/screens/Expiry/index.tsx:106-118
-- **Muammo:** `renderEmpty` useCallback deps `[tab]`, ichida `t(...)` — til o'zgarsa empty matn eski tilda qotadi.
-- **Kutilgan:** deps `[tab, t]`.
 
-## T-503 | P2 | [MOBILE] | DebtCard — yaroqsiz sana guard yo'q
-- **Fayl:** apps/mobile/src/screens/Nasiya/DebtCard.helpers.ts:41
-- **Muammo:** `new Date(dueDate)` yaroqsiz backend sanasida `Invalid Date` → UI'da "Invalid Date" matni; `overdueDays`/bucket `NaN`.
-- **Kutilgan:** `if (isNaN(d.getTime())) return 'Muddat belgilanmagan'`. (Markaziy `safeDate()` helper tavsiya — bir nechta joyda.)
 
-## T-504 | P2 | [MOBILE] | PayModal — modal/fokus race
-- **Fayl:** apps/mobile/src/screens/Nasiya/PayModal.tsx:148-151, DebtDetailSheet.tsx:104
-- **Muammo:** "To'lov qilish"da `onClose(); onPay(debt);` ketma-ket — sheet yopilishi va PayModal (`autoFocus`) ochilishi race (ba'zan klaviatura ochilmaydi/modal kech).
-- **Kutilgan:** `onPay`ni sheet `onDismiss` ichida yoki `requestAnimationFrame` bilan.
 
 ## T-505 | P2 | [MOBILE] | InvoicesScreen — noma'lum status badge'ga sanalmaydi
 - **Fayl:** apps/mobile/src/screens/Ombor/InvoicesScreen.tsx:62-68
 - **Muammo:** counts faqat ALL/PENDING/RECEIVED/CANCELLED. Backend yangi status (DRAFT/PARTIAL...) qaytarsa hech qaysi badge'ga sanalmaydi, filterdan ham tushadi (ALL ≠ yig'indi).
 - **Kutilgan:** Noma'lum status `OTHER` bucket yoki kamida ALL'da; backend enum bilan moslik.
 
-## T-506 | P3 | [MOBILE] | MonthlyProfitCard — `grossProfit` ko'rsatilmaydi
-- **Fayl:** apps/mobile/src/screens/Dashboard/MonthlyProfitCard.tsx:13-20, 64-70
-- **Muammo:** `grossProfit` prop uzatiladi, lekin destructure qilinmay ko'rsatilmaydi — breakdownда COGS bor, "Yalpi foyda" qatori yo'q.
-- **Kutilgan:** COGS'dan keyin "Yalpi foyda" qatori (yoki prop'ni olib tashlash).
 
 ## T-507 | P3 | [MOBILE] | formatCompact — manfiy qiymat formatlanmaydi
 - **Fayl:** apps/mobile/src/utils/currency.ts (formatCompact)

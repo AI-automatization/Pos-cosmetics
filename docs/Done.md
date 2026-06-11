@@ -3,6 +3,51 @@
 
 ---
 
+## T-506 | 2026-06-11 | [MOBILE] | MonthlyProfitCard — `grossProfit` ko'rsatilmaydi
+
+- **Yechim:** `grossProfit` prop (required) destructure qilinmasdi va render qilinmasdi — breakdown'da Daromad → COGS → Xarajatlar → SOF FOYDA bor edi, "Yalpi foyda" (yalpi foyda = daromad − COGS) subtotal qatori yo'q edi. Fix: (1) `grossProfit`ni destructure qilish, (2) **COGS'dan keyin, Xarajatlar'dan oldin** (to'g'ri accounting tartibi) `BreakdownRow label="Yalpi foyda" value={fmt(grossProfit)}` qo'shish — minussiz (musbat subtotal), rang `grossProfit >= 0 ? C.green : C.red` (netProfit isNegative pattern'iga mos). Parent (Dashboard/index.tsx:163) backend analytics qiymatini uzatadi → prop to'g'ridan ko'rsatiladi (lokal recompute YO'Q). Mavjud `BreakdownRow`/`fmt`/`C` qayta ishlatildi, yangi StyleSheet yo'q, React.memo saqlandi.
+- **Fayl:** apps/mobile/src/screens/Dashboard/MonthlyProfitCard.tsx
+- **Manba:** T-506 audit (lean: implement + adversarial review). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza.
+
+---
+
+## T-504 | 2026-06-11 | [MOBILE] | PayModal — modal/fokus race
+
+- **Yechim:** DebtDetailSheet Pay tugmasi → parent onPay (`setDetailVisible(false); handlePay(debt)`) → `setPayVisible(true)` bir tick'da ishlardi → DebtDetailSheet slide-out + PayModal slide-in + input `autoFocus` BIR VAQTDA → klaviatura race, modal kech. Yechim (onshow-focus-plus-sequence, 2 qatlam): (1) **Sequence** — `index.tsx`da yangi `handlePayFromDetail`: `setDetailVisible(false)` + nomli `SHEET_DISMISS_MS=300` (slide-out davomi) `setTimeout`'dan keyin `handlePay(debt)` → ikkala Modal hech qachon bir vaqtda transition qilmaydi. Timer `payHandoffTimer` ref'da, unmount cleanup + arming oldidan in-flight clear (double-tap safe) → setState-after-unmount yo'q. (2) **Focus** — `PayModal.tsx`da `autoFocus` olib tashlanib, Modal `onShow={() => inputRef.current?.focus()}` qo'shildi → klaviatura faqat PayModal to'liq ko'rsatilgach so'raladi (transition'dan ajratilgan).
+- **Skoup:** PayModal list'dan to'g'ridan ochiladigan yo'l (`onPay={handlePay}`, index:236) tegilmagan — sekinlashmaydi, instant qoladi. DebtDetailSheet.tsx tegilmadi.
+- **Cross-platform:** rAF (juda qisqa) va InteractionManager (Modal slide interaction handle bermaydi → erta otadi) va onDismiss (iOS-only) RAD ETILDI → ishonchli `setTimeout`. `onShow` Android native Modal'ga ham routed (RN 0.83.6).
+- **Fayl:** apps/mobile/src/screens/Nasiya/{index.tsx, PayModal.tsx}
+- **Manba:** T-504 audit (Design 3 — onshow-focus-plus-sequence). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza. Nit (ixtiyoriy): 300ms aniq slide davomiga teng (margin yo'q) — 320-350ms belt-and-suspenders bo'lardi, lekin `onShow` focus tufayli shart emas.
+
+---
+
+## T-503 | 2026-06-11 | [MOBILE] | DebtCard — yaroqsiz sana guard yo'q
+
+- **Yechim:** `DebtCard.helpers.ts`dagi 3 funksiya (`overdueDays`/`formatDueDate`/`ageBucket`) `new Date(dueDate)`ni faqat null-tekshiruv bilan ishlatardi → yaroqsiz (parse bo'lmas) backend sanasida: `formatDueDate` → "Invalid Date" matni, `ageBucket` → "NaN kun", `overdueDays` → jim 0. Yechim: lokal `parseDate(dueDate): Date | null` helper (null/bo'sh YOKI `Number.isNaN(getTime())` → null), uchala funksiya undan o'tadi (DRY). `overdueDays`→0, `formatDueDate`→'Muddat belgilanmagan', `ageBucket`→**alohida kulrang** bucket `{ label:'Muddat belgilanmagan', bg:'#F3F4F6', text:'#6B7280' }` (STATUS_COLORS.CANCELLED'dan).
+- **ageBucket qarori:** invalid (non-null) sana uchun yashil 'Joriy' EMAS, alohida kulrang. Asos: null = "muddat qo'yilmagan" (qonuniy joriy, yashil to'g'ri), invalid = "backend'da buzilgan muddat bor" (data-quality signali) — qarz ekranida buzilgan datani yashil/"on-track" bo'yash genuine overdue qarzni yashirishi mumkin. `formatDueDate` ham shu yozuvni ko'rsatadi → izchil. null→yashil branch o'zgarmadi (birinchi tekshiriladi).
+- **Fayl:** apps/mobile/src/screens/Nasiya/DebtCard.helpers.ts (imzolar saqlandi, `parseDate` private)
+- **Manba:** T-503 audit (Design — helper-plus-distinct-bucket). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza. Valid/null xulq o'zgarmadi (byte-for-byte). Eslatma (out-of-scope): upstream backend yaroqsiz dueDate emit qilishi alohida.
+
+---
+
+## T-502 | 2026-06-11 | [MOBILE] | Expiry empty-state — til o'zgarganda yangilanmaydi
+
+- **Yechim:** `renderEmpty` useCallback (Expiry/index.tsx:106-118) `t()`ni to'g'ridan-to'g'ri yopadi, lekin deps `[tab]` — `t` yo'q. Til o'zgarganda memoized `renderEmpty` identity o'zgarmasdi → `ListEmptyComponent` eski tilda qotardi. Fix: deps `[tab]` → `[tab, t]` (renderEmpty faqat `tab`+`t` o'qiydi → to'liq dep set). `t` til o'zgarganda identity o'zgartiradi → yangi `renderEmpty` → FlatList empty'ni yangi tilda re-render qiladi.
+- **Skoup (creep'siz):** `renderItem`→`ExpiryProductCard` (useTranslation 25,70) va `renderListHeader`→`ExpiryListHeader` (useTranslation 41) o'z i18n'iga obuna → til o'zgarganda mustaqil re-render → stale EMAS, tegilmadi. Bu T-499 extraData holati EMAS (u yerda `t` prop edi).
+- **Fayl:** apps/mobile/src/screens/Expiry/index.tsx (yagona hunk)
+- **Manba:** T-502 audit (lean: implement + adversarial review). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza. ⚠️ **Eslatma:** repo'da `react-hooks/exhaustive-deps` qoidasi YOQILMAGAN (plugin o'rnatilmagan) → eslint hook deps'ni tekshirmaydi; deps to'g'riligi manual tahlil bilan tasdiqlandi.
+
+---
+
+## T-501 | 2026-06-11 | [MOBILE] | Bottom-sheet — yopilish animatsiyasida kontent flash
+
+- **Yechim:** `ProductStockDetailSheet` `visible = productId !== null` bilan boshqariladi, kontent esa `item` prop'dan keladi; parent yopilishda `productId` VA `item`ni bir render'da sinxron null qiladi → slide-out (~300ms) paytida header 'Mahsulot'/'0 dona'/'MAVJUD' (yashil) ga, warehouse/movement seksiyalari bo'sh holatga sakrardi. Yechim (derive-with-fallback): render-time ref'lar `lastItemRef`/`lastProductIdRef` (non-null'da yangilanadi) + `dispItem = item ?? lastItemRef.current`, `effProductId = productId ?? lastProductIdRef.current`. Header `dispItem`'dan, queries `effProductId`'dan keyed. Yopilishda item/productId null bo'lsa ref'dagi oxirgi qiymat ko'rsatiladi → flash YO'Q (React Query `enabled:false` faqat fetch'ni to'xtatadi, kesh o'qishni emas → warehouse/movement data ham saqlanadi). Prop ochiqligida g'olib → boshqa mahsulot **lag'siz** ochiladi. `visible` o'zgarmadi (prop'dan) → modal yopiladi.
+- **Cross-platform:** RN core Modal `onDismiss` faqat iOS, `onModalHide` yo'q → render-time retention (Android+iOS) tanlandi, onDismiss EMAS.
+- **Fayl:** apps/mobile/src/screens/Ombor/ProductStockDetailSheet.tsx (parent index.tsx tegilmadi)
+- **Manba:** T-501 audit (Design 3 — derive-with-fallback; prop-wins-while-open lag'ni yo'q qiladi). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza. Eslatma: boshqa sheet'larda takrorlanadigan pattern — alohida task uchun.
+
+---
+
 ## T-499 | 2026-06-11 | [MOBILE] | Analytics FlatList — `extraData` yo'q (asl staleness = til, max emas)
 
 - **Yechim:** `MarginAnalysisScreen` va `CashierPerformanceScreen` FlatList'lariga `extraData` qo'shildi: `extraData={\`${maxProfit}|${i18n.language}\`}` / `extraData={\`${maxRevenue}|${i18n.language}\`}` (barqaror **primitiv string** — array literal `[max, t]` EMAS, aks holda har render yangi ref → virtualizatsiya buziladi). `const { t }` → `const { t, i18n } = useTranslation()`.
