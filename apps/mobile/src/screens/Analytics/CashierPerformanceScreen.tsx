@@ -122,7 +122,7 @@ function CashierCard({ item, rank, maxRevenue, t }: {
 
 // ─── Main Screen ──────────────────────────────────────────
 export default function CashierPerformanceScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const [days, setDays] = useState<DayRange>(30);
   const [search, setSearch] = useState('');
@@ -232,6 +232,7 @@ export default function CashierPerformanceScreen() {
       ) : (
         <FlatList
           data={filtered}
+          extraData={`${maxRevenue}|${i18n.language}`}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           ListHeaderComponent={ListHeader}

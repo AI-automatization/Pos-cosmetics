@@ -110,7 +110,7 @@ function ProductRow({ item, rank, maxProfit, t }: {
 
 // ─── Main Screen ──────────────────────────────────────────
 export default function MarginAnalysisScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const [days, setDays] = useState<DayRange>(30);
   const [sortBy, setSortBy] = useState<SortKey>('marginPct');
@@ -224,6 +224,7 @@ export default function MarginAnalysisScreen() {
       ) : (
         <FlatList
           data={sorted}
+          extraData={`${maxProfit}|${i18n.language}`}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           ListHeaderComponent={ListHeader}
