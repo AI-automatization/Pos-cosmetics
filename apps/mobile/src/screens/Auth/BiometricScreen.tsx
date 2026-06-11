@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -31,8 +31,14 @@ export default function BiometricScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const activeRef = useRef(true);
+
   useEffect(() => {
+    activeRef.current = true;
     attemptBiometric();
+    return () => {
+      activeRef.current = false;
+    };
   }, []);
 
   const attemptBiometric = async () => {
@@ -42,7 +48,7 @@ export default function BiometricScreen({ navigation }: Props) {
       // 1. Device biometric check
       const success = await authenticate();
       if (!success) {
-        setError(t('auth.loginError'));
+        if (activeRef.current) setError(t('auth.loginError'));
         return;
       }
 
@@ -71,9 +77,9 @@ export default function BiometricScreen({ navigation }: Props) {
         navigation.navigate('Login');
       }
     } catch (err) {
-      setError(extractErrorMessage(err));
+      if (activeRef.current) setError(extractErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (activeRef.current) setLoading(false);
     }
   };
 
