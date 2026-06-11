@@ -65,7 +65,7 @@ export default function OnlinePaymentSheet({
         if (updated.status === 'CONFIRMED' || updated.status === 'SETTLED') {
           if (timerRef.current) clearInterval(timerRef.current);
           setPolling(false);
-          setTimeout(onSuccess, SUCCESS_DELAY_MS);
+          // success side-effect handled by the dedicated effect below
         } else if (updated.status === 'FAILED') {
           if (timerRef.current) clearInterval(timerRef.current);
           setPolling(false);
@@ -77,7 +77,18 @@ export default function OnlinePaymentSheet({
     }, POLL_INTERVAL_MS);
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); setPolling(false); };
-  }, [visible, currentIntent?.id, currentIntent?.status, onSuccess]);
+  }, [visible, currentIntent?.id, currentIntent?.status]);
+
+  // Schedule onSuccess after a short delay once the intent reaches a paid state.
+  // Keyed on the terminal status so React cancels the timer on unmount or when
+  // the status leaves the success state (e.g. parent clears intent on cancel).
+  useEffect(() => {
+    const status = currentIntent?.status;
+    if (status !== 'CONFIRMED' && status !== 'SETTLED') return;
+
+    const handle = setTimeout(onSuccess, SUCCESS_DELAY_MS);
+    return () => clearTimeout(handle);
+  }, [currentIntent?.status, onSuccess]);
 
   const handleOpenApp = useCallback(async () => {
     if (!currentIntent) return;
