@@ -69,18 +69,26 @@ export default function PaymentSheet({
   // that the prop `submitting` (=orderLoading) cannot, since it only flips
   // after the parent re-renders. Resets in handleConfirm's finally.
   const inFlightRef = useRef(false);
+  // Tracks the sheet's previous-render visibility so the reset effect fires
+  // ONLY on the open transition (false -> true), not on every payable change
+  // while the sheet stays open (e.g. cashier removes a non-last cart item).
+  const prevVisibleRef = useRef(false);
 
   // Amount the cashier actually collects after loyalty redeem discount.
   // Loyalty earn/redeem math stays on the full `total`; only cash/card/change use payable.
   const payable = Math.max(0, total - (discountAmount ?? 0));
 
   useEffect(() => {
-    if (visible) {
+    // Reset only on the open transition. payable is read here to seed the
+    // initial received amount, so it stays in deps (exhaustive-deps clean);
+    // the prevVisibleRef guard makes a payable-only re-run a no-op.
+    if (visible && !prevVisibleRef.current) {
       setMethod('NAQD');
       setSplit(false);
       setReceived(String(payable));
       setSplitCard('');
     }
+    prevVisibleRef.current = visible;
   }, [visible, payable]);
 
   const online      = isOnlineMethod(method);
