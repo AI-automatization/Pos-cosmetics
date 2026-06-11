@@ -1,5 +1,56 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-06-09
+# Yangilangan: 2026-06-11
+
+---
+
+## T-499 | 2026-06-11 | [MOBILE] | Analytics FlatList — `extraData` yo'q (asl staleness = til, max emas)
+
+- **Yechim:** `MarginAnalysisScreen` va `CashierPerformanceScreen` FlatList'lariga `extraData` qo'shildi: `extraData={\`${maxProfit}|${i18n.language}\`}` / `extraData={\`${maxRevenue}|${i18n.language}\`}` (barqaror **primitiv string** — array literal `[max, t]` EMAS, aks holda har render yangi ref → virtualizatsiya buziladi). `const { t }` → `const { t, i18n } = useTranslation()`.
+- **Max-reachability = NOT_REACHABLE (mustaqil tasdiqlandi):** `maxProfit`/`maxRevenue` — data'ning (`sorted`/`filtered`) sof `useMemo` funksiyasi. Max o'zgarishi uchun data multiset/tartib o'zgarishi shart, bu esa cell item-identity va/yoki index'ini o'zgartiradi (sort → indeks, filter → a'zolik + yangi ref, refetch → yangi item ref) → VirtualizedList allaqachon re-render. Item'lar in-place o'zgartirilmaydi → max o'zgarib, ko'rinadigan cell item+index bir xil qoladigan holat YO'Q. Demak task'ning literal `extraData={maxProfit}` taklifi **no-op** bo'lardi (T-505/T-498-sub2 over-claim'lari kabi).
+- **Asl yetib bo'ladigan bug (tuzatildi) = til staleness:** `renderItem` `t`ni yopadi; `ProductRow`/`CashierCard` (React.memo'siz) `t()` orqali label render qiladi. Til o'zgarganda data/item/index o'zgarmaydi → extraData'siz cell'lar re-render bo'lmaydi → label'lar eski tilda qotardi (T-502 sinfi). `i18n.language`ni extraData stringiga kiritish buni tuzatadi.
+- **Fayl:** apps/mobile/src/screens/Analytics/{MarginAnalysisScreen.tsx, CashierPerformanceScreen.tsx}
+- **Manba:** T-499 audit (Design — composite-primitive; literal max'ni saqlaydi + yetib bo'ladigan til defektini tuzatadi, strict superset). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza.
+
+---
+
+## T-498 | 2026-06-11 | [MOBILE] | BiometricScreen — async setState unmount guard yo'q
+
+- **Yechim:** `attemptBiometric` async setState'lari (authenticate/SecureStore/me() await'laridan keyin) unmount guardsiz edi — komponent unmount bo'lsa (success → `setUser` isAuthenticated'ni o'zgartiradi → RootNavigator Auth tree'ni tashlaydi → Biometric unmount; yoki `navigate('Login')` pop) trailing `finally` setLoading(false) unmounted komponentda ishlardi. Yechim (active-ref-guard, Design 1): `const activeRef = useRef(true)`; mount effekti boshida `activeRef.current = true` (StrictMode double-invoke uchun ham to'g'ri) va cleanup `() => { activeRef.current = false }`. Uchala post-await setState (fail-branch setError, catch setError, finally setLoading) `if (activeRef.current)` bilan o'raldi. Pre-await `setLoading(true)`/`setError(null)` sinxron (mounted holatda) — guardlanmadi. Retry tugma ishlaydi (activeRef komponent-scoped, faqat unmount cleanup'da false bo'ladi).
+- **Sub-da'vo (2) — NOT_A_BUG:** "navigate('Login') Biometric'ni stackda qoldiradi" da'vosi MUSTAQIL ravishda noto'g'ri deb topildi (T-500/T-505 over-claim'lari kabi). AuthNavigator Login'ni birinchi (initial) route qiladi; Biometric'ga faqat LoginScreen `navigate('Biometric')` (push) orqali kelinadi → stack doim `[Login, Biometric]`. RN native-stack'da `navigate('Login')` (pastdagi mavjud Login'ga) → `[Login]`, Biometric o'chadi; Android back qaytarmaydi. `replace('Login')` → `[Login, Login]` (dublikat — yomonroq). Shuning uchun NAVIGATSIYA O'ZGARTIRILMADI (soxta fix kiritilmadi).
+- **Fayl:** apps/mobile/src/screens/Auth/BiometricScreen.tsx
+- **Manba:** T-498 audit (Design 1 — active-ref-guard; AbortController/early-return scope-creep rad etildi). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza.
+
+---
+
+## T-497 | 2026-06-11 | [MOBILE] | Deep-link / push navigatsiya buzilgan (umbrella) — minimal/safe qamrov
+
+- **Yechim:** Push notification tap'lari hech narsa qilmasdi (handler mavjud bo'lmagan `InventoryTab/AlertsTab/DashboardTab`ga yo'naltirardi va `useNotifications` listener'iga umuman ulanmagan edi); linking config esa ro'yxatdan o'tmagan root `SaleDetail`/`AlertDetail` ekranlarga ishora qilardi. Tanlangan qamrov **minimal & xavfsiz** (egasi qarori): o'lik `Alerts`/`AlertDetail` screen'lar jonlantirilmadi. (1) Yangi `navigation/navigationRef.ts`: `createNavigationContainerRef` + `navigateToNotifications()` — `isReady()` va `getRootState().routeNames.includes('Main')` (auth guard, store import'siz) tekshirib `Main > BoshSahifa > NotificationsScreen`ga (real ishlaydigan ekran) navigate qiladi; `runWhenReady()` cold-start uchun bounded retry (100ms×50). (2) `App.tsx`: `<NavigationContainer ref={navigationRef}>`. (3) `useNotifications.ts`: response listener `handleNotificationResponse(response, navigateToNotifications)`ga ulandi + cold-start `getLastNotificationResponseAsync()` (cancelled-flag bilan). (4) `handlers.ts`: barcha notification turlari + default + bare-tap → `goToNotifications()` (soxta target'lar olib tashlandi). (5) `linking.ts`: buzilgan root yozuvlar halol nested `Main>BoshSahifa>NotificationsScreen` (`raos://notifications`)ga almashtirildi, security wrapper saqlandi. (6) `types.ts`: `Main` va `BoshSahifa` `NavigatorScreenParams<...> | undefined` ga kengaytirildi (nested typing uchun, `any` yo'q; dead `SaleDetail`/`AlertDetail` tiplari tegilmadi).
+- **Fayl:** apps/mobile/src/navigation/{navigationRef.ts (yangi), types.ts, linking.ts}, App.tsx, hooks/useNotifications.ts, notifications/handlers.ts
+- **Manba:** T-497 audit (Design 3 — linking-driven; navigationRef + halol linking yagona real target'ga yaqinlashadi). **Tekshiruv:** `tsc --noEmit` 0 xato; eslint 5 yangi/tahrirlangan fayl toza (1 pre-existing `linking.ts:18 no-control-regex /\x00/` BLOCKED_PATTERNS'da — qamrovdan tashqari, HEAD'da ham bor). Warm tap / cold-start / logout no-op / deep-link trace tasdiqlandi.
+
+---
+
+## T-496 | 2026-06-11 | [MOBILE] | NewTesterSheet — 1 ombor stsenariysida "Tester ochish" doim disabled
+
+- **Yechim:** Ildiz sabab — auto-select effekti `[warehouses.data]` ga keyed edi (staleTime 60s → reopen'da kesh bir xil ref, effekt qayta ishlamasdi), reset effekti esa har ochilishda `selectedWarehouse=''` qilardi → 1 ombor bo'lsa picker yashirin (`length>1` emas) → tugma doim disabled. Effekt poygasini patch qilish o'rniga butun bug klassi yo'q qilindi (Design 3 — derived-effective-warehouse): auto-select `useEffect` **o'chirildi**, qiymat render'da hisoblanadi — `onlyWarehouse = warehouseList.length===1 ? warehouseList[0] : undefined`, `effectiveWarehouseId = onlyWarehouse ? onlyWarehouse.id : selectedWarehouse`. `isValid` VA mutation payload `warehouseId` ikkalasi ham `effectiveWarehouseId`ni ishlatadi (mos). 1 ombor → har render'da to'g'ri id (kesh/effektga bog'liq emas) → tugma yoqiladi; ko'p ombor → `selectedWarehouse` (picker ko'rinadi, qo'lda tanlash); 0 ombor → '' (crash yo'q). `warehouses.data`ga endi hech qaysi effekt keyed emas → refetch-while-open boshqa maydonlarni o'chirmaydi. `noUncheckedIndexedAccess` ostida `onlyWarehouse` truthiness guard `.id`ni xavfsiz qiladi (`!` yo'q).
+- **Fayl:** apps/mobile/src/screens/Ombor/NewTesterSheet.tsx
+- **Manba:** T-496 audit (Design 3 — derived-effective-warehouse; effekt poygasini strukturaviy yo'q qiladi). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza.
+
+---
+
+## T-495 | 2026-06-11 | [MOBILE] | PaymentSheet — ochiqligida item o'chsa input reset
+
+- **Yechim:** Reset useEffect endi `prevVisibleRef` (useRef) latch bilan himoyalangan: tana faqat ochilish o'tishida (`visible && !prevVisibleRef.current`, ya'ni false→true) ishlaydi, so'ngra `prevVisibleRef.current = visible` shartsiz (if-blokdan TASHQARIDA, oxirgi statement) sinxronlanadi. Deps `[visible, payable]` saqlandi — ikkalasi ham effektda haqiqatan o'qiladi (`visible` guard'da, `payable` `setReceived(String(payable))` seed'ida) → react-hooks/exhaustive-deps strukturaviy o'tadi, eslint-disable kerak emas (T-489 pretsedentiga hurmat). Sheet ochiq turganda non-last item o'chsa `payable` o'zgaradi → effekt re-fire bo'ladi, lekin guard `(true && !true)=false` → reset bloki o'tkazib yuboriladi, kassir kiritgan `received`/`method`/`split`/`splitCard` saqlanadi (faqat no-op ref re-assign ishlaydi, re-render yo'q). Live-derived `change`/`canConfirm` yangi `payable`ga tabiiy reaksiya qiladi (o'zgartirilmadi — kerakli xatti-harakat). Yopilishda (true→false) ref `false`ga qaytadi → har genuine reopen `received`ni o'sha vaqtdagi `payable`ga qayta seed qiladi.
+- **Fayl:** apps/mobile/src/screens/Savdo/PaymentSheet.tsx
+- **Manba:** T-495 audit (Design 1 — prev-visible-guard; eng idiomatik transition-detection idiom'i, deps'da `payable`ni halol saqlaydi). **Tekshiruv:** `tsc --noEmit` 0 xato + eslint toza.
+
+---
+
+## T-494 | 2026-06-11 | [MOBILE] | OnlinePaymentSheet — setTimeout cleanup yo'q
+
+- **Yechim:** Inline `setTimeout(onSuccess, 1500)` (polling interval callback ichida, handle tashlanardi → unmount yoki cancel'dan keyin ham fire bo'lib cart double-clear qilardi) olib tashlandi va alohida success effektga ko'chirildi. Yangi effekt `currentIntent?.status` ga keyed: status `CONFIRMED`/`SETTLED` bo'lganda `setTimeout(onSuccess, SUCCESS_DELAY_MS)` rejalashtiradi, handle effekt closure'ida (`handle` const) saqlanadi, cleanup `clearTimeout(handle)` qiladi. **Tuzoq saqlanib qolindi:** success-timer cancellation polling-effekt cleanup'iga (timerRef faqat interval'ni tozalaydi) QO'SHILMADI — status flip re-render polling cleanup'ni rejalashtirish bilan bir commit'da ishlaganligi uchun u yerda tozalash genuine timer'ni o'ldirardi. Buning o'rniga alohida effekt cleanup'i orqali: unmount'da (React har effekt cleanup'ini chaqiradi), cancel/success'da (`paymentIntent=null` → `setCurrentIntent(null)` → status `undefined` → effekt re-run → cleanup) timer tozalanadi. Happy-path: CREATED→CONFIRMED flip success effektni TRIGGER qiladi → timer ~1.5s'da bir marta fire qiladi → `onSuccess` bir marta. `onSuccess` polling-effekt deps'idan olib tashlandi (Edit 1'dan keyin effekt ichida ishlatilmaydi).
+- **Fayl:** apps/mobile/src/screens/Savdo/OnlinePaymentSheet.tsx
+- **Manba:** T-494 audit (Design 3 — dedicated-success-effect; dependency-driven cleanup cancel-while-mounted gap'ini yopadi, activeRef/state machine'siz). **Tekshiruv:** `tsc --noEmit` 0 xato.
 
 ---
 
