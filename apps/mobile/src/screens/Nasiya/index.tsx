@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,10 @@ const C = {
   primary:   '#2563EB',
   red:       '#DC2626',
 };
+
+// DebtDetailSheet uses <Modal animationType="slide">; match its slide-out so
+// PayModal opens only after the sheet is fully gone (no overlapping Modal transitions).
+const SHEET_DISMISS_MS = 300;
 
 // ─── Tabs ──────────────────────────────────────────────
 const TABS: { key: FilterTab; label: string }[] = [
@@ -89,6 +93,9 @@ export default function NasiyaScreen() {
   const [detailDebt, setDetailDebt]         = useState<DebtRecord | null>(null);
   const [detailVisible, setDetailVisible]   = useState(false);
 
+  // Holds the deferred PayModal-open timer for the DebtDetailSheet -> PayModal path.
+  const payHandoffTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const route = useRoute<RouteProp<SavdoStackParamList, 'NasiyaScreen'>>();
   const navigation = useNavigation<NativeStackNavigationProp<SavdoStackParamList>>();
 
@@ -101,6 +108,11 @@ export default function NasiyaScreen() {
       navigation.setParams({ openNewDebt: undefined, amount: undefined, products: undefined });
     }
   }, [route.params, navigation]);
+
+  // Cancel any pending deferred PayModal open if the screen unmounts.
+  useEffect(() => () => {
+    if (payHandoffTimer.current) clearTimeout(payHandoffTimer.current);
+  }, []);
 
   const {
     currentItems,
@@ -123,6 +135,17 @@ export default function NasiyaScreen() {
   const handlePay = (debt: DebtRecord) => {
     setSelectedDebt(debt);
     setPayVisible(true);
+  };
+
+  // From DebtDetailSheet: close the sheet now, then open PayModal only after the
+  // sheet has finished its slide-out so the two Modals never transition at once.
+  const handlePayFromDetail = (debt: DebtRecord) => {
+    setDetailVisible(false);
+    if (payHandoffTimer.current) clearTimeout(payHandoffTimer.current);
+    payHandoffTimer.current = setTimeout(() => {
+      payHandoffTimer.current = null;
+      handlePay(debt);
+    }, SHEET_DISMISS_MS);
   };
 
   const handleDebtPress = (debt: DebtRecord) => {
@@ -246,7 +269,7 @@ export default function NasiyaScreen() {
         visible={detailVisible}
         debt={detailDebt}
         onClose={() => setDetailVisible(false)}
-        onPay={(debt) => { setDetailVisible(false); handlePay(debt); }}
+        onPay={handlePayFromDetail}
       />
     </SafeAreaView>
     </ShiftGuard>

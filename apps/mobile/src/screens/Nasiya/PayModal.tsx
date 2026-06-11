@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   View,
@@ -53,6 +53,7 @@ export default function PayModal({ debt, visible, onClose, onSuccess }: Props) {
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PayMethod>('CASH');
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (visible && debt) {
@@ -95,7 +96,7 @@ export default function PayModal({ debt, visible, onClose, onSuccess }: Props) {
   if (!debt) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} onShow={() => inputRef.current?.focus()}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.overlay}>
           <KeyboardAvoidingView
@@ -140,13 +141,13 @@ export default function PayModal({ debt, visible, onClose, onSuccess }: Props) {
 
               <Text style={styles.inputLabel}>To'lov summasi</Text>
               <TextInput
+                ref={inputRef}
                 style={styles.input}
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="Miqdor kiriting..."
                 placeholderTextColor="#9CA3AF"
                 keyboardType="numeric"
-                autoFocus
                 editable={!loading}
               />
 
