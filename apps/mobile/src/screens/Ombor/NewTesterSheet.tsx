@@ -78,11 +78,6 @@ export default function NewTesterSheet({ visible, onClose, onSuccess }: NewTeste
     }
   }, [visible]);
 
-  useEffect(() => {
-    const wh = warehouses.data;
-    if (wh && wh.length === 1 && wh[0] !== undefined) setSelectedWarehouse(wh[0].id);
-  }, [warehouses.data]);
-
   const handleProductSelect = (id: string, name: string) => {
     setSelectedProduct(id); setSelectedProductName(name); setSearchText('');
   };
@@ -92,21 +87,24 @@ export default function NewTesterSheet({ visible, onClose, onSuccess }: NewTeste
 
   const qty = Number(quantity);
   const price = Number(costPrice);
-  const isValid = selectedProduct.length > 0 && selectedWarehouse.length > 0 && qty > 0 && price >= 0 && costPrice.length > 0;
+
+  const warehouseList = warehouses.data ?? [];
+  const showWarehousePicker = warehouseList.length > 1;
+  const onlyWarehouse = warehouseList.length === 1 ? warehouseList[0] : undefined;
+  const effectiveWarehouseId = onlyWarehouse ? onlyWarehouse.id : selectedWarehouse;
+
+  const isValid = selectedProduct.length > 0 && effectiveWarehouseId.length > 0 && qty > 0 && price >= 0 && costPrice.length > 0;
   const totalPreview = qty > 0 && price >= 0 ? qty * price : 0;
 
   const mutation = useMutation({
     mutationFn: () => inventoryApi.openTester({
-      productId: selectedProduct, warehouseId: selectedWarehouse,
+      productId: selectedProduct, warehouseId: effectiveWarehouseId,
       quantity: qty, costPrice: price, note: note.trim() || undefined,
     }),
     onSuccess: () => onSuccess(),
   });
 
   const handleSubmit = () => { if (!isValid || mutation.isPending) return; mutation.mutate(); };
-
-  const warehouseList = warehouses.data ?? [];
-  const showWarehousePicker = warehouseList.length > 1;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
