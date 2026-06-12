@@ -8,7 +8,7 @@ interface SaleCreatedPayload {
   orderId: string;
   userId: string;
   customerId?: string;
-  items: Array<{ productId: string; quantity: number }>;
+  items: Array<{ productId: string; variantId?: string | null; quantity: number }>;
   total: number;
 }
 

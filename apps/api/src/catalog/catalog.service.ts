@@ -15,6 +15,8 @@ import {
   AddBundleComponentDto,
   CreateVariantDto,
   UpdateVariantDto,
+  BulkCreateVariantsDto,
+  GenerateVariantMatrixDto,
   CreateProductPriceDto,
   UpdateProductPriceDto,
   CreateCertificateDto,
@@ -218,6 +220,14 @@ export class CatalogService {
 
   deleteVariant(tenantId: string, productId: string, variantId: string) {
     return this.variantPriceHelper.deleteVariant(tenantId, productId, variantId);
+  }
+
+  bulkCreateVariants(tenantId: string, productId: string, dto: BulkCreateVariantsDto) {
+    return this.variantPriceHelper.bulkCreateVariants(tenantId, productId, dto);
+  }
+
+  generateMatrix(tenantId: string, productId: string, dto: GenerateVariantMatrixDto) {
+    return this.variantPriceHelper.generateMatrix(tenantId, productId, dto);
   }
 
   // ─── PRICE MANAGEMENT ─────────────────────────────────────────

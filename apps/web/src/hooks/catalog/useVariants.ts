@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { catalogApi } from '@/api/catalog.api';
 import { extractErrorMessage } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
-import type { CreateVariantDto, UpdateVariantDto } from '@/types/catalog';
+import type { CreateVariantDto, UpdateVariantDto, GenerateVariantMatrixDto } from '@/types/catalog';
 
 export function useVariants(productId: string | undefined) {
   return useQuery({
@@ -50,6 +50,20 @@ export function useDeleteVariant(productId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['variants', productId] });
       toast.success(t('toast.variantDeleted'));
+    },
+    onError: (err: unknown) => toast.error(extractErrorMessage(err)),
+  });
+}
+
+export function useGenerateVariantMatrix(productId: string) {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (dto: GenerateVariantMatrixDto) =>
+      catalogApi.generateVariantMatrix(productId, dto),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['variants', productId] });
+      toast.success(t('toast.variantsGenerated', { count: data.length }));
     },
     onError: (err: unknown) => toast.error(extractErrorMessage(err)),
   });

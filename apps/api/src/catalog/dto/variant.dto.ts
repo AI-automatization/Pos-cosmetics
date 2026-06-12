@@ -1,12 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Min,
   MinLength,
+  ValidateNested,
+  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IsValidBarcode } from '../../common/pipes';
@@ -26,6 +30,11 @@ export class CreateVariantDto {
   @IsOptional()
   @IsValidBarcode()
   barcode?: string;
+
+  @ApiPropertyOptional({ example: { color: 'Red', size: 'M' }, description: 'Variant atributlari' })
+  @IsOptional()
+  @IsObject()
+  attributes?: Record<string, string>;
 
   @ApiPropertyOptional({ example: 15000, default: 0 })
   @IsOptional()
@@ -59,6 +68,38 @@ export class CreateVariantDto {
   sortOrder?: number;
 }
 
+export class BulkCreateVariantsDto {
+  @ApiProperty({ type: [CreateVariantDto] })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreateVariantDto)
+  variants!: CreateVariantDto[];
+}
+
+export class GenerateVariantMatrixDto {
+  @ApiProperty({
+    example: { color: ['Red', 'Blue'], size: ['M', 'L', 'XL'] },
+    description: 'Atribut nomlari va qiymatlari — kombinatsiyalar avtomatik yaratiladi',
+  })
+  @IsObject()
+  attributes!: Record<string, string[]>;
+
+  @ApiPropertyOptional({ example: 15000, description: 'Barcha variantlar uchun kelish narxi' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  costPrice?: number;
+
+  @ApiPropertyOptional({ example: 20000, description: 'Barcha variantlar uchun sotuv narxi' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  sellPrice?: number;
+}
+
 export class UpdateVariantDto {
   @ApiPropertyOptional()
   @IsOptional()
@@ -75,6 +116,11 @@ export class UpdateVariantDto {
   @IsOptional()
   @IsValidBarcode()
   barcode?: string;
+
+  @ApiPropertyOptional({ example: { color: 'Red', size: 'M' } })
+  @IsOptional()
+  @IsObject()
+  attributes?: Record<string, string>;
 
   @ApiPropertyOptional()
   @IsOptional()

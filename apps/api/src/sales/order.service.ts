@@ -85,16 +85,34 @@ export class OrderService {
 
       const productMap = new Map(products.map((p) => [p.id, p]));
 
+      // T-432: load variants if any items reference them
+      const variantIds = dto.items
+        .map((i) => i.variantId)
+        .filter((id): id is string => !!id);
+      const variantMap = new Map<string, { id: string; name: string; costPrice: number }>();
+      if (variantIds.length > 0) {
+        const variants = await tx.productVariant.findMany({
+          where: { id: { in: variantIds }, tenantId },
+          select: { id: true, name: true, costPrice: true },
+        });
+        for (const v of variants) {
+          variantMap.set(v.id, { id: v.id, name: v.name, costPrice: Number(v.costPrice) });
+        }
+      }
+
       const orderItemsData = dto.items.map((item) => {
         const product = productMap.get(item.productId)!;
+        const variant = item.variantId ? variantMap.get(item.variantId) : undefined;
         const discount = item.discountAmount ?? 0;
         const total = Number(item.unitPrice) * Number(item.quantity) - discount;
         return {
           productId: item.productId,
+          variantId: variant?.id ?? null,
           productName: product.name,
+          variantName: variant?.name ?? null,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          costPrice: Number(product.costPrice),
+          costPrice: variant ? variant.costPrice : Number(product.costPrice),
           discountAmount: discount,
           total: Math.max(0, total),
           isTaxable: product.isTaxable,
@@ -276,7 +294,7 @@ export class OrderService {
       cashier: `${order.user?.firstName ?? ''} ${order.user?.lastName ?? ''}`.trim(),
       customer: order.customer?.name ?? null,
       items: order.items.map((i) => ({
-        name: i.productName,
+        name: i.variantName ? `${i.productName} (${i.variantName})` : i.productName,
         qty: i.quantity,
         price: i.unitPrice,
         total: i.total,

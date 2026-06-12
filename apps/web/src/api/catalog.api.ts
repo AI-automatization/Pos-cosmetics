@@ -12,6 +12,7 @@ import type {
   ProductVariant,
   CreateVariantDto,
   UpdateVariantDto,
+  GenerateVariantMatrixDto,
   BundleItem,
   AddBundleComponentDto,
   ProductCertificate,
@@ -55,6 +56,12 @@ export const catalogApi = {
     return apiClient.get<Product>(`/catalog/products/${id}`).then((r) => r.data);
   },
 
+  getByBarcode(barcode: string) {
+    return apiClient
+      .get<Product>(`/catalog/products/barcode/${encodeURIComponent(barcode)}`)
+      .then((r) => r.data);
+  },
+
   createProduct(dto: CreateProductDto) {
     return apiClient.post<Product>('/catalog/products', dto).then((r) => r.data);
   },
@@ -90,6 +97,12 @@ export const catalogApi = {
   deleteVariant(productId: string, variantId: string) {
     return apiClient
       .delete<void>(`/catalog/products/${productId}/variants/${variantId}`)
+      .then((r) => r.data);
+  },
+
+  generateVariantMatrix(productId: string, dto: GenerateVariantMatrixDto) {
+    return apiClient
+      .post<ProductVariant[]>(`/catalog/products/${productId}/variants/generate-matrix`, dto)
       .then((r) => r.data);
   },
 

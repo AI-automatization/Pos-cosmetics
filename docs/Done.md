@@ -1,5 +1,20 @@
 # RAOS — BAJARILGAN ISHLAR ARXIVI
-# Yangilangan: 2026-06-04
+# Yangilangan: 2026-06-06
+
+---
+
+## T-097 | 2026-06-06 | [BACKEND+FRONTEND] | Product sertifikat — Kosmetika sifat hujjati
+
+- **Yechim:**
+  - Prisma: `ProductCertificate` model (cert_number, issuing_authority, issued_at, expires_at, file_url)
+  - Backend: 4 endpoint (list, create, delete, expiring) — `catalog-extras.controller.ts`
+  - Service: `CatalogVariantPriceHelper` da CRUD + getExpiringCertificates(days)
+  - DTO: `CreateCertificateDto`, `UpdateCertificateDto` — class-validator
+  - Frontend: `CertificatesSection.tsx` — to'liq CRUD UI (forma, ro'yxat, expiry badge)
+  - API client: `catalogApi.getCertificates/createCertificate/deleteCertificate`
+  - i18n: uz/ru/en kalitlari (certNumber, certIssuingAuthority, certExpiry, certFileOptional)
+  - Vizual: expired (qizil), expiring soon 30 kun (sariq), file link (external)
+- **Fayllar:** `schema.prisma`, `catalog-extras.controller.ts`, `catalog-variant-price.helper.ts`, `certificate.dto.ts`, `CertificatesSection.tsx`, `catalog.api.ts`, `catalog.ts`
 
 ---
 

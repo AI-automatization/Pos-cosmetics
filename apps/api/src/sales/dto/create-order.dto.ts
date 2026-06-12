@@ -17,6 +17,11 @@ export class OrderItemDto {
   @IsUUID()
   productId!: string;
 
+  @ApiPropertyOptional({ description: 'Variant ID (agar mahsulotda variantlar bo\'lsa)' })
+  @IsOptional()
+  @IsUUID()
+  variantId?: string;
+
   @ApiProperty({ example: 2 })
   @Type(() => Number)
   @IsNumber()

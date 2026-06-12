@@ -137,13 +137,14 @@ export class InventoryService {
   async deductStock(
     tenantId: string,
     warehouseId: string,
-    items: Array<{ productId: string; quantity: number }>,
+    items: Array<{ productId: string; variantId?: string | null; quantity: number }>,
     refId: string,
   ) {
     const movements = items.map((item) => ({
       tenantId,
       warehouseId,
       productId: item.productId,
+      variantId: item.variantId ?? undefined,
       type: 'OUT' as const,
       quantity: item.quantity,
       refId,
