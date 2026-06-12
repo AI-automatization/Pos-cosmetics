@@ -225,7 +225,10 @@ describe('TransferService', () => {
       const result = await service.cancelTransfer(TENANT, 'tr-1');
 
       expect(mockPrisma.stockTransfer.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { status: 'CANCELLED' } }),
+        expect.objectContaining({
+          where: { id: 'tr-1', tenantId: TENANT }, // #57: tenantId must scope the write
+          data: { status: 'CANCELLED' },
+        }),
       );
       expect(result.status).toBe(TransferStatus.CANCELLED);
     });
@@ -244,6 +247,50 @@ describe('TransferService', () => {
       mockPrisma.stockTransfer.findFirst.mockResolvedValue(transfer);
 
       await expect(service.cancelTransfer(TENANT, 'tr-1')).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  // ─── #57: tenant scoping on status-mutating updates ─────────────────────────
+
+  describe('tenant isolation on status updates (#57)', () => {
+    it('approveTransfer scopes the update by tenantId', async () => {
+      const transfer = makeTransfer('tr-1', TransferStatus.REQUESTED);
+      mockPrisma.stockTransfer.findFirst.mockResolvedValue(transfer);
+      mockPrisma.stockTransfer.update.mockResolvedValue({ ...transfer, status: TransferStatus.APPROVED });
+
+      await service.approveTransfer(TENANT, 'tr-1', USER_ID);
+
+      expect(mockPrisma.stockTransfer.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'tr-1', tenantId: TENANT } }),
+      );
+    });
+
+    it('shipTransfer scopes the status update by tenantId', async () => {
+      const transfer = makeTransfer('tr-1', TransferStatus.APPROVED);
+      mockPrisma.stockTransfer.findFirst.mockResolvedValue(transfer);
+      mockPrisma.warehouse.findMany.mockResolvedValue([{ id: 'wh-1' }]);
+      mockPrisma.$transaction.mockResolvedValue([]);
+
+      await service.shipTransfer(TENANT, 'tr-1', USER_ID);
+
+      const updateCall = mockPrisma.stockTransfer.update.mock.calls.find(
+        ([arg]) => arg?.data?.status === 'SHIPPED',
+      );
+      expect(updateCall?.[0].where).toEqual({ id: 'tr-1', tenantId: TENANT });
+    });
+
+    it('receiveTransfer scopes the status update by tenantId', async () => {
+      const transfer = makeTransfer('tr-1', TransferStatus.SHIPPED);
+      mockPrisma.stockTransfer.findFirst.mockResolvedValue(transfer);
+      mockPrisma.warehouse.findMany.mockResolvedValue([{ id: 'wh-2' }]);
+      mockPrisma.$transaction.mockResolvedValue([]);
+
+      await service.receiveTransfer(TENANT, 'tr-1', USER_ID);
+
+      const updateCall = mockPrisma.stockTransfer.update.mock.calls.find(
+        ([arg]) => arg?.data?.status === 'RECEIVED',
+      );
+      expect(updateCall?.[0].where).toEqual({ id: 'tr-1', tenantId: TENANT });
     });
   });
 });

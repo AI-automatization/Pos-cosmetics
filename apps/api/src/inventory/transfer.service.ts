@@ -139,7 +139,7 @@ export class TransferService {
     await this.prisma.$transaction([
       // Transfer holatini SHIPPED ga o'tkazish
       this.prisma.stockTransfer.update({
-        where: { id: transferId },
+        where: { id: transferId, tenantId },
         data: { status: 'SHIPPED' },
       }),
       // Har item uchun OUT movement
@@ -183,7 +183,7 @@ export class TransferService {
     await this.prisma.$transaction([
       // Transfer holatini RECEIVED ga o'tkazish
       this.prisma.stockTransfer.update({
-        where: { id: transferId },
+        where: { id: transferId, tenantId },
         data: { status: 'RECEIVED' },
       }),
       // Har item uchun IN movement
@@ -218,7 +218,7 @@ export class TransferService {
     }
 
     return this.prisma.stockTransfer.update({
-      where: { id: transferId },
+      where: { id: transferId, tenantId },
       data: { status: 'CANCELLED' },
     });
   }

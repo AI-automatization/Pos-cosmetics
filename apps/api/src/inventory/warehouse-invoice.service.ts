@@ -22,6 +22,7 @@ export class WarehouseInvoiceService {
 
     const warehouseId = await this.resolveWarehouseId(tenantId, dto.items[0]?.warehouseId);
     const supplierId = await this.resolveSupplierId(tenantId, dto.supplierId, dto.supplierName);
+    await this.assertProductsBelongToTenant(tenantId, dto.items.map((i) => i.productId));
 
     // T-140: accept purchasePrice OR costPrice (mobile alias)
     const itemsWithPrice = dto.items.map((item) => ({
@@ -198,10 +199,20 @@ export class WarehouseInvoiceService {
     const data: Record<string, unknown> = {};
     if (dto.invoiceNumber !== undefined) data.invoiceNumber = dto.invoiceNumber || null;
     if (dto.note !== undefined) data.note = dto.note || null;
-    if (dto.supplierId !== undefined) data.supplierId = dto.supplierId || null;
+    if (dto.supplierId !== undefined) {
+      // #51: supplierId из запроса обязан принадлежать тенанту
+      if (dto.supplierId) {
+        const owned = await this.prisma.supplier.findFirst({
+          where: { id: dto.supplierId, tenantId },
+          select: { id: true },
+        });
+        if (!owned) throw new NotFoundException('Yetkazib beruvchi topilmadi');
+      }
+      data.supplierId = dto.supplierId || null;
+    }
 
     const updated = await this.prisma.warehouseInvoice.update({
-      where: { id: invoiceId },
+      where: { id: invoiceId, tenantId },
       data,
     });
     return updated;
@@ -250,6 +261,7 @@ export class WarehouseInvoiceService {
     if (dto.items.length === 0) throw new BadRequestException('items bo\'sh bo\'lishi mumkin emas');
 
     const warehouseId = await this.resolveWarehouseId(tenantId, dto.warehouseId);
+    await this.assertProductsBelongToTenant(tenantId, dto.items.map((i) => i.productId));
 
     const movements = await this.prisma.$transaction(
       dto.items.map((item) =>
@@ -275,7 +287,15 @@ export class WarehouseInvoiceService {
   }
 
   private async resolveSupplierId(tenantId: string, supplierId?: string, supplierName?: string): Promise<string | null> {
-    if (supplierId) return supplierId;
+    if (supplierId) {
+      // #51: без проверки владения сюда можно подсунуть supplierId чужого тенанта
+      const owned = await this.prisma.supplier.findFirst({
+        where: { id: supplierId, tenantId },
+        select: { id: true },
+      });
+      if (!owned) throw new NotFoundException('Yetkazib beruvchi topilmadi');
+      return supplierId;
+    }
     if (!supplierName?.trim()) return null;
 
     const existing = await this.prisma.supplier.findFirst({
@@ -287,6 +307,19 @@ export class WarehouseInvoiceService {
       data: { tenantId, name: supplierName.trim() },
     });
     return created.id;
+  }
+
+  // #51: productId приходят из тела запроса — без проверки инвойс/движения можно
+  // привязать к товарам чужого тенанта (cross-tenant reference injection)
+  private async assertProductsBelongToTenant(tenantId: string, productIds: string[]): Promise<void> {
+    const unique = [...new Set(productIds)];
+    if (unique.length === 0) return;
+    const owned = await this.prisma.product.count({
+      where: { id: { in: unique }, tenantId },
+    });
+    if (owned !== unique.length) {
+      throw new BadRequestException("Ba'zi mahsulotlar topilmadi yoki sizning do'koningizga tegishli emas");
+    }
   }
 
   private async resolveWarehouseId(tenantId: string, warehouseId?: string): Promise<string> {
