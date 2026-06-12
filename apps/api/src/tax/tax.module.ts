@@ -5,6 +5,7 @@ import { TaxController } from './tax.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { QueueModule } from '../common/queue/queue.module';
 import { FiscalAdapterService } from './fiscal-adapter.service';
+import { ReceiptTemplateService } from './receipt-template.service';
 import { FISCAL_ADAPTER, type FiscalAdapter } from './adapters/fiscal-adapter.interface';
 import { RegosAdapter } from './adapters/regos.adapter';
 import { StubAdapter } from './adapters/stub.adapter';
@@ -15,6 +16,7 @@ import { StubAdapter } from './adapters/stub.adapter';
   providers: [
     TaxService,
     FiscalAdapterService,
+    ReceiptTemplateService,
     {
       provide: FISCAL_ADAPTER,
       inject: [ConfigService],
@@ -36,6 +38,6 @@ import { StubAdapter } from './adapters/stub.adapter';
       },
     },
   ],
-  exports: [TaxService, FiscalAdapterService],
+  exports: [TaxService, FiscalAdapterService, ReceiptTemplateService],
 })
 export class TaxModule {}
