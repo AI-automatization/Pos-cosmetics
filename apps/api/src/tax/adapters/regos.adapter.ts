@@ -28,6 +28,17 @@ export class RegosAdapter implements FiscalAdapter {
     this.apiKey = this.config.get<string>('OFD_API_KEY', '');
   }
 
+  // REGOS hujjatida auth ham headerda, ham JSON-RPC body da ko'rsatilgan
+  // (docs/OFD-integration-spec.md §2.1 vs §2.2) — sandbox tasdiqlagunga qadar ikkalasini yuboramiz
+  private async parseJson<T>(response: Response, context: string): Promise<T> {
+    try {
+      return (await response.json()) as T;
+    } catch {
+      const text = await response.text().catch(() => 'unparseable');
+      throw new Error(`REGOS ${context}: invalid JSON response: ${text.slice(0, 200)}`);
+    }
+  }
+
   // ─── SEND RECEIPT ──────────────────────────────────────────────────────────
 
   async sendReceipt(payload: FiscalReceiptPayload): Promise<FiscalReceiptResult> {
@@ -39,6 +50,7 @@ export class RegosAdapter implements FiscalAdapter {
     const body = {
       jsonrpc: '2.0',
       method: 'Receipt.Send',
+      auth: this.apiKey,
       id: payload.orderId,
       params: {
         orderId: payload.orderId,
@@ -77,9 +89,9 @@ export class RegosAdapter implements FiscalAdapter {
       throw new Error(`REGOS receipt error ${response.status}: ${text}`);
     }
 
-    const data = (await response.json()) as {
+    const data = await this.parseJson<{
       result: { id: string; qr: string; terminalId?: string; fiscalSign?: string };
-    };
+    }>(response, 'receipt');
 
     this.logger.log(`REGOS: receipt OK order=${payload.orderId} fiscal=${data.result.id}`, {
       tenantId: payload.tenantId,
@@ -105,6 +117,7 @@ export class RegosAdapter implements FiscalAdapter {
     const body = {
       jsonrpc: '2.0',
       method: 'ZReport.Send',
+      auth: this.apiKey,
       id: `z-${payload.sequenceNumber}`,
       params: {
         sequenceNumber: payload.sequenceNumber,
@@ -133,7 +146,7 @@ export class RegosAdapter implements FiscalAdapter {
       throw new Error(`REGOS Z-report error ${response.status}: ${text}`);
     }
 
-    const data = (await response.json()) as { result: { id: string } };
+    const data = await this.parseJson<{ result: { id: string } }>(response, 'Z-report');
 
     this.logger.log(`REGOS: Z-report OK seq=#${payload.sequenceNumber} id=${data.result.id}`, {
       tenantId: payload.tenantId,
@@ -152,6 +165,7 @@ export class RegosAdapter implements FiscalAdapter {
     const body = {
       jsonrpc: '2.0',
       method: 'Receipt.CheckQRCodeUrl',
+      auth: this.apiKey,
       id: `check-${Date.now()}`,
       params: { QRCodeURL: qrCodeUrl },
     };
@@ -170,7 +184,12 @@ export class RegosAdapter implements FiscalAdapter {
       return { valid: false };
     }
 
-    const data = (await response.json()) as { result: Record<string, unknown> };
+    let data: { result: Record<string, unknown> };
+    try {
+      data = await this.parseJson<{ result: Record<string, unknown> }>(response, 'check');
+    } catch {
+      return { valid: false };
+    }
     return { valid: true, data: data.result };
   }
 }
