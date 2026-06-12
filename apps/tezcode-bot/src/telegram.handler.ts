@@ -12,11 +12,46 @@ import { config } from './config';
 
 const allowedUsers = new Set<string>();
 
+function isGroup(ctx: Context): boolean {
+  const type = ctx.chat?.type;
+  return type === 'group' || type === 'supergroup';
+}
+
 function isAllowed(ctx: Context): boolean {
+  const userId = ctx.from?.id?.toString();
+  if (!userId) return false;
+  if (config.ownerIds.includes(userId)) return true;
   const username = ctx.from?.username;
-  if (!username) return false;
-  if (username === config.ownerUsername) return true;
-  return allowedUsers.has(username);
+  if (username && username === config.ownerUsername) return true;
+  return allowedUsers.has(userId);
+}
+
+function isOwner(ctx: Context): boolean {
+  const userId = ctx.from?.id?.toString();
+  if (userId && config.ownerIds.includes(userId)) return true;
+  return ctx.from?.username === config.ownerUsername;
+}
+
+function isMentioned(ctx: Context, botUsername: string): boolean {
+  const entities = ctx.message?.entities ?? [];
+  const text = ctx.message?.text ?? '';
+  for (const e of entities) {
+    if (e.type === 'mention') {
+      const mention = text.slice(e.offset, e.offset + e.length);
+      if (mention.toLowerCase() === `@${botUsername.toLowerCase()}`) return true;
+    }
+  }
+  // Also check reply to bot
+  if (ctx.message?.reply_to_message?.from?.is_bot) return true;
+  return false;
+}
+
+// ─── Shutdown callback ──────────────────────────────────────
+
+let shutdownFn: (() => void) | null = null;
+
+export function setShutdownFn(fn: () => void): void {
+  shutdownFn = fn;
 }
 
 // ─── Register ───────────────────────────────────────────────
@@ -24,6 +59,7 @@ function isAllowed(ctx: Context): boolean {
 export function registerHandlers(bot: Bot): void {
   bot.command('start', handleStart);
   bot.command('help', handleHelp);
+  bot.command('stop', handleStop);
   bot.command('model', handleModel);
   bot.command('compact', handleCompact);
   bot.command('clear', handleClear);
@@ -35,6 +71,7 @@ export function registerHandlers(bot: Bot): void {
 
   bot.callbackQuery(/^model:/, handleModelCallback);
   bot.callbackQuery('new_confirm', handleNewConfirm);
+  bot.callbackQuery('stop_confirm', handleStopConfirm);
   bot.callbackQuery('dismiss', async (ctx) => {
     await ctx.answerCallbackQuery();
     await ctx.deleteMessage().catch(() => {});
@@ -48,17 +85,38 @@ export function registerHandlers(bot: Bot): void {
 // ─── /start ─────────────────────────────────────────────────
 
 async function handleStart(ctx: Context): Promise<void> {
-  if (!isAllowed(ctx)) { await ctx.reply('🔒 Access denied.'); return; }
+  if (!isAllowed(ctx)) return;
   const s = getChatState(String(ctx.chat?.id));
   await ctx.reply(
-    `🤖 <b>Claude Code — Ready</b>\n\n` +
+    `🤖 <b>TezCode AI Assistant — Ready</b>\n\n` +
     `🧠 Model: <code>${s.model}</code>\n` +
-    `📂 Dir: <code>${s.cwd}</code>\n` +
+    `📂 Dir: <code>${shortPath(s.cwd)}</code>\n` +
     `📨 Requests: ${s.requestCount}\n` +
     `💬 History: ${s.history.length / 2} messages\n\n` +
-    `Type anything → Claude works. /help for commands.`,
+    `I have full access to your laptop. Ask me anything or tell me where to go.\n` +
+    `/help for commands.`,
     { parse_mode: 'HTML' },
   );
+}
+
+// ─── /stop ─────────────────────────────────────────────────
+
+async function handleStop(ctx: Context): Promise<void> {
+  if (!isOwner(ctx)) { await ctx.reply('🔒 Owner only.'); return; }
+  const kb = new InlineKeyboard().text('✅ Stop bot', 'stop_confirm').text('❌ Cancel', 'dismiss');
+  await ctx.reply('🛑 Stop the bot? Process will exit.', { reply_markup: kb });
+}
+
+async function handleStopConfirm(ctx: Context): Promise<void> {
+  if (!isOwner(ctx)) return;
+  await ctx.answerCallbackQuery({ text: 'Stopping...' });
+  await ctx.editMessageText('🛑 Bot stopped. Goodbye!').catch(() => {});
+
+  // Give time for the message to send, then exit
+  setTimeout(() => {
+    if (shutdownFn) shutdownFn();
+    process.exit(0);
+  }, 500);
 }
 
 // ─── /help ──────────────────────────────────────────────────
@@ -66,20 +124,22 @@ async function handleStart(ctx: Context): Promise<void> {
 async function handleHelp(ctx: Context): Promise<void> {
   if (!isAllowed(ctx)) return;
   await ctx.reply(
-    '🤖 <b>Commands</b>\n\n' +
-    '<b>Chat:</b>\n' +
-    '• Type text → Claude responds (remembers context!)\n' +
-    '• 📷 Photo / 📄 File → Claude reads\n\n' +
+    '🤖 <b>TezCode AI Assistant — Help</b>\n\n' +
+    '<b>What I can do:</b>\n' +
+    '• Manage files & projects on your laptop\n' +
+    '• Run commands, debug, code review\n' +
+    '• Navigate directories (/dir path)\n' +
+    '• 📷 Photo / 📄 File → analyze\n\n' +
     '<b>Session:</b>\n' +
     '• /compact — compress context (save tokens)\n' +
     '• /clear — new session (forget all)\n' +
     '• /new — full reset (model + session)\n\n' +
     '<b>Settings:</b>\n' +
     '• /model [sonnet|opus|haiku]\n' +
-    '• /dir [path] — working directory\n' +
+    '• /dir [path] — change working directory\n' +
     '• /obsidian — toggle vault\n' +
     '• /status — stats\n' +
-    '• /allow [username] — give access',
+    '• /allow [user_id] — give access',
     { parse_mode: 'HTML' },
   );
 }
@@ -191,11 +251,15 @@ async function handleObsidian(ctx: Context): Promise<void> {
 // ─── /allow ─────────────────────────────────────────────────
 
 async function handleAllow(ctx: Context): Promise<void> {
-  if (ctx.from?.username !== config.ownerUsername) { await ctx.reply('🔒 Owner only.'); return; }
-  const username = (ctx.message?.text ?? '').split(/\s+/)[1]?.replace('@', '');
-  if (!username) { await ctx.reply('Usage: /allow username'); return; }
-  allowedUsers.add(username);
-  await ctx.reply(`✅ @${username} allowed.`);
+  if (!isOwner(ctx)) { await ctx.reply('🔒 Owner only.'); return; }
+  const arg = (ctx.message?.text ?? '').split(/\s+/)[1]?.replace('@', '');
+  if (!arg) { await ctx.reply('Usage: /allow <user_id or username>'); return; }
+
+  // If replying to a message, use that user's id
+  const replyUserId = ctx.message?.reply_to_message?.from?.id?.toString();
+  const targetId = replyUserId ?? arg;
+  allowedUsers.add(targetId);
+  await ctx.reply(`✅ User ${targetId} allowed.`);
 }
 
 // ─── /status ────────────────────────────────────────────────
@@ -219,10 +283,29 @@ async function handleStatus(ctx: Context): Promise<void> {
 
 // ─── Text ───────────────────────────────────────────────────
 
+let botUsername = '';
+
+export function setBotUsername(username: string): void {
+  botUsername = username;
+}
+
 async function handleText(ctx: Context): Promise<void> {
-  if (!isAllowed(ctx)) { await ctx.reply('🔒 Access denied.'); return; }
-  const text = ctx.message?.text?.trim();
+  // In groups: first check if bot is mentioned, then check access
+  if (isGroup(ctx) && !isMentioned(ctx, botUsername)) return;
+
+  // Access check — silent ignore in groups, reply in DM
+  if (!isAllowed(ctx)) {
+    if (!isGroup(ctx)) await ctx.reply('🔒 Access denied.');
+    return;
+  }
+
+  let text = ctx.message?.text?.trim() ?? '';
   if (!text) return;
+
+  // Strip bot mention from text
+  text = text.replace(new RegExp(`@${botUsername}`, 'gi'), '').trim();
+  if (!text) return;
+
   await sendToClaude(ctx, String(ctx.chat?.id), text);
 }
 

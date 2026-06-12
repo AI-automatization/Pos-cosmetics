@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import { config } from './config';
+import { SYSTEM_PROMPT } from './system-prompt';
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -116,9 +117,9 @@ const MAX_HISTORY_CHARS = 30000; // ~30K chars of history context
 function buildPrompt(state: ChatState, userMessage: string): string {
   const parts: string[] = [];
 
-  // Identity
+  // Identity — first message context
   if (state.requestCount === 0 && state.history.length === 0) {
-    parts.push('I am Ibrat (Full-Stack). Respond in Russian when I write in Russian.\n');
+    parts.push('You are TezCode AI Assistant for the RAOS project. Respond in the language the user writes in.\n');
   }
 
   // History — fit as much as possible within char limit
@@ -204,6 +205,7 @@ function processItem(item: QueueItem): void {
     '--model', item.model,
     '--no-session-persistence',
     '--dangerously-skip-permissions',
+    '--append-system-prompt', SYSTEM_PROMPT,
   ];
 
   for (const dir of item.addDirs) {

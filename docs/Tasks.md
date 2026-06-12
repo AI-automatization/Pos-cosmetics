@@ -345,3 +345,142 @@
 ---
 
 *(T-470..T-477 — BAJARILDI, Done.md 2026-06-04 — 7 ta import engine bug fix)*
+
+---
+
+# ══════════════════════════════════════════════════════════════
+# FULL AUDIT NATIJALARI (2026-06-13) — 10 agent, 86 model, 411 endpoint
+# ══════════════════════════════════════════════════════════════
+
+## T-484 | P0 | [SECURITY] | Billing IDOR — tenant_id filter yo'q payments/invoices da
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/billing/billing-payment.service.ts:287`, `billing-invoice.service.ts:53`
+- **Muammo:** `GET /billing/payments/:id` va `/invoices/:id` endpointlari tenantId bo'yicha filter qilmaydi. Har qanday avtorizatsiya qilingan user boshqa tenant invoiceni UUID orqali o'qiy oladi.
+- **Kutilgan:** `where: { id, tenantId }` — barcha billing GET-by-id metodlarda
+- **Holat:** IN PROGRESS
+
+---
+
+## T-485 | P0 | [SECURITY] | Admin panel — journal_entries/journal_lines UPDATE/DELETE bloklash
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/admin/admin-database.service.ts`, `admin-db-constants.ts`
+- **Muammo:** TABLE_WHITELIST ga `journal_entries` va `journal_lines` kiritilgan. Super Admin admin panel orqali immutable ledger yozuvlarini o'zgartirishi/o'chirishi mumkin. Bu CLAUDE.md dagi "Ledger entry — IMMUTABLE, faqat reversal" qoidasini buzadi.
+- **Kutilgan:** IMMUTABLE_TABLES set yaratish va write operatsiyalarni (update/delete/bulk) bloklash. Read ruxsat etiladi.
+- **Holat:** IN PROGRESS
+
+---
+
+## T-486 | P0 | [SECURITY] | tezcode-bot RCE — guruhda barcha foydalanuvchilarga ruxsat
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/tezcode-bot/src/telegram.handler.ts:21`, `claude.service.ts:206`
+- **Muammo:** `isAllowed()` funksiyasi Telegram guruhlarida BARCHA ishtirokchilarga `true` qaytaradi. `--dangerously-skip-permissions` flag bilan Claude CLI ishga tushiriladi. Natija: guruhning har qanday a'zosi serverda ixtiyoriy buyruqlar bajarishi mumkin (RCE).
+- **Kutilgan:** Guruhlarda ham `allowedUsers` yoki `OWNER_IDS` tekshiruvi. `/api/send` endpoint ga bearer token qo'shish.
+- **Holat:** IN PROGRESS
+
+---
+
+## T-487 | P0 | [SECURITY] | SQL Console — production da to'liq bloklash
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/admin/admin-sql-console.service.ts:70`, controller
+- **Muammo:** `$queryRawUnsafe` orqali ixtiyoriy SQL (SELECT) bajariladi. Buzilgan Super Admin akkaunt = butun bazaga to'liq read-access (barcha tenantlar, parollar).
+- **Kutilgan:** Production muhitda SQL Console to'liq o'chiriladi (`ForbiddenException`). Dev/staging da ishlaydi.
+- **Holat:** IN PROGRESS
+
+---
+
+## T-488 | P0 | [INFRA] | Rate limiting ishlamaydi — Throttler tekshirish
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/app.module.ts`, `common/guards/throttler*`
+- **Muammo:** Production da 70 ta so'rov soniyalar ichida yuborildi — bitta ham 429 qaytmadi. ThrottlerGuard ishlamayapti yoki Railway proxy client IP ni to'g'ri o'tkazmayapti.
+- **Kutilgan:** X-Forwarded-For orqali real IP olish, ThrottlerGuard `getTracker` metodini override qilish. 60 req/min limit ishlashi kerak.
+- **Holat:** IN PROGRESS
+
+---
+
+## T-489 | P1 | [SECURITY] | ledger.service.ts — return.approved da tenantId yo'q
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/ledger/ledger.service.ts:163`
+- **Muammo:** `return.approved` event handler da `prisma.return.findFirst({ where: { id: payload.returnId } })` — tenantId filter yo'q.
+- **Kutilgan:** `where: { id: payload.returnId, tenantId: payload.tenantId }`
+
+---
+
+## T-490 | P1 | [FRONTEND] | useDebtDetail noto'g'ri URL — /debts/ o'rniga /nasiya/
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/hooks/customers/useDebts.ts:69`
+- **Muammo:** Hook `/debts/${debtId}` ga so'rov yuboradi, lekin backend da bunday endpoint yo'q. To'g'ri endpoint: `/nasiya/:id`.
+- **Kutilgan:** URL ni `/api/v1/nasiya/${debtId}` ga o'zgartirish
+
+---
+
+## T-491 | P1 | [FRONTEND] | 402 billing interceptor yo'q — client.ts
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/api/client.ts`
+- **Muammo:** CLAUDE_FULLSTACK.md da 402 interceptor talab qilingan (subscription expired → /settings/billing redirect). Kodda yo'q.
+- **Kutilgan:** 402 response da `window.dispatchEvent(new CustomEvent('billing:due'))` yoki redirect
+
+---
+
+## T-492 | P1 | [FRONTEND] | Loyalty hooks dublikatlari — 3 ta hook 2 ta faylda
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `hooks/customers/useLoyalty.ts` vs `hooks/loyalty/useLoyalty.ts`
+- **Muammo:** `useLoyaltyConfig`, `useLoyaltyAccount`, `useRedeemPoints` — har biri 2 ta faylda turli invalidation logikasi bilan aniqlangan. Import paytida noto'g'ri fayl olinishi mumkin.
+- **Kutilgan:** Bitta fayl (loyalty/) qoldirish, ikkinchisini re-export qilish
+
+---
+
+## T-493 | P1 | [SCHEMA] | ProductBarcode, OrderItem, DebtPayment — tenantId yo'q
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `prisma/schema.prisma`
+- **Muammo:** 3 ta muhim jadvalda tenantId yo'q: ProductBarcode (barcode search cross-tenant), OrderItem (hisobot aggregatsiyalari), DebtPayment (moliyaviy ma'lumotlar). Direct query da data leak xavfi.
+- **Kutilgan:** tenantId + @@index qo'shish, migration yaratish
+
+---
+
+## T-494 | P1 | [CI/CD] | railway.toml web — SESSION_SIGNING_SECRET yuklanmaydi
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/railway.toml:14`
+- **Muammo:** Dockerfile CMD `. /app/sess.env` qiladi, lekin Railway startCommand buni override qiladi va sess.env yuklanmaydi. Finance/settings sahifalari OWNER/ADMIN uchun ishlamasligi mumkin.
+- **Kutilgan:** startCommand ni `. /app/sess.env && node apps/web/server.js` ga o'zgartirish
+
+---
+
+## T-495 | P1 | [WORKER] | sms-campaign.worker — tenantId yo'q + failed handler yo'q
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/worker/src/workers/sms-campaign.worker.ts:62-64`
+- **Muammo:** `prisma.smsCampaign.update({ where: { id } })` — tenantId filter yo'q. `worker.on('failed')` handler yo'q — xatolar loglanmaydi.
+- **Kutilgan:** tenantId qo'shish, failed handler qo'shish
+
+---
+
+## T-496 | P1 | [WORKER] | migration.worker — credentials Redis da ochiq, header himoyasiz
+
+- **Sana:** 2026-06-13
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/worker/src/workers/migration.worker.ts`
+- **Muammo:** Job data da credentials ochiq Redis ga yoziladi. `X-Internal-Worker: true` header hech qanday secret bilan tekshirilmaydi.
+- **Kutilgan:** Credentials o'rniga credentialId yuborish va DB/vault dan o'qish. Header ga secret qo'shish.

@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
 // ─── Whitelist: все 47 таблиц из Prisma schema ─────────────────────────────
@@ -20,6 +20,15 @@ export const TABLE_WHITELIST = new Set([
   'warehouse_invoices', 'warehouse_invoice_items', 'support_tickets',
   'ticket_messages', 'tasks', 'properties', 'rental_contracts',
   'rental_payments', '_prisma_migrations',
+]);
+
+// Таблицы, запрещённые для write-операций (immutable by design)
+export const IMMUTABLE_TABLES = new Set([
+  'journal_entries',
+  'journal_lines',
+  'z_reports',
+  'audit_logs',
+  'event_log',
 ]);
 
 // Поля, которые маскируются при чтении
@@ -72,6 +81,12 @@ export function assertTableAllowed(tableName: string): void {
   }
   if (!TABLE_WHITELIST.has(tableName)) {
     throw new BadRequestException(`Таблица "${tableName}" не доступна`);
+  }
+}
+
+export function assertTableMutable(tableName: string): void {
+  if (IMMUTABLE_TABLES.has(tableName)) {
+    throw new ForbiddenException(`Table "${tableName}" is immutable and cannot be modified`);
   }
 }
 

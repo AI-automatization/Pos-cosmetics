@@ -18,6 +18,8 @@ export const config = {
   obsidianVault: env('OBSIDIAN_VAULT', 'C:/Users/asus/Documents/Obsidian Vault'),
   maxHistory: Number(env('TEZCODE_MAX_HISTORY', '10')),
   ownerUsername: env('OWNER_USERNAME', 'tursunov_078'),
+  ownerIds: (process.env.BOT_OWNER_IDS ?? '').split(',').filter(Boolean),
+  apiSecret: env('BOT_API_SECRET', ''),
   globalDirs: [
     'C:/Users/asus/Desktop',
     'C:/Users/asus/Documents',

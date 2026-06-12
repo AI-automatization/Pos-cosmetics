@@ -50,8 +50,8 @@ export class BillingInvoiceService {
     });
   }
 
-  async getInvoice(id: string) {
-    const invoice = await this.prisma.billingInvoice.findUnique({ where: { id } });
+  async getInvoice(id: string, tenantId: string) {
+    const invoice = await this.prisma.billingInvoice.findFirst({ where: { id, tenantId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
     return invoice;
   }

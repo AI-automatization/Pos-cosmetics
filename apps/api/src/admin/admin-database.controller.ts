@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Headers,
   HttpCode,
@@ -214,6 +215,10 @@ export class AdminDatabaseController {
     @Req() req: AdminRequest,
     @Headers('x-confirm-destructive') confirmDestructive?: string,
   ) {
+    // SECURITY: SQL Console полностью заблокирована в production
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('SQL Console is disabled in production environment');
+    }
     // T-391: SUPPORT role — SQL console taqiqlangan
     if (req.user?.role === 'SUPPORT') {
       throw new BadRequestException('SUPPORT role uchun SQL console taqiqlangan. Faqat SUPER_ADMIN ishlatishi mumkin.');
