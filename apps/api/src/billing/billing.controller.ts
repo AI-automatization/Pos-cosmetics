@@ -141,8 +141,8 @@ export class BillingController {
 
   @Get('payments/:id')
   @ApiOperation({ summary: 'Get billing payment details' })
-  getPayment(@Param('id') id: string) {
-    return this.billingPayment.getPayment(id);
+  getPayment(@Param('id') id: string, @CurrentUser('tenantId') tenantId: string) {
+    return this.billingPayment.getPayment(id, tenantId);
   }
 
   // ─── Billing Webhooks (Tezcode platform merchant) ───────────────────────
@@ -201,14 +201,14 @@ export class BillingController {
 
   @Get('invoices/:id')
   @ApiOperation({ summary: 'Get billing invoice details' })
-  getInvoice(@Param('id') id: string) {
-    return this.billingInvoice.getInvoice(id);
+  getInvoice(@Param('id') id: string, @CurrentUser('tenantId') tenantId: string) {
+    return this.billingInvoice.getInvoice(id, tenantId);
   }
 
   @Get('invoices/:id/pdf')
   @ApiOperation({ summary: 'Download billing invoice as PDF' })
-  async getInvoicePdf(@Param('id') id: string, @Res() res: Response) {
-    const invoice = await this.billingInvoice.getInvoice(id);
+  async getInvoicePdf(@Param('id') id: string, @CurrentUser('tenantId') tenantId: string, @Res() res: Response) {
+    const invoice = await this.billingInvoice.getInvoice(id, tenantId);
     const pdf = this.billingInvoice.generatePdf(invoice);
 
     res.set({

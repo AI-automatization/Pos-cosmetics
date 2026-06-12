@@ -284,9 +284,9 @@ export class BillingPaymentService {
     });
   }
 
-  async getPayment(id: string) {
-    const payment = await this.prisma.billingPayment.findUnique({
-      where: { id },
+  async getPayment(id: string, tenantId: string) {
+    const payment = await this.prisma.billingPayment.findFirst({
+      where: { id, tenantId },
       include: { plan: true, tenant: { select: { id: true, name: true } } },
     });
     if (!payment) throw new NotFoundException('Payment not found');
