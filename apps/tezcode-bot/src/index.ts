@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Bot } from 'grammy';
 import { config } from './config';
-import { registerHandlers } from './telegram.handler';
+import { registerHandlers, setBotUsername, setShutdownFn } from './telegram.handler';
 import { startHttpServer, setSendFunction } from './http.server';
 
 const bot = new Bot(config.botToken);
@@ -11,8 +11,9 @@ bot.catch((err) => {
 });
 
 bot.api.setMyCommands([
-  { command: 'start', description: 'Status & info' },
+  { command: 'start', description: 'AI Assistant status' },
   { command: 'help', description: 'All commands' },
+  { command: 'stop', description: 'Stop the bot' },
   { command: 'compact', description: 'Compress context' },
   { command: 'model', description: 'Switch model' },
   { command: 'clear', description: 'New session' },
@@ -23,6 +24,7 @@ bot.api.setMyCommands([
 ]).catch((e) => console.error('setMyCommands failed:', e));
 
 registerHandlers(bot);
+setShutdownFn(() => bot.stop());
 
 setSendFunction(async (chatId: string, text: string) => {
   await bot.api.sendMessage(Number(chatId), text);
@@ -36,7 +38,11 @@ console.log(`   Model: ${config.model}`);
 console.log(`   CWD:   ${config.cwd}`);
 
 bot.start({
-  onStart: () => console.log('✅ @ibrat_claude_bot is running!'),
+  onStart: async () => {
+    const me = await bot.api.getMe();
+    setBotUsername(me.username ?? 'ibrat_claude_bot');
+    console.log(`✅ @${me.username} is running!`);
+  },
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

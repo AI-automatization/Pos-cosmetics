@@ -34,6 +34,14 @@ export function startHttpServer(port: number): void {
       }
 
       if (req.method === 'POST' && url.pathname === '/api/send') {
+        if (config.apiSecret) {
+          const token = req.headers['authorization'];
+          if (token !== `Bearer ${config.apiSecret}`) {
+            res.writeHead(401);
+            res.end(JSON.stringify({ error: 'Unauthorized' }));
+            return;
+          }
+        }
         const body = await readBody(req);
         const { text, chatId } = JSON.parse(body);
         if (!text || !chatId || !sendToChat) {
