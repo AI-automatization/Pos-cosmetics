@@ -27,6 +27,14 @@ export class TaxController {
     return this.taxService.getTaxReport(tenantId, from, to);
   }
 
+  // ⚠️ 'fiscal/provider' 'fiscal/:orderId' dan OLDIN turishi shart — NestJS route'larni
+  // e'lon tartibida matchlaydi, aks holda :orderId 'provider' ni yutib yuboradi
+  @Get('fiscal/provider')
+  @ApiOperation({ summary: 'Hozirgi OFD provider nomi (REGOS yoki STUB)' })
+  getProvider() {
+    return { provider: this.fiscalAdapter.provider };
+  }
+
   @Get('fiscal/:orderId')
   @ApiOperation({ summary: 'Buyurtma fiskal holati' })
   getFiscalStatus(
@@ -43,11 +51,5 @@ export class TaxController {
     @Param('orderId') orderId: string,
   ) {
     return this.taxService.retryFiscal(tenantId, orderId);
-  }
-
-  @Get('fiscal/provider')
-  @ApiOperation({ summary: 'Hozirgi OFD provider nomi (REGOS yoki STUB)' })
-  getProvider() {
-    return { provider: this.fiscalAdapter.provider };
   }
 }
