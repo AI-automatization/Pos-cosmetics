@@ -7,6 +7,7 @@ import {
   ColumnInfo,
   DbStats,
   assertTableAllowed,
+  assertTableMutable,
   assertColumnsAllowed,
   VALID_COL_RE,
   maskRow,
@@ -157,6 +158,7 @@ export class AdminDatabaseService {
 
   async createRow(tableName: string, data: Record<string, unknown>) {
     assertTableAllowed(tableName);
+    assertTableMutable(tableName);
 
     if (!data || typeof data !== 'object') {
       throw new BadRequestException('Данные для создания не переданы');
@@ -224,6 +226,7 @@ export class AdminDatabaseService {
 
   async updateRow(tableName: string, id: string, data: Record<string, unknown>) {
     assertTableAllowed(tableName);
+    assertTableMutable(tableName);
 
     if (!data || typeof data !== 'object') {
       throw new BadRequestException('Данные для обновления не переданы');
@@ -279,6 +282,7 @@ export class AdminDatabaseService {
 
   async deleteRow(tableName: string, id: string) {
     assertTableAllowed(tableName);
+    assertTableMutable(tableName);
 
     // Получаем данные перед удалением
     const oldRows = await this.prisma.$queryRawUnsafe<Record<string, unknown>[]>(
@@ -302,6 +306,7 @@ export class AdminDatabaseService {
 
   async bulkDelete(tableName: string, ids: string[]) {
     assertTableAllowed(tableName);
+    assertTableMutable(tableName);
 
     if (ids.length === 0) throw new BadRequestException('Нет ID для удаления');
     if (ids.length > 100) throw new BadRequestException('Максимум 100 записей за раз');
@@ -320,6 +325,7 @@ export class AdminDatabaseService {
 
   async bulkUpdate(tableName: string, ids: string[], data: Record<string, unknown>) {
     assertTableAllowed(tableName);
+    assertTableMutable(tableName);
 
     if (ids.length === 0) throw new BadRequestException('Нет ID для обновления');
     if (ids.length > 100) throw new BadRequestException('Максимум 100 записей за раз');
