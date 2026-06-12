@@ -23,6 +23,9 @@ export default function VideoModal({ title, videoId, src, onClose }: Props) {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={onClose}
     >
@@ -38,7 +41,9 @@ export default function VideoModal({ title, videoId, src, onClose }: Props) {
         <div className="flex items-center justify-between px-5 py-3 border-b border-[rgba(36,212,244,0.1)] shrink-0">
           <h3 className="text-white font-bold text-base">{title}</h3>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close"
             className="text-slate-400 hover:text-white transition-colors p-1"
           >
             <X size={20} />

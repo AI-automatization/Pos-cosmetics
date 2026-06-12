@@ -43,7 +43,7 @@ export const features: Feature[] = [
     icon: 'ShieldCheck',
     title: "Soliq.uz integratsiya",
     description:
-      "Har sotuvdan fiskal chek avtomatik. Jarima xavfi nol. OFD orqali to'g'ridan-to'g'ri.",
+      "Har sotuvdan fiskal chek avtomatik. Jarima xavfini minimallashtiradi. OFD orqali to'g'ridan-to'g'ri.",
     badge: "Tizim A da YO'Q",
   },
   {
@@ -65,7 +65,7 @@ export const features: Feature[] = [
     title: 'Offline ishlaydi',
     description:
       "Internet uzilsa ham kassa ishlashda davom etadi. Ma'lumotlar sinxronlanadi.",
-    badge: "Faqat RAOS da",
+    badge: "RAOS afzalligi",
   },
   {
     icon: 'Globe',

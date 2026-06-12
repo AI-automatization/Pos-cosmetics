@@ -115,6 +115,7 @@ export default function Calculator() {
                 min={1}
                 max={10}
                 value={branches}
+                aria-label={tr.branches}
                 onChange={(e) => setBranches(Number(e.target.value))}
                 className="w-full h-2 rounded-full appearance-none cursor-pointer"
                 style={{
@@ -138,6 +139,8 @@ export default function Calculator() {
                 {POS_KEYS.map((key) => (
                   <button
                     key={key}
+                    type="button"
+                    aria-pressed={posType === key}
                     onClick={() => setPosType(key)}
                     className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 ${
                       posType === key

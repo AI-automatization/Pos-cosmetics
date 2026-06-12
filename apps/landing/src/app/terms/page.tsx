@@ -71,13 +71,13 @@ export default function TermsPage() {
 
             <Section title="4. Sinov davri va to'lov">
               <p>
-                <strong className="text-white">30 kunlik bepul sinov:</strong> Ro&apos;yxatdan o&apos;tgandan so&apos;ng
+                <strong className="text-white">30 kunlik bepul sinov:</strong> Ariza tasdiqlanib, hisob ochilgandan so&apos;ng
                 barcha funksiyalar 30 kun bepul taqdim etiladi. Karta yoki to&apos;lov ma&apos;lumoti talab qilinmaydi.
               </p>
               <p>Tarif rejalari (oylik/yillik):</p>
               <ul>
                 <li><strong className="text-white">Starter</strong> — 249 000 so&apos;m/oy: 1 filial, 3 kassir</li>
-                <li><strong className="text-white">Growth</strong> — 399 000 so&apos;m/oy: 3 filial, 10 kassir</li>
+                <li><strong className="text-white">Growth</strong> — 449 000 so&apos;m/oy: 3 filial, 10 kassir</li>
                 <li><strong className="text-white">Pro</strong> — 799 000 so&apos;m/oy: cheksiz filial va kassir</li>
               </ul>
               <p>

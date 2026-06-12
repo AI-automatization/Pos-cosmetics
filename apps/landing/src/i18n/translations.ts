@@ -45,7 +45,7 @@ const uz = {
     items: [
       {
         title: 'Soliq.uz integratsiya',
-        description: "Har sotuvdan fiskal chek avtomatik. Jarima xavfi nol. OFD orqali to'g'ridan-to'g'ri.",
+        description: "Har sotuvdan fiskal chek avtomatik. Jarima xavfini minimallashtiradi. OFD orqali to'g'ridan-to'g'ri.",
         badge: "Tizim A da YO'Q",
       },
       {
@@ -61,7 +61,7 @@ const uz = {
       {
         title: 'Offline ishlaydi',
         description: "Internet uzilsa ham kassa ishlashda davom etadi. Ma'lumotlar sinxronlanadi.",
-        badge: "Faqat RAOS da",
+        badge: "RAOS afzalligi",
       },
       {
         title: '3 tilda (UZ/RU/EN)',
@@ -191,7 +191,7 @@ const uz = {
     note: "Ma'lumotlar {date} holatiga ko'ra. Raqobatchilar narxlari ularning rasmiy saytidan olingan.",
     rows: [
       { feature: "Boshlang'ich narx", raos: "249,000 so'm", billz: "299,000 so'm", yespos: "100,000 so'm" },
-      { feature: 'Bepul sinov', raos: '30 kun', billz: '7 kun', yespos: 'Oy oxirigacha' },
+      { feature: 'Pilot (bepul)', raos: '1 oy', billz: '7 kun', yespos: 'Oy oxirigacha' },
       { feature: 'OFFLINE ishlaydi', raos: true, billz: false, yespos: false },
       { feature: 'Soliq.uz (OFD)', raos: true, billz: false, yespos: "Qo'shimcha" },
       { feature: 'Haqiqiy AI', raos: true, billz: false, yespos: false },
@@ -256,6 +256,7 @@ const uz = {
       fullName: 'Ismingizni kiriting',
       phoneRequired: 'Telefon raqamini kiriting',
       phoneFormat: '+998XXXXXXXXX formatda kiriting',
+      submitFailed: "Yuborib bo'lmadi. Qayta urinib ko'ring yoki @raos_support ga yozing.",
     },
     successTitle: 'Rahmat!',
     successDesc: "30 daqiqa ichida jamoamiz siz bilan bog'lanadi.",
@@ -297,7 +298,7 @@ const uz = {
       {
         category: 'Boshlash',
         title: "Ro'yxatdan o'tish va sozlash",
-        description: "RAOS ga ro'yxatdan o'tib, do'koningizni 2 daqiqada sozlang.",
+        description: "Ariza qoldiring — do'koningizni 2 daqiqada sozlab beramiz.",
         duration: 3,
         steps: 4,
         difficulty: 'easy' as const,
@@ -452,7 +453,7 @@ const ru: typeof uz = {
     items: [
       {
         title: 'Интеграция Soliq.uz',
-        description: 'Фискальный чек автоматически при каждой продаже. Нулевой риск штрафа. Напрямую через ОФД.',
+        description: 'Фискальный чек автоматически при каждой продаже. Минимальный риск штрафов. Напрямую через ОФД.',
         badge: 'НЕТ В Системе A',
       },
       {
@@ -468,7 +469,7 @@ const ru: typeof uz = {
       {
         title: 'Работает офлайн',
         description: 'Касса продолжает работать даже без интернета. Данные синхронизируются автоматически.',
-        badge: 'Только в RAOS',
+        badge: 'Преимущество RAOS',
       },
       {
         title: '3 языка (UZ/RU/EN)',
@@ -598,7 +599,7 @@ const ru: typeof uz = {
     note: 'Данные актуальны на {date}. Цены конкурентов взяты с их официальных сайтов.',
     rows: [
       { feature: 'Начальная цена', raos: '249 000 сум', billz: '299 000 сум', yespos: '100 000 сум' },
-      { feature: 'Пробный период', raos: '30 дней', billz: '7 дней', yespos: 'До конца месяца' },
+      { feature: 'Пилот (бесплатно)', raos: '1 месяц', billz: '7 дней', yespos: 'До конца месяца' },
       { feature: 'Работает OFFLINE', raos: true, billz: false, yespos: false },
       { feature: 'Soliq.uz (ОФД)', raos: true, billz: false, yespos: 'Доп. модуль' },
       { feature: 'Настоящий AI', raos: true, billz: false, yespos: false },
@@ -663,6 +664,7 @@ const ru: typeof uz = {
       fullName: 'Введите ваше имя',
       phoneRequired: 'Введите номер телефона',
       phoneFormat: 'Введите в формате +998XXXXXXXXX',
+      submitFailed: 'Не удалось отправить. Попробуйте ещё раз или напишите @raos_support.',
     },
     successTitle: 'Спасибо!',
     successDesc: 'Наша команда свяжется с вами в течение 30 минут.',
@@ -704,7 +706,7 @@ const ru: typeof uz = {
       {
         category: 'Начало работы',
         title: 'Регистрация и настройка',
-        description: 'Зарегистрируйтесь в RAOS и настройте магазин за 2 минуты.',
+        description: 'Оставьте заявку — мы настроим магазин за 2 минуты.',
         duration: 3,
         steps: 4,
         difficulty: 'easy' as const,
@@ -859,7 +861,7 @@ const en: typeof uz = {
     items: [
       {
         title: 'Soliq.uz integration',
-        description: 'Fiscal receipt generated automatically with every sale. Zero penalty risk. Directly through OFD.',
+        description: 'Fiscal receipt generated automatically with every sale. Minimal penalty risk. Directly through OFD.',
         badge: 'NOT IN System A',
       },
       {
@@ -875,7 +877,7 @@ const en: typeof uz = {
       {
         title: 'Works offline',
         description: 'The register keeps working even without internet. Data syncs automatically.',
-        badge: 'RAOS exclusive',
+        badge: 'RAOS advantage',
       },
       {
         title: '3 languages (UZ/RU/EN)',
@@ -1005,7 +1007,7 @@ const en: typeof uz = {
     note: 'Data as of {date}. Competitor prices sourced from their official websites.',
     rows: [
       { feature: 'Starting price', raos: '249,000 sum', billz: '299,000 sum', yespos: '100,000 sum' },
-      { feature: 'Free trial', raos: '30 days', billz: '7 days', yespos: 'Until month end' },
+      { feature: 'Pilot (free)', raos: '1 month', billz: '7 days', yespos: 'Until month end' },
       { feature: 'Works OFFLINE', raos: true, billz: false, yespos: false },
       { feature: 'Soliq.uz (OFD)', raos: true, billz: false, yespos: 'Add-on' },
       { feature: 'Real AI', raos: true, billz: false, yespos: false },
@@ -1070,6 +1072,7 @@ const en: typeof uz = {
       fullName: 'Please enter your name',
       phoneRequired: 'Please enter a phone number',
       phoneFormat: 'Enter in format +998XXXXXXXXX',
+      submitFailed: 'Could not submit. Try again or message @raos_support.',
     },
     successTitle: 'Thank you!',
     successDesc: 'Our team will contact you within 30 minutes.',
@@ -1111,7 +1114,7 @@ const en: typeof uz = {
       {
         category: 'Getting Started',
         title: 'Sign up & set up',
-        description: 'Register in RAOS and set up your store in 2 minutes.',
+        description: 'Leave a request — we will set up your store in 2 minutes.',
         duration: 3,
         steps: 4,
         difficulty: 'easy' as const,

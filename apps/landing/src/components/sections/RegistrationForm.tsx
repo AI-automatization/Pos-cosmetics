@@ -31,6 +31,8 @@ export default function RegistrationForm() {
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState(false)
+  const [website, setWebsite] = useState('') // honeypot
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({})
 
   const validate = () => {
@@ -53,13 +55,17 @@ export default function RegistrationForm() {
       return
     }
     setLoading(true)
+    setSubmitError(false)
     try {
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, website }),
       })
       if (res.ok) setSubmitted(true)
+      else setSubmitError(true)
+    } catch {
+      setSubmitError(true)
     } finally {
       setLoading(false)
     }
@@ -100,6 +106,17 @@ export default function RegistrationForm() {
 
         <div className="glass rounded-2xl p-8">
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+            {/* Honeypot: скрыт от людей, боты заполняют */}
+            <input
+              type="text"
+              name="website"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="absolute -left-[9999px] h-0 w-0 opacity-0"
+            />
             {/* Do'kon turi */}
             <div>
               <label htmlFor="shopType" className="block text-sm font-medium text-slate-300 mb-2">
@@ -228,6 +245,12 @@ export default function RegistrationForm() {
               {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               {loading ? r.submitting : r.submit}
             </button>
+
+            {submitError && (
+              <p role="alert" className="text-red-400 text-sm text-center">
+                {r.errors.submitFailed}
+              </p>
+            )}
           </form>
         </div>
       </div>
