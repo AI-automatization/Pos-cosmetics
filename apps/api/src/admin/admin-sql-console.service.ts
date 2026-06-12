@@ -17,14 +17,23 @@ export class AdminSqlConsoleService {
     const trimmed = sql.trim();
     if (!trimmed) throw new BadRequestException('Пустой запрос');
 
-    if (this.containsMultipleStatements(trimmed)) {
+    // #38: классификация — ТОЛЬКО по SQL без комментариев, иначе `/* x */ DROP ...`
+    // не начинается с DROP и проскакивает все startsWith-проверки.
+    // Исполняется по-прежнему оригинал; нормализованная форма нужна лишь для гейтов.
+    const normalized = this.stripSqlComments(trimmed).trim();
+    if (!normalized) {
+      this.logger.error(`SQL CONSOLE BLOCKED [COMMENT-ONLY]: ${trimmed.slice(0, 200)}`, { adminId });
+      throw new BadRequestException('Пустой запрос');
+    }
+
+    if (this.containsMultipleStatements(normalized)) {
       this.logger.error(`SQL CONSOLE BLOCKED [MULTI-STMT]: ${trimmed.slice(0, 200)}`, { adminId });
       throw new BadRequestException(
         'Bir nechta SQL buyruq (`;` bilan ajratilgan) taqiqlangan. Faqat bitta buyruq yuboring.',
       );
     }
 
-    const upperSql = trimmed.toUpperCase();
+    const upperSql = normalized.toUpperCase();
     const isExplain = upperSql.startsWith('EXPLAIN');
     const explainContainsDml = isExplain && /\b(INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE|CREATE)\b/.test(upperSql);
     const isSelect = (upperSql.startsWith('SELECT') || upperSql.startsWith('WITH') || (isExplain && !explainContainsDml));
@@ -51,6 +60,13 @@ export class AdminSqlConsoleService {
     if (isDdl) {
       this.logger.error(`SQL CONSOLE BLOCKED [DDL]: ${trimmed.slice(0, 200)}`, { adminId });
       throw new BadRequestException('DDL операции (DROP, ALTER, TRUNCATE, CREATE) тақиқланган.');
+    }
+
+    // #38: всё, что не распозналось как SELECT или DML, не должно молча уходить в
+    // $executeRawUnsafe (например `IN SERT` после strip'а или незнакомый префикс).
+    if (!isSelect && !isDml) {
+      this.logger.error(`SQL CONSOLE BLOCKED [UNCLASSIFIED]: ${trimmed.slice(0, 200)}`, { adminId });
+      throw new BadRequestException('Faqat SELECT yoki ruxsat etilgan DML so\'rovlari qabul qilinadi.');
     }
 
     if (isDml && this.isDestructiveDml(upperSql) && !confirmDestructive) {
@@ -89,6 +105,61 @@ export class AdminSqlConsoleService {
       this.logger.error(`SQL CONSOLE ERROR: ${msg}`, { sql: trimmed.slice(0, 300), adminId });
       throw new BadRequestException('SQL query failed. Check server logs for details.');
     }
+  }
+
+  // Удаляет line- (--) и block-комментарии (включая вложенные — Postgres их поддерживает),
+  // не трогая строковые литералы. Комментарий заменяется ПРОБЕЛОМ: в SQL комментарий
+  // разделяет токены, поэтому "IN<block-comment>SERT" обязан остаться "IN SERT", а не стать INSERT.
+  private stripSqlComments(sql: string): string {
+    let out = '';
+    let i = 0;
+    let inSingle = false;
+    let inDouble = false;
+    let blockDepth = 0;
+
+    while (i < sql.length) {
+      const ch = sql[i];
+      const next = sql[i + 1];
+
+      if (blockDepth > 0) {
+        if (ch === '/' && next === '*') { blockDepth++; i += 2; continue; }
+        if (ch === '*' && next === '/') {
+          blockDepth--;
+          i += 2;
+          if (blockDepth === 0) out += ' ';
+          continue;
+        }
+        i++;
+        continue;
+      }
+
+      if (inSingle) {
+        out += ch;
+        if (ch === "'") inSingle = false;
+        i++;
+        continue;
+      }
+      if (inDouble) {
+        out += ch;
+        if (ch === '"') inDouble = false;
+        i++;
+        continue;
+      }
+
+      if (ch === "'") { inSingle = true; out += ch; i++; continue; }
+      if (ch === '"') { inDouble = true; out += ch; i++; continue; }
+      if (ch === '/' && next === '*') { blockDepth = 1; i += 2; continue; }
+      if (ch === '-' && next === '-') {
+        while (i < sql.length && sql[i] !== '\n') i++;
+        out += ' ';
+        continue;
+      }
+
+      out += ch;
+      i++;
+    }
+
+    return out;
   }
 
   private containsMultipleStatements(sql: string): boolean {

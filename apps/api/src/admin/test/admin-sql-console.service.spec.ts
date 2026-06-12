@@ -55,6 +55,55 @@ describe('AdminSqlConsoleService — Security', () => {
       .rejects.toThrow(BadRequestException);
   });
 
+  // ─── #38: comment-based classification bypass ────────────────
+
+  it('blocks DDL hidden behind a leading block comment', async () => {
+    await expect(service.executeQuery('/* sneaky */ DROP TABLE users', 'admin-1'))
+      .rejects.toThrow(BadRequestException);
+    expect(mockPrisma.$executeRawUnsafe).not.toHaveBeenCalled();
+  });
+
+  it('blocks DDL hidden behind a leading line comment', async () => {
+    await expect(service.executeQuery('-- harmless\nTRUNCATE orders', 'admin-1'))
+      .rejects.toThrow(BadRequestException);
+    expect(mockPrisma.$executeRawUnsafe).not.toHaveBeenCalled();
+  });
+
+  it('blocks DDL behind nested block comments (Postgres nests them)', async () => {
+    await expect(service.executeQuery('/* a /* nested */ still */ ALTER TABLE users ADD c TEXT', 'admin-1'))
+      .rejects.toThrow(BadRequestException);
+    expect(mockPrisma.$executeRawUnsafe).not.toHaveBeenCalled();
+  });
+
+  it('blocks EXPLAIN ANALYZE DML with comment between keywords', async () => {
+    await expect(service.executeQuery('EXPLAIN /* x */ ANALYZE DELETE FROM orders', 'admin-1'))
+      .rejects.toThrow(BadRequestException);
+  });
+
+  it('does not glue keywords split by a comment into DML', async () => {
+    // IN/**/SERT — это токены "IN SERT", а не INSERT; такое не должно дойти до executeRawUnsafe
+    await expect(service.executeQuery('IN/**/SERT INTO users (id) VALUES (1)', 'admin-1'))
+      .rejects.toThrow(BadRequestException);
+    expect(mockPrisma.$executeRawUnsafe).not.toHaveBeenCalled();
+  });
+
+  it('rejects comment-only input', async () => {
+    await expect(service.executeQuery('/* nothing here */', 'admin-1'))
+      .rejects.toThrow(BadRequestException);
+  });
+
+  it('still allows SELECT with comments', async () => {
+    mockPrisma.$queryRawUnsafe.mockResolvedValue([{ ok: 1 }]);
+    const result = await service.executeQuery('/* report */ SELECT 1 -- trailing', 'admin-1');
+    expect(result.type).toBe('SELECT');
+  });
+
+  it('does not strip comment-like sequences inside string literals', async () => {
+    mockPrisma.$queryRawUnsafe.mockResolvedValue([]);
+    const result = await service.executeQuery("SELECT * FROM notes WHERE body = '-- not /* a */ comment'", 'admin-1');
+    expect(result.type).toBe('SELECT');
+  });
+
   // ─── Multi-statement blocking ────────────────────────────────
 
   it('blocks multiple statements separated by semicolon', async () => {
