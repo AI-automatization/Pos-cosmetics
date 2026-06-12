@@ -31,7 +31,7 @@ export default function HowItWorks() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14 fade-up">
           <h2 className="text-3xl sm:text-4xl font-bold text-white">{t.howItWorks.title}</h2>
-          <p className="text-slate-400 mt-3 text-base">{t.howItWorks.subtitle}</p>
+          <p className="text-slate-300 mt-3 text-base">{t.howItWorks.subtitle}</p>
         </div>
 
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -49,7 +49,7 @@ export default function HowItWorks() {
               </div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">{step.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto">
+                <p className="text-slate-300 text-sm leading-relaxed max-w-xs mx-auto">
                   {step.description}
                 </p>
               </div>

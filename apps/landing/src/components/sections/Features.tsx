@@ -18,12 +18,11 @@ export default function Features() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('visible')
-          } else {
-            entry.target.classList.remove('visible')
+            observer.unobserve(entry.target)
           }
         })
       },
-      { threshold: 0.1 },
+      { threshold: 0.05 },
     )
     cards?.forEach((el) => observer.observe(el))
     innerEls?.forEach((el) => observer.observe(el))
@@ -35,10 +34,10 @@ export default function Features() {
       <div ref={sectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-white">{t.features.title}</h2>
-          <p className="text-slate-400 mt-3 text-base">{t.features.subtitle}</p>
+          <p className="text-slate-300 mt-3 text-base">{t.features.subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
           {t.features.items.map((feature, idx) => {
             const Icon = ICONS[idx] ?? ShieldCheck
             const animClass = idx % 2 === 0 ? 'slide-left' : 'slide-right'
@@ -52,8 +51,10 @@ export default function Features() {
                 <div
                   className="fade-up w-12 h-12 rounded-xl bg-[#24D4F4]/10 flex items-center justify-center group-hover:bg-[#24D4F4]/20 transition-colors"
                   style={{ animationDelay: `${baseDelay + 0.15}s` }}
+                  role="img"
+                  aria-label={feature.title}
                 >
-                  <Icon size={24} className="text-[#24D4F4]" />
+                  <Icon size={24} className="text-[#24D4F4]" aria-hidden="true" />
                 </div>
 
                 {feature.badge && (
@@ -73,7 +74,7 @@ export default function Features() {
                 </h3>
 
                 <p
-                  className="fade-up text-slate-400 text-sm leading-relaxed"
+                  className="fade-up text-slate-300 text-sm leading-relaxed"
                   style={{ animationDelay: `${baseDelay + 0.38}s` }}
                 >
                   {feature.description}

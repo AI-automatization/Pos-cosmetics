@@ -1,12 +1,26 @@
 'use client'
 
 import { useLang } from '@/i18n/LangContext'
-import type { Translations } from '@/i18n/translations'
+import type { Lang, Translations } from '@/i18n/translations'
 
 type CompRow = Translations['comparison']['rows'][number]
 
+const UZ_MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr']
+const RU_MONTHS = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь']
+const EN_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function currentMonthDate(lang: Lang): string {
+  const now = new Date()
+  const m = now.getMonth()
+  const y = now.getFullYear()
+  if (lang === 'ru') return `${RU_MONTHS[m]} ${y} г.`
+  if (lang === 'en') return `${EN_MONTHS[m]} ${y}`
+  return `${y}-${UZ_MONTHS[m]}`
+}
+
 export default function Comparison() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
+  const note = t.comparison.note.replace('{date}', currentMonthDate(lang))
 
   return (
     <section id="comparison" className="bg-[#0E1530] py-20">
@@ -26,8 +40,8 @@ export default function Comparison() {
                 <th className="py-4 px-6 text-center font-bold text-base bg-[#24D4F4]/10 text-[#24D4F4]">
                   RAOS
                 </th>
-                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">Tizim A</th>
-                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">Tizim B</th>
+                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">{t.comparison.competitorA ?? 'Tizim A'}</th>
+                <th className="py-4 px-6 text-center font-semibold text-sm text-slate-300">{t.comparison.competitorB ?? 'Tizim B'}</th>
               </tr>
             </thead>
             <tbody>
@@ -42,7 +56,7 @@ export default function Comparison() {
           </table>
         </div>
 
-        <p className="text-center text-slate-500 text-xs mt-4">{t.comparison.note}</p>
+        <p className="text-center text-slate-500 text-xs mt-4">{note}</p>
       </div>
     </section>
   )

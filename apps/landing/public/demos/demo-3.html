@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAOS — 3-darslik: Birinchi sotuvni amalga oshirish</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #24D4F4;
+    --cyan2: #5FEEFB;
+    --navy: #0E1530;
+    --navy2: #112F4B;
+    --navy3: #0a1228;
+    --glass: rgba(36,212,244,0.07);
+    --border: rgba(36,212,244,0.18);
+  }
+
+  body {
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    width: 100%; background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--cyan);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; color: var(--navy);
+  }
+  .logo-text { font-weight: 800; font-size: 18px; color: #fff; }
+  .lesson-badge {
+    background: rgba(36,212,244,0.12); border: 1px solid var(--border);
+    color: var(--cyan); font-size: 12px; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #94a3b8; }
+  .topbar-right span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── HERO ── */
+  .hero { width: 100%; max-width: 900px; padding: 40px 24px 24px; text-align: center; }
+  .lesson-number { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--cyan); text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: clamp(22px, 4vw, 38px); font-weight: 900; line-height: 1.2; margin-bottom: 12px; }
+  .hero h1 span { color: var(--cyan); }
+  .hero-sub { font-size: 15px; color: #94a3b8; max-width: 500px; margin: 0 auto 24px; }
+  .meta-pills { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+  .pill { display: flex; align-items: center; gap: 6px; background: var(--glass); border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: #cbd5e1; }
+  .pill svg { width: 13px; height: 13px; }
+  .pill.green { color: #34d399; border-color: rgba(52,211,153,0.25); background: rgba(52,211,153,0.07); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { width: 100%; max-width: 900px; padding: 0 24px 8px; }
+  .progress-steps { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .step-dot {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid rgba(36,212,244,0.25);
+    font-size: 12px; font-weight: 700; color: #475569;
+    transition: all 0.4s; cursor: pointer; position: relative;
+  }
+  .step-dot.active { border-color: var(--cyan); background: rgba(36,212,244,0.15); color: var(--cyan); box-shadow: 0 0 16px rgba(36,212,244,0.35); }
+  .step-dot.done { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.12); color: #34d399; }
+  .step-dot.done::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step-dot.done span { display: none; }
+  .step-line { flex: 1; height: 2px; background: rgba(36,212,244,0.1); border-radius: 1px; position: relative; overflow: hidden; }
+  .step-line-fill { height: 100%; background: var(--cyan); border-radius: 1px; transition: width 0.6s ease; }
+  .progress-label { font-size: 12px; color: #64748b; display: flex; justify-content: space-between; }
+  .progress-label strong { color: var(--cyan); }
+
+  /* ── STEP CARDS ── */
+  .step-info { width: 100%; max-width: 900px; padding: 0 24px; }
+  .step-cards { display: flex; gap: 8px; }
+  .step-card {
+    flex: 1; padding: 12px 14px;
+    background: var(--glass); border: 1px solid rgba(36,212,244,0.1);
+    border-radius: 12px; cursor: pointer; transition: all 0.3s; opacity: 0.5;
+  }
+  .step-card.active { border-color: var(--cyan); background: rgba(36,212,244,0.07); opacity: 1; box-shadow: 0 0 16px rgba(36,212,244,0.1); }
+  .step-card.done .done-icon { display: inline; }
+  .step-card.done .num-val { display: none; }
+  .step-card-num { font-size: 10px; font-weight: 700; color: var(--cyan); margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+  .step-card-num .done-icon { display: none; }
+  .step-card h5 { font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 2px; }
+  .step-card p { font-size: 10px; color: #64748b; }
+  .spacer { height: 20px; }
+
+  /* ── DEMO AREA ── */
+  .demo-area { width: 100%; max-width: 900px; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .screen-wrap {
+    width: 100%; background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; box-shadow: 0 0 60px rgba(36,212,244,0.08);
+  }
+  .screen-bar {
+    background: var(--navy3); padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .screen-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .screen-dot:nth-child(1){background:#ef4444}
+  .screen-dot:nth-child(2){background:#f59e0b}
+  .screen-dot:nth-child(3){background:#22c55e}
+  .screen-url {
+    flex: 1; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 12px; font-size: 12px; color: #64748b;
+    margin: 0 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .screen-url span { color: var(--cyan); }
+  .screen-content { min-height: 380px; position: relative; overflow: hidden; }
+
+  /* ── SCENES ── */
+  .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+  .scene.active { opacity: 1; pointer-events: auto; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 160px; background: var(--navy3);
+    border-right: 1px solid var(--border);
+    padding: 16px 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;
+  }
+  .sidebar-logo { padding: 0 16px 14px; font-weight: 900; font-size: 15px; color: var(--cyan); }
+  .nav-item {
+    padding: 9px 16px; font-size: 12px; color: #475569;
+    display: flex; align-items: center; gap: 8px;
+    border-left: 2px solid transparent; transition: all 0.2s;
+  }
+  .nav-item.active { color: var(--cyan); background: rgba(36,212,244,0.07); border-left-color: var(--cyan); }
+  .nav-item svg { width: 14px; height: 14px; }
+
+  /* ── SCENE 0: Kassa ochildi ── */
+  .pos-wrap { display: flex; height: 100%; }
+  .pos-main { flex: 1; padding: 16px; display: flex; gap: 12px; }
+  .pos-left { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .pos-search { background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+  .pos-search svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .pos-cats { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cat-btn { padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; border: 1px solid var(--border); color: #64748b; background: transparent; transition: all 0.2s; cursor: pointer; }
+  .cat-btn.active { background: rgba(36,212,244,0.12); border-color: var(--cyan); color: var(--cyan); }
+  .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .pos-product {
+    background: var(--glass); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px; cursor: pointer; transition: all 0.25s;
+  }
+  .pos-product.selected { border-color: var(--cyan); background: rgba(36,212,244,0.1); box-shadow: 0 0 14px rgba(36,212,244,0.2); }
+  .pos-product.pulse { animation: productPulse 0.4s ease; }
+  @keyframes productPulse { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
+  .prod-emoji { font-size: 20px; margin-bottom: 6px; }
+  .prod-name { font-size: 10px; font-weight: 700; color: #cbd5e1; margin-bottom: 3px; line-height: 1.3; }
+  .prod-price { font-size: 11px; font-weight: 800; color: var(--cyan); }
+  .prod-stock { font-size: 9px; color: #64748b; margin-top: 2px; }
+
+  /* Cart */
+  .pos-cart { width: 200px; background: var(--navy3); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+  .cart-header { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 700; }
+  .cart-items { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+  .cart-item {
+    background: var(--glass); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 9px; display: flex; align-items: center; gap: 6px;
+    opacity: 0; transform: translateX(10px); transition: all 0.35s;
+  }
+  .cart-item.show { opacity: 1; transform: none; }
+  .cart-item-emoji { font-size: 14px; }
+  .cart-item-name { font-size: 9px; font-weight: 600; color: #cbd5e1; flex: 1; line-height: 1.3; }
+  .cart-item-price { font-size: 10px; font-weight: 800; color: var(--cyan); }
+  .cart-qty { font-size: 9px; color: #64748b; }
+  .cart-footer { padding: 10px 14px; border-top: 1px solid var(--border); }
+  .cart-total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .cart-total-lbl { font-size: 11px; color: #94a3b8; }
+  .cart-total-val { font-size: 15px; font-weight: 900; color: #fff; }
+  .cart-discount-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; opacity: 0; transition: opacity 0.4s; }
+  .cart-discount-row.show { opacity: 1; }
+  .cart-discount-lbl { font-size: 10px; color: #94a3b8; }
+  .cart-discount-val { font-size: 11px; font-weight: 700; color: #f59e0b; }
+  .btn-pay {
+    width: 100%; background: #22c55e; color: #fff;
+    border: none; font-weight: 800; font-size: 13px;
+    padding: 10px; border-radius: 10px; cursor: pointer;
+    transition: all 0.3s; opacity: 0.4;
+  }
+  .btn-pay.show { opacity: 1; box-shadow: 0 0 16px rgba(34,197,94,0.3); }
+
+  /* ── SCENE 1: Tovar tanlash (same layout, more items) ── */
+
+  /* ── SCENE 2: Chegirma ── */
+  .disc-overlay {
+    position: absolute; inset: 0;
+    background: rgba(10,18,40,0.75); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; z-index: 10;
+  }
+  .disc-modal {
+    background: var(--navy2); border: 1px solid var(--cyan);
+    border-radius: 16px; padding: 22px 24px; width: 280px;
+    box-shadow: 0 0 40px rgba(36,212,244,0.2);
+  }
+  .disc-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .disc-sub { font-size: 11px; color: #64748b; margin-bottom: 16px; }
+  .disc-options { display: flex; gap: 8px; margin-bottom: 16px; }
+  .disc-opt {
+    flex: 1; padding: 8px; text-align: center; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--glass);
+    font-size: 13px; font-weight: 700; color: #94a3b8; cursor: pointer; transition: all 0.2s;
+  }
+  .disc-opt.active { border-color: #f59e0b; background: rgba(245,158,11,0.1); color: #f59e0b; box-shadow: 0 0 12px rgba(245,158,11,0.2); }
+  .disc-input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .disc-input {
+    flex: 1; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; font-size: 18px; font-weight: 800;
+    color: #f59e0b; text-align: center;
+  }
+  .disc-symbol { font-size: 16px; font-weight: 700; color: #94a3b8; }
+  .disc-preview { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; margin-bottom: 16px; }
+  .disc-preview-lbl { font-size: 11px; color: #94a3b8; }
+  .disc-preview-val { font-size: 13px; font-weight: 800; color: #f59e0b; }
+  .btn-apply {
+    width: 100%; background: #f59e0b; color: var(--navy);
+    border: none; font-weight: 800; font-size: 13px;
+    padding: 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+    opacity: 0.3;
+  }
+  .btn-apply.show { opacity: 1; }
+
+  /* ── SCENE 3: To'lov ── */
+  .pay-overlay {
+    position: absolute; inset: 0;
+    background: rgba(10,18,40,0.8); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; z-index: 10;
+  }
+  .pay-modal {
+    background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 24px; width: 300px;
+    box-shadow: 0 0 40px rgba(36,212,244,0.15);
+  }
+  .pay-title { font-size: 15px; font-weight: 800; margin-bottom: 16px; }
+  .pay-amount-box { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .pay-amount-lbl { font-size: 11px; color: #94a3b8; }
+  .pay-amount-val { font-size: 18px; font-weight: 900; color: #fff; }
+  .pay-methods { display: flex; gap: 8px; margin-bottom: 16px; }
+  .pay-method {
+    flex: 1; padding: 10px; text-align: center; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--glass);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .pay-method.active { border-color: var(--cyan); background: rgba(36,212,244,0.1); box-shadow: 0 0 14px rgba(36,212,244,0.2); }
+  .pay-method-icon { font-size: 20px; margin-bottom: 5px; }
+  .pay-method-name { font-size: 10px; font-weight: 700; color: #cbd5e1; }
+  .pay-card-animation { background: linear-gradient(135deg, #1a3a5c, #0e2040); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; position: relative; overflow: hidden; opacity: 0; transition: opacity 0.4s; }
+  .pay-card-animation.show { opacity: 1; }
+  .card-chip { width: 26px; height: 20px; background: linear-gradient(135deg,#f59e0b,#d97706); border-radius: 4px; margin-bottom: 10px; }
+  .card-number { font-size: 12px; letter-spacing: 3px; color: #94a3b8; margin-bottom: 6px; }
+  .card-name { font-size: 10px; color: #64748b; }
+  .card-nfc { position: absolute; top: 14px; right: 14px; font-size: 18px; opacity: 0.6; }
+  .card-scan-line { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--cyan),transparent); animation: cardScan 1.2s ease-in-out infinite; box-shadow: 0 0 8px var(--cyan); }
+  @keyframes cardScan { 0%,100%{top:10%} 50%{top:85%} }
+  .btn-confirm {
+    width: 100%; background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 13px;
+    padding: 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+    opacity: 0.3;
+  }
+  .btn-confirm.show { opacity: 1; box-shadow: 0 0 16px rgba(36,212,244,0.3); }
+
+  /* ── SCENE 4: To'lov muvaffaqiyatli ── */
+  .success-scene { display: flex; height: 100%; }
+  .success-main { flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; overflow: auto; }
+  .success-check {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(34,197,94,0.15); border: 2px solid rgba(34,197,94,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    opacity: 0; transform: scale(0.6); transition: all 0.5s ease;
+  }
+  .success-check.show { opacity: 1; transform: scale(1); }
+  .success-title { font-size: 20px; font-weight: 900; color: #22c55e; opacity: 0; transition: opacity 0.4s 0.3s; }
+  .success-title.show { opacity: 1; }
+  .receipt-card {
+    width: 100%; max-width: 300px; background: var(--navy3); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    opacity: 0; transform: translateY(12px); transition: all 0.5s 0.5s;
+  }
+  .receipt-card.show { opacity: 1; transform: none; }
+  .receipt-header { background: rgba(36,212,244,0.08); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  .receipt-title { font-size: 12px; font-weight: 700; color: var(--cyan); }
+  .receipt-num { font-size: 10px; color: #64748b; }
+  .receipt-items { padding: 10px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .receipt-item { display: flex; justify-content: space-between; font-size: 11px; color: #cbd5e1; }
+  .receipt-item-name { color: #94a3b8; }
+  .receipt-divider { border: none; border-top: 1px dashed rgba(36,212,244,0.15); margin: 4px 0; }
+  .receipt-total-row { padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .receipt-total-lbl { font-size: 11px; color: #94a3b8; }
+  .receipt-total-val { font-size: 16px; font-weight: 900; color: #fff; }
+  .receipt-discount-row { padding: 0 16px 6px; display: flex; justify-content: space-between; }
+  .receipt-discount-lbl { font-size: 10px; color: #94a3b8; }
+  .receipt-discount-val { font-size: 11px; font-weight: 700; color: #f59e0b; }
+  .receipt-method-row { padding: 6px 16px 12px; display: flex; justify-content: space-between; border-top: 1px solid var(--border); }
+  .receipt-method-lbl { font-size: 10px; color: #64748b; }
+  .receipt-method-val { font-size: 11px; font-weight: 700; color: var(--cyan); display: flex; align-items: center; gap: 4px; }
+  .receipt-footer { background: rgba(34,197,94,0.06); padding: 10px 16px; text-align: center; border-top: 1px solid rgba(34,197,94,0.15); }
+  .receipt-footer-text { font-size: 10px; color: #34d399; font-weight: 600; }
+  .success-actions { display: flex; gap: 10px; width: 100%; max-width: 300px; }
+  .btn-new-sale { flex: 1; background: var(--cyan); color: var(--navy); border: none; font-weight: 800; font-size: 12px; padding: 9px; border-radius: 10px; cursor: pointer; opacity: 0; transition: opacity 0.4s 0.9s; }
+  .btn-new-sale.show { opacity: 1; }
+  .btn-print { flex: 1; background: transparent; color: #94a3b8; border: 1px solid var(--border); font-weight: 600; font-size: 12px; padding: 9px; border-radius: 10px; cursor: pointer; opacity: 0; transition: opacity 0.4s 1s; }
+  .btn-print.show { opacity: 1; }
+
+  /* ── TOOLTIP ── */
+  .tooltip-box {
+    background: var(--navy2); border: 1px solid var(--cyan);
+    border-radius: 12px; padding: 14px 18px;
+    box-shadow: 0 0 32px rgba(36,212,244,0.2);
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: all 0.4s ease;
+  }
+  .tooltip-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(36,212,244,0.12); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .tooltip-text h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tooltip-text p { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+  /* ── CONTROLS ── */
+  .controls { width: 100%; max-width: 900px; padding: 0 24px 40px; }
+  .timeline { width: 100%; height: 4px; background: rgba(36,212,244,0.1); border-radius: 2px; margin-bottom: 16px; cursor: pointer; position: relative; }
+  .timeline-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--cyan2)); border-radius: 2px; transition: width 0.15s linear; }
+  .timeline-thumb { position: absolute; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px rgba(36,212,244,0.5); transition: left 0.15s linear; }
+  .ctrl-row { display: flex; align-items: center; gap: 16px; }
+  .ctrl-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--glass); border: 1px solid var(--border); color: #cbd5e1; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+  .ctrl-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .ctrl-btn.main { width: 48px; height: 48px; font-size: 20px; background: var(--cyan); color: var(--navy); border-color: var(--cyan); box-shadow: 0 0 20px rgba(36,212,244,0.3); }
+  .ctrl-btn.main:hover { background: #0FA8C8; }
+  .time-display { font-size: 13px; font-weight: 600; color: #64748b; font-variant-numeric: tabular-nums; min-width: 80px; }
+  .ctrl-right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .speed-btn { background: var(--glass); border: 1px solid var(--border); color: #94a3b8; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .speed-btn.active { border-color: var(--cyan); color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <span class="logo-text">RAOS</span>
+  </div>
+  <div class="lesson-badge">3-darslik • Kassa</div>
+  <div class="topbar-right">
+    <span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      4 daqiqa
+    </span>
+    <span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+      5 qadam
+    </span>
+    <span style="color:#34d399">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      BEPUL
+    </span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="lesson-number">🛒 3-DARSLIK</div>
+  <h1>Birinchi <span>sotuvni</span> amalga oshirish</h1>
+  <p class="hero-sub">Kassada tovar tanlash, chegirma qo'shish va to'lovni qabul qilish — 4 daqiqada o'rganing.</p>
+  <div class="meta-pills">
+    <div class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      4 daqiqa
+    </div>
+    <div class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+      5 qadam
+    </div>
+    <div class="pill green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      Boshlang'ich daraja
+    </div>
+    <div class="pill" style="color:#34d399;border-color:rgba(52,211,153,0.25);background:rgba(52,211,153,0.07)">Bepul darslik</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps" id="progressSteps">
+    <div class="step-dot active" data-step="0"><span>1</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line1" style="width:0%"></div></div>
+    <div class="step-dot" data-step="1"><span>2</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line2" style="width:0%"></div></div>
+    <div class="step-dot" data-step="2"><span>3</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line3" style="width:0%"></div></div>
+    <div class="step-dot" data-step="3"><span>4</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line4" style="width:0%"></div></div>
+    <div class="step-dot" data-step="4"><span>5</span></div>
+  </div>
+  <div class="progress-label">
+    <span id="stepLabel">1-qadam: Kassa sahifasi</span>
+    <strong id="stepCount">1 / 5</strong>
+  </div>
+</div>
+
+<!-- STEP CARDS -->
+<div class="step-info">
+  <div class="step-cards">
+    <div class="step-card active" id="scard0" onclick="goToStep(0)">
+      <div class="step-card-num"><span class="num-val">01</span><span class="done-icon">✓</span></div>
+      <h5>Kassa</h5><p>Sahifani oching</p>
+    </div>
+    <div class="step-card" id="scard1" onclick="goToStep(1)">
+      <div class="step-card-num"><span class="num-val">02</span><span class="done-icon">✓</span></div>
+      <h5>Tovar</h5><p>Savat to'ldirish</p>
+    </div>
+    <div class="step-card" id="scard2" onclick="goToStep(2)">
+      <div class="step-card-num"><span class="num-val">03</span><span class="done-icon">✓</span></div>
+      <h5>Chegirma</h5><p>10% qo'llash</p>
+    </div>
+    <div class="step-card" id="scard3" onclick="goToStep(3)">
+      <div class="step-card-num"><span class="num-val">04</span><span class="done-icon">✓</span></div>
+      <h5>To'lov</h5><p>Karta/naqd</p>
+    </div>
+    <div class="step-card" id="scard4" onclick="goToStep(4)">
+      <div class="step-card-num"><span class="num-val">05</span><span class="done-icon">✓</span></div>
+      <h5>Chek</h5><p>Muvaffaqiyat</p>
+    </div>
+  </div>
+</div>
+<div class="spacer"></div>
+
+<!-- DEMO AREA -->
+<div class="demo-area">
+  <div class="screen-wrap">
+    <div class="screen-bar">
+      <div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div>
+      <div class="screen-url" id="screenUrl">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span>app.raos.uz</span>/pos
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- SCENE 0: Kassa sahifasi — tovar grid -->
+      <div class="scene active" id="scene0">
+        <div class="pos-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Asosiy</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Hisobot</div>
+          </div>
+          <div class="pos-main">
+            <div class="pos-left">
+              <div class="pos-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Tovar qidirish...
+              </div>
+              <div class="pos-cats">
+                <div class="cat-btn active">Barchasi</div>
+                <div class="cat-btn">Parfyumeriya</div>
+                <div class="cat-btn">Parvarish</div>
+                <div class="cat-btn">Makiyaj</div>
+              </div>
+              <div class="products-grid">
+                <div class="pos-product" id="pp0">
+                  <div class="prod-emoji">🌹</div>
+                  <div class="prod-name">Chanel No.5 EDP</div>
+                  <div class="prod-price">850 000</div>
+                  <div class="prod-stock">12 dona</div>
+                </div>
+                <div class="pos-product" id="pp1">
+                  <div class="prod-emoji">🌊</div>
+                  <div class="prod-name">Dior Sauvage EDT</div>
+                  <div class="prod-price">720 000</div>
+                  <div class="prod-stock">8 dona</div>
+                </div>
+                <div class="pos-product" id="pp2">
+                  <div class="prod-emoji">🌸</div>
+                  <div class="prod-name">Lancôme La Vie</div>
+                  <div class="prod-price">690 000</div>
+                  <div class="prod-stock">5 dona</div>
+                </div>
+                <div class="pos-product" id="pp3">
+                  <div class="prod-emoji">💄</div>
+                  <div class="prod-name">MAC Ruby Woo</div>
+                  <div class="prod-price">185 000</div>
+                  <div class="prod-stock">20 dona</div>
+                </div>
+                <div class="pos-product" id="pp4">
+                  <div class="prod-emoji">🧴</div>
+                  <div class="prod-name">L'Oreal Serum</div>
+                  <div class="prod-price">310 000</div>
+                  <div class="prod-stock">15 dona</div>
+                </div>
+                <div class="pos-product" id="pp5">
+                  <div class="prod-emoji">✨</div>
+                  <div class="prod-name">NARS Blush</div>
+                  <div class="prod-price">250 000</div>
+                  <div class="prod-stock">9 dona</div>
+                </div>
+              </div>
+            </div>
+            <div class="pos-cart">
+              <div class="cart-header">🛒 Savat <span style="color:#64748b;font-weight:400;font-size:11px">(0 ta)</span></div>
+              <div class="cart-items" id="cartItems0"></div>
+              <div class="cart-footer">
+                <div class="cart-total-row">
+                  <span class="cart-total-lbl">Jami:</span>
+                  <span class="cart-total-val">0 so'm</span>
+                </div>
+                <button class="btn-pay">To'lash →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 1: Tovarlar tanlanmoqda -->
+      <div class="scene" id="scene1">
+        <div class="pos-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Asosiy</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Hisobot</div>
+          </div>
+          <div class="pos-main">
+            <div class="pos-left">
+              <div class="pos-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Tovar qidirish...
+              </div>
+              <div class="pos-cats">
+                <div class="cat-btn active">Barchasi</div>
+                <div class="cat-btn">Parfyumeriya</div>
+                <div class="cat-btn">Parvarish</div>
+                <div class="cat-btn">Makiyaj</div>
+              </div>
+              <div class="products-grid">
+                <div class="pos-product" id="s1pp0"><div class="prod-emoji">🌹</div><div class="prod-name">Chanel No.5 EDP</div><div class="prod-price">850 000</div><div class="prod-stock">12 dona</div></div>
+                <div class="pos-product selected" id="s1pp1"><div class="prod-emoji">🌊</div><div class="prod-name">Dior Sauvage EDT</div><div class="prod-price">720 000</div><div class="prod-stock">8 dona</div></div>
+                <div class="pos-product" id="s1pp2"><div class="prod-emoji">🌸</div><div class="prod-name">Lancôme La Vie</div><div class="prod-price">690 000</div><div class="prod-stock">5 dona</div></div>
+                <div class="pos-product selected" id="s1pp3"><div class="prod-emoji">💄</div><div class="prod-name">MAC Ruby Woo</div><div class="prod-price">185 000</div><div class="prod-stock">20 dona</div></div>
+                <div class="pos-product" id="s1pp4"><div class="prod-emoji">🧴</div><div class="prod-name">L'Oreal Serum</div><div class="prod-price">310 000</div><div class="prod-stock">15 dona</div></div>
+                <div class="pos-product" id="s1pp5"><div class="prod-emoji">✨</div><div class="prod-name">NARS Blush</div><div class="prod-price">250 000</div><div class="prod-stock">9 dona</div></div>
+              </div>
+            </div>
+            <div class="pos-cart">
+              <div class="cart-header">🛒 Savat <span id="cartCount1" style="color:#64748b;font-weight:400;font-size:11px">(0 ta)</span></div>
+              <div class="cart-items" id="cartItems1">
+                <div class="cart-item" id="ci0">
+                  <div class="cart-item-emoji">🌊</div>
+                  <div class="cart-item-name">Dior Sauvage EDT</div>
+                  <div>
+                    <div class="cart-item-price">720 000</div>
+                    <div class="cart-qty">1 ta</div>
+                  </div>
+                </div>
+                <div class="cart-item" id="ci1">
+                  <div class="cart-item-emoji">💄</div>
+                  <div class="cart-item-name">MAC Ruby Woo</div>
+                  <div>
+                    <div class="cart-item-price">185 000</div>
+                    <div class="cart-qty">1 ta</div>
+                  </div>
+                </div>
+              </div>
+              <div class="cart-footer">
+                <div class="cart-total-row">
+                  <span class="cart-total-lbl">Jami:</span>
+                  <span class="cart-total-val" id="cartTotal1">0 so'm</span>
+                </div>
+                <div class="cart-discount-row" id="discRow1">
+                  <span class="cart-discount-lbl">Chegirma (10%):</span>
+                  <span class="cart-discount-val" id="discVal1">-0</span>
+                </div>
+                <button class="btn-pay" id="payBtn1">To'lash →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 2: Chegirma dialog -->
+      <div class="scene" id="scene2">
+        <div class="pos-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+          </div>
+          <div class="pos-main" style="position:relative">
+            <div class="pos-left" style="filter:blur(1px);opacity:0.5">
+              <div class="products-grid">
+                <div class="pos-product selected"><div class="prod-emoji">🌊</div><div class="prod-name">Dior Sauvage</div><div class="prod-price">720 000</div></div>
+                <div class="pos-product selected"><div class="prod-emoji">💄</div><div class="prod-name">MAC Ruby Woo</div><div class="prod-price">185 000</div></div>
+                <div class="pos-product"><div class="prod-emoji">🌹</div><div class="prod-name">Chanel No.5</div><div class="prod-price">850 000</div></div>
+              </div>
+            </div>
+            <div class="pos-cart" style="filter:blur(1px);opacity:0.5">
+              <div class="cart-header">🛒 Savat</div>
+              <div class="cart-items">
+                <div class="cart-item show"><div class="cart-item-emoji">🌊</div><div class="cart-item-name">Dior Sauvage</div><div class="cart-item-price">720 000</div></div>
+                <div class="cart-item show"><div class="cart-item-emoji">💄</div><div class="cart-item-name">MAC Ruby Woo</div><div class="cart-item-price">185 000</div></div>
+              </div>
+              <div class="cart-footer"><div class="cart-total-row"><span class="cart-total-lbl">Jami:</span><span class="cart-total-val">905 000</span></div></div>
+            </div>
+            <!-- Discount modal overlay -->
+            <div class="disc-overlay">
+              <div class="disc-modal">
+                <div class="disc-title">💰 Chegirma qo'shish</div>
+                <div class="disc-sub">Tovarlar jami: 905 000 so'm</div>
+                <div class="disc-options">
+                  <div class="disc-opt" id="disc5">5%</div>
+                  <div class="disc-opt active" id="disc10">10%</div>
+                  <div class="disc-opt" id="disc15">15%</div>
+                  <div class="disc-opt" id="disc20">20%</div>
+                </div>
+                <div class="disc-input-row">
+                  <div class="disc-input" id="discInput">10</div>
+                  <div class="disc-symbol">%</div>
+                </div>
+                <div class="disc-preview">
+                  <div>
+                    <div class="disc-preview-lbl">Chegirma miqdori</div>
+                    <div class="disc-preview-val" id="discAmount">− 90 500 so'm</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div class="disc-preview-lbl">Yangi narx</div>
+                    <div class="disc-preview-val" id="discFinal">814 500 so'm</div>
+                  </div>
+                </div>
+                <button class="btn-apply" id="applyBtn">✓ Chegirmani qo'llash</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 3: To'lov usuli -->
+      <div class="scene" id="scene3">
+        <div class="pos-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+          </div>
+          <div class="pos-main" style="position:relative">
+            <div class="pos-left" style="filter:blur(1px);opacity:0.4">
+              <div class="products-grid">
+                <div class="pos-product selected"><div class="prod-emoji">🌊</div><div class="prod-name">Dior Sauvage</div><div class="prod-price">720 000</div></div>
+                <div class="pos-product selected"><div class="prod-emoji">💄</div><div class="prod-name">MAC Ruby Woo</div><div class="prod-price">185 000</div></div>
+              </div>
+            </div>
+            <div class="pos-cart" style="filter:blur(1px);opacity:0.4">
+              <div class="cart-header">🛒 Savat</div>
+              <div class="cart-items">
+                <div class="cart-item show"><div class="cart-item-emoji">🌊</div><div class="cart-item-name">Dior Sauvage</div><div class="cart-item-price">720 000</div></div>
+                <div class="cart-item show"><div class="cart-item-emoji">💄</div><div class="cart-item-name">MAC Ruby Woo</div><div class="cart-item-price">185 000</div></div>
+              </div>
+            </div>
+            <!-- Payment modal overlay -->
+            <div class="pay-overlay">
+              <div class="pay-modal">
+                <div class="pay-title">💳 To'lov usulini tanlang</div>
+                <div class="pay-amount-box">
+                  <div class="pay-amount-lbl">To'lanadigan summa</div>
+                  <div class="pay-amount-val" id="payAmountVal">814 500 so'm</div>
+                </div>
+                <div class="pay-methods">
+                  <div class="pay-method" id="pm-cash">
+                    <div class="pay-method-icon">💵</div>
+                    <div class="pay-method-name">Naqd</div>
+                  </div>
+                  <div class="pay-method active" id="pm-card">
+                    <div class="pay-method-icon">💳</div>
+                    <div class="pay-method-name">Plastik</div>
+                  </div>
+                  <div class="pay-method" id="pm-payme">
+                    <div class="pay-method-icon">📱</div>
+                    <div class="pay-method-name">Payme</div>
+                  </div>
+                </div>
+                <div class="pay-card-animation" id="payCardAnim">
+                  <div class="card-chip"></div>
+                  <div class="card-number">•••• •••• •••• 4521</div>
+                  <div class="card-name">RAOS TERMINAL</div>
+                  <div class="card-nfc">📡</div>
+                  <div class="card-scan-line"></div>
+                </div>
+                <button class="btn-confirm" id="confirmBtn">✓ To'lovni tasdiqlash</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 4: To'lov muvaffaqiyatli — Chek -->
+      <div class="scene" id="scene4">
+        <div class="success-scene">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+          </div>
+          <div class="success-main">
+            <div class="success-check" id="successCheck">✅</div>
+            <div class="success-title" id="successTitle">To'lov qabul qilindi!</div>
+            <div class="receipt-card" id="receiptCard">
+              <div class="receipt-header">
+                <div class="receipt-title">RAOS — Elektron chek</div>
+                <div class="receipt-num">#240603-0042</div>
+              </div>
+              <div class="receipt-items">
+                <div class="receipt-item">
+                  <span class="receipt-item-name">Dior Sauvage EDT</span>
+                  <span>720 000</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="receipt-item-name">MAC Ruby Woo</span>
+                  <span>185 000</span>
+                </div>
+                <hr class="receipt-divider" />
+                <div class="receipt-item" style="color:#94a3b8;font-size:10px">
+                  <span>Jami:</span><span>905 000</span>
+                </div>
+              </div>
+              <div class="receipt-discount-row">
+                <span class="receipt-discount-lbl">Chegirma (10%):</span>
+                <span class="receipt-discount-val">− 90 500</span>
+              </div>
+              <div class="receipt-total-row">
+                <span class="receipt-total-lbl">To'landi:</span>
+                <span class="receipt-total-val">814 500 so'm</span>
+              </div>
+              <div class="receipt-method-row">
+                <span class="receipt-method-lbl">To'lov usuli:</span>
+                <span class="receipt-method-val">💳 Plastik karta</span>
+              </div>
+              <div class="receipt-footer">
+                <div class="receipt-footer-text">✓ OFD ga yuborildi • Sklad yangilandi</div>
+              </div>
+            </div>
+            <div class="success-actions">
+              <button class="btn-new-sale" id="btnNewSale">+ Yangi sotuv</button>
+              <button class="btn-print" id="btnPrint">🖨 Chek chiqarish</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOOLTIP -->
+  <div class="tooltip-box" id="tooltip">
+    <div class="tooltip-icon" id="tip-icon">💡</div>
+    <div class="tooltip-text">
+      <h4 id="tip-title">Kassani oching</h4>
+      <p id="tip-desc">RAOS panelida "Kassa" bo'limiga o'ting. Barcha tovarlar avtomatik ko'rinadi — katalogdan ma'lumot olinadi.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="timeline" id="timeline" onclick="seekClick(event)">
+    <div class="timeline-fill" id="timelineFill" style="width:0%"></div>
+    <div class="timeline-thumb" id="timelineThumb" style="left:0%"></div>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" onclick="skipBack()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.46"/></svg>
+    </button>
+    <button class="ctrl-btn main" id="playBtn" onclick="togglePlay()">▶</button>
+    <button class="ctrl-btn" onclick="skipFwd()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.46"/></svg>
+    </button>
+    <span class="time-display" id="timeDisplay">0:00 / 4:00</span>
+    <div class="ctrl-right">
+      <button class="speed-btn" onclick="setSpeed(0.5)" id="sp05">0.5×</button>
+      <button class="speed-btn active" onclick="setSpeed(1)" id="sp1">1×</button>
+      <button class="speed-btn" onclick="setSpeed(1.5)" id="sp15">1.5×</button>
+      <button class="speed-btn" onclick="setSpeed(2)" id="sp2">2×</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 240; // 4 minutes
+let current = 0, playing = false, speed = 1, timer = null;
+let animStarted = [false,false,false,false,false];
+
+const STEPS = [
+  { time:0,   end:48,  label:"1-qadam: Kassa sahifasi" },
+  { time:48,  end:96,  label:"2-qadam: Tovarlarni savatchaga qo'shish" },
+  { time:96,  end:144, label:"3-qadam: Chegirma qo'shish" },
+  { time:144, end:192, label:"4-qadam: To'lov usulini tanlash" },
+  { time:192, end:240, label:"5-qadam: Chek va muvaffaqiyat" },
+];
+
+const TIPS = [
+  { icon:'🖥️', title:"Maslahat: Kassa sahifasi", desc:"'Kassa' bo'limini oching. Barcha tovarlar katalogdan avtomatik yuklangan. Tovarni bosing — darhol savatchaga qo'shiladi." },
+  { icon:'🛒', title:"Maslahat: Savatcha", desc:"Har bir tovarni bosganingizda savatga qo'shiladi. Bir tovarni qayta bossangiz miqdori oshadi. Chapdan tovarlar, o'ngdan savatcha ko'rinadi." },
+  { icon:'💰', title:"Maslahat: Chegirma", desc:"'%' tugmasini bosing va chegirma foizini kiriting. 5%, 10%, 15%, 20% — tez tugmalar bor. Chegirma miqdori va yangi narx darhol hisoblanadi." },
+  { icon:'💳', title:"Maslahat: To'lov", desc:"Naqd, plastik karta yoki Payme orqali to'lov qabul qiling. Plastik kartada terminal orqali o'tkaziladi. To'lov tasdiqlangach chek avtomatik yaratiladi." },
+  { icon:'✅', title:"Maslahat: Chek va sklad", desc:"To'lov muvaffaqiyatli bo'lgach elektron chek yaratiladi va OFD ga yuboriladi. Sklad avtomatik kamayadi — qo'shimcha amal kerak emas!" },
+];
+
+function getCurrentStep() {
+  for (let i = STEPS.length-1; i >= 0; i--) {
+    if (current >= STEPS[i].time) return i;
+  }
+  return 0;
+}
+
+function updateUI() {
+  const step = getCurrentStep();
+  const pct = (current / TOTAL) * 100;
+
+  document.getElementById('timelineFill').style.width = pct + '%';
+  document.getElementById('timelineThumb').style.left = `calc(${pct}% - 7px)`;
+
+  const m = Math.floor(current/60), s = Math.floor(current%60);
+  document.getElementById('timeDisplay').textContent = `${m}:${s.toString().padStart(2,'0')} / 4:00`;
+
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  });
+
+  for (let i = 0; i < 4; i++) {
+    const s0=STEPS[i].time, s1=STEPS[i+1].time;
+    let w = 0;
+    if (current >= s1) w = 100;
+    else if (current > s0) w = ((current-s0)/(s1-s0))*100;
+    document.getElementById('line'+(i+1)).style.width = w+'%';
+  }
+
+  document.getElementById('stepLabel').textContent = STEPS[step].label;
+  document.getElementById('stepCount').textContent = (step+1)+' / 5';
+
+  document.querySelectorAll('.step-card').forEach((c,i) => {
+    c.classList.remove('active','done');
+    if (i < step) c.classList.add('done');
+    else if (i === step) c.classList.add('active');
+  });
+
+  document.querySelectorAll('.scene').forEach((sc,i) => sc.classList.toggle('active', i===step));
+
+  const urls=['/pos','/pos','/pos/checkout','/pos/payment','/pos/receipt'];
+  const urlEl = document.getElementById('screenUrl');
+  urlEl.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>app.raos.uz</span>${urls[step]}`;
+
+  const tip = TIPS[step];
+  document.getElementById('tip-icon').textContent = tip.icon;
+  document.getElementById('tip-title').textContent = tip.title;
+  document.getElementById('tip-desc').textContent = tip.desc;
+
+  runSceneAnim(step);
+}
+
+function runSceneAnim(step) {
+  if (step === 0) {
+    // Highlight products one by one
+    const prog = (current - STEPS[0].time) / (STEPS[0].end - STEPS[0].time);
+    const highlighted = Math.floor(prog * 6);
+    for (let i=0; i<6; i++) {
+      const el = document.getElementById('pp'+i);
+      if (el) el.classList.toggle('selected', i < highlighted);
+    }
+
+  } else if (step === 1) {
+    const prog = (current - STEPS[1].time) / (STEPS[1].end - STEPS[1].time);
+
+    // Show cart items
+    const ci0 = document.getElementById('ci0');
+    const ci1 = document.getElementById('ci1');
+    if (ci0) ci0.classList.toggle('show', prog > 0.2);
+    if (ci1) ci1.classList.toggle('show', prog > 0.5);
+
+    // Cart count
+    const cc = document.getElementById('cartCount1');
+    if (cc) {
+      const cnt = prog > 0.5 ? 2 : prog > 0.2 ? 1 : 0;
+      cc.textContent = `(${cnt} ta)`;
+    }
+
+    // Total
+    const total = document.getElementById('cartTotal1');
+    if (total) {
+      if (prog > 0.5) total.textContent = '905 000 so\'m';
+      else if (prog > 0.2) total.textContent = '720 000 so\'m';
+      else total.textContent = '0 so\'m';
+    }
+
+    // Pay button
+    const pb = document.getElementById('payBtn1');
+    if (pb) pb.classList.toggle('show', prog > 0.6);
+
+    // Highlight selected products
+    const s1pp1 = document.getElementById('s1pp1');
+    const s1pp3 = document.getElementById('s1pp3');
+    if (s1pp1) s1pp1.classList.toggle('selected', prog > 0.2);
+    if (s1pp3) s1pp3.classList.toggle('selected', prog > 0.5);
+
+  } else if (step === 2) {
+    const prog = (current - STEPS[2].time) / (STEPS[2].end - STEPS[2].time);
+    const applyBtn = document.getElementById('applyBtn');
+    if (applyBtn) applyBtn.classList.toggle('show', prog > 0.6);
+
+    // Disc options animation
+    const disc5 = document.getElementById('disc5');
+    const disc10 = document.getElementById('disc10');
+    const disc15 = document.getElementById('disc15');
+    const disc20 = document.getElementById('disc20');
+
+    if (prog < 0.2) {
+      [disc5,disc10,disc15,disc20].forEach(el => el && el.classList.remove('active'));
+      if (disc5) disc5.classList.add('active');
+    } else if (prog < 0.4) {
+      [disc5,disc10,disc15,disc20].forEach(el => el && el.classList.remove('active'));
+      if (disc10) disc10.classList.add('active');
+    } else {
+      [disc5,disc10,disc15,disc20].forEach(el => el && el.classList.remove('active'));
+      if (disc10) disc10.classList.add('active');
+    }
+
+    const discInput = document.getElementById('discInput');
+    if (discInput) discInput.textContent = prog < 0.2 ? '5' : '10';
+
+  } else if (step === 3) {
+    const prog = (current - STEPS[3].time) / (STEPS[3].end - STEPS[3].time);
+
+    const cardAnim = document.getElementById('payCardAnim');
+    if (cardAnim) cardAnim.classList.toggle('show', prog > 0.3);
+
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) confirmBtn.classList.toggle('show', prog > 0.65);
+
+    // Payment method highlight
+    const pmCash = document.getElementById('pm-cash');
+    const pmCard = document.getElementById('pm-card');
+    const pmPayme = document.getElementById('pm-payme');
+
+    if (prog < 0.15) {
+      [pmCash,pmCard,pmPayme].forEach(el => el && el.classList.remove('active'));
+      if (pmCash) pmCash.classList.add('active');
+    } else {
+      [pmCash,pmCard,pmPayme].forEach(el => el && el.classList.remove('active'));
+      if (pmCard) pmCard.classList.add('active');
+    }
+
+  } else if (step === 4) {
+    const prog = (current - STEPS[4].time) / (STEPS[4].end - STEPS[4].time);
+
+    const check = document.getElementById('successCheck');
+    const title = document.getElementById('successTitle');
+    const receipt = document.getElementById('receiptCard');
+    const btnNew = document.getElementById('btnNewSale');
+    const btnPrint = document.getElementById('btnPrint');
+
+    if (check) check.classList.toggle('show', prog > 0.1);
+    if (title) title.classList.toggle('show', prog > 0.2);
+    if (receipt) receipt.classList.toggle('show', prog > 0.35);
+    if (btnNew) btnNew.classList.toggle('show', prog > 0.8);
+    if (btnPrint) btnPrint.classList.toggle('show', prog > 0.85);
+  }
+}
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('playBtn').textContent = playing ? '⏸' : '▶';
+  if (playing) startTimer(); else stopTimer();
+}
+function startTimer() {
+  stopTimer();
+  timer = setInterval(() => {
+    current += 0.1 * speed;
+    if (current >= TOTAL) {
+      current = TOTAL; playing = false;
+      document.getElementById('playBtn').textContent = '▶';
+      stopTimer();
+    }
+    updateUI();
+  }, 100);
+}
+function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+function skipBack() { current = Math.max(0, current-10); updateUI(); }
+function skipFwd() { current = Math.min(TOTAL, current+10); updateUI(); }
+function setSpeed(s) {
+  speed = s;
+  ['sp05','sp1','sp15','sp2'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const ids = {0.5:'sp05',1:'sp1',1.5:'sp15',2:'sp2'};
+  document.getElementById(ids[s]).classList.add('active');
+  if (playing) { stopTimer(); startTimer(); }
+}
+function seekClick(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  current = (e.clientX - rect.left) / rect.width * TOTAL;
+  animStarted = [false,false,false,false,false];
+  updateUI();
+}
+function goToStep(s) {
+  current = STEPS[s].time;
+  animStarted = [false,false,false,false,false];
+  updateUI();
+}
+document.querySelectorAll('.step-dot').forEach(d => {
+  d.addEventListener('click', () => { animStarted = [false,false,false,false,false]; goToStep(parseInt(d.dataset.step)); });
+});
+
+updateUI();
+</script>
+</body>
+</html>

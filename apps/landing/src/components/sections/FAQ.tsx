@@ -34,7 +34,7 @@ export default function FAQ() {
                   className="w-full flex items-center justify-between gap-4 py-5 text-left"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-white font-semibold text-base">{item.question}</span>
+                  <h3 className="text-white font-semibold text-base">{item.question}</h3>
                   {isOpen ? (
                     <ChevronUp size={20} className="text-[#24D4F4] shrink-0" />
                   ) : (

@@ -84,8 +84,8 @@ export default function Header() {
 
   const navLinks = [
     { label: t.nav.features, href: '#features' },
-    { label: t.nav.pricing, href: '#pricing' },
     { label: t.nav.comparison, href: '#comparison' },
+    { label: t.nav.pricing, href: '#pricing' },
     { label: t.nav.faq, href: '#faq' },
   ]
 
@@ -103,7 +103,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="#" className="text-[#24D4F4] font-bold text-2xl tracking-tight">
+          <a href="/" className="text-[#24D4F4] font-bold text-2xl tracking-tight" aria-label="RAOS — POS tizimi">
             RAOS
           </a>
 
@@ -120,8 +120,14 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Desktop right: CTA + lang */}
+          {/* Desktop right: login + CTA + lang */}
           <div className="hidden md:flex items-center gap-3">
+            <a
+              href={process.env.NEXT_PUBLIC_LOGIN_URL || 'https://app.raos.uz/login'}
+              className="text-slate-300 hover:text-[#24D4F4] transition-colors text-sm font-medium"
+            >
+              {t.nav.login}
+            </a>
             <a
               href="#register"
               className="inline-flex items-center bg-[#24D4F4] text-[#0E1530] font-bold px-5 py-2 rounded-lg hover:bg-[#0FA8C8] transition-colors text-sm"
@@ -135,7 +141,7 @@ export default function Header() {
           <div className="md:hidden flex items-center gap-2">
             <LangDropdown size="sm" />
             <button
-              className="text-slate-300 hover:text-[#24D4F4] transition-colors p-1"
+              className="text-slate-300 hover:text-[#24D4F4] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={t.nav.menu}
             >
@@ -149,7 +155,7 @@ export default function Header() {
       <div
         className={clsx(
           'md:hidden overflow-hidden transition-all duration-300 bg-[#0E1530]/98 backdrop-blur-md border-b border-[rgba(36,212,244,0.2)]',
-          menuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0',
+          menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
         )}
       >
         <nav className="px-4 py-4 flex flex-col gap-4">
@@ -163,6 +169,13 @@ export default function Header() {
               {link.label}
             </a>
           ))}
+          <a
+            href={process.env.NEXT_PUBLIC_LOGIN_URL || 'https://app.raos.uz/login'}
+            onClick={handleNavClick}
+            className="text-slate-300 hover:text-[#24D4F4] transition-colors text-base font-medium py-1"
+          >
+            {t.nav.login}
+          </a>
           <a
             href="#register"
             onClick={handleNavClick}

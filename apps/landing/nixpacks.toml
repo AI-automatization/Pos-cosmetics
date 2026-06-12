@@ -1,0 +1,16 @@
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm install --legacy-peer-deps"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+# Railway задаёт PORT; локальный fallback 3003 — см. package.json "start"
+[start]
+cmd = "npm run start"
+
+[variables]
+NEXT_PUBLIC_LOGIN_URL = "https://app.raos.uz/login"
+NEXT_PUBLIC_APP_URL = "https://app.raos.uz"

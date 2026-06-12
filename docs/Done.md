@@ -200,6 +200,26 @@
 
 ---
 
+## T-427 | 2026-05-26 | [LANDING] | Landing page — RAOS.uz (MASTER TASK)
+
+- **Mas'ul:** Ziyoda (kod) + Shuhratov (kontent/matn)
+- **Yechim:**
+  - 20 ta sub-task (T-438..T-457) to'liq bajarildi
+  - Next.js 15 + Tailwind v4 + React 19, monorepo (`apps/landing/`)
+  - 3 til: UZ / RU / EN (i18n — `translations.ts` + `LangContext`)
+  - SEO: meta tags, Open Graph, JSON-LD, sitemap.xml, robots.txt
+  - OG image 1200×630 + favicon + apple-touch-icon (`next/og`, edge runtime)
+  - Railway deploy: `landing-production-67f9.up.railway.app`
+  - Custom domain: `raos.uz` → Railway landing service (Cloudflare DNS)
+  - `www.raos.uz` → landing, `app.raos.uz` → web (POS panel)
+  - Header: "Kirish" login link + mobile menu
+  - Hero cta2: `raos.uz/login?from=%2Freports%2Fdaily-revenue`
+  - Performance: dynamic import, font optimization, offline-first scroll animations
+  - Mobile responsive: xs → 2xl barcha breakpointlar
+- **Fayllar:** `apps/landing/src/` — barcha komponentlar, `apps/landing/nixpacks.toml`, `apps/landing/package.json`
+
+---
+
 ## T-430 | 2026-05-20 | [BACKEND] | Expiry tracking — cron alert + bot + Web UI
 
 - **Yechim:**

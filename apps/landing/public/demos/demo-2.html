@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAOS — 2-darslik: Tovarlarni qo'shish</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #24D4F4;
+    --cyan2: #5FEEFB;
+    --navy: #0E1530;
+    --navy2: #112F4B;
+    --navy3: #0a1228;
+    --glass: rgba(36,212,244,0.07);
+    --border: rgba(36,212,244,0.18);
+  }
+
+  body {
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    width: 100%; background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--cyan);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; color: var(--navy);
+  }
+  .logo-text { font-weight: 800; font-size: 18px; color: #fff; }
+  .lesson-badge {
+    background: rgba(36,212,244,0.12); border: 1px solid var(--border);
+    color: var(--cyan); font-size: 12px; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #94a3b8; }
+  .topbar-right span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── HERO ── */
+  .hero { width: 100%; max-width: 900px; padding: 40px 24px 24px; text-align: center; }
+  .lesson-number { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--cyan); text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: clamp(22px, 4vw, 38px); font-weight: 900; line-height: 1.2; margin-bottom: 12px; }
+  .hero h1 span { color: var(--cyan); }
+  .hero-sub { font-size: 15px; color: #94a3b8; max-width: 500px; margin: 0 auto 24px; }
+  .meta-pills { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+  .pill { display: flex; align-items: center; gap: 6px; background: var(--glass); border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: #cbd5e1; }
+  .pill svg { width: 13px; height: 13px; }
+  .pill.green { color: #34d399; border-color: rgba(52,211,153,0.25); background: rgba(52,211,153,0.07); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { width: 100%; max-width: 900px; padding: 0 24px 8px; }
+  .progress-steps { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .step-dot {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid rgba(36,212,244,0.25);
+    font-size: 12px; font-weight: 700; color: #475569;
+    transition: all 0.4s; cursor: pointer; position: relative;
+  }
+  .step-dot.active { border-color: var(--cyan); background: rgba(36,212,244,0.15); color: var(--cyan); box-shadow: 0 0 16px rgba(36,212,244,0.35); }
+  .step-dot.done { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.12); color: #34d399; }
+  .step-dot.done::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step-dot.done span { display: none; }
+  .step-line { flex: 1; height: 2px; background: rgba(36,212,244,0.1); border-radius: 1px; position: relative; overflow: hidden; }
+  .step-line-fill { height: 100%; background: var(--cyan); border-radius: 1px; transition: width 0.6s ease; }
+  .progress-label { font-size: 12px; color: #64748b; display: flex; justify-content: space-between; }
+  .progress-label strong { color: var(--cyan); }
+
+  /* ── STEP CARDS ── */
+  .step-info { width: 100%; max-width: 900px; padding: 0 24px; }
+  .step-cards { display: flex; gap: 8px; }
+  .step-card {
+    flex: 1; padding: 12px 14px;
+    background: var(--glass); border: 1px solid rgba(36,212,244,0.1);
+    border-radius: 12px; cursor: pointer; transition: all 0.3s; opacity: 0.5;
+  }
+  .step-card.active { border-color: var(--cyan); background: rgba(36,212,244,0.07); opacity: 1; box-shadow: 0 0 16px rgba(36,212,244,0.1); }
+  .step-card.done .done-icon { display: inline; }
+  .step-card.done .num-val { display: none; }
+  .step-card-num { font-size: 10px; font-weight: 700; color: var(--cyan); margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+  .step-card-num .done-icon { display: none; }
+  .step-card h5 { font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 2px; }
+  .step-card p { font-size: 10px; color: #64748b; }
+  .spacer { height: 20px; }
+
+  /* ── DEMO AREA ── */
+  .demo-area { width: 100%; max-width: 900px; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .screen-wrap {
+    width: 100%; background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; box-shadow: 0 0 60px rgba(36,212,244,0.08);
+  }
+  .screen-bar {
+    background: var(--navy3); padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .screen-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .screen-dot:nth-child(1){background:#ef4444}
+  .screen-dot:nth-child(2){background:#f59e0b}
+  .screen-dot:nth-child(3){background:#22c55e}
+  .screen-url {
+    flex: 1; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 12px; font-size: 12px; color: #64748b;
+    margin: 0 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .screen-url span { color: var(--cyan); }
+  .screen-content { min-height: 360px; position: relative; overflow: hidden; }
+
+  /* ── SCENES ── */
+  .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+  .scene.active { opacity: 1; pointer-events: auto; }
+
+  /* Shared sidebar */
+  .sidebar {
+    width: 180px; background: var(--navy3);
+    border-right: 1px solid var(--border);
+    padding: 16px 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;
+  }
+  .sidebar-logo { padding: 0 16px 14px; font-weight: 900; font-size: 15px; color: var(--cyan); }
+  .nav-item {
+    padding: 9px 16px; font-size: 12px; color: #475569;
+    display: flex; align-items: center; gap: 8px;
+    border-left: 2px solid transparent; transition: all 0.2s;
+  }
+  .nav-item.active { color: var(--cyan); background: rgba(36,212,244,0.07); border-left-color: var(--cyan); }
+  .nav-item svg { width: 14px; height: 14px; }
+
+  /* ── SCENE 0: Katalog (bo'sh) ── */
+  .s0-wrap { display: flex; height: 100%; }
+  .s0-main { flex: 1; padding: 20px; overflow: auto; }
+  .s0-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .s0-title { font-size: 17px; font-weight: 800; }
+  .btn-add {
+    background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 12px;
+    padding: 8px 16px; border-radius: 9px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+  }
+  .add-methods { display: flex; gap: 10px; margin-bottom: 20px; }
+  .method-card {
+    flex: 1; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; text-align: center; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .method-card.highlight { border-color: var(--cyan); background: rgba(36,212,244,0.1); box-shadow: 0 0 16px rgba(36,212,244,0.15); }
+  .method-icon { font-size: 22px; margin-bottom: 6px; }
+  .method-label { font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 3px; }
+  .method-desc { font-size: 10px; color: #64748b; }
+  .empty-table { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; padding: 28px; text-align: center; }
+  .empty-icon { font-size: 28px; margin-bottom: 8px; }
+  .empty-text { font-size: 13px; color: #64748b; }
+
+  /* ── SCENE 1: Qo'lda kiritish ── */
+  .s1-wrap { display: flex; height: 100%; }
+  .s1-main { flex: 1; padding: 20px; overflow: auto; }
+  .s1-header { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .s1-sub { font-size: 11px; color: #64748b; margin-bottom: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: span 2; }
+  .form-group label { font-size: 10px; font-weight: 600; color: #94a3b8; }
+  .form-inp {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 10px; font-size: 12px; color: #fff;
+    min-height: 32px; display: flex; align-items: center;
+  }
+  .form-inp.active { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(36,212,244,0.15); }
+  .cursor { display: inline-block; width: 2px; height: 12px; background: var(--cyan); margin-left: 1px; animation: blink 0.8s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .select-inp { background: var(--glass); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 12px; color: #94a3b8; }
+  .form-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-save {
+    background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 12px;
+    padding: 9px 20px; border-radius: 9px; cursor: pointer; opacity: 0.4;
+    transition: opacity 0.4s;
+  }
+  .btn-save.show { opacity: 1; }
+  .btn-cancel {
+    background: transparent; color: #94a3b8; border: 1px solid var(--border);
+    font-weight: 600; font-size: 12px; padding: 9px 16px; border-radius: 9px; cursor: pointer;
+  }
+
+  /* ── SCENE 2: Excel import ── */
+  .s2-wrap { display: flex; height: 100%; }
+  .s2-main { flex: 1; padding: 20px; overflow: auto; }
+  .s2-header { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .s2-sub { font-size: 11px; color: #64748b; margin-bottom: 16px; }
+  .drop-zone {
+    border: 2px dashed rgba(36,212,244,0.3); border-radius: 12px;
+    padding: 24px; text-align: center; margin-bottom: 14px;
+    transition: all 0.4s;
+  }
+  .drop-zone.active { border-color: var(--cyan); background: rgba(36,212,244,0.05); }
+  .drop-icon { font-size: 28px; margin-bottom: 8px; }
+  .drop-text { font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 4px; }
+  .drop-sub { font-size: 11px; color: #64748b; }
+  .excel-preview { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .excel-head { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 0; background: rgba(36,212,244,0.08); border-bottom: 1px solid var(--border); }
+  .excel-head div, .excel-row div { padding: 7px 10px; font-size: 10px; }
+  .excel-head div { font-weight: 700; color: var(--cyan); }
+  .excel-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; border-bottom: 1px solid rgba(36,212,244,0.06); opacity: 0; transform: translateY(4px); transition: all 0.3s; }
+  .excel-row.show { opacity: 1; transform: none; }
+  .excel-row div { font-size: 11px; color: #cbd5e1; }
+  .excel-count { font-size: 11px; color: #64748b; margin-top: 8px; }
+  .excel-count span { color: var(--cyan); font-weight: 700; }
+  .btn-import {
+    width: 100%; background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 13px;
+    padding: 10px; border-radius: 10px; cursor: pointer; margin-top: 12px;
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .btn-import.show { opacity: 1; }
+
+  /* ── SCENE 3: Shtrix-kod ── */
+  .s3-wrap { display: flex; height: 100%; }
+  .s3-main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .scanner-box {
+    width: 200px; height: 140px; border: 2px solid var(--cyan);
+    border-radius: 12px; position: relative; overflow: hidden;
+    background: rgba(36,212,244,0.03);
+    box-shadow: 0 0 20px rgba(36,212,244,0.2);
+  }
+  .scanner-corner {
+    position: absolute; width: 20px; height: 20px;
+    border-color: var(--cyan); border-style: solid;
+  }
+  .scanner-corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+  .scanner-corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+  .scanner-corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+  .scanner-corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    animation: scanMove 1.5s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--cyan);
+  }
+  @keyframes scanMove { 0%,100%{top:10%} 50%{top:80%} }
+  .barcode-lines { display: flex; gap: 2px; align-items: flex-end; height: 60px; position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); }
+  .barcode-line { background: rgba(255,255,255,0.15); border-radius: 1px; }
+  .s3-title { font-size: 16px; font-weight: 800; }
+  .s3-sub { font-size: 12px; color: #94a3b8; text-align: center; }
+  .found-card {
+    background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.3);
+    border-radius: 12px; padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+    opacity: 0; transition: opacity 0.4s; min-width: 260px;
+  }
+  .found-card.show { opacity: 1; }
+  .found-icon { font-size: 24px; }
+  .found-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .found-price { font-size: 12px; color: #34d399; }
+  .btn-add-scan {
+    background: var(--cyan); color: var(--navy);
+    border: none; font-weight: 800; font-size: 13px;
+    padding: 10px 28px; border-radius: 10px; cursor: pointer;
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .btn-add-scan.show { opacity: 1; }
+
+  /* ── SCENE 4: Muvaffaqiyat ── */
+  .s4-wrap { display: flex; height: 100%; }
+  .s4-main { flex: 1; padding: 20px; overflow: auto; }
+  .success-toast {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;
+    animation: slideIn 0.4s ease;
+  }
+  @keyframes slideIn { from{transform:translateY(-8px);opacity:0} to{transform:none;opacity:1} }
+  .toast-icon { font-size: 18px; }
+  .toast-text { font-size: 12px; font-weight: 600; color: #34d399; }
+  .products-table { background: var(--glass); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .table-head { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr; background: rgba(36,212,244,0.06); border-bottom: 1px solid var(--border); }
+  .table-head div { padding: 8px 10px; font-size: 10px; font-weight: 700; color: var(--cyan); }
+  .table-row { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr; border-bottom: 1px solid rgba(36,212,244,0.06); transition: all 0.3s; }
+  .table-row:last-child { border-bottom: none; }
+  .table-row div { padding: 8px 10px; font-size: 11px; color: #cbd5e1; display: flex; align-items: center; }
+  .table-row.new-row { background: rgba(52,211,153,0.06); }
+  .badge-sm {
+    font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    background: rgba(36,212,244,0.1); color: var(--cyan); border: 1px solid rgba(36,212,244,0.2);
+  }
+
+  /* ── SCENE 5: Katalog to'ldirildi ── */
+  .s5-wrap { display: flex; height: 100%; }
+  .s5-main { flex: 1; padding: 20px; overflow: auto; }
+  .s5-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .s5-title { font-size: 16px; font-weight: 800; }
+  .stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .stat-card {
+    flex: 1; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .stat-val { font-size: 20px; font-weight: 900; color: var(--cyan); }
+  .stat-lbl { font-size: 10px; color: #64748b; margin-top: 2px; }
+  .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .product-card {
+    background: var(--glass); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+    transition: all 0.3s; opacity: 0;
+  }
+  .product-card.show { opacity: 1; }
+  .product-thumb { width: 36px; height: 36px; border-radius: 8px; background: rgba(36,212,244,0.12); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 8px; }
+  .product-name { font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .product-price { font-size: 12px; font-weight: 800; color: var(--cyan); margin-bottom: 3px; }
+  .product-stock { font-size: 10px; color: #64748b; }
+
+  /* ── TOOLTIP ── */
+  .tooltip-box {
+    background: var(--navy2); border: 1px solid var(--cyan);
+    border-radius: 12px; padding: 14px 18px;
+    box-shadow: 0 0 32px rgba(36,212,244,0.2);
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: all 0.4s ease;
+  }
+  .tooltip-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(36,212,244,0.12); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .tooltip-text h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tooltip-text p { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+  /* ── CONTROLS ── */
+  .controls { width: 100%; max-width: 900px; padding: 0 24px 40px; }
+  .timeline { width: 100%; height: 4px; background: rgba(36,212,244,0.1); border-radius: 2px; margin-bottom: 16px; cursor: pointer; position: relative; }
+  .timeline-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--cyan2)); border-radius: 2px; transition: width 0.15s linear; }
+  .timeline-thumb { position: absolute; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px rgba(36,212,244,0.5); transition: left 0.15s linear; }
+  .ctrl-row { display: flex; align-items: center; gap: 16px; }
+  .ctrl-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--glass); border: 1px solid var(--border); color: #cbd5e1; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+  .ctrl-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .ctrl-btn.main { width: 48px; height: 48px; font-size: 20px; background: var(--cyan); color: var(--navy); border-color: var(--cyan); box-shadow: 0 0 20px rgba(36,212,244,0.3); }
+  .ctrl-btn.main:hover { background: #0FA8C8; }
+  .time-display { font-size: 13px; font-weight: 600; color: #64748b; font-variant-numeric: tabular-nums; min-width: 80px; }
+  .ctrl-right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .speed-btn { background: var(--glass); border: 1px solid var(--border); color: #94a3b8; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .speed-btn.active { border-color: var(--cyan); color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <span class="logo-text">RAOS</span>
+  </div>
+  <div class="lesson-badge">2-darslik • Katalog</div>
+  <div class="topbar-right">
+    <span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      5 daqiqa
+    </span>
+    <span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+      6 qadam
+    </span>
+    <span style="color:#34d399">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      BEPUL
+    </span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="lesson-number">📦 2-DARSLIK</div>
+  <h1>Tovarlarni <span>tez qo'shish</span></h1>
+  <p class="hero-sub">Excel fayldan, shtrix-kod orqali yoki qo'lda — 3 xil usulda tovarlarni 5 daqiqada kiriting.</p>
+  <div class="meta-pills">
+    <div class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      5 daqiqa
+    </div>
+    <div class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+      6 qadam
+    </div>
+    <div class="pill green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      Boshlang'ich daraja
+    </div>
+    <div class="pill" style="color:#34d399;border-color:rgba(52,211,153,0.25);background:rgba(52,211,153,0.07)">Bepul darslik</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps" id="progressSteps">
+    <div class="step-dot active" data-step="0"><span>1</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line1" style="width:0%"></div></div>
+    <div class="step-dot" data-step="1"><span>2</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line2" style="width:0%"></div></div>
+    <div class="step-dot" data-step="2"><span>3</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line3" style="width:0%"></div></div>
+    <div class="step-dot" data-step="3"><span>4</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line4" style="width:0%"></div></div>
+    <div class="step-dot" data-step="4"><span>5</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line5" style="width:0%"></div></div>
+    <div class="step-dot" data-step="5"><span>6</span></div>
+  </div>
+  <div class="progress-label">
+    <span id="stepLabel">1-qadam: Katalog sahifasi</span>
+    <strong id="stepCount">1 / 6</strong>
+  </div>
+</div>
+
+<!-- STEP CARDS -->
+<div class="step-info">
+  <div class="step-cards">
+    <div class="step-card active" id="scard0" onclick="goToStep(0)">
+      <div class="step-card-num"><span class="num-val">01</span><span class="done-icon">✓</span></div>
+      <h5>Katalog</h5><p>Tovar qo'shish</p>
+    </div>
+    <div class="step-card" id="scard1" onclick="goToStep(1)">
+      <div class="step-card-num"><span class="num-val">02</span><span class="done-icon">✓</span></div>
+      <h5>Qo'lda</h5><p>Forma to'ldirish</p>
+    </div>
+    <div class="step-card" id="scard2" onclick="goToStep(2)">
+      <div class="step-card-num"><span class="num-val">03</span><span class="done-icon">✓</span></div>
+      <h5>Excel</h5><p>Fayl yuklash</p>
+    </div>
+    <div class="step-card" id="scard3" onclick="goToStep(3)">
+      <div class="step-card-num"><span class="num-val">04</span><span class="done-icon">✓</span></div>
+      <h5>Shtrix-kod</h5><p>Scanner</p>
+    </div>
+    <div class="step-card" id="scard4" onclick="goToStep(4)">
+      <div class="step-card-num"><span class="num-val">05</span><span class="done-icon">✓</span></div>
+      <h5>Saqlandi</h5><p>Tasdiqlash</p>
+    </div>
+    <div class="step-card" id="scard5" onclick="goToStep(5)">
+      <div class="step-card-num"><span class="num-val">06</span><span class="done-icon">✓</span></div>
+      <h5>Katalog</h5><p>To'ldirildi</p>
+    </div>
+  </div>
+</div>
+<div class="spacer"></div>
+
+<!-- DEMO AREA -->
+<div class="demo-area">
+  <div class="screen-wrap">
+    <div class="screen-bar">
+      <div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div>
+      <div class="screen-url" id="screenUrl">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span>app.raos.uz</span>/catalog
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- SCENE 0: Katalog (bo'sh) -->
+      <div class="scene active" id="scene0">
+        <div class="s0-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Asosiy</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Hisobot</div>
+          </div>
+          <div class="s0-main">
+            <div class="s0-header">
+              <div class="s0-title">Tovarlar katalogi</div>
+              <button class="btn-add" id="addBtn">+ Tovar qo'shish</button>
+            </div>
+            <div class="add-methods">
+              <div class="method-card" id="method0">
+                <div class="method-icon">✏️</div>
+                <div class="method-label">Qo'lda kiritish</div>
+                <div class="method-desc">Har bir tovarni alohida</div>
+              </div>
+              <div class="method-card" id="method1">
+                <div class="method-icon">📊</div>
+                <div class="method-label">Excel import</div>
+                <div class="method-desc">Ko'p tovarni bir vaqtda</div>
+              </div>
+              <div class="method-card" id="method2">
+                <div class="method-icon">📷</div>
+                <div class="method-label">Shtrix-kod</div>
+                <div class="method-desc">Skanerlash orqali</div>
+              </div>
+            </div>
+            <div class="empty-table">
+              <div class="empty-icon">📦</div>
+              <div class="empty-text">Katalog bo'sh — tovarlarni qo'shing</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 1: Qo'lda kiritish -->
+      <div class="scene" id="scene1">
+        <div class="s1-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+          </div>
+          <div class="s1-main">
+            <div class="s1-header">Yangi tovar qo'shish</div>
+            <div class="s1-sub">Tovar ma'lumotlarini kiriting</div>
+            <div class="form-grid">
+              <div class="form-group full">
+                <label>Tovar nomi *</label>
+                <div class="form-inp active"><span id="inp-name"></span><span class="cursor"></span></div>
+              </div>
+              <div class="form-group">
+                <label>Kategoriya</label>
+                <div class="select-inp" id="inp-cat">Parfyumeriya ▾</div>
+              </div>
+              <div class="form-group">
+                <label>Narxi (so'm) *</label>
+                <div class="form-inp" id="inp-price" style="color:#94a3b8"></div>
+              </div>
+              <div class="form-group">
+                <label>Shtrix-kod</label>
+                <div class="form-inp" id="inp-barcode" style="color:#94a3b8"></div>
+              </div>
+              <div class="form-group">
+                <label>Boshlang'ich qoldiq</label>
+                <div class="form-inp" id="inp-stock" style="color:#94a3b8"></div>
+              </div>
+              <div class="form-group">
+                <label>Birlik</label>
+                <div class="select-inp">dona ▾</div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-save" id="saveBtn">Saqlash</button>
+              <button class="btn-cancel">Bekor qilish</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 2: Excel import -->
+      <div class="scene" id="scene2">
+        <div class="s2-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+          </div>
+          <div class="s2-main">
+            <div class="s2-header">Excel orqali import</div>
+            <div class="s2-sub">Shablonni yuklab oling, to'ldiring va yuklang</div>
+            <div class="drop-zone" id="dropZone">
+              <div class="drop-icon" id="dropIcon">📂</div>
+              <div class="drop-text" id="dropText">Faylni shu yerga tashlang</div>
+              <div class="drop-sub" id="dropSub">.xlsx, .xls — maksimal 10 MB</div>
+            </div>
+            <div class="excel-preview" id="excelPreview" style="display:none">
+              <div class="excel-head">
+                <div>Tovar nomi</div><div>Narxi</div><div>Miqdor</div><div>Shtrix-kod</div>
+              </div>
+              <div class="excel-row" id="erow0"><div>Chanel No.5 EDP</div><div>850 000</div><div>12</div><div>3145891</div></div>
+              <div class="excel-row" id="erow1"><div>Dior Sauvage EDT</div><div>720 000</div><div>8</div><div>3348901</div></div>
+              <div class="excel-row" id="erow2"><div>Versace Eros EDP</div><div>640 000</div><div>15</div><div>8011003</div></div>
+              <div class="excel-row" id="erow3"><div>Hugo Boss Bottled</div><div>580 000</div><div>10</div><div>7374000</div></div>
+              <div class="excel-row" id="erow4"><div>Gucci Bloom EDP</div><div>760 000</div><div>6</div><div>3614227</div></div>
+            </div>
+            <div class="excel-count" id="excelCount" style="display:none">Topildi: <span id="rowCount">0</span> ta tovar</div>
+            <button class="btn-import" id="importBtn">✓ Barchasini import qilish</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 3: Shtrix-kod -->
+      <div class="scene" id="scene3">
+        <div class="s3-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+          </div>
+          <div class="s3-main">
+            <div class="s3-title">Shtrix-kod bilan qo'shish</div>
+            <div class="s3-sub">Tovar ustidagi shtrix-kodni skanerlang</div>
+            <div class="scanner-box">
+              <div class="scanner-corner tl"></div>
+              <div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div>
+              <div class="scanner-corner br"></div>
+              <div class="scan-line"></div>
+              <div class="barcode-lines" id="barcodelines"></div>
+            </div>
+            <div class="found-card" id="foundCard">
+              <div class="found-icon">✅</div>
+              <div>
+                <div class="found-name">Lancôme La Vie Est Belle</div>
+                <div class="found-price">690 000 so'm</div>
+              </div>
+            </div>
+            <button class="btn-add-scan" id="addScanBtn">Katalogga qo'shish →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 4: Saqlandi -->
+      <div class="scene" id="scene4">
+        <div class="s4-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+          </div>
+          <div class="s4-main">
+            <div class="success-toast">
+              <div class="toast-icon">✅</div>
+              <div class="toast-text">Tovar muvaffaqiyatli qo'shildi!</div>
+            </div>
+            <div class="products-table">
+              <div class="table-head">
+                <div>Tovar nomi</div><div>Narxi</div><div>Qoldiq</div><div>Tur</div>
+              </div>
+              <div class="table-row"><div>Chanel No.5 EDP 50ml</div><div>850 000</div><div>12 dona</div><div><span class="badge-sm">Excel</span></div></div>
+              <div class="table-row"><div>Dior Sauvage EDT 100ml</div><div>720 000</div><div>8 dona</div><div><span class="badge-sm">Excel</span></div></div>
+              <div class="table-row"><div>Versace Eros EDP 100ml</div><div>640 000</div><div>15 dona</div><div><span class="badge-sm">Excel</span></div></div>
+              <div class="table-row new-row" id="newProductRow" style="opacity:0;transition:opacity 0.5s">
+                <div>Lancôme La Vie Est Belle</div><div>690 000</div><div>1 dona</div><div><span class="badge-sm" style="color:#34d399;border-color:rgba(52,211,153,0.3);background:rgba(52,211,153,0.08)">Yangi</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 5: Katalog to'ldirildi -->
+      <div class="scene" id="scene5">
+        <div class="s5-wrap">
+          <div class="sidebar">
+            <div class="sidebar-logo">RAOS</div>
+            <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Katalog</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Kassa</div>
+            <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Hisobot</div>
+          </div>
+          <div class="s5-main">
+            <div class="s5-header">
+              <div class="s5-title">Tovarlar katalogi</div>
+              <button class="btn-add">+ Tovar qo'shish</button>
+            </div>
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-val" id="stat-count">0</div><div class="stat-lbl">Tovarlar soni</div></div>
+              <div class="stat-card"><div class="stat-val" id="stat-val">0</div><div class="stat-lbl">Umumiy qiymat</div></div>
+              <div class="stat-card"><div class="stat-val" id="stat-cats">0</div><div class="stat-lbl">Kategoriyalar</div></div>
+            </div>
+            <div class="products-grid">
+              <div class="product-card" id="pc0"><div class="product-thumb">🌹</div><div class="product-name">Chanel No.5 EDP</div><div class="product-price">850 000 so'm</div><div class="product-stock">12 dona qoldiq</div></div>
+              <div class="product-card" id="pc1"><div class="product-thumb">🌊</div><div class="product-name">Dior Sauvage EDT</div><div class="product-price">720 000 so'm</div><div class="product-stock">8 dona qoldiq</div></div>
+              <div class="product-card" id="pc2"><div class="product-thumb">⚡</div><div class="product-name">Versace Eros EDP</div><div class="product-price">640 000 so'm</div><div class="product-stock">15 dona qoldiq</div></div>
+              <div class="product-card" id="pc3"><div class="product-thumb">🌸</div><div class="product-name">Lancôme La Vie</div><div class="product-price">690 000 so'm</div><div class="product-stock">1 dona qoldiq</div></div>
+              <div class="product-card" id="pc4"><div class="product-thumb">🏆</div><div class="product-name">Hugo Boss Bottled</div><div class="product-price">580 000 so'm</div><div class="product-stock">10 dona qoldiq</div></div>
+              <div class="product-card" id="pc5"><div class="product-thumb">🌺</div><div class="product-name">Gucci Bloom EDP</div><div class="product-price">760 000 so'm</div><div class="product-stock">6 dona qoldiq</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOOLTIP -->
+  <div class="tooltip-box" id="tooltip">
+    <div class="tooltip-icon" id="tip-icon">💡</div>
+    <div class="tooltip-text">
+      <h4 id="tip-title">Katalog sahifasini oching</h4>
+      <p id="tip-desc">RAOS panelida "Katalog" bo'limiga o'ting. Siz tovarlarni 3 xil usulda qo'shishingiz mumkin: qo'lda, Excel import yoki shtrix-kod orqali.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="timeline" id="timeline" onclick="seekClick(event)">
+    <div class="timeline-fill" id="timelineFill" style="width:0%"></div>
+    <div class="timeline-thumb" id="timelineThumb" style="left:0%"></div>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" onclick="skipBack()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.46"/></svg>
+    </button>
+    <button class="ctrl-btn main" id="playBtn" onclick="togglePlay()">▶</button>
+    <button class="ctrl-btn" onclick="skipFwd()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.46"/></svg>
+    </button>
+    <span class="time-display" id="timeDisplay">0:00 / 5:00</span>
+    <div class="ctrl-right">
+      <button class="speed-btn" onclick="setSpeed(0.5)" id="sp05">0.5×</button>
+      <button class="speed-btn active" onclick="setSpeed(1)" id="sp1">1×</button>
+      <button class="speed-btn" onclick="setSpeed(1.5)" id="sp15">1.5×</button>
+      <button class="speed-btn" onclick="setSpeed(2)" id="sp2">2×</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 300; // 5 minutes
+let current = 0, playing = false, speed = 1, timer = null;
+let animStarted = [false,false,false,false,false,false];
+
+const STEPS = [
+  { time:0,   end:50,  label:"1-qadam: Katalog sahifasi" },
+  { time:50,  end:100, label:"2-qadam: Qo'lda kiritish" },
+  { time:100, end:150, label:"3-qadam: Excel import" },
+  { time:150, end:200, label:"4-qadam: Shtrix-kod skanerlash" },
+  { time:200, end:250, label:"5-qadam: Tovar saqlandi" },
+  { time:250, end:300, label:"6-qadam: Katalog to'ldirildi" },
+];
+
+const TIPS = [
+  { icon:'💡', title:"Maslahat: Katalog", desc:"RAOS panelida 'Katalog' bo'limiga o'ting. Siz tovarlarni 3 xil usulda qo'shishingiz mumkin: qo'lda, Excel import yoki shtrix-kod orqali." },
+  { icon:'✏️', title:"Maslahat: Qo'lda kiritish", desc:"Tovar nomini, kategoriyasini, narxini va shtrix-kodini kiriting. Boshlang'ich qoldiqni ham ko'rsating — sklad avtomatik to'ldiriladi." },
+  { icon:'📊', title:"Maslahat: Excel import", desc:"100+ tovar bo'lsa Excel orqali bir vaqtda kiriting. Shablonni yuklab oling, to'ldiring va yuklang. 5 daqiqada 500 ta tovar kiritish mumkin!" },
+  { icon:'📷', title:"Maslahat: Shtrix-kod", desc:"Telefon kamerasini yoki USB skanerini ishlating. RAOS tovar ma'lumotlarini bazadan avtomatik topadi." },
+  { icon:'✅', title:"Maslahat: Saqlash", desc:"Tovar qo'shilgach darhol kassada paydo bo'ladi. Sklad ham avtomatik yangilanadi — qo'shimcha amal kerak emas." },
+  { icon:'🚀', title:"Maslahat: Keyingi qadam", desc:"Tabriklaymiz! Katalog tayyor. Endi 3-darsga o'ting: birinchi sotuvni amalga oshirish. Kassa ochildi — tovar tanlash va to'lov qabul qilishni o'rganing." },
+];
+
+// Scene 1 typing data
+const nameText = "Armani Si EDP 50ml";
+const priceText = "680 000";
+const barcodeText = "3614272";
+const stockText = "20";
+
+function getCurrentStep() {
+  for (let i = STEPS.length-1; i >= 0; i--) {
+    if (current >= STEPS[i].time) return i;
+  }
+  return 0;
+}
+
+function updateUI() {
+  const step = getCurrentStep();
+  const pct = (current / TOTAL) * 100;
+
+  // Timeline
+  document.getElementById('timelineFill').style.width = pct + '%';
+  document.getElementById('timelineThumb').style.left = `calc(${pct}% - 7px)`;
+
+  // Time
+  const m = Math.floor(current/60), s = Math.floor(current%60);
+  document.getElementById('timeDisplay').textContent = `${m}:${s.toString().padStart(2,'0')} / 5:00`;
+
+  // Step dots
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  });
+
+  // Lines
+  for (let i = 0; i < 5; i++) {
+    const s0=STEPS[i].time, s1=STEPS[i+1].time;
+    let w = 0;
+    if (current >= s1) w = 100;
+    else if (current > s0) w = ((current-s0)/(s1-s0))*100;
+    document.getElementById('line'+(i+1)).style.width = w+'%';
+  }
+
+  document.getElementById('stepLabel').textContent = STEPS[step].label;
+  document.getElementById('stepCount').textContent = (step+1)+' / 6';
+
+  // Step cards
+  document.querySelectorAll('.step-card').forEach((c,i) => {
+    c.classList.remove('active','done');
+    if (i < step) c.classList.add('done');
+    else if (i === step) c.classList.add('active');
+  });
+
+  // Scenes
+  document.querySelectorAll('.scene').forEach((sc,i) => sc.classList.toggle('active', i===step));
+
+  // URL
+  const urls=['/catalog','/catalog/add','/catalog/import','/catalog/scan','/catalog','/catalog'];
+  const urlEl = document.getElementById('screenUrl');
+  urlEl.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>app.raos.uz</span>${urls[step]}`;
+
+  // Tooltip
+  const tip = TIPS[step];
+  document.getElementById('tip-icon').textContent = tip.icon;
+  document.getElementById('tip-title').textContent = tip.title;
+  document.getElementById('tip-desc').textContent = tip.desc;
+
+  runSceneAnim(step);
+}
+
+function runSceneAnim(step) {
+  if (step === 0) {
+    // Highlight add methods
+    const prog = (current - STEPS[0].time) / (STEPS[0].end - STEPS[0].time);
+    const mi = Math.floor(prog * 3);
+    [0,1,2].forEach(i => {
+      const el = document.getElementById('method'+i);
+      if (el) el.classList.toggle('highlight', i === mi);
+    });
+
+  } else if (step === 1) {
+    const prog = (current - STEPS[1].time) / (STEPS[1].end - STEPS[1].time);
+
+    const nameLen = Math.floor(Math.min(prog * 1.8, 1) * nameText.length);
+    document.getElementById('inp-name').textContent = nameText.slice(0, nameLen);
+
+    if (prog > 0.4) {
+      const priceLen = Math.floor(Math.min((prog-0.4)*2.5, 1) * priceText.length);
+      document.getElementById('inp-price').innerHTML = `<span style="color:#fff">${priceText.slice(0,priceLen)}</span>`;
+    }
+    if (prog > 0.6) {
+      const bLen = Math.floor(Math.min((prog-0.6)*3, 1) * barcodeText.length);
+      document.getElementById('inp-barcode').innerHTML = `<span style="color:#fff">${barcodeText.slice(0,bLen)}</span>`;
+    }
+    if (prog > 0.75) {
+      document.getElementById('inp-stock').innerHTML = `<span style="color:#fff">${stockText}</span>`;
+    }
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.classList.toggle('show', prog > 0.85);
+
+  } else if (step === 2) {
+    const prog = (current - STEPS[2].time) / (STEPS[2].end - STEPS[2].time);
+    const dropZone = document.getElementById('dropZone');
+    const preview = document.getElementById('excelPreview');
+    const count = document.getElementById('excelCount');
+    const importBtn = document.getElementById('importBtn');
+
+    if (prog < 0.25) {
+      if (dropZone) { dropZone.classList.remove('active'); dropZone.style.display=''; }
+      if (preview) preview.style.display='none';
+      if (count) count.style.display='none';
+    } else {
+      if (dropZone) { dropZone.classList.add('active'); dropZone.style.display=''; }
+      const dropIcon = document.getElementById('dropIcon');
+      const dropText = document.getElementById('dropText');
+      const dropSub = document.getElementById('dropSub');
+      if (prog > 0.3) {
+        if (dropIcon) dropIcon.textContent = '📊';
+        if (dropText) dropText.textContent = 'tovarlar.xlsx — yuklandi';
+        if (dropSub) dropSub.textContent = '5 ta tovar topildi';
+      }
+      if (prog > 0.35 && preview) preview.style.display='';
+      if (count) count.style.display = prog > 0.35 ? '' : 'none';
+
+      const rowsShown = Math.floor(Math.min((prog-0.35)/0.4, 1) * 5);
+      for (let i=0; i<5; i++) {
+        const row = document.getElementById('erow'+i);
+        if (row) row.classList.toggle('show', i < rowsShown);
+      }
+      const rowCountEl = document.getElementById('rowCount');
+      if (rowCountEl) rowCountEl.textContent = String(rowsShown);
+      if (importBtn) importBtn.classList.toggle('show', prog > 0.8);
+    }
+
+  } else if (step === 3) {
+    if (!animStarted[3]) {
+      animStarted[3] = true;
+      // Generate barcode lines
+      const container = document.getElementById('barcodelines');
+      if (container) {
+        container.innerHTML = '';
+        for (let i=0; i<28; i++) {
+          const line = document.createElement('div');
+          line.className = 'barcode-line';
+          const h = 30 + Math.random()*30;
+          const w = Math.random() > 0.6 ? 4 : 2;
+          line.style.cssText = `width:${w}px;height:${h}px`;
+          container.appendChild(line);
+        }
+      }
+    }
+    const prog = (current - STEPS[3].time) / (STEPS[3].end - STEPS[3].time);
+    const foundCard = document.getElementById('foundCard');
+    const addBtn = document.getElementById('addScanBtn');
+    if (foundCard) foundCard.classList.toggle('show', prog > 0.55);
+    if (addBtn) addBtn.classList.toggle('show', prog > 0.75);
+
+  } else if (step === 4) {
+    if (!animStarted[4]) {
+      animStarted[4] = true;
+    }
+    const prog = (current - STEPS[4].time) / (STEPS[4].end - STEPS[4].time);
+    const newRow = document.getElementById('newProductRow');
+    if (newRow) newRow.style.opacity = prog > 0.3 ? '1' : '0';
+
+  } else if (step === 5) {
+    if (!animStarted[5]) {
+      animStarted[5] = true;
+    }
+    const prog = (current - STEPS[5].time) / (STEPS[5].end - STEPS[5].time);
+
+    // Animate stats counter
+    const countTarget = 6, valTarget = 52, catsTarget = 1;
+    const c = Math.floor(Math.min(prog*2, 1) * countTarget);
+    const v = Math.floor(Math.min(prog*2, 1) * valTarget);
+    const cats = Math.floor(Math.min(prog*2, 1) * catsTarget);
+    const statCountEl = document.getElementById('stat-count');
+    const statValEl = document.getElementById('stat-val');
+    const statCatsEl = document.getElementById('stat-cats');
+    if (statCountEl) statCountEl.textContent = String(c);
+    if (statValEl) statValEl.textContent = v+'M';
+    if (statCatsEl) statCatsEl.textContent = String(cats || 1);
+
+    // Show product cards staggered
+    for (let i=0; i<6; i++) {
+      const card = document.getElementById('pc'+i);
+      if (card) card.classList.toggle('show', prog > i*0.12);
+    }
+  }
+}
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('playBtn').textContent = playing ? '⏸' : '▶';
+  if (playing) startTimer(); else stopTimer();
+}
+function startTimer() {
+  stopTimer();
+  timer = setInterval(() => {
+    current += 0.1 * speed;
+    if (current >= TOTAL) {
+      current = TOTAL; playing = false;
+      document.getElementById('playBtn').textContent = '▶';
+      stopTimer();
+    }
+    updateUI();
+  }, 100);
+}
+function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+function skipBack() { current = Math.max(0, current-10); updateUI(); }
+function skipFwd() { current = Math.min(TOTAL, current+10); updateUI(); }
+function setSpeed(s) {
+  speed = s;
+  ['sp05','sp1','sp15','sp2'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const ids = {0.5:'sp05',1:'sp1',1.5:'sp15',2:'sp2'};
+  document.getElementById(ids[s]).classList.add('active');
+  if (playing) { stopTimer(); startTimer(); }
+}
+function seekClick(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  current = (e.clientX - rect.left) / rect.width * TOTAL;
+  updateUI();
+}
+function goToStep(s) {
+  current = STEPS[s].time;
+  animStarted = [false,false,false,false,false,false];
+  updateUI();
+}
+document.querySelectorAll('.step-dot').forEach(d => {
+  d.addEventListener('click', () => { animStarted = [false,false,false,false,false,false]; goToStep(parseInt(d.dataset.step)); });
+});
+
+updateUI();
+</script>
+</body>
+</html>

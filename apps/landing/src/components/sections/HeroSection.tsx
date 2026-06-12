@@ -45,7 +45,9 @@ export default function HeroSection() {
                 {h.cta1}
               </a>
               <a
-                href="#features"
+                href={`${process.env.NEXT_PUBLIC_LOGIN_URL || 'https://app.raos.uz/login'}?from=%2Freports%2Fdaily-revenue`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 border border-[#24D4F4]/40 text-white font-semibold px-8 py-4 rounded-xl text-lg hover:border-[#24D4F4] hover:bg-[#24D4F4]/5 transition-all"
               >
                 {h.cta2}
@@ -69,7 +71,7 @@ export default function HeroSection() {
           {/* O'ng: POS Mockup */}
           <div className="relative flex justify-center lg:justify-end">
             {/* Floating AI badge */}
-            <div className="absolute -top-4 -left-4 z-10 bg-[#24D4F4]/10 border border-[#24D4F4]/40 text-[#24D4F4] text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-sm">
+            <div className="hidden sm:flex absolute -top-4 -left-4 z-10 items-center bg-[#24D4F4]/10 border border-[#24D4F4]/40 text-[#24D4F4] text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-sm">
               {h.mockupAI}
             </div>
 
@@ -87,9 +89,9 @@ export default function HeroSection() {
               {/* Tovar qatorlari */}
               <div className="flex flex-col gap-3 mb-5">
                 {[
-                  { name: 'Lancome La Vie Est Belle', qty: '2x', price: '320 000' },
+                  { name: 'Lancome La Vie Est Belle', qty: '1x', price: '320 000' },
                   { name: 'Revlon ColorStay Foundation', qty: '1x', price: '185 000' },
-                  { name: "L'Oreal Elvive Shampoo", qty: '3x', price: '96 000' },
+                  { name: "L'Oreal Elvive Shampoo", qty: '1x', price: '96 000' },
                 ].map((item) => (
                   <div
                     key={item.name}
@@ -107,7 +109,7 @@ export default function HeroSection() {
               {/* Total */}
               <div className="flex items-center justify-between py-3 border-t border-[rgba(36,212,244,0.2)] mb-4">
                 <span className="text-slate-300 font-semibold">{h.mockupTotal}</span>
-                <span className="text-white font-bold text-xl">601 000 so&apos;m</span>
+                <span className="text-white font-bold text-xl">{h.mockupTotalAmount}</span>
               </div>
 
               {/* To'lash tugmasi */}
