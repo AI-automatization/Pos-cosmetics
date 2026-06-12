@@ -71,7 +71,7 @@ export class ReceiptTemplateService {
       where: { id: orderId, tenantId },
       include: {
         items: true,
-        user: { select: { name: true } },
+        user: { select: { firstName: true, lastName: true } },
         branch: { select: { name: true, address: true } },
         tenant: {
           select: {
@@ -108,7 +108,7 @@ export class ReceiptTemplateService {
 
       orderId: order.id,
       orderNumber: order.orderNumber,
-      cashierName: order.user.name,
+      cashierName: `${order.user.firstName} ${order.user.lastName}`.trim(),
       createdAt: order.createdAt,
 
       items: order.items.map((item) => ({
@@ -162,10 +162,14 @@ export class ReceiptTemplateService {
     const divider = () => '='.repeat(W);
     const dashes = () => '-'.repeat(W);
     const leftRight = (left: string, right: string) => {
-      const gap = Math.max(1, W - left.length - right.length);
-      return left + ' '.repeat(gap) + right;
+      // 48 dan oshsa chap tomonni qisqartiramiz — printer qatorni o'zi sindirmasin
+      const maxLeft = W - right.length - 1;
+      const safeLeft = left.length > maxLeft ? `${left.slice(0, Math.max(0, maxLeft - 1))}…` : left;
+      const gap = Math.max(1, W - safeLeft.length - right.length);
+      return safeLeft + ' '.repeat(gap) + right;
     };
-    const fmt = (n: number) => n.toLocaleString('uz-UZ');
+    // toLocaleString('uz-UZ') emas: production Node da uz-UZ ICU data yo'q (Railway)
+    const fmt = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
     // ─── Header
     if (r.receiptHeader) {
@@ -211,7 +215,8 @@ export class ReceiptTemplateService {
       lines.push(leftRight('Chegirma:', `-${fmt(r.discountAmount)} so'm`));
     }
     lines.push(leftRight('Subtotal:', `${fmt(r.subtotal)} so'm`));
-    lines.push(leftRight(`QQS (${r.vatRate * 100}%):`, `${fmt(r.vatAmount)} so'm`));
+    // 0.12 * 100 = 12.000000000000002 (float) — chekka chiqmasin
+    lines.push(leftRight(`QQS (${Math.round(r.vatRate * 100)}%):`, `${fmt(r.vatAmount)} so'm`));
 
     lines.push(divider());
     lines.push(leftRight('JAMI:', `${fmt(r.total)} so'm`));
@@ -264,6 +269,7 @@ export class ReceiptTemplateService {
       TERMINAL: 'Terminal',
       CLICK: 'Click',
       PAYME: 'Payme',
+      UZUM: 'Uzum',
       BANK_TRANSFER: 'Bank o\'tkazma',
     };
     return labels[method] ?? method;
