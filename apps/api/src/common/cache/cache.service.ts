@@ -128,10 +128,22 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   async invalidatePattern(pattern: string): Promise<void> {
     if (!this.connected) return;
     try {
-      const keys = await this.client.keys(pattern);
-      if (keys.length > 0) {
-        await this.client.del(...keys);
-        this.logger.debug(`Cache invalidated ${keys.length} keys: ${pattern}`);
+      // Use SCAN instead of KEYS to avoid blocking Redis on large keyspaces
+      let cursor = '0';
+      let totalDeleted = 0;
+      do {
+        const [nextCursor, keys] = await this.client.scan(
+          cursor, 'MATCH', pattern, 'COUNT', 100,
+        );
+        cursor = nextCursor;
+        if (keys.length > 0) {
+          await this.client.del(...keys);
+          totalDeleted += keys.length;
+        }
+      } while (cursor !== '0');
+
+      if (totalDeleted > 0) {
+        this.logger.debug(`Cache invalidated ${totalDeleted} keys: ${pattern}`);
       }
     } catch {
       // silent

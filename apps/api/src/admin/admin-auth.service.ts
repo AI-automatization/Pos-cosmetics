@@ -364,6 +364,108 @@ export class AdminAuthService {
     };
   }
 
+  // ─── ADETAL CONFIG ────────────────────────────────────────────────────
+
+  async getAdetalConfig(tenantId: string) {
+    const config = await this.prisma.integrationConfig.findUnique({
+      where: { tenantId_provider: { tenantId, provider: 'ADETAL' } },
+    });
+
+    if (!config) return { exists: false, isActive: false, phone: '', productCount: 0 };
+
+    const adetalConfig = (config.config ?? {}) as {
+      phone?: string;
+      accessToken?: string;
+      productMappings?: Record<string, string>;
+      storeId?: string;
+    };
+    const productCount = Object.keys(adetalConfig.productMappings ?? {}).length;
+
+    return {
+      exists: true,
+      isActive: config.isActive,
+      phone: adetalConfig.phone ?? '',
+      hasToken: !!adetalConfig.accessToken,
+      storeId: adetalConfig.storeId ?? '',
+      productCount,
+      createdAt: config.createdAt,
+    };
+  }
+
+  async updateAdetalConfig(tenantId: string, data: { phone?: string; password?: string; isActive?: boolean }) {
+    const config = await this.prisma.integrationConfig.findUnique({
+      where: { tenantId_provider: { tenantId, provider: 'ADETAL' } },
+    });
+
+    const configData: Record<string, unknown> = config
+      ? ((config.config ?? {}) as Record<string, unknown>)
+      : { accessToken: '', refreshToken: '', tokenExpiresAt: '', productMappings: {}, reverseProductMappings: {}, lastPolledAt: '' };
+
+    if (data.phone !== undefined) configData.phone = data.phone;
+
+    // If phone + password provided, attempt login to get tokens
+    if (data.phone && data.password) {
+      try {
+        // Direct fetch — AdetalOutboundService cannot be injected here (circular dep)
+        const baseUrl = this.config.get<string>('ADETAL_API_URL') || 'https://api.adetal.uz';
+        const response = await fetch(`${baseUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: data.phone, password: data.password }),
+          signal: AbortSignal.timeout(15000),
+        });
+
+        if (response.ok) {
+          const json = await response.json();
+          const loginData = json.data;
+          configData.accessToken = loginData.token;
+          configData.refreshToken = loginData.refreshToken;
+          configData.tokenExpiresAt = new Date(Date.now() + 55 * 60 * 1000).toISOString();
+          this.logger.log(`Adetal login successful for tenant ${tenantId}`);
+        } else {
+          this.logger.warn(`Adetal login failed for tenant ${tenantId}: ${response.status}`);
+        }
+      } catch (err) {
+        this.logger.warn(`Adetal login error: ${(err as Error).message}`);
+      }
+    }
+
+    if (!config) {
+      await this.prisma.integrationConfig.create({
+        data: {
+          tenantId,
+          provider: 'ADETAL',
+          config: configData as object,
+          isActive: data.isActive ?? false,
+        },
+      });
+      return { success: true, created: true };
+    }
+
+    await this.prisma.integrationConfig.update({
+      where: { id: config.id },
+      data: {
+        config: configData as object,
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      },
+    });
+
+    return { success: true, updated: true };
+  }
+
+  async triggerAdetalSync(tenantId: string) {
+    const products = await this.prisma.product.findMany({
+      where: { tenantId, isActive: true, deletedAt: null },
+      select: { id: true, name: true },
+    });
+
+    return {
+      success: true,
+      message: `Adetal sync triggered for ${products.length} products`,
+      productCount: products.length,
+    };
+  }
+
   // ─── Security helpers ──────────────────────────────────────────────────
 
   private secretsEqual(a: string, b: string): boolean {

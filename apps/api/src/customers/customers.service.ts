@@ -12,41 +12,64 @@ export class CustomersService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(tenantId: string, search?: string, branchId?: string) {
-    const [customers, debtAggregates] = await Promise.all([
+  async findAll(
+    tenantId: string,
+    search?: string,
+    branchId?: string,
+    page = 1,
+    limit = 50,
+  ) {
+    const skip = (page - 1) * limit;
+    const where = {
+      tenantId,
+      isActive: true,
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { phone: { contains: search } },
+        ],
+      }),
+      ...(branchId && { branchId }),
+    };
+
+    const [total, customers] = await this.prisma.$transaction([
+      this.prisma.customer.count({ where }),
       this.prisma.customer.findMany({
-        where: {
-          tenantId,
-          isActive: true,
-          ...(search && {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { phone: { contains: search } },
-            ],
-          }),
-          ...(branchId && { branchId }),
-        },
+        where,
+        skip,
+        take: limit,
         include: { branch: { select: { id: true, name: true } } },
         orderBy: { name: 'asc' },
       }),
-      this.prisma.debtRecord.groupBy({
-        by: ['customerId'],
-        where: {
-          tenantId,
-          status: { in: ['ACTIVE', 'PARTIAL', 'OVERDUE'] },
-        },
-        _sum: { remaining: true },
-      }),
     ]);
+
+    // Only fetch debts for customers on this page
+    const customerIds = customers.map((c) => c.id);
+    const debtAggregates = customerIds.length > 0
+      ? await this.prisma.debtRecord.groupBy({
+          by: ['customerId'],
+          where: {
+            tenantId,
+            customerId: { in: customerIds },
+            status: { in: ['ACTIVE', 'PARTIAL', 'OVERDUE'] },
+          },
+          _sum: { remaining: true },
+        })
+      : [];
 
     const debtMap = new Map(
       debtAggregates.map((d) => [d.customerId, Number(d._sum.remaining ?? 0)]),
     );
 
-    return customers.map((c) => ({
-      ...c,
-      debtBalance: debtMap.get(c.id) ?? 0,
-    }));
+    return {
+      items: customers.map((c) => ({
+        ...c,
+        debtBalance: debtMap.get(c.id) ?? 0,
+      })),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findById(tenantId: string, id: string) {

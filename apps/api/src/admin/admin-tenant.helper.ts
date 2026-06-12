@@ -316,6 +316,26 @@ export class AdminTenantHelper {
           },
         });
         this.logger.log(`ZZone IntegrationConfig auto-created for tenant ${dto.slug}`);
+
+        // Auto-provision Adetal integration for AUTO_PARTS tenants
+        await tx.integrationConfig.create({
+          data: {
+            tenantId: tenant.id,
+            provider: 'ADETAL',
+            config: {
+              phone: '',
+              accessToken: '',
+              refreshToken: '',
+              tokenExpiresAt: '',
+              productMappings: {},
+              reverseProductMappings: {},
+              lastPolledAt: '',
+              storeId: '',
+            },
+            isActive: false,
+          },
+        });
+        this.logger.log(`Adetal IntegrationConfig auto-created for tenant ${dto.slug}`);
       }
 
       await tx.unit.createMany({

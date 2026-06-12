@@ -29,15 +29,23 @@ export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all customers' })
+  @ApiOperation({ summary: 'List customers (paginated)' })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'branchId', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   findAll(
     @CurrentUser('tenantId') tenantId: string,
     @Query('search') search?: string,
     @Query('branchId') branchId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.customersService.findAll(tenantId, search, branchId);
+    return this.customersService.findAll(
+      tenantId, search, branchId,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 50,
+    );
   }
 
   @Get(':id')

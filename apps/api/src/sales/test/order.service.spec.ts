@@ -33,6 +33,7 @@ const mockPrisma = {
     findFirst: jest.fn(),
     findMany: jest.fn(),
     count: jest.fn(),
+    aggregate: jest.fn(),
   },
   orderItem: {
     groupBy: jest.fn(),
@@ -312,23 +313,24 @@ describe('OrderService', () => {
 
   describe('getQuickStats', () => {
     it('returns correct ordersCount and avgBasket', async () => {
-      const orders = [{ total: 30000 }, { total: 50000 }, { total: 20000 }];
+      const orderAgg = { _sum: { total: 100000 }, _count: { id: 3 } };
       const topProducts = [
         { productId: 'prod-1', _sum: { quantity: 10, total: 200000 } },
       ];
 
-      mockPrisma.$transaction.mockResolvedValue([orders, topProducts]);
+      mockPrisma.$transaction.mockResolvedValue([orderAgg, topProducts]);
       mockPrisma.product.findMany.mockResolvedValue([{ id: 'prod-1', name: 'Lipstick' }]);
 
       const stats = await service.getQuickStats(TENANT);
 
       expect(stats.ordersCount).toBe(3);
-      expect(stats.avgBasket).toBe(Math.round((30000 + 50000 + 20000) / 3));
+      expect(stats.avgBasket).toBe(Math.round(100000 / 3));
       expect(stats.currency).toBe('UZS');
     });
 
     it('returns avgBasket=0 when there are no orders today', async () => {
-      mockPrisma.$transaction.mockResolvedValue([[], []]);
+      const emptyAgg = { _sum: { total: null }, _count: { id: 0 } };
+      mockPrisma.$transaction.mockResolvedValue([emptyAgg, []]);
       mockPrisma.product.findMany.mockResolvedValue([]);
 
       const stats = await service.getQuickStats(TENANT);
@@ -339,7 +341,8 @@ describe('OrderService', () => {
     });
 
     it('applies branchId filter when provided', async () => {
-      mockPrisma.$transaction.mockResolvedValue([[], []]);
+      const emptyAgg = { _sum: { total: null }, _count: { id: 0 } };
+      mockPrisma.$transaction.mockResolvedValue([emptyAgg, []]);
       mockPrisma.product.findMany.mockResolvedValue([]);
 
       const stats = await service.getQuickStats(TENANT, 'branch-5');

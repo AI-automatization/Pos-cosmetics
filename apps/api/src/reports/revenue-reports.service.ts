@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CacheService, CACHE_TTL } from '../common/cache/cache.service';
 
 @Injectable()
 export class RevenueReportsService {
   private readonly logger = new Logger(RevenueReportsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   async getDailyReport(tenantId: string) {
     const today = new Date();
@@ -39,6 +43,10 @@ export class RevenueReportsService {
   }
 
   async getDailyRevenue(tenantId: string, from: Date, to: Date) {
+    const cacheKey = CacheService.key.report(tenantId, 'dailyRevenue', from.toISOString().slice(0, 10), to.toISOString().slice(0, 10));
+    const cached = await this.cache.get<{ date: string; revenue: number; orderCount: number }[]>(cacheKey);
+    if (cached) return cached;
+
     const rows = await this.prisma.$queryRaw<
       { date: string; revenue: number; orderCount: number }[]
     >`
@@ -56,18 +64,24 @@ export class RevenueReportsService {
     `;
 
     this.logger.log(`DailyRevenue query: ${from.toISOString()} → ${to.toISOString()}`, { tenantId });
+    await this.cache.set(cacheKey, rows, CACHE_TTL.REPORT);
     return rows;
   }
 
   async getTopProducts(tenantId: string, from: Date, to: Date, limit = 10) {
-    return this.prisma.$queryRaw<
-      { productId: string; productName: string; totalQty: number; totalRevenue: number }[]
+    const cacheKey = CacheService.key.report(tenantId, `topProducts:${limit}`, from.toISOString().slice(0, 10), to.toISOString().slice(0, 10));
+    const cached = await this.cache.get<unknown[]>(cacheKey);
+    if (cached) return cached;
+
+    const result = await this.prisma.$queryRaw<
+      { productId: string; productName: string; totalQty: number; totalRevenue: number; ordersCount: number }[]
     >`
       SELECT
         oi.product_id          AS "productId",
         oi.product_name        AS "productName",
         SUM(oi.quantity)::float       AS "totalQty",
-        SUM(oi.total)::float          AS "totalRevenue"
+        SUM(oi.total)::float          AS "totalRevenue",
+        COUNT(DISTINCT o.id)::int     AS "ordersCount"
       FROM order_items oi
       JOIN orders o ON o.id = oi.order_id
       WHERE o.tenant_id = ${tenantId}
@@ -78,6 +92,8 @@ export class RevenueReportsService {
       ORDER BY "totalRevenue" DESC
       LIMIT ${limit}
     `;
+    await this.cache.set(cacheKey, result, CACHE_TTL.REPORT);
+    return result;
   }
 
   async getSalesSummary(tenantId: string, from: Date, to: Date) {

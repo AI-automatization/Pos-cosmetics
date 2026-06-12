@@ -243,21 +243,22 @@ export class InventoryService {
     const title = '🚨 Kassirdan zapros';
     const body = `${dto.productName}: ${stockLabel}. Kassir: ${requesterName}`;
 
-    let notifiedCount = 0;
-    for (const user of warehouseUsers) {
-      await this.push.sendToUser(tenantId, user.id, {
-        type: 'LOW_STOCK',
-        title,
-        body,
-        data: {
-          productId: dto.productId,
-          productName: dto.productName,
-          currentStock: String(dto.currentStock),
-          requesterName,
-        },
-      });
-      notifiedCount++;
-    }
+    const pushPayload = {
+      type: 'LOW_STOCK' as const,
+      title,
+      body,
+      data: {
+        productId: dto.productId,
+        productName: dto.productName,
+        currentStock: String(dto.currentStock),
+        requesterName,
+      },
+    };
+
+    const results = await Promise.allSettled(
+      warehouseUsers.map((user) => this.push.sendToUser(tenantId, user.id, pushPayload)),
+    );
+    const notifiedCount = results.filter((r) => r.status === 'fulfilled').length;
 
     this.logger.log(
       `Restock zapros: product=${dto.productId}, stock=${dto.currentStock}, notified=${notifiedCount}`,

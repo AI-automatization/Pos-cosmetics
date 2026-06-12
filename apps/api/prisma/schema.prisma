@@ -91,6 +91,7 @@ model User {
   telegramChatId  String?   @map("telegram_chat_id")
   botSettings     Json?     @map("bot_settings")
   branchId        String?   @map("branch_id")
+  lastLogin       DateTime? @map("last_login")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -215,6 +216,7 @@ model Product {
   expiryTracking Boolean   @default(false) @map("expiry_tracking")
   isTaxable      Boolean   @default(true)  @map("is_taxable")  // T-078: QQS (НДС 12%)
   zzoneVisible   Boolean   @default(false) @map("zzone_visible") // ZZone marketplace visibility
+  adetalVisible  Boolean   @default(false) @map("adetal_visible") // Adetal marketplace visibility
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")
@@ -599,6 +601,7 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+  @@index([orderId, productId]) // perf: report joins
   @@map("order_items")
 }
 
@@ -769,6 +772,7 @@ model Customer {
 
   @@index([tenantId])
   @@index([tenantId, phone])
+  @@index([tenantId, isActive, name]) // perf: customer search with pagination
   @@map("customers")
 }
 

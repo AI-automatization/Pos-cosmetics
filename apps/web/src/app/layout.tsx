@@ -9,6 +9,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'RAOS Admin',
   description: 'Retail & Asset Operating System — Admin Panel',
+  other: { 'google': 'notranslate' },
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -29,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uz" suppressHydrationWarning>
-      <body suppressHydrationWarning>
+    <html lang="uz" translate="no" suppressHydrationWarning>
+      <body className="notranslate" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

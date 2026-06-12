@@ -7,6 +7,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ZzoneModule } from './integrations/zzone/zzone.module';
+import { AdetalModule } from './integrations/adetal/adetal.module';
 import { AppLoggerService } from './common/logger/logger.service';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -121,6 +122,18 @@ async function bootstrap() {
     include: [ZzoneModule],
   });
   SwaggerModule.setup(`${prefix}/zzone/docs`, app, zzoneDocument);
+
+  // Adetal Swagger — ALWAYS enabled (public partner API docs)
+  const adetalSwaggerConfig = new DocumentBuilder()
+    .setTitle('RAOS x Adetal Collaboration API')
+    .setDescription('Adetal marketplace integration — outbound sync + order polling')
+    .setVersion('1.0.0')
+    .addBearerAuth()
+    .build();
+  const adetalDocument = SwaggerModule.createDocument(app, adetalSwaggerConfig, {
+    include: [AdetalModule],
+  });
+  SwaggerModule.setup(`${prefix}/adetal/docs`, app, adetalDocument);
 
   // Graceful shutdown (T-085)
   app.enableShutdownHooks();
