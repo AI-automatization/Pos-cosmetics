@@ -23,9 +23,14 @@ export class TenantThrottlerGuard extends ThrottlerGuard {
     }
 
     // Unauthenticated: limit per IP (auth endpoints, health, etc.)
+    // Railway/Nginx put real client IP in X-Forwarded-For or X-Real-Ip.
+    // With trust proxy enabled, req.ip should be correct too, but we
+    // extract explicitly for safety.
     const forwarded = request.headers?.['x-forwarded-for'];
+    const realIp = request.headers?.['x-real-ip'];
     const ip =
-      (Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0]) ??
+      (Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0]?.trim()) ??
+      (Array.isArray(realIp) ? realIp[0] : realIp) ??
       request.ip ??
       'unknown';
 

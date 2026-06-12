@@ -55,8 +55,8 @@ import { MigrationModule } from './migration/migration.module';
     // Core
     ConfigModule.forRoot({ isGlobal: true }),
     MetricsModule,
-    // T-077: 100 req/min default (per-tenant via TenantThrottlerGuard below)
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    // T-077: 60 req/min default (per-tenant via TenantThrottlerGuard below)
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     PrismaModule,
@@ -103,11 +103,13 @@ import { MigrationModule } from './migration/migration.module';
     MigrationModule,
   ],
   providers: [
-    // T-077: Global per-tenant rate limiter (100 req/min per tenant, IP for anon)
-    { provide: APP_GUARD, useClass: TenantThrottlerGuard },
     // Global auth + RBAC: every route requires JWT and passes RolesGuard unless
     // marked @Public(). Makes RBAC default-on instead of opt-in per controller.
+    // IMPORTANT: JwtAuthGuard MUST run before TenantThrottlerGuard so that
+    // req.user is populated and per-tenant rate limiting actually works.
     ...GLOBAL_GUARDS,
+    // T-077: Global per-tenant rate limiter (60 req/min per tenant, IP for anon)
+    { provide: APP_GUARD, useClass: TenantThrottlerGuard },
   ],
 })
 export class AppModule implements NestModule {

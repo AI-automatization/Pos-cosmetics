@@ -19,6 +19,11 @@ async function bootstrap() {
   const config = app.get(ConfigService);
   const logger = app.get(AppLoggerService);
 
+  // T-077: Trust proxy headers (Railway, Docker, Nginx) so req.ip resolves
+  // to the real client IP instead of the reverse-proxy's internal address.
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', true);
+
   // Use Winston as NestJS logger
   app.useLogger(logger);
 
