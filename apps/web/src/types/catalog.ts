@@ -73,6 +73,7 @@ export interface Product {
   bundleItems?: BundleItem[];
   variants?: ProductVariant[];
   _count?: { variants: number };
+  description?: string | null;
   /** Nearest batch expiry date (populated by backend for expiryTracking products) */
   expiryDate?: string | null;
   productSuppliers?: { supplierId: string }[];

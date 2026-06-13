@@ -65,10 +65,11 @@ function buildDefaultValues(product?: Product | null, initialSupplierId?: string
     categoryId: product.categoryId ?? '',
     supplierId: initialSupplierId ?? product.productSuppliers?.[0]?.supplierId ?? '',
     unitId: product.unitId ?? '',
-    description: (product as Product & { description?: string }).description ?? '',
+    description: product.description ?? '',
     costPrice: Number(product.costPrice),
     sellPrice: Number(product.sellPrice),
     minStockLevel: Number(product.minStockLevel ?? 0),
+    expiryDate: product.expiryDate ? product.expiryDate.slice(0, 10) : '',
   };
 }
 
