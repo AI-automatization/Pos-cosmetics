@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Tag } from 'lucide-react';
 import { HotkeysPanel } from './HotkeysPanel';
 import { BonusSection } from './BonusSection';
@@ -12,26 +12,22 @@ import { DEFAULT_LOYALTY_CONFIG } from '@/types/loyalty';
 import { useGlobalPromo } from '@/hooks/promotions/usePromotions';
 import { usePOSStore } from '@/store/pos.store';
 import { useCompleteSale } from '@/hooks/pos/useCompleteSale';
-import { useCurrentUser } from '@/hooks/auth/useAuth';
 import { formatPrice, cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/i18n-context';
 import { CustomerSearchModal } from './CustomerSearchModal';
 import { useActiveProviders } from '@/hooks/settings/usePaymentConfig';
 import type { Order } from '@/types/sales';
-import type { DiscountType } from '@/types/sales';
 
 interface PaymentPanelProps {
   onSaleComplete: (order: Order, change: number) => void;
 }
 
-const MAX_CASHIER_DISCOUNT_PCT = 5;
-
 export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const { data: activeProviders } = useActiveProviders();
   const store = usePOSStore();
   const cart = store.carts[store.activeCartId];
-  const { items, paymentMethod, cashAmount, cardAmount, orderDiscount, orderDiscountType, selectedCustomer, bonusPoints, splitNasiyaAmount } = cart;
-  const { setPaymentMethod, setCashAmount, setCardAmount, setCardType, setOrderDiscount, setSelectedCustomer, setBonusPoints, setSplitNasiyaAmount, totals } = store;
+  const { items, paymentMethod, cashAmount, cardAmount, selectedCustomer, bonusPoints, splitNasiyaAmount } = cart;
+  const { setPaymentMethod, setCashAmount, setCardAmount, setCardType, setSelectedCustomer, setBonusPoints, setSplitNasiyaAmount, totals } = store;
 
   // Reset bonus/nasiya amounts when leaving their payment methods
   useEffect(() => {
@@ -44,8 +40,6 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
   const { data: loyaltyConfig } = useLoyaltyConfig();
   const redeemRate = loyaltyConfig?.redeemRate ?? DEFAULT_LOYALTY_CONFIG.redeemRate;
 
-  const { data: user } = useCurrentUser();
-  const isCashier = user?.role === 'CASHIER';
   const globalPromo = useGlobalPromo();
   const { t } = useTranslation();
 
@@ -54,61 +48,8 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
     (order) => onSaleComplete(order, change),
   );
 
-  const [discountInput, setDiscountInput] = useState(String(orderDiscount));
-  const [discountType, setDiscountType] = useState<DiscountType>(orderDiscountType);
   const cardType = cart.cardType ?? 'terminal';
-  // Ref so we can read latest globalPromo inside effect without adding it to deps
-  const globalPromoRef = useRef(globalPromo);
-  globalPromoRef.current = globalPromo;
-
-  const discountVal = parseFloat(discountInput) || 0;
-  const discountPct = discountType === 'percent'
-    ? discountVal
-    : subtotal > 0 ? (discountVal / subtotal) * 100 : 0;
-  const overLimit = isCashier && discountPct > MAX_CASHIER_DISCOUNT_PCT;
   const [showCustomerModal, setShowCustomerModal] = useState(false);
-
-  // Sync local state when store resets after clearCart().
-  // Also auto-applies an active global PERCENT/FIXED promo when discount is 0.
-  useEffect(() => {
-    const promo = globalPromoRef.current;
-    if (promo && orderDiscount === 0) {
-      const rules = promo.rules;
-      if (promo.type === 'PERCENT' && 'percent' in rules && (rules.percent ?? 0) > 0) {
-        const pct = rules.percent;
-        setDiscountInput(String(pct));
-        setDiscountType('percent');
-        setOrderDiscount(pct, 'percent');
-        return;
-      }
-      if (promo.type === 'FIXED' && 'amount' in rules && (rules.amount ?? 0) > 0) {
-        const amt = rules.amount;
-        setDiscountInput(String(amt));
-        setDiscountType('fixed');
-        setOrderDiscount(amt, 'fixed');
-        return;
-      }
-    }
-    setDiscountInput(String(orderDiscount));
-    setDiscountType(orderDiscountType);
-  }, [orderDiscount, orderDiscountType]);
-
-  const handleDiscountApply = () => {
-    let val = parseFloat(discountInput) || 0;
-    if (isCashier) {
-      if (discountType === 'percent' && val > MAX_CASHIER_DISCOUNT_PCT) {
-        val = MAX_CASHIER_DISCOUNT_PCT;
-        setDiscountInput(String(MAX_CASHIER_DISCOUNT_PCT));
-      } else if (discountType === 'fixed' && subtotal > 0) {
-        const maxFixed = Math.floor(subtotal * MAX_CASHIER_DISCOUNT_PCT / 100);
-        if (val > maxFixed) {
-          val = maxFixed;
-          setDiscountInput(String(maxFixed));
-        }
-      }
-    }
-    setOrderDiscount(val, discountType);
-  };
 
   // Dynamic provider flags — show only configured methods
   const hasTerminal = activeProviders?.some((p) => p.provider === 'TERMINAL') ?? false;
@@ -144,10 +85,10 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
         </div>
       </div>
 
-      {/* Discount */}
-      <div className="shrink-0 border-b border-gray-100 p-3">
-        {globalPromo && (
-          <div className="mb-2 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5">
+      {/* Global promo banner (if active) */}
+      {globalPromo && (
+        <div className="shrink-0 border-b border-gray-100 p-3">
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5">
             <Tag className="h-3.5 w-3.5 shrink-0 text-red-600" />
             <span className="min-w-0 flex-1 truncate text-xs font-semibold text-red-700">
               {globalPromo.name}
@@ -158,55 +99,8 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
                 : `−${formatPrice((globalPromo.rules as { amount: number }).amount ?? 0)}`}
             </span>
           </div>
-        )}
-        <p className="mb-2 flex items-center gap-1 text-xs font-medium text-gray-500">
-          <Tag className="h-3 w-3" /> {t('pos.discount')}
-        </p>
-        <div className="flex gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
-            <button
-              type="button"
-              onClick={() => setDiscountType('percent')}
-              className={cn(
-                'px-2.5 py-1.5 transition',
-                discountType === 'percent' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50',
-              )}
-            >
-              %
-            </button>
-            <button
-              type="button"
-              onClick={() => setDiscountType('fixed')}
-              className={cn(
-                'px-2.5 py-1.5 transition',
-                discountType === 'fixed' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50',
-              )}
-            >
-              {t('pos.discountFixed')}
-            </button>
-          </div>
-          <input
-            type="number"
-            value={discountInput}
-            min={0}
-            onChange={(e) => setDiscountInput(e.target.value)}
-            onBlur={handleDiscountApply}
-            onKeyDown={(e) => e.key === 'Enter' && handleDiscountApply()}
-            placeholder="0"
-            className={cn(
-              'flex-1 rounded-lg border px-2 py-1.5 text-sm outline-none',
-              overLimit ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-200 focus:border-blue-400',
-            )}
-          />
         </div>
-        {isCashier && (
-          <p className={cn('mt-1.5 text-xs', overLimit ? 'font-medium text-red-600' : 'text-amber-600')}>
-            {overLimit
-              ? `⚠️ ${t('pos.discountLimitExceeded')}`
-              : `⚠️ ${t('pos.maxDiscountWarning')}`}
-          </p>
-        )}
-      </div>
+      )}
 
       {/* Payment method buttons */}
       <PaymentMethodButtons
@@ -281,9 +175,10 @@ export function PaymentPanel({ onSaleComplete }: PaymentPanelProps) {
       {/* Complete button */}
       <div className="shrink-0 border-t border-gray-100 p-3">
         <button
+          id="pos-complete-sale-btn"
           type="button"
           onClick={() => completeSale()}
-          disabled={!canComplete || isPending || overLimit}
+          disabled={!canComplete || isPending}
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-base font-bold transition',
             canComplete && !isPending

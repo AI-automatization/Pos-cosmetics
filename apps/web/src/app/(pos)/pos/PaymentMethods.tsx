@@ -149,20 +149,20 @@ export function CardInputSection({
   return (
     <div className="shrink-0 border-b border-gray-100 p-3">
       <p className="mb-2 text-xs font-medium text-gray-500">{t('pos.cardMethod')}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+      <div className="flex gap-2">
         {options.map((m) => (
           <button
             key={m.key}
             type="button"
             onClick={() => onSetCardType(m.key)}
             className={cn(
-              'flex flex-col items-center gap-1 rounded-xl border py-3 text-sm font-medium transition',
+              'flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-medium transition',
               cardType === m.key
                 ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
                 : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50',
             )}
           >
-            <span className="text-lg">{m.icon}</span>
+            <span>{m.icon}</span>
             <span>{m.label}</span>
           </button>
         ))}
