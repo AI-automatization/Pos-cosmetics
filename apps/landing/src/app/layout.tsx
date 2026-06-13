@@ -139,7 +139,7 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: '/apple-icon',
     },
     verification: {
-      google: 'vhyI9C-zea0H-4Pek0dA2mpC7i6doIrSF-wqFRWdtQk',
+      google: 'mFEEMc4C5KHJHxmO2QF1HHjFNuhzhqSRWmT2uKtIxAc',
       yandex: '9e0fb9bddc5ecb6c',
     },
     other: {
