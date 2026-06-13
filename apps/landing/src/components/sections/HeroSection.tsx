@@ -40,7 +40,7 @@ export default function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4 mt-2">
               <a
                 href="#register"
-                className="inline-flex items-center justify-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold px-8 py-4 rounded-xl text-lg hover:bg-[#0FA8C8] transition-colors animate-pulse hover:animate-none"
+                className="inline-flex items-center justify-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold px-8 py-4 rounded-xl text-lg hover:bg-[#0FA8C8] hover:scale-105 transition-all"
               >
                 {h.cta1}
               </a>
@@ -54,8 +54,13 @@ export default function HeroSection() {
               </a>
             </div>
 
+            {/* Guarantee */}
+            <p className="text-emerald-400/80 text-sm font-medium">
+              {t.register.heroGuarantee}
+            </p>
+
             {/* Social proof */}
-            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-400">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
               <span className="flex items-center gap-1">
                 <span className="text-emerald-400">✓</span> {h.proof1}
               </span>

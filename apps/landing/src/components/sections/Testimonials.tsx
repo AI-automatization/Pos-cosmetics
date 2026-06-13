@@ -121,9 +121,14 @@ function TestimonialCard({ testimonial, idx }: { testimonial: TestimonialItem; i
         ))}
       </div>
       <p className="text-slate-300 text-sm leading-relaxed italic">&quot;{testimonial.text}&quot;</p>
-      <div className="mt-auto pt-3 border-t border-[rgba(36,212,244,0.1)]">
-        <p className="text-white font-semibold text-sm">{testimonial.name}</p>
-        <p className="text-slate-500 text-xs mt-0.5">{testimonial.business}</p>
+      <div className="mt-auto pt-3 border-t border-[rgba(36,212,244,0.1)] flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-[#24D4F4]/15 border border-[#24D4F4]/30 flex items-center justify-center text-[#24D4F4] text-sm font-bold shrink-0">
+          {testimonial.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+        </div>
+        <div>
+          <p className="text-white font-semibold text-sm">{testimonial.name}</p>
+          <p className="text-slate-500 text-xs">{testimonial.business}</p>
+        </div>
       </div>
     </div>
   )

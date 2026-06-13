@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { headers } from 'next/headers'
 import './globals.css'
 import ScrollProgress from '@/components/ScrollProgress'
+import StickyMobileCTA from '@/components/StickyMobileCTA'
 import { LangProvider } from '@/i18n/LangContext'
 import type { Lang } from '@/i18n/translations'
 import JsonLd from '@/components/JsonLd'
@@ -179,6 +180,7 @@ export default async function RootLayout({
           </a>
           <ScrollProgress />
           {children}
+          <StickyMobileCTA />
         </LangProvider>
       </body>
     </html>

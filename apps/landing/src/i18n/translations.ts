@@ -189,6 +189,7 @@ const uz = {
     competitorA: 'Tizim A',
     competitorB: 'Tizim B',
     note: "Ma'lumotlar {date} holatiga ko'ra. Raqobatchilar narxlari ularning rasmiy saytidan olingan.",
+    cta: "Bepul sinab ko'ring →",
     rows: [
       { feature: "Boshlang'ich narx", raos: "249,000 so'm", billz: "299,000 so'm", yespos: "100,000 so'm" },
       { feature: 'Pilot (bepul)', raos: '1 oy', billz: '7 kun', yespos: 'Oy oxirigacha' },
@@ -260,7 +261,16 @@ const uz = {
     },
     successTitle: 'Rahmat!',
     successDesc: "30 daqiqa ichida jamoamiz siz bilan bog'lanadi.",
+    successSteps: [
+      "Telegram yoki telefon orqali 30 daqiqada bog'lanamiz",
+      "Do'koningizni 15 daqiqada sozlaymiz",
+      "Savdoni boshlaysiz — 30 kun bepul!",
+    ],
+    guarantee: '✓ 30 kun bepul · ✓ Karta kerak emas · ✓ 2 daqiqada sozlash',
+    heroGuarantee: '✓ 30 kun bepul · ✓ Karta kerak emas · ✓ Istalgan paytda bekor qilish',
+    stickyCta: 'Bepul boshlash →',
   },
+  trustedBy: "Bizga ishonishadi",
   cta: {
     title: "Hali o'ylayapsizmi?",
     desc: "Har kuni kechikish = savdo yo'qolishi. Demo uchun ariza qoldiring — jamoamiz bog'lanadi.",
@@ -597,6 +607,7 @@ const ru: typeof uz = {
     competitorA: 'Tizim A',
     competitorB: 'Tizim B',
     note: 'Данные актуальны на {date}. Цены конкурентов взяты с их официальных сайтов.',
+    cta: 'Попробовать бесплатно →',
     rows: [
       { feature: 'Начальная цена', raos: '249 000 сум', billz: '299 000 сум', yespos: '100 000 сум' },
       { feature: 'Пилот (бесплатно)', raos: '1 месяц', billz: '7 дней', yespos: 'До конца месяца' },
@@ -668,7 +679,16 @@ const ru: typeof uz = {
     },
     successTitle: 'Спасибо!',
     successDesc: 'Наша команда свяжется с вами в течение 30 минут.',
+    successSteps: [
+      'Свяжемся по Telegram или телефону в течение 30 минут',
+      'Настроим ваш магазин за 15 минут',
+      'Начинайте продавать — 30 дней бесплатно!',
+    ],
+    guarantee: '✓ 30 дней бесплатно · ✓ Без карты · ✓ Настройка за 2 минуты',
+    heroGuarantee: '✓ 30 дней бесплатно · ✓ Без карты · ✓ Отмена в любой момент',
+    stickyCta: 'Начать бесплатно →',
   },
+  trustedBy: 'Нам доверяют',
   cta: {
     title: 'Всё ещё думаете?',
     desc: 'Каждый день промедления = потерянные продажи. Оставьте заявку на демо — мы свяжемся.',
@@ -1005,6 +1025,7 @@ const en: typeof uz = {
     competitorA: 'Tizim A',
     competitorB: 'Tizim B',
     note: 'Data as of {date}. Competitor prices sourced from their official websites.',
+    cta: 'Try free →',
     rows: [
       { feature: 'Starting price', raos: '249,000 sum', billz: '299,000 sum', yespos: '100,000 sum' },
       { feature: 'Pilot (free)', raos: '1 month', billz: '7 days', yespos: 'Until month end' },
@@ -1076,7 +1097,16 @@ const en: typeof uz = {
     },
     successTitle: 'Thank you!',
     successDesc: 'Our team will contact you within 30 minutes.',
+    successSteps: [
+      "We'll contact you via Telegram or phone within 30 minutes",
+      "Set up your store in 15 minutes",
+      "Start selling — 30 days free!",
+    ],
+    guarantee: '✓ 30 days free · ✓ No card required · ✓ 2-minute setup',
+    heroGuarantee: '✓ 30 days free · ✓ No card required · ✓ Cancel anytime',
+    stickyCta: 'Start free →',
   },
+  trustedBy: 'Trusted by businesses',
   cta: {
     title: 'Still thinking about it?',
     desc: 'Every day you wait = lost sales. Request a demo — our team will reach out.',
