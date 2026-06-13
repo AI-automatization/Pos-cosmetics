@@ -253,6 +253,11 @@ export class UserManagementHelper {
           lastLogin: true,
           branchId: true,
           branch: { select: { id: true, name: true } },
+          shifts: {
+            select: { id: true, status: true, openedAt: true, closedAt: true },
+            orderBy: { openedAt: 'desc' as const },
+            take: 1,
+          },
         },
         skip,
         take: limit,
