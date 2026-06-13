@@ -193,6 +193,12 @@ export default function POSPage() {
     onF6: () => store.setPaymentMethod('card'),
     onF7: () => store.setPaymentMethod('split'),
     onF8: () => store.setPaymentMethod('nasiya'),
+    onF9: () => store.setPaymentMethod('bonus'),
+    onF10: () => {
+      // Trigger click on the complete sale button
+      const btn = document.getElementById('pos-complete-sale-btn');
+      if (btn && !btn.hasAttribute('disabled')) btn.click();
+    },
     onNewCart: () => store.addCart(),
     onNextCart: () => {
       const cartList = Object.values(store.carts);

@@ -1278,7 +1278,14 @@
     "allBranches": "Barcha filiallar",
     "empty": "Xodimlar yo'q",
     "add": "Yangi xodim",
-    "searchPlaceholder": "Ism yoki email bo'yicha..."
+    "searchPlaceholder": "Ism yoki email bo'yicha...",
+    "shiftStatus": "Smena holati",
+    "onShift": "Ishlayapti",
+    "offShift": "Ishlamayapti",
+    "shiftStarted": "Boshladi",
+    "shiftEnded": "Tugatdi",
+    "workedTime": "Ishlagan vaqt",
+    "noShiftYet": "Hali smena ochilmagan"
   },
   "tasks": {
     "count": "ta topshiriq",

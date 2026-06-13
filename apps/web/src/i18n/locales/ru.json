@@ -1278,7 +1278,14 @@
     "allBranches": "Все филиалы",
     "empty": "Нет сотрудников",
     "add": "Новый сотрудник",
-    "searchPlaceholder": "Поиск по имени или email..."
+    "searchPlaceholder": "Поиск по имени или email...",
+    "shiftStatus": "Статус смены",
+    "onShift": "На смене",
+    "offShift": "Не на смене",
+    "shiftStarted": "Начал",
+    "shiftEnded": "Закончил",
+    "workedTime": "Отработано",
+    "noShiftYet": "Смена не открывалась"
   },
   "tasks": {
     "count": "задач",

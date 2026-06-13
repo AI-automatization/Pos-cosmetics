@@ -15,6 +15,7 @@ export interface User {
   tenantId?: string;
   branchId?: string | null;
   branch?: { id: string; name: string } | null;
+  shifts?: { id: string; status: string; openedAt: string; closedAt: string | null }[];
 }
 
 export interface CreateUserDto {

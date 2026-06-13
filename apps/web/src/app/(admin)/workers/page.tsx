@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import {
   UserPlus, Shield, CheckCircle, XCircle,
-  Building2, Users, UserCheck, UserX,
+  Building2, Users, UserCheck, UserX, Clock, PlayCircle, StopCircle,
 } from 'lucide-react';
 import { useUsers, useUpdateUser } from '@/hooks/settings/useUsers';
 import { useBranches } from '@/hooks/settings/useBranches';
@@ -16,6 +16,18 @@ import { UserModal } from '@/components/settings/UserModal';
 import { cn } from '@/lib/utils';
 import type { User, UserRole } from '@/types/user';
 import { ROLE_LABEL_KEYS, ROLE_ORDER } from '@/types/user';
+
+/* ─── Duration formatter ─── */
+function formatDuration(startDate: string, endDate?: string | null): string {
+  const start = new Date(startDate).getTime();
+  const end = endDate ? new Date(endDate).getTime() : Date.now();
+  const diffMs = end - start;
+  const mins = Math.floor(diffMs / 60_000);
+  const hours = Math.floor(mins / 60);
+  const remainMins = mins % 60;
+  if (hours > 0) return `${hours}h ${remainMins}m`;
+  return `${mins}m`;
+}
 
 /* ─── Role badge ─── */
 const ROLE_COLORS: Record<UserRole, string> = {
@@ -216,7 +228,7 @@ export default function WorkersPage() {
         <table className="w-full text-sm">
           <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
             <tr>
-              {[t('common.employee'), t('common.email'), t('common.role'), t('common.branch'), t('common.lastLogin'), t('common.status'), t('common.actions')].map((h) => (
+              {[t('common.employee'), t('common.role'), t('common.branch'), t('workers.shiftStatus'), t('common.status'), t('common.actions')].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
               ))}
             </tr>
@@ -224,7 +236,7 @@ export default function WorkersPage() {
           <tbody className="divide-y divide-gray-50">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
                   <Users className="mx-auto mb-2 h-8 w-8 opacity-30" />
                   <p className="text-sm">{search ? t('common.noSearchResults') : t('workers.empty')}</p>
                 </td>
@@ -241,7 +253,6 @@ export default function WorkersPage() {
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-3 font-mono text-xs text-gray-500">{u.email ?? '—'}</td>
                 <td className="px-4 py-3"><RoleBadge role={u.role} isActive={u.isActive} /></td>
                 <td className="px-4 py-3">
                   {u.branch ? (
@@ -251,10 +262,27 @@ export default function WorkersPage() {
                     </span>
                   ) : <span className="text-xs text-gray-400">—</span>}
                 </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">
-                  {u.lastLogin
-                    ? new Date(u.lastLogin).toLocaleString('uz-UZ', { dateStyle: 'short', timeStyle: 'short' })
-                    : '—'}
+                <td className="px-4 py-3">
+                  {(() => {
+                    const shift = u.shifts?.[0];
+                    if (!shift) return <span className="text-xs text-gray-400">{t('workers.noShiftYet')}</span>;
+                    const isOpen = shift.status === 'OPEN';
+                    return (
+                      <div className="flex flex-col gap-0.5">
+                        <span className={cn('flex items-center gap-1 text-xs font-medium', isOpen ? 'text-green-600' : 'text-gray-500')}>
+                          {isOpen ? <PlayCircle className="h-3.5 w-3.5" /> : <StopCircle className="h-3.5 w-3.5" />}
+                          {isOpen ? t('workers.onShift') : t('workers.offShift')}
+                        </span>
+                        <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                          <Clock className="h-3 w-3" />
+                          {formatDuration(shift.openedAt, shift.closedAt)}
+                          {' · '}
+                          {new Date(shift.openedAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                          {shift.closedAt && ` — ${new Date(shift.closedAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}`}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td className="px-4 py-3">
                   {u.isActive
