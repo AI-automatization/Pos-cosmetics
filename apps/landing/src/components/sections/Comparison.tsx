@@ -57,6 +57,15 @@ export default function Comparison() {
         </div>
 
         <p className="text-center text-slate-500 text-xs mt-4">{note}</p>
+
+        <div className="text-center mt-8">
+          <a
+            href="#register"
+            className="inline-flex items-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold px-8 py-3.5 rounded-xl hover:bg-[#0FA8C8] hover:scale-105 transition-all text-sm"
+          >
+            {(t.comparison as Record<string, unknown>).cta as string ?? "Bepul sinab ko'ring →"}
+          </a>
+        </div>
       </div>
     </section>
   )

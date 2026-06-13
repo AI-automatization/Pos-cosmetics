@@ -16,7 +16,7 @@ export default function CTASection() {
         <p className="text-slate-400 text-lg mb-10 max-w-xl mx-auto leading-relaxed">{t.cta.desc}</p>
         <a
           href="#register"
-          className="inline-flex items-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold px-10 py-4 rounded-xl text-lg hover:bg-[#0FA8C8] transition-colors animate-pulse hover:animate-none"
+          className="inline-flex items-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold px-10 py-4 rounded-xl text-lg hover:bg-[#0FA8C8] hover:scale-105 transition-all"
         >
           {t.cta.button}
         </a>

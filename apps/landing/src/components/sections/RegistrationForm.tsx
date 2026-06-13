@@ -85,10 +85,23 @@ export default function RegistrationForm() {
               <span className="text-emerald-400 text-3xl">✓</span>
             </div>
             <h3 className="text-white font-bold text-2xl">{r.successTitle}</h3>
-            <p className="text-slate-400 text-base">
-              {r.successDesc}
-              <br />
-              Telegram: <span className="text-[#24D4F4]">@raos_support</span>
+            <p className="text-slate-400 text-base">{r.successDesc}</p>
+            <div className="flex flex-col gap-2 text-left w-full mt-2">
+              <div className="flex items-center gap-3 text-slate-300 text-sm">
+                <span className="w-6 h-6 rounded-full bg-[#24D4F4]/15 text-[#24D4F4] text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                Telegram yoki telefon orqali 30 daqiqada bog&apos;lanamiz
+              </div>
+              <div className="flex items-center gap-3 text-slate-300 text-sm">
+                <span className="w-6 h-6 rounded-full bg-[#24D4F4]/15 text-[#24D4F4] text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                Do&apos;koningizni 15 daqiqada sozlaymiz
+              </div>
+              <div className="flex items-center gap-3 text-slate-300 text-sm">
+                <span className="w-6 h-6 rounded-full bg-[#24D4F4]/15 text-[#24D4F4] text-xs font-bold flex items-center justify-center shrink-0">3</span>
+                Savdoni boshlaysiz — 30 kun bepul!
+              </div>
+            </div>
+            <p className="text-slate-500 text-sm mt-2">
+              Telegram: <a href="https://t.me/raos_support" className="text-[#24D4F4] hover:underline">@raos_support</a>
             </p>
           </div>
         </div>
@@ -240,11 +253,15 @@ export default function RegistrationForm() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full flex items-center justify-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold py-4 rounded-xl hover:bg-[#0FA8C8] transition-colors text-base disabled:opacity-70 disabled:cursor-not-allowed"
+              className="mt-2 w-full flex items-center justify-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold py-4 rounded-xl hover:bg-[#0FA8C8] hover:scale-[1.02] transition-all text-base disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               {loading ? r.submitting : r.submit}
             </button>
+
+            <p className="text-center text-emerald-400/70 text-xs">
+              ✓ 30 kun bepul &middot; ✓ Karta kerak emas &middot; ✓ 2 daqiqada sozlash
+            </p>
 
             {submitError && (
               <p role="alert" className="text-red-400 text-sm text-center">
