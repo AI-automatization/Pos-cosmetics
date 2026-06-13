@@ -1,0 +1,25 @@
+# AI Training Policy for raos.uz
+
+Last updated: 2026-06-13
+
+We welcome AI crawlers and AI training on our public content (raos.uz)
+for the purpose of improving search, discovery and AI-assisted answers.
+
+## Allowed crawlers
+
+- GPTBot (OpenAI)
+- OAI-SearchBot (OpenAI)
+- ClaudeBot / Claude-Web (Anthropic)
+- PerplexityBot
+- Google-Extended (Google AI)
+- YandexBot (Yandex, including Neuro)
+- Bingbot
+
+## Not allowed
+
+- None — all major AI crawlers are welcome.
+
+## Contact
+
+- Support: https://t.me/raos_support
+- Parent company: https://www.tezcode.dev

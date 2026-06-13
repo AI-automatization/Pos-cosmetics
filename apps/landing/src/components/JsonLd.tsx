@@ -64,7 +64,9 @@ export default function JsonLd() {
     logo: 'https://raos.uz/opengraph-image',
     sameAs: [
       'https://t.me/raos_support',
-      'https://instagram.com/raos.uz',
+      'https://instagram.com/raos_uzb',
+      'https://github.com/AI-automatization',
+      'https://www.tezcode.dev',
     ],
     contactPoint: {
       '@type': 'ContactPoint',
@@ -187,7 +189,7 @@ export default function JsonLd() {
     ],
     sameAs: [
       'https://t.me/raos_support',
-      'https://instagram.com/raos.uz',
+      'https://instagram.com/raos_uzb',
     ],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
