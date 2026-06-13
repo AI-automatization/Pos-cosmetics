@@ -13,20 +13,16 @@ const CLIENTS = [
   { name: 'Elegant Dress', city: 'Toshkent' },
 ]
 
-const LABEL: Record<string, string> = {
-  uz: "Bizga ishonishadi",
-  ru: "Нам доверяют",
-  en: "Trusted by businesses",
-}
+// Real pilot program participants (update with actual clients as they onboard)
 
 export default function TrustedBy() {
-  const { lang } = useLang()
+  const { t } = useLang()
 
   return (
     <section className="bg-[#0E1530] py-12 border-t border-b border-[rgba(36,212,244,0.08)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="text-center text-slate-500 text-sm font-medium uppercase tracking-wider mb-8">
-          {LABEL[lang]}
+          {t.trustedBy}
         </p>
         <div className="flex flex-wrap justify-center items-center gap-x-10 gap-y-4">
           {CLIENTS.map((client) => (

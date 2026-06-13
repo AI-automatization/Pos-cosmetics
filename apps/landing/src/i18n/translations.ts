@@ -270,6 +270,7 @@ const uz = {
     heroGuarantee: '✓ 30 kun bepul · ✓ Karta kerak emas · ✓ Istalgan paytda bekor qilish',
     stickyCta: 'Bepul boshlash →',
   },
+  trustedBy: "Bizga ishonishadi",
   cta: {
     title: "Hali o'ylayapsizmi?",
     desc: "Har kuni kechikish = savdo yo'qolishi. Demo uchun ariza qoldiring — jamoamiz bog'lanadi.",
@@ -687,6 +688,7 @@ const ru: typeof uz = {
     heroGuarantee: '✓ 30 дней бесплатно · ✓ Без карты · ✓ Отмена в любой момент',
     stickyCta: 'Начать бесплатно →',
   },
+  trustedBy: 'Нам доверяют',
   cta: {
     title: 'Всё ещё думаете?',
     desc: 'Каждый день промедления = потерянные продажи. Оставьте заявку на демо — мы свяжемся.',
@@ -1104,6 +1106,7 @@ const en: typeof uz = {
     heroGuarantee: '✓ 30 days free · ✓ No card required · ✓ Cancel anytime',
     stickyCta: 'Start free →',
   },
+  trustedBy: 'Trusted by businesses',
   cta: {
     title: 'Still thinking about it?',
     desc: 'Every day you wait = lost sales. Request a demo — our team will reach out.',

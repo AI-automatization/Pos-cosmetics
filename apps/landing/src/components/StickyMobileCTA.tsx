@@ -35,7 +35,7 @@ export default function StickyMobileCTA() {
     <div
       className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bg-[#0E1530]/95 backdrop-blur-md border-t border-[rgba(36,212,244,0.2)]"
       role="complementary"
-      aria-label="Registration CTA"
+      aria-label={t.register.stickyCta}
     >
       <a
         href="#register"
