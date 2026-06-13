@@ -1,0 +1,50 @@
+# RAOS — POS tizimi (Tezcode)
+
+> RAOS — O'zbekiston chakana do'konlari uchun universal POS (Point of Sale —
+> savdo-kassa) tizimi. Kassa, ombor hisobi, Soliq.uz fiskal integratsiya va
+> AI hisobotlar bitta platformada. Yaratuvchi: Tezcode (tezcode.dev),
+> Toshkent, O'zbekiston.
+
+## About
+
+RAOS is a point-of-sale system built for retail businesses in Uzbekistan
+and Central Asia: clothing stores, stationery shops, wholesale traders,
+cosmetics and general retail. It works offline-first — sales continue even
+without internet and sync automatically when connection returns.
+
+## Key features
+
+- Soliq.uz fiscal integration (Uzbekistan tax compliance, QR fiscal receipts)
+- Offline-first architecture — POS keeps working without internet
+- Inventory and warehouse management (ombor hisobi)
+- AI-powered daily reports ("AI Night Cashier" — morning summary via Telegram)
+- Multi-branch support from a single owner app (iOS + Android)
+- Cashier app (Android) + Owner app (iOS/Android) + Web
+- Bilingual interface: Uzbek and Russian (English available)
+
+## Pricing
+
+- Starter: 249,000 UZS/month — 1 branch, core features, Soliq.uz integration
+- Growth: 449,000 UZS/month — 3 branches, AI reports, extended inventory
+- Pro: 799,000 UZS/month — unlimited branches, full AI analytics, API access
+
+## Company
+
+- Product: RAOS (raos.uz)
+- Parent company: Tezcode — AI Software Factory, Tashkent, Uzbekistan (tezcode.dev)
+- Founder: Bekzod Mirzaaliyev
+- GitHub: https://github.com/AI-automatization
+
+## Links
+
+- Website: https://raos.uz
+- Russian version: https://raos.uz/ru
+- English version: https://raos.uz/en
+- Tutorials: https://raos.uz/tutorials
+- Support: https://t.me/raos_support
+- Instagram: https://instagram.com/raos_uzb
+- Parent company: https://www.tezcode.dev
+
+## Languages
+
+uz, ru, en
