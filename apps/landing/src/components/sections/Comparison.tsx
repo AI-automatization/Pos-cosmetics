@@ -63,7 +63,7 @@ export default function Comparison() {
             href="#register"
             className="inline-flex items-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold px-8 py-3.5 rounded-xl hover:bg-[#0FA8C8] hover:scale-105 transition-all text-sm"
           >
-            {(t.comparison as Record<string, unknown>).cta as string ?? "Bepul sinab ko'ring →"}
+            {t.comparison.cta}
           </a>
         </div>
       </div>

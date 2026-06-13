@@ -56,7 +56,7 @@ export default function HeroSection() {
 
             {/* Guarantee */}
             <p className="text-emerald-400/80 text-sm font-medium">
-              ✓ 30 kun bepul &middot; ✓ Karta kerak emas &middot; ✓ Istalgan paytda bekor qilish
+              {t.register.heroGuarantee}
             </p>
 
             {/* Social proof */}

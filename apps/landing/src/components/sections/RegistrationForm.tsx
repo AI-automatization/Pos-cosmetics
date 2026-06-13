@@ -87,18 +87,12 @@ export default function RegistrationForm() {
             <h3 className="text-white font-bold text-2xl">{r.successTitle}</h3>
             <p className="text-slate-400 text-base">{r.successDesc}</p>
             <div className="flex flex-col gap-2 text-left w-full mt-2">
-              <div className="flex items-center gap-3 text-slate-300 text-sm">
-                <span className="w-6 h-6 rounded-full bg-[#24D4F4]/15 text-[#24D4F4] text-xs font-bold flex items-center justify-center shrink-0">1</span>
-                Telegram yoki telefon orqali 30 daqiqada bog&apos;lanamiz
-              </div>
-              <div className="flex items-center gap-3 text-slate-300 text-sm">
-                <span className="w-6 h-6 rounded-full bg-[#24D4F4]/15 text-[#24D4F4] text-xs font-bold flex items-center justify-center shrink-0">2</span>
-                Do&apos;koningizni 15 daqiqada sozlaymiz
-              </div>
-              <div className="flex items-center gap-3 text-slate-300 text-sm">
-                <span className="w-6 h-6 rounded-full bg-[#24D4F4]/15 text-[#24D4F4] text-xs font-bold flex items-center justify-center shrink-0">3</span>
-                Savdoni boshlaysiz — 30 kun bepul!
-              </div>
+              {r.successSteps.map((step, idx) => (
+                <div key={idx} className="flex items-center gap-3 text-slate-300 text-sm">
+                  <span className="w-6 h-6 rounded-full bg-[#24D4F4]/15 text-[#24D4F4] text-xs font-bold flex items-center justify-center shrink-0">{idx + 1}</span>
+                  {step}
+                </div>
+              ))}
             </div>
             <p className="text-slate-500 text-sm mt-2">
               Telegram: <a href="https://t.me/raos_support" className="text-[#24D4F4] hover:underline">@raos_support</a>
@@ -260,7 +254,7 @@ export default function RegistrationForm() {
             </button>
 
             <p className="text-center text-emerald-400/70 text-xs">
-              ✓ 30 kun bepul &middot; ✓ Karta kerak emas &middot; ✓ 2 daqiqada sozlash
+              {r.guarantee}
             </p>
 
             {submitError && (
