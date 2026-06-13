@@ -17,7 +17,7 @@ export default function LandingPage() {
   return (
     <>
       <Header />
-      <main>
+      <main id="main-content">
         <HeroSection />
         <SegmentCarousel />
         <HowItWorks />

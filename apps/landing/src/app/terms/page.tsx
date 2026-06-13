@@ -1,27 +1,61 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { headers } from 'next/headers'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import PageJsonLd from '@/components/PageJsonLd'
 import { ArrowLeft } from 'lucide-react'
+import type { Lang } from '@/i18n/translations'
 
-export const metadata: Metadata = {
-  title: 'RAOS — Foydalanish shartlari',
-  description: "RAOS platformasidan foydalanish shartlari va qoidalari.",
-  alternates: {
-    canonical: 'https://raos.uz/terms',
-    languages: {
-      'uz': 'https://raos.uz/terms',
-      'ru': 'https://raos.uz/ru/terms',
-      'en': 'https://raos.uz/en/terms',
-    },
+const pageMeta: Record<Lang, { title: string; description: string }> = {
+  uz: {
+    title: 'RAOS — Foydalanish shartlari',
+    description: "RAOS platformasidan foydalanish shartlari va qoidalari.",
   },
+  ru: {
+    title: 'RAOS — Условия использования',
+    description: 'Условия использования и правила платформы RAOS.',
+  },
+  en: {
+    title: 'RAOS — Terms of Service',
+    description: 'RAOS platform terms of service and usage rules.',
+  },
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers()
+  const lang = (headersList.get('x-lang') ?? 'uz') as Lang
+  const meta = pageMeta[lang]
+  const langPrefix = lang === 'uz' ? '' : `/${lang}`
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: {
+      canonical: `https://raos.uz${langPrefix}/terms`,
+      languages: {
+        'uz': 'https://raos.uz/terms',
+        'ru': 'https://raos.uz/ru/terms',
+        'en': 'https://raos.uz/en/terms',
+        'x-default': 'https://raos.uz/terms',
+      },
+    },
+  }
 }
 
 export default function TermsPage() {
   return (
     <>
+      <PageJsonLd
+        pageName="Foydalanish shartlari"
+        pageUrl="https://raos.uz/terms"
+        breadcrumbs={[
+          { name: 'Bosh sahifa', url: 'https://raos.uz' },
+          { name: 'Foydalanish shartlari', url: 'https://raos.uz/terms' },
+        ]}
+      />
       <Header />
-      <main className="min-h-screen bg-[#0E1530] pt-16">
+      <main id="main-content" className="min-h-screen bg-[#0E1530] pt-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <a
             href="/"
