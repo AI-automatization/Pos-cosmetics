@@ -1,27 +1,61 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { headers } from 'next/headers'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import PageJsonLd from '@/components/PageJsonLd'
 import { ArrowLeft } from 'lucide-react'
+import type { Lang } from '@/i18n/translations'
 
-export const metadata: Metadata = {
-  title: 'RAOS — Maxfiylik siyosati',
-  description: "RAOS platformasida shaxsiy ma'lumotlarni himoya qilish siyosati. O'RQ-547 asosida.",
-  alternates: {
-    canonical: 'https://raos.uz/privacy',
-    languages: {
-      'uz': 'https://raos.uz/privacy',
-      'ru': 'https://raos.uz/ru/privacy',
-      'en': 'https://raos.uz/en/privacy',
-    },
+const pageMeta: Record<Lang, { title: string; description: string }> = {
+  uz: {
+    title: 'RAOS — Maxfiylik siyosati',
+    description: "RAOS platformasida shaxsiy ma'lumotlarni himoya qilish siyosati. O'RQ-547 asosida.",
   },
+  ru: {
+    title: 'RAOS — Политика конфиденциальности',
+    description: 'Политика защиты персональных данных платформы RAOS. На основании Закона О-РК-547.',
+  },
+  en: {
+    title: 'RAOS — Privacy Policy',
+    description: 'RAOS platform personal data protection policy. Based on O-RK-547 law.',
+  },
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers()
+  const lang = (headersList.get('x-lang') ?? 'uz') as Lang
+  const meta = pageMeta[lang]
+  const langPrefix = lang === 'uz' ? '' : `/${lang}`
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: {
+      canonical: `https://raos.uz${langPrefix}/privacy`,
+      languages: {
+        'uz': 'https://raos.uz/privacy',
+        'ru': 'https://raos.uz/ru/privacy',
+        'en': 'https://raos.uz/en/privacy',
+        'x-default': 'https://raos.uz/privacy',
+      },
+    },
+  }
 }
 
 export default function PrivacyPage() {
   return (
     <>
+      <PageJsonLd
+        pageName="Maxfiylik siyosati"
+        pageUrl="https://raos.uz/privacy"
+        breadcrumbs={[
+          { name: 'Bosh sahifa', url: 'https://raos.uz' },
+          { name: 'Maxfiylik siyosati', url: 'https://raos.uz/privacy' },
+        ]}
+      />
       <Header />
-      <main className="min-h-screen bg-[#0E1530] pt-16">
+      <main id="main-content" className="min-h-screen bg-[#0E1530] pt-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <a
             href="/"

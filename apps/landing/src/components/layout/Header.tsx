@@ -108,7 +108,7 @@ export default function Header() {
           </a>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -144,6 +144,8 @@ export default function Header() {
               className="text-slate-300 hover:text-[#24D4F4] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={t.nav.menu}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
             >
               {menuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -153,12 +155,13 @@ export default function Header() {
 
       {/* Mobile slide-in nav */}
       <div
+        id="mobile-nav"
         className={clsx(
           'md:hidden overflow-hidden transition-all duration-300 bg-[#0E1530]/98 backdrop-blur-md border-b border-[rgba(36,212,244,0.2)]',
           menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
         )}
       >
-        <nav className="px-4 py-4 flex flex-col gap-4">
+        <nav className="px-4 py-4 flex flex-col gap-4" aria-label="Mobile navigation">
           {navLinks.map((link) => (
             <a
               key={link.href}

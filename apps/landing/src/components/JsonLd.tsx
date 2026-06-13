@@ -2,18 +2,25 @@ export default function JsonLd() {
   const softwareApp = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
+    '@id': 'https://raos.uz/#software',
     name: 'RAOS',
     applicationCategory: 'BusinessApplication',
+    applicationSubCategory: 'Point of Sale',
     operatingSystem: 'Android, iOS, Windows, Web',
     description:
       "O'zbekiston uchun smart POS tizimi. Kassa, sklad, Soliq.uz, AI hisobot — bitta joyda.",
     url: 'https://raos.uz',
+    downloadUrl: 'https://raos.uz/#register',
+    softwareVersion: '1.0',
+    releaseNotes: "Soliq.uz integratsiya, offline rejim, AI Night Cashier, 3 tilda interfeys.",
+    inLanguage: ['uz', 'ru', 'en'],
     offers: {
       '@type': 'AggregateOffer',
       lowPrice: '249000',
       highPrice: '799000',
       priceCurrency: 'UZS',
       offerCount: '3',
+      availability: 'https://schema.org/InStock',
     },
     aggregateRating: {
       '@type': 'AggregateRating',
@@ -51,32 +58,124 @@ export default function JsonLd() {
     ],
     author: {
       '@type': 'Organization',
-      name: 'Tezcode',
-      url: 'https://raos.uz',
+      '@id': 'https://raos.uz/#organization',
     },
+    provider: {
+      '@type': 'Organization',
+      '@id': 'https://raos.uz/#organization',
+    },
+    screenshot: 'https://raos.uz/opengraph-image',
+    featureList: [
+      "Offline ishlaydi — internet kerak emas",
+      "Soliq.uz (OFD) integratsiya",
+      "AI Night Cashier — avtomatik hisobot",
+      "3 tilda interfeys (UZ, RU, EN)",
+      "Ko'p filial boshqaruvi",
+      "Mobil ilova (Android + iOS)",
+      "Chegirma va loyalty tizimi",
+      "QR kod va shtrix-kod skaneri",
+    ],
   }
 
   const organization = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': 'https://raos.uz/#organization',
     name: 'Tezcode',
+    legalName: 'Tezcode',
     url: 'https://raos.uz',
-    logo: 'https://raos.uz/opengraph-image',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://raos.uz/opengraph-image',
+      width: 1200,
+      height: 630,
+    },
+    foundingDate: '2025',
+    founders: [{ '@type': 'Person', name: 'Ibrat Tursunov' }],
+    numberOfEmployees: { '@type': 'QuantitativeValue', minValue: 5, maxValue: 10 },
     sameAs: [
       'https://t.me/raos_support',
       'https://instagram.com/raos.uz',
+      'https://t.me/raos_uz',
     ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+998-91-777-66-09',
-      contactType: 'customer support',
-      availableLanguage: ['Uzbek', 'Russian', 'English'],
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        telephone: '+998-91-777-66-09',
+        contactType: 'customer support',
+        availableLanguage: ['Uzbek', 'Russian', 'English'],
+        areaServed: 'UZ',
+      },
+      {
+        '@type': 'ContactPoint',
+        telephone: '+998-99-315-15-16',
+        contactType: 'sales',
+        availableLanguage: ['Uzbek', 'Russian'],
+        areaServed: 'UZ',
+      },
+    ],
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Toshkent',
+      addressRegion: 'Toshkent',
+      addressCountry: 'UZ',
     },
+    knowsLanguage: ['uz', 'ru', 'en'],
+  }
+
+  const webSite = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': 'https://raos.uz/#website',
+    name: 'RAOS',
+    alternateName: ["RAOS POS", "RAOS kassa dasturi", "RAOS POS tizimi"],
+    url: 'https://raos.uz',
+    publisher: { '@type': 'Organization', '@id': 'https://raos.uz/#organization' },
+    inLanguage: ['uz', 'ru', 'en'],
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://raos.uz/?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  }
+
+  const webPage = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': 'https://raos.uz/#webpage',
+    url: 'https://raos.uz',
+    name: "RAOS — POS tizimi va kassa dasturi O'zbekiston uchun",
+    description: "POS tizimi va kassa dasturi O'zbekiston do'konlari uchun. Soliq.uz integratsiya, AI hisobot, offline ishlaydi.",
+    isPartOf: { '@type': 'WebSite', '@id': 'https://raos.uz/#website' },
+    about: { '@type': 'SoftwareApplication', '@id': 'https://raos.uz/#software' },
+    publisher: { '@type': 'Organization', '@id': 'https://raos.uz/#organization' },
+    inLanguage: 'uz',
+    datePublished: '2026-01-15',
+    dateModified: '2026-06-13',
+    breadcrumb: { '@type': 'BreadcrumbList', '@id': 'https://raos.uz/#breadcrumb-home' },
+  }
+
+  const breadcrumbHome = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    '@id': 'https://raos.uz/#breadcrumb-home',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Bosh sahifa',
+        item: 'https://raos.uz',
+      },
+    ],
   }
 
   const faqPage = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
+    '@id': 'https://raos.uz/#faq',
     mainEntity: [
       {
         '@type': 'Question',
@@ -142,12 +241,63 @@ export default function JsonLd() {
           text: "Telegram: @raos_support (24/7). Telefon: +998 91 777 66 09 / +998 99 315 15 16 (ish kunlari 9-18). Video darsliklar ham bor.",
         },
       },
+      // RU variants for multilingual FAQ
+      {
+        '@type': 'Question',
+        name: 'Что такое RAOS?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'RAOS — POS система и кассовая программа для магазинов Узбекистана. Работает на компьютере, планшете и телефоне. Продажи, склад, отчёты, интеграция с Soliq.uz — всё в одном месте. Работает в Ташкенте, Самарканде, Намангане и по всей стране.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Работает ли RAOS без интернета?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Да! Данные хранятся на устройстве. Продажи встают в очередь. Когда интернет появится — автоматически отправляются на сервер. Ничего не теряется.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Сколько стоит RAOS?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Starter: 249 000 сум/мес. Growth: 449 000. Pro: 799 000. Первый месяц бесплатно в пилотной программе.',
+        },
+      },
+      // EN variants
+      {
+        '@type': 'Question',
+        name: 'What is RAOS?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'RAOS is a smart POS system and cash register software for retail stores in Uzbekistan. Works on computer, tablet, or phone. Sales, inventory, reports, Soliq.uz integration — all in one place. Available in Tashkent, Samarkand, Namangan and nationwide.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does RAOS work offline?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes! Data is stored on the device. Sales are queued. When internet returns, everything syncs automatically to the server. Nothing is lost.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How much does RAOS cost?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Starter: 249,000 UZS/month. Growth: 449,000. Pro: 799,000. First month free in our pilot program — no credit card required.',
+        },
+      },
     ],
   }
 
   const localBusiness = {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
+    '@type': ['LocalBusiness', 'SoftwareCompany'],
+    '@id': 'https://raos.uz/#localbusiness',
     name: "RAOS — POS tizimi va kassa dasturi",
     description: "O'zbekiston do'konlari uchun POS tizimi. Soliq.uz integratsiya, offline ishlaydi, AI hisobot. Toshkent, Samarqand, Namangan va barcha shaharlarda.",
     url: 'https://raos.uz',
@@ -156,6 +306,8 @@ export default function JsonLd() {
     logo: 'https://raos.uz/opengraph-image',
     image: 'https://raos.uz/opengraph-image',
     priceRange: '249 000 – 799 000 UZS/oy',
+    currenciesAccepted: 'UZS',
+    paymentAccepted: ['Cash', 'Click', 'Payme', 'Bank transfer'],
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Toshkent',
@@ -175,6 +327,13 @@ export default function JsonLd() {
       { '@type': 'City', name: "Farg'ona" },
       { '@type': 'City', name: 'Buxoro' },
       { '@type': 'City', name: 'Nukus' },
+      { '@type': 'City', name: 'Qarshi' },
+      { '@type': 'City', name: 'Jizzax' },
+      { '@type': 'City', name: 'Navoiy' },
+      { '@type': 'City', name: 'Urganch' },
+      { '@type': 'City', name: 'Termiz' },
+      { '@type': 'City', name: 'Guliston' },
+      { '@type': 'City', name: 'Kokand' },
       { '@type': 'Country', name: "O'zbekiston" },
     ],
     openingHoursSpecification: [
@@ -184,10 +343,17 @@ export default function JsonLd() {
         opens: '09:00',
         closes: '18:00',
       },
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: 'Saturday',
+        opens: '10:00',
+        closes: '15:00',
+      },
     ],
     sameAs: [
       'https://t.me/raos_support',
       'https://instagram.com/raos.uz',
+      'https://t.me/raos_uz',
     ],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
@@ -199,6 +365,8 @@ export default function JsonLd() {
           price: '249000',
           priceCurrency: 'UZS',
           description: "1 ta filial, asosiy funksiyalar, Soliq.uz integratsiya",
+          priceValidUntil: '2027-12-31',
+          availability: 'https://schema.org/InStock',
         },
         {
           '@type': 'Offer',
@@ -206,6 +374,8 @@ export default function JsonLd() {
           price: '449000',
           priceCurrency: 'UZS',
           description: "3 ta filial, AI hisobot, kengaytirilgan sklad",
+          priceValidUntil: '2027-12-31',
+          availability: 'https://schema.org/InStock',
         },
         {
           '@type': 'Offer',
@@ -213,29 +383,65 @@ export default function JsonLd() {
           price: '799000',
           priceCurrency: 'UZS',
           description: "Cheksiz filiallar, to'liq AI analitika, API kirish",
+          priceValidUntil: '2027-12-31',
+          availability: 'https://schema.org/InStock',
         },
       ],
     },
   }
 
+  const howTo = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    '@id': 'https://raos.uz/#howto',
+    name: "RAOS POS tizimini qanday boshlash",
+    description: "RAOS kassa dasturini 3 oddiy qadamda boshlang. Ro'yxatdan o'ting, do'koningizni sozlang va savdoni boshlang.",
+    totalTime: 'PT5M',
+    estimatedCost: {
+      '@type': 'MonetaryAmount',
+      currency: 'UZS',
+      value: '0',
+    },
+    tool: [
+      { '@type': 'HowToTool', name: "Kompyuter, planshet yoki telefon" },
+      { '@type': 'HowToTool', name: "Internet aloqasi (faqat boshlash uchun)" },
+    ],
+    step: [
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: "Ro'yxatdan o'ting",
+        text: "Saytda formani to'ldiring — ism, telefon, do'kon turi. Jamoamiz 30 daqiqada bog'lanadi.",
+        url: 'https://raos.uz/#register',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: "Do'koningizni sozlang",
+        text: "Tovarlarni kiriting yoki Excel dan yuklang. Kassirlarni qo'shing. Soliq.uz ni ulang.",
+        url: 'https://raos.uz/#register',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 3,
+        name: "Savdoni boshlang",
+        text: "Tayyor! Birinchi sotuvni amalga oshiring. AI Night Cashier ertalab hisobot yuboradi.",
+        url: 'https://raos.uz/#register',
+      },
+    ],
+  }
+
+  const schemas = [softwareApp, organization, webSite, webPage, breadcrumbHome, faqPage, localBusiness, howTo]
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApp) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPage) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
-      />
+      {schemas.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
     </>
   )
 }

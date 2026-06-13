@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import { ArrowLeft } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'Sahifa topilmadi — 404',
+  robots: { index: false, follow: false },
+}
 
 export default function NotFound() {
   return (
@@ -6,7 +12,7 @@ export default function NotFound() {
       <div className="text-center">
         <p className="text-[#24D4F4] font-bold text-8xl mb-4">404</p>
         <h1 className="text-white font-bold text-2xl mb-3">Sahifa topilmadi</h1>
-        <p className="text-slate-400 mb-8">Siz izlayotgan sahifa mavjud emas.</p>
+        <p className="text-slate-400 mb-8">Siz izlayotgan sahifa mavjud emas yoki ko&apos;chirilgan.</p>
         <a
           href="/"
           className="inline-flex items-center gap-2 bg-[#24D4F4] text-[#0E1530] font-bold px-6 py-3 rounded-xl hover:bg-[#0FA8C8] transition-colors"
