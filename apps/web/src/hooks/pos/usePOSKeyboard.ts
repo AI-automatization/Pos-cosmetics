@@ -47,7 +47,7 @@ export function usePOSKeyboard(handlers: POSKeyboardHandlers) {
         case 'F8':  e.preventDefault(); handlersRef.current.onF8?.(); break;
         case 'F9':  e.preventDefault(); handlersRef.current.onF9?.(); break;
         case 'F10': e.preventDefault(); handlersRef.current.onF10?.(); break;
-        case 'Escape': handlersRef.current.onEsc?.(); break;
+        case 'Escape': e.preventDefault(); handlersRef.current.onEsc?.(); break;
       }
     }
     window.addEventListener('keydown', handleKeyDown);
