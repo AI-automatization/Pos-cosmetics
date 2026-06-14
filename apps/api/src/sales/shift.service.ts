@@ -38,6 +38,7 @@ export class ShiftService {
     });
 
     this.logger.log(`Shift opened: ${shift.id}`, { tenantId, userId });
+    this.eventEmitter.emit('shift.changed', { tenantId, shiftId: shift.id, userId, status: 'OPEN' });
     return shift;
   }
 
@@ -66,6 +67,7 @@ export class ShiftService {
 
     this.logger.log(`Shift closed: ${shiftId}`, { tenantId, userId });
     this.eventEmitter.emit('shift.closed', { tenantId, shiftId, userId });
+    this.eventEmitter.emit('shift.changed', { tenantId, shiftId, userId, status: 'CLOSED' });
     return updated;
   }
 
