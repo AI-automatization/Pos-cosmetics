@@ -155,11 +155,13 @@ export default function POSPage() {
   const items = activeCart?.items ?? [];
 
   const [showRecovery, setShowRecovery] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // 1. Rehydrate persist from localStorage (skipHydration: true = server & initial client render both
   //    use default state → no #418 SSR mismatch). Read AFTER rehydrate() using getState() so we
   //    see the fresh persisted shiftId, not the stale captured value from initial render.
   // 2. If no active shift in store, query the server (handles page refresh / new session).
+  // 3. Set hydrated=true AFTER rehydrate + server check — prevents ShiftOpenModal flicker.
   useEffect(() => {
     usePOSStore.persist.rehydrate();
     const { shiftId } = usePOSStore.getState();
@@ -170,7 +172,10 @@ export default function POSPage() {
           const cashierName = [s.user?.firstName, s.user?.lastName].filter(Boolean).join(' ') || 'Kassir';
           usePOSStore.getState().openShift(shift.id, cashierName, Number(shift.openingCash));
         }
-      }).catch(() => { /* shift fetch failed — user will open manually */ });
+      }).catch(() => { /* shift fetch failed — user will open manually */ })
+        .finally(() => setHydrated(true));
+    } else {
+      setHydrated(true);
     }
   }, []); // intentional: run once on mount
 
@@ -329,8 +334,8 @@ export default function POSPage() {
         />
       </div>
 
-      {/* Shift Gate — blocks POS if no shift open */}
-      {!isShiftOpen && (
+      {/* Shift Gate — blocks POS if no shift open (wait for hydration to prevent flicker) */}
+      {hydrated && !isShiftOpen && (
         <ShiftOpenModal onOpened={() => {/* store updated in hook */}} />
       )}
 

@@ -94,52 +94,54 @@ export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex h-11 shrink-0 items-center justify-between bg-gray-900 px-4 text-sm text-gray-300">
-      <div className="flex items-center gap-4">
+    <div className="flex h-11 shrink-0 items-center justify-between bg-gray-900 px-2 sm:px-4 text-xs sm:text-sm text-gray-300">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <Link
           href="/catalog/products"
-          className="flex items-center gap-1.5 text-gray-400 transition hover:text-white"
+          className="flex shrink-0 items-center gap-1.5 text-gray-400 transition hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-xs">{t('pos.adminBack')}</span>
+          <span className="hidden sm:inline text-xs">{t('pos.adminBack')}</span>
         </Link>
 
-        <div className="h-4 w-px bg-gray-700" />
+        <div className="hidden sm:block h-4 w-px bg-gray-700" />
 
-        <div className="flex items-center gap-1.5">
-          <User className="h-4 w-4 text-gray-500" />
-          <span className="font-medium text-white">{cashierName}</span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <User className="h-4 w-4 shrink-0 text-gray-500" />
+          <span className="font-medium text-white truncate max-w-[80px] sm:max-w-[140px]">{cashierName}</span>
         </div>
 
         {shiftId && (
           <>
-            <div className="h-4 w-px bg-gray-700" />
+            <div className="hidden sm:block h-4 w-px bg-gray-700" />
             <div className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4 text-gray-500" />
+              <Clock className="h-4 w-4 shrink-0 text-gray-500" />
               <span className="font-mono text-xs">{elapsed}</span>
             </div>
           </>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
         {/* Sync status */}
         <SyncStatusBar />
 
-        <POSLanguageSwitcher />
+        <div className="hidden md:block">
+          <POSLanguageSwitcher />
+        </div>
 
-        <div className="h-4 w-px bg-gray-700" />
+        <div className="hidden sm:block h-4 w-px bg-gray-700" />
 
         <div className="flex items-center gap-1.5">
-          <ShoppingBag className="h-4 w-4 text-gray-500" />
-          <span>
+          <ShoppingBag className="h-4 w-4 shrink-0 text-gray-500" />
+          <span className="hidden sm:inline">
             {t('pos.todaySales')}:{' '}
-            <span className="font-semibold text-white">{salesCount}</span>
           </span>
+          <span className="font-semibold text-white">{salesCount}</span>
         </div>
 
         {!shiftId && (
-          <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
+          <span className="hidden sm:inline rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
             {t('pos.shiftNotOpen')}
           </span>
         )}
@@ -148,12 +150,12 @@ export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
           <button
             type="button"
             onClick={onOpenReturn}
-            className="flex items-center gap-1.5 rounded-lg border border-orange-800 px-3 py-1 text-xs font-medium text-orange-400 transition hover:border-orange-600 hover:bg-orange-900/30 hover:text-orange-300"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-lg border border-orange-800 px-2 sm:px-3 py-1 text-xs font-medium text-orange-400 transition hover:border-orange-600 hover:bg-orange-900/30 hover:text-orange-300"
             title={`${t('pos.return')} (F4)`}
           >
-            <RotateCcw className="h-3.5 w-3.5" />
-            {t('pos.return')}
-            <kbd className="rounded bg-gray-700 px-1 py-0.5 font-mono text-[10px] text-gray-400">F4</kbd>
+            <RotateCcw className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden sm:inline">{t('pos.return')}</span>
+            <kbd className="hidden md:inline rounded bg-gray-700 px-1 py-0.5 font-mono text-[10px] text-gray-400">F4</kbd>
           </button>
         )}
 
@@ -161,14 +163,18 @@ export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
           <button
             type="button"
             onClick={async () => {
-              await openCashDrawer();
-              toast.success(t('pos.cashDrawerOpened'));
+              const sent = await openCashDrawer();
+              if (sent) {
+                toast.success(t('pos.cashDrawerOpened'));
+              } else {
+                toast.warning(t('pos.cashDrawerFailed') || 'Kassa qutisiga ulanib bo\'lmadi');
+              }
             }}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-700 px-3 py-1 text-xs font-medium text-gray-400 transition hover:border-gray-500 hover:bg-gray-800 hover:text-gray-200"
+            className="hidden sm:flex items-center gap-1.5 rounded-lg border border-gray-700 px-2 sm:px-3 py-1 text-xs font-medium text-gray-400 transition hover:border-gray-500 hover:bg-gray-800 hover:text-gray-200"
             title={t('pos.cashDrawer')}
           >
             <Archive className="h-3.5 w-3.5" />
-            {t('pos.cashDrawer')}
+            <span className="hidden md:inline">{t('pos.cashDrawer')}</span>
           </button>
         )}
 
@@ -176,10 +182,10 @@ export function ShiftBar({ onCloseShift, onOpenReturn }: ShiftBarProps) {
           <button
             type="button"
             onClick={onCloseShift}
-            className="flex items-center gap-1.5 rounded-lg border border-red-800 px-3 py-1 text-xs font-medium text-red-400 transition hover:border-red-600 hover:bg-red-900/30 hover:text-red-300"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-lg border border-red-800 px-2 sm:px-3 py-1 text-xs font-medium text-red-400 transition hover:border-red-600 hover:bg-red-900/30 hover:text-red-300"
           >
-            <LogOut className="h-3.5 w-3.5" />
-            {t('pos.closeShift')}
+            <LogOut className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden sm:inline">{t('pos.closeShift')}</span>
           </button>
         )}
 

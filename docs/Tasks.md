@@ -484,3 +484,81 @@
 - **Fayl:** `apps/worker/src/workers/migration.worker.ts`
 - **Muammo:** Job data da credentials ochiq Redis ga yoziladi. `X-Internal-Worker: true` header hech qanday secret bilan tekshirilmaydi.
 - **Kutilgan:** Credentials o'rniga credentialId yuborish va DB/vault dan o'qish. Header ga secret qo'shish.
+
+---
+
+## T-497 | P1 | [FRONTEND] | POS — CASHIER roliga promotions/customers 403
+
+- **Sana:** 2026-06-14
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/sales/promotions/promotions.controller.ts`, `apps/api/src/customers/customers.controller.ts`
+- **Muammo:** CASHIER roli @Roles() da yo'q → POS da nasiya/bonus yaratishda 403 Forbidden
+- **Kutilgan:** CASHIER GET/POST promotions + GET/POST customers ga kirishi kerak
+- **Status:** ✅ BAJARILDI (2026-06-14)
+
+---
+
+## T-498 | P2 | [FRONTEND] | POS — ShiftOpenModal miltillashi (hydration flicker)
+
+- **Sana:** 2026-06-14
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(pos)/pos/page.tsx`
+- **Muammo:** skipHydration=true → shiftId null → modal ko'rinadi → rehydrate → modal yo'qoladi (miltillash)
+- **Kutilgan:** hydrated state qo'shib, rehydrate tugaguncha modal ko'rsatmaslik
+- **Status:** ✅ BAJARILDI (2026-06-14)
+
+---
+
+## T-499 | P2 | [BACKEND] | shift.changed event — WebSocket real-time shift status
+
+- **Sana:** 2026-06-14
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/api/src/sales/shift.service.ts`
+- **Muammo:** shift.service faqat shift.closed emit qiladi, lekin realtime.gateway shift.changed kutadi → WebSocket ishlamaydi
+- **Kutilgan:** openShift va closeShift da shift.changed emit qilish → Web/Owner panel real-time yangilanadi
+- **Status:** ✅ BAJARILDI (2026-06-14)
+
+---
+
+## T-500 | P2 | [FRONTEND] | POS ShiftBar — responsive layout
+
+- **Sana:** 2026-06-14
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/app/(pos)/pos/ShiftBar.tsx`
+- **Muammo:** Barcha elementlar fixed gap/text — kichik ekranda siqilib ko'rinmay qoladi
+- **Kutilgan:** Responsive Tailwind: hidden sm:inline, truncate, icons-only on mobile
+- **Status:** ✅ BAJARILDI (2026-06-14)
+
+---
+
+## T-501 | P2 | [FRONTEND] | POS Cash Drawer — USB va Browser rejimi zaglushka edi
+
+- **Sana:** 2026-06-14
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/web/src/lib/cashDrawer.ts`
+- **Muammo:** usb va browser rejimlarida return false — hech narsa qilmas edi. Toast yolg'on ko'rsatar edi.
+- **Kutilgan:** USB → Web Serial API, Browser → window.print fallback, toast haqiqiy natijani ko'rsatsin
+- **Status:** ✅ BAJARILDI (2026-06-14)
+
+---
+
+## T-502 | P1 | [OFFLINE] | ARCUS 2.1 — Bank terminal (pin-pad) integratsiyasi
+
+- **Sana:** 2026-06-14
+- **Mas'ul:** Ibrat
+- **Fayl:** `apps/pos/` (Tauri), `C:\Arcus2\ArcCom.dll`
+- **Muammo:** Terminal tugmasi POS da bor, lekin fizik terminal bilan hech qanday aloqa yo'q. Kasser qo'lda terminal da summa kiritadi.
+- **Kutilgan:** Tauri Rust FFI → ArcCom.dll → ITPosRun(1) → auto-pay. COM-port auto-reconnect.
+- **Docs:** `docs/INTEGRATIONS_MAP.md` (ARCUS section), Obsidian `PROJECTS/RAOS/arcus-integration.md`
+- **Kontakt:** +998 99 885 43 45 (@ef4345) — bankdagi tanish
+
+---
+
+## T-503 | P2 | [BACKEND] | REGOS OFD — fiscal QR chekda ko'rsatish
+
+- **Sana:** 2026-06-14
+- **Mas'ul:** Ibrat (+ Sardor fiscal zona)
+- **Fayl:** `apps/web/src/components/Receipt/ReceiptTemplate.tsx`, `apps/api/src/tax/adapters/regos.adapter.ts`
+- **Muammo:** REGOS adapter tayyor (fiscalQr, fiscalId, fiscalSign qaytaradi), lekin chek shabloni placeholder ko'rsatadi ("⏳ Fiscal Pending")
+- **Kutilgan:** Order da fiscal ma'lumot bo'lsa → chekda QR, fiscal ID, imzo ko'rsatish
+- **Bog'liq:** T-081

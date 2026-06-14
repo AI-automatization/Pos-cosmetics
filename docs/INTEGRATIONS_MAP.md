@@ -308,10 +308,168 @@ apps/api/src/integrations/
 
 ---
 
-## Tags
+## ARCUS 2.1 — Bank Terminal (Acquiring)
 
-#raos #integrations #zzone #adetal #marketplace #auto-parts #api
+```mermaid
+flowchart LR
+    subgraph POS["RAOS POS (Tauri)"]
+        direction TB
+        CART["Cart / Checkout"]
+        PAY["PaymentService"]
+        ARCUS_CMD["Tauri Command<br/>arcus_pay / arcus_refund"]
+    end
+
+    subgraph ARCUS["ARCUS 2.1 (ArcCom.dll)"]
+        direction TB
+        CREATE["CreateITPos()"]
+        SET["ITPosSet(amount, currency)"]
+        RUN["ITPosRun(1=pay, 3=refund)"]
+        GET["ITPosGet(response_code, rrn, slip)"]
+        PING["ITPosRunCmd(TEST_PING)"]
+    end
+
+    subgraph HW["Hardware"]
+        direction TB
+        PINPAD["Ingenico Pin-pad<br/>(Telium / Unicapt32)"]
+        CONN["USB / COM / TCP"]
+    end
+
+    subgraph BANK["Bank"]
+        ACQ["Банк-эквайер"]
+        PROTO["ISO8583 / SPDH"]
+    end
+
+    CART -->|"сумма из корзины"| PAY
+    PAY -->|FFI call| ARCUS_CMD
+    ARCUS_CMD --> CREATE --> SET --> RUN
+    RUN -->|USB/COM/TCP| PINPAD
+    PINPAD -->|ISO8583| ACQ
+    ACQ -->|response| PINPAD
+    PINPAD -->|result| GET
+    GET -->|"000=ok"| PAY
+    PAY -->|"чек + корзина clear"| CART
+
+    PING -.->|"auto-reconnect<br/>при старте + ошибках"| PINPAD
+
+    style POS fill:#1a1a2e,color:#fff
+    style ARCUS fill:#e76f51,color:#fff
+    style HW fill:#264653,color:#fff
+    style BANK fill:#2a9d8f,color:#fff
+```
+
+**Протокол:** ARCUS 2.1 CAP (Ingenico)
+**Библиотека:** `ArcCom.dll` (Windows) / `libarcus.so` (Linux)
+**Документация:** `ARCUS_2_1_ADMIN_RUS_1_14.pdf` (46 стр.)
+**Статус:** Исследование завершено, интеграция не начата
+
+### Операции
+
+| Op ID | Операция | Описание |
+|-------|----------|----------|
+| 1 | Purchase | Оплата — сумма из корзины RAOS |
+| 3 | Refund | Возврат — по RRN |
+| 4 | Cancel | Отмена последней операции |
+| 7 | Settlement | Сверка итогов (Z-отчёт) |
+| 99 | Admin | Меню администрирования |
+
+### Ключевые параметры
+
+| Параметр | IN/OUT | Описание |
+|----------|--------|----------|
+| `amount` | IN | Сумма в копейках |
+| `currency` | IN | `860` = UZS |
+| `response_code` | OUT | `000` = одобрено |
+| `auth_code` | OUT | Код авторизации |
+| `rrn` | IN/OUT | Reference number (для возврата) |
+| `pan` | OUT | Маскированный номер карты |
+| `slip` | OUT | Текст чека |
+
+### Flow в RAOS POS
+
+```
+Кассир пробивает товары → корзина
+  → Клиент выбирает "Оплата картой"
+  → RAOS отправляет сумму на Pin-pad (ITPosRun(1))
+  → Клиент прикладывает карту / вводит PIN
+  → response_code=000 → Ledger entry + OFD чек → корзина clear
+```
+
+### Проблема клиента (Baraka Market)
+
+COM-порт слетает после отключения электричества / перезагрузки ПО.
+**Решение:** `PORT=USB` + `AUTODETECT_OPS=YES` + auto-reconnect с `TEST_PING`.
+
+### Контакт
+
+- Банковский контакт: +998 99 885 43 45 (@ef4345)
+- Источник: куратор Абдулазиз Oka Mars (2026-06-13)
 
 ---
 
-_INTEGRATIONS_MAP.md | RAOS | 2026-06-11_
+## POS Hardware Integrations
+
+```mermaid
+graph TB
+    subgraph POS["RAOS POS (Browser / Tauri)"]
+        KBD["Keyboard Events<br/>(keydown listener)"]
+        WSA["Web Serial API<br/>(USB printers)"]
+        NET["HTTP fetch<br/>(Network printers)"]
+        BPRINT["window.print()<br/>(Browser fallback)"]
+    end
+
+    subgraph HW["Hardware"]
+        SCAN["📱 Barcode Scanner<br/>USB HID Keyboard"]
+        PRINT["🖨️ Receipt Printer<br/>ESC/POS (Epson/XPrinter/Rongta)"]
+        DRAW["💰 Cash Drawer<br/>RJ-12 через принтер"]
+        PIN["💳 Pin-pad<br/>Ingenico (ARCUS 2.1)"]
+    end
+
+    SCAN -->|"USB HID → rapid keydown"| KBD
+    PRINT -->|"USB cable"| WSA
+    PRINT -->|"Ethernet :9100"| NET
+    PRINT -->|"System printer"| BPRINT
+    DRAW -->|"RJ-12 кабель"| PRINT
+    PIN -->|"ArcCom.dll (будущее)"| POS
+
+    style POS fill:#1a1a2e,color:#fff
+    style HW fill:#264653,color:#fff
+```
+
+### Оборудование — статус
+
+| Устройство | Подключение | Протокол | Файл в RAOS | Статус |
+|-----------|-------------|----------|-------------|--------|
+| Barcode Scanner | USB HID | Keyboard wedge | `hooks/pos/useBarcodeScanner.ts` | ✅ Работает |
+| Receipt Printer | USB / Network / Browser | ESC/POS | `components/Receipt/useReceiptPrint.ts` | ✅ Работает |
+| Cash Drawer | RJ-12 через принтер | ESC/POS kick | `lib/cashDrawer.ts` | ✅ 3 режима |
+| Pin-pad (Terminal) | USB/COM (ARCUS) | ISO8583 | Не реализован | ❌ Ждёт ARCUS |
+| Fiscal Module | API (REGOS OFD) | JSON-RPC | `api/src/tax/adapters/regos.adapter.ts` | ⏳ T-081 |
+
+### Cash Drawer — 3 режима
+
+| Режим | Как работает | Команда |
+|-------|-------------|---------|
+| `network` | POST `http://{ip}:{port}/drawer` → ESC/POS через прокси | `ESC p 0 25 250` |
+| `usb` | Web Serial API → прямая отправка байтов на USB-принтер | `ESC p 0 25 250` + `DLE EOT 1` |
+| `browser` | Скрытый iframe + `window.print()` с ESC/POS payload | `ESC p 0 25 250` |
+
+### Barcode Scanner — как работает
+
+```
+USB сканер = клавиатура (HID)
+  → Символы < 100ms друг от друга
+  → Enter в конце
+  → useBarcodeScanner ловит быстрый ввод
+  → Ищет товар по штрих-коду в каталоге
+  → Авто-добавляет в корзину + beep
+```
+
+---
+
+## Tags
+
+#raos #integrations #zzone #adetal #arcus #acquiring #marketplace #auto-parts #api #hardware #barcode #printer #drawer
+
+---
+
+_INTEGRATIONS_MAP.md | RAOS | 2026-06-14 — POS Hardware section added_
