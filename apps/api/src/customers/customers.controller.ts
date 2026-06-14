@@ -29,6 +29,7 @@ export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Get()
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'List customers (paginated)' })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'branchId', required: false })
@@ -49,6 +50,7 @@ export class CustomersController {
   }
 
   @Get(':id')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'Get customer by ID' })
   @ApiParam({ name: 'id', type: String })
   findOne(
@@ -59,6 +61,7 @@ export class CustomersController {
   }
 
   @Get(':id/stats')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'Get customer statistics (orders, spent, debt)' })
   @ApiParam({ name: 'id', type: String })
   getStats(
@@ -69,6 +72,7 @@ export class CustomersController {
   }
 
   @Post()
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'Create customer' })
   create(
     @CurrentUser('tenantId') tenantId: string,

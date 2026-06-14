@@ -23,6 +23,7 @@ export class PromotionsController {
   constructor(private readonly promotionsService: PromotionsService) {}
 
   @Get()
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'T-099: Barcha aksiyalar ro\'yxati' })
   @ApiQuery({ name: 'activeOnly', required: false, type: Boolean })
   getAll(
@@ -33,6 +34,7 @@ export class PromotionsController {
   }
 
   @Get(':id')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({ summary: 'T-099: Aksiya detail' })
   @ApiParam({ name: 'id', type: String })
   getOne(
@@ -73,6 +75,7 @@ export class PromotionsController {
   }
 
   @Post('apply')
+  @Roles('OWNER', 'ADMIN', 'MANAGER', 'CASHIER')
   @ApiOperation({
     summary: 'T-099: Cart ga mos aksiyalarni topib discount hisoblash',
     description: 'POS da order yaratishdan oldin chaqiriladi',
